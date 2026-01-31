@@ -1,0 +1,229 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import type { User, Session } from '@supabase/supabase-js';
+
+/**
+ * SESSION SNAPSHOT HOOK
+ * 
+ * Single source of truth for session state across the app.
+ * Loads auth session + user_roles + professional_profiles in one place.
+ * 
+ * RULES:
+ * - Caches results to avoid redundant queries
+ * - Defaults active_role to 'client' to prevent null checks
+ * - Exposes loading/ready states for proper gate handling
+ */
+
+export type UserRole = 'client' | 'professional' | 'admin';
+
+export type OnboardingPhase = 
+  | 'not_started' 
+  | 'basic_info' 
+  | 'verification' 
+  | 'service_setup' 
+  | 'complete';
+
+export type VerificationStatus = 
+  | 'unverified' 
+  | 'pending' 
+  | 'verified' 
+  | 'rejected';
+
+export interface UserRolesData {
+  roles: UserRole[];
+  activeRole: UserRole;
+}
+
+export interface ProfessionalProfileData {
+  onboardingPhase: OnboardingPhase;
+  verificationStatus: VerificationStatus;
+  servicesCount: number;
+  isPubliclyListed: boolean;
+}
+
+export interface SessionSnapshot {
+  // Auth state
+  user: User | null;
+  session: Session | null;
+  isAuthenticated: boolean;
+
+  // Role state
+  roles: UserRole[];
+  activeRole: UserRole;
+  hasRole: (role: UserRole) => boolean;
+
+  // Professional state (only for professionals)
+  professionalProfile: ProfessionalProfileData | null;
+  isProReady: boolean; // verified + onboarding complete + has services
+
+  // Loading states
+  isLoading: boolean;
+  isReady: boolean;
+  error: Error | null;
+
+  // Actions
+  refresh: () => Promise<void>;
+  switchRole: (role: UserRole) => Promise<void>;
+}
+
+const DEFAULT_ROLE: UserRole = 'client';
+
+export function useSessionSnapshot(): SessionSnapshot {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [roles, setRoles] = useState<UserRole[]>([DEFAULT_ROLE]);
+  const [activeRole, setActiveRole] = useState<UserRole>(DEFAULT_ROLE);
+  const [professionalProfile, setProfessionalProfile] = useState<ProfessionalProfileData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const loadUserData = useCallback(async (userId: string) => {
+    try {
+      // Load user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('roles, active_role')
+        .eq('user_id', userId)
+        .single();
+
+      if (rolesError && rolesError.code !== 'PGRST116') {
+        console.error('Error loading user roles:', rolesError);
+      }
+
+      if (rolesData) {
+        setRoles(rolesData.roles as UserRole[]);
+        setActiveRole((rolesData.active_role as UserRole) || DEFAULT_ROLE);
+      }
+
+      // Load professional profile if user has professional role
+      const userRoles = rolesData?.roles || [DEFAULT_ROLE];
+      if (userRoles.includes('professional')) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('professional_profiles')
+          .select('onboarding_phase, verification_status, services_count, is_publicly_listed')
+          .eq('user_id', userId)
+          .single();
+
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Error loading professional profile:', profileError);
+        }
+
+        if (profileData) {
+          setProfessionalProfile({
+            onboardingPhase: profileData.onboarding_phase as OnboardingPhase,
+            verificationStatus: profileData.verification_status as VerificationStatus,
+            servicesCount: profileData.services_count,
+            isPubliclyListed: profileData.is_publicly_listed,
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error loading user data:', err);
+      setError(err instanceof Error ? err : new Error('Unknown error'));
+    }
+  }, []);
+
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (currentSession?.user) {
+        setSession(currentSession);
+        setUser(currentSession.user);
+        await loadUserData(currentSession.user.id);
+      } else {
+        setSession(null);
+        setUser(null);
+        setRoles([DEFAULT_ROLE]);
+        setActiveRole(DEFAULT_ROLE);
+        setProfessionalProfile(null);
+      }
+    } catch (err) {
+      console.error('Error refreshing session:', err);
+      setError(err instanceof Error ? err : new Error('Unknown error'));
+    } finally {
+      setIsLoading(false);
+      setIsReady(true);
+    }
+  }, [loadUserData]);
+
+  const switchRole = useCallback(async (newRole: UserRole) => {
+    if (!user || !roles.includes(newRole)) {
+      console.warn('Cannot switch to role:', newRole);
+      return;
+    }
+
+    try {
+      const { error: updateError } = await supabase
+        .from('user_roles')
+        .update({ active_role: newRole })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      setActiveRole(newRole);
+    } catch (err) {
+      console.error('Error switching role:', err);
+      setError(err instanceof Error ? err : new Error('Failed to switch role'));
+    }
+  }, [user, roles]);
+
+  // Set up auth state listener BEFORE getting session
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (newSession?.user) {
+            setSession(newSession);
+            setUser(newSession.user);
+            // Use setTimeout to avoid potential deadlock with Supabase client
+            setTimeout(() => loadUserData(newSession.user.id), 0);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setRoles([DEFAULT_ROLE]);
+          setActiveRole(DEFAULT_ROLE);
+          setProfessionalProfile(null);
+        }
+      }
+    );
+
+    // Initial session load
+    refresh();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refresh, loadUserData]);
+
+  const hasRole = useCallback((role: UserRole): boolean => {
+    return roles.includes(role);
+  }, [roles]);
+
+  // Calculate if professional is "ready" (can access pro dashboard)
+  const isProReady = 
+    professionalProfile?.verificationStatus === 'verified' &&
+    professionalProfile?.onboardingPhase === 'complete' &&
+    professionalProfile?.servicesCount > 0;
+
+  return {
+    user,
+    session,
+    isAuthenticated: !!user,
+    roles,
+    activeRole,
+    hasRole,
+    professionalProfile,
+    isProReady,
+    isLoading,
+    isReady,
+    error,
+    refresh,
+    switchRole,
+  };
+}
