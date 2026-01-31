@@ -206,9 +206,11 @@ export function useSessionSnapshot(): SessionSnapshot {
   }, [roles]);
 
   // Calculate if professional is "ready" (can access pro dashboard)
+  // Allow both 'service_configured' and 'complete' phases
   const isProReady = 
     professionalProfile?.verificationStatus === 'verified' &&
-    professionalProfile?.onboardingPhase === 'complete' &&
+    (professionalProfile?.onboardingPhase === 'service_setup' || 
+     professionalProfile?.onboardingPhase === 'complete') &&
     professionalProfile?.servicesCount > 0;
 
   return {

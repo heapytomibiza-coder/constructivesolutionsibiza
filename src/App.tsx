@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
-import { RouteGuard, PublicOnlyGuard } from "@/components/auth/RouteGuard";
+import { RouteGuard, PublicOnlyGuard } from "@/guard";
 
 // Public Pages
 import Index from "./pages/Index";

@@ -1,28 +1,12 @@
 /**
- * ROUTE REGISTRY - Single source of truth for all routes
+ * ROUTE REGISTRY - Route definitions only
  * 
- * Access Rules:
- * - public: No auth required, anyone can access
- * - auth: Requires authenticated user
- * - role:client: Requires client role
- * - role:professional: Requires professional role
- * - proReady: Professional with verified + onboarding complete + active service
- * - admin2FA: Admin role with 2FA verified
+ * THIS FILE IS THE SINGLE SOURCE OF TRUTH FOR ALL ROUTES.
+ * Every route must have an explicit access rule and redirectTo.
+ * Do not add route definitions elsewhere.
  */
 
-export type AccessRule = 
-  | 'public' 
-  | 'auth' 
-  | 'role:client' 
-  | 'role:professional' 
-  | 'proReady' 
-  | 'admin2FA';
-
-export interface RouteConfig {
-  path: string;
-  access: AccessRule;
-  redirectTo?: string; // Where to redirect if access denied
-}
+import type { RouteConfig } from './rules';
 
 // ============================================
 // PUBLIC ROUTES - No auth required
@@ -40,9 +24,7 @@ export const publicRoutes: RouteConfig[] = [
   { path: '/cookie-policy', access: 'public' },
   { path: '/how-it-works', access: 'public' },
   { path: '/faq', access: 'public' },
-  { path: '/faq/section', access: 'public' },
-  { path: '/faq/calculator', access: 'public' },
-  { path: '/faq/rental', access: 'public' },
+  { path: '/faq/:slug', access: 'public' },
 ];
 
 // ============================================
@@ -55,7 +37,7 @@ export const authRoutes: RouteConfig[] = [
   { path: '/auth/forgot-password', access: 'public' },
   { path: '/auth/reset-password', access: 'public' },
   { path: '/auth/quick-start', access: 'public' },
-  { path: '/role-switcher', access: 'auth' },
+  { path: '/role-switcher', access: 'auth', redirectTo: '/auth' },
 ];
 
 // ============================================
@@ -128,33 +110,3 @@ export const allRoutes: RouteConfig[] = [
   ...sharedRoutes,
   ...adminRoutes,
 ];
-
-/**
- * Get route config by path
- */
-export function getRouteConfig(path: string): RouteConfig | undefined {
-  // First try exact match
-  const exactMatch = allRoutes.find(r => r.path === path);
-  if (exactMatch) return exactMatch;
-
-  // Then try pattern match for dynamic routes
-  for (const route of allRoutes) {
-    const routePattern = route.path
-      .replace(/:\w+/g, '[^/]+') // Replace :param with regex
-      .replace(/\*/g, '.*'); // Replace * with wildcard
-    const regex = new RegExp(`^${routePattern}$`);
-    if (regex.test(path)) {
-      return route;
-    }
-  }
-
-  return undefined;
-}
-
-/**
- * Check if a path is public
- */
-export function isPublicPath(path: string): boolean {
-  const config = getRouteConfig(path);
-  return config?.access === 'public';
-}
