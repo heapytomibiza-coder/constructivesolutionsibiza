@@ -29,10 +29,11 @@ export const PLATFORM = {
   scope: 'construction-only',
 } as const;
 
-// Domain guardrail: we are construction + property services only
+// Domain guardrail: construction + property services ONLY
+// This platform is NOT a marketplace. Do not expand beyond these trades.
 export const DOMAIN_CONSTRAINT = {
   vertical: 'construction',
-  bannedExamples: ['concierge', 'yacht', 'villa manager', 'chef', 'Mediterranean experience'],
+  scope: 'construction-only',
 } as const;
 
 export const MAIN_CATEGORIES = [
