@@ -110,6 +110,148 @@ export type Database = {
         }
         Relationships: []
       }
+      service_categories: {
+        Row: {
+          category_group: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          examples: string[] | null
+          icon_emoji: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          category_group?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          examples?: string[] | null
+          icon_emoji?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          category_group?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          examples?: string[] | null
+          icon_emoji?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_micro_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          subcategory_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          subcategory_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          subcategory_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_micro_categories_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "service_subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string | null
+          display_order: number
+          icon_emoji: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon_emoji?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon_emoji?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           active_role: string
