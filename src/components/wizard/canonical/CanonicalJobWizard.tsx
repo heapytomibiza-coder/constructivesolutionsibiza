@@ -160,7 +160,12 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       case WizardStep.Micro:
         return wizardState.microIds.length > 0;
       case WizardStep.Logistics:
-        return !!wizardState.logistics.location;
+        // Location required, and if "other" then customLocation must be filled
+        if (!wizardState.logistics.location) return false;
+        if (wizardState.logistics.location === 'other' && !wizardState.logistics.customLocation?.trim()) {
+          return false;
+        }
+        return true;
       case WizardStep.Extras:
         return true; // Extras are optional
       case WizardStep.Review:
