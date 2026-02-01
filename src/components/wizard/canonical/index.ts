@@ -1,3 +1,6 @@
+// Main component
+export { CanonicalJobWizard } from './CanonicalJobWizard';
+
 // Types
 export * from './types';
 
@@ -11,3 +14,6 @@ export {
   parseBudgetValue,
   validateWizardState 
 } from './lib';
+
+// Steps
+export * from './steps';
