@@ -56,6 +56,13 @@ function assertSeederAuth(req: Request): void {
   }
 }
 
+// ============ Slug Aliases ============
+// Remap V1 slugs to V2 equivalents where they're genuinely the same service
+const SLUG_ALIASES: Record<string, string> = {
+  'furniture-appliance-delivery': 'furniture-delivery',
+  'skip-hire-delivery': 'skip-hire',
+};
+
 // ============ Normalization Helpers ============
 
 // Convert slug to human-readable title
@@ -214,11 +221,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Normalize packs with proper field mapping
+    // Normalize packs with proper field mapping + apply slug aliases
+    const aliasesApplied: { from: string; to: string }[] = [];
+    
     const normalizedPacks = packs.map(p => {
-      const micro_slug = p.slug || p.microSlug || '';
+      const rawSlug = p.slug || p.microSlug || '';
+      const micro_slug = SLUG_ALIASES[rawSlug] ?? rawSlug;
+      
+      // Track if an alias was applied
+      if (SLUG_ALIASES[rawSlug]) {
+        aliasesApplied.push({ from: rawSlug, to: micro_slug });
+      }
+      
       return {
         micro_slug,
+        original_slug: rawSlug !== micro_slug ? rawSlug : undefined,
         title: p.title || p.name || humanize(micro_slug),
         questions: normalizeQuestions(p.questions),
         is_active: true,
@@ -281,15 +298,18 @@ Deno.serve(async (req) => {
         JSON.stringify({
           mode: 'dry_run',
           ...validation,
+          aliasesApplied: aliasesApplied.length,
+          aliasPairs: aliasesApplied,
           taxonomySlugsAvailable: existingMicros?.length || 0,
           sampleNormalizedPack: samplePack ? {
             micro_slug: samplePack.micro_slug,
+            original_slug: samplePack.original_slug,
             title: samplePack.title,
             questionCount: samplePack.questions.length,
             firstQuestion: samplePack.questions[0] || null,
           } : null,
           message: validation.valid 
-            ? `Dry run complete. ${validation.packCount} pack(s) ready to insert.`
+            ? `Dry run complete. ${validation.packCount} pack(s) ready to insert. ${aliasesApplied.length} alias(es) applied.`
             : `Dry run complete. ${missingSlugs.length} unknown slug(s) found. Fix before importing.`,
         }),
         { 
