@@ -36,12 +36,13 @@ interface V1Question {
   id: string;
   question?: string;
   label?: string;
-  type: string;
+  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number' | 'file';
   options?: unknown[];
   helpText?: string;
   help?: string;
   placeholder?: string;
   required?: boolean;
+  accept?: string; // for file type (e.g., 'image/*,video/*')
   dependsOn?: {
     questionId: string;
     value: string | string[];
@@ -52,11 +53,12 @@ interface V1Question {
 interface V2Question {
   id: string;
   label: string;
-  type: string;
+  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number' | 'file';
   options?: unknown[];
   help?: string;
   placeholder?: string;
   required?: boolean;
+  accept?: string; // for file type
   show_if?: {
     question_id: string;
     equals?: string;
@@ -82,9 +84,10 @@ const normalizeQuestions = (questions: V1Question[]): V2Question[] =>
       normalized.help = q.help ?? q.helpText;
     }
 
-    // Preserve placeholder and required
+    // Preserve placeholder, required, and accept (for file type)
     if (q.placeholder) normalized.placeholder = q.placeholder;
     if (q.required !== undefined) normalized.required = q.required;
+    if (q.accept) normalized.accept = q.accept;
 
     // Convert dependsOn to show_if
     if (q.show_if) {
