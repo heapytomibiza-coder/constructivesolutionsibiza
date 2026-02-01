@@ -8,7 +8,7 @@ interface Category {
 
 interface Props {
   value: string | null;
-  onChange: (categoryId: string) => void;
+  onChange: (categoryId: string, categoryName: string) => void;
 }
 
 export default function CategorySelector({ value, onChange }: Props) {
@@ -43,7 +43,13 @@ export default function CategorySelector({ value, onChange }: Props) {
       </label>
       <select
         value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          const selectedId = e.target.value;
+          const selectedCategory = categories.find(c => c.id === selectedId);
+          if (selectedCategory) {
+            onChange(selectedId, selectedCategory.name);
+          }
+        }}
         className="w-full rounded border p-2"
       >
         <option value="" disabled>
