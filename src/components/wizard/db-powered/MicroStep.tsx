@@ -1,22 +1,25 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Check } from "lucide-react";
 
 interface MicroCategory {
   id: string;
   name: string;
+  slug: string;
+  description?: string | null;
 }
 
 interface Props {
-  subcategoryId: string | null;
-  selectedIds: string[];
-  onChange: (microIds: string[], microNames: string[]) => void;
+  subcategoryId: string;
+  selectedMicroIds: string[];
+  onSelect: (microNames: string[], microIds: string[], microSlugs: string[]) => void;
   multiSelect?: boolean;
 }
 
 export default function MicroStep({
   subcategoryId,
-  selectedIds,
-  onChange,
+  selectedMicroIds,
+  onSelect,
   multiSelect = true,
 }: Props) {
   const [microCategories, setMicroCategories] = useState<MicroCategory[]>([]);
@@ -33,9 +36,10 @@ export default function MicroStep({
 
       const { data, error } = await supabase
         .from("service_micro_categories")
-        .select("id, name")
+        .select("id, name, slug, description")
         .eq("subcategory_id", subcategoryId)
-        .order("name");
+        .eq("is_active", true)
+        .order("display_order");
 
       if (!error && data) {
         setMicroCategories(data);
@@ -53,25 +57,23 @@ export default function MicroStep({
 
   const handleToggle = (micro: MicroCategory) => {
     if (multiSelect) {
-      const isSelected = selectedIds.includes(micro.id);
+      const isSelected = selectedMicroIds.includes(micro.id);
+      let newIds: string[];
+      
       if (isSelected) {
-        // Remove
-        const newIds = selectedIds.filter(id => id !== micro.id);
-        const newNames = microCategories
-          .filter(m => newIds.includes(m.id))
-          .map(m => m.name);
-        onChange(newIds, newNames);
+        newIds = selectedMicroIds.filter(id => id !== micro.id);
       } else {
-        // Add
-        const newIds = [...selectedIds, micro.id];
-        const newNames = microCategories
-          .filter(m => newIds.includes(m.id))
-          .map(m => m.name);
-        onChange(newIds, newNames);
+        newIds = [...selectedMicroIds, micro.id];
       }
+      
+      const selected = microCategories.filter(m => newIds.includes(m.id));
+      onSelect(
+        selected.map(m => m.name),
+        selected.map(m => m.id),
+        selected.map(m => m.slug)
+      );
     } else {
-      // Single select
-      onChange([micro.id], [micro.name]);
+      onSelect([micro.name], [micro.id], [micro.slug]);
     }
   };
 
@@ -88,39 +90,42 @@ export default function MicroStep({
       ) : (
         <div className="space-y-2">
           {microCategories.map((micro) => {
-            const isSelected = selectedIds.includes(micro.id);
+            const isSelected = selectedMicroIds.includes(micro.id);
             return (
               <button
                 key={micro.id}
                 type="button"
                 onClick={() => handleToggle(micro)}
-                className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                className={`w-full text-left p-4 rounded-lg border transition-colors ${
                   isSelected 
                     ? 'border-primary bg-primary/10 text-foreground' 
                     : 'border-border bg-card hover:border-primary/50'
                 }`}
               >
-                <span className="flex items-center gap-2">
-                  <span className={`w-4 h-4 rounded border flex items-center justify-center ${
-                    isSelected ? 'bg-primary border-primary' : 'border-muted-foreground'
-                  }`}>
-                    {isSelected && (
-                      <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="font-medium">{micro.name}</p>
+                    {micro.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {micro.description}
+                      </p>
                     )}
-                  </span>
-                  {micro.name}
-                </span>
+                  </div>
+                  {isSelected && (
+                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-3">
+                      <Check className="w-3 h-3 text-primary-foreground" />
+                    </div>
+                  )}
+                </div>
               </button>
             );
           })}
         </div>
       )}
       
-      {multiSelect && selectedIds.length > 0 && (
-        <p className="mt-2 text-sm text-muted-foreground">
-          {selectedIds.length} task{selectedIds.length !== 1 ? 's' : ''} selected
+      {multiSelect && selectedMicroIds.length > 0 && (
+        <p className="mt-3 text-sm text-muted-foreground">
+          {selectedMicroIds.length} task{selectedMicroIds.length !== 1 ? 's' : ''} selected
         </p>
       )}
     </div>

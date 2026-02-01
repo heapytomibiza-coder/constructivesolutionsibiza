@@ -7,11 +7,12 @@ interface Category {
 }
 
 interface Props {
-  value: string | null;
-  onChange: (categoryId: string, categoryName: string) => void;
+  selectedCategory?: string;
+  onSelect: (categoryName: string, categoryId: string) => void;
+  onNext?: () => void;
 }
 
-export default function CategorySelector({ value, onChange }: Props) {
+export default function CategorySelector({ selectedCategory, onSelect, onNext }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +21,8 @@ export default function CategorySelector({ value, onChange }: Props) {
       const { data, error } = await supabase
         .from("service_categories")
         .select("id, name")
-        .order("name");
+        .eq("is_active", true)
+        .order("display_order");
 
       if (!error && data) {
         setCategories(data);
@@ -33,34 +35,28 @@ export default function CategorySelector({ value, onChange }: Props) {
   }, []);
 
   if (loading) {
-    return <p>Loading categories…</p>;
+    return <p className="text-muted-foreground">Loading categories…</p>;
   }
 
   return (
-    <div>
-      <label className="block text-sm font-medium mb-1">
-        Category
-      </label>
-      <select
-        value={value || ""}
-        onChange={(e) => {
-          const selectedId = e.target.value;
-          const selectedCategory = categories.find(c => c.id === selectedId);
-          if (selectedCategory) {
-            onChange(selectedId, selectedCategory.name);
-          }
-        }}
-        className="w-full rounded border p-2"
-      >
-        <option value="" disabled>
-          Select a category
-        </option>
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>
+    <div className="space-y-2">
+      {categories.map((category) => {
+        const isSelected = selectedCategory === category.name;
+        return (
+          <button
+            key={category.id}
+            type="button"
+            onClick={() => onSelect(category.name, category.id)}
+            className={`w-full text-left p-4 rounded-lg border transition-colors ${
+              isSelected
+                ? 'border-primary bg-primary/10 text-foreground'
+                : 'border-border bg-card hover:border-primary/50'
+            }`}
+          >
             {category.name}
-          </option>
-        ))}
-      </select>
+          </button>
+        );
+      })}
     </div>
   );
 }
