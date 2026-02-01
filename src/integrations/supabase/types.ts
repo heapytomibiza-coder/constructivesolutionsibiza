@@ -26,7 +26,7 @@ export type Database = {
           created_at: string
           description: string | null
           has_photos: boolean | null
-          highlights: Json
+          highlights: string[]
           id: string
           is_publicly_listed: boolean
           location: Json | null
@@ -51,7 +51,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           has_photos?: boolean | null
-          highlights?: Json
+          highlights?: string[]
           id?: string
           is_publicly_listed?: boolean
           location?: Json | null
@@ -76,7 +76,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           has_photos?: boolean | null
-          highlights?: Json
+          highlights?: string[]
           id?: string
           is_publicly_listed?: boolean
           location?: Json | null
@@ -359,7 +359,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           has_photos: boolean | null
-          highlights: Json | null
+          highlights: string[] | null
           id: string | null
           is_publicly_listed: boolean | null
           location: Json | null
@@ -383,7 +383,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           has_photos?: boolean | null
-          highlights?: Json | null
+          highlights?: string[] | null
           id?: string | null
           is_publicly_listed?: boolean | null
           location?: Json | null
@@ -407,7 +407,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           has_photos?: boolean | null
-          highlights?: Json | null
+          highlights?: string[] | null
           id?: string | null
           is_publicly_listed?: boolean | null
           location?: Json | null
@@ -432,7 +432,7 @@ export type Database = {
           category: string | null
           created_at: string | null
           has_photos: boolean | null
-          highlights: Json | null
+          highlights: string[] | null
           id: string | null
           is_publicly_listed: boolean | null
           location: Json | null
@@ -454,7 +454,7 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           has_photos?: boolean | null
-          highlights?: Json | null
+          highlights?: string[] | null
           id?: string | null
           is_publicly_listed?: boolean | null
           location?: Json | null
@@ -476,7 +476,7 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           has_photos?: boolean | null
-          highlights?: Json | null
+          highlights?: string[] | null
           id?: string | null
           is_publicly_listed?: boolean | null
           location?: Json | null
