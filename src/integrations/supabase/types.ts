@@ -110,6 +110,42 @@ export type Database = {
         }
         Relationships: []
       }
+      question_packs: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          micro_slug: string
+          questions: Json
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          micro_slug: string
+          questions?: Json
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          micro_slug?: string
+          questions?: Json
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       service_categories: {
         Row: {
           category_group: string | null
