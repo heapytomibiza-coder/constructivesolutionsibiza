@@ -45,23 +45,59 @@ Deno.serve(async (req: Request) => {
       version: number;
     };
 
+    // Dedupe questions by id OR label (handles missing IDs)
+    function dedupeQuestions(questions: Record<string, unknown>[]) {
+      const seen = new Set<string>();
+      const duplicates: string[] = [];
+      const cleaned: unknown[] = [];
+
+      for (const q of questions) {
+        const id = String(q?.id ?? q?.key ?? "").trim();
+        const label = String(q?.label ?? q?.question ?? "").trim().toLowerCase();
+        const key = id || `label:${label}`;
+        
+        if (!key || key === "label:") continue;
+
+        if (seen.has(key)) {
+          duplicates.push(key);
+          continue;
+        }
+        seen.add(key);
+        
+        cleaned.push({
+          id: id || label.replace(/\s+/g, "_").slice(0, 32), // generate ID from label if missing
+          label: String(q?.label ?? q?.question ?? "").trim(),
+          type: q.type === "single" ? "radio" : q.type === "multi" ? "checkbox" : q.type,
+          options: q.options,
+          required: q.required,
+          placeholder: q.placeholder,
+          help: q.help ?? q.helpText,
+          accept: q.accept,
+        });
+      }
+
+      return { cleaned, duplicates };
+    }
+
     // Normalize packs
-    const normalized: NormalizedPack[] = packs.map((p: Record<string, unknown>) => ({
-      micro_slug: String(p.microSlug ?? p.slug ?? p.micro_slug ?? "").trim(),
-      title: String(p.title ?? p.name ?? "").trim(),
-      questions: ((p.questions as Record<string, unknown>[]) || []).map((q) => ({
-        id: q.id ?? q.key ?? "",
-        label: q.label ?? q.question ?? "",
-        type: q.type === "single" ? "radio" : q.type === "multi" ? "checkbox" : q.type,
-        options: q.options,
-        required: q.required,
-        placeholder: q.placeholder,
-        help: q.help ?? q.helpText,
-        accept: q.accept,
-      })),
-      is_active: true,
-      version: 1,
-    }));
+    const allDuplicates: Record<string, string[]> = {};
+    const normalized: NormalizedPack[] = packs.map((p: Record<string, unknown>) => {
+      const microSlug = String(p.microSlug ?? p.slug ?? p.micro_slug ?? "").trim();
+      const rawQuestions = (p.questions as Record<string, unknown>[]) || [];
+      const { cleaned, duplicates } = dedupeQuestions(rawQuestions);
+      
+      if (duplicates.length > 0) {
+        allDuplicates[microSlug] = duplicates;
+      }
+      
+      return {
+        micro_slug: microSlug,
+        title: String(p.title ?? p.name ?? "").trim(),
+        questions: cleaned,
+        is_active: true,
+        version: 1,
+      };
+    });
 
     // Get valid slugs
     const { data: micros } = await supabase
@@ -80,6 +116,7 @@ Deno.serve(async (req: Request) => {
         validCount: valid.length,
         missingCount: missing.length,
         missingSlugs: missing.slice(0, 30),
+        duplicateQuestionIdsBySlug: allDuplicates,
         sample: valid[0] || normalized[0] || null,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

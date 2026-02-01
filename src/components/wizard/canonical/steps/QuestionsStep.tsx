@@ -3,7 +3,7 @@
  * Fetches question packs from DB by micro_slug and renders them
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -269,23 +269,37 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
         Tell us more about your project
       </h3>
 
-      {packs.map((pack) => (
-        <div key={pack.id} className="space-y-4">
-          <h4 className="font-medium text-foreground border-b pb-2">
-            {pack.title}
-          </h4>
-          
-          {(pack.questions || []).map((question) => (
-            <div key={question.id} className="space-y-2">
-              <Label htmlFor={`${pack.micro_slug}-${question.id}`}>
-                {question.label}
-                {question.required && <span className="text-destructive ml-1">*</span>}
-              </Label>
-              {renderQuestion(pack, question)}
-            </div>
-          ))}
-        </div>
-      ))}
+      {packs.map((pack) => {
+        // UI protection: dedupe questions by id or label
+        const uniqueQuestions = (() => {
+          const seen = new Set<string>();
+          return (pack.questions || []).filter((q) => {
+            const key = q?.id?.trim() || q?.label?.trim()?.toLowerCase();
+            if (!key) return false;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        })();
+
+        return (
+          <div key={pack.id} className="space-y-4">
+            <h4 className="font-medium text-foreground border-b pb-2">
+              {pack.title}
+            </h4>
+            
+            {uniqueQuestions.map((question) => (
+              <div key={question.id} className="space-y-2">
+                <Label htmlFor={`${pack.micro_slug}-${question.id}`}>
+                  {question.label}
+                  {question.required && <span className="text-destructive ml-1">*</span>}
+                </Label>
+                {renderQuestion(pack, question)}
+              </div>
+            ))}
+          </div>
+        );
+      })}
 
       {missingPacks.length > 0 && (
         <p className="text-xs text-muted-foreground">
