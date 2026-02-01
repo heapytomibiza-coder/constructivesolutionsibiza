@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, Star, BadgeCheck } from 'lucide-react';
+import { PublicLayout } from '@/components/layout';
+import { Search } from 'lucide-react';
 
 /**
  * PROFESSIONALS DIRECTORY PAGE
@@ -12,30 +13,7 @@ import { Search, Star, BadgeCheck } from 'lucide-react';
  */
 const Professionals = () => {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-ocean flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
-            </div>
-            <span className="font-display text-xl font-semibold text-foreground">
-              CS Ibiza
-            </span>
-          </Link>
-          
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/auth">Sign In</Link>
-            </Button>
-            <Button variant="default" asChild>
-              <Link to="/post">Post a Job</Link>
-            </Button>
-          </div>
-        </div>
-      </nav>
-
+    <PublicLayout>
       {/* Header */}
       <div className="border-b border-border bg-gradient-hero py-12">
         <div className="container">
@@ -76,7 +54,7 @@ const Professionals = () => {
           </Card>
         </div>
       </div>
-    </div>
+    </PublicLayout>
   );
 };
 

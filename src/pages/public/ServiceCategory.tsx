@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PLATFORM, MAIN_CATEGORIES } from '@/domain/scope';
+import { PublicLayout } from '@/components/layout';
+import { MAIN_CATEGORIES } from '@/domain/scope';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 /**
@@ -20,8 +21,8 @@ const ServiceCategory = () => {
 
   if (!categoryName) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
+      <PublicLayout>
+        <div className="container py-20 text-center">
           <h1 className="font-display text-2xl font-bold text-foreground mb-4">
             Category Not Found
           </h1>
@@ -32,35 +33,12 @@ const ServiceCategory = () => {
             </Link>
           </Button>
         </div>
-      </div>
+      </PublicLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-ocean flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
-            </div>
-            <span className="font-display text-xl font-semibold text-foreground">
-              {PLATFORM.shortName}
-            </span>
-          </Link>
-          
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/auth">Sign In</Link>
-            </Button>
-            <Button variant="default" asChild>
-              <Link to="/post">Post a Job</Link>
-            </Button>
-          </div>
-        </div>
-      </nav>
-
+    <PublicLayout>
       <div className="container py-12">
         {/* Breadcrumb */}
         <div className="mb-8">
@@ -109,7 +87,7 @@ const ServiceCategory = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </PublicLayout>
   );
 };
 

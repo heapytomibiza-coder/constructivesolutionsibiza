@@ -21,11 +21,18 @@
 
 export const PLATFORM = {
   name: 'Constructive Solutions Ibiza',
-  shortName: 'CS Ibiza',
+  shortName: 'Constructive',
   tagline: 'Construction & Trade Services in Ibiza',
-  description: 'The construction platform connecting homeowners, developers, and property managers with trusted builders and trades in Ibiza.',
+  description: 'Find trusted builders, electricians, plumbers, carpenters and trades for your projects in Ibiza.',
+  mark: 'CS',
   industry: 'construction',
   scope: 'construction-only',
+} as const;
+
+// Domain guardrail: we are construction + property services only
+export const DOMAIN_CONSTRAINT = {
+  vertical: 'construction',
+  bannedExamples: ['concierge', 'yacht', 'villa manager', 'chef', 'Mediterranean experience'],
 } as const;
 
 export const MAIN_CATEGORIES = [
