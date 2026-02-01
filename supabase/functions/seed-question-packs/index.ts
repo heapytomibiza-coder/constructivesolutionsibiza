@@ -2,14 +2,17 @@
  * seed-question-packs - Safe seeding of question packs from V1 definitions
  * 
  * Safety features:
+ * - Secret auth required (Authorization: Bearer SEEDER_SECRET)
  * - Dry-run mode (?dry_run=1) - validates without writing
+ * - Category targeting (?category=hvac or ?category=all)
  * - Slug validation - fails fast if any micro_slug doesn't exist in service_micro_categories
  * - Upsert on micro_slug - prevents duplicates
  * - Field normalization - handles V1 format differences (question→label, name→title)
  * 
  * Usage:
- *   POST /seed-question-packs?dry_run=1  → validate only
- *   POST /seed-question-packs            → insert/update packs
+ *   POST /seed-question-packs?dry_run=1&category=all  → validate only
+ *   POST /seed-question-packs?category=hvac           → insert/update packs for hvac
+ *   POST /seed-question-packs?category=all            → insert/update all packs
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
@@ -18,6 +21,23 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// ============ Auth Helper ============
+
+function assertSeederAuth(req: Request): void {
+  const auth = req.headers.get('authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  const expected = Deno.env.get('SEEDER_SECRET');
+
+  if (!expected) {
+    throw new Error('SEEDER_SECRET is not configured on the server');
+  }
+  if (token !== expected) {
+    const err = new Error('Unauthorized');
+    (err as Error & { statusCode: number }).statusCode = 401;
+    throw err;
+  }
+}
 
 // ============ Normalization Helpers ============
 
@@ -138,12 +158,28 @@ Deno.serve(async (req) => {
     );
   }
 
+  // Auth check
+  try {
+    assertSeederAuth(req);
+  } catch (err) {
+    const statusCode = (err as Error & { statusCode?: number }).statusCode || 500;
+    return new Response(
+      JSON.stringify({ error: (err as Error).message }),
+      { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   const url = new URL(req.url);
   const dryRun = url.searchParams.get('dry_run') === '1';
+  const category = (url.searchParams.get('category') || 'all').toLowerCase();
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  // Validate category param
+  if (!/^[a-z0-9_-]+$/.test(category)) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid category parameter. Use alphanumeric, dashes, or underscores.' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse input packs
