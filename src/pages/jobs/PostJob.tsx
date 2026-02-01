@@ -8,30 +8,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSession } from '@/contexts/SessionContext';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { MAIN_CATEGORIES } from '@/domain/scope';
 
 /**
  * POST JOB WIZARD
  * 
  * Accessible to public - auth checkpoint at publish.
  * Steps are internal UI state, not separate routes.
+ * 
+ * CATEGORY SOURCE: src/domain/scope.ts (construction-only)
  */
 
 const STEPS = [
-  { id: 'category', title: 'Category', description: 'What type of service do you need?' },
+  { id: 'category', title: 'Category', description: 'What type of construction service do you need?' },
   { id: 'details', title: 'Details', description: 'Tell us more about your requirements' },
   { id: 'budget', title: 'Budget', description: 'Set your budget range' },
   { id: 'review', title: 'Review', description: 'Review and publish your job' },
-];
-
-const CATEGORIES = [
-  'Private Chef',
-  'Villa Manager',
-  'Event Planning',
-  'Yacht Services',
-  'Photography',
-  'Transportation',
-  'Security',
-  'Other',
 ];
 
 const PostJob = () => {
@@ -146,7 +138,7 @@ const PostJob = () => {
                       <SelectValue placeholder="Choose a category..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map((cat) => (
+                      {MAIN_CATEGORIES.map((cat) => (
                         <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                       ))}
                     </SelectContent>
