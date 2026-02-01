@@ -17,45 +17,72 @@ export type Database = {
       jobs: {
         Row: {
           answers: Json | null
+          area: string | null
           budget_max: number | null
           budget_min: number | null
+          budget_type: string | null
+          budget_value: number | null
           category: string | null
           created_at: string
           description: string | null
+          has_photos: boolean | null
           id: string
           is_publicly_listed: boolean
           location: Json | null
+          micro_slug: string | null
+          start_date: string | null
+          start_timing: string | null
           status: string
+          subcategory: string | null
+          teaser: string | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
           answers?: Json | null
+          area?: string | null
           budget_max?: number | null
           budget_min?: number | null
+          budget_type?: string | null
+          budget_value?: number | null
           category?: string | null
           created_at?: string
           description?: string | null
+          has_photos?: boolean | null
           id?: string
           is_publicly_listed?: boolean
           location?: Json | null
+          micro_slug?: string | null
+          start_date?: string | null
+          start_timing?: string | null
           status?: string
+          subcategory?: string | null
+          teaser?: string | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
           answers?: Json | null
+          area?: string | null
           budget_max?: number | null
           budget_min?: number | null
+          budget_type?: string | null
+          budget_value?: number | null
           category?: string | null
           created_at?: string
           description?: string | null
+          has_photos?: boolean | null
           id?: string
           is_publicly_listed?: boolean
           location?: Json | null
+          micro_slug?: string | null
+          start_date?: string | null
+          start_timing?: string | null
           status?: string
+          subcategory?: string | null
+          teaser?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -319,63 +346,120 @@ export type Database = {
     Views: {
       public_job_details: {
         Row: {
+          area: string | null
           budget_max: number | null
           budget_min: number | null
+          budget_type: string | null
+          budget_value: number | null
           category: string | null
           created_at: string | null
           description: string | null
+          has_photos: boolean | null
           id: string | null
+          micro_slug: string | null
+          start_date: string | null
+          start_timing: string | null
           status: string | null
+          subcategory: string | null
+          teaser: string | null
           title: string | null
         }
         Insert: {
+          area?: string | null
           budget_max?: number | null
           budget_min?: number | null
+          budget_type?: string | null
+          budget_value?: number | null
           category?: string | null
           created_at?: string | null
           description?: string | null
+          has_photos?: boolean | null
           id?: string | null
+          micro_slug?: string | null
+          start_date?: string | null
+          start_timing?: string | null
           status?: string | null
+          subcategory?: string | null
+          teaser?: string | null
           title?: string | null
         }
         Update: {
+          area?: string | null
           budget_max?: number | null
           budget_min?: number | null
+          budget_type?: string | null
+          budget_value?: number | null
           category?: string | null
           created_at?: string | null
           description?: string | null
+          has_photos?: boolean | null
           id?: string | null
+          micro_slug?: string | null
+          start_date?: string | null
+          start_timing?: string | null
           status?: string | null
+          subcategory?: string | null
+          teaser?: string | null
           title?: string | null
         }
         Relationships: []
       }
       public_jobs_preview: {
         Row: {
+          area: string | null
           budget_max: number | null
           budget_min: number | null
+          budget_type: string | null
+          budget_value: number | null
           category: string | null
           created_at: string | null
+          has_photos: boolean | null
           id: string | null
+          is_publicly_listed: boolean | null
+          micro_slug: string | null
+          start_date: string | null
+          start_timing: string | null
           status: string | null
+          subcategory: string | null
+          teaser: string | null
           title: string | null
         }
         Insert: {
+          area?: string | null
           budget_max?: number | null
           budget_min?: number | null
+          budget_type?: string | null
+          budget_value?: number | null
           category?: string | null
           created_at?: string | null
+          has_photos?: boolean | null
           id?: string | null
+          is_publicly_listed?: boolean | null
+          micro_slug?: string | null
+          start_date?: string | null
+          start_timing?: string | null
           status?: string | null
+          subcategory?: string | null
+          teaser?: string | null
           title?: string | null
         }
         Update: {
+          area?: string | null
           budget_max?: number | null
           budget_min?: number | null
+          budget_type?: string | null
+          budget_value?: number | null
           category?: string | null
           created_at?: string | null
+          has_photos?: boolean | null
           id?: string | null
+          is_publicly_listed?: boolean | null
+          micro_slug?: string | null
+          start_date?: string | null
+          start_timing?: string | null
           status?: string | null
+          subcategory?: string | null
+          teaser?: string | null
           title?: string | null
         }
         Relationships: []
