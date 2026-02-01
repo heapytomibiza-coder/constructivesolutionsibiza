@@ -4,6 +4,7 @@
  */
 
 import type { WizardState } from '../types';
+import type { Json } from '@/integrations/supabase/types';
 
 /**
  * Parse budget string to number
@@ -50,41 +51,47 @@ export function buildJobInsert(userId: string, wizardState: WizardState) {
   // Format dates safely
   const formatDate = (date?: Date) => date?.toISOString() ?? null;
 
-  return {
-    user_id: userId,
-    
-    title: combinedTitle,
-    
-    description: extras.notes || `${combinedTitle} - ${mainCategory} / ${subcategory}`,
-    
-    category: mainCategory,
-    
-    answers: {
-      microAnswers: answers,
-      selectedMicros: microNames,
-      selectedMicroIds: microIds,
-      logistics: {
-        ...logistics,
-        startDate: formatDate(logistics.startDate),
-        completionDate: formatDate(logistics.completionDate),
-        consultationDate: formatDate(logistics.consultationDate),
-      },
-      extras: {
-        photos: extras.photos,
-        permitsConcern: extras.permitsConcern,
-      },
-    },
-
-    budget_min: parseBudgetValue(logistics.budgetRange),
-    budget_max: parseBudgetValue(logistics.budgetRange),
-
-    location: {
-      address: logistics.location,
-      customLocation: logistics.customLocation,
+  // Build answers as JSON-compatible object
+  const answersPayload: Json = {
+    microAnswers: answers as Json,
+    selectedMicros: microNames,
+    selectedMicroIds: microIds,
+    logistics: {
+      location: logistics.location,
+      customLocation: logistics.customLocation ?? null,
+      startDatePreset: logistics.startDatePreset ?? null,
+      budgetRange: logistics.budgetRange ?? null,
+      accessDetails: logistics.accessDetails ?? [],
+      consultationType: logistics.consultationType ?? null,
+      consultationTime: logistics.consultationTime ?? null,
       startDate: formatDate(logistics.startDate),
       completionDate: formatDate(logistics.completionDate),
+      consultationDate: formatDate(logistics.consultationDate),
     },
+    extras: {
+      photos: extras.photos,
+      notes: extras.notes ?? null,
+      permitsConcern: extras.permitsConcern ?? false,
+    },
+  };
 
+  // Build location as JSON-compatible object
+  const locationPayload: Json = {
+    address: logistics.location,
+    customLocation: logistics.customLocation ?? null,
+    startDate: formatDate(logistics.startDate),
+    completionDate: formatDate(logistics.completionDate),
+  };
+
+  return {
+    user_id: userId,
+    title: combinedTitle,
+    description: extras.notes || `${combinedTitle} - ${mainCategory} / ${subcategory}`,
+    category: mainCategory,
+    answers: answersPayload,
+    budget_min: parseBudgetValue(logistics.budgetRange),
+    budget_max: parseBudgetValue(logistics.budgetRange),
+    location: locationPayload,
     status: 'draft',
     is_publicly_listed: false,
   };
