@@ -26,6 +26,7 @@ export type Database = {
           created_at: string
           description: string | null
           has_photos: boolean | null
+          highlights: Json
           id: string
           is_publicly_listed: boolean
           location: Json | null
@@ -50,6 +51,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           has_photos?: boolean | null
+          highlights?: Json
           id?: string
           is_publicly_listed?: boolean
           location?: Json | null
@@ -74,6 +76,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           has_photos?: boolean | null
+          highlights?: Json
           id?: string
           is_publicly_listed?: boolean
           location?: Json | null
@@ -344,8 +347,9 @@ export type Database = {
       }
     }
     Views: {
-      public_job_details: {
+      job_details: {
         Row: {
+          answers: Json | null
           area: string | null
           budget_max: number | null
           budget_min: number | null
@@ -355,7 +359,10 @@ export type Database = {
           created_at: string | null
           description: string | null
           has_photos: boolean | null
+          highlights: Json | null
           id: string | null
+          is_publicly_listed: boolean | null
+          location: Json | null
           micro_slug: string | null
           start_date: string | null
           start_timing: string | null
@@ -363,8 +370,10 @@ export type Database = {
           subcategory: string | null
           teaser: string | null
           title: string | null
+          updated_at: string | null
         }
         Insert: {
+          answers?: Json | null
           area?: string | null
           budget_max?: number | null
           budget_min?: number | null
@@ -374,7 +383,10 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           has_photos?: boolean | null
+          highlights?: Json | null
           id?: string | null
+          is_publicly_listed?: boolean | null
+          location?: Json | null
           micro_slug?: string | null
           start_date?: string | null
           start_timing?: string | null
@@ -382,8 +394,10 @@ export type Database = {
           subcategory?: string | null
           teaser?: string | null
           title?: string | null
+          updated_at?: string | null
         }
         Update: {
+          answers?: Json | null
           area?: string | null
           budget_max?: number | null
           budget_min?: number | null
@@ -393,7 +407,10 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           has_photos?: boolean | null
+          highlights?: Json | null
           id?: string | null
+          is_publicly_listed?: boolean | null
+          location?: Json | null
           micro_slug?: string | null
           start_date?: string | null
           start_timing?: string | null
@@ -401,10 +418,11 @@ export type Database = {
           subcategory?: string | null
           teaser?: string | null
           title?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
-      public_jobs_preview: {
+      jobs_board: {
         Row: {
           area: string | null
           budget_max: number | null
@@ -414,8 +432,10 @@ export type Database = {
           category: string | null
           created_at: string | null
           has_photos: boolean | null
+          highlights: Json | null
           id: string | null
           is_publicly_listed: boolean | null
+          location: Json | null
           micro_slug: string | null
           start_date: string | null
           start_timing: string | null
@@ -423,6 +443,7 @@ export type Database = {
           subcategory: string | null
           teaser: string | null
           title: string | null
+          updated_at: string | null
         }
         Insert: {
           area?: string | null
@@ -433,8 +454,10 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           has_photos?: boolean | null
+          highlights?: Json | null
           id?: string | null
           is_publicly_listed?: boolean | null
+          location?: Json | null
           micro_slug?: string | null
           start_date?: string | null
           start_timing?: string | null
@@ -442,6 +465,7 @@ export type Database = {
           subcategory?: string | null
           teaser?: string | null
           title?: string | null
+          updated_at?: string | null
         }
         Update: {
           area?: string | null
@@ -452,8 +476,10 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           has_photos?: boolean | null
+          highlights?: Json | null
           id?: string | null
           is_publicly_listed?: boolean | null
+          location?: Json | null
           micro_slug?: string | null
           start_date?: string | null
           start_timing?: string | null
@@ -461,6 +487,7 @@ export type Database = {
           subcategory?: string | null
           teaser?: string | null
           title?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
