@@ -1,10 +1,9 @@
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { PLATFORM } from '@/domain/scope';
+import { PublicLayout } from '@/components/layout';
 import { Mail, MapPin, Phone } from 'lucide-react';
 
 /**
@@ -21,30 +20,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-ocean flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
-            </div>
-            <span className="font-display text-xl font-semibold text-foreground">
-              {PLATFORM.shortName}
-            </span>
-          </Link>
-          
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/auth">Sign In</Link>
-            </Button>
-            <Button variant="default" asChild>
-              <Link to="/post">Post a Job</Link>
-            </Button>
-          </div>
-        </div>
-      </nav>
-
+    <PublicLayout>
       <div className="container py-12">
         <div className="mx-auto max-w-3xl text-center mb-12">
           <h1 className="font-display text-4xl font-bold text-foreground mb-4">
@@ -104,7 +80,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-medium text-foreground">Email</h3>
-                    <p className="text-muted-foreground">info@csibiza.com</p>
+                    <p className="text-muted-foreground">info@constructive.es</p>
                   </div>
                 </div>
               </CardContent>
@@ -140,7 +116,7 @@ const Contact = () => {
           </div>
         </div>
       </div>
-    </div>
+    </PublicLayout>
   );
 };
 
