@@ -1,0 +1,13 @@
+# Placeholder for V1 question pack migrations
+# Files to add:
+# - carpentryQuestionPacks.ts
+# - commercialIndustrialQuestionPacks.ts
+# - constructionQuestionPacks.ts
+# - electricalQuestionPacks.ts
+# - floorsDoorsWindowsQuestionPacks.ts
+# - gardeningLandscapingQuestionPacks.ts
+# - hvacQuestionPacks.ts
+# - kitchenBathroomQuestionPacks.ts
+# - newCarpentryPacks.ts
+# - paintingDecoratingPacks.ts
+# - plumbingPacks.ts
