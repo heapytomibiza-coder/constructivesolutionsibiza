@@ -1,6 +1,6 @@
 export { 
   buildJobInsert, 
   buildIdempotencyKey, 
-  parseBudgetValue,
+  parseBudgetRange,
   validateWizardState 
 } from './buildJobPayload';
