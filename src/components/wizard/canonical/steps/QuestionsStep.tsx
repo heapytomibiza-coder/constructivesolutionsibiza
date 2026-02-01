@@ -13,12 +13,28 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
 
+// Option can be a string OR {value, label} object
+interface QuestionOption {
+  value: string;
+  label: string;
+}
+
+type OptionType = string | QuestionOption;
+
+// Helper to normalize options to {value, label}
+const normalizeOption = (opt: OptionType): QuestionOption => {
+  if (typeof opt === 'string') {
+    return { value: opt, label: opt };
+  }
+  return opt;
+};
+
 // Question definition from the pack
 interface QuestionDef {
   id: string;
   label: string;
   type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number';
-  options?: string[];
+  options?: OptionType[];
   required?: boolean;
   placeholder?: string;
 }
@@ -166,14 +182,17 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
             value={(value as string) || ''}
             onValueChange={(val) => handleAnswerChange(pack.micro_slug, question.id, val)}
           >
-            {question.options?.map((option) => (
-              <div key={option} className="flex items-center space-x-2">
-                <RadioGroupItem value={option} id={`${key}-${option}`} />
-                <Label htmlFor={`${key}-${option}`} className="cursor-pointer">
-                  {option}
-                </Label>
-              </div>
-            ))}
+            {question.options?.map((opt) => {
+              const option = normalizeOption(opt);
+              return (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option.value} id={`${key}-${option.value}`} />
+                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer">
+                    {option.label}
+                  </Label>
+                </div>
+              );
+            })}
           </RadioGroup>
         );
 
@@ -181,23 +200,26 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
         const selectedOptions = (value as string[]) || [];
         return (
           <div className="space-y-2">
-            {question.options?.map((option) => (
-              <div key={option} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`${key}-${option}`}
-                  checked={selectedOptions.includes(option)}
-                  onCheckedChange={(checked) => {
-                    const newSelected = checked
-                      ? [...selectedOptions, option]
-                      : selectedOptions.filter((o) => o !== option);
-                    handleAnswerChange(pack.micro_slug, question.id, newSelected);
-                  }}
-                />
-                <Label htmlFor={`${key}-${option}`} className="cursor-pointer">
-                  {option}
-                </Label>
-              </div>
-            ))}
+            {question.options?.map((opt) => {
+              const option = normalizeOption(opt);
+              return (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`${key}-${option.value}`}
+                    checked={selectedOptions.includes(option.value)}
+                    onCheckedChange={(checked) => {
+                      const newSelected = checked
+                        ? [...selectedOptions, option.value]
+                        : selectedOptions.filter((o) => o !== option.value);
+                      handleAnswerChange(pack.micro_slug, question.id, newSelected);
+                    }}
+                  />
+                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer">
+                    {option.label}
+                  </Label>
+                </div>
+              );
+            })}
           </div>
         );
 
