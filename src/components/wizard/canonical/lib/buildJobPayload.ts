@@ -58,12 +58,48 @@ export function buildIdempotencyKey(
 }
 
 /**
+ * Map location selection to area name for filtering
+ */
+function mapLocationToArea(location?: string): string | null {
+  const areaMap: Record<string, string> = {
+    'ibiza_town': 'Ibiza Town',
+    'san_antonio': 'San Antonio',
+    'santa_eulalia': 'Santa Eulalia',
+    'san_jose': 'San José',
+  };
+  if (!location) return null;
+  return areaMap[location] || null;
+}
+
+/**
+ * Determine budget type from wizard input
+ */
+function determineBudgetType(budgetRange?: string | null): string {
+  if (!budgetRange) return 'tbd';
+  const { min, max } = parseBudgetRange(budgetRange);
+  if (min !== null && max !== null && min !== max) return 'range';
+  if (min !== null || max !== null) return 'fixed';
+  return 'tbd';
+}
+
+/**
+ * Map start date preset to start_timing column
+ */
+function mapStartTiming(preset?: string | null): string {
+  const validTimings = ['asap', 'this_week', 'this_month', 'flexible', 'date'];
+  if (preset && validTimings.includes(preset)) return preset;
+  if (preset === 'specific') return 'date';
+  return 'flexible';
+}
+
+/**
  * Build the job insert payload for Supabase
- * Returns a fully typed JobInsert object
+ * Returns a fully typed JobInsert object with all filterable columns populated
  */
 export function buildJobInsert(userId: string, state: WizardState): JobInsert {
   const { mainCategory, subcategory, microNames, microIds, microSlugs, answers, logistics, extras } = state;
 
+  // Title: concatenate micro names or fall back to subcategory/category
   const title =
     microNames.length > 0
       ? microNames.join(" + ")
@@ -71,14 +107,39 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
         ? `${subcategory} - ${mainCategory}`
         : mainCategory;
 
+  // Teaser: short description for cards (first 200 chars of notes or auto-generated)
+  const teaser = extras.notes?.trim()
+    ? extras.notes.trim().slice(0, 200)
+    : `${title} in ${mapLocationToArea(logistics.location) || logistics.customLocation || 'Ibiza'}`;
+
+  // Full description
   const description =
     (extras.notes?.trim() ? extras.notes.trim() : null) ??
     `${title} - ${mainCategory}${subcategory ? ` / ${subcategory}` : ""}`;
 
+  // Budget parsing
   const { min, max } = parseBudgetRange(logistics.budgetRange);
+  const budgetType = determineBudgetType(logistics.budgetRange);
+  
+  // For fixed budget, use min as the value
+  const budgetValue = budgetType === 'fixed' ? min : null;
 
-  // Everything inside is JSON-safe (strings, arrays, booleans, nulls)
-  // Using Object.fromEntries to ensure type compatibility with Json
+  // Area extraction
+  const area = logistics.location === 'other' 
+    ? logistics.customLocation?.trim() || null
+    : mapLocationToArea(logistics.location);
+
+  // Start timing
+  const startTiming = mapStartTiming(logistics.startDatePreset);
+  const startDate = logistics.startDate ? logistics.startDate.toISOString().split('T')[0] : null;
+
+  // Photos check
+  const hasPhotos = (extras.photos?.length ?? 0) > 0;
+
+  // Primary micro slug (first selected)
+  const primaryMicroSlug = microSlugs.length > 0 ? microSlugs[0] : null;
+
+  // Full answers payload for detailed view
   const microAnswers = Object.fromEntries(
     Object.entries(answers ?? {}).map(([k, v]) => [k, v as Json])
   ) as Record<string, Json>;
@@ -116,18 +177,28 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     customLocation: logistics.customLocation ?? null,
   };
 
+  // Return with all filterable columns populated directly
   return {
     user_id: userId,
     title,
     description,
     category: mainCategory || null,
-    answers: answersPayload,
-    location: locationPayload,
+    subcategory: subcategory || null,
+    micro_slug: primaryMicroSlug,
+    area,
+    teaser,
+    budget_type: budgetType,
+    budget_value: budgetValue,
     budget_min: min,
     budget_max: max,
+    start_timing: startTiming,
+    start_date: startDate,
+    has_photos: hasPhotos,
+    answers: answersPayload,
+    location: locationPayload,
     status: "open",
     is_publicly_listed: true,
-  };
+  } as JobInsert;
 }
 
 /**
