@@ -9,7 +9,7 @@ interface Subcategory {
 interface Props {
   categoryId: string | null;
   value: string | null;
-  onChange: (subcategoryId: string) => void;
+  onChange: (subcategoryId: string, subcategoryName: string) => void;
 }
 
 export default function SubcategorySelector({
@@ -56,7 +56,13 @@ export default function SubcategorySelector({
       </label>
       <select
         value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          const selectedId = e.target.value;
+          const selected = subcategories.find(s => s.id === selectedId);
+          if (selected) {
+            onChange(selectedId, selected.name);
+          }
+        }}
         className="w-full rounded border p-2"
         disabled={loading}
       >
