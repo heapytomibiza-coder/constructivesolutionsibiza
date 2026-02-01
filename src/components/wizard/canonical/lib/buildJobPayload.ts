@@ -7,13 +7,22 @@ import type { WizardState } from '../types';
 import type { Json } from '@/integrations/supabase/types';
 
 /**
- * Parse budget string to number
+ * Parse budget range string to min/max values
+ * Handles formats like "€500-1000", "500 to 1000", "1000"
  */
-export function parseBudgetValue(input?: string): number | null {
-  if (!input) return null;
-  const cleaned = input.replace(/[^0-9.,]/g, '').replace(',', '.');
-  const match = cleaned.match(/^\d+(\.\d+)?$/);
-  return match ? Number(match[0]) : null;
+export function parseBudgetRange(input?: string | null): { min: number | null; max: number | null } {
+  if (!input) return { min: null, max: null };
+
+  const cleaned = input.replace(/[€,\s]/g, "").replace(/to/i, "-");
+  const parts = cleaned.split("-").map(p => p.trim()).filter(Boolean);
+
+  const a = parts[0] ? Number(parts[0]) : NaN;
+  const b = parts[1] ? Number(parts[1]) : NaN;
+
+  if (!Number.isFinite(a)) return { min: null, max: null };
+  if (!Number.isFinite(b)) return { min: a, max: null };
+
+  return { min: Math.min(a, b), max: Math.max(a, b) };
 }
 
 /**
@@ -51,19 +60,30 @@ export function buildJobInsert(userId: string, wizardState: WizardState) {
   // Format dates safely
   const formatDate = (date?: Date) => date?.toISOString() ?? null;
 
-  // Build answers as JSON-compatible object
+  // Parse budget range
+  const { min: budgetMin, max: budgetMax } = parseBudgetRange(logistics.budgetRange);
+
+  // Resolve location - use custom if "other" selected
+  const resolvedLocation = logistics.location === 'other' 
+    ? logistics.customLocation ?? ''
+    : logistics.location;
+
+  // Build answers as JSON-compatible object (ensure all values are JSON-safe)
   const answersPayload: Json = {
-    microAnswers: answers as Json,
+    microAnswers: JSON.parse(JSON.stringify(answers ?? {})),
     selectedMicros: microNames,
     selectedMicroIds: microIds,
     logistics: {
-      location: logistics.location,
+      location: resolvedLocation,
       customLocation: logistics.customLocation ?? null,
       startDatePreset: logistics.startDatePreset ?? null,
       budgetRange: logistics.budgetRange ?? null,
       accessDetails: logistics.accessDetails ?? [],
       startDate: formatDate(logistics.startDate),
       completionDate: formatDate(logistics.completionDate),
+      consultationType: logistics.consultationType ?? null,
+      consultationDate: formatDate(logistics.consultationDate),
+      consultationTime: logistics.consultationTime ?? null,
     },
     extras: {
       photos: extras.photos,
@@ -74,7 +94,7 @@ export function buildJobInsert(userId: string, wizardState: WizardState) {
 
   // Build location as JSON-compatible object
   const locationPayload: Json = {
-    address: logistics.location,
+    address: resolvedLocation,
     customLocation: logistics.customLocation ?? null,
     startDate: formatDate(logistics.startDate),
     completionDate: formatDate(logistics.completionDate),
@@ -86,11 +106,11 @@ export function buildJobInsert(userId: string, wizardState: WizardState) {
     description: extras.notes || `${combinedTitle} - ${mainCategory} / ${subcategory}`,
     category: mainCategory,
     answers: answersPayload,
-    budget_min: parseBudgetValue(logistics.budgetRange),
-    budget_max: parseBudgetValue(logistics.budgetRange),
+    budget_min: budgetMin,
+    budget_max: budgetMax,
     location: locationPayload,
-    status: 'draft',
-    is_publicly_listed: false,
+    status: 'open',
+    is_publicly_listed: true,
   };
 }
 
@@ -117,6 +137,11 @@ export function validateWizardState(state: WizardState): {
 
   if (!state.logistics.location) {
     errors.push('Please provide a location');
+  }
+
+  // If "other" location selected, require custom location
+  if (state.logistics.location === 'other' && !state.logistics.customLocation?.trim()) {
+    errors.push('Please specify the location');
   }
 
   return {

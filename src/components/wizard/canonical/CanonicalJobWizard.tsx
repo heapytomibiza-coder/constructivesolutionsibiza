@@ -129,19 +129,25 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     }));
   }, []);
 
-  const handleLogisticsChange = useCallback((logistics: Partial<WizardState['logistics']>) => {
-    setWizardState(prev => ({
-      ...prev,
-      logistics: { ...prev.logistics, ...logistics },
-    }));
-  }, []);
+  const handleLogisticsChange = useCallback(
+    (patch: Partial<WizardState['logistics']>) => {
+      setWizardState(prev => ({
+        ...prev,
+        logistics: { ...prev.logistics, ...patch },
+      }));
+    },
+    []
+  );
 
-  const handleExtrasChange = useCallback((extras: Partial<WizardState['extras']>) => {
-    setWizardState(prev => ({
-      ...prev,
-      extras: { ...prev.extras, ...extras },
-    }));
-  }, []);
+  const handleExtrasChange = useCallback(
+    (patch: Partial<WizardState['extras']>) => {
+      setWizardState(prev => ({
+        ...prev,
+        extras: { ...prev.extras, ...patch },
+      }));
+    },
+    []
+  );
 
   // === NAVIGATION ===
   

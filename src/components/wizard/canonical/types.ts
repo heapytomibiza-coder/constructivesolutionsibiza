@@ -1,7 +1,9 @@
 /**
  * Canonical Job Wizard Types
- * V2 clean architecture - string enums for URL-safe, debuggable steps
+ * V2: string enum steps (URL-safe, debuggable)
  */
+
+export type ConsultationType = "site_visit" | "phone_call" | "video_call";
 
 // === STEP ENUM (string-based for URL sync + debugging) ===
 export enum WizardStep {
@@ -45,23 +47,29 @@ export interface WizardState {
   microIds: string[];
   microSlugs: string[];
 
-  // === QUESTIONS (future-safe, optional for now) ===
+  // === QUESTIONS (future-safe) ===
   answers: Record<string, unknown>;
 
   // === LOGISTICS ===
   logistics: {
-    location: string;
+    location: string; // "ibiza_town" | "other" etc
     customLocation?: string;
-    startDatePreset?: string;
+
+    startDatePreset?: string; // "asap" | "this_week" etc
     startDate?: Date;
     completionDate?: Date;
-    budgetRange?: string;
+
+    consultationType?: ConsultationType;
+    consultationDate?: Date;
+    consultationTime?: string;
+
+    budgetRange?: string; // "€500-1000"
     accessDetails?: string[];
   };
 
   // === EXTRAS ===
   extras: {
-    photos: string[]; // base64 for now, URLs later
+    photos: string[]; // base64 for now (later: storage URLs)
     notes?: string;
     permitsConcern?: boolean;
   };
@@ -83,6 +91,7 @@ export const EMPTY_WIZARD_STATE: WizardState = {
 
   logistics: {
     location: "",
+    accessDetails: [],
   },
 
   extras: {
@@ -101,7 +110,7 @@ export function getStepByIndex(index: number): WizardStep | undefined {
 
 export function getNextStep(current: WizardStep): WizardStep | undefined {
   const index = getStepIndex(current);
-  return STEP_ORDER[index + 1];
+  return index >= 0 ? STEP_ORDER[index + 1] : undefined;
 }
 
 export function getPrevStep(current: WizardStep): WizardStep | undefined {
@@ -110,5 +119,5 @@ export function getPrevStep(current: WizardStep): WizardStep | undefined {
 }
 
 export function isValidStep(value: string): value is WizardStep {
-  return Object.values(WizardStep).includes(value as WizardStep);
+  return (Object.values(WizardStep) as string[]).includes(value);
 }
