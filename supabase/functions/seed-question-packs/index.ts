@@ -3,8 +3,9 @@
  * 
  * Safety features:
  * - Dry-run mode (?dry_run=1) - validates without writing
- * - Slug validation - fails fast if any micro_slug doesn't exist in taxonomy
+ * - Slug validation - fails fast if any micro_slug doesn't exist in service_micro_categories
  * - Upsert on micro_slug - prevents duplicates
+ * - Field normalization - handles V1 format differences (question→label, name→title)
  * 
  * Usage:
  *   POST /seed-question-packs?dry_run=1  → validate only
@@ -18,26 +19,97 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Question pack definition matching V1 format
-interface QuestionOption {
-  value: string;
-  label: string;
+// ============ Normalization Helpers ============
+
+// Convert slug to human-readable title
+const humanize = (s: string): string =>
+  s.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+// Get title from V1 pack (handles: title, name, or fallback to humanized slug)
+const normalizeTitle = (pack: Record<string, unknown>, microSlug: string): string =>
+  (pack.title as string) || (pack.name as string) || humanize(microSlug);
+
+// Normalize V1 question format to V2 format
+// V1: { id, question, type, options, helpText, dependsOn }
+// V2: { id, label, type, options, help, placeholder, required, show_if }
+interface V1Question {
+  id: string;
+  question?: string;
+  label?: string;
+  type: string;
+  options?: unknown[];
+  helpText?: string;
+  help?: string;
+  placeholder?: string;
+  required?: boolean;
+  dependsOn?: {
+    questionId: string;
+    value: string | string[];
+  };
+  show_if?: unknown;
 }
 
-interface QuestionDef {
+interface V2Question {
   id: string;
   label: string;
-  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number';
-  options?: (string | QuestionOption)[];
-  required?: boolean;
+  type: string;
+  options?: unknown[];
+  help?: string;
   placeholder?: string;
+  required?: boolean;
+  show_if?: {
+    question_id: string;
+    equals?: string;
+    includes_any?: string[];
+  };
 }
 
+const normalizeQuestions = (questions: V1Question[]): V2Question[] =>
+  (questions || []).map(q => {
+    const normalized: V2Question = {
+      id: q.id,
+      label: q.label ?? q.question ?? '',
+      type: q.type,
+    };
+
+    // Preserve options as-is (already {value,label} format in V1)
+    if (q.options) {
+      normalized.options = q.options;
+    }
+
+    // Normalize help text
+    if (q.help || q.helpText) {
+      normalized.help = q.help ?? q.helpText;
+    }
+
+    // Preserve placeholder and required
+    if (q.placeholder) normalized.placeholder = q.placeholder;
+    if (q.required !== undefined) normalized.required = q.required;
+
+    // Convert dependsOn to show_if
+    if (q.show_if) {
+      normalized.show_if = q.show_if as V2Question['show_if'];
+    } else if (q.dependsOn) {
+      const dep = q.dependsOn;
+      normalized.show_if = {
+        question_id: dep.questionId,
+        ...(Array.isArray(dep.value)
+          ? { includes_any: dep.value }
+          : { equals: dep.value }),
+      };
+    }
+
+    return normalized;
+  });
+
+// ============ Input Types ============
+
 interface QuestionPackInput {
-  slug?: string;        // V1 format uses 'slug'
-  microSlug?: string;   // Alternative key
-  title: string;
-  questions: QuestionDef[];
+  slug?: string;        // V1 format
+  microSlug?: string;   // Alternative V1 key
+  title?: string;
+  name?: string;        // V1 alternative to title
+  questions: V1Question[];
 }
 
 interface ValidationResult {
@@ -47,6 +119,8 @@ interface ValidationResult {
   missingSlugs: string[];
   errors: string[];
 }
+
+// ============ Main Handler ============
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -80,19 +154,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Normalize slugs (support both 'slug' and 'microSlug' keys)
-    const normalizedPacks = packs.map(p => ({
-      micro_slug: p.slug || p.microSlug || '',
-      title: p.title,
-      questions: p.questions,
-    }));
+    // Normalize packs with proper field mapping
+    const normalizedPacks = packs.map(p => {
+      const micro_slug = p.slug || p.microSlug || '';
+      return {
+        micro_slug,
+        title: p.title || p.name || humanize(micro_slug),
+        questions: normalizeQuestions(p.questions),
+        is_active: true,
+      };
+    });
 
     const inputSlugs = normalizedPacks.map(p => p.micro_slug).filter(Boolean);
     
     if (inputSlugs.length !== normalizedPacks.length) {
+      const missingCount = normalizedPacks.length - inputSlugs.length;
       return new Response(
         JSON.stringify({ 
-          error: 'Some packs are missing slug/microSlug',
+          error: `${missingCount} pack(s) are missing slug/microSlug`,
           packCount: packs.length,
           slugCount: inputSlugs.length 
         }),
@@ -100,7 +179,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch all active micro slugs from taxonomy
+    // Fetch all active micro slugs from the SAME table the wizard uses
     const { data: existingMicros, error: microError } = await supabase
       .from('service_micro_categories')
       .select('slug')
@@ -135,24 +214,47 @@ Deno.serve(async (req) => {
       errors: missingSlugs.map(s => `Unknown or inactive micro_slug: ${s}`),
     };
 
-    // If dry run or validation failed, return validation result
-    if (dryRun || !validation.valid) {
+    // If dry run, return validation result with sample normalized data
+    if (dryRun) {
+      const samplePack = normalizedPacks[0];
       return new Response(
         JSON.stringify({
-          mode: dryRun ? 'dry_run' : 'validation_failed',
+          mode: 'dry_run',
           ...validation,
-          message: dryRun 
-            ? `Dry run complete. ${validation.valid ? 'Ready to insert.' : 'Fix missing slugs first.'}`
-            : `Aborted: ${missingSlugs.length} unknown slug(s). No data was written.`,
+          taxonomySlugsAvailable: existingMicros?.length || 0,
+          sampleNormalizedPack: samplePack ? {
+            micro_slug: samplePack.micro_slug,
+            title: samplePack.title,
+            questionCount: samplePack.questions.length,
+            firstQuestion: samplePack.questions[0] || null,
+          } : null,
+          message: validation.valid 
+            ? `Dry run complete. ${validation.packCount} pack(s) ready to insert.`
+            : `Dry run complete. ${missingSlugs.length} unknown slug(s) found. Fix before importing.`,
         }),
         { 
-          status: validation.valid ? 200 : 400, 
+          status: 200, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    // Perform upsert
+    // If validation failed, abort
+    if (!validation.valid) {
+      return new Response(
+        JSON.stringify({
+          mode: 'validation_failed',
+          ...validation,
+          message: `Aborted: ${missingSlugs.length} unknown slug(s). No data was written.`,
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Perform upsert (version column exists per earlier migration check)
     const packsToUpsert = normalizedPacks.map(p => ({
       micro_slug: p.micro_slug,
       title: p.title,
