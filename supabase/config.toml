@@ -1,1 +1,4 @@
 project_id = "ngwbpuxltyfweikdupoj"
+
+[functions.seed-test]
+verify_jwt = false

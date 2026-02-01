@@ -1,14 +1,12 @@
 /**
- * V1 Question Packs Aggregator - Debug version  
- * Inline test pack
+ * V1 Question Packs Aggregator
+ * Simplified - test with one import at a time
  */
 
-export const ALL_V1_QUESTION_PACKS = [
-  {
-    microSlug: 'test-pack',
-    name: 'Test Pack',
-    questions: [
-      { id: 'q1', question: 'Test question', type: 'text', required: true }
-    ]
-  }
+// Import one file to test
+import { transportQuestionPacks } from "./transportQuestionPacks.ts";
+
+// Test with just transport for now
+export const ALL_RAW_PACKS = [
+  ...transportQuestionPacks,
 ];
