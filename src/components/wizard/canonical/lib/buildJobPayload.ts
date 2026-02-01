@@ -326,7 +326,7 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     start_timing: startTiming,
     start_date: startDate,
     has_photos: hasPhotos,
-    highlights: highlights as unknown as Json,
+    highlights,
     location: locationPayload,
     answers: answersPayload,
     status: "open",
