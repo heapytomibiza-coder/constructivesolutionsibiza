@@ -1,5 +1,6 @@
 /**
  * seed-test - Safe seeding of question packs from V1 definitions
+ * NOTE: Using static import - dynamic import was crashing
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -15,7 +16,7 @@ const humanize = (s: string): string =>
   s.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
 
 Deno.serve(async (req: Request) => {
-  console.log("seed-test function invoked", req.method);
+  console.log("seed-test invoked", req.method);
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -41,7 +42,7 @@ Deno.serve(async (req: Request) => {
     const aliasesApplied: Array<{ from: string; to: string }> = [];
 
     // Normalize packs
-    const normalizedPacks = ALL_V1_QUESTION_PACKS.map((p) => {
+    const normalizedPacks = ALL_V1_QUESTION_PACKS.map((p: any) => {
       const rawSlug = String(p.microSlug || '').trim();
       const micro_slug = SLUG_ALIASES[rawSlug] ?? rawSlug;
       
@@ -49,7 +50,6 @@ Deno.serve(async (req: Request) => {
         aliasesApplied.push({ from: rawSlug, to: micro_slug });
       }
 
-      // Normalize questions defensively
       const questions = (p.questions || []).map((q: any) => ({
         id: q.id,
         label: q.question || q.label || '',
@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
       };
     });
 
-    const inputSlugs = normalizedPacks.map((p) => p.micro_slug);
+    const inputSlugs = normalizedPacks.map((p: any) => p.micro_slug);
 
     // Validate slugs against taxonomy
     const { data: existingMicros, error: microError } = await supabase
@@ -86,8 +86,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const validSlugsSet = new Set((existingMicros || []).map((m: any) => m.slug));
-    const validSlugs = inputSlugs.filter((s) => validSlugsSet.has(s));
-    const missingSlugs = inputSlugs.filter((s) => !validSlugsSet.has(s));
+    const validSlugs = inputSlugs.filter((s: string) => validSlugsSet.has(s));
+    const missingSlugs = inputSlugs.filter((s: string) => !validSlugsSet.has(s));
 
     // Dry run
     if (dryRun) {
@@ -148,7 +148,7 @@ Deno.serve(async (req: Request) => {
     );
 
   } catch (err) {
-    console.error("Error in seed-test:", err);
+    console.error("Error:", err);
     return new Response(
       JSON.stringify({ error: 'Unexpected error', details: String(err) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
