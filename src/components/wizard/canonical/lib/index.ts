@@ -13,6 +13,7 @@ export {
   isLogisticsComplete,
   isExtrasComplete,
   validateWizardForSubmission,
+  canLeaveStep,
   type Step5Check,
   type WizardValidation,
 } from './stepValidation';
