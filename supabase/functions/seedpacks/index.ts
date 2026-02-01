@@ -45,6 +45,23 @@ Deno.serve(async (req: Request) => {
       version: number;
     };
 
+    // === Deterministic ID generation (stable across re-seeds) ===
+    const slugify = (s: string): string =>
+      s.toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 40);
+
+    const hash = (s: string): string =>
+      Array.from(new TextEncoder().encode(s))
+        .reduce((a, b) => (a * 31 + b) >>> 0, 7)
+        .toString(36);
+
+    const genId = (label: string): string => {
+      const base = slugify(label);
+      return base ? `${base}_${hash(label)}`.slice(0, 48) : `q_${hash(label)}`;
+    };
+
     // Dedupe questions by id OR label (handles missing IDs)
     function dedupeQuestions(questions: Record<string, unknown>[]) {
       const seen = new Set<string>();
@@ -53,8 +70,9 @@ Deno.serve(async (req: Request) => {
 
       for (const q of questions) {
         const id = String(q?.id ?? q?.key ?? "").trim();
-        const label = String(q?.label ?? q?.question ?? "").trim().toLowerCase();
-        const key = id || `label:${label}`;
+        const labelOriginal = String(q?.label ?? q?.question ?? "").trim();
+        const labelKey = labelOriginal.toLowerCase();
+        const key = id || `label:${labelKey}`;
         
         if (!key || key === "label:") continue;
 
@@ -65,8 +83,8 @@ Deno.serve(async (req: Request) => {
         seen.add(key);
         
         cleaned.push({
-          id: id || label.replace(/\s+/g, "_").slice(0, 32), // generate ID from label if missing
-          label: String(q?.label ?? q?.question ?? "").trim(),
+          id: id || genId(labelOriginal),
+          label: labelOriginal,
           type: q.type === "single" ? "radio" : q.type === "multi" ? "checkbox" : q.type,
           options: q.options,
           required: q.required,
@@ -144,8 +162,11 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({
       success: true,
+      mode: "live",
       inserted: data?.length || 0,
       skipped: missing.length,
+      missingSlugs: missing.slice(0, 30),
+      duplicateQuestionIdsBySlug: allDuplicates,
       packs: data?.slice(0, 10) || [],
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

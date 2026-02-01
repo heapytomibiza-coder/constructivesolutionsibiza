@@ -3,38 +3,18 @@
  * Fetches question packs from DB by micro_slug and renders them
  */
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
-
-// Option can be a string OR {value, label} object
-interface QuestionOption {
-  value: string;
-  label: string;
-}
-
-type OptionType = string | QuestionOption;
-
-// Helper to normalize options to {value, label}
-const normalizeOption = (opt: OptionType): QuestionOption => {
-  if (typeof opt === 'string') {
-    return { value: opt, label: opt };
-  }
-  return opt;
-};
+import { QuestionPackRenderer } from './QuestionPackRenderer';
 
 // Question definition from the pack
 interface QuestionDef {
   id: string;
   label: string;
   type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number';
-  options?: OptionType[];
+  options?: (string | { value: string; label: string })[];
   required?: boolean;
   placeholder?: string;
 }
@@ -117,7 +97,7 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
     }
   }, [packs, answers, onChange]);
 
-  const handleAnswerChange = (microSlug: string, questionId: string, value: unknown) => {
+  const handleAnswerChange = useCallback((microSlug: string, questionId: string, value: unknown) => {
     const microAnswers = (answers.microAnswers as Record<string, Record<string, unknown>>) || {};
     
     onChange({
@@ -130,103 +110,12 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
         },
       },
     });
-  };
+  }, [answers, onChange]);
 
-  const getAnswer = (microSlug: string, questionId: string): unknown => {
+  const getAnswer = useCallback((microSlug: string, questionId: string): unknown => {
     const microAnswers = answers.microAnswers as Record<string, Record<string, unknown>>;
     return microAnswers?.[microSlug]?.[questionId];
-  };
-
-  const renderQuestion = (pack: QuestionPack, question: QuestionDef) => {
-    const value = getAnswer(pack.micro_slug, question.id);
-    const key = `${pack.micro_slug}-${question.id}`;
-
-    switch (question.type) {
-      case 'text':
-        return (
-          <Input
-            id={key}
-            type="text"
-            placeholder={question.placeholder}
-            value={(value as string) || ''}
-            onChange={(e) => handleAnswerChange(pack.micro_slug, question.id, e.target.value)}
-          />
-        );
-
-      case 'number':
-        return (
-          <Input
-            id={key}
-            type="number"
-            placeholder={question.placeholder}
-            value={(value as number) || ''}
-            onChange={(e) => handleAnswerChange(pack.micro_slug, question.id, e.target.valueAsNumber)}
-          />
-        );
-
-      case 'textarea':
-        return (
-          <Textarea
-            id={key}
-            placeholder={question.placeholder}
-            value={(value as string) || ''}
-            onChange={(e) => handleAnswerChange(pack.micro_slug, question.id, e.target.value)}
-            rows={3}
-          />
-        );
-
-      case 'radio':
-      case 'select':
-        return (
-          <RadioGroup
-            value={(value as string) || ''}
-            onValueChange={(val) => handleAnswerChange(pack.micro_slug, question.id, val)}
-          >
-            {question.options?.map((opt) => {
-              const option = normalizeOption(opt);
-              return (
-                <div key={option.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option.value} id={`${key}-${option.value}`} />
-                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer">
-                    {option.label}
-                  </Label>
-                </div>
-              );
-            })}
-          </RadioGroup>
-        );
-
-      case 'checkbox':
-        const selectedOptions = (value as string[]) || [];
-        return (
-          <div className="space-y-2">
-            {question.options?.map((opt) => {
-              const option = normalizeOption(opt);
-              return (
-                <div key={option.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`${key}-${option.value}`}
-                    checked={selectedOptions.includes(option.value)}
-                    onCheckedChange={(checked) => {
-                      const newSelected = checked
-                        ? [...selectedOptions, option.value]
-                        : selectedOptions.filter((o) => o !== option.value);
-                      handleAnswerChange(pack.micro_slug, question.id, newSelected);
-                    }}
-                  />
-                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer">
-                    {option.label}
-                  </Label>
-                </div>
-              );
-            })}
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+  }, [answers]);
 
   if (loading) {
     return (
@@ -269,37 +158,14 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
         Tell us more about your project
       </h3>
 
-      {packs.map((pack) => {
-        // UI protection: dedupe questions by id or label
-        const uniqueQuestions = (() => {
-          const seen = new Set<string>();
-          return (pack.questions || []).filter((q) => {
-            const key = q?.id?.trim() || q?.label?.trim()?.toLowerCase();
-            if (!key) return false;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-        })();
-
-        return (
-          <div key={pack.id} className="space-y-4">
-            <h4 className="font-medium text-foreground border-b pb-2">
-              {pack.title}
-            </h4>
-            
-            {uniqueQuestions.map((question) => (
-              <div key={question.id} className="space-y-2">
-                <Label htmlFor={`${pack.micro_slug}-${question.id}`}>
-                  {question.label}
-                  {question.required && <span className="text-destructive ml-1">*</span>}
-                </Label>
-                {renderQuestion(pack, question)}
-              </div>
-            ))}
-          </div>
-        );
-      })}
+      {packs.map((pack) => (
+        <QuestionPackRenderer
+          key={pack.id}
+          pack={pack}
+          getAnswer={getAnswer}
+          onAnswerChange={handleAnswerChange}
+        />
+      ))}
 
       {missingPacks.length > 0 && (
         <p className="text-xs text-muted-foreground">
