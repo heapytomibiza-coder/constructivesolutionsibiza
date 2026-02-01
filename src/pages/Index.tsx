@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Users, ArrowRight, MapPin, Star } from 'lucide-react';
+import { Briefcase, Users, ArrowRight, Hammer, Star, Shield } from 'lucide-react';
+import { PLATFORM } from '@/domain/scope';
 
+/**
+ * HOMEPAGE - Construction & Trade Services
+ * 
+ * SCOPE: This page is for construction/property services ONLY.
+ * Do not add concierge, lifestyle, or generic "professionals" copy.
+ */
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -13,13 +20,13 @@ const Index = () => {
               <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
             </div>
             <span className="font-display text-xl font-semibold text-foreground">
-              CS Ibiza
+              {PLATFORM.shortName}
             </span>
           </Link>
           
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/job-board" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Job Board
+            <Link to="/services" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Services
             </Link>
             <Link to="/professionals" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Professionals
@@ -44,18 +51,17 @@ const Index = () => {
       <section className="container py-24 md:py-32">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground">
-            <MapPin className="h-4 w-4 text-primary" />
-            Ibiza's Premier Concierge Service
+            <Hammer className="h-4 w-4 text-primary" />
+            Construction & Trade Services
           </div>
           
           <h1 className="mb-6 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl animate-slide-up">
-            Connect with the Best
-            <span className="block text-gradient-ocean">Professionals in Ibiza</span>
+            Find Trusted
+            <span className="block text-gradient-ocean">Construction Professionals</span>
           </h1>
           
           <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            From luxury yacht chefs to villa managers, find verified professionals 
-            for your Mediterranean experience. Post a job and receive quotes within hours.
+            {PLATFORM.description}
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -80,20 +86,20 @@ const Index = () => {
               How It Works
             </h2>
             <p className="text-muted-foreground">
-              A seamless way to connect clients with verified professionals
+              Connect with verified builders, electricians, plumbers, and trades
             </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
             <FeatureCard
               icon={<Briefcase className="h-6 w-6" />}
-              title="Post Your Job"
-              description="Describe what you need — from private chef services to event planning. Our wizard guides you through."
+              title="Post Your Project"
+              description="Describe your construction or renovation needs. Our guided wizard helps you specify exactly what you're looking for."
             />
             <FeatureCard
               icon={<Users className="h-6 w-6" />}
-              title="Receive Proposals"
-              description="Verified professionals review your request and send personalized quotes with their availability."
+              title="Receive Quotes"
+              description="Verified tradespeople and builders review your project and send personalized quotes with their availability."
             />
             <FeatureCard
               icon={<Star className="h-6 w-6" />}
@@ -104,14 +110,18 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Trust Section */}
       <section className="container py-20">
         <div className="mx-auto max-w-4xl rounded-2xl bg-gradient-ocean p-12 text-center shadow-glow">
+          <div className="mb-4 inline-flex items-center gap-2">
+            <Shield className="h-6 w-6 text-primary-foreground" />
+          </div>
           <h2 className="font-display text-3xl font-semibold text-primary-foreground mb-4">
-            Ready to Get Started?
+            Verified Professionals Only
           </h2>
           <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">
-            Join hundreds of satisfied clients who found their perfect professional through CS Ibiza.
+            Every professional on our platform is verified. We check credentials, 
+            insurance, and past work to ensure you get quality tradespeople.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button variant="secondary" size="lg" asChild>
@@ -133,18 +143,17 @@ const Index = () => {
                 <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
               </div>
               <span className="font-display text-lg font-semibold text-foreground">
-                CS Ibiza
+                {PLATFORM.shortName}
               </span>
             </div>
 
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link>
+              <Link to="/how-it-works" className="hover:text-foreground transition-colors">How It Works</Link>
+              <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             </div>
 
             <p className="text-sm text-muted-foreground">
-              © 2025 CS Ibiza. All rights reserved.
+              © 2025 {PLATFORM.name}
             </p>
           </div>
         </div>
