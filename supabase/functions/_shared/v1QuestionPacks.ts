@@ -8,14 +8,16 @@
 import { transportQuestionPacks, MicroservicePack } from './transportQuestionPacks.ts';
 import { constructionQuestionPacks } from './constructionQuestionPacks.ts';
 import { electricalQuestionPacks } from './electricalQuestionPacks.ts';
+import { hvacQuestionPacks } from './hvacQuestionPacks.ts';
 
 // Aggregate all V1 packs for seeder import
 export const ALL_V1_QUESTION_PACKS = [
   ...transportQuestionPacks,
   ...constructionQuestionPacks,
   ...electricalQuestionPacks,
+  ...hvacQuestionPacks,
   // Add more categories here as they're migrated:
-  // ...hvacQuestionPacks,
+  // ...plumbingQuestionPacks,
   // etc.
 ];
 
