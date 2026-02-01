@@ -1,21 +1,22 @@
 /**
  * URL Step Sync Hook
- * Matches V1 behaviour: step is persisted in URL query param
+ * V2: Uses string enum for URL-safe step persistence
  */
 
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { WizardStep, isValidStep } from '../types';
 
 export function useWizardUrlStep(
-  currentStep: number,
-  setCurrentStep: (step: number) => void
+  currentStep: WizardStep,
+  setCurrentStep: (step: WizardStep) => void
 ) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Read step from URL on mount
   useEffect(() => {
-    const stepFromUrl = parseInt(searchParams.get('step') || '1', 10);
-    if (!Number.isNaN(stepFromUrl) && stepFromUrl >= 1 && stepFromUrl <= 7) {
+    const stepFromUrl = searchParams.get('step');
+    if (stepFromUrl && isValidStep(stepFromUrl)) {
       setCurrentStep(stepFromUrl);
     }
     // Only run on mount
@@ -25,7 +26,7 @@ export function useWizardUrlStep(
   // Write step to URL on change
   useEffect(() => {
     const newParams = new URLSearchParams(searchParams);
-    newParams.set('step', String(currentStep));
+    newParams.set('step', currentStep);
     setSearchParams(newParams, { replace: true });
   }, [currentStep, searchParams, setSearchParams]);
 }
