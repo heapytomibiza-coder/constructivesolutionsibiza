@@ -1,22 +1,6 @@
 /**
  * PLATFORM SCOPE - SINGLE SOURCE OF TRUTH
- * 
- * Constructive Solutions Ibiza is STRICTLY for:
- * - Construction
- * - Building & Renovation
- * - Property Maintenance
- * - Trades (electrical, plumbing, carpentry, etc.)
- * - Related professional services (architecture, design, compliance)
- * 
- * This platform is NOT for:
- * - Concierge services
- * - Lifestyle services
- * - Hospitality
- * - Personal services
- * - Creative services (photography, etc.)
- * - General "professionals" marketplace
- * 
- * DO NOT introduce generic marketplace copy or categories.
+ * Constructive Solutions Ibiza is construction-only.
  */
 
 export const PLATFORM = {
