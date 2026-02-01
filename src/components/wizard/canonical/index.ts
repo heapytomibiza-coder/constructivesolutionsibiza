@@ -11,7 +11,6 @@ export { useWizardUrlStep, useWizardDraft } from './hooks';
 export { 
   buildJobInsert, 
   buildIdempotencyKey, 
-  parseBudgetRange,
   validateWizardState 
 } from './lib';
 
