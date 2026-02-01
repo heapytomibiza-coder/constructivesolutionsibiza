@@ -40,6 +40,7 @@ import MicroStep from '@/components/wizard/db-powered/MicroStep';
 import { LogisticsStep } from './steps/LogisticsStep';
 import { ExtrasStep } from './steps/ExtrasStep';
 import { ReviewStep } from './steps/ReviewStep';
+import { QuestionsStep } from './steps/QuestionsStep';
 
 interface CanonicalJobWizardProps {
   className?: string;
@@ -149,6 +150,16 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     []
   );
 
+  const handleAnswersChange = useCallback(
+    (answers: Record<string, unknown>) => {
+      setWizardState(prev => ({
+        ...prev,
+        answers,
+      }));
+    },
+    []
+  );
+
   // === NAVIGATION ===
   
   const canAdvance = useCallback((): boolean => {
@@ -159,6 +170,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         return !!wizardState.subcategoryId;
       case WizardStep.Micro:
         return wizardState.microIds.length > 0;
+      case WizardStep.Questions:
+        return true; // Questions are optional - can always continue
       case WizardStep.Logistics:
         // Location required, and if "other" then customLocation must be filled
         if (!wizardState.logistics.location) return false;
@@ -370,6 +383,14 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                 onSelect={handleMicroSelect}
               />
             </div>
+          )}
+
+          {currentStep === WizardStep.Questions && (
+            <QuestionsStep
+              microSlugs={wizardState.microSlugs}
+              answers={wizardState.answers}
+              onChange={handleAnswersChange}
+            />
           )}
 
           {currentStep === WizardStep.Logistics && (
