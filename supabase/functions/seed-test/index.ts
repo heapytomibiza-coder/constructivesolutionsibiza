@@ -15,6 +15,8 @@ const humanize = (s: string): string =>
   s.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
 
 Deno.serve(async (req: Request) => {
+  console.log("seed-test function invoked", req.method);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -30,6 +32,8 @@ Deno.serve(async (req: Request) => {
   const dryRun = url.searchParams.get('dry_run') === '1';
 
   try {
+    console.log("Loaded packs count:", ALL_V1_QUESTION_PACKS.length);
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -45,7 +49,7 @@ Deno.serve(async (req: Request) => {
         aliasesApplied.push({ from: rawSlug, to: micro_slug });
       }
 
-      // Normalize questions defensively (cast to any to handle all V1 variants)
+      // Normalize questions defensively
       const questions = (p.questions || []).map((q: any) => ({
         id: q.id,
         label: q.question || q.label || '',
@@ -144,6 +148,7 @@ Deno.serve(async (req: Request) => {
     );
 
   } catch (err) {
+    console.error("Error in seed-test:", err);
     return new Response(
       JSON.stringify({ error: 'Unexpected error', details: String(err) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
