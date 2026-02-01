@@ -1,14 +1,9 @@
 /**
  * seed-packs - Safe seeding of question packs from V1 definitions
  */
-
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { ALL_V1_QUESTION_PACKS } from '../_shared/v1QuestionPacks.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders } from "../_shared/cors.ts";
+import { ALL_V1_QUESTION_PACKS } from "../_shared/v1QuestionPacks.ts";
 
 // Slug aliases for V1 to V2 remapping
 const SLUG_ALIASES: Record<string, string> = {
@@ -17,10 +12,10 @@ const SLUG_ALIASES: Record<string, string> = {
 };
 
 const humanize = (s: string): string =>
-  s.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  s.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
 
-Deno.serve(async (req) => {
-  // Handle CORS preflight
+Deno.serve(async (req: Request) => {
+  // CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -32,7 +27,7 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Check SEEDER_SECRET or ALLOW_OPEN_SEED
+  // Auth check
   const expected = Deno.env.get('SEEDER_SECRET');
   const allowOpenSeed = Deno.env.get('ALLOW_OPEN_SEED') === 'true';
   
@@ -52,8 +47,6 @@ Deno.serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-  } else {
-    console.warn('[seed-packs] Running without SEEDER_SECRET (ALLOW_OPEN_SEED=true)');
   }
 
   const url = new URL(req.url);
@@ -61,23 +54,22 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Track aliases applied
-    const aliasesApplied: { from: string; to: string }[] = [];
+    const aliasesApplied: Array<{ from: string; to: string }> = [];
 
-    // Normalize packs from V1 format
-    const normalizedPacks = ALL_V1_QUESTION_PACKS.map(p => {
+    // Normalize packs
+    const normalizedPacks = ALL_V1_QUESTION_PACKS.map((p) => {
       const rawSlug = String(p.microSlug || '').trim();
       const micro_slug = SLUG_ALIASES[rawSlug] ?? rawSlug;
       
       if (SLUG_ALIASES[rawSlug]) {
         aliasesApplied.push({ from: rawSlug, to: micro_slug });
       }
-      
-      // Normalize questions: question -> label, helpText -> help
-      const questions = (p.questions || []).map(q => ({
+
+      // Normalize questions defensively
+      const questions = (p.questions || []).map((q) => ({
         id: q.id,
         label: q.question || '',
         type: q.type,
@@ -86,12 +78,6 @@ Deno.serve(async (req) => {
         placeholder: q.placeholder,
         required: q.required,
         accept: q.accept,
-        show_if: q.dependsOn ? {
-          question_id: q.dependsOn.questionId,
-          ...(Array.isArray(q.dependsOn.value)
-            ? { includes_any: q.dependsOn.value }
-            : { equals: q.dependsOn.value }),
-        } : undefined,
       }));
 
       return {
@@ -103,9 +89,9 @@ Deno.serve(async (req) => {
       };
     });
 
-    const inputSlugs = normalizedPacks.map(p => p.micro_slug);
+    const inputSlugs = normalizedPacks.map((p) => p.micro_slug);
 
-    // Validate slugs exist in taxonomy
+    // Validate slugs
     const { data: existingMicros, error: microError } = await supabase
       .from('service_micro_categories')
       .select('slug')
@@ -118,11 +104,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    const validSlugsSet = new Set((existingMicros || []).map(m => m.slug));
-    const validSlugs = inputSlugs.filter(s => validSlugsSet.has(s));
-    const missingSlugs = inputSlugs.filter(s => !validSlugsSet.has(s));
+    const validSlugsSet = new Set((existingMicros || []).map((m) => m.slug));
+    const validSlugs = inputSlugs.filter((s) => validSlugsSet.has(s));
+    const missingSlugs = inputSlugs.filter((s) => !validSlugsSet.has(s));
 
-    // Dry run response
+    // Dry run
     if (dryRun) {
       const sample = normalizedPacks[0];
       return new Response(
@@ -143,31 +129,24 @@ Deno.serve(async (req) => {
           } : null,
           message: missingSlugs.length === 0 
             ? `Dry run complete. ${normalizedPacks.length} pack(s) ready to insert. ${aliasesApplied.length} alias(es) applied.`
-            : `Dry run complete. ${missingSlugs.length} unknown slug(s) found. Fix before importing.`,
+            : `Dry run failed. ${missingSlugs.length} unknown slug(s).`,
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Abort if validation failed
+    // Abort if invalid
     if (missingSlugs.length > 0) {
       return new Response(
-        JSON.stringify({
-          mode: 'validation_failed',
-          missingSlugs,
-          message: `Aborted: ${missingSlugs.length} unknown slug(s). No data was written.`,
-        }),
+        JSON.stringify({ mode: 'validation_failed', missingSlugs }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Perform upsert
+    // Upsert
     const { data: upserted, error: upsertError } = await supabase
       .from('question_packs')
-      .upsert(normalizedPacks, { 
-        onConflict: 'micro_slug',
-        ignoreDuplicates: false 
-      })
+      .upsert(normalizedPacks, { onConflict: 'micro_slug', ignoreDuplicates: false })
       .select('id, micro_slug, title');
 
     if (upsertError) {
@@ -183,7 +162,6 @@ Deno.serve(async (req) => {
         mode: 'live',
         inserted: upserted?.length || 0,
         packs: upserted,
-        message: `Successfully upserted ${upserted?.length || 0} question pack(s).`,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
