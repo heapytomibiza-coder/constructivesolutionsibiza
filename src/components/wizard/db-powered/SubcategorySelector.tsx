@@ -7,15 +7,18 @@ interface Subcategory {
 }
 
 interface Props {
-  categoryId: string | null;
-  value: string | null;
-  onChange: (subcategoryId: string, subcategoryName: string) => void;
+  categoryId: string;
+  categoryName?: string;
+  selectedSubcategoryId?: string;
+  onSelect: (subcategoryName: string, subcategoryId: string) => void;
+  onNext?: () => void;
+  onBack?: () => void;
 }
 
 export default function SubcategorySelector({
   categoryId,
-  value,
-  onChange,
+  selectedSubcategoryId,
+  onSelect,
 }: Props) {
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
@@ -33,7 +36,8 @@ export default function SubcategorySelector({
         .from("service_subcategories")
         .select("id, name")
         .eq("category_id", categoryId)
-        .order("name");
+        .eq("is_active", true)
+        .order("display_order");
 
       if (!error && data) {
         setSubcategories(data);
@@ -49,32 +53,33 @@ export default function SubcategorySelector({
     return null;
   }
 
+  if (loading) {
+    return <p className="text-muted-foreground">Loading subcategories…</p>;
+  }
+
   return (
-    <div>
-      <label className="block text-sm font-medium mb-1">
-        Subcategory
-      </label>
-      <select
-        value={value || ""}
-        onChange={(e) => {
-          const selectedId = e.target.value;
-          const selected = subcategories.find(s => s.id === selectedId);
-          if (selected) {
-            onChange(selectedId, selected.name);
-          }
-        }}
-        className="w-full rounded border p-2"
-        disabled={loading}
-      >
-        <option value="" disabled>
-          {loading ? "Loading…" : "Select a subcategory"}
-        </option>
-        {subcategories.map((subcategory) => (
-          <option key={subcategory.id} value={subcategory.id}>
-            {subcategory.name}
-          </option>
-        ))}
-      </select>
+    <div className="space-y-2">
+      {subcategories.length === 0 ? (
+        <p className="text-muted-foreground">No subcategories available</p>
+      ) : (
+        subcategories.map((subcategory) => {
+          const isSelected = selectedSubcategoryId === subcategory.id;
+          return (
+            <button
+              key={subcategory.id}
+              type="button"
+              onClick={() => onSelect(subcategory.name, subcategory.id)}
+              className={`w-full text-left p-4 rounded-lg border transition-colors ${
+                isSelected
+                  ? 'border-primary bg-primary/10 text-foreground'
+                  : 'border-border bg-card hover:border-primary/50'
+              }`}
+            >
+              {subcategory.name}
+            </button>
+          );
+        })
+      )}
     </div>
   );
 }
