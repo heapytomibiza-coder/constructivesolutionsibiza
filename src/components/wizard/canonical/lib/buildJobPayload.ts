@@ -10,6 +10,144 @@ import type { WizardState } from '../types';
 type JobInsert = TablesInsert<"jobs">;
 
 /**
+ * Location preset to area/town mapping
+ * Area-safe: no addresses, just broad location info
+ */
+const LOCATION_MAP: Record<string, { area: string; town?: string }> = {
+  ibiza_town: { area: "Ibiza Town", town: "Eivissa" },
+  san_antonio: { area: "San Antonio", town: "Sant Antoni de Portmany" },
+  santa_eulalia: { area: "Santa Eulalia", town: "Santa Eulària des Riu" },
+  san_jose: { area: "San José", town: "Sant Josep de sa Talaia" },
+};
+
+/**
+ * Build area-safe location JSON
+ * Never includes exact addresses - only broad area info
+ */
+function buildLocationJson(logistics: WizardState['logistics']): Json {
+  const preset = logistics.location ?? null;
+
+  if (!preset) {
+    return {
+      preset: null,
+      area: "Ibiza",
+      town: null,
+      custom: null,
+      zone: null,
+      notes: null,
+    };
+  }
+
+  if (preset === "other") {
+    const custom = (logistics.customLocation ?? "").trim();
+    const area = custom || "Ibiza";
+    return {
+      preset,
+      area,
+      town: null,
+      custom: custom || null,
+      zone: null,
+      notes: null,
+    };
+  }
+
+  const mapped = LOCATION_MAP[preset];
+  return {
+    preset,
+    area: mapped?.area ?? "Ibiza",
+    town: mapped?.town ?? null,
+    custom: null,
+    zone: null,
+    notes: null,
+  };
+}
+
+/**
+ * Build highlights array from wizard state
+ * These appear on job cards for quick scanning
+ */
+function buildHighlights(state: WizardState): string[] {
+  const { logistics, extras, answers } = state;
+  const highlights: string[] = [];
+
+  // Timing highlight
+  if (logistics.startDatePreset === "asap") {
+    highlights.push("⚡ ASAP");
+  } else if (logistics.startDatePreset === "this_week") {
+    highlights.push("📅 This week");
+  } else if (logistics.startDatePreset === "this_month") {
+    highlights.push("📅 This month");
+  } else if (logistics.startDate) {
+    highlights.push(`📅 ${logistics.startDate.toLocaleDateString()}`);
+  }
+
+  // Budget highlight
+  if (logistics.budgetRange) {
+    highlights.push(`💰 ${logistics.budgetRange}`);
+  }
+
+  // Consultation highlight
+  if (logistics.consultationType === "site_visit") {
+    highlights.push("🏠 Site visit needed");
+  } else if (logistics.consultationType === "video_call") {
+    highlights.push("📹 Video call available");
+  }
+
+  // Access details
+  if (Array.isArray(logistics.accessDetails) && logistics.accessDetails.length > 0) {
+    const accessLabels: Record<string, string> = {
+      parking: "🅿️ Parking available",
+      stairs_only: "🪜 Stairs only",
+      elevator: "🛗 Elevator access",
+      gated: "🚪 Gated property",
+      key_pickup: "🔑 Key pickup required",
+    };
+    logistics.accessDetails.slice(0, 2).forEach(detail => {
+      if (accessLabels[detail]) {
+        highlights.push(accessLabels[detail]);
+      }
+    });
+  }
+
+  // Permits concern
+  if (extras.permitsConcern) {
+    highlights.push("📋 Permits may be needed");
+  }
+
+  // Photos indicator
+  if ((extras.photos?.length ?? 0) > 0) {
+    highlights.push(`📸 ${extras.photos!.length} photo${extras.photos!.length > 1 ? 's' : ''}`);
+  }
+
+  // Extract useful info from answers if available
+  if (answers && typeof answers === 'object') {
+    // Look for common answer patterns
+    const answerObj = answers as Record<string, unknown>;
+    
+    // Size/quantity from answers
+    Object.entries(answerObj).forEach(([key, value]) => {
+      if (highlights.length >= 5) return;
+      
+      if (typeof value === 'object' && value !== null) {
+        const v = value as Record<string, unknown>;
+        // Check for quantity-like fields
+        if (v.quantity && typeof v.quantity === 'number') {
+          highlights.push(`📏 Qty: ${v.quantity}`);
+        }
+        if (v.size && typeof v.size === 'string') {
+          highlights.push(`📐 ${v.size}`);
+        }
+        if (v.area_sqm && typeof v.area_sqm === 'number') {
+          highlights.push(`📐 ${v.area_sqm}m²`);
+        }
+      }
+    });
+  }
+
+  return highlights.slice(0, 5);
+}
+
+/**
  * Parse budget range string to min/max values
  * Handles formats like "€500-1000", "500 to 1000", "1000"
  */
@@ -60,15 +198,12 @@ export function buildIdempotencyKey(
 /**
  * Map location selection to area name for filtering
  */
-function mapLocationToArea(location?: string): string | null {
-  const areaMap: Record<string, string> = {
-    'ibiza_town': 'Ibiza Town',
-    'san_antonio': 'San Antonio',
-    'santa_eulalia': 'Santa Eulalia',
-    'san_jose': 'San José',
-  };
+function mapLocationToArea(location?: string, customLocation?: string): string | null {
   if (!location) return null;
-  return areaMap[location] || null;
+  if (location === 'other') {
+    return customLocation?.trim() || null;
+  }
+  return LOCATION_MAP[location]?.area || null;
 }
 
 /**
@@ -108,9 +243,10 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
         : mainCategory;
 
   // Teaser: short description for cards (first 200 chars of notes or auto-generated)
+  const area = mapLocationToArea(logistics.location, logistics.customLocation);
   const teaser = extras.notes?.trim()
     ? extras.notes.trim().slice(0, 200)
-    : `${title} in ${mapLocationToArea(logistics.location) || logistics.customLocation || 'Ibiza'}`;
+    : `${title} in ${area || 'Ibiza'}`;
 
   // Full description
   const description =
@@ -124,11 +260,6 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
   // For fixed budget, use min as the value
   const budgetValue = budgetType === 'fixed' ? min : null;
 
-  // Area extraction
-  const area = logistics.location === 'other' 
-    ? logistics.customLocation?.trim() || null
-    : mapLocationToArea(logistics.location);
-
   // Start timing
   const startTiming = mapStartTiming(logistics.startDatePreset);
   const startDate = logistics.startDate ? logistics.startDate.toISOString().split('T')[0] : null;
@@ -138,6 +269,12 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
 
   // Primary micro slug (first selected)
   const primaryMicroSlug = microSlugs.length > 0 ? microSlugs[0] : null;
+
+  // Build highlights for card display
+  const highlights = buildHighlights(state);
+
+  // Build proper location JSON (area-safe, no addresses)
+  const locationPayload = buildLocationJson(logistics);
 
   // Full answers payload for detailed view
   const microAnswers = Object.fromEntries(
@@ -172,11 +309,6 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     },
   };
 
-  const locationPayload: Json = {
-    location: logistics.location,
-    customLocation: logistics.customLocation ?? null,
-  };
-
   // Return with all filterable columns populated directly
   return {
     user_id: userId,
@@ -194,8 +326,9 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     start_timing: startTiming,
     start_date: startDate,
     has_photos: hasPhotos,
-    answers: answersPayload,
+    highlights: highlights as unknown as Json,
     location: locationPayload,
+    answers: answersPayload,
     status: "open",
     is_publicly_listed: true,
   } as JobInsert;
