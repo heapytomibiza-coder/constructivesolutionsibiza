@@ -62,11 +62,8 @@ export function buildJobInsert(userId: string, wizardState: WizardState) {
       startDatePreset: logistics.startDatePreset ?? null,
       budgetRange: logistics.budgetRange ?? null,
       accessDetails: logistics.accessDetails ?? [],
-      consultationType: logistics.consultationType ?? null,
-      consultationTime: logistics.consultationTime ?? null,
       startDate: formatDate(logistics.startDate),
       completionDate: formatDate(logistics.completionDate),
-      consultationDate: formatDate(logistics.consultationDate),
     },
     extras: {
       photos: extras.photos,

@@ -1,8 +1,8 @@
 /**
  * Canonical Job Wizard
- * V2 clean architecture - matches V1 behaviour exactly
+ * V2 clean architecture - 6-step flow with string enum steps
  * 
- * 7-step flow: Category → Subcategory → Micro → Questions → Logistics → Extras → Review
+ * Flow: Category → Subcategory → Micro → Logistics → Extras → Review
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -20,18 +20,23 @@ import {
   WizardState, 
   WizardStep, 
   EMPTY_WIZARD_STATE, 
-  STEP_TITLES 
+  STEP_TITLES,
+  STEP_ORDER,
+  getStepIndex,
+  getNextStep,
+  getPrevStep,
+  isValidStep,
 } from './types';
 import { useWizardUrlStep } from './hooks/useWizardUrlStep';
 import { useWizardDraft } from './hooks/useWizardDraft';
-import { buildJobInsert, buildIdempotencyKey, validateWizardState } from './lib/buildJobPayload';
+import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
 
 // DB-powered selectors
 import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
 import SubcategorySelector from '@/components/wizard/db-powered/SubcategorySelector';
 import MicroStep from '@/components/wizard/db-powered/MicroStep';
 
-// Step components (placeholders for now, can be extracted later)
+// Step components
 import { LogisticsStep } from './steps/LogisticsStep';
 import { ExtrasStep } from './steps/ExtrasStep';
 import { ReviewStep } from './steps/ReviewStep';
@@ -45,7 +50,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const { user, isAuthenticated } = useSession();
   
   // Core wizard state
-  const [currentStep, setCurrentStep] = useState(WizardStep.Category);
+  const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.Category);
   const [wizardState, setWizardState] = useState<WizardState>(EMPTY_WIZARD_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -148,8 +153,6 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         return !!wizardState.subcategoryId;
       case WizardStep.Micro:
         return wizardState.microIds.length > 0;
-      case WizardStep.Questions:
-        return true; // Questions are optional or validated per-question
       case WizardStep.Logistics:
         return !!wizardState.logistics.location;
       case WizardStep.Extras:
@@ -162,32 +165,26 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   }, [currentStep, wizardState]);
 
   const handleNext = useCallback(() => {
-    if (currentStep < WizardStep.Review && canAdvance()) {
-      // Skip questions step for now (can add question logic later)
-      if (currentStep === WizardStep.Micro) {
-        setCurrentStep(WizardStep.Logistics);
-      } else if (currentStep === WizardStep.Questions) {
-        setCurrentStep(WizardStep.Logistics);
-      } else {
-        setCurrentStep(prev => prev + 1);
+    if (currentStep !== WizardStep.Review && canAdvance()) {
+      const nextStep = getNextStep(currentStep);
+      if (nextStep) {
+        setCurrentStep(nextStep);
       }
     }
   }, [currentStep, canAdvance]);
 
   const handleBack = useCallback(() => {
-    if (currentStep > WizardStep.Category) {
-      // Skip questions step going back too
-      if (currentStep === WizardStep.Logistics) {
-        setCurrentStep(WizardStep.Micro);
-      } else {
-        setCurrentStep(prev => prev - 1);
-      }
+    const prevStep = getPrevStep(currentStep);
+    if (prevStep) {
+      setCurrentStep(prevStep);
     }
   }, [currentStep]);
 
   const handleJumpToStep = useCallback((step: WizardStep) => {
     // Only allow jumping to completed steps or current
-    if (step <= currentStep) {
+    const currentIndex = getStepIndex(currentStep);
+    const targetIndex = getStepIndex(step);
+    if (targetIndex <= currentIndex) {
       setCurrentStep(step);
     }
   }, [currentStep]);
@@ -274,9 +271,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
   // === RENDER ===
   
-  const stepNumber = currentStep;
-  const totalSteps = 7;
-  const progress = ((stepNumber - 1) / (totalSteps - 1)) * 100;
+  const stepIndex = getStepIndex(currentStep);
+  const totalSteps = STEP_ORDER.length;
+  const progress = (stepIndex / (totalSteps - 1)) * 100;
 
   return (
     <div className={className}>
@@ -308,7 +305,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-foreground">
-            Step {stepNumber} of {totalSteps}
+            Step {stepIndex + 1} of {totalSteps}
           </span>
           <span className="text-sm text-muted-foreground">
             {STEP_TITLES[currentStep]}
@@ -361,17 +358,6 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                 selectedMicroIds={wizardState.microIds}
                 onSelect={handleMicroSelect}
               />
-            </div>
-          )}
-
-          {currentStep === WizardStep.Questions && (
-            <div className="space-y-4">
-              <h3 className="font-display text-lg font-semibold">
-                Tell us more details
-              </h3>
-              <p className="text-muted-foreground">
-                Questions step - coming soon
-              </p>
             </div>
           )}
 
@@ -436,7 +422,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           </Button>
         ) : (
           // Show Continue button for Micro step and later
-          currentStep >= WizardStep.Micro && (
+          currentStep !== WizardStep.Category && currentStep !== WizardStep.Subcategory && (
             <Button
               onClick={handleNext}
               disabled={!canAdvance()}
