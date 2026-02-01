@@ -24,14 +24,31 @@ const corsHeaders = {
 
 // ============ Auth Helper ============
 
+/**
+ * Require SEEDER_SECRET for production safety.
+ * Dev bypass: set ALLOW_OPEN_SEED=true in env to skip auth (never in production).
+ */
 function assertSeederAuth(req: Request): void {
+  const expected = Deno.env.get('SEEDER_SECRET');
+  const allowOpenSeed = Deno.env.get('ALLOW_OPEN_SEED') === 'true';
+
+  // If no secret configured...
+  if (!expected) {
+    // Allow open seeding ONLY if explicitly enabled (dev environments)
+    if (allowOpenSeed) {
+      console.warn('[seed-question-packs] Running without SEEDER_SECRET (ALLOW_OPEN_SEED=true)');
+      return;
+    }
+    // Otherwise fail safe
+    const err = new Error('SEEDER_SECRET not configured. Set it or enable ALLOW_OPEN_SEED=true for dev.');
+    (err as Error & { statusCode: number }).statusCode = 500;
+    throw err;
+  }
+
+  // Secret is configured - validate the token
   const auth = req.headers.get('authorization') || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  const expected = Deno.env.get('SEEDER_SECRET');
 
-  if (!expected) {
-    throw new Error('SEEDER_SECRET is not configured on the server');
-  }
   if (token !== expected) {
     const err = new Error('Unauthorized');
     (err as Error & { statusCode: number }).statusCode = 401;
