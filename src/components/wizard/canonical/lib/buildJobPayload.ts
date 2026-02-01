@@ -1,18 +1,22 @@
 /**
  * Job Payload Builder
  * Transforms wizard state into database insert format
+ * V2: Fully type-safe using TablesInsert<"jobs">
  */
 
+import type { TablesInsert, Json } from '@/integrations/supabase/types';
 import type { WizardState } from '../types';
-import type { Json } from '@/integrations/supabase/types';
+
+type JobInsert = TablesInsert<"jobs">;
 
 /**
  * Parse budget range string to min/max values
  * Handles formats like "€500-1000", "500 to 1000", "1000"
  */
-export function parseBudgetRange(input?: string | null): { min: number | null; max: number | null } {
+function parseBudgetRange(input?: string | null): { min: number | null; max: number | null } {
   if (!input) return { min: null, max: null };
 
+  // accepts "500-1000", "€500 - €1,000", "500 to 1000"
   const cleaned = input.replace(/[€,\s]/g, "").replace(/to/i, "-");
   const parts = cleaned.split("-").map(p => p.trim()).filter(Boolean);
 
@@ -23,6 +27,13 @@ export function parseBudgetRange(input?: string | null): { min: number | null; m
   if (!Number.isFinite(b)) return { min: a, max: null };
 
   return { min: Math.min(a, b), max: Math.max(a, b) };
+}
+
+/**
+ * Format date to ISO string or null
+ */
+function formatDate(date?: Date): string | null {
+  return date ? date.toISOString() : null;
 }
 
 /**
@@ -48,68 +59,73 @@ export function buildIdempotencyKey(
 
 /**
  * Build the job insert payload for Supabase
+ * Returns a fully typed JobInsert object
  */
-export function buildJobInsert(userId: string, wizardState: WizardState) {
-  const { mainCategory, subcategory, microNames, microIds, logistics, extras, answers } = wizardState;
+export function buildJobInsert(userId: string, state: WizardState): JobInsert {
+  const { mainCategory, subcategory, microNames, microIds, microSlugs, answers, logistics, extras } = state;
 
-  // Combine micro names for title
-  const combinedTitle = microNames.length > 0 
-    ? microNames.join(' + ')
-    : `${subcategory} - ${mainCategory}`;
+  const title =
+    microNames.length > 0
+      ? microNames.join(" + ")
+      : subcategory
+        ? `${subcategory} - ${mainCategory}`
+        : mainCategory;
 
-  // Format dates safely
-  const formatDate = (date?: Date) => date?.toISOString() ?? null;
+  const description =
+    (extras.notes?.trim() ? extras.notes.trim() : null) ??
+    `${title} - ${mainCategory}${subcategory ? ` / ${subcategory}` : ""}`;
 
-  // Parse budget range
-  const { min: budgetMin, max: budgetMax } = parseBudgetRange(logistics.budgetRange);
+  const { min, max } = parseBudgetRange(logistics.budgetRange);
 
-  // Resolve location - use custom if "other" selected
-  const resolvedLocation = logistics.location === 'other' 
-    ? logistics.customLocation ?? ''
-    : logistics.location;
+  // Everything inside is JSON-safe (strings, arrays, booleans, nulls)
+  // Using Object.fromEntries to ensure type compatibility with Json
+  const microAnswers = Object.fromEntries(
+    Object.entries(answers ?? {}).map(([k, v]) => [k, v as Json])
+  ) as Record<string, Json>;
 
-  // Build answers as JSON-compatible object (ensure all values are JSON-safe)
   const answersPayload: Json = {
-    microAnswers: JSON.parse(JSON.stringify(answers ?? {})),
-    selectedMicros: microNames,
-    selectedMicroIds: microIds,
+    selected: {
+      mainCategory,
+      subcategory,
+      microNames,
+      microIds,
+      microSlugs,
+    },
+    microAnswers,
     logistics: {
-      location: resolvedLocation,
+      location: logistics.location,
       customLocation: logistics.customLocation ?? null,
       startDatePreset: logistics.startDatePreset ?? null,
-      budgetRange: logistics.budgetRange ?? null,
-      accessDetails: logistics.accessDetails ?? [],
       startDate: formatDate(logistics.startDate),
       completionDate: formatDate(logistics.completionDate),
       consultationType: logistics.consultationType ?? null,
       consultationDate: formatDate(logistics.consultationDate),
       consultationTime: logistics.consultationTime ?? null,
+      budgetRange: logistics.budgetRange ?? null,
+      accessDetails: logistics.accessDetails ?? [],
     },
     extras: {
-      photos: extras.photos,
+      photos: extras.photos ?? [],
       notes: extras.notes ?? null,
       permitsConcern: extras.permitsConcern ?? false,
     },
   };
 
-  // Build location as JSON-compatible object
   const locationPayload: Json = {
-    address: resolvedLocation,
+    location: logistics.location,
     customLocation: logistics.customLocation ?? null,
-    startDate: formatDate(logistics.startDate),
-    completionDate: formatDate(logistics.completionDate),
   };
 
   return {
     user_id: userId,
-    title: combinedTitle,
-    description: extras.notes || `${combinedTitle} - ${mainCategory} / ${subcategory}`,
-    category: mainCategory,
+    title,
+    description,
+    category: mainCategory || null,
     answers: answersPayload,
-    budget_min: budgetMin,
-    budget_max: budgetMax,
     location: locationPayload,
-    status: 'open',
+    budget_min: min,
+    budget_max: max,
+    status: "open",
     is_publicly_listed: true,
   };
 }
@@ -117,35 +133,17 @@ export function buildJobInsert(userId: string, wizardState: WizardState) {
 /**
  * Validate wizard state before submission
  */
-export function validateWizardState(state: WizardState): {
-  valid: boolean;
-  errors: string[];
-} {
+export function validateWizardState(state: WizardState): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
-  if (!state.mainCategoryId) {
-    errors.push('Please select a category');
+  if (!state.mainCategoryId) errors.push("Please select a category");
+  if (!state.subcategoryId) errors.push("Please select a service type");
+  if (!state.microIds.length) errors.push("Please select at least one task");
+
+  if (!state.logistics.location) errors.push("Please provide a location");
+  if (state.logistics.location === "other" && !state.logistics.customLocation?.trim()) {
+    errors.push("Please specify the location");
   }
 
-  if (!state.subcategoryId) {
-    errors.push('Please select a service type');
-  }
-
-  if (state.microIds.length === 0) {
-    errors.push('Please select at least one task');
-  }
-
-  if (!state.logistics.location) {
-    errors.push('Please provide a location');
-  }
-
-  // If "other" location selected, require custom location
-  if (state.logistics.location === 'other' && !state.logistics.customLocation?.trim()) {
-    errors.push('Please specify the location');
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
+  return { valid: errors.length === 0, errors };
 }
