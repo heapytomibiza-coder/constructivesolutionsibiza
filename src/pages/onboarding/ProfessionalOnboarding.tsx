@@ -16,9 +16,9 @@ const ProfessionalOnboarding = () => {
   const phase = professionalProfile?.onboardingPhase || 'not_started';
 
   const steps = [
-    { id: 'basic_info', label: 'Basic Information', href: '/onboarding/professional' },
-    { id: 'verification', label: 'Identity Verification', href: '/professional/verification' },
-    { id: 'service_setup', label: 'Set Up Services', href: '/professional/service-setup' },
+    { id: 'not_started', label: 'Basic Information', href: '/onboarding/professional' },
+    { id: 'basic_info', label: 'Identity Verification', href: '/professional/verification' },
+    { id: 'verification', label: 'Set Up Services', href: '/professional/service-setup' },
   ];
 
   const currentStepIndex = steps.findIndex(s => s.id === phase);

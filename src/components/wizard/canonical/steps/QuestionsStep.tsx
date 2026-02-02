@@ -63,12 +63,31 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
       const missing = microSlugs.filter(slug => !foundSlugs.has(slug));
       
       // Parse questions from JSONB - cast through unknown for type safety
-      const parsedPacks: QuestionPack[] = (data || []).map(p => ({
+      let parsedPacks: QuestionPack[] = (data || []).map(p => ({
         id: p.id,
         micro_slug: p.micro_slug,
         title: p.title,
         questions: (p.questions as unknown as QuestionDef[]) || [],
       }));
+
+      // If no packs found at all, load fallback pack
+      if (parsedPacks.length === 0) {
+        const { data: fallback } = await supabase
+          .from('question_packs')
+          .select('id, micro_slug, title, questions')
+          .eq('micro_slug', '__fallback__')
+          .eq('is_active', true)
+          .single();
+
+        if (fallback) {
+          parsedPacks = [{
+            id: fallback.id,
+            micro_slug: '__fallback__',
+            title: fallback.title,
+            questions: (fallback.questions as unknown as QuestionDef[]) || [],
+          }];
+        }
+      }
       
       setPacks(parsedPacks);
       setMissingPacks(missing);
