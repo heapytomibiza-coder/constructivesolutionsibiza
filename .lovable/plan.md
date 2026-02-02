@@ -1,200 +1,144 @@
 
 
-# Messaging System Implementation Plan
+# Add `is_owner` Boolean to Job Details View
 
-## Overview
-Implement a production-ready 1:1 messaging system between job posters (clients) and professionals, following the interaction-gating policy where conversations can only be initiated from job detail pages.
+## Summary
+Add a computed `is_owner` boolean column to the `job_details` view that returns `true` only when the currently authenticated user owns the job. This enables proper UX gating for the Message button without exposing the `user_id`.
 
-## Phase 1: Database Migration
-
-Run the provided SQL migration to create:
-
-### Tables
-- **conversations**: Links a job with exactly 2 participants (client = job owner, pro = initiator)
-  - Denormalized `last_message_at` and `last_message_preview` for fast inbox sorting
-  - Unique constraint prevents duplicate threads per job/pair
-  - Self-chat check constraint
-- **messages**: Individual message records with 5000 char limit
-
-### Supporting Infrastructure
-- **Trigger**: `trg_set_conversation_last_message` auto-updates conversation preview on new message
-- **RPC Function**: `get_or_create_conversation(job_id, pro_id)` for atomic thread creation
-- **RLS Policies**: Participants-only read/write access
-- **Realtime**: Both tables added to `supabase_realtime` publication
-
-### Technical Notes
-The migration adapts the provided SQL to match your schema:
-- Uses `jobs.user_id` (not `created_by`)
-- References `auth.users(id)` directly (no profiles table for foreign keys)
-- Gating: conversations only allowed for `open` + `publicly_listed` jobs
+## Why This Approach
+- **Privacy-safe**: No user IDs exposed, only a boolean about the current session
+- **No extra API calls**: Determined at query time
+- **Clean UX**: Button hidden proactively instead of showing error after click
 
 ---
 
-## Phase 2: Frontend Implementation
+## Database Migration
 
-### File Structure
+### Updated `job_details` View
+```sql
+DROP VIEW IF EXISTS public.job_details CASCADE;
 
-```text
-src/pages/messages/
-  Messages.tsx            # Inbox + thread combined view (update existing)
-  ConversationThread.tsx  # New: Message thread component
-  hooks/
-    useConversations.ts   # New: Inbox query hook
-    useMessages.ts        # New: Thread query + realtime hook
+CREATE VIEW public.job_details
+WITH (security_invoker = true)
+AS
+SELECT
+  j.id,
+  j.created_at,
+  j.updated_at,
+  j.status,
+  j.title,
+  j.description,
+  j.teaser,
+  j.highlights,
+  j.category,
+  j.subcategory,
+  j.micro_slug,
+  j.area,
+  j.location,
+  j.budget_type,
+  j.budget_value,
+  j.budget_min,
+  j.budget_max,
+  j.start_timing,
+  j.start_date,
+  j.has_photos,
+  j.answers,
+  j.is_publicly_listed,
+  (auth.uid() = j.user_id) AS is_owner
+FROM public.jobs j
+WHERE j.is_publicly_listed = true;
+
+GRANT SELECT ON public.job_details TO authenticated;
 ```
 
-### 2.1 JobDetailsModal.tsx Updates
-
-Add message button with proper gating:
-
-```text
-Current state:
-  Button disabled with "Message (coming soon)"
-
-New behavior:
-  - Not authenticated: Show "Sign in to message" button → redirect to /auth
-  - Is job owner: Hide message button entirely
-  - Authenticated non-owner:
-    1. Call get_or_create_conversation RPC
-    2. Navigate to /messages/:conversationId
-```
-
-### 2.2 Messages.tsx Transformation
-
-Convert from placeholder to functional inbox:
-
-```text
-Layout (desktop):
-+------------------+------------------------+
-| Conversation     | Thread                 |
-| List (sidebar)   | (selected conv)        |
-+------------------+------------------------+
-
-Layout (mobile):
-- List view by default
-- Tap to open thread (full screen)
-- Back button to return
-```
-
-Key queries:
-- Inbox: `conversations` where user is client_id OR pro_id, ordered by last_message_at
-- Include job title and other party name for context
-
-### 2.3 ConversationThread.tsx (New)
-
-Message thread component with:
-- Message list ordered by created_at ascending
-- Sender vs receiver styling (right-aligned = me, left = them)
-- Send message form
-- Realtime subscription for live updates
-
-### 2.4 Route Updates
-
-Add parameterized route in App.tsx:
-- `/messages` → Inbox (list view)
-- `/messages/:conversationId` → Thread view
+### Key Points
+- `security_invoker = true` ensures `auth.uid()` returns the calling user's ID
+- Anonymous users get `NULL` (which is falsy)
+- Authenticated job owners get `true`
+- Authenticated non-owners get `false`
 
 ---
 
-## Phase 3: Implementation Details
+## TypeScript Changes
 
-### Database Query Patterns
+### 1. Update `JobDetailsRow` Type
 
-**Inbox Query**
+**File:** `src/pages/jobs/types.ts`
+
 ```typescript
-supabase
-  .from("conversations")
-  .select(`
-    *,
-    job:jobs(id, title, category),
-    client:client_id(email),
-    pro:pro_id(email)
-  `)
-  .or(`client_id.eq.${userId},pro_id.eq.${userId}`)
-  .order("last_message_at", { ascending: false, nullsFirst: false })
+export type JobDetailsRow = JobsBoardRow & {
+  description: string | null;
+  answers: JobAnswers | null;
+  is_owner: boolean | null;  // ← Add this
+};
 ```
 
-**Thread Query**
+### 2. Update Message Button Logic
+
+**File:** `src/pages/jobs/JobDetailsModal.tsx`
+
+Current code (lines 349-369):
 ```typescript
-supabase
-  .from("messages")
-  .select("*")
-  .eq("conversation_id", conversationId)
-  .order("created_at", { ascending: true })
+{/* Actions */}
+<div className="flex flex-wrap gap-2">
+  {!user ? (
+    <Button onClick={handleMessage} className="gap-2">
+      ...
+    </Button>
+  ) : (
+    <Button ... >
+      ...
+    </Button>
+  )}
+</div>
 ```
 
-**Realtime Subscription**
+Updated logic:
 ```typescript
-supabase
-  .channel(`messages:${conversationId}`)
-  .on(
-    "postgres_changes",
-    { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
-    (payload) => addMessage(payload.new)
-  )
-  .subscribe()
-```
-
-### Message Button Gating Logic
-
-```text
-if (!isAuthenticated) {
-  → Show "Sign in to message"
-  → onClick: navigate to /auth?returnTo=/jobs
-}
-else if (job.user_id === user.id) {
-  → Hide button (can't message own job)
-}
-else {
-  → Show "Message"
-  → onClick:
-      1. const { data: convId } = await supabase.rpc("get_or_create_conversation", {
-           p_job_id: job.id,
-           p_pro_id: user.id
-         })
-      2. navigate(`/messages/${convId}`)
-}
+{/* Actions */}
+<div className="flex flex-wrap gap-2">
+  {!user ? (
+    <Button onClick={handleMessage} className="gap-2">
+      <LogIn className="h-4 w-4" />
+      Sign in to message
+    </Button>
+  ) : job.is_owner ? null : (
+    <Button 
+      onClick={handleMessage} 
+      disabled={isMessaging || sessionLoading}
+      className="gap-2"
+    >
+      {isMessaging ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <MessageSquare className="h-4 w-4" />
+      )}
+      {isMessaging ? "Starting chat..." : "Message"}
+    </Button>
+  )}
+  <Button variant="outline" disabled className="gap-2">
+    <Share2 className="h-4 w-4" />
+    Share
+  </Button>
+</div>
 ```
 
 ---
 
-## Files to Create/Modify
+## Files to Modify
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/pages/messages/Messages.tsx` | Modify | Transform from placeholder to full inbox + thread view |
-| `src/pages/messages/ConversationThread.tsx` | Create | Message thread component |
-| `src/pages/messages/hooks/useConversations.ts` | Create | Inbox query with realtime |
-| `src/pages/messages/hooks/useMessages.ts` | Create | Thread messages query + realtime |
-| `src/pages/jobs/JobDetailsModal.tsx` | Modify | Enable Message button with proper gating |
-| `src/App.tsx` | Modify | Add `/messages/:conversationId` route |
+| File | Change |
+|------|--------|
+| `supabase/migrations/[new].sql` | Recreate `job_details` view with `is_owner` column |
+| `src/pages/jobs/types.ts` | Add `is_owner: boolean \| null` to `JobDetailsRow` |
+| `src/pages/jobs/JobDetailsModal.tsx` | Update button render to check `job.is_owner` |
 
 ---
 
 ## Test Checklist
 
-1. **Message Button Gating**
-   - Unauthenticated user sees "Sign in to message"
-   - Job owner doesn't see Message button on their job
-   - Authenticated non-owner can click Message
-
-2. **Conversation Creation**
-   - First click creates conversation + navigates
-   - Second click returns existing conversation
-
-3. **Inbox**
-   - Shows all conversations for current user
-   - Sorted by most recent message
-   - Displays job title and other party
-
-4. **Thread**
-   - Shows messages in chronological order
-   - Sender messages right-aligned
-   - New messages appear in real-time
-   - Can send messages
-
-5. **Edge Cases**
-   - Cannot message closed jobs
-   - Cannot message unlisted jobs
-   - Cannot message your own job
+1. **As job owner**: Open your own job → Message button hidden
+2. **As non-owner**: Open someone else's job → Message button visible
+3. **As anonymous**: Open any job → "Sign in to message" shown
+4. **RPC still works**: Click Message → navigates to thread (defense in depth)
 
