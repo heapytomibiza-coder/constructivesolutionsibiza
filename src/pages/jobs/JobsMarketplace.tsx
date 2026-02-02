@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -129,21 +130,35 @@ export function JobsMarketplace() {
     setFilters(EMPTY_FILTERS);
   }, []);
 
-  // Highlight newly posted job from wizard
-  const params = new URLSearchParams(window.location.search);
-  const highlightId = params.get("highlight");
+  // Highlight newly posted job from wizard (React Router aware)
+  const location = useLocation();
+  const highlightId = React.useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("highlight");
+  }, [location.search]);
 
   React.useEffect(() => {
     if (!highlightId || isLoading) return;
 
-    const el = document.querySelector(`[data-job-id="${highlightId}"]`) as HTMLElement | null;
-    if (!el) return;
+    const selector = `[data-job-id="${CSS.escape(highlightId)}"]`;
 
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("ring-2", "ring-primary");
-    const t = window.setTimeout(() => el.classList.remove("ring-2", "ring-primary"), 3000);
-    return () => window.clearTimeout(t);
-  }, [highlightId, jobs, isLoading]);
+    // Retry for up to 1s to catch first render
+    const start = Date.now();
+    const tick = () => {
+      const el = document.querySelector(selector) as HTMLElement | null;
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-primary");
+        const t = window.setTimeout(() => el.classList.remove("ring-2", "ring-primary"), 3000);
+        return () => window.clearTimeout(t);
+      }
+      if (Date.now() - start < 1000) {
+        requestAnimationFrame(tick);
+      }
+    };
+
+    tick();
+  }, [highlightId, isLoading, jobs]);
 
   if (isLoading) {
     return (
