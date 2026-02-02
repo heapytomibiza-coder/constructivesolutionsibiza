@@ -141,16 +141,18 @@ export function JobsMarketplace() {
     if (!highlightId || isLoading) return;
 
     const selector = `[data-job-id="${CSS.escape(highlightId)}"]`;
-
-    // Retry for up to 1s to catch first render
     const start = Date.now();
+    let timeoutId: number | undefined;
+
     const tick = () => {
       const el = document.querySelector(selector) as HTMLElement | null;
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
         el.classList.add("ring-2", "ring-primary");
-        const t = window.setTimeout(() => el.classList.remove("ring-2", "ring-primary"), 3000);
-        return () => window.clearTimeout(t);
+        timeoutId = window.setTimeout(() => {
+          el.classList.remove("ring-2", "ring-primary");
+        }, 3000);
+        return;
       }
       if (Date.now() - start < 1000) {
         requestAnimationFrame(tick);
@@ -158,6 +160,10 @@ export function JobsMarketplace() {
     };
 
     tick();
+
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
   }, [highlightId, isLoading, jobs]);
 
   if (isLoading) {
