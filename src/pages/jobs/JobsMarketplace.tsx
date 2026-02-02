@@ -162,7 +162,7 @@ export function JobsMarketplace() {
     tick();
 
     return () => {
-      if (timeoutId) window.clearTimeout(timeoutId);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     };
   }, [highlightId, isLoading, jobs]);
 
