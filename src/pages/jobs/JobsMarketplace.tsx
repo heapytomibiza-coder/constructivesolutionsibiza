@@ -80,17 +80,6 @@ export function JobsMarketplace() {
     staleTime: 30_000,
   });
 
-  // Compute stats
-  const activeJobs = jobs?.length ?? 0;
-  const todayJobs = React.useMemo(
-    () => (jobs ?? []).filter((j) => isNewToday(j.created_at)).length,
-    [jobs]
-  );
-  const totalBudget = React.useMemo(
-    () => (jobs ?? []).reduce((sum, j) => sum + budgetProxy(j), 0),
-    [jobs]
-  );
-
   // Extract categories
   const categories = React.useMemo(() => {
     const set = new Set<string>();
@@ -100,6 +89,17 @@ export function JobsMarketplace() {
 
   // Apply filters
   const filtered = React.useMemo(() => applyFilters(jobs ?? [], filters), [jobs, filters]);
+
+  // Compute stats from filtered jobs (so stats match what user sees)
+  const activeJobs = filtered.length;
+  const todayJobs = React.useMemo(
+    () => filtered.filter((j) => isNewToday(j.created_at)).length,
+    [filtered]
+  );
+  const totalBudget = React.useMemo(
+    () => filtered.reduce((sum, j) => sum + budgetProxy(j), 0),
+    [filtered]
+  );
 
   // Featured vs regular
   const featured = React.useMemo(() => filtered.filter(featuredPredicate).slice(0, 3), [filtered]);
