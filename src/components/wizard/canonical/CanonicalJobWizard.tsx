@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { flushSync } from 'react-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
@@ -48,6 +49,7 @@ interface CanonicalJobWizardProps {
 
 export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, isAuthenticated } = useSession();
   
   // Core wizard state
@@ -279,11 +281,12 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         throw error;
       }
 
-      // Success - clear draft and navigate
+      // Success - clear draft, invalidate cache, and navigate
       clearDraft();
       resetSession();
+      queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
       toast.success('Job posted successfully!');
-      navigate(`/dashboard?highlight=${data.id}`);
+      navigate(`/jobs?highlight=${data.id}`);
       
     } catch (error) {
       console.error('Submit error:', error);
