@@ -1,0 +1,21 @@
+import { PublicLayout } from "@/components/layout";
+import { JobsMarketplace } from "@/pages/jobs/JobsMarketplace";
+
+export default function JobBoardPage() {
+  return (
+    <PublicLayout>
+      <div className="border-b border-border">
+        <div className="container py-8">
+          <h1 className="text-3xl font-display font-semibold">Job Board</h1>
+          <p className="text-muted-foreground mt-2">
+            Browse open jobs with full specs from the wizard.
+          </p>
+        </div>
+      </div>
+
+      <div className="container py-8">
+        <JobsMarketplace />
+      </div>
+    </PublicLayout>
+  );
+}

@@ -1,0 +1,64 @@
+export type JobLocation = {
+  preset: string | null;
+  area: string;
+  town: string | null;
+  custom: string | null;
+  zone: string | null;
+  notes: string | null;
+};
+
+export type JobAnswers = {
+  selected: {
+    mainCategory: string;
+    subcategory: string | null;
+    microNames: string[];
+    microIds: string[];
+    microSlugs: string[];
+  };
+  microAnswers: Record<string, unknown>;
+  logistics: {
+    location: string;
+    customLocation: string | null;
+    startDatePreset: string | null;
+    startDate: string | null;
+    completionDate: string | null;
+    consultationType: "site_visit" | "phone_call" | "video_call" | string | null;
+    consultationDate: string | null;
+    consultationTime: string | null;
+    budgetRange: string | null;
+    accessDetails: string[];
+  };
+  extras: {
+    photos: string[];
+    notes: string | null;
+    permitsConcern: boolean;
+  };
+};
+
+export type JobsBoardRow = {
+  id: string;
+  title: string;
+  teaser: string | null;
+  category: string | null;
+  subcategory: string | null;
+  micro_slug: string | null;
+  area: string | null;
+  location: JobLocation | null;
+  budget_type: "fixed" | "range" | "tbd" | string | null;
+  budget_value: number | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  start_timing: "asap" | "this_week" | "this_month" | "flexible" | "date" | string | null;
+  start_date: string | null;
+  has_photos: boolean | null;
+  highlights: string[];
+  created_at: string;
+  updated_at: string | null;
+  status: string | null;
+  is_publicly_listed: boolean | null;
+};
+
+export type JobDetailsRow = JobsBoardRow & {
+  description: string | null;
+  answers: JobAnswers | null;
+};
