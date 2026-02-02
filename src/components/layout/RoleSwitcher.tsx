@@ -42,6 +42,7 @@ export function RoleSwitcher({ className }: RoleSwitcherProps) {
 
     // Invalidate all role-dependent queries
     queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
     queryClient.invalidateQueries({ queryKey: ['matched_jobs'] });
     queryClient.invalidateQueries({ queryKey: ['conversations'] });
     queryClient.invalidateQueries({ queryKey: ['client_stats'] });
