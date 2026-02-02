@@ -11,34 +11,38 @@ export interface Conversation {
   last_message_at: string | null;
   last_message_preview: string | null;
   created_at: string;
+  last_read_at_client: string | null;
+  last_read_at_pro: string | null;
+  unread_count: number;
   job_title?: string;
   job_category?: string;
 }
 
+interface ConversationRpcRow {
+  id: string;
+  job_id: string;
+  client_id: string;
+  pro_id: string;
+  last_message_at: string | null;
+  last_message_preview: string | null;
+  created_at: string;
+  last_read_at_client: string | null;
+  last_read_at_pro: string | null;
+  unread_count: number;
+}
+
 async function fetchConversations(userId: string): Promise<Conversation[]> {
-  // Note: We can't join to auth.users directly via Supabase JS client,
-  // so we fetch conversations and the linked job info separately
-  const { data, error } = await supabase
-    .from("conversations")
-    .select(`
-      id,
-      job_id,
-      client_id,
-      pro_id,
-      last_message_at,
-      last_message_preview,
-      created_at
-    `)
-    .or(`client_id.eq.${userId},pro_id.eq.${userId}`)
-    .order("last_message_at", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false });
+  // Use the RPC function that includes unread_count
+  const { data, error } = await supabase.rpc("get_conversations_with_unread");
 
   if (error) throw error;
 
-  // Fetch job titles for context
-  const jobIds = [...new Set((data ?? []).map((c) => c.job_id))];
+  const conversations = (data ?? []) as ConversationRpcRow[];
   
-  if (jobIds.length === 0) return [];
+  if (conversations.length === 0) return [];
+
+  // Fetch job titles for context
+  const jobIds = [...new Set(conversations.map((c) => c.job_id))];
 
   const { data: jobs } = await supabase
     .from("jobs")
@@ -47,8 +51,9 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
 
   const jobMap = new Map(jobs?.map((j) => [j.id, j]) ?? []);
 
-  return (data ?? []).map((c) => ({
+  return conversations.map((c) => ({
     ...c,
+    unread_count: Number(c.unread_count) || 0,
     job_title: jobMap.get(c.job_id)?.title ?? "Untitled Job",
     job_category: jobMap.get(c.job_id)?.category ?? undefined,
   }));

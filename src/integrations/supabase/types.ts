@@ -22,6 +22,8 @@ export type Database = {
           job_id: string
           last_message_at: string | null
           last_message_preview: string | null
+          last_read_at_client: string | null
+          last_read_at_pro: string | null
           pro_id: string
         }
         Insert: {
@@ -31,6 +33,8 @@ export type Database = {
           job_id: string
           last_message_at?: string | null
           last_message_preview?: string | null
+          last_read_at_client?: string | null
+          last_read_at_pro?: string | null
           pro_id: string
         }
         Update: {
@@ -40,6 +44,8 @@ export type Database = {
           job_id?: string
           last_message_at?: string | null
           last_message_preview?: string | null
+          last_read_at_client?: string | null
+          last_read_at_pro?: string | null
           pro_id?: string
         }
         Relationships: [
@@ -631,6 +637,21 @@ export type Database = {
       }
     }
     Functions: {
+      get_conversations_with_unread: {
+        Args: never
+        Returns: {
+          client_id: string
+          created_at: string
+          id: string
+          job_id: string
+          last_message_at: string
+          last_message_preview: string
+          last_read_at_client: string
+          last_read_at_pro: string
+          pro_id: string
+          unread_count: number
+        }[]
+      }
       get_or_create_conversation: {
         Args: { p_job_id: string; p_pro_id: string }
         Returns: string
