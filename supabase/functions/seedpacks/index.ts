@@ -45,6 +45,20 @@ Deno.serve(async (req: Request) => {
       version: number;
     };
 
+    // === Quality Validation Constants ===
+    const BANNED_PHRASES = [
+      "briefly describe",
+      "describe your project",
+      "what do you need help with",
+      "any additional details",
+      "please describe",
+      "tell us about your project",
+    ];
+
+    const MIN_QUESTIONS = 5;
+    const OPTIMAL_QUESTIONS_MIN = 5;
+    const OPTIMAL_QUESTIONS_MAX = 8;
+
     // === Deterministic ID generation (stable across re-seeds) ===
     const slugify = (s: string): string =>
       s.toLowerCase().trim()
@@ -61,6 +75,59 @@ Deno.serve(async (req: Request) => {
       const base = slugify(label);
       return base ? `${base}_${hash(label)}`.slice(0, 48) : `q_${hash(label)}`;
     };
+
+    // === Quality Scoring ===
+    function scorePackQuality(questions: Record<string, unknown>[]): {
+      score: number;
+      tier: "STRONG" | "ACCEPTABLE" | "WEAK" | "FAILING";
+      warnings: string[];
+    } {
+      let score = 0;
+      const warnings: string[] = [];
+      const qCount = questions.length;
+
+      // Check for banned phrases in any question label
+      for (const q of questions) {
+        const label = String(q?.label ?? q?.question ?? "").toLowerCase();
+        for (const phrase of BANNED_PHRASES) {
+          if (label.includes(phrase)) {
+            score -= 5;
+            warnings.push(`Banned phrase detected: "${phrase}"`);
+            break;
+          }
+        }
+      }
+
+      // Question count scoring
+      if (qCount >= OPTIMAL_QUESTIONS_MIN && qCount <= OPTIMAL_QUESTIONS_MAX) {
+        score += 1;
+      } else if (qCount < MIN_QUESTIONS) {
+        warnings.push(`Only ${qCount} questions (minimum ${MIN_QUESTIONS})`);
+      }
+
+      // Multiple choice ratio
+      const mcCount = questions.filter(q => 
+        ["radio", "checkbox", "select", "single", "multi"].includes(String(q?.type ?? ""))
+      ).length;
+      if (qCount > 0 && mcCount / qCount >= 0.7) {
+        score += 1;
+      }
+
+      // Conditional logic bonus
+      const hasConditional = questions.some(q => q?.show_if || q?.dependsOn);
+      if (hasConditional) {
+        score += 2;
+      }
+
+      // Determine tier
+      let tier: "STRONG" | "ACCEPTABLE" | "WEAK" | "FAILING";
+      if (score < 0) tier = "FAILING";
+      else if (score <= 1) tier = "WEAK";
+      else if (score <= 4) tier = "ACCEPTABLE";
+      else tier = "STRONG";
+
+      return { score, tier, warnings };
+    }
 
     // Dedupe questions by id OR label (handles missing IDs)
     function dedupeQuestions(questions: Record<string, unknown>[]) {
@@ -97,8 +164,14 @@ Deno.serve(async (req: Request) => {
       return { cleaned, duplicates };
     }
 
-    // Normalize packs
+    // Check for strict mode (rejects FAILING quality packs)
+    const strictMode = url.searchParams.get("strict") === "1";
+
+    // Normalize packs with quality scoring
     const allDuplicates: Record<string, string[]> = {};
+    const qualityReport: Record<string, { tier: string; score: number; warnings: string[] }> = {};
+    const failingPacks: string[] = [];
+
     const normalized: NormalizedPack[] = packs.map((p: Record<string, unknown>) => {
       const microSlug = String(p.microSlug ?? p.slug ?? p.micro_slug ?? "").trim();
       const rawQuestions = (p.questions as Record<string, unknown>[]) || [];
@@ -106,6 +179,14 @@ Deno.serve(async (req: Request) => {
       
       if (duplicates.length > 0) {
         allDuplicates[microSlug] = duplicates;
+      }
+
+      // Score quality
+      const quality = scorePackQuality(rawQuestions);
+      qualityReport[microSlug] = quality;
+      
+      if (quality.tier === "FAILING") {
+        failingPacks.push(microSlug);
       }
       
       return {
@@ -124,19 +205,51 @@ Deno.serve(async (req: Request) => {
       .eq("is_active", true);
 
     const validSlugs = new Set((micros || []).map((m: { slug: string }) => m.slug));
-    const valid = normalized.filter((p: NormalizedPack) => validSlugs.has(p.micro_slug));
+    
+    // Filter valid and exclude failing packs in strict mode
+    let valid = normalized.filter((p: NormalizedPack) => validSlugs.has(p.micro_slug));
     const missing = normalized.filter((p: NormalizedPack) => !validSlugs.has(p.micro_slug)).map((p: NormalizedPack) => p.micro_slug);
+
+    if (strictMode && failingPacks.length > 0) {
+      valid = valid.filter(p => !failingPacks.includes(p.micro_slug));
+    }
+
+    // Quality summary
+    const qualitySummary = {
+      STRONG: Object.values(qualityReport).filter(q => q.tier === "STRONG").length,
+      ACCEPTABLE: Object.values(qualityReport).filter(q => q.tier === "ACCEPTABLE").length,
+      WEAK: Object.values(qualityReport).filter(q => q.tier === "WEAK").length,
+      FAILING: Object.values(qualityReport).filter(q => q.tier === "FAILING").length,
+    };
 
     if (dryRun) {
       return new Response(JSON.stringify({
         mode: "dry_run",
+        strictMode,
         rawCount: packs.length,
         validCount: valid.length,
         missingCount: missing.length,
         missingSlugs: missing.slice(0, 30),
         duplicateQuestionIdsBySlug: allDuplicates,
+        qualitySummary,
+        qualityReport: Object.fromEntries(
+          Object.entries(qualityReport).slice(0, 20)
+        ),
+        failingPacks: strictMode ? failingPacks : undefined,
         sample: valid[0] || normalized[0] || null,
       }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // In strict mode, reject if any packs are failing
+    if (strictMode && failingPacks.length > 0 && valid.length === 0) {
+      return new Response(JSON.stringify({ 
+        error: "All packs rejected due to quality issues",
+        failingPacks,
+        qualitySummary,
+      }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -163,10 +276,13 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({
       success: true,
       mode: "live",
+      strictMode,
       inserted: data?.length || 0,
       skipped: missing.length,
       missingSlugs: missing.slice(0, 30),
       duplicateQuestionIdsBySlug: allDuplicates,
+      qualitySummary,
+      rejectedForQuality: strictMode ? failingPacks.length : 0,
       packs: data?.slice(0, 10) || [],
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
