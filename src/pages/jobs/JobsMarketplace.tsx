@@ -129,6 +129,22 @@ export function JobsMarketplace() {
     setFilters(EMPTY_FILTERS);
   }, []);
 
+  // Highlight newly posted job from wizard
+  const params = new URLSearchParams(window.location.search);
+  const highlightId = params.get("highlight");
+
+  React.useEffect(() => {
+    if (!highlightId || isLoading) return;
+
+    const el = document.querySelector(`[data-job-id="${highlightId}"]`) as HTMLElement | null;
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("ring-2", "ring-primary");
+    const t = window.setTimeout(() => el.classList.remove("ring-2", "ring-primary"), 3000);
+    return () => window.clearTimeout(t);
+  }, [highlightId, jobs, isLoading]);
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground py-12 justify-center">
