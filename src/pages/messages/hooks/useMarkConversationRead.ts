@@ -37,12 +37,10 @@ export function useMarkConversationRead() {
 
   const markRead = useCallback(
     (conversationId: string, userId: string, clientId: string) => {
-      // Clear any pending debounce
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
+      if (!conversationId || !userId || !clientId) return;
 
-      // Debounce by 300ms to batch rapid updates
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+
       debounceRef.current = setTimeout(() => {
         const isClient = userId === clientId;
         mutation.mutate({ conversationId, isClient });
