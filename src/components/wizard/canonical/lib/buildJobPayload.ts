@@ -281,6 +281,9 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     Object.entries(answers ?? {}).map(([k, v]) => [k, v as Json])
   ) as Record<string, Json>;
 
+  // Extract pack tracking metadata if present
+  const packTracking = answers as Record<string, unknown> | undefined;
+  
   const answersPayload: Json = {
     selected: {
       mainCategory,
@@ -307,6 +310,10 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
       notes: extras.notes ?? null,
       permitsConcern: extras.permitsConcern ?? false,
     },
+    // Pack tracking metadata for analytics
+    _pack_source: (packTracking?._pack_source as string) ?? null,
+    _pack_slug: (packTracking?._pack_slug as string) ?? null,
+    _pack_missing: (packTracking?._pack_missing as boolean) ?? false,
   };
 
   // Return with all filterable columns populated directly

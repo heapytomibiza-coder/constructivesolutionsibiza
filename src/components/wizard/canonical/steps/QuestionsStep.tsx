@@ -3,7 +3,7 @@
  * Fetches question packs from DB by micro_slug and renders them
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
@@ -57,6 +57,32 @@ function getPackQualityTier(pack: QuestionPack): QualityTier {
   return pack.questions.length >= 5 ? 'strong' : 'generic';
 }
 
+/**
+ * Determine pack source for analytics tracking
+ */
+function determinePackSource(
+  primarySlug: string | null,
+  packs: QuestionPack[]
+): { source: 'strong' | 'generic' | 'fallback'; missing: boolean } {
+  // No packs or using fallback
+  if (!packs.length || packs[0].micro_slug === 'general-project') {
+    return { source: 'fallback', missing: true };
+  }
+  
+  // Find the pack for primary slug
+  const primaryPack = packs.find(p => p.micro_slug === primarySlug);
+  if (!primaryPack) {
+    return { source: 'fallback', missing: true };
+  }
+  
+  // Check quality tier
+  const tier = getPackQualityTier(primaryPack);
+  return { 
+    source: tier, 
+    missing: tier === 'fallback' 
+  };
+}
+
 interface Props {
   microSlugs: string[];
   answers: Record<string, unknown>;
@@ -67,6 +93,22 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
   const [packs, setPacks] = useState<QuestionPack[]>([]);
   const [loading, setLoading] = useState(true);
   const [missingPacks, setMissingPacks] = useState<string[]>([]);
+  
+  // Use refs to avoid stale closures and prevent infinite loops
+  const answersRef = useRef(answers);
+  const onChangeRef = useRef(onChange);
+  const trackingInjectedRef = useRef(false);
+  
+  // Keep refs updated
+  useEffect(() => {
+    answersRef.current = answers;
+    onChangeRef.current = onChange;
+  }, [answers, onChange]);
+  
+  // Reset tracking flag when microSlugs change
+  useEffect(() => {
+    trackingInjectedRef.current = false;
+  }, [microSlugs]);
 
   useEffect(() => {
     if (!microSlugs.length) {
@@ -118,6 +160,21 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
             questions: (fallback.questions as unknown as QuestionDef[]) || [],
           }];
         }
+      }
+      
+      // Inject pack tracking metadata for analytics (only once per microSlugs change)
+      if (!trackingInjectedRef.current) {
+        const primarySlug = microSlugs[0] || null;
+        const { source, missing: isMissing } = determinePackSource(primarySlug, parsedPacks);
+        
+        // Update answers with tracking (will be preserved in job payload)
+        onChangeRef.current({
+          ...answersRef.current,
+          _pack_source: source,
+          _pack_slug: primarySlug,
+          _pack_missing: isMissing,
+        });
+        trackingInjectedRef.current = true;
       }
       
       setPacks(parsedPacks);

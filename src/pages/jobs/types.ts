@@ -33,6 +33,10 @@ export type JobAnswers = {
     notes: string | null;
     permitsConcern: boolean;
   };
+  // Pack tracking metadata (optional, for analytics)
+  _pack_source?: 'strong' | 'generic' | 'fallback';
+  _pack_slug?: string | null;
+  _pack_missing?: boolean;
 };
 
 export type JobsBoardRow = {
