@@ -1,316 +1,313 @@
 
 
-# Plan: Non-Generic Question Packs - The Core Moat
+# Step 4 Contract Lock - Implementation Plan
 
-## Executive Summary
+## Answers to Your Questions (A, B, C)
 
-**The Problem:**
-- 94 question packs exist in DB
-- **78 of 94 (83%) use generic openers** ("Briefly describe what you need for...")
-- Only **15 packs are truly trade-aware** (strong packs)
-- V1 felt stronger because questions sounded like a real professional on site
-- **192 micro-services have no packs at all**
+### Answer A: Fallback Strategy for Soft Launch
 
-**The Principle:**
-> Step 4 is not a form. It is the conversation a good professional would ask before even quoting.
+**Recommendation:** Pack + explicit fallback pack (Option 2)
 
----
+**Rationale:**
+- Currently 94 packs exist in DB, 192 micro-services have no pack
+- 78/94 (83%) are generic packs (contain "Briefly describe" or similar)
+- **6 strong packs exist in source code but ARE NOT IN THE DATABASE** ← Critical gap
+- Fallback `general-project` pack prevents dead-ends during QA and early users
 
-## Current State Analysis
-
-### Quality Breakdown
-| Metric | Count | Percentage |
-|--------|-------|------------|
-| Total packs in DB | 94 | 100% |
-| Generic opener packs | 78 | 83% |
-| Low question count (<5) | 1 | 1% |
-| Strong packs (non-generic, 5+ questions) | 15 | 16% |
-| Missing entirely | 192 | - |
-
-### Source Files Available (Not Seeded or Seeded Generically)
-```
-supabase/functions/_shared/
- carpentryQuestionPacks.ts       - 3 hand-crafted + 12 generic
- carpentryQuestionPacksV2.ts     - V2 i18n format (needs normalization)
- constructionQuestionPacks.ts   - mostly generic builders
- electricalQuestionPacks.ts     - mixed quality
- floorsDoorsWindowsQuestionPacks.ts
- gardeningLandscapingQuestionPacks.ts
- handymanQuestionPacks.ts
- hvacQuestionPacks.ts           - mostly generic builders
- kitchenBathroomQuestionPacks.ts
- plumbingQuestionPacks.ts       - 3 hand-crafted emergency packs
- poolSpaQuestionPacks.ts
- transportQuestionPacks.ts
-```
-
-### The Quality Difference
-
-**Generic Pack (Current - Weak):**
-```
-Question 1: "Briefly describe what you need for AC emergency repair"
-Question 2: "What type of property is this?"
-Question 3: "Which areas are involved?"
-...
-```
-
-**Trade-Aware Pack (Target - Strong):**
-```
-Question 1: "Where is the burst pipe located?"
-   Options: Kitchen / Bathroom / Utility / Under floor / Outside / Not sure
-
-Question 2: "What best describes the water flow?"
-   Options: Slow drip / Steady leak / Fast flow / Spraying / Stopped but damaged
-
-Question 3: "Have you been able to turn off the water?"
-   Options: Yes, main stop tap / Yes, local only / Cannot find / Valve stuck / Not tried
-```
-
-The second version:
-- Sounds like a real plumber asking
-- Collects actionable information
-- Builds instant trust
-- Enables accurate quoting
+**UI Behavior:**
+| State | Pack Source | UI Label |
+|-------|-------------|----------|
+| Strong pack found | `question_packs` table | "Professional Briefing" |
+| Generic pack found | `question_packs` table | "General Briefing" (subtle notice) |
+| No pack → fallback | `general-project` fallback | "General Briefing (we're upgrading this service)" |
+| Missing + no fallback | — | Placeholder + `_pack_missing` flag |
 
 ---
 
-## Phase 1: Define the Quality Standard (Immediate)
+### Answer B: The 6 Strong Packs (Source Locations)
 
-### Non-Negotiable Rules for Question Packs
+**Critical Finding: These packs exist in source but are NOT in the database.**
 
-**Banned Phrases:**
-- "Briefly describe what you need"
-- "Please describe your project"
-- "What do you need help with?"
-- "Any additional details?"
+**Plumbing Packs** - `supabase/functions/_shared/plumbingQuestionPacks.ts`:
 
-These phrases exist only as **optional free-text AFTER** real filtering has happened.
+```typescript
+// 1. burst-pipe (6 trade-specific questions)
+// Lines 32-118 - questions: pipe_location, water_flow, water_isolation, pipe_type, visible_damage, property_type
 
-**Minimum Pack Standard:**
-| Requirement | Threshold |
-|-------------|-----------|
-| Question count | 5-8 minimum |
-| Multiple choice | 70%+ of questions |
-| Trade-specific language | Must reference actual work elements |
-| Conditionals | 1-2 show_if dependencies |
-| Generic openers | FORBIDDEN as primary question |
+// 2. sewer-backup (6 trade-specific questions)  
+// Lines 123-204 - questions: symptoms, affected_areas, property_type, previous_issues, access_points, building_occupancy
 
-**The Test:**
-> If a professional reads Step 4 and thinks "yeah, that's what I'd ask," it passes.
-> If they think "this tells me nothing," it fails.
+// 3. water-heater-emergency (6 trade-specific questions)
+// Lines 210-298 - questions: system_type, main_issue, leak_severity, isolation, location, age
+```
+
+**Carpentry Packs** - `supabase/functions/_shared/carpentryQuestionPacks.ts`:
+
+```typescript
+// 1. bespoke-tables (8 questions with conditionals)
+// Lines 131-225 - questions: table_type, seating_capacity (dependsOn: table_type=dining), 
+//   table_shape, size_specs, wood_finish, special_features, budget_range
+
+// 2. sliding-door-wardrobes (7 questions)
+// Lines 228-319 - questions: wardrobe_width, wardrobe_height, door_panels, door_finish, 
+//   internal_layout, room_type, installation_timeline
+
+// 3. staircases-handrails (8 questions)
+// Lines 322-414 - questions: project_type, staircase_type, step_count, material_preference,
+//   handrail_style, building_regs, access_difficulty
+```
+
+**Source Format vs DB Format:**
+| Source Field | DB Field (after seedpacks normalization) |
+|--------------|------------------------------------------|
+| `question` | `label` |
+| `dependsOn` | `show_if` (not yet implemented in seeder) |
+| `helpText` | `help` |
+| `single` type | `radio` type |
+| `multi` type | `checkbox` type |
 
 ---
 
-## Phase 2: Pack Quality Audit System
+### Answer C: Renderer Step 4 Uses
 
-### Add Pack Strength Scoring
+**Two files work together:**
 
-Create a simple scoring system for existing and new packs:
+1. **`src/components/wizard/canonical/steps/QuestionsStep.tsx`**
+   - Fetches packs from DB by `micro_slug`
+   - Handles fallback to `general-project` if no packs found
+   - Tracks missing packs in state
+   - Passes packs to renderer
 
-| Signal | Points | Description |
-|--------|--------|-------------|
-| Generic opener | -5 | Contains "describe what you need" |
-| Trade-specific terms | +2 | References actual materials, tools, symptoms |
-| Conditional logic | +2 | Has show_if dependencies |
-| Question count 5-8 | +1 | Optimal range |
-| All multiple choice | +1 | No open text as primary |
+2. **`src/components/wizard/canonical/steps/QuestionPackRenderer.tsx`**
+   - Renders individual question pack
+   - Supports: `text`, `number`, `textarea`, `radio`, `select`, `checkbox`
+   - **Missing:** `file` type, `dependsOn`/`show_if` conditionals, `help` text
 
-**Score Categories:**
-- Strong: 5+ points
-- Acceptable: 2-4 points  
-- Weak: 0-1 points
-- Failing: Negative score
+---
 
-### Database Query for Audit
+## Phase 1: Seed the 6 Strong Packs (Immediate)
+
+### Problem
+The strong packs exist in TypeScript files but have never been seeded to the database.
+
+### Solution
+Seed plumbing + carpentry packs via the `seedpacks` edge function.
+
+### Implementation Steps
+
+1. **Create a seeding script** that imports the packs and POSTs to seedpacks:
+
+```bash
+# Test with dry run first
+curl -X POST "https://ngwbpuxltyfweikdupoj.supabase.co/functions/v1/seedpacks?dry_run=1" \
+  -H "Content-Type: application/json" \
+  -d '{"packs": [/* plumbingQuestionPacks + first 3 carpentryQuestionPacks */]}'
+
+# Then live
+curl -X POST "https://ngwbpuxltyfweikdupoj.supabase.co/functions/v1/seedpacks" \
+  -H "Content-Type: application/json" \
+  -d '{"packs": [...]}'
+```
+
+2. **Verify seeding worked:**
 ```sql
-SELECT 
-  micro_slug,
-  title,
-  jsonb_array_length(questions) as q_count,
-  CASE 
-    WHEN questions::text LIKE '%Briefly describe%' THEN 'WEAK'
-    WHEN jsonb_array_length(questions) >= 5 THEN 'STRONG'
-    ELSE 'ACCEPTABLE'
-  END as quality_tier
+SELECT micro_slug, title, jsonb_array_length(questions) as q_count
 FROM question_packs 
-WHERE is_active = true
-ORDER BY quality_tier, micro_slug;
+WHERE micro_slug IN ('burst-pipe', 'sewer-backup', 'water-heater-emergency',
+                     'bespoke-tables', 'sliding-door-wardrobes', 'staircases-handrails')
+  AND is_active = true;
+```
+
+**Expected result:** 6 rows with 6-8 questions each
+
+---
+
+## Phase 2: Fix Renderer Gaps
+
+### Current Gaps in QuestionPackRenderer.tsx
+
+| Feature | Source Packs Use It | Renderer Support |
+|---------|---------------------|------------------|
+| `type: 'file'` | ✅ Yes (carpentry) | ❌ Missing |
+| `dependsOn` conditionals | ✅ Yes (bespoke-tables) | ❌ Missing |
+| `helpText` / `help` | ✅ Yes (some packs) | ❌ Not displayed |
+
+### Changes Required
+
+**File:** `src/components/wizard/canonical/steps/QuestionPackRenderer.tsx`
+
+1. **Add `file` type support:**
+```typescript
+case 'file':
+  return (
+    <Input
+      id={key}
+      type="file"
+      accept={question.accept || 'image/*'}
+      onChange={(e) => {
+        const files = e.target.files;
+        onAnswerChange(pack.micro_slug, question.id, files ? Array.from(files).map(f => f.name) : []);
+      }}
+    />
+  );
+```
+
+2. **Add conditional visibility:**
+```typescript
+// Add to QuestionDef interface
+interface QuestionDef {
+  // ... existing fields
+  dependsOn?: {
+    questionId: string;
+    value: string | string[];
+  };
+  show_if?: {
+    questionId: string;
+    value: string | string[];
+  };
+  help?: string;
+}
+
+// Add visibility check function
+const shouldShowQuestion = (question: QuestionDef): boolean => {
+  const dep = question.dependsOn || question.show_if;
+  if (!dep) return true;
+  
+  const depValue = getAnswer(pack.micro_slug, dep.questionId);
+  if (Array.isArray(dep.value)) {
+    return dep.value.includes(depValue as string);
+  }
+  return depValue === dep.value;
+};
+
+// Filter questions in render
+{uniqueQuestions.filter(shouldShowQuestion).map((question) => (...))}
+```
+
+3. **Add help text display:**
+```typescript
+// In the question render block
+<div key={question.id} className="space-y-2">
+  <Label htmlFor={`${pack.micro_slug}-${question.id}`}>
+    {question.label}
+    {question.required && <span className="text-destructive ml-1">*</span>}
+  </Label>
+  {question.help && (
+    <p className="text-sm text-muted-foreground">{question.help}</p>
+  )}
+  {renderQuestion(question)}
+</div>
 ```
 
 ---
 
-## Phase 3: Two-Track Pack Generation
+## Phase 3: Add Quality Tier Labeling
 
-### Track A: Human-Written Packs (Gold Standard)
+### UI Communication
 
-**Process:**
-1. Think like a pro arriving on site
-2. Ask: "What do I need to know before I even say yes?"
-3. Write 5-8 questions using trade language
+**File:** `src/components/wizard/canonical/steps/QuestionsStep.tsx`
 
-**Example Template (Bespoke Shelving):**
+Add visual distinction for pack quality:
 
-| Question | Type | Why It Matters |
-|----------|------|----------------|
-| Wall type? | Radio: Solid / Stud / Unknown | Determines fixings + weight capacity |
-| Approx length? | Radio: <1m / 1-2m / 2-3m / >3m | Scope + material estimate |
-| Floor-to-ceiling or mid-height? | Radio | Changes complexity significantly |
-| Finish expectation? | Radio: Painted / Natural / Premium | Material + labour cost |
-| Space occupied during install? | Radio: Yes / No | Scheduling + dust protection |
-| Existing furniture to work around? | Radio | Access complexity |
+```typescript
+// After fetching packs, determine quality tier
+const getPackQualityTier = (pack: QuestionPack): 'strong' | 'generic' | 'fallback' => {
+  if (pack.micro_slug === 'general-project') return 'fallback';
+  
+  // Check for generic openers in first question
+  const firstQ = pack.questions[0];
+  const label = (firstQ?.label || '').toLowerCase();
+  const genericPhrases = ['briefly describe', 'describe your project', 'please describe'];
+  
+  if (genericPhrases.some(phrase => label.includes(phrase))) {
+    return 'generic';
+  }
+  
+  return pack.questions.length >= 5 ? 'strong' : 'generic';
+};
 
-This pack:
-- Eliminates time-wasters
-- Instantly frames cost + effort
-- Builds client trust
-
-### Track B: AI-Assisted Packs (Scale Mode)
-
-**Hard Constraints for AI Generation:**
-1. Prompt MUST include: Trade, Subcategory, Exact micro-service
-2. FORBIDDEN: Any "describe your project" opener
-3. Minimum: 5 questions
-4. 70%+ multiple choice
-5. Tone: Practical, on-site, assumptive
-
-**AI Prompt Template:**
+// In render, add tier-specific headers
+{packs.map((pack) => {
+  const tier = getPackQualityTier(pack);
+  return (
+    <div key={pack.id}>
+      {tier === 'fallback' && (
+        <p className="text-sm text-muted-foreground mb-2">
+          General briefing — we're upgrading this service
+        </p>
+      )}
+      <QuestionPackRenderer pack={pack} ... />
+    </div>
+  );
+})}
 ```
-You are a senior [TRADE] professional in Ibiza. 
-
-A client wants [MICRO-SERVICE]. 
-
-Write 6-8 questions you would ask BEFORE quoting.
-
-Rules:
-- NO generic openers like "describe your project"
-- Use trade-specific language
-- Focus on: scope, access, materials, complexity, urgency
-- Each question must help with pricing
-- Use radio/checkbox, not open text
-- Include at least 1 conditional (show_if)
-```
-
-**AI Output Review:**
-- Human approves or refines
-- Fails auto-validation if banned phrases detected
-- Never published without human sign-off
 
 ---
 
-## Phase 4: Priority Rewrite List
+## Phase 4: Update Seedpacks to Handle dependsOn
 
-### Top 20 Commercial Micros for Hand-Crafted Packs
+### Current Gap
+The seedpacks function normalizes `question` → `label` but does NOT normalize `dependsOn` → `show_if`.
 
-Based on Ibiza market reality (renovation-heavy, high ticket):
+**File:** `supabase/functions/seedpacks/index.ts`
 
-**Carpentry (High Emotional Investment):**
-1. bespoke-tables
-2. sliding-door-wardrobes
-3. staircases-handrails
-4. shelving-storage-units
-5. built-in-cupboards
+Add to the `dedupeQuestions` function:
 
-**Plumbing (Urgent, Budget-Tolerant):**
-6. burst-pipe (already strong)
-7. sewer-backup (already strong)
-8. water-heater-emergency (already strong)
-9. tap-installation
-10. toilet-repair
-
-**Kitchen & Bathroom (High Revenue):**
-11. kitchen-installation
-12. bathroom-renovation
-13. shower-installation
-14. worktop-fitting
-
-**HVAC (Seasonal Demand):**
-15. wall-split-ac-installation
-16. ac-emergency-repair
-17. ducted-ac-installation
-18. thermostat-installation
-
-**Electrical (Safety-Critical):**
-19. ev-charger-installation
-20. fuse-board-upgrade
-
----
-
-## Phase 5: Implementation Steps
-
-### Step 1: Flag Weak Packs in DB
-Add a `quality_tier` column or metadata flag to identify packs needing rewrite.
-
-### Step 2: Rewrite Top 20 Hand-Crafted
-Write trade-aware packs for priority micros using Track A process.
-
-### Step 3: Seed Improvements via seedpacks
-Use existing edge function with updated pack definitions.
-
-### Step 4: Implement Validation in Seeder
-Modify `seedpacks/index.ts` to:
-- Reject packs with banned phrases
-- Warn if question count < 5
-- Log quality score on insert
-
-### Step 5: Add Admin Review UI (V2.1)
-Simple dashboard showing:
-- Pack quality by category
-- Weak packs requiring attention
-- Fallback usage percentage
+```typescript
+cleaned.push({
+  id: id || genId(labelOriginal),
+  label: labelOriginal,
+  type: q.type === "single" ? "radio" : q.type === "multi" ? "checkbox" : q.type,
+  options: q.options,
+  required: q.required,
+  placeholder: q.placeholder,
+  help: q.help ?? q.helpText,
+  accept: q.accept,
+  show_if: q.show_if ?? q.dependsOn, // ADD THIS LINE
+});
+```
 
 ---
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `supabase/functions/seedpacks/index.ts` | Add validation for banned phrases + quality scoring |
-| `supabase/functions/_shared/*.ts` | Rewrite generic pack builders to trade-aware versions |
-| New: `scripts/audit-pack-quality.ts` | Script to generate quality report |
-| Database migration | Optional: Add `quality_tier` column to `question_packs` |
+| File | Changes | Priority |
+|------|---------|----------|
+| `supabase/functions/seedpacks/index.ts` | Add `dependsOn` → `show_if` normalization | High |
+| `QuestionPackRenderer.tsx` | Add file type, conditional visibility, help text | High |
+| `QuestionsStep.tsx` | Add quality tier labeling | Medium |
+| New: `scripts/seed-strong-packs.ts` | Script to seed the 6 packs | High |
 
 ---
 
-## Success Metrics
+## Verification Steps
 
-**V2 Launch (Now):**
-- Zero dead ends (fallback works)
-- Top 20 commercial packs at "Strong" quality
-- Generic packs still functional but flagged for rewrite
+### After Seeding
+```sql
+-- Confirm 6 strong packs exist
+SELECT micro_slug, title, jsonb_array_length(questions) as q_count
+FROM question_packs 
+WHERE micro_slug IN ('burst-pipe', 'sewer-backup', 'water-heater-emergency',
+                     'bespoke-tables', 'sliding-door-wardrobes', 'staircases-handrails')
+  AND is_active = true;
+```
 
-**V2.1 (Next Sprint):**
-- 80%+ packs at "Strong" or "Acceptable"
-- <10% fallback usage
-- Pro feedback: "Questions make sense"
-
-**Long-Term:**
-- 100% trade-aware packs
-- Fallback deprecated per category as coverage reaches 100%
-- Competitive moat: 286 micro-specific briefing conversations
+### After Renderer Fix
+1. Navigate to `/post` wizard
+2. Select category: Plumbing → Emergency → Burst Pipe
+3. Verify 6 trade-specific questions appear (not generic)
+4. Select category: Carpentry → Custom Furniture → Bespoke Tables
+5. Verify conditional question appears when `table_type = dining`
 
 ---
 
-## Technical Notes
+## Success Criteria
 
-### Why This Is the Moat
-
-Competitors will copy:
-- Categories
-- UI
-- "AI matching" buzzwords
-
-Competitors cannot copy:
-- 286 micro-specific, trade-aware briefing conversations
-- Built from real jobs
-- Continuously refined by response data
-
-This is not software. This is **institutional knowledge**.
-
-### Internal Reframe
-
-Stop calling it: "Questions step"
-
-Call it: **Professional Briefing**
-
-That mindset alone changes how everyone treats it.
+| Metric | Current | Target |
+|--------|---------|--------|
+| Strong packs in DB | 0 | 6+ |
+| Renderer supports file type | ❌ | ✅ |
+| Renderer supports conditionals | ❌ | ✅ |
+| Fallback clearly labeled | ⚠️ | ✅ |
+| No dead-ends in wizard | ✅ | ✅ |
 
