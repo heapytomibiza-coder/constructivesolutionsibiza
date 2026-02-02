@@ -1,4 +1,5 @@
 // scripts/seed-plumbing.ts
+// Seeds the 3 plumbing emergency packs
 // Run with: SUPABASE_PROJECT_REF="ngwbpuxltyfweikdupoj" npx tsx scripts/seed-plumbing.ts
 // For live: SUPABASE_PROJECT_REF="ngwbpuxltyfweikdupoj" DRY_RUN=0 npx tsx scripts/seed-plumbing.ts
 
@@ -17,8 +18,13 @@ const url = `https://${PROJECT_REF}.supabase.co/functions/v1/seedpacks${
   DRY_RUN ? "?dry_run=1" : ""
 }`;
 
-console.log(`Seeding Plumbing packs (${plumbingQuestionPacks.length} packs)`);
-console.log(`Mode: ${DRY_RUN ? "DRY RUN" : "LIVE"}`);
+console.log(`\n========================================`);
+console.log(`Seeding PLUMBING EMERGENCY PACKS`);
+console.log(`========================================\n`);
+
+console.log(`Packs (${plumbingQuestionPacks.length}):`);
+plumbingQuestionPacks.forEach(p => console.log(`  - ${p.microSlug} (${p.questions.length} questions)`));
+console.log(`\nMode: ${DRY_RUN ? "DRY RUN" : "LIVE"}`);
 console.log(`URL: ${url}\n`);
 
 const res = await fetch(url, {
@@ -33,5 +39,9 @@ const res = await fetch(url, {
 const json = await res.json().catch(() => ({}));
 console.log("STATUS:", res.status);
 console.log(JSON.stringify(json, null, 2));
+
+if (res.ok && !DRY_RUN) {
+  console.log("\n✅ Plumbing packs seeded successfully!");
+}
 
 process.exit(res.ok ? 0 : 1);

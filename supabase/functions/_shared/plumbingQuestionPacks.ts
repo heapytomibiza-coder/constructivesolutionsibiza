@@ -23,6 +23,7 @@ export interface MicroservicePack {
   subcategorySlug: string;
   categorySlug: string;
   version: number;
+  name?: string;
   questions: QuestionDef[];
 }
 

@@ -15,7 +15,7 @@ if (!PROJECT_REF) {
   process.exit(1);
 }
 
-// Filter to only the 3 strong carpentry packs (hand-crafted, non-generic)
+// The strong carpentry packs are the first 3 in the array (hand-crafted, non-generic)
 const strongCarpentryPacks = carpentryQuestionPacks.filter(p => 
   ['bespoke-tables', 'sliding-door-wardrobes', 'staircases-handrails'].includes(p.microSlug)
 );
