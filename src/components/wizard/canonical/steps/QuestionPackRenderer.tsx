@@ -30,10 +30,20 @@ const normalizeOption = (opt: OptionType): QuestionOption => {
 interface QuestionDef {
   id: string;
   label: string;
-  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number';
+  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number' | 'file';
   options?: OptionType[];
   required?: boolean;
   placeholder?: string;
+  help?: string;
+  accept?: string;
+  show_if?: {
+    questionId: string;
+    value: string | string[];
+  };
+  dependsOn?: {
+    questionId: string;
+    value: string | string[];
+  };
 }
 
 interface QuestionPack {
@@ -61,6 +71,18 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
       return true;
     });
   }, [pack.questions]);
+
+  // Conditional visibility check
+  const shouldShowQuestion = (question: QuestionDef): boolean => {
+    const dep = question.show_if || question.dependsOn;
+    if (!dep) return true;
+    
+    const depValue = getAnswer(pack.micro_slug, dep.questionId);
+    if (Array.isArray(dep.value)) {
+      return dep.value.includes(depValue as string);
+    }
+    return depValue === dep.value;
+  };
 
   const renderQuestion = (question: QuestionDef) => {
     const value = getAnswer(pack.micro_slug, question.id);
@@ -97,6 +119,20 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
             value={(value as string) || ''}
             onChange={(e) => onAnswerChange(pack.micro_slug, question.id, e.target.value)}
             rows={3}
+          />
+        );
+
+      case 'file':
+        return (
+          <Input
+            id={key}
+            type="file"
+            accept={question.accept || 'image/*'}
+            onChange={(e) => {
+              const files = e.target.files;
+              onAnswerChange(pack.micro_slug, question.id, files ? Array.from(files).map(f => f.name) : []);
+            }}
+            className="cursor-pointer"
           />
         );
 
@@ -153,18 +189,24 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
     }
   };
 
+  // Filter questions by conditional visibility
+  const visibleQuestions = uniqueQuestions.filter(shouldShowQuestion);
+
   return (
     <div className="space-y-4">
       <h4 className="font-medium text-foreground border-b pb-2">
         {pack.title}
       </h4>
       
-      {uniqueQuestions.map((question) => (
+      {visibleQuestions.map((question) => (
         <div key={question.id} className="space-y-2">
           <Label htmlFor={`${pack.micro_slug}-${question.id}`}>
             {question.label}
             {question.required && <span className="text-destructive ml-1">*</span>}
           </Label>
+          {question.help && (
+            <p className="text-sm text-muted-foreground">{question.help}</p>
+          )}
           {renderQuestion(question)}
         </div>
       ))}
