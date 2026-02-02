@@ -85,6 +85,7 @@ const App = () => (
               
               {/* Messages (shared) */}
               <Route path="/messages" element={<Messages />} />
+              <Route path="/messages/:conversationId" element={<Messages />} />
 
               {/* Professional Onboarding */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
