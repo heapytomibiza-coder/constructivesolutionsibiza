@@ -36,7 +36,7 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-md transition-shadow">
+      <Card data-job-id={job.id} className="overflow-hidden hover:shadow-md transition-shadow">
         <CardHeader className="space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1 flex-1">
