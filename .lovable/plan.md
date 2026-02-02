@@ -55,10 +55,10 @@
 - `regular-ac-servicing` (7 questions) ✅ Already seeded
 - `heat-pump-installation` (7 questions) ✅ Already seeded
 
-**Kitchen & Bathroom** (3 hand-crafted, NOT in DB):
-- `kitchen-fitting` (7 questions) ❌ **NOT SEEDED**
-- `bathroom-design` (7 questions) ❌ **NOT SEEDED**
-- `wetroom-installation` (7 questions) ❌ **NOT SEEDED**
+**Kitchen & Bathroom** (3 hand-crafted):
+- `kitchen-fitting` (7 questions) ✅ Seeded
+- `bathroom-design` (7 questions) ✅ Seeded
+- `wetroom-installation` (7 questions) ✅ Seeded
 
 ---
 
