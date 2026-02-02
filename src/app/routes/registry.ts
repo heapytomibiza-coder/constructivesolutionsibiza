@@ -17,6 +17,7 @@ export const publicRoutes: RouteConfig[] = [
   { path: '/', access: 'public' },
   { path: '/services', access: 'public' },
   { path: '/services/:categorySlug', access: 'public' },
+  { path: '/jobs', access: 'public' },
   { path: '/professionals', access: 'public' },
   { path: '/professionals/:id', access: 'public' },
   { path: '/how-it-works', access: 'public' },

@@ -21,6 +21,9 @@ export function PublicNav() {
           <Link to="/services" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Services
           </Link>
+          <Link to="/jobs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Jobs
+          </Link>
           <Link to="/professionals" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Professionals
           </Link>
