@@ -61,4 +61,5 @@ export type JobsBoardRow = {
 export type JobDetailsRow = JobsBoardRow & {
   description: string | null;
   answers: JobAnswers | null;
+  is_owner: boolean | null;
 };
