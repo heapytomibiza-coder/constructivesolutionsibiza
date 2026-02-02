@@ -1,7 +1,9 @@
+import { useState, useMemo } from "react";
 import { useConversations, type Conversation } from "./hooks";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MessageSquare } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { Loader2, MessageSquare, Search } from "lucide-react";
+import { formatMessageTime } from "@/lib/formatMessageTime";
 import { cn } from "@/lib/utils";
 
 interface ConversationListProps {
@@ -12,6 +14,18 @@ interface ConversationListProps {
 
 export function ConversationList({ userId, selectedId, onSelect }: ConversationListProps) {
   const { data: conversations, isLoading, isError, error } = useConversations(userId);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredConversations = useMemo(() => {
+    if (!conversations) return [];
+    const needle = searchQuery.trim().toLowerCase();
+    if (!needle) return conversations;
+
+    return conversations.filter((c) => {
+      const hay = `${c.job_title ?? ""} ${c.last_message_preview ?? ""}`.toLowerCase();
+      return hay.includes(needle);
+    });
+  }, [conversations, searchQuery]);
 
   if (isLoading) {
     return (
@@ -46,16 +60,40 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
   }
 
   return (
-    <div className="divide-y divide-border">
-      {conversations.map((conv) => (
-        <ConversationItem
-          key={conv.id}
-          conversation={conv}
-          currentUserId={userId}
-          isSelected={conv.id === selectedId}
-          onClick={() => onSelect(conv)}
-        />
-      ))}
+    <div className="flex flex-col">
+      {/* Search Header */}
+      <div className="p-3 border-b border-border">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            autoComplete="off"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search conversations..."
+            className="pl-9"
+          />
+        </div>
+      </div>
+
+      {/* Conversation List */}
+      {filteredConversations.length === 0 && searchQuery ? (
+        <div className="py-8 px-4 text-center">
+          <p className="text-sm text-muted-foreground">No matching conversations</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border">
+          {filteredConversations.map((conv) => (
+            <ConversationItem
+              key={conv.id}
+              conversation={conv}
+              currentUserId={userId}
+              isSelected={conv.id === selectedId}
+              onClick={() => onSelect(conv)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -94,11 +132,9 @@ function ConversationItem({
             </Badge>
           )}
         </div>
-        {conversation.last_message_at && (
-          <span className="text-xs text-muted-foreground shrink-0">
-            {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
-          </span>
-        )}
+        <span className="text-xs text-muted-foreground shrink-0">
+          {formatMessageTime(conversation.last_message_at)}
+        </span>
       </div>
 
       {conversation.last_message_preview && (
