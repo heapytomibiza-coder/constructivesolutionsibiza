@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSession } from "@/contexts/SessionContext";
 import { ConversationList } from "./ConversationList";
 import { ConversationThread } from "./ConversationThread";
-import { type Conversation } from "./hooks";
+import { useMarkConversationRead, type Conversation } from "./hooks";
 import { PLATFORM } from "@/domain/scope";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,6 +22,14 @@ const Messages = () => {
   const isMobile = useIsMobile();
 
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const { markRead } = useMarkConversationRead();
+
+  // Mark conversation as read when selected
+  useEffect(() => {
+    if (selectedConversation && user) {
+      markRead(selectedConversation.id, user.id, selectedConversation.client_id);
+    }
+  }, [selectedConversation?.id, user?.id, markRead]);
 
   // Update selected conversation when URL changes
   useEffect(() => {
@@ -34,6 +42,13 @@ const Messages = () => {
       setSelectedConversation(null);
     }
   }, [conversationId, selectedConversation?.id]);
+
+  // Handler to mark read when new messages arrive while thread is open
+  const handleNewMessage = () => {
+    if (selectedConversation && user) {
+      markRead(selectedConversation.id, user.id, selectedConversation.client_id);
+    }
+  };
 
   const handleSelectConversation = (conv: Conversation) => {
     setSelectedConversation(conv);
@@ -120,7 +135,9 @@ const Messages = () => {
                   <ConversationThread
                     conversationId={conversationId}
                     currentUserId={user.id}
+                    clientId={selectedConversation?.client_id}
                     jobTitle={selectedConversation?.job_title}
+                    onNewMessage={handleNewMessage}
                   />
                 ) : (
                   <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -147,8 +164,10 @@ const Messages = () => {
                 <ConversationThread
                   conversationId={conversationId!}
                   currentUserId={user.id}
+                  clientId={selectedConversation?.client_id}
                   jobTitle={selectedConversation?.job_title}
                   onBack={handleBack}
+                  onNewMessage={handleNewMessage}
                 />
               </div>
             )

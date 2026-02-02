@@ -10,25 +10,38 @@ import { cn } from "@/lib/utils";
 interface ConversationThreadProps {
   conversationId: string;
   currentUserId: string;
+  clientId?: string;
   jobTitle?: string;
   onBack?: () => void;
+  onNewMessage?: () => void;
 }
 
 export function ConversationThread({
   conversationId,
   currentUserId,
+  clientId,
   jobTitle,
   onBack,
+  onNewMessage,
 }: ConversationThreadProps) {
   const { data: messages, isLoading, isError, error } = useMessages(conversationId);
   const { send, isSending } = useSendMessage(conversationId, currentUserId);
   const [draft, setDraft] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevMessageCountRef = useRef<number>(0);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom and mark read when new messages arrive
   useEffect(() => {
+    const currentCount = messages?.length ?? 0;
+    
+    if (currentCount > prevMessageCountRef.current && prevMessageCountRef.current > 0) {
+      // New message arrived via realtime - mark as read
+      onNewMessage?.();
+    }
+    
+    prevMessageCountRef.current = currentCount;
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, onNewMessage]);
 
   const handleSend = () => {
     if (draft.trim() && !isSending) {
