@@ -149,15 +149,26 @@ Deno.serve(async (req: Request) => {
         }
         seen.add(key);
         
+        // Normalize dependsOn → show_if for conditional visibility
+        const dependsOnRaw = (q.show_if ?? q.dependsOn) as { questionId?: string; question_id?: string; value?: unknown } | undefined;
+        const show_if = dependsOnRaw ? {
+          questionId: String(dependsOnRaw.questionId ?? dependsOnRaw.question_id ?? ""),
+          value: dependsOnRaw.value,
+        } : undefined;
+
         cleaned.push({
           id: id || genId(labelOriginal),
           label: labelOriginal,
-          type: q.type === "single" ? "radio" : q.type === "multi" ? "checkbox" : q.type,
+          type: q.type === "single" || q.type === "yesno" ? "radio" 
+              : q.type === "multi" ? "checkbox" 
+              : q.type === "scale" ? "radio"
+              : q.type,
           options: q.options,
           required: q.required,
           placeholder: q.placeholder,
           help: q.help ?? q.helpText,
           accept: q.accept,
+          show_if,
         });
       }
 

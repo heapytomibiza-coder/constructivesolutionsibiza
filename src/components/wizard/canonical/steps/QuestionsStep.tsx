@@ -13,10 +13,15 @@ import { QuestionPackRenderer } from './QuestionPackRenderer';
 interface QuestionDef {
   id: string;
   label: string;
-  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number';
+  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number' | 'file';
   options?: (string | { value: string; label: string })[];
   required?: boolean;
   placeholder?: string;
+  help?: string;
+  show_if?: {
+    questionId: string;
+    value: string | string[];
+  };
 }
 
 interface QuestionPack {
@@ -24,6 +29,32 @@ interface QuestionPack {
   micro_slug: string;
   title: string;
   questions: QuestionDef[];
+}
+
+type QualityTier = 'strong' | 'generic' | 'fallback';
+
+// Banned phrases that indicate generic pack content
+const GENERIC_PHRASES = [
+  'briefly describe',
+  'describe your project',
+  'please describe',
+  'what do you need help with',
+  'tell us about',
+];
+
+function getPackQualityTier(pack: QuestionPack): QualityTier {
+  if (pack.micro_slug === 'general-project') return 'fallback';
+  
+  // Check for generic openers in first question
+  const firstQ = pack.questions[0];
+  const label = (firstQ?.label || '').toLowerCase();
+  
+  if (GENERIC_PHRASES.some(phrase => label.includes(phrase))) {
+    return 'generic';
+  }
+  
+  // Strong = 5+ questions and no generic opener
+  return pack.questions.length >= 5 ? 'strong' : 'generic';
 }
 
 interface Props {
@@ -177,14 +208,28 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
         Tell us more about your project
       </h3>
 
-      {packs.map((pack) => (
-        <QuestionPackRenderer
-          key={pack.id}
-          pack={pack}
-          getAnswer={getAnswer}
-          onAnswerChange={handleAnswerChange}
-        />
-      ))}
+      {packs.map((pack) => {
+        const tier = getPackQualityTier(pack);
+        return (
+          <div key={pack.id}>
+            {tier === 'fallback' && (
+              <p className="text-sm text-muted-foreground mb-3 bg-muted/50 px-3 py-2 rounded-md">
+                General briefing — we're upgrading this service with trade-specific questions
+              </p>
+            )}
+            {tier === 'generic' && (
+              <p className="text-xs text-muted-foreground mb-2">
+                General briefing
+              </p>
+            )}
+            <QuestionPackRenderer
+              pack={pack}
+              getAnswer={getAnswer}
+              onAnswerChange={handleAnswerChange}
+            />
+          </div>
+        );
+      })}
 
       {missingPacks.length > 0 && (
         <p className="text-xs text-muted-foreground">
