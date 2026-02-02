@@ -42,12 +42,18 @@ async function fetchConversations(): Promise<Conversation[]> {
   if (conversations.length === 0) return [];
 
   // Fetch job titles for context
-  const jobIds = [...new Set(conversations.map((c) => c.job_id))];
+  const jobIds = [...new Set(conversations.map((c) => c.job_id).filter(Boolean))];
 
-  const { data: jobs } = await supabase
+  if (jobIds.length === 0) {
+    return conversations.map((c) => ({ ...c, unread_count: Number(c.unread_count) || 0 }));
+  }
+
+  const { data: jobs, error: jobsError } = await supabase
     .from("jobs")
     .select("id, title, category")
     .in("id", jobIds);
+
+  if (jobsError) throw jobsError;
 
   const jobMap = new Map(jobs?.map((j) => [j.id, j]) ?? []);
 
