@@ -49,6 +49,7 @@ export const proOnboardingRoutes: RouteConfig[] = [
   { path: '/onboarding/professional', access: 'role:professional', redirectTo: '/auth' },
   { path: '/professional/services', access: 'role:professional', redirectTo: '/auth' },
   { path: '/professional/portfolio', access: 'role:professional', redirectTo: '/auth' },
+  { path: '/professional/service-setup', access: 'role:professional', redirectTo: '/auth' },
 ];
 
 export const proDashboardRoutes: RouteConfig[] = [

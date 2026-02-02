@@ -70,6 +70,13 @@ export type Database = {
             referencedRelation: "jobs_board"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "conversations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
         ]
       }
       jobs: {
@@ -229,6 +236,41 @@ export type Database = {
           verification_status?: string
         }
         Relationships: []
+      }
+      professional_services: {
+        Row: {
+          created_at: string | null
+          id: string
+          micro_id: string
+          notify: boolean | null
+          searchable: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          micro_id: string
+          notify?: boolean | null
+          searchable?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          micro_id?: string
+          notify?: boolean | null
+          searchable?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_services_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_micro_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       question_packs: {
         Row: {
@@ -581,6 +623,32 @@ export type Database = {
           teaser?: string | null
           title?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      matched_jobs_for_professional: {
+        Row: {
+          area: string | null
+          budget_max: number | null
+          budget_min: number | null
+          budget_type: string | null
+          budget_value: number | null
+          category: string | null
+          created_at: string | null
+          has_photos: boolean | null
+          highlights: string[] | null
+          id: string | null
+          is_publicly_listed: boolean | null
+          location: Json | null
+          micro_slug: string | null
+          professional_user_id: string | null
+          start_date: string | null
+          start_timing: string | null
+          status: string | null
+          subcategory: string | null
+          teaser: string | null
+          title: string | null
+          updated_at: string | null
         }
         Relationships: []
       }

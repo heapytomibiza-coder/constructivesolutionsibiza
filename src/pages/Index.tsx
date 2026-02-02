@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PublicLayout } from '@/components/layout';
+import { MobileFAB } from '@/components/MobileFAB';
 import { PLATFORM, MAIN_CATEGORIES } from '@/domain/scope';
 import { 
   Hammer, Wrench, Droplets, Zap, Wind, Paintbrush, 
@@ -165,6 +166,9 @@ const Index = () => {
           </Button>
         </div>
       </section>
+
+      {/* Mobile FAB */}
+      <MobileFAB />
     </PublicLayout>
   );
 };

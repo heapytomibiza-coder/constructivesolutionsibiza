@@ -41,6 +41,7 @@ import Messages from "./pages/messages/Messages";
 // Professional Onboarding & Management
 import ProfessionalOnboarding from "./pages/onboarding/ProfessionalOnboarding";
 import ProfessionalServices from "./pages/professional/ProfessionalServices";
+import ProfessionalServiceSetup from "./pages/professional/ProfessionalServiceSetup";
 import ProfessionalPortfolio from "./pages/professional/ProfessionalPortfolio";
 
 const queryClient = new QueryClient();
@@ -90,6 +91,7 @@ const App = () => (
               {/* Professional Onboarding */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
               <Route path="/professional/services" element={<ProfessionalServices />} />
+              <Route path="/professional/service-setup" element={<ProfessionalServiceSetup />} />
               <Route path="/professional/portfolio" element={<ProfessionalPortfolio />} />
 
               {/* Professional Dashboard */}

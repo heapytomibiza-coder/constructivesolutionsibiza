@@ -1,11 +1,13 @@
 import * as React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { JobListingCard } from "@/pages/jobs/JobListingCard";
-import { Loader2 } from "lucide-react";
+import { Loader2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/contexts/SessionContext";
+import { useMatchedJobs } from "@/hooks/useMatchedJobs";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 import {
   JobBoardHeroSection,
@@ -74,12 +76,39 @@ async function fetchJobsBoard(): Promise<JobsBoardRow[]> {
 
 export function JobsMarketplace() {
   const [filters, setFilters] = React.useState<Filters>(EMPTY_FILTERS);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { activeRole } = useSession();
+  
+  // Check if matched filter is active from URL
+  const showMatchedOnly = searchParams.get("matched") === "true";
+  const isProfessional = activeRole === "professional";
 
-  const { data: jobs, isLoading, isError, error, refetch } = useQuery({
+  // Fetch all jobs
+  const { data: allJobs, isLoading: allJobsLoading, isError: allJobsError, error: allJobsErrorData, refetch: refetchAllJobs } = useQuery({
     queryKey: ["jobs_board"],
     queryFn: fetchJobsBoard,
     staleTime: 30_000,
   });
+
+  // Fetch matched jobs for professionals
+  const { matchedJobs, isLoading: matchedJobsLoading, isError: matchedJobsError, error: matchedJobsErrorData, refetch: refetchMatchedJobs } = useMatchedJobs();
+
+  // Determine which jobs to display
+  const isLoading = showMatchedOnly && isProfessional ? matchedJobsLoading : allJobsLoading;
+  const isError = showMatchedOnly && isProfessional ? matchedJobsError : allJobsError;
+  const error = showMatchedOnly && isProfessional ? matchedJobsErrorData : allJobsErrorData;
+  const jobs = showMatchedOnly && isProfessional ? matchedJobs : allJobs;
+  const refetch = showMatchedOnly && isProfessional ? refetchMatchedJobs : refetchAllJobs;
+
+  // Toggle matched filter
+  const toggleMatchedFilter = React.useCallback(() => {
+    if (showMatchedOnly) {
+      searchParams.delete("matched");
+    } else {
+      searchParams.set("matched", "true");
+    }
+    setSearchParams(searchParams);
+  }, [showMatchedOnly, searchParams, setSearchParams]);
 
   // Extract categories
   const categories = React.useMemo(() => {
@@ -203,6 +232,26 @@ export function JobsMarketplace() {
         onToggle={handleToggle}
       />
 
+      {/* Matched Jobs Toggle for Professionals */}
+      {isProfessional && (
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showMatchedOnly ? "default" : "outline"}
+            size="sm"
+            onClick={toggleMatchedFilter}
+            className="gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            {showMatchedOnly ? "Showing Matched Jobs" : "Show Matched Only"}
+          </Button>
+          {showMatchedOnly && (
+            <span className="text-sm text-muted-foreground">
+              Showing jobs that match your services
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Stats bar */}
       <JobBoardStatsBar activeJobs={activeJobs} todayJobs={todayJobs} totalBudget={totalBudget} />
 
@@ -226,13 +275,24 @@ export function JobsMarketplace() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Jobs</h2>
+              <h2 className="text-lg font-semibold">
+                {showMatchedOnly && isProfessional ? "Matched Jobs" : "Jobs"}
+              </h2>
               <Badge variant="secondary">{regular.length} results</Badge>
             </div>
 
             {regular.length === 0 ? (
-              <div className="rounded-xl border p-6 text-sm text-muted-foreground">
-                No jobs match your filters.
+              <div className="rounded-xl border p-6 text-sm text-muted-foreground text-center">
+                {showMatchedOnly && isProfessional ? (
+                  <>
+                    No matched jobs found.{" "}
+                    <Button variant="link" className="p-0 h-auto" onClick={toggleMatchedFilter}>
+                      View all jobs
+                    </Button>
+                  </>
+                ) : (
+                  "No jobs match your filters."
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">

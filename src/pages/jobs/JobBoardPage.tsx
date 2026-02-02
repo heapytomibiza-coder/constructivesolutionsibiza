@@ -1,4 +1,5 @@
 import { PublicLayout } from "@/components/layout";
+import { MobileFAB } from "@/components/MobileFAB";
 import { JobsMarketplace } from "@/pages/jobs/JobsMarketplace";
 
 export default function JobBoardPage() {
@@ -16,6 +17,8 @@ export default function JobBoardPage() {
       <div className="container py-8">
         <JobsMarketplace />
       </div>
+
+      <MobileFAB />
     </PublicLayout>
   );
 }
