@@ -353,7 +353,7 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
             <LogIn className="h-4 w-4" />
             Sign in to message
           </Button>
-        ) : (
+        ) : job.is_owner ? null : (
           <Button 
             onClick={handleMessage} 
             disabled={isMessaging || sessionLoading}

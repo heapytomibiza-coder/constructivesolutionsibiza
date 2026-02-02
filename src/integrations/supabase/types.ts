@@ -445,6 +445,7 @@ export type Database = {
           has_photos: boolean | null
           highlights: string[] | null
           id: string | null
+          is_owner: boolean | null
           is_publicly_listed: boolean | null
           location: Json | null
           micro_slug: string | null
@@ -469,6 +470,7 @@ export type Database = {
           has_photos?: boolean | null
           highlights?: string[] | null
           id?: string | null
+          is_owner?: never
           is_publicly_listed?: boolean | null
           location?: Json | null
           micro_slug?: string | null
@@ -493,6 +495,7 @@ export type Database = {
           has_photos?: boolean | null
           highlights?: string[] | null
           id?: string | null
+          is_owner?: never
           is_publicly_listed?: boolean | null
           location?: Json | null
           micro_slug?: string | null
