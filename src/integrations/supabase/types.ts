@@ -14,6 +14,58 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversations: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          job_id: string
+          last_message_at: string | null
+          last_message_preview: string | null
+          pro_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          job_id: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          pro_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          pro_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           answers: Json | null
@@ -91,6 +143,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       professional_profiles: {
         Row: {
@@ -544,7 +628,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_or_create_conversation: {
+        Args: { p_job_id: string; p_pro_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

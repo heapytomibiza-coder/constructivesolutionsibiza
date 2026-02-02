@@ -1,13 +1,17 @@
 import * as React from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/contexts/SessionContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, MessageSquare, Share2, Camera, FileText, AlertTriangle } from "lucide-react";
+import { Loader2, MessageSquare, Share2, Camera, FileText, AlertTriangle, LogIn } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 import type { JobDetailsRow, JobAnswers } from "@/pages/jobs/types";
 
 async function fetchJobDetails(jobId: string): Promise<JobDetailsRow> {
@@ -94,19 +98,62 @@ export function JobDetailsModal({
             </Button>
           </div>
         ) : query.data ? (
-          <JobDetailsBody job={query.data} />
+          <JobDetailsBody job={query.data} onClose={() => onOpenChange(false)} />
         ) : null}
       </DialogContent>
     </Dialog>
   );
 }
 
-function JobDetailsBody({ job }: { job: JobDetailsRow }) {
+function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => void }) {
+  const navigate = useNavigate();
+  const { user, isLoading: sessionLoading } = useSession();
+  const [isMessaging, setIsMessaging] = useState(false);
+
   const answers = safeAnswers(job.answers);
 
   const selected = answers?.selected;
   const logistics = answers?.logistics;
   const extras = answers?.extras;
+
+  // Message button gating
+  const handleMessage = async () => {
+    if (!user) {
+      // Redirect to auth with return URL
+      onClose();
+      navigate(`/auth?returnTo=/jobs`);
+      return;
+    }
+
+    setIsMessaging(true);
+    try {
+      const { data: convId, error } = await supabase.rpc("get_or_create_conversation", {
+        p_job_id: job.id,
+        p_pro_id: user.id,
+      });
+
+      if (error) {
+        // Handle specific errors
+        if (error.message.includes("Cannot message your own job")) {
+          toast.error("You cannot message your own job");
+        } else if (error.message.includes("not available")) {
+          toast.error("This job is no longer available for messaging");
+        } else {
+          toast.error("Failed to start conversation");
+          console.error("Message error:", error);
+        }
+        return;
+      }
+
+      onClose();
+      navigate(`/messages/${convId}`);
+    } catch (err) {
+      toast.error("Failed to start conversation");
+      console.error("Message error:", err);
+    } finally {
+      setIsMessaging(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -301,10 +348,25 @@ function JobDetailsBody({ job }: { job: JobDetailsRow }) {
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
-        <Button disabled className="gap-2">
-          <MessageSquare className="h-4 w-4" />
-          Message (coming soon)
-        </Button>
+        {!user ? (
+          <Button onClick={handleMessage} className="gap-2">
+            <LogIn className="h-4 w-4" />
+            Sign in to message
+          </Button>
+        ) : (
+          <Button 
+            onClick={handleMessage} 
+            disabled={isMessaging || sessionLoading}
+            className="gap-2"
+          >
+            {isMessaging ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquare className="h-4 w-4" />
+            )}
+            {isMessaging ? "Starting chat..." : "Message"}
+          </Button>
+        )}
         <Button variant="outline" disabled className="gap-2">
           <Share2 className="h-4 w-4" />
           Share
