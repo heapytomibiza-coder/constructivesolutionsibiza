@@ -58,29 +58,33 @@ function getPackQualityTier(pack: QuestionPack): QualityTier {
 }
 
 /**
- * Determine pack source for analytics tracking
+ * Determine pack tracking metadata for analytics
+ * Only marks 'fallback' when general-project pack was actually used
  */
-function determinePackSource(
+function determinePackTracking(
   primarySlug: string | null,
   packs: QuestionPack[]
 ): { source: 'strong' | 'generic' | 'fallback'; missing: boolean } {
-  // No packs or using fallback
-  if (!packs.length || packs[0].micro_slug === 'general-project') {
+  const usedFallback = packs.some(p => p.micro_slug === 'general-project');
+
+  // Fallback: explicitly used general-project or no packs at all
+  if (usedFallback || packs.length === 0) {
     return { source: 'fallback', missing: true };
   }
-  
+
   // Find the pack for primary slug
   const primaryPack = packs.find(p => p.micro_slug === primarySlug);
   if (!primaryPack) {
     return { source: 'fallback', missing: true };
   }
-  
+
   // Check quality tier
   const tier = getPackQualityTier(primaryPack);
-  return { 
-    source: tier, 
-    missing: tier === 'fallback' 
-  };
+  if (tier === 'fallback') {
+    return { source: 'fallback', missing: true };
+  }
+
+  return { source: tier, missing: false };
 }
 
 interface Props {
@@ -165,15 +169,22 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
       // Inject pack tracking metadata for analytics (only once per microSlugs change)
       if (!trackingInjectedRef.current) {
         const primarySlug = microSlugs[0] || null;
-        const { source, missing: isMissing } = determinePackSource(primarySlug, parsedPacks);
+        const { source, missing: isMissing } = determinePackTracking(primarySlug, parsedPacks);
         
-        // Update answers with tracking (will be preserved in job payload)
-        onChangeRef.current({
-          ...answersRef.current,
-          _pack_source: source,
-          _pack_slug: primarySlug,
-          _pack_missing: isMissing,
-        });
+        // Only update if values actually changed (prevents unnecessary renders)
+        const shouldUpdate =
+          answersRef.current._pack_source !== source ||
+          answersRef.current._pack_slug !== primarySlug ||
+          answersRef.current._pack_missing !== isMissing;
+        
+        if (shouldUpdate) {
+          onChangeRef.current({
+            ...answersRef.current,
+            _pack_source: source,
+            _pack_slug: primarySlug,
+            _pack_missing: isMissing,
+          });
+        }
         trackingInjectedRef.current = true;
       }
       
