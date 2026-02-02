@@ -30,18 +30,27 @@ export function ConversationThread({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef<number>(0);
 
-  // Auto-scroll to bottom and mark read when new messages arrive
+  // Auto-scroll to bottom and mark read when new incoming messages arrive
   useEffect(() => {
     const currentCount = messages?.length ?? 0;
+    const lastMessage = messages?.[messages.length - 1];
     
-    if (currentCount > prevMessageCountRef.current && prevMessageCountRef.current > 0) {
-      // New message arrived via realtime - mark as read
+    // Only mark read if:
+    // 1. New messages arrived (count increased)
+    // 2. We had messages before (not initial load)
+    // 3. The last message is from the other user (not our own send)
+    if (
+      currentCount > prevMessageCountRef.current &&
+      prevMessageCountRef.current > 0 &&
+      lastMessage &&
+      lastMessage.sender_id !== currentUserId
+    ) {
       onNewMessage?.();
     }
     
     prevMessageCountRef.current = currentCount;
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, onNewMessage]);
+  }, [messages, currentUserId, onNewMessage]);
 
   const handleSend = () => {
     if (draft.trim() && !isSending) {
