@@ -75,14 +75,14 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
         const { data: fallback } = await supabase
           .from('question_packs')
           .select('id, micro_slug, title, questions')
-          .eq('micro_slug', '__fallback__')
+          .eq('micro_slug', 'general-project')
           .eq('is_active', true)
           .single();
 
         if (fallback) {
           parsedPacks = [{
             id: fallback.id,
-            micro_slug: '__fallback__',
+            micro_slug: 'general-project',
             title: fallback.title,
             questions: (fallback.questions as unknown as QuestionDef[]) || [],
           }];
