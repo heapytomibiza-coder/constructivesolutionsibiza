@@ -1,4 +1,5 @@
 // scripts/seed-carpentry.ts
+// Seeds the 3 strong carpentry packs (hand-crafted, non-generic)
 // Run with: SUPABASE_PROJECT_REF="ngwbpuxltyfweikdupoj" npx tsx scripts/seed-carpentry.ts
 // For live: SUPABASE_PROJECT_REF="ngwbpuxltyfweikdupoj" DRY_RUN=0 npx tsx scripts/seed-carpentry.ts
 
@@ -22,9 +23,13 @@ const url = `https://${PROJECT_REF}.supabase.co/functions/v1/seedpacks${
   DRY_RUN ? "?dry_run=1" : ""
 }`;
 
-console.log(`Seeding Carpentry strong packs (${strongPacks.length} packs)`);
-console.log(`Packs: ${strongPacks.map(p => p.microSlug).join(', ')}`);
-console.log(`Mode: ${DRY_RUN ? "DRY RUN" : "LIVE"}`);
+console.log(`\n========================================`);
+console.log(`Seeding CARPENTRY STRONG PACKS`);
+console.log(`========================================\n`);
+
+console.log(`Packs (${strongPacks.length}):`);
+strongPacks.forEach(p => console.log(`  - ${p.microSlug} (${p.questions.length} questions)`));
+console.log(`\nMode: ${DRY_RUN ? "DRY RUN" : "LIVE"}`);
 console.log(`URL: ${url}\n`);
 
 const res = await fetch(url, {
@@ -39,5 +44,9 @@ const res = await fetch(url, {
 const json = await res.json().catch(() => ({}));
 console.log("STATUS:", res.status);
 console.log(JSON.stringify(json, null, 2));
+
+if (res.ok && !DRY_RUN) {
+  console.log("\n✅ Carpentry packs seeded successfully!");
+}
 
 process.exit(res.ok ? 0 : 1);
