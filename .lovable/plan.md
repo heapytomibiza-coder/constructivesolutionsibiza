@@ -1,169 +1,146 @@
 
+# Fix: Duplicate Timing Questions Between Steps 4 and 5
 
-# V2 Step 4 - Verified Status & Next Actions
+## Problem Identified
 
-## Current State (DB-Verified)
+Users are experiencing **duplicate timing questions** in the job posting wizard:
 
-### Pack Coverage Summary
-| Status | Count | Description |
-|--------|-------|-------------|
-| **STRONG** | 29 | Trade-specific, 5+ questions, no generic opener |
-| **GENERIC** | 79 | Have "briefly describe" as Q1 |
-| **MISSING** | 184 | Fall back to `general-project` |
+| Step | Question | Source |
+|------|----------|--------|
+| **Step 4 (Questions)** | "When do you need the kitchen work done by?" | Question pack `timeline` field |
+| **Step 5 (Logistics)** | "When do you need this done?" | LogisticsStep `startDatePreset` field |
 
-### Coverage by Category
-| Category | STRONG | GENERIC | MISSING | Priority |
-|----------|--------|---------|---------|----------|
-| Electrical | 3 | 22 | 7 | **HIGH** - V1 has 3 more hand-crafted |
-| HVAC | 3 | 18 | 15 | **HIGH** - V1 has 3 hand-crafted |
-| Kitchen & Bathroom | 0 | 0 | 12 | **HIGH** - V1 has 3 hand-crafted |
-| Construction | 3 | 38 | 9 | MEDIUM |
-| Plumbing | 7 | 0 | 3 | LOW (best coverage) |
-| Carpentry | 7 | 0 | 16 | MEDIUM |
-| All Others | 0 | 1 | 112 | MISSING |
+**Root Cause:** 56 of 111 question packs (50%) include a `timeline` or `timing` question that duplicates the Logistics step's timing selector.
 
----
+### Affected Packs (Sample)
+- `kitchen-fitting` - "When do you need the kitchen work done by?"
+- `bathroom-design` - "When would you like the design/installation to happen?"
+- `wetroom-installation` - "When would you like the wetroom work done?"
+- `full-house-rewiring` - "When would you like the rewiring to be done?"
+- 52 more packs...
 
-## V2 Code Status: VERIFIED WORKING
+## Solution Options
 
-### 1. Pack Source Tracking (`QuestionsStep.tsx`)
-- `determinePackTracking()` correctly identifies strong/generic/fallback
-- Uses `useRef` pattern to prevent infinite loops
-- Injects `_pack_source`, `_pack_slug`, `_pack_missing` once per selection
+### Option A: Strip timeline from packs at render time (Recommended)
+Filter out `timeline`/`timing` questions in `QuestionPackRenderer` since the Logistics step already handles timing.
 
-### 2. Payload Preservation (`buildJobPayload.ts`)
-- Lines 314-316 correctly extract and preserve tracking metadata
-- Fields are stored in `answers` JSON for analytics
+**Pros:**
+- No database migration needed
+- Immediate fix
+- Preserves pack data for future use
 
-### 3. Quality Tier Detection
-- `getPackQualityTier()` checks for generic phrases: "briefly describe", "please describe", etc.
-- Strong = 5+ questions AND no generic opener
+**Cons:**
+- Filtering happens on every render (negligible performance impact)
 
----
+### Option B: Remove timeline from packs in database
+Update all 56 packs to remove the timeline question via SQL migration.
 
-## V1 Pack Sources Available (Not Yet Seeded)
+**Pros:**
+- Clean data at source
 
-### Hand-Crafted Packs Ready to Seed
+**Cons:**
+- Requires migration
+- May need to re-run if packs are re-seeded
 
-**Electrical** (3 hand-crafted in V1, only in DB as strong):
-- `full-house-rewiring` (7 questions) ✅ Already seeded
-- `fuse-box-consumer-unit-replacement` (6 questions) ✅ Already seeded
-- `indoor-lighting-installation` (7 questions) ✅ Already seeded
+### Option C: Add pack field `uses_logistics_timing: true`
+Mark packs that should skip their own timing question.
 
-**HVAC** (3 hand-crafted):
-- `wall-split-ac-installation` (7 questions) ✅ Already seeded
-- `regular-ac-servicing` (7 questions) ✅ Already seeded
-- `heat-pump-installation` (7 questions) ✅ Already seeded
+**Pros:**
+- Explicit opt-in
 
-**Kitchen & Bathroom** (3 hand-crafted):
-- `kitchen-fitting` (7 questions) ✅ Seeded
-- `bathroom-design` (7 questions) ✅ Seeded
-- `wetroom-installation` (7 questions) ✅ Seeded
+**Cons:**
+- Requires schema change and pack updates
 
 ---
 
-## Immediate Actions
+## Recommended Implementation (Option A)
 
-### Action 1: Seed Missing K&B Strong Packs
-The Kitchen & Bathroom category has 3 hand-crafted packs in V1 that aren't in the DB:
-1. `kitchen-fitting` - 7 trade-specific questions
-2. `bathroom-design` - 7 trade-specific questions  
-3. `wetroom-installation` - 7 trade-specific questions
+### 1. Add Timeline Filter to QuestionPackRenderer
 
-**Implementation:**
+Filter out questions with IDs matching `timeline`, `timing`, or `preferred-date` since these are handled by Step 5 (Logistics).
+
 ```typescript
-// Add to seed script or call seedpacks edge function
-import { kitchenBathroomQuestionPacks } from '../supabase/functions/_shared/kitchenBathroomQuestionPacks';
+// File: src/components/wizard/canonical/steps/QuestionPackRenderer.tsx
 
-const strongKBPacks = kitchenBathroomQuestionPacks.filter(p => 
-  ['kitchen-fitting', 'bathroom-design', 'wetroom-installation'].includes(p.microSlug)
-);
+// Add after line 73 (after uniqueQuestions useMemo)
+const EXCLUDED_QUESTION_IDS = ['timeline', 'timing', 'preferred-date'];
+
+// Modify the visibleQuestions filter
+const visibleQuestions = uniqueQuestions
+  .filter(q => !EXCLUDED_QUESTION_IDS.includes(q.id))  // Remove timing duplicates
+  .filter(shouldShowQuestion);
 ```
 
-### Action 2: End-to-End Test
-1. Go to `/post`
-2. Select Plumbing → Emergency Plumbing → Burst pipe repair
-3. Verify Step 4 shows 6 trade-specific questions (not generic)
-4. Complete wizard and submit
-5. Check job record: `answers._pack_source` should be `"strong"`
+### 2. Why This Works
 
-### Action 3: Analytics Queries
-Once jobs start flowing, run:
-```sql
--- Top fallback slugs (what to build first)
-SELECT answers->>'_pack_slug' AS slug, COUNT(*)
-FROM jobs
-WHERE answers->>'_pack_source' = 'fallback'
-GROUP BY 1 ORDER BY 2 DESC LIMIT 20;
+- Step 4 (Questions) focuses on **trade-specific project details**
+- Step 5 (Logistics) handles **location, timing, and budget** uniformly
+- The pack's timeline question is now redundant and confusing
 
--- Top generic slugs (what to rewrite first)
-SELECT answers->>'_pack_slug' AS slug, COUNT(*)
-FROM jobs
-WHERE answers->>'_pack_source' = 'generic'
-GROUP BY 1 ORDER BY 2 DESC LIMIT 20;
+### 3. Data Preservation
+
+The timeline answers from packs are still collected if users filled them before this fix, but new submissions will have timing cleanly in the Logistics step only.
+
+---
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/components/wizard/canonical/steps/QuestionPackRenderer.tsx` | Add `EXCLUDED_QUESTION_IDS` filter to remove timing/timeline questions |
+
+---
+
+## Technical Details
+
+### Current Flow (Broken)
+```text
+Step 4 (Questions)           Step 5 (Logistics)
+------------------------     ------------------------
+"What type of job?"          "Where is the work needed?"
+"Do you have plans?"         "When do you need this done?" <-- DUPLICATED
+"When do you need it?"  -->  "Budget range?"
+```
+
+### Fixed Flow
+```text
+Step 4 (Questions)           Step 5 (Logistics)
+------------------------     ------------------------
+"What type of job?"          "Where is the work needed?"
+"Do you have plans?"         "When do you need this done?"
+"Who supplies materials?"    "Budget range?"
+                             (single source of truth for timing)
 ```
 
 ---
 
-## V1 Pack Format Reference
+## Implementation
 
-### Source Format (V1)
 ```typescript
-{
-  microSlug: "kitchen-fitting",     // Maps to micro_slug
-  subcategorySlug: "kitchen-fitting-renovation",
-  name: "Kitchen fitting",          // Maps to title
-  questions: [
-    {
-      id: "kitchen_job_type",
-      question: "What type of kitchen job is this?",  // Maps to label
-      type: "select",
-      required: true,
-      options: [{ value: "full_new", label: "Full new kitchen" }, ...]
-    }
-  ]
-}
-```
+// QuestionPackRenderer.tsx - Add filter for timing questions
 
-### DB Format (after seedpacks normalization)
-```typescript
-{
-  micro_slug: "kitchen-fitting",
-  title: "Kitchen fitting",
-  questions: [
-    {
-      id: "kitchen_job_type",
-      label: "What type of kitchen job is this?",  // Normalized
-      type: "select",
-      required: true,
-      options: [{ value: "full_new", label: "Full new kitchen" }]
-    }
-  ]
-}
+// These question IDs are handled by the Logistics step (Step 5)
+// and should not appear in the Questions step (Step 4)
+const LOGISTICS_HANDLED_QUESTION_IDS = new Set([
+  'timeline',
+  'timing', 
+  'preferred-date',
+  'start_timeline',
+]);
+
+// In the component, modify visibleQuestions:
+const visibleQuestions = uniqueQuestions
+  .filter(q => !LOGISTICS_HANDLED_QUESTION_IDS.has(q.id))
+  .filter(shouldShowQuestion);
 ```
 
 ---
 
-## Technical Summary
+## QA Checklist
 
-### What's Complete
-- Single-slug contract (Step 3 → Step 4)
-- Pack tracking injection with loop prevention
-- Payload preservation for analytics
-- Quality tier classification logic
-- Fallback safety net (general-project)
-
-### What's Needed (Content Work)
-1. **Seed 3 K&B packs** from V1 (immediate win)
-2. **Rewrite 22 Electrical generic packs** (high value)
-3. **Rewrite 18 HVAC generic packs** (high value)
-4. **Create packs for 184 missing micros** (gradual)
-
-### Files Involved
-| File | Status | Notes |
-|------|--------|-------|
-| `QuestionsStep.tsx` | ✅ Complete | Tracking + rendering |
-| `buildJobPayload.ts` | ✅ Complete | Tracking preservation |
-| `types.ts` | ✅ Complete | `_pack_*` fields typed |
-| V1 pack sources | Available | Ready to seed |
-
+| Test | Expected |
+|------|----------|
+| Kitchen fitting pack (Step 4) | Shows 6 questions (not 7) - timeline removed |
+| Logistics step (Step 5) | Shows timing dropdown - single source |
+| Submit job | No duplicate timing data in answers |
+| Other packs without timeline | No change in behavior |
