@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSession } from "@/contexts/SessionContext";
 import { ConversationList } from "./ConversationList";
 import { ConversationThread } from "./ConversationThread";
-import { useMarkConversationRead, type Conversation } from "./hooks";
+import { useConversations, useMarkConversationRead, type Conversation } from "./hooks";
 import { PLATFORM } from "@/domain/scope";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -20,9 +20,16 @@ const Messages = () => {
   const navigate = useNavigate();
   const { user, isLoading: sessionLoading } = useSession();
   const isMobile = useIsMobile();
-
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const { markRead } = useMarkConversationRead();
+
+  // Fetch conversations to derive selectedConversation
+  const { data: conversations } = useConversations(user?.id);
+
+  // Derive selectedConversation from conversations list + URL
+  const selectedConversation = useMemo(() => {
+    if (!conversationId || !conversations) return null;
+    return conversations.find((c) => c.id === conversationId) ?? null;
+  }, [conversationId, conversations]);
 
   // Mark conversation as read when selected
   useEffect(() => {
@@ -30,18 +37,6 @@ const Messages = () => {
       markRead(selectedConversation.id, user.id, selectedConversation.client_id);
     }
   }, [selectedConversation?.id, user?.id, markRead]);
-
-  // Update selected conversation when URL changes
-  useEffect(() => {
-    if (conversationId && selectedConversation?.id !== conversationId) {
-      // We'll let ConversationList populate this when it loads
-      setSelectedConversation((prev) =>
-        prev?.id === conversationId ? prev : null
-      );
-    } else if (!conversationId) {
-      setSelectedConversation(null);
-    }
-  }, [conversationId, selectedConversation?.id]);
 
   // Handler to mark read when new messages arrive while thread is open
   const handleNewMessage = () => {
@@ -51,12 +46,10 @@ const Messages = () => {
   };
 
   const handleSelectConversation = (conv: Conversation) => {
-    setSelectedConversation(conv);
     navigate(`/messages/${conv.id}`);
   };
 
   const handleBack = () => {
-    setSelectedConversation(null);
     navigate("/messages");
   };
 

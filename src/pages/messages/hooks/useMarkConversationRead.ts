@@ -8,16 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export function useMarkConversationRead() {
   const queryClient = useQueryClient();
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const mutation = useMutation({
     mutationFn: async ({
       conversationId,
-      userId,
       isClient,
     }: {
       conversationId: string;
-      userId: string;
       isClient: boolean;
     }) => {
       const updateData = isClient
@@ -32,8 +30,8 @@ export function useMarkConversationRead() {
       if (error) throw error;
     },
     onSuccess: () => {
-      // Invalidate conversations to refresh unread counts
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      // Invalidate all conversation queries (regardless of userId)
+      queryClient.invalidateQueries({ queryKey: ["conversations"], exact: false });
     },
   });
 
@@ -47,7 +45,7 @@ export function useMarkConversationRead() {
       // Debounce by 300ms to batch rapid updates
       debounceRef.current = setTimeout(() => {
         const isClient = userId === clientId;
-        mutation.mutate({ conversationId, userId, isClient });
+        mutation.mutate({ conversationId, isClient });
       }, 300);
     },
     [mutation]

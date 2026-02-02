@@ -31,14 +31,14 @@ interface ConversationRpcRow {
   unread_count: number;
 }
 
-async function fetchConversations(userId: string): Promise<Conversation[]> {
+async function fetchConversations(): Promise<Conversation[]> {
   // Use the RPC function that includes unread_count
   const { data, error } = await supabase.rpc("get_conversations_with_unread");
 
   if (error) throw error;
 
   const conversations = (data ?? []) as ConversationRpcRow[];
-  
+
   if (conversations.length === 0) return [];
 
   // Fetch job titles for context
@@ -62,37 +62,51 @@ async function fetchConversations(userId: string): Promise<Conversation[]> {
 export function useConversations(userId: string | undefined) {
   const query = useQuery({
     queryKey: ["conversations", userId],
-    queryFn: () => fetchConversations(userId!),
+    queryFn: fetchConversations,
     enabled: !!userId,
     staleTime: 30_000,
   });
 
-  // Realtime subscription for conversation updates
+  // Realtime subscription for conversation updates - scoped to current user
   useEffect(() => {
     if (!userId) return;
 
-    let channel: RealtimeChannel | null = null;
+    const channels: RealtimeChannel[] = [];
 
-    channel = supabase
-      .channel("conversations-inbox")
+    // Subscribe to conversations where user is client
+    const clientChannel = supabase
+      .channel(`conversations-client-${userId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "conversations",
+          filter: `client_id=eq.${userId}`,
         },
-        () => {
-          // Refetch on any change - simple but effective
-          query.refetch();
-        }
+        () => query.refetch()
       )
       .subscribe();
 
+    // Subscribe to conversations where user is pro
+    const proChannel = supabase
+      .channel(`conversations-pro-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversations",
+          filter: `pro_id=eq.${userId}`,
+        },
+        () => query.refetch()
+      )
+      .subscribe();
+
+    channels.push(clientChannel, proChannel);
+
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      channels.forEach((ch) => supabase.removeChannel(ch));
     };
   }, [userId, query.refetch]);
 
