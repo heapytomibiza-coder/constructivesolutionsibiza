@@ -39,11 +39,7 @@ export function ConversationThread({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Enter") return;
-
-    // Shift+Enter = new line, let it through
-    if (e.shiftKey && !e.metaKey && !e.ctrlKey) return;
-
-    // Enter or Ctrl/Cmd+Enter = send
+    if (e.shiftKey) return; // Shift+Enter = newline, always
     e.preventDefault();
     handleSend();
   };
@@ -121,7 +117,7 @@ export function ConversationThread({
           </Button>
         </div>
         <p className="text-[11px] text-muted-foreground mt-2">
-          Enter to send · Shift+Enter for new line
+          Enter or ⌘/Ctrl+Enter to send · Shift+Enter for new line
         </p>
       </div>
     </div>
