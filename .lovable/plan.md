@@ -1,296 +1,111 @@
 
 
-# Modal Layout Fix + Photo Lightbox + Pro Dashboard Upgrade
+# Final Fixes: Scroll Lock + Photo Key + Profile Status Polish
 
 ## Summary
 
-This plan addresses three interconnected improvements:
-1. **Fix modal scroll/footer layout** - Make the fixed action bar reliable across all viewport sizes
-2. **Add photo lightbox** - Allow users to view job photos in a full-screen carousel
-3. **Upgrade Pro Dashboard** - Apply the 2-column layout pattern for a more professional feel
+Two small but important fixes needed to complete the modal/lightbox implementation, plus a minor improvement to the Pro Dashboard profile status display.
 
 ---
 
-## Part 1: Fix Modal Layout (Header Fixed / Body Scrolls / Footer Fixed)
+## Part 1: Add Scroll Lock to PhotoLightbox
 
-### Current Issues
-
-| Problem | Root Cause |
-|---------|------------|
-| Footer uses `-mx-6` negative margin hack | DialogContent has `p-6` but modal structure doesn't account for it |
-| Scroll wrapper may not reliably work | Parent needs explicit height + `flex flex-col` for `flex-1` to work |
-| `min-h-0` ineffective | Grid layout was causing issues (already fixed to flex) |
+### Problem
+When the lightbox is open, users can still scroll the background page, which feels broken and can cause the dialog behind to shift.
 
 ### Solution
+Add a `useEffect` that locks `document.body.style.overflow` while lightbox is open and restores it on close.
 
-Take full control of the layout by using `p-0` on DialogContent and managing padding in each section:
+### Change Location
+`src/pages/jobs/JobDetailsModal.tsx` - inside `PhotoLightbox` component, after the keyboard navigation effect.
 
-```text
-DialogContent (p-0, h-[85vh], flex flex-col)
-├── Header wrapper (shrink-0, border-b, p-6)
-├── Scroll body (min-h-0, flex-1, overflow-y-auto, px-6 py-5)
-└── Footer wrapper (shrink-0, border-t, px-6 py-4)
-```
-
-### Changes to JobDetailsModal.tsx
-
-1. Update DialogContent className to `h-[85vh] max-h-[85vh] flex-col p-0 sm:max-w-3xl`
-2. Wrap DialogHeader in a fixed header div with `shrink-0 border-b border-border/70 p-6`
-3. Update scroll wrapper to use `min-h-0 flex-1 overflow-y-auto px-6 py-5`
-4. Move footer outside scroll wrapper with `shrink-0 border-t border-border/70 px-6 py-4`
-5. Remove `-mx-6` from JobDetailsActions (no longer needed)
-
----
-
-## Part 2: Add Photo Lightbox
-
-### Features
-
-- Click thumbnail to open full-size image
-- Keyboard navigation (Escape to close, Arrow keys for next/prev)
-- Click backdrop to close
-- Counter showing current position (1/6)
-- Next/prev buttons for mouse users
-
-### Implementation
-
-1. Create `PhotoLightbox` component (same file, minimal dependencies)
-2. Add `lightboxIndex` state to `JobDetailsBodyContent`
-3. Convert photo `<img>` elements to `<button>` with click handler
-4. Render lightbox conditionally when `lightboxIndex !== null`
-
-### PhotoLightbox Component
-
+### Code to Add
 ```tsx
-function PhotoLightbox({
-  photos,
-  index,
-  onClose,
-}: {
-  photos: string[];
-  index: number;
-  onClose: () => void;
-}) {
-  const [i, setI] = React.useState(index);
-
-  React.useEffect(() => setI(index), [index]);
-
-  const hasMany = photos.length > 1;
-  const next = () => setI((x) => (x + 1) % photos.length);
-  const prev = () => setI((x) => (x - 1 + photos.length) % photos.length);
-
-  React.useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (!hasMany) return;
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [hasMany, onClose, photos.length]);
-
-  const src = photos[i];
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-      role="dialog"
-      aria-modal="true"
-      onMouseDown={(e) => {
-        if (e.currentTarget === e.target) onClose();
-      }}
-    >
-      {/* Image + controls */}
-    </div>
-  );
-}
+// Prevent background scroll while lightbox is open
+React.useEffect(() => {
+  const prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  return () => {
+    document.body.style.overflow = prevOverflow;
+  };
+}, []);
 ```
 
 ---
 
-## Part 3: Pro Dashboard Layout Upgrade
+## Part 2: Use Stable Key for Photo Thumbnails
 
-### Current State
+### Problem
+Using `key={idx}` for thumbnails is fragile - if photos array changes, React may incorrectly reuse DOM nodes.
 
-- Single-column layout
-- Stats cards in 3-column grid
-- Matched jobs list below
+### Solution
+Use `key={url}` instead (URLs are unique identifiers for photos).
 
-### Target Layout
+### Change Location
+`src/pages/jobs/JobDetailsModal.tsx` - line 413-415 in the photo grid map.
 
-```text
-Desktop (lg:grid-cols-[1.6fr_1fr])
-┌────────────────────────┬─────────────────┐
-│ Header (title + action)│                 │
-├────────────────────────┴─────────────────┤
-│ Stats row (3 columns)                    │
-├────────────────────────┬─────────────────┤
-│ Matched Jobs           │ Quick Actions   │
-│ (scrollable list)      │ Profile Status  │
-│                        │ Availability    │
-└────────────────────────┴─────────────────┘
-
-Mobile (stacked)
-```
-
-### Changes
-
-1. Wrap main content in 2-column grid on desktop
-2. Move matched jobs to left column
-3. Add right column with:
-   - Quick Actions card (Update Services, Edit Profile)
-   - Profile completeness indicator (placeholder for now)
-   - Availability toggle (placeholder for now)
-4. Keep stats row above the grid (spans both columns)
-
-### New Structure
-
+### Before
 ```tsx
-{/* Stats row - full width */}
-<div className="grid gap-4 md:grid-cols-3 mb-6">
-  {/* Existing stat cards */}
-</div>
-
-{/* Two-column layout */}
-<div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-  {/* Left: Matched Jobs */}
-  <Card>...</Card>
-
-  {/* Right: Quick Actions + Status */}
-  <div className="space-y-4">
-    <Card>Quick Actions</Card>
-    <Card>Profile Status</Card>
-  </div>
-</div>
+{jobPack.photos.slice(0, 6).map((url, idx) => (
+  <button key={idx} ...>
 ```
+
+### After
+```tsx
+{jobPack.photos.slice(0, 6).map((url, idx) => (
+  <button key={url} ...>
+```
+
+---
+
+## Part 3: Improve Profile Status Display (Optional Polish)
+
+### Current Issue
+The "Profile complete" check uses `stats.servicesCount > 0`, which duplicates "Services added" and doesn't actually check profile completeness.
+
+### Solution
+For now, we can add a comment noting this is a placeholder. The proper fix would be to add a `displayName` field check, but that requires knowing if `professional_profiles` has a `display_name` column.
+
+### Temporary Fix
+Keep the current behavior but improve the messaging - if we don't have a proper "profile complete" signal, show a checklist of what's needed.
 
 ---
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `src/pages/jobs/JobDetailsModal.tsx` | Layout fix + lightbox component |
-| `src/pages/dashboard/ProDashboard.tsx` | 2-column layout upgrade |
+| File | Change |
+|------|--------|
+| `src/pages/jobs/JobDetailsModal.tsx` | Add scroll lock effect + fix photo key |
 
 ---
 
 ## Technical Details
 
-### JobDetailsModal Layout Fix
+### PhotoLightbox Scroll Lock (add after line 114)
 
 ```tsx
-<DialogContent className="flex h-[85vh] max-h-[85vh] flex-col p-0 sm:max-w-3xl">
-  {/* Fixed Header */}
-  <div className="shrink-0 border-b border-border/70 p-6">
-    <DialogHeader className="p-0">
-      <DialogTitle>Job Details</DialogTitle>
-    </DialogHeader>
-  </div>
-
-  {/* Scroll Body */}
-  <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-    {isLoading ? ... : isError ? ... : jobPack ? (
-      <JobDetailsBodyContent jobPack={jobPack} />
-    ) : null}
-  </div>
-
-  {/* Fixed Footer */}
-  {jobPack && (
-    <div className="shrink-0 border-t border-border/70 bg-background/90 px-6 py-4 backdrop-blur">
-      <JobDetailsActions jobPack={jobPack} onClose={() => onOpenChange(false)} />
-    </div>
-  )}
-</DialogContent>
+// Prevent background scroll while lightbox is open
+React.useEffect(() => {
+  const prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  return () => {
+    document.body.style.overflow = prevOverflow;
+  };
+}, []);
 ```
 
-### JobDetailsActions Simplified
+### Photo Thumbnail Key Fix (line 414)
 
+Change from:
 ```tsx
-function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
-  // ... existing logic ...
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {/* Buttons only - no wrapper styling */}
-    </div>
-  );
-}
+<button
+  key={idx}
 ```
 
-### Photo Thumbnails as Buttons
-
+To:
 ```tsx
-<div className="grid grid-cols-3 gap-2">
-  {jobPack.photos.slice(0, 6).map((url, i) => (
-    <button
-      key={url}
-      type="button"
-      className="aspect-square overflow-hidden rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-      onClick={() => setLightboxIndex(i)}
-    >
-      <img
-        src={url}
-        alt={`Job photo ${i + 1}`}
-        className="h-full w-full object-cover"
-        loading="lazy"
-      />
-    </button>
-  ))}
-</div>
-```
-
-### Pro Dashboard 2-Column Grid
-
-```tsx
-{/* Stats row - spans full width */}
-<div className="grid gap-4 md:grid-cols-3 mb-6">
-  {/* Existing 3 stat cards */}
-</div>
-
-{/* Main content - 2 columns on desktop */}
-<div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-  {/* Left column: Matched Jobs */}
-  <Card className="border-border/70">
-    {/* Existing matched jobs card content */}
-  </Card>
-
-  {/* Right column: Quick Actions + Status */}
-  <div className="space-y-4">
-    <Card className="border-border/70">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <Button className="w-full justify-start gap-2" asChild>
-          <Link to="/professional/service-setup">
-            <Wrench className="h-4 w-4" />
-            Update Services
-          </Link>
-        </Button>
-        <Button variant="outline" className="w-full justify-start gap-2" asChild>
-          <Link to="/professional/portfolio">
-            <Settings className="h-4 w-4" />
-            Edit Profile
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
-
-    <Card className="border-border/70">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">Profile Status</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-sm text-muted-foreground">
-          Complete your profile to appear in search results.
-        </div>
-        {/* Future: Progress bar + checklist */}
-      </CardContent>
-    </Card>
-  </div>
-</div>
+<button
+  key={url}
 ```
 
 ---
@@ -298,34 +113,23 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
 ## Expected Outcome
 
 After implementation:
-- Modal footer stays visible at all times during scroll
-- Header stays fixed at top of modal
-- Only the body content scrolls
-- No negative margin hacks needed
-- Photos can be viewed full-size with keyboard navigation
-- Pro Dashboard has clear visual hierarchy with 2-column layout
-- Quick actions are always visible on desktop
+- Background stays locked when viewing photos in lightbox
+- Photo thumbnails use stable keys for correct React reconciliation
+- Modal + lightbox are production-ready
 
 ---
 
 ## Verification Checklist
 
-### Modal Layout
-1. Footer stays visible while scrolling long content
-2. Only body scrolls (not header or footer)
-3. Works correctly on mobile Safari (address bar collapse)
-4. Keyboard focus doesn't jump unexpectedly
+### Scroll Lock
+1. Open a job with photos
+2. Click a photo to open lightbox
+3. Try to scroll the page (should not move)
+4. Close lightbox
+5. Scrolling should work again
 
-### Photo Lightbox
-1. Click thumbnail opens full-size image
-2. Escape key closes lightbox
-3. Arrow keys navigate between photos
-4. Click backdrop closes lightbox
-5. Counter shows correct position
-
-### Pro Dashboard
-1. 2-column layout on desktop (lg breakpoint)
-2. Stacked layout on mobile
-3. Quick Actions card has working links
-4. Stats row spans full width above columns
+### Photo Keys
+1. Open a job with photos
+2. Navigate between photos
+3. No visual glitches or unexpected behavior
 
