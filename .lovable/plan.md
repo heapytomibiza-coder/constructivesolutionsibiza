@@ -1,64 +1,95 @@
 
-# Job Board Layout Components Integration
+# Job Card "Construction Spec Sheet" Upgrades
 
 ## Summary
 
-Wire the new reusable layout components (`PageHeader`, `StatTile`, `EmptyState`) into the Job Board to complete the construction-grade polish. This consolidates the design system and eliminates inline styling duplication.
+Upgrade the job listing cards to feel like professional construction spec sheets with three high-impact improvements: make cards fully clickable, add a "spec quality" indicator, and polish the highlights with proper bullet formatting.
 
 ---
 
 ## Current State
 
-| Component | Status |
-|-----------|--------|
-| `PageHeader` | Created, not used in JobBoardPage |
-| `StatTile` | Created, not used (manual cards in JobBoardStatsBar) |
-| `EmptyState` | Created, not used (inline div in JobsMarketplace) |
-| `JobBoardPage` | Uses hardcoded header instead of PageHeader |
-| `JobBoardStatsBar` | Manual Card implementation, doesn't use StatTile |
-| `JobsMarketplace` | Uses inline empty state div |
+| Feature | Status |
+|---------|--------|
+| Accent rail on hover | Done |
+| Status badges with semantic colors | Done |
+| Location/Budget/Timing spec strip | Done |
+| Photos badge | Done |
+| ASAP badge | Missing |
+| Whole card clickable | Not implemented |
+| Spec quality indicator | Not implemented |
+| Highlights with bullet styling | Plain text |
+| Matched badge for pros | Not implemented |
 
 ---
 
 ## Implementation Plan
 
-### 1. Update JobBoardPage.tsx
+### 1. Make the Whole Card Clickable
 
-Replace the hardcoded header with `PageHeader` component:
-
-```text
-Before: Inline div with h1, p, border-b, bg-gradient-concrete
-After:  <PageHeader title="..." subtitle="..." action={CTA} trustBadge="..." />
-```
-
-Add a "Post a Job" CTA button in the action slot using `variant="accent"`.
-
-### 2. Update JobBoardStatsBar.tsx to use StatTile
-
-Replace the 3 manual Card implementations with StatTile:
+Add click and keyboard handlers to the Card component, with `stopPropagation` on the View button to prevent double-firing.
 
 ```text
-Before: 3 inline Card + CardContent blocks with hardcoded styling
-After:  3 StatTile components with iconClassName for color variants
+Before: Only "View" button opens modal
+After:  Entire card is clickable, button still works independently
 ```
 
-Benefits:
-- Icon containers use `rounded-sm` (construction-grade)
-- Consistent spacing across all stat displays
-- "New" badge support built-in for todayJobs
+Changes:
+- Add `onClick`, `onKeyDown`, `tabIndex`, `role` to Card
+- Add `cursor-pointer` to card className
+- Add `e.stopPropagation()` to Button onClick
 
-### 3. Update JobsMarketplace.tsx to use EmptyState
+### 2. Add "Spec Quality" Indicator Badge
 
-Replace the inline empty state div (lines 267-279) with the `EmptyState` component:
+Compute a simple score based on available data to help builders identify well-specified jobs:
 
-```text
-Before: <div className="rounded-xl border p-6 ...">No jobs match...</div>
-After:  <EmptyState icon={...} message="..." action={...} />
+```tsx
+const specScore =
+  (job.highlights?.length ?? 0) +
+  (job.has_photos ? 2 : 0) +
+  (budgetProxy(job) > 0 ? 1 : 0);
+
+// Score thresholds:
+// >= 4: "Good spec" (success badge)
+// >= 2: "Basic spec" (outline badge)
+// < 2:  "Needs detail" (warning badge)
 ```
 
-Two scenarios to handle:
-- **Matched filter active**: Show "No matched jobs" + link to view all
-- **Regular filter**: Show "No jobs match your filters" + clear filters button
+Display as a small badge in the badges row, after status.
+
+### 3. Add ASAP Badge
+
+When `job.start_timing === "asap"`, show an accent-colored "ASAP" badge in the badges row (before Photos badge).
+
+### 4. Style Highlights as a Spec List
+
+Add bullet points to make highlights read like a proper job brief:
+
+```tsx
+// Before:
+<li className="text-muted-foreground">{h}</li>
+
+// After:
+<li className="text-muted-foreground flex items-start gap-2">
+  <span className="text-primary/60 mt-1.5">•</span>
+  <span>{h}</span>
+</li>
+```
+
+### 5. Format Status Text Properly
+
+Add a helper to format unknown status values (replace underscores with spaces, capitalize):
+
+```tsx
+function prettyStatus(s: string | null): string {
+  if (!s) return "";
+  return s.replace(/_/g, " ").replace(/^\w/, c => c.toUpperCase());
+}
+```
+
+### 6. Optional: Add "Matched" Badge for Professionals
+
+Pass a new `isMatched` prop to `JobListingCard` when rendering from the matched jobs list. This requires a small change to `JobsMarketplace.tsx` to track which view is active and pass it down.
 
 ---
 
@@ -66,92 +97,99 @@ Two scenarios to handle:
 
 | File | Change |
 |------|--------|
-| `src/pages/jobs/JobBoardPage.tsx` | Replace inline header with PageHeader |
-| `src/pages/jobs/components/JobBoardStatsBar.tsx` | Replace inline Cards with StatTile |
-| `src/pages/jobs/JobsMarketplace.tsx` | Replace inline empty div with EmptyState |
+| `src/pages/jobs/JobListingCard.tsx` | All card upgrades |
+| `src/pages/jobs/JobsMarketplace.tsx` | Pass `isMatched` prop when in matched view |
 
 ---
 
 ## Technical Details
 
-### PageHeader Integration
+### JobListingCard.tsx Changes
 
 ```tsx
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+// New helper functions
+function prettyStatus(s: string | null): string {
+  if (!s) return "";
+  return s.replace(/_/g, " ").replace(/^\w/, c => c.toUpperCase());
+}
 
-// In component:
-const navigate = useNavigate();
+function getSpecBadge(job: JobsBoardRow): { label: string; variant: "success" | "outline" | "warning" } {
+  const score =
+    (job.highlights?.length ?? 0) +
+    (job.has_photos ? 2 : 0) +
+    (budgetProxy(job) > 0 ? 1 : 0);
+  
+  if (score >= 4) return { label: "Good spec", variant: "success" };
+  if (score >= 2) return { label: "Basic spec", variant: "outline" };
+  return { label: "Needs detail", variant: "warning" };
+}
 
-<PageHeader
-  title="Job Board"
-  subtitle="Browse open jobs with full specs from the wizard."
-  trustBadge="Real specs • Less back-and-forth • Ibiza only"
-  action={
-    <Button variant="accent" onClick={() => navigate("/post")}>
-      Post a Job
-    </Button>
-  }
-/>
+// Updated component props
+interface JobListingCardProps {
+  job: JobsBoardRow;
+  isMatched?: boolean;
+}
+
+// Updated Card with click handling
+<Card 
+  data-job-id={job.id} 
+  role="button"
+  tabIndex={0}
+  onClick={() => setOpen(true)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setOpen(true);
+    }
+  }}
+  className="group relative overflow-hidden hover:shadow-md transition-all hover:border-accent/30 cursor-pointer"
+>
+
+// Updated Button with stopPropagation
+<Button 
+  onClick={(e) => {
+    e.stopPropagation();
+    setOpen(true);
+  }} 
+  variant="outline" 
+  size="sm"
+>
+  View
+</Button>
+
+// Badge row additions (in order)
+{job.category && <Badge variant="secondary">{job.category}</Badge>}
+{job.subcategory && <Badge variant="outline">{job.subcategory}</Badge>}
+{job.status && <Badge variant={statusVariant(job.status)}>{prettyStatus(job.status)}</Badge>}
+{isMatched && <Badge variant="accent">Matched</Badge>}
+{job.start_timing === "asap" && <Badge variant="accent">ASAP</Badge>}
+<Badge variant={specBadge.variant}>{specBadge.label}</Badge>
+<JobFlagBadges ... />
+{job.has_photos && <Badge variant="outline" className="gap-1">...</Badge>}
+
+// Updated highlights with bullets
+<ul className="grid gap-1.5 text-sm">
+  {job.highlights.slice(0, 5).map((h, idx) => (
+    <li key={`${job.id}-h-${idx}`} className="text-muted-foreground flex items-start gap-2">
+      <span className="text-primary/60 mt-0.5">•</span>
+      <span>{h}</span>
+    </li>
+  ))}
+</ul>
 ```
 
-### StatTile in JobBoardStatsBar
+### JobsMarketplace.tsx Changes
 
 ```tsx
-import { StatTile } from "@/components/ui/stat-tile";
-import { Briefcase, Clock, Euro } from "lucide-react";
+// In featured jobs mapping
+{featured.map((job) => (
+  <JobListingCard key={job.id} job={job} isMatched={showMatchedOnly && isProfessional} />
+))}
 
-<div className="grid grid-cols-3 gap-3 mb-6">
-  <StatTile
-    icon={<Briefcase className="h-5 w-5 text-primary" />}
-    iconClassName="bg-primary/10"
-    label="Active jobs"
-    value={activeJobs}
-  />
-  <StatTile
-    icon={<Clock className="h-5 w-5 text-amber-500" />}
-    iconClassName="bg-amber-500/10"
-    label="Posted today"
-    value={todayJobs}
-    isNew={todayJobs > 0}
-  />
-  <StatTile
-    icon={<Euro className="h-5 w-5 text-green-500" />}
-    iconClassName="bg-green-500/10"
-    label="Total budget"
-    value={`€${Math.round(totalBudget).toLocaleString()}`}
-  />
-</div>
-```
-
-### EmptyState in JobsMarketplace
-
-```tsx
-import { EmptyState } from "@/components/ui/empty-state";
-import { Search } from "lucide-react";
-
-// For matched jobs scenario:
-<EmptyState
-  icon={<Search className="h-8 w-8" />}
-  message="No matched jobs found."
-  action={
-    <Button variant="link" className="p-0 h-auto" onClick={toggleMatchedFilter}>
-      View all jobs
-    </Button>
-  }
-/>
-
-// For filter scenario:
-<EmptyState
-  icon={<Search className="h-8 w-8" />}
-  message="No jobs match your filters. Try removing some filters or searching a broader term."
-  action={
-    <Button variant="outline" onClick={clearFilters}>
-      Clear filters
-    </Button>
-  }
-/>
+// In regular jobs mapping
+{regular.map((job) => (
+  <JobListingCard key={job.id} job={job} isMatched={showMatchedOnly && isProfessional} />
+))}
 ```
 
 ---
@@ -159,18 +197,22 @@ import { Search } from "lucide-react";
 ## Expected Outcome
 
 After implementation:
-- Job Board uses consistent `PageHeader` with trust badge and accent CTA
-- Stats bar uses `StatTile` with construction-grade `rounded-sm` icons
-- Empty states guide users to action with professional styling
-- No more inline styling duplication
-- Design system components are validated in a high-visibility context
+- Builders can click anywhere on the card to view details
+- Spec quality badge helps identify serious vs vague jobs at a glance
+- ASAP badge provides urgency signal
+- Highlights read like a proper job brief
+- Professionals see "Matched" badge when viewing their matched jobs
+- Status text is human-readable (no underscores)
 
 ---
 
 ## Verification Checklist
 
-1. `/jobs` page header matches construction-grade styling
-2. Stats row shows "New" badge when todayJobs > 0
-3. Empty state appears when filters return 0 results
-4. "Post a Job" button uses accent variant
-5. All icon containers use `rounded-sm` (not rounded-full)
+1. Card click opens modal correctly
+2. Pressing Enter/Space on focused card opens modal
+3. "View" button still works independently
+4. "Good spec" badge shows for jobs with photos + highlights + budget
+5. "ASAP" badge shows with accent color for urgent jobs
+6. "Matched" badge appears only in matched view for professionals
+7. Highlights have consistent bullet styling
+8. Status badges show formatted text (e.g., "In progress" not "in_progress")
