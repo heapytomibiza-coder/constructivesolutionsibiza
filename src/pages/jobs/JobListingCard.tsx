@@ -13,6 +13,21 @@ function budgetProxy(j: JobsBoardRow): number {
   return (j.budget_value ?? j.budget_max ?? j.budget_min ?? 0) as number;
 }
 
+function statusVariant(status?: string | null): "default" | "warning" | "success" | "secondary" | "outline" {
+  switch (status) {
+    case "open":
+      return "default";
+    case "in_progress":
+      return "warning";
+    case "completed":
+      return "success";
+    case "draft":
+      return "secondary";
+    default:
+      return "outline";
+  }
+}
+
 function formatBudget(j: JobsBoardRow): string {
   if (j.budget_type === "range" && j.budget_min != null && j.budget_max != null) {
     return `€${j.budget_min}–€${j.budget_max}`;
@@ -43,16 +58,16 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
       >
         {/* Accent border indicator - no layout shift */}
         <span 
-          className="absolute inset-y-0 left-0 w-1 bg-transparent transition-colors group-hover:bg-accent" 
-          aria-hidden="true" 
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-transparent transition-colors group-hover:bg-accent" 
         />
-        <CardHeader className="space-y-2">
+        <CardHeader className="space-y-2 pl-7">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1.5 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 {job.category && <Badge variant="secondary">{job.category}</Badge>}
                 {job.subcategory && <Badge variant="outline">{job.subcategory}</Badge>}
-                {job.status && <Badge>{job.status}</Badge>}
+                {job.status && <Badge variant={statusVariant(job.status)}>{job.status}</Badge>}
                 <JobFlagBadges 
                   flags={job.flags} 
                   inspectionBias={job.computed_inspection_bias} 
@@ -75,7 +90,7 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
               )}
             </div>
 
-            <Button onClick={() => setOpen(true)} variant="default" size="sm">
+            <Button onClick={() => setOpen(true)} variant="outline" size="sm">
               View
             </Button>
           </div>
@@ -100,7 +115,7 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
         </CardHeader>
 
         {job.highlights?.length > 0 && (
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 pl-7">
             <Separator />
             <ul className="grid gap-1 text-sm">
               {job.highlights.slice(0, 5).map((h, idx) => (
