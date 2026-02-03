@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, MessageSquare, Share2, Camera, FileText, AlertTriangle, LogIn } from "lucide-react";
+import { JobFlagBadges } from "./components/JobFlagBadges";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -148,6 +149,11 @@ function JobDetailsBody({ jobPack, onClose }: Omit<JobDetailsBodyProps, 'packsLo
           {jobPack.category && <Badge variant="secondary">{jobPack.category}</Badge>}
           {jobPack.subcategory && <Badge variant="outline">{jobPack.subcategory}</Badge>}
           {jobPack.status && <Badge>{jobPack.status}</Badge>}
+          <JobFlagBadges 
+            flags={jobPack.flags} 
+            inspectionBias={jobPack.inspectionBias} 
+            safety={jobPack.safety}
+          />
           {jobPack.hasPhotos && (
             <Badge variant="outline" className="gap-1">
               <Camera className="h-3 w-3" /> Photos

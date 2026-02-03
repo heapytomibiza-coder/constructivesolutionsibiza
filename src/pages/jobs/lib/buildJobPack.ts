@@ -81,6 +81,11 @@ export interface JobPack {
   isOwner: boolean;
   createdAt: string;
   updatedAt: string | null;
+  
+  // Rules engine computed flags
+  flags: string[];
+  inspectionBias: string | null;
+  safety: string | null;
 }
 
 /**
@@ -304,5 +309,10 @@ export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = []): Jo
     isOwner: row.is_owner ?? false,
     createdAt: row.created_at,
     updatedAt: row.updated_at ?? null,
+    
+    // Rules engine computed flags
+    flags: row.flags ?? [],
+    inspectionBias: row.computed_inspection_bias ?? null,
+    safety: row.computed_safety ?? null,
   };
 }

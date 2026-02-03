@@ -222,8 +222,11 @@ export type Database = {
           budget_type: string | null
           budget_value: number | null
           category: string | null
+          computed_inspection_bias: string | null
+          computed_safety: string | null
           created_at: string
           description: string | null
+          flags: string[] | null
           has_photos: boolean | null
           highlights: string[]
           id: string
@@ -247,8 +250,11 @@ export type Database = {
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
+          computed_inspection_bias?: string | null
+          computed_safety?: string | null
           created_at?: string
           description?: string | null
+          flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[]
           id?: string
@@ -272,8 +278,11 @@ export type Database = {
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
+          computed_inspection_bias?: string | null
+          computed_safety?: string | null
           created_at?: string
           description?: string | null
+          flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[]
           id?: string
@@ -622,8 +631,11 @@ export type Database = {
           budget_type: string | null
           budget_value: number | null
           category: string | null
+          computed_inspection_bias: string | null
+          computed_safety: string | null
           created_at: string | null
           description: string | null
+          flags: string[] | null
           has_photos: boolean | null
           highlights: string[] | null
           id: string | null
@@ -647,8 +659,11 @@ export type Database = {
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
+          computed_inspection_bias?: string | null
+          computed_safety?: string | null
           created_at?: string | null
           description?: string | null
+          flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[] | null
           id?: string | null
@@ -672,8 +687,11 @@ export type Database = {
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
+          computed_inspection_bias?: string | null
+          computed_safety?: string | null
           created_at?: string | null
           description?: string | null
+          flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[] | null
           id?: string | null
@@ -699,7 +717,10 @@ export type Database = {
           budget_type: string | null
           budget_value: number | null
           category: string | null
+          computed_inspection_bias: string | null
+          computed_safety: string | null
           created_at: string | null
+          flags: string[] | null
           has_photos: boolean | null
           highlights: string[] | null
           id: string | null
@@ -721,7 +742,10 @@ export type Database = {
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
+          computed_inspection_bias?: string | null
+          computed_safety?: string | null
           created_at?: string | null
+          flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[] | null
           id?: string | null
@@ -743,7 +767,10 @@ export type Database = {
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
+          computed_inspection_bias?: string | null
+          computed_safety?: string | null
           created_at?: string | null
+          flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[] | null
           id?: string | null
@@ -768,7 +795,10 @@ export type Database = {
           budget_type: string | null
           budget_value: number | null
           category: string | null
+          computed_inspection_bias: string | null
+          computed_safety: string | null
           created_at: string | null
+          flags: string[] | null
           has_photos: boolean | null
           highlights: string[] | null
           id: string | null

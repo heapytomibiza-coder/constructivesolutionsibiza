@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { Calendar, Euro, MapPin, Image as ImageIcon } from "lucide-react";
 import { JobDetailsModal } from "@/pages/jobs/JobDetailsModal";
+import { JobFlagBadges } from "@/pages/jobs/components/JobFlagBadges";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 
 function budgetProxy(j: JobsBoardRow): number {
@@ -44,6 +45,12 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
                 {job.category && <Badge variant="secondary">{job.category}</Badge>}
                 {job.subcategory && <Badge variant="outline">{job.subcategory}</Badge>}
                 {job.status && <Badge>{job.status}</Badge>}
+                <JobFlagBadges 
+                  flags={job.flags} 
+                  inspectionBias={job.computed_inspection_bias} 
+                  safety={job.computed_safety}
+                  compact
+                />
                 {job.has_photos && (
                   <Badge variant="outline" className="gap-1">
                     <ImageIcon className="h-3.5 w-3.5" /> Photos
