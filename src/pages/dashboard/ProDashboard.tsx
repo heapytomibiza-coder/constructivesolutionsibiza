@@ -304,19 +304,17 @@ const ProDashboard = () => {
                     <span className="font-medium">{stats.servicesCount > 0 ? '✓' : '—'}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Profile complete</span>
-                    <span className="font-medium">{stats.servicesCount > 0 ? '✓' : '—'}</span>
+                    <span className="text-muted-foreground">Profile details</span>
+                    <span className="font-medium text-muted-foreground">—</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Publicly visible</span>
                     <span className="font-medium">{professionalProfile?.isPubliclyListed ? '✓' : '—'}</span>
                   </div>
                 </div>
-                {stats.servicesCount === 0 && (
-                  <p className="mt-4 text-xs text-muted-foreground">
-                    Complete your profile to appear in search results.
-                  </p>
-                )}
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Add services + complete your profile to appear in search results.
+                </p>
               </CardContent>
             </Card>
           </div>
