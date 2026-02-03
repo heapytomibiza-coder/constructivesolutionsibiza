@@ -43,6 +43,7 @@ Deno.serve(async (req: Request) => {
       questions: unknown[];
       is_active: boolean;
       version: number;
+      metadata?: Record<string, unknown>;
     };
 
     // === Quality Validation Constants ===
@@ -206,6 +207,7 @@ Deno.serve(async (req: Request) => {
         questions: cleaned,
         is_active: true,
         version: 1,
+        metadata: p.metadata as Record<string, unknown> | undefined,
       };
     });
 
