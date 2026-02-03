@@ -60,6 +60,10 @@ export type JobsBoardRow = {
   updated_at: string | null;
   status: string | null;
   is_publicly_listed: boolean | null;
+  // Rules engine computed fields
+  flags: string[] | null;
+  computed_inspection_bias: string | null;
+  computed_safety: string | null;
 };
 
 export type JobDetailsRow = JobsBoardRow & {

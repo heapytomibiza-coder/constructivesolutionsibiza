@@ -205,10 +205,10 @@ In `buildJobPayload.ts` or the wizard's submit handler:
 - [x] Security definer view warnings resolved
 
 ### This Session
-- [ ] Task 1: Normalize pack metadata
+- [x] Task 1: Normalize pack metadata
 - [ ] Task 2: Forum E2E test
-- [ ] Task 3: Enable leaked password protection
-- [ ] Task 4: Rules engine integration
+- [ ] Task 3: Enable leaked password protection (manual dashboard action)
+- [x] Task 4: Rules engine integration
 
 ### Post-Implementation
 - [ ] End-to-end test: Post Electrical job with rule trigger
