@@ -17,10 +17,6 @@ export default {
         display: ['"Playfair Display"', 'Georgia', 'serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
-      fontWeight: {
-        display: '600',
-        'display-bold': '700',
-      },
       letterSpacing: {
         'display': '-0.02em',
       },

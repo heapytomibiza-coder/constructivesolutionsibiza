@@ -39,7 +39,7 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
     <>
       <Card 
         data-job-id={job.id} 
-        className="overflow-hidden hover:shadow-md transition-all hover:border-accent/30 group"
+        className="overflow-hidden hover:shadow-md transition-all hover:border-accent/30 group border-l-2 border-l-transparent hover:border-l-accent"
       >
         <CardHeader className="space-y-2">
           <div className="flex items-start justify-between gap-3">
@@ -80,7 +80,7 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
               <MapPin className="h-3.5 w-3.5" />
               {job.area ?? job.location?.area ?? "Ibiza"}
             </span>
-            <span className="inline-flex items-center gap-1 font-medium text-foreground">
+            <span className="inline-flex items-center gap-1 font-semibold text-foreground">
               <Euro className="h-3.5 w-3.5" />
               {formatBudget(job)}
             </span>

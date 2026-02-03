@@ -32,6 +32,9 @@ export function JobBoardHeroSection({
         <p className="text-sm text-muted-foreground mt-1">
           Real scope, real answers, less back-and-forth.
         </p>
+        <p className="text-xs text-muted-foreground/70 mt-1">
+          Real specs • Less back-and-forth • Ibiza only
+        </p>
       </div>
 
       <div className="relative mb-4">
@@ -47,7 +50,7 @@ export function JobBoardHeroSection({
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
-          variant={toggles.asapOnly ? "default" : "outline"}
+          variant={toggles.asapOnly ? "accent" : "outline"}
           onClick={() => onToggle("asapOnly")}
           className="font-medium"
         >
