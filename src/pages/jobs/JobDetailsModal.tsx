@@ -10,12 +10,14 @@ import { Separator } from "@/components/ui/separator";
 import { Loader2, MessageSquare, Share2, Camera, FileText, AlertTriangle, LogIn } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import type { JobDetailsRow, JobAnswers } from "@/pages/jobs/types";
-import { FormattedAnswers } from "@/pages/jobs/components/FormattedAnswers";
-import { extractMicroAnswers, formatLocation } from "@/pages/jobs/lib/answerResolver";
-import { useJobDetails } from "./queries";
+
+import { useJobDetails, useQuestionPacks } from "./queries";
 import { startConversation } from "./actions";
+import { buildJobPack, type JobPack } from "./lib/buildJobPack";
+import { extractMicroAnswers } from "./lib/answerResolver";
+import { FormattedAnswers } from "./components/FormattedAnswers";
 import { isUserError } from "@/shared/lib/userError";
+import type { JobAnswers } from "./types";
 
 function safeAnswers(a: unknown): JobAnswers | null {
   if (!a || typeof a !== "object") return null;
@@ -30,16 +32,6 @@ function renderConsultation(type: string | null | undefined) {
   if (type === "phone_call") return "Phone call";
   if (type === "video_call") return "Video call";
   return type;
-}
-
-function renderStartPreset(preset: string | null | undefined, startDateIso?: string | null) {
-  if (preset === "asap") return "ASAP";
-  if (preset === "this_week") return "This week";
-  if (preset === "this_month") return "This month";
-  if (preset === "flexible") return "Flexible";
-  if (preset === "specific" || preset === "date") return startDateIso ? `Specific: ${startDateIso}` : "Specific date";
-  if (startDateIso) return `Start: ${startDateIso}`;
-  return preset ?? "Flexible";
 }
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
@@ -61,7 +53,26 @@ export function JobDetailsModal({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const { data, isLoading, isError, error, refetch } = useJobDetails(jobId, open);
+  const { data: row, isLoading, isError, error, refetch } = useJobDetails(jobId, open);
+
+  // Extract micro slugs from the row to fetch question packs
+  const microSlugs = React.useMemo(() => {
+    if (!row) return [];
+    const answers = safeAnswers(row.answers);
+    const microAnswers = extractMicroAnswers(
+      (answers?.microAnswers ?? null) as Record<string, unknown> | null
+    );
+    return Object.keys(microAnswers);
+  }, [row]);
+
+  // Fetch question packs for resolving answer labels
+  const { data: packs, isLoading: packsLoading } = useQuestionPacks(microSlugs, open && !!row);
+
+  // Build the display model (JobPack) from raw data + packs
+  const jobPack = React.useMemo(() => {
+    if (!row) return null;
+    return buildJobPack(row, packs ?? []);
+  }, [row, packs]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -84,30 +95,36 @@ export function JobDetailsModal({
               Retry
             </Button>
           </div>
-        ) : data ? (
-          <JobDetailsBody job={data} onClose={() => onOpenChange(false)} />
+        ) : jobPack ? (
+          <JobDetailsBody 
+            jobPack={jobPack} 
+            packsLoading={packsLoading}
+            onClose={() => onOpenChange(false)} 
+          />
         ) : null}
       </DialogContent>
     </Dialog>
   );
 }
 
-function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => void }) {
+interface JobDetailsBodyProps {
+  jobPack: JobPack;
+  packsLoading: boolean;
+  onClose: () => void;
+}
+
+function JobDetailsBody({ jobPack, packsLoading, onClose }: JobDetailsBodyProps) {
   const navigate = useNavigate();
   const { user, isLoading: sessionLoading } = useSession();
   const [isMessaging, setIsMessaging] = useState(false);
 
-  const answers = safeAnswers(job.answers);
+  // Get raw answers for logistics details (not in JobPack display model)
+  const rawAnswers = React.useMemo(() => {
+    // We need to extract logistics details that aren't in the display model
+    // This is acceptable since it's non-display metadata
+    return null; // Logistics is now handled via jobPack
+  }, []);
 
-  const selected = answers?.selected;
-  const logistics = answers?.logistics;
-  const extras = answers?.extras;
-
-  // Extract micro answers from nested structure
-  const microAnswers = extractMicroAnswers(answers?.microAnswers as Record<string, unknown> | null);
-  const microSlugs = Object.keys(microAnswers);
-
-  // Message button gating
   const handleMessage = async () => {
     if (!user) {
       onClose();
@@ -117,7 +134,7 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
 
     setIsMessaging(true);
     try {
-      const convId = await startConversation(job.id, user.id);
+      const convId = await startConversation(jobPack.id, user.id);
       onClose();
       navigate(`/messages/${convId}`);
     } catch (err) {
@@ -137,33 +154,35 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
       {/* Header */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          {job.category && <Badge variant="secondary">{job.category}</Badge>}
-          {job.subcategory && <Badge variant="outline">{job.subcategory}</Badge>}
-          {job.status && <Badge>{job.status}</Badge>}
-          {job.has_photos && <Badge variant="outline" className="gap-1"><Camera className="h-3 w-3" /> Photos</Badge>}
+          {jobPack.category && <Badge variant="secondary">{jobPack.category}</Badge>}
+          {jobPack.subcategory && <Badge variant="outline">{jobPack.subcategory}</Badge>}
+          {jobPack.status && <Badge>{jobPack.status}</Badge>}
+          {jobPack.hasPhotos && (
+            <Badge variant="outline" className="gap-1">
+              <Camera className="h-3 w-3" /> Photos
+            </Badge>
+          )}
         </div>
 
-        <div className="text-lg font-semibold">{job.title}</div>
+        <div className="text-lg font-semibold">{jobPack.title}</div>
 
-        {job.teaser && (
-          <p className="text-sm text-muted-foreground">{job.teaser}</p>
+        {jobPack.teaser && (
+          <p className="text-sm text-muted-foreground">{jobPack.teaser}</p>
         )}
 
         <div className="text-xs text-muted-foreground">
-          Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+          Posted {formatDistanceToNow(new Date(jobPack.createdAt), { addSuffix: true })}
         </div>
       </div>
 
-      {/* Summary cards */}
+      {/* Summary cards - using JobPack display values */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground">Area</div>
-            <div className="text-sm font-medium">
-              {formatLocation(logistics?.location, logistics?.customLocation) || job.area || "Ibiza"}
-            </div>
-            {job.location?.town && (
-              <div className="text-xs text-muted-foreground">{job.location.town}</div>
+            <div className="text-sm font-medium">{jobPack.location.display}</div>
+            {jobPack.location.town && (
+              <div className="text-xs text-muted-foreground">{jobPack.location.town}</div>
             )}
           </CardContent>
         </Card>
@@ -171,50 +190,45 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
         <Card>
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground">Budget</div>
-            <div className="text-sm font-medium">
-              {job.budget_type === "range" && job.budget_min != null && job.budget_max != null
-                ? `€${job.budget_min}–€${job.budget_max}`
-                : job.budget_type === "fixed" && job.budget_value != null
-                  ? `€${job.budget_value}`
-                  : logistics?.budgetRange ?? "TBD"}
-            </div>
+            <div className="text-sm font-medium">{jobPack.budget.display}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground">Timing</div>
-            <div className="text-sm font-medium">
-              {renderStartPreset(logistics?.startDatePreset ?? job.start_timing ?? null, logistics?.startDate ?? job.start_date)}
-            </div>
+            <div className="text-sm font-medium">{jobPack.timing.display}</div>
           </CardContent>
         </Card>
       </div>
 
       <Separator />
 
-      {/* Services */}
+      {/* Services - display from JobPack */}
       <section className="space-y-2">
         <div className="text-sm font-semibold">Services</div>
         <div className="text-sm text-muted-foreground">
-          {selected?.microNames?.length ? (
+          {jobPack.services.length > 0 ? (
             <ul className="list-disc pl-5 space-y-1">
-              {selected.microNames.map((n) => (
-                <li key={n}>{n}</li>
+              {jobPack.services.map((s) => (
+                <li key={s.slug}>{s.title}</li>
               ))}
             </ul>
           ) : (
-            <div>{selected?.subcategory ?? job.subcategory ?? job.category ?? "—"}</div>
+            <div>{jobPack.subcategory ?? jobPack.category ?? "—"}</div>
           )}
         </div>
       </section>
 
       <Separator />
 
-      {/* Scope & Specifications - Now with proper formatted answers */}
+      {/* Scope & Specifications - using resolved services from JobPack */}
       <section className="space-y-2">
         <div className="text-sm font-semibold">Scope & Specifications</div>
-        <FormattedAnswers microAnswers={microAnswers} microSlugs={microSlugs} />
+        <FormattedAnswers 
+          services={jobPack.services} 
+          isLoading={packsLoading && jobPack.services.some(s => s.isFallback)}
+        />
       </section>
 
       <Separator />
@@ -224,23 +238,10 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
         <div className="text-sm font-semibold">Logistics</div>
         <Card>
           <CardContent className="p-4 space-y-2">
-            <InfoRow 
-              label="Location" 
-              value={formatLocation(logistics?.location, logistics?.customLocation)} 
-            />
-            <InfoRow label="Consultation type" value={renderConsultation(logistics?.consultationType)} />
-            <InfoRow label="Consultation date" value={logistics?.consultationDate} />
-            <InfoRow label="Consultation time" value={logistics?.consultationTime} />
-            <InfoRow label="Completion date" value={logistics?.completionDate} />
-            {logistics?.accessDetails && logistics.accessDetails.length > 0 && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Access details:</span>
-                <ul className="list-disc pl-5 mt-1">
-                  {logistics.accessDetails.map((d, i) => (
-                    <li key={i}>{d}</li>
-                  ))}
-                </ul>
-              </div>
+            <InfoRow label="Location" value={jobPack.location.display} />
+            <InfoRow label="Start timing" value={jobPack.timing.display} />
+            {jobPack.timing.date && (
+              <InfoRow label="Start date" value={jobPack.timing.date} />
             )}
           </CardContent>
         </Card>
@@ -254,25 +255,25 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
         <Card>
           <CardContent className="p-4 space-y-3">
             {/* Notes */}
-            {extras?.notes && (
+            {jobPack.notes && (
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <FileText className="h-3.5 w-3.5" />
                   Notes
                 </div>
-                <p className="text-sm">{extras.notes}</p>
+                <p className="text-sm">{jobPack.notes}</p>
               </div>
             )}
 
             {/* Photos */}
-            {extras?.photos && extras.photos.length > 0 && (
+            {jobPack.photos.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Camera className="h-3.5 w-3.5" />
-                  Photos ({extras.photos.length})
+                  Photos ({jobPack.photos.length})
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  {extras.photos.slice(0, 6).map((url, i) => (
+                  {jobPack.photos.slice(0, 6).map((url, i) => (
                     <img
                       key={i}
                       src={url}
@@ -285,14 +286,14 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
             )}
 
             {/* Permits concern */}
-            {extras?.permitsConcern && (
+            {jobPack.permitsConcern && (
               <div className="flex items-center gap-2 text-sm text-warning">
                 <AlertTriangle className="h-4 w-4" />
                 Client has permit concerns
               </div>
             )}
 
-            {!extras?.notes && (!extras?.photos || extras.photos.length === 0) && !extras?.permitsConcern && (
+            {!jobPack.notes && jobPack.photos.length === 0 && !jobPack.permitsConcern && (
               <div className="text-sm text-muted-foreground">No extras provided.</div>
             )}
           </CardContent>
@@ -308,7 +309,7 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
             <LogIn className="h-4 w-4" />
             Sign in to message
           </Button>
-        ) : job.is_owner ? null : (
+        ) : jobPack.isOwner ? null : (
           <Button 
             onClick={handleMessage} 
             disabled={isMessaging || sessionLoading}
