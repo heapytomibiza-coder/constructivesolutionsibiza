@@ -3,12 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PublicLayout } from '@/components/layout';
 import { MAIN_CATEGORIES } from '@/domain/scope';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Shield } from 'lucide-react';
 
 /**
  * SERVICE CATEGORY PAGE - View subcategories and professionals
  * 
  * TODO: Connect to service_subcategories table
+ * Construction-grade professional styling.
  */
 
 const ServiceCategory = () => {
@@ -39,28 +40,38 @@ const ServiceCategory = () => {
 
   return (
     <PublicLayout>
-      <div className="container py-12">
-        {/* Breadcrumb */}
-        <div className="mb-8">
-          <Link to="/services" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Services
-          </Link>
-        </div>
+      {/* Hero Section */}
+      <div className="border-b border-border bg-gradient-concrete bg-texture-concrete py-12">
+        <div className="container">
+          {/* Breadcrumb */}
+          <div className="mb-6">
+            <Link 
+              to="/services" 
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 w-fit"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Services
+            </Link>
+          </div>
 
-        <div className="mb-12">
           <h1 className="font-display text-4xl font-bold text-foreground mb-4">
             {categoryName}
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-muted-foreground mb-4">
             Find trusted {categoryName.toLowerCase()} professionals in Ibiza
           </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Shield className="h-4 w-4 text-primary" />
+            <span>Verified professionals only</span>
+          </div>
         </div>
+      </div>
 
+      <div className="container py-12">
         {/* Placeholder for subcategories - will be populated from DB */}
-        <Card className="mb-8">
+        <Card className="mb-8 card-grounded">
           <CardHeader>
-            <CardTitle>Subcategories</CardTitle>
+            <CardTitle className="font-display">Subcategories</CardTitle>
             <CardDescription>
               Select a specific service type
             </CardDescription>

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PLATFORM } from '@/domain/scope';
-import { Image, Plus, ArrowLeft } from 'lucide-react';
+import { Image, Plus, ArrowLeft, Shield } from 'lucide-react';
 
 /**
  * PROFESSIONAL PORTFOLIO PAGE - Showcase past work
@@ -11,17 +11,21 @@ import { Image, Plus, ArrowLeft } from 'lucide-react';
  * - Photo uploads to storage
  * - Project descriptions
  * - Before/after comparisons
+ * 
+ * Construction-grade professional styling.
  */
 
 const ProfessionalPortfolio = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-hero bg-texture-concrete">
       {/* Navigation */}
-      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-ocean flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
+            <div className="h-8 w-8 rounded-sm bg-gradient-steel shadow-md flex items-center justify-center">
+              <span className="text-primary-foreground font-display font-bold text-sm">
+                {PLATFORM.mark}
+              </span>
             </div>
             <span className="font-display text-xl font-semibold text-foreground">
               {PLATFORM.shortName}
@@ -39,23 +43,29 @@ const ProfessionalPortfolio = () => {
         </div>
 
         <div className="flex items-center justify-between mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground">
-            Your Portfolio
-          </h1>
+          <div>
+            <h1 className="font-display text-3xl font-bold text-foreground">
+              Your Portfolio
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+              <Shield className="h-4 w-4 text-primary" />
+              <span>Showcase your best work</span>
+            </div>
+          </div>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add Project
           </Button>
         </div>
 
-        <Card className="max-w-2xl">
+        <Card className="max-w-2xl card-grounded">
           <CardHeader>
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-sm bg-primary/10 flex items-center justify-center">
                 <Image className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle>No portfolio items yet</CardTitle>
+                <CardTitle className="font-display">No portfolio items yet</CardTitle>
                 <CardDescription>
                   Showcase your past work to attract more clients
                 </CardDescription>

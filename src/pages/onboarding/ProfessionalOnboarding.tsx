@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useSession } from '@/contexts/SessionContext';
-import { CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Circle, ArrowRight, Shield } from 'lucide-react';
+import { PLATFORM } from '@/domain/scope';
 
 /**
  * PROFESSIONAL ONBOARDING
  * 
  * Entry point for professional onboarding flow.
  * Requires role:professional access.
+ * Construction-grade professional styling.
  */
 const ProfessionalOnboarding = () => {
   const { professionalProfile } = useSession();
@@ -25,16 +27,18 @@ const ProfessionalOnboarding = () => {
   const progress = phase === 'complete' ? 100 : ((currentStepIndex + 1) / steps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen bg-gradient-hero bg-texture-concrete">
       {/* Navigation */}
-      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-ocean flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
+            <div className="h-8 w-8 rounded-sm bg-gradient-steel shadow-md flex items-center justify-center">
+              <span className="text-primary-foreground font-display font-bold text-sm">
+                {PLATFORM.mark}
+              </span>
             </div>
             <span className="font-display text-xl font-semibold text-foreground">
-              CS Ibiza
+              {PLATFORM.shortName}
             </span>
           </Link>
         </div>
@@ -46,12 +50,16 @@ const ProfessionalOnboarding = () => {
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">
               Complete Your Profile
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               Finish setting up your professional profile to start receiving job requests.
             </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Shield className="h-4 w-4 text-primary" />
+              <span>Join Ibiza's trusted trades network</span>
+            </div>
           </div>
 
-          <Card className="mb-6">
+          <Card className="mb-6 card-grounded">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="font-display">Progress</CardTitle>
@@ -59,7 +67,7 @@ const ProfessionalOnboarding = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <Progress value={progress} className="h-2" />
+              <Progress value={progress} className="h-3" />
             </CardContent>
           </Card>
 
@@ -71,7 +79,7 @@ const ProfessionalOnboarding = () => {
               return (
                 <Card 
                   key={step.id}
-                  className={isCurrent ? 'border-primary' : ''}
+                  className={`card-grounded ${isCurrent ? 'border-primary ring-1 ring-primary/20' : ''}`}
                 >
                   <CardContent className="flex items-center justify-between py-4">
                     <div className="flex items-center gap-4">
