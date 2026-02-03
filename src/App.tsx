@@ -44,6 +44,9 @@ import ProfessionalServices from "./pages/professional/ProfessionalServices";
 import ProfessionalServiceSetup from "./pages/professional/ProfessionalServiceSetup";
 import ProfessionalPortfolio from "./pages/professional/ProfessionalPortfolio";
 
+// Forum
+import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/forum";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -65,6 +68,11 @@ const App = () => (
             <Route path="/professionals/:id" element={<ProfessionalDetails />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/contact" element={<Contact />} />
+            
+            {/* Forum - Public read, auth for new posts */}
+            <Route path="/forum" element={<ForumIndex />} />
+            <Route path="/forum/:categorySlug" element={<ForumCategory />} />
+            <Route path="/forum/post/:postId" element={<ForumPost />} />
             
             {/* Post Job Wizard - Public, auth checkpoint at publish */}
             <Route path="/post" element={<PostJob />} />
@@ -93,6 +101,9 @@ const App = () => (
               <Route path="/professional/services" element={<ProfessionalServices />} />
               <Route path="/professional/service-setup" element={<ProfessionalServiceSetup />} />
               <Route path="/professional/portfolio" element={<ProfessionalPortfolio />} />
+
+              {/* Forum - New Post (requires auth) */}
+              <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
 
               {/* Professional Dashboard */}
               <Route path="/dashboard/pro" element={<ProDashboard />} />

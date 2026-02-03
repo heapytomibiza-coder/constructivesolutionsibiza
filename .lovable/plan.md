@@ -4,7 +4,7 @@
 
 ## Executive Summary
 
-The V2 rebuild is **70-80% complete** for MVP functionality. Core architecture is solid, critical paths work end-to-end, and the question pack system is partially seeded. This plan identifies the remaining work required to cross the launch line.
+The V2 rebuild is **85-90% complete** for MVP functionality. Core architecture is solid, critical paths work end-to-end, and the question pack system is partially seeded. Forum MVP is now complete.
 
 ---
 
@@ -14,46 +14,50 @@ The V2 rebuild is **70-80% complete** for MVP functionality. Core architecture i
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Domain-driven structure | Done | `queries/`, `actions/`, `lib/` separation |
-| Route guard system | Done | `RouteGuard` + `checkAccess()` |
-| Session management | Done | `SessionContext` with roles |
-| Wizard state machine | Done | 7-step flow with URL sync |
-| Job details read-model | Done | `buildJobPack()` transforms raw data |
-| Answer resolver | Done | Labels resolved from question packs |
-| Draft persistence | Done | `sessionStorage` + server-side form_sessions |
-| Zod validators | Done | `validators.ts` boundary protection |
+| Domain-driven structure | ✅ Done | `queries/`, `actions/`, `lib/` separation |
+| Route guard system | ✅ Done | `RouteGuard` + `checkAccess()` |
+| Session management | ✅ Done | `SessionContext` with roles |
+| Wizard state machine | ✅ Done | 7-step flow with URL sync |
+| Job details read-model | ✅ Done | `buildJobPack()` transforms raw data |
+| Answer resolver | ✅ Done | Labels resolved from question packs |
+| Draft persistence | ✅ Done | `sessionStorage` + server-side form_sessions |
+| Zod validators | ✅ Done | `validators.ts` boundary protection |
+| **Forum MVP** | ✅ Done | Categories, posts, replies with RLS |
 
 ### Database Schema (DONE)
 
 | Table | Status | RLS |
 |-------|--------|-----|
-| `jobs` | Done | Yes |
-| `conversations` | Done | Yes |
-| `messages` | Done | Yes |
-| `user_roles` | Done | Yes |
-| `professional_profiles` | Done | Yes |
-| `professional_services` | Done | Yes |
-| `service_categories` | Done | Public read |
-| `service_subcategories` | Done | Public read |
-| `service_micro_categories` | Done | Public read |
-| `question_packs` | Done | Public read |
+| `jobs` | ✅ Done | Yes |
+| `conversations` | ✅ Done | Yes |
+| `messages` | ✅ Done | Yes |
+| `user_roles` | ✅ Done | Yes |
+| `professional_profiles` | ✅ Done | Yes |
+| `professional_services` | ✅ Done | Yes |
+| `service_categories` | ✅ Done | Public read |
+| `service_subcategories` | ✅ Done | Public read |
+| `service_micro_categories` | ✅ Done | Public read |
+| `question_packs` | ✅ Done | Public read |
+| **`forum_categories`** | ✅ Done | Public read |
+| **`forum_posts`** | ✅ Done | Public read, auth write |
+| **`forum_replies`** | ✅ Done | Public read, auth write |
 
-**Security Note**: 2 linter warnings to address (security definer view, leaked password protection).
+**Security Note**: Security Definer View issue fixed. Leaked password protection requires user action in Lovable Cloud settings.
 
 ### User Flows (Status)
 
 | Flow | Status | Notes |
 |------|--------|-------|
-| Homepage | Done | Categories grid, CTAs, trust signals |
-| Auth (email/password) | Done | Sign in, sign up, email verification |
-| Post Job Wizard | Done | 7-step flow, draft recovery |
-| Job Board | Done | Filtering, matched jobs toggle |
-| Job Details Modal | Done | Renders from `JobPack` read-model |
-| Client Dashboard | Done | Stats, job list, messages count |
-| Pro Dashboard | Done | Matched jobs, service setup CTA |
-| Messages | Done | Realtime, mobile-responsive |
-| Professional Onboarding | Done | Service selection by micro |
-| **Forum** | **Not Started** | MVP requirement per memory |
+| Homepage | ✅ Done | Categories grid, CTAs, trust signals |
+| Auth (email/password) | ✅ Done | Sign in, sign up, email verification |
+| Post Job Wizard | ✅ Done | 7-step flow, draft recovery |
+| Job Board | ✅ Done | Filtering, matched jobs toggle |
+| Job Details Modal | ✅ Done | Renders from `JobPack` read-model |
+| Client Dashboard | ✅ Done | Stats, job list, messages count |
+| Pro Dashboard | ✅ Done | Matched jobs, service setup CTA |
+| Messages | ✅ Done | Realtime, mobile-responsive |
+| Professional Onboarding | ✅ Done | Service selection by micro |
+| **Forum** | ✅ **Done** | Categories, posts, replies, new post flow |
 
 ---
 
