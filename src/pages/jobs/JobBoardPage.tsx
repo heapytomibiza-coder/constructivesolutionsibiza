@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { PublicLayout, PageHeader } from "@/components/layout";
 import { MobileFAB } from "@/components/MobileFAB";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { JobsMarketplace } from "@/pages/jobs/JobsMarketplace";
 
@@ -12,7 +13,11 @@ export default function JobBoardPage() {
       <PageHeader
         title="Job Board"
         subtitle="Browse open jobs with full specs from the wizard."
-        trustBadge="Real specs • Less back-and-forth • Ibiza only"
+        trustBadge={
+          <Badge variant="secondary" className="font-normal">
+            Real specs • Less back-and-forth • Ibiza only
+          </Badge>
+        }
         action={
           <Button variant="accent" onClick={() => navigate("/post")}>
             Post a Job
