@@ -28,6 +28,17 @@ export type RuleEvaluation = {
 };
 
 /**
+ * Normalize answer value - handles { value: x } objects and primitives
+ */
+function normalizeValue(v: unknown): unknown {
+  if (v && typeof v === "object" && !Array.isArray(v)) {
+    const obj = v as Record<string, unknown>;
+    if ("value" in obj) return obj.value;
+  }
+  return v;
+}
+
+/**
  * Evaluate rules against a set of answers.
  * Rules are evaluated in order; later rules override earlier ones for set properties.
  * 
@@ -50,28 +61,43 @@ export function evaluateRules(
   for (const rule of rules) {
     if (!rule.when || !rule.when.questionId) continue;
     
-    const value = answers[rule.when.questionId];
+    const rawValue = answers[rule.when.questionId];
+    const value = normalizeValue(rawValue);
     let match = false;
 
     switch (rule.when.op) {
       case "eq":
         match = value === rule.when.value;
         break;
-      case "in":
-        if (Array.isArray(rule.when.value)) {
-          match = rule.when.value.includes(value);
-        }
-        break;
-      case "contains":
-        // For array answers (multi-select), check if any value matches
-        if (Array.isArray(value)) {
-          if (Array.isArray(rule.when.value)) {
-            match = rule.when.value.some(v => value.includes(v));
+        
+      case "in": {
+        // rule.when.value is array of possible matches
+        // value can be single or array (multi-select)
+        const ruleValues = rule.when.value as unknown[];
+        if (Array.isArray(ruleValues)) {
+          if (Array.isArray(value)) {
+            // Multi-select answer: match if any answer is in rule values
+            match = value.some(v => ruleValues.includes(v));
           } else {
-            match = value.includes(rule.when.value);
+            // Single answer: match if in rule values
+            match = ruleValues.includes(value);
           }
         }
         break;
+      }
+        
+      case "contains": {
+        // For array answers (multi-select), check if any value matches
+        if (Array.isArray(value)) {
+          const ruleVals = rule.when.value;
+          if (Array.isArray(ruleVals)) {
+            match = ruleVals.some(v => (value as unknown[]).includes(v));
+          } else {
+            match = (value as unknown[]).includes(ruleVals);
+          }
+        }
+        break;
+      }
     }
 
     if (match) {
@@ -162,7 +188,8 @@ export function requiresInspection(evaluation: RuleEvaluation): boolean {
     evaluation.inspection_bias === "mandatory" ||
     evaluation.inspection_bias === "high" ||
     evaluation.flags.includes("INSPECTION_MANDATORY") ||
-    evaluation.flags.includes("INSPECTION_REQUIRED")
+    evaluation.flags.includes("INSPECTION_REQUIRED") ||
+    evaluation.flags.includes("QUOTE_SUBJECT_TO_INSPECTION")
   );
 }
 
