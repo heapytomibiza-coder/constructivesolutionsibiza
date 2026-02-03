@@ -1,209 +1,176 @@
 
+# Job Board Layout Components Integration
 
-# Design System Refinement: Construction-Grade Polish
+## Summary
 
-## Current State Assessment
+Wire the new reusable layout components (`PageHeader`, `StatTile`, `EmptyState`) into the Job Board to complete the construction-grade polish. This consolidates the design system and eliminates inline styling duplication.
 
-After reviewing the codebase, the implementation is **actually solid**:
-- No broken JSX or `return ;` placeholders
-- No dangerous global `span` styles
-- No Tailwind config pasted inside button.tsx
-- All components compile correctly
+---
 
-**However**, the user's feedback highlights valid UX concerns that need addressing:
+## Current State
 
-### Issues to Fix
-
-1. **Button `outline` variant** uses `hover:bg-accent` which makes outline buttons look like CTAs on hover
-2. **Missing reusable layout components** (PageHeader, StatTile, EmptyState)
-3. **fontWeight extension in tailwind.config** uses non-standard string keys (`display: '600'`) instead of numeric
-4. **Accent variant** is used inconsistently - should be reserved for Post Job / ASAP / Urgent only
+| Component | Status |
+|-----------|--------|
+| `PageHeader` | Created, not used in JobBoardPage |
+| `StatTile` | Created, not used (manual cards in JobBoardStatsBar) |
+| `EmptyState` | Created, not used (inline div in JobsMarketplace) |
+| `JobBoardPage` | Uses hardcoded header instead of PageHeader |
+| `JobBoardStatsBar` | Manual Card implementation, doesn't use StatTile |
+| `JobsMarketplace` | Uses inline empty state div |
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Fix Button Hover Behavior
+### 1. Update JobBoardPage.tsx
 
-**File**: `src/components/ui/button.tsx`
-
-**Change**: `outline` variant should hover to muted concrete, not accent clay
+Replace the hardcoded header with `PageHeader` component:
 
 ```text
-Current:  hover:bg-accent hover:text-accent-foreground hover:border-accent
-Fixed:    hover:bg-muted/60 hover:text-foreground hover:border-border
+Before: Inline div with h1, p, border-b, bg-gradient-concrete
+After:  <PageHeader title="..." subtitle="..." action={CTA} trustBadge="..." />
 ```
 
-**Change**: `ghost` variant should also use muted, not accent
+Add a "Post a Job" CTA button in the action slot using `variant="accent"`.
+
+### 2. Update JobBoardStatsBar.tsx to use StatTile
+
+Replace the 3 manual Card implementations with StatTile:
 
 ```text
-Current:  hover:bg-accent/10 hover:text-accent-foreground  
-Fixed:    hover:bg-muted/60 hover:text-foreground
+Before: 3 inline Card + CardContent blocks with hardcoded styling
+After:  3 StatTile components with iconClassName for color variants
 ```
 
-This keeps accent reserved for intentional CTAs (Post Job, ASAP urgency).
+Benefits:
+- Icon containers use `rounded-sm` (construction-grade)
+- Consistent spacing across all stat displays
+- "New" badge support built-in for todayJobs
 
----
+### 3. Update JobsMarketplace.tsx to use EmptyState
 
-### Phase 2: Fix Tailwind Config
-
-**File**: `tailwind.config.ts`
-
-**Remove** the non-standard fontWeight extension:
-```typescript
-// Remove this - doesn't work as expected
-fontWeight: {
-  display: '600',
-  'display-bold': '700',
-},
-```
-
-Use standard Tailwind classes (`font-semibold`, `font-bold`) instead.
-
----
-
-### Phase 3: Create Reusable Layout Components
-
-These ensure every page feels consistent without copy-pasting styles.
-
-#### 3.1 PageHeader Component
-
-**File**: `src/components/layout/PageHeader.tsx`
-
-A standardized page header with:
-- Title (h1 with display font)
-- Optional subtitle
-- Optional right-side action slot
-- Optional trust badge
+Replace the inline empty state div (lines 267-279) with the `EmptyState` component:
 
 ```text
-Usage: 
-<PageHeader 
-  title="Job Board" 
-  subtitle="Browse open jobs with full specs" 
-  action={<Button>Post a Job</Button>}
-/>
+Before: <div className="rounded-xl border p-6 ...">No jobs match...</div>
+After:  <EmptyState icon={...} message="..." action={...} />
 ```
 
-#### 3.2 StatTile Component
-
-**File**: `src/components/ui/stat-tile.tsx`
-
-Dashboard stats with:
-- Icon circle
-- Label
-- Big number
-- Optional "new" indicator
-
-```text
-Usage:
-<StatTile 
-  icon={<Briefcase />} 
-  label="Active Jobs" 
-  value={12} 
-  isNew 
-/>
-```
-
-#### 3.3 EmptyState Component
-
-**File**: `src/components/ui/empty-state.tsx`
-
-Consistent empty state with:
-- Icon
-- Message
-- CTA button
-
-```text
-Usage:
-<EmptyState 
-  icon={<Inbox />} 
-  message="No jobs posted yet" 
-  action={<Button>Post Your First Job</Button>}
-/>
-```
-
----
-
-### Phase 4: Polish Job Board (High-Visibility Surface)
-
-This is where builders decide if the platform is worth their time.
-
-#### 4.1 JobListingCard Enhancements
-
-**File**: `src/pages/jobs/JobListingCard.tsx`
-
-- Add `card-grounded` class for stronger visual presence
-- Make budget more prominent (larger text, accent color for high values)
-- ASAP timing should use accent badge variant
-- Add subtle left border accent on hover
-
-#### 4.2 JobBoardHeroSection Polish
-
-**File**: `src/pages/jobs/components/JobBoardHeroSection.tsx`
-
-- Add trust signal row: "Real specs • Less back-and-forth • Ibiza only"
-- Toggle buttons: when active, use `accent` variant for ASAP (urgency indicator)
-- Others use `default` when active
-
----
-
-### Phase 5: Badge Variant Refinement
-
-**File**: `src/components/ui/badge.tsx`
-
-- Change `rounded-sm` to `rounded-md` (less "label printer", more professional)
-- Add `gap-1` to base styles for icon+text badges
-- Ensure outline variant has subtle background
+Two scenarios to handle:
+- **Matched filter active**: Show "No matched jobs" + link to view all
+- **Regular filter**: Show "No jobs match your filters" + clear filters button
 
 ---
 
 ## Files to Modify
 
-1. `src/components/ui/button.tsx` - Fix outline/ghost hover
-2. `tailwind.config.ts` - Remove non-standard fontWeight
-3. `src/components/ui/badge.tsx` - Polish rounding and gap
-
-## Files to Create
-
-4. `src/components/layout/PageHeader.tsx` - Reusable page header
-5. `src/components/ui/stat-tile.tsx` - Dashboard stat component
-6. `src/components/ui/empty-state.tsx` - Empty state component
-
-## Files to Polish
-
-7. `src/pages/jobs/JobListingCard.tsx` - Add grounded styling
-8. `src/pages/jobs/components/JobBoardHeroSection.tsx` - Add trust signal
+| File | Change |
+|------|--------|
+| `src/pages/jobs/JobBoardPage.tsx` | Replace inline header with PageHeader |
+| `src/pages/jobs/components/JobBoardStatsBar.tsx` | Replace inline Cards with StatTile |
+| `src/pages/jobs/JobsMarketplace.tsx` | Replace inline empty div with EmptyState |
 
 ---
 
-## Implementation Order
+## Technical Details
 
-1. **Fix button hover** → immediate UX improvement, low risk
-2. **Fix tailwind config** → removes unused/broken extension
-3. **Add PageHeader** → enables consistent page structure
-4. **Add StatTile + EmptyState** → dashboard building blocks
-5. **Polish Job Board** → high-visibility validation of new system
+### PageHeader Integration
 
----
+```tsx
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
-## Accent Usage Rules (Guardrail)
+// In component:
+const navigate = useNavigate();
 
-After this change, accent should **only** appear in:
-- "Post a Job" CTA buttons
-- ASAP/Urgent badges and toggles
-- Primary call-to-action in marketing sections
+<PageHeader
+  title="Job Board"
+  subtitle="Browse open jobs with full specs from the wizard."
+  trustBadge="Real specs • Less back-and-forth • Ibiza only"
+  action={
+    <Button variant="accent" onClick={() => navigate("/post")}>
+      Post a Job
+    </Button>
+  }
+/>
+```
 
-Everything else uses `default` / `outline` / `secondary` / `ghost`.
+### StatTile in JobBoardStatsBar
+
+```tsx
+import { StatTile } from "@/components/ui/stat-tile";
+import { Briefcase, Clock, Euro } from "lucide-react";
+
+<div className="grid grid-cols-3 gap-3 mb-6">
+  <StatTile
+    icon={<Briefcase className="h-5 w-5 text-primary" />}
+    iconClassName="bg-primary/10"
+    label="Active jobs"
+    value={activeJobs}
+  />
+  <StatTile
+    icon={<Clock className="h-5 w-5 text-amber-500" />}
+    iconClassName="bg-amber-500/10"
+    label="Posted today"
+    value={todayJobs}
+    isNew={todayJobs > 0}
+  />
+  <StatTile
+    icon={<Euro className="h-5 w-5 text-green-500" />}
+    iconClassName="bg-green-500/10"
+    label="Total budget"
+    value={`€${Math.round(totalBudget).toLocaleString()}`}
+  />
+</div>
+```
+
+### EmptyState in JobsMarketplace
+
+```tsx
+import { EmptyState } from "@/components/ui/empty-state";
+import { Search } from "lucide-react";
+
+// For matched jobs scenario:
+<EmptyState
+  icon={<Search className="h-8 w-8" />}
+  message="No matched jobs found."
+  action={
+    <Button variant="link" className="p-0 h-auto" onClick={toggleMatchedFilter}>
+      View all jobs
+    </Button>
+  }
+/>
+
+// For filter scenario:
+<EmptyState
+  icon={<Search className="h-8 w-8" />}
+  message="No jobs match your filters. Try removing some filters or searching a broader term."
+  action={
+    <Button variant="outline" onClick={clearFilters}>
+      Clear filters
+    </Button>
+  }
+/>
+```
 
 ---
 
 ## Expected Outcome
 
-- Outline buttons no longer flash orange on hover
-- Pages have consistent header structure
-- Dashboards use unified stat display
-- Empty states guide users to action
-- Job board feels professional and "worth checking daily"
-- Accent color remains special (urgency/CTA only)
+After implementation:
+- Job Board uses consistent `PageHeader` with trust badge and accent CTA
+- Stats bar uses `StatTile` with construction-grade `rounded-sm` icons
+- Empty states guide users to action with professional styling
+- No more inline styling duplication
+- Design system components are validated in a high-visibility context
 
+---
+
+## Verification Checklist
+
+1. `/jobs` page header matches construction-grade styling
+2. Stats row shows "New" badge when todayJobs > 0
+3. Empty state appears when filters return 0 results
+4. "Post a Job" button uses accent variant
+5. All icon containers use `rounded-sm` (not rounded-full)
