@@ -60,7 +60,7 @@ export function JobDetailsModal({
     if (!row) return [];
     const answers = safeAnswers(row.answers);
     const microAnswers = extractMicroAnswers(
-      (answers?.microAnswers ?? null) as Record<string, unknown> | null
+      (answers?.microAnswers ?? null) as Record<string, Record<string, unknown>> | null
     );
     return Object.keys(microAnswers);
   }, [row]);
@@ -98,7 +98,6 @@ export function JobDetailsModal({
         ) : jobPack ? (
           <JobDetailsBody 
             jobPack={jobPack} 
-            packsLoading={packsLoading}
             onClose={() => onOpenChange(false)} 
           />
         ) : null}
@@ -109,21 +108,13 @@ export function JobDetailsModal({
 
 interface JobDetailsBodyProps {
   jobPack: JobPack;
-  packsLoading: boolean;
   onClose: () => void;
 }
 
-function JobDetailsBody({ jobPack, packsLoading, onClose }: JobDetailsBodyProps) {
+function JobDetailsBody({ jobPack, onClose }: Omit<JobDetailsBodyProps, 'packsLoading'>) {
   const navigate = useNavigate();
   const { user, isLoading: sessionLoading } = useSession();
   const [isMessaging, setIsMessaging] = useState(false);
-
-  // Get raw answers for logistics details (not in JobPack display model)
-  const rawAnswers = React.useMemo(() => {
-    // We need to extract logistics details that aren't in the display model
-    // This is acceptable since it's non-display metadata
-    return null; // Logistics is now handled via jobPack
-  }, []);
 
   const handleMessage = async () => {
     if (!user) {
@@ -225,10 +216,7 @@ function JobDetailsBody({ jobPack, packsLoading, onClose }: JobDetailsBodyProps)
       {/* Scope & Specifications - using resolved services from JobPack */}
       <section className="space-y-2">
         <div className="text-sm font-semibold">Scope & Specifications</div>
-        <FormattedAnswers 
-          services={jobPack.services} 
-          isLoading={packsLoading && jobPack.services.some(s => s.isFallback)}
-        />
+        <FormattedAnswers services={jobPack.services} />
       </section>
 
       <Separator />

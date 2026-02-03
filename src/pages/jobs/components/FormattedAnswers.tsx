@@ -3,22 +3,16 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface FormattedAnswersProps {
   services: ResolvedServicePack[];
-  isLoading?: boolean;
 }
 
 /**
  * Pure component that renders resolved service packs with human-readable labels.
  * No Supabase imports - receives fully resolved data from parent.
+ * 
+ * When packs haven't loaded yet, services will have isFallback=true and show
+ * humanized labels based on question IDs (updated when packs arrive).
  */
-export function FormattedAnswers({ services, isLoading }: FormattedAnswersProps) {
-  if (isLoading) {
-    return (
-      <div className="text-sm text-muted-foreground animate-pulse">
-        Loading specifications…
-      </div>
-    );
-  }
-
+export function FormattedAnswers({ services }: FormattedAnswersProps) {
   if (!services.length) {
     return (
       <div className="text-sm text-muted-foreground">
