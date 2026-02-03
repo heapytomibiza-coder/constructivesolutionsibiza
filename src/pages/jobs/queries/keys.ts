@@ -15,7 +15,9 @@ export const jobKeys = {
   
   // Matched jobs for professionals
   matched: (userId: string) => [...jobKeys.all, "matched", userId] as const,
+  matchedNone: () => [...jobKeys.all, "matched", "none"] as const,
   
-  // Question packs for display
-  questionPacks: (slugs: string[]) => [...jobKeys.all, "question_packs", slugs] as const,
+  // Question packs for display - use stable string key
+  questionPacks: (slugs: string[]) => 
+    [...jobKeys.all, "question_packs", slugs.slice().sort().join(",")] as const,
 };
