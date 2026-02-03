@@ -251,7 +251,7 @@ export function JobsMarketplace() {
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {featured.map((job) => (
-                  <JobListingCard key={job.id} job={job} />
+                  <JobListingCard key={job.id} job={job} isMatched={showMatchedOnly && isProfessional} />
                 ))}
               </div>
             </div>
@@ -288,7 +288,7 @@ export function JobsMarketplace() {
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {regular.map((job) => (
-                  <JobListingCard key={job.id} job={job} />
+                  <JobListingCard key={job.id} job={job} isMatched={showMatchedOnly && isProfessional} />
                 ))}
               </div>
             )}
