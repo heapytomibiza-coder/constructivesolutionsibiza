@@ -7,7 +7,7 @@ export function PublicFooter() {
       <div className="container">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-gradient-ocean flex items-center justify-center">
+            <div className="h-10 w-10 rounded-sm bg-gradient-steel shadow-md flex items-center justify-center">
               <span className="text-primary-foreground font-display font-bold">
                 {PLATFORM.mark}
               </span>

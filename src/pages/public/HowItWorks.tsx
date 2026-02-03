@@ -2,27 +2,37 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PublicLayout } from '@/components/layout';
-import { ClipboardList, Users, MessageSquare, CheckCircle, ArrowRight } from 'lucide-react';
+import { ClipboardList, Users, MessageSquare, CheckCircle, ArrowRight, Shield } from 'lucide-react';
 
 /**
  * HOW IT WORKS PAGE
  * 
  * Explains the platform flow for clients and professionals.
+ * Construction-grade professional styling.
  */
 
 const HowItWorks = () => {
   return (
     <PublicLayout>
-      <div className="container py-12">
-        <div className="mx-auto max-w-3xl text-center mb-16">
-          <h1 className="font-display text-4xl font-bold text-foreground mb-4">
-            How It Works
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Connecting clients with trusted construction professionals in Ibiza
-          </p>
+      {/* Hero Section */}
+      <div className="border-b border-border bg-gradient-concrete bg-texture-concrete py-12">
+        <div className="container">
+          <div className="mx-auto max-w-3xl text-center">
+            <h1 className="font-display text-4xl font-bold text-foreground mb-4">
+              How It Works
+            </h1>
+            <p className="text-lg text-muted-foreground mb-4">
+              Connecting clients with trusted construction professionals in Ibiza
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Shield className="h-4 w-4 text-primary" />
+              <span>Verified trades • Same-day response • Ibiza-based</span>
+            </div>
+          </div>
         </div>
+      </div>
 
+      <div className="container py-12">
         {/* For Clients */}
         <section className="mb-20">
           <h2 className="font-display text-2xl font-semibold text-foreground mb-8 text-center">
@@ -65,7 +75,7 @@ const HowItWorks = () => {
         </section>
 
         {/* For Professionals */}
-        <section>
+        <section className="bg-muted/30 rounded-lg p-8">
           <h2 className="font-display text-2xl font-semibold text-foreground mb-8 text-center">
             For Professionals
           </h2>
@@ -121,12 +131,12 @@ function StepCard({
   description: string;
 }) {
   return (
-    <Card className="relative">
+    <Card className="relative card-grounded hover:border-accent/50 transition-colors">
       <CardHeader>
-        <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
+        <div className="absolute -top-3 -left-3 h-8 w-8 rounded-sm bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shadow-md">
           {step}
         </div>
-        <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-sm bg-primary/10 text-primary">
           {icon}
         </div>
         <CardTitle className="font-display text-lg">{title}</CardTitle>

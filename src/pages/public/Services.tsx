@@ -7,13 +7,14 @@ import {
   Hammer, Wrench, Droplets, Zap, Wind, Paintbrush, 
   Sparkles, TreePine, Waves, PenTool, Truck, 
   ChefHat, DoorOpen, Settings, Building2, FileCheck,
-  ArrowRight
+  ArrowRight, Shield
 } from 'lucide-react';
 
 /**
  * SERVICES PAGE - Browse all service categories
  * 
  * SCOPE: Construction & property services ONLY.
+ * Construction-grade professional styling.
  */
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -38,24 +39,33 @@ const categoryIcons: Record<string, React.ReactNode> = {
 const Services = () => {
   return (
     <PublicLayout>
-      <div className="container py-12">
-        <div className="mx-auto max-w-4xl text-center mb-12">
-          <h1 className="font-display text-4xl font-bold text-foreground mb-4">
-            Our Services
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Find trusted professionals across all construction and property services
-          </p>
+      {/* Hero Section */}
+      <div className="border-b border-border bg-gradient-concrete bg-texture-concrete py-12">
+        <div className="container">
+          <div className="mx-auto max-w-4xl text-center">
+            <h1 className="font-display text-4xl font-bold text-foreground mb-4">
+              Our Services
+            </h1>
+            <p className="text-lg text-muted-foreground mb-4">
+              Find trusted professionals across all construction and property services
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Shield className="h-4 w-4 text-primary" />
+              <span>Verified trades • Ibiza-based professionals</span>
+            </div>
+          </div>
         </div>
+      </div>
 
+      <div className="container py-12">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {MAIN_CATEGORIES.map((category) => {
             const slug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
             return (
               <Link key={category} to={`/services/${slug}`}>
-                <Card className="h-full transition-all hover:shadow-soft hover:border-primary/20 cursor-pointer">
+                <Card className="h-full card-grounded transition-all hover:shadow-soft hover:border-accent/50 cursor-pointer group">
                   <CardHeader>
-                    <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-sm bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       {categoryIcons[category] || <Hammer className="h-6 w-6" />}
                     </div>
                     <CardTitle className="font-display text-lg">{category}</CardTitle>
@@ -72,11 +82,11 @@ const Services = () => {
         </div>
 
         {/* CTA */}
-        <div className="mt-16 text-center">
-          <p className="text-muted-foreground mb-4">
+        <div className="mt-16 text-center bg-gradient-accent rounded-lg p-8">
+          <p className="text-accent-foreground/80 mb-4">
             Can't find what you're looking for?
           </p>
-          <Button asChild>
+          <Button variant="secondary" asChild>
             <Link to="/post">Post a Custom Job</Link>
           </Button>
         </div>

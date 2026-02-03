@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
 import SubcategorySelector from '@/components/wizard/db-powered/SubcategorySelector';
 import MicroStep from '@/components/wizard/db-powered/MicroStep';
-import { ArrowLeft, Check, Plus, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Check, Plus, X, Loader2, Shield } from 'lucide-react';
+import { PLATFORM } from '@/domain/scope';
 
 type SetupStep = 'browse' | 'category' | 'subcategory' | 'micro';
 
@@ -18,6 +19,7 @@ type SetupStep = 'browse' | 'category' | 'subcategory' | 'micro';
  * 
  * Multi-category service selection for professionals.
  * Allows selecting micros across different categories.
+ * Construction-grade professional styling.
  */
 const ProfessionalServiceSetup = () => {
   const navigate = useNavigate();
@@ -149,16 +151,18 @@ const ProfessionalServiceSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen bg-gradient-hero bg-texture-concrete">
       {/* Navigation */}
-      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-ocean flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
+            <div className="h-8 w-8 rounded-sm bg-gradient-steel shadow-md flex items-center justify-center">
+              <span className="text-primary-foreground font-display font-bold text-sm">
+                {PLATFORM.mark}
+              </span>
             </div>
             <span className="font-display text-xl font-semibold text-foreground">
-              CS Ibiza
+              {PLATFORM.shortName}
             </span>
           </Link>
           <Button variant="ghost" onClick={() => navigate('/onboarding/professional')}>
@@ -175,13 +179,17 @@ const ProfessionalServiceSetup = () => {
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">
               Set Up Your Services
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               Select the services you offer. You can add services from multiple categories.
             </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Shield className="h-4 w-4 text-primary" />
+              <span>Better service matching = more quality leads</span>
+            </div>
           </div>
 
           {/* Current Services */}
-          <Card className="mb-6">
+          <Card className="mb-6 card-grounded">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -214,7 +222,7 @@ const ProfessionalServiceSetup = () => {
                   {servicesWithDetails.map((service) => (
                     <div 
                       key={service.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                      className="flex items-center justify-between p-3 rounded-sm bg-muted/50 border border-border/50"
                     >
                       <div>
                         <p className="font-medium">{service.micro_name}</p>
@@ -239,7 +247,7 @@ const ProfessionalServiceSetup = () => {
 
           {/* Add Services Wizard */}
           {step !== 'browse' && (
-            <Card className="mb-6">
+            <Card className="mb-6 card-grounded">
               <CardHeader>
                 <div className="flex items-center gap-4">
                   <Button variant="ghost" size="icon" onClick={handleBack}>
