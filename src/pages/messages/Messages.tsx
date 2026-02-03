@@ -77,10 +77,10 @@ const Messages = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navigation */}
-      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-ocean flex items-center justify-center">
+            <div className="h-9 w-9 rounded-sm bg-gradient-steel flex items-center justify-center shadow-sm">
               <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
             </div>
             <span className="font-display text-xl font-semibold text-foreground">
@@ -92,7 +92,7 @@ const Messages = () => {
 
       <div className="flex-1 flex flex-col">
         {/* Page Header */}
-        <div className="container py-4 border-b border-border">
+        <div className="container py-4 border-b border-border bg-gradient-concrete">
           <div className="flex items-center gap-2">
             <Link
               to="/dashboard/client"
@@ -103,7 +103,7 @@ const Messages = () => {
             </Link>
           </div>
           <h1 className="font-display text-2xl font-bold text-foreground mt-2 flex items-center gap-2">
-            <MessageSquare className="h-6 w-6" />
+            <MessageSquare className="h-6 w-6 text-primary" />
             Messages
           </h1>
         </div>
@@ -123,7 +123,7 @@ const Messages = () => {
               </aside>
 
               {/* Main - Thread */}
-              <main className="flex-1 flex flex-col">
+              <main className="flex-1 flex flex-col bg-background">
                 {conversationId ? (
                   <ConversationThread
                     conversationId={conversationId}
@@ -135,7 +135,9 @@ const Messages = () => {
                 ) : (
                   <div className="flex-1 flex items-center justify-center text-muted-foreground">
                     <div className="text-center">
-                      <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <div className="mx-auto h-14 w-14 rounded-sm bg-muted flex items-center justify-center mb-4">
+                        <MessageSquare className="h-7 w-7 text-muted-foreground" />
+                      </div>
                       <p>Select a conversation to view messages</p>
                     </div>
                   </div>

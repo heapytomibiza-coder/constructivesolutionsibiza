@@ -24,9 +24,9 @@ export function JobBoardHeroSection({
   onToggle,
 }: JobBoardHeroSectionProps) {
   return (
-    <div className="rounded-xl bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-6 mb-6">
+    <div className="rounded-lg bg-gradient-concrete border border-border/50 p-6 mb-6">
       <div className="mb-4">
-        <h1 className="text-2xl font-display font-bold tracking-tight">
+        <h1 className="text-2xl font-display font-bold tracking-tight text-foreground">
           Find work fast
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -40,7 +40,7 @@ export function JobBoardHeroSection({
           placeholder="Search jobs (e.g. plumbing, shelves, leak)…"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 h-12"
+          className="pl-10 h-12 border-border/70"
         />
       </div>
 
@@ -49,6 +49,7 @@ export function JobBoardHeroSection({
           size="sm"
           variant={toggles.asapOnly ? "default" : "outline"}
           onClick={() => onToggle("asapOnly")}
+          className="font-medium"
         >
           ⚡ ASAP
         </Button>
@@ -56,6 +57,7 @@ export function JobBoardHeroSection({
           size="sm"
           variant={toggles.highBudget ? "default" : "outline"}
           onClick={() => onToggle("highBudget")}
+          className="font-medium"
         >
           💰 High budget
         </Button>
@@ -63,6 +65,7 @@ export function JobBoardHeroSection({
           size="sm"
           variant={toggles.hasPhotos ? "default" : "outline"}
           onClick={() => onToggle("hasPhotos")}
+          className="font-medium"
         >
           📸 Photos
         </Button>
@@ -70,6 +73,7 @@ export function JobBoardHeroSection({
           size="sm"
           variant={toggles.newToday ? "default" : "outline"}
           onClick={() => onToggle("newToday")}
+          className="font-medium"
         >
           🆕 New today
         </Button>

@@ -8,7 +8,7 @@ import {
   Hammer, Wrench, Droplets, Zap, Wind, Paintbrush, 
   Sparkles, TreePine, Waves, PenTool, Truck, 
   ChefHat, DoorOpen, Settings, Building2, FileCheck,
-  ArrowRight, Shield, Clock, Star
+  ArrowRight, Shield, Clock, Star, CheckCircle
 } from 'lucide-react';
 
 /**
@@ -41,20 +41,39 @@ const Index = () => {
   return (
     <PublicLayout>
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 bg-gradient-hero overflow-hidden">
+      <section className="relative py-20 lg:py-28 bg-gradient-hero overflow-hidden">
         <div className="container relative z-10">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-sm bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground border border-border/50">
               <Hammer className="h-4 w-4 text-primary" />
               Construction & Trade Services
             </div>
-            <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            <h1 className="text-display-lg text-foreground">
               Find Trusted
-              <span className="block text-gradient-ocean">Construction Professionals</span>
+              <span className="block text-gradient-steel">Construction Professionals</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
               {PLATFORM.description}
             </p>
+            
+            {/* Trust Badges Row */}
+            <div className="mt-6 trust-badge-row">
+              <span>
+                <CheckCircle className="h-4 w-4 text-success" />
+                Verified trades
+              </span>
+              <span className="text-border">•</span>
+              <span>
+                <Clock className="h-4 w-4 text-primary" />
+                Same-day response
+              </span>
+              <span className="text-border">•</span>
+              <span>
+                <Shield className="h-4 w-4 text-primary" />
+                Ibiza-based
+              </span>
+            </div>
+
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
                 <Link to="/post">
@@ -87,9 +106,9 @@ const Index = () => {
               const slug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
               return (
                 <Link key={category} to={`/services/${slug}`}>
-                  <Card className="h-full transition-all hover:shadow-soft hover:border-primary/20 cursor-pointer">
+                  <Card className="h-full service-card-hover cursor-pointer group">
                     <CardContent className="flex items-center gap-3 p-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary group-hover:bg-accent/10 group-hover:text-accent transition-colors">
                         {categoryIcons[category] || <Hammer className="h-5 w-5" />}
                       </div>
                       <span className="font-medium text-foreground">{category}</span>
@@ -112,12 +131,12 @@ const Index = () => {
       </section>
 
       {/* Trust Signals */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 bg-gradient-concrete">
         <div className="container">
           <div className="grid gap-8 md:grid-cols-3">
             <div className="text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Shield className="h-6 w-6 text-primary" />
+              <div className="mx-auto h-14 w-14 rounded-sm bg-primary/10 flex items-center justify-center mb-4">
+                <Shield className="h-7 w-7 text-primary" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground">
                 Verified Professionals
@@ -126,9 +145,9 @@ const Index = () => {
                 All professionals are vetted and verified before joining
               </p>
             </div>
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Clock className="h-6 w-6 text-primary" />
+            <div className="relative text-center md:before:absolute md:before:left-0 md:before:top-1/2 md:before:-translate-y-1/2 md:before:h-16 md:before:w-px md:before:bg-border md:after:absolute md:after:right-0 md:after:top-1/2 md:after:-translate-y-1/2 md:after:h-16 md:after:w-px md:after:bg-border">
+              <div className="mx-auto h-14 w-14 rounded-sm bg-primary/10 flex items-center justify-center mb-4">
+                <Clock className="h-7 w-7 text-primary" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground">
                 Quick Response
@@ -138,8 +157,8 @@ const Index = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Star className="h-6 w-6 text-primary" />
+              <div className="mx-auto h-14 w-14 rounded-sm bg-primary/10 flex items-center justify-center mb-4">
+                <Star className="h-7 w-7 text-primary" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground">
                 Quality Guaranteed
@@ -153,12 +172,12 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-ocean text-primary-foreground">
+      <section className="py-20 bg-gradient-clay text-accent-foreground">
         <div className="container text-center">
           <h2 className="font-display text-3xl font-bold">
             Ready to start your project?
           </h2>
-          <p className="mt-4 text-primary-foreground/80 max-w-xl mx-auto">
+          <p className="mt-4 text-accent-foreground/80 max-w-xl mx-auto">
             Post your job for free and receive quotes from trusted local professionals.
           </p>
           <Button size="lg" variant="secondary" className="mt-8" asChild>

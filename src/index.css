@@ -5,97 +5,100 @@
 @tailwind utilities;
 
 /* CS Ibiza Design System
-   Mediterranean luxury: ocean blues, warm sand, golden accents
+   Construction-grade professional: steel blue, warm stone, terracotta accents
    Typography: Playfair Display (display) + Inter (body)
+   Vibe: "Trusted local builders, modern system"
 */
 
 @layer base {
   :root {
-    /* Core palette - Mediterranean Luxury */
-    --background: 210 20% 98%;
-    --foreground: 220 25% 10%;
+    /* Core palette - Construction Professional */
+    --background: 35 20% 97%;      /* Warm concrete #f7f5f3 */
+    --foreground: 30 12% 16%;      /* Warm charcoal #2d2a26 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card: 40 25% 99%;            /* Cream-white #fefdfb */
+    --card-foreground: 30 12% 16%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover: 40 25% 99%;
+    --popover-foreground: 30 12% 16%;
 
-    /* Ocean Blue - Primary brand color */
-    --primary: 205 80% 45%;
+    /* Steel Blue - Primary brand color */
+    --primary: 210 45% 28%;        /* Deep steel blue */
     --primary-foreground: 0 0% 100%;
 
-    /* Warm Sand - Secondary */
-    --secondary: 35 30% 95%;
-    --secondary-foreground: 220 25% 10%;
+    /* Warm Stone - Secondary */
+    --secondary: 35 15% 92%;       /* Warm stone */
+    --secondary-foreground: 30 12% 16%;
 
-    /* Subtle stone gray */
-    --muted: 210 15% 93%;
-    --muted-foreground: 220 10% 45%;
+    /* Subtle warm gray */
+    --muted: 35 15% 90%;           /* Warm stone muted */
+    --muted-foreground: 30 10% 45%;
 
-    /* Golden accent */
-    --accent: 38 70% 55%;
-    --accent-foreground: 220 25% 10%;
+    /* Clay/Terracotta accent */
+    --accent: 25 70% 50%;          /* Clay terracotta */
+    --accent-foreground: 0 0% 100%;
 
     /* Status colors */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     
-    --success: 152 60% 40%;
+    --success: 152 60% 35%;
     --success-foreground: 0 0% 100%;
     
     --warning: 38 92% 50%;
-    --warning-foreground: 220 25% 10%;
+    --warning-foreground: 30 12% 16%;
 
-    --border: 210 20% 88%;
-    --input: 210 20% 88%;
-    --ring: 205 80% 45%;
+    --border: 35 15% 85%;
+    --input: 35 15% 85%;
+    --ring: 210 45% 28%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Gradients */
-    --gradient-ocean: linear-gradient(135deg, hsl(205 80% 45%) 0%, hsl(200 85% 35%) 100%);
-    --gradient-sunset: linear-gradient(135deg, hsl(38 70% 55%) 0%, hsl(25 75% 50%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(210 20% 98%) 0%, hsl(205 30% 95%) 100%);
+    /* Gradients - Construction themed */
+    --gradient-steel: linear-gradient(135deg, hsl(210 45% 28%) 0%, hsl(210 50% 22%) 100%);
+    --gradient-clay: linear-gradient(135deg, hsl(25 70% 50%) 0%, hsl(18 75% 45%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(35 20% 97%) 0%, hsl(35 15% 94%) 100%);
+    --gradient-concrete: linear-gradient(180deg, hsl(35 10% 92%) 0%, hsl(35 15% 88%) 100%);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(220 25% 10% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(220 25% 10% / 0.08), 0 2px 4px -2px hsl(220 25% 10% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(220 25% 10% / 0.08), 0 4px 6px -4px hsl(220 25% 10% / 0.04);
-    --shadow-xl: 0 20px 25px -5px hsl(220 25% 10% / 0.08), 0 8px 10px -6px hsl(220 25% 10% / 0.04);
-    --shadow-glow: 0 0 40px hsl(205 80% 45% / 0.15);
+    /* Shadows - Grounded, substantial */
+    --shadow-sm: 0 1px 2px 0 hsl(30 12% 16% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(30 12% 16% / 0.08), 0 2px 4px -2px hsl(30 12% 16% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(30 12% 16% / 0.08), 0 4px 6px -4px hsl(30 12% 16% / 0.04);
+    --shadow-xl: 0 20px 25px -5px hsl(30 12% 16% / 0.08), 0 8px 10px -6px hsl(30 12% 16% / 0.04);
+    --shadow-glow: 0 0 30px hsl(210 45% 28% / 0.12);
+    --shadow-inset: inset 0 -2px 0 hsl(35 15% 80%);
 
     /* Sidebar */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 25% 10%;
-    --sidebar-primary: 205 80% 45%;
+    --sidebar-background: 40 25% 99%;
+    --sidebar-foreground: 30 12% 16%;
+    --sidebar-primary: 210 45% 28%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 15% 95%;
-    --sidebar-accent-foreground: 220 25% 10%;
-    --sidebar-border: 210 20% 90%;
-    --sidebar-ring: 205 80% 45%;
+    --sidebar-accent: 35 15% 95%;
+    --sidebar-accent-foreground: 30 12% 16%;
+    --sidebar-border: 35 15% 88%;
+    --sidebar-ring: 210 45% 28%;
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 210 20% 95%;
+    --background: 30 15% 10%;      /* Warm dark */
+    --foreground: 35 15% 92%;
 
-    --card: 220 25% 12%;
-    --card-foreground: 210 20% 95%;
+    --card: 30 15% 14%;
+    --card-foreground: 35 15% 92%;
 
-    --popover: 220 25% 12%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 30 15% 14%;
+    --popover-foreground: 35 15% 92%;
 
-    --primary: 205 75% 50%;
+    --primary: 210 50% 55%;        /* Muted steel blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 210 20% 95%;
+    --secondary: 30 12% 18%;
+    --secondary-foreground: 35 15% 92%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 210 15% 55%;
+    --muted: 30 12% 18%;
+    --muted-foreground: 35 10% 55%;
 
-    --accent: 38 65% 50%;
+    --accent: 25 65% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 45%;
@@ -105,26 +108,28 @@
     --success-foreground: 0 0% 100%;
     
     --warning: 38 85% 45%;
-    --warning-foreground: 220 25% 10%;
+    --warning-foreground: 30 12% 16%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 205 75% 50%;
+    --border: 30 12% 22%;
+    --input: 30 12% 22%;
+    --ring: 210 50% 55%;
 
-    --gradient-ocean: linear-gradient(135deg, hsl(205 75% 50%) 0%, hsl(200 80% 40%) 100%);
-    --gradient-sunset: linear-gradient(135deg, hsl(38 65% 50%) 0%, hsl(25 70% 45%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(220 25% 8%) 0%, hsl(220 30% 12%) 100%);
+    --gradient-steel: linear-gradient(135deg, hsl(210 50% 55%) 0%, hsl(210 55% 45%) 100%);
+    --gradient-clay: linear-gradient(135deg, hsl(25 65% 50%) 0%, hsl(18 70% 45%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(30 15% 10%) 0%, hsl(30 12% 14%) 100%);
+    --gradient-concrete: linear-gradient(180deg, hsl(30 10% 14%) 0%, hsl(30 12% 18%) 100%);
 
-    --shadow-glow: 0 0 40px hsl(205 75% 50% / 0.2);
+    --shadow-glow: 0 0 30px hsl(210 50% 55% / 0.15);
+    --shadow-inset: inset 0 -2px 0 hsl(30 12% 25%);
 
-    --sidebar-background: 220 25% 10%;
-    --sidebar-foreground: 210 20% 95%;
-    --sidebar-primary: 205 75% 50%;
+    --sidebar-background: 30 15% 12%;
+    --sidebar-foreground: 35 15% 92%;
+    --sidebar-primary: 210 50% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 15%;
-    --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 205 75% 50%;
+    --sidebar-accent: 30 12% 16%;
+    --sidebar-accent-foreground: 35 15% 92%;
+    --sidebar-border: 30 12% 20%;
+    --sidebar-ring: 210 50% 55%;
   }
 }
 
@@ -140,43 +145,140 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', Georgia, serif;
-    @apply font-medium tracking-tight;
+    @apply font-semibold tracking-tight;
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    @apply text-4xl font-bold;
+  }
+
+  h2 {
+    @apply text-3xl font-bold;
+  }
+
+  h3 {
+    @apply text-xl font-semibold;
   }
 }
 
 @layer components {
-  .text-gradient-ocean {
+  /* Gradient utilities - construction themed */
+  .text-gradient-steel {
     @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-ocean);
+    background-image: var(--gradient-steel);
   }
 
-  .text-gradient-sunset {
+  .text-gradient-clay {
     @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-sunset);
+    background-image: var(--gradient-clay);
   }
 
-  .bg-gradient-ocean {
-    background-image: var(--gradient-ocean);
+  .bg-gradient-steel {
+    background-image: var(--gradient-steel);
   }
 
-  .bg-gradient-sunset {
-    background-image: var(--gradient-sunset);
+  .bg-gradient-clay {
+    background-image: var(--gradient-clay);
   }
 
   .bg-gradient-hero {
     background-image: var(--gradient-hero);
   }
 
+  .bg-gradient-concrete {
+    background-image: var(--gradient-concrete);
+  }
+
+  /* Legacy aliases for compatibility */
+  .bg-gradient-ocean {
+    background-image: var(--gradient-steel);
+  }
+
+  .text-gradient-ocean {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-steel);
+  }
+
+  .bg-gradient-sunset {
+    background-image: var(--gradient-clay);
+  }
+
+  .text-gradient-sunset {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-clay);
+  }
+
+  /* Shadow utilities */
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
 
+  .shadow-inset-bottom {
+    box-shadow: var(--shadow-inset);
+  }
+
+  /* Glass effect */
   .glass {
     @apply bg-card/80 backdrop-blur-md border border-border/50;
+  }
+
+  /* Construction-grade card styling */
+  .card-grounded {
+    box-shadow: var(--shadow-inset);
+    @apply border-border/70;
+  }
+
+  /* Accent border left */
+  .border-accent-left {
+    border-left: 3px solid hsl(var(--accent));
+  }
+
+  /* Trade badge styling */
+  .badge-trade {
+    @apply rounded-sm font-medium border-border/50;
+  }
+
+  /* Hero headline display */
+  .text-display-lg {
+    font-family: 'Playfair Display', Georgia, serif;
+    @apply text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight;
+    letter-spacing: -0.02em;
+  }
+
+  /* Concrete texture pattern */
+  .bg-texture-concrete {
+    background-image: 
+      linear-gradient(135deg, hsl(35 15% 88% / 0.4) 25%, transparent 25%),
+      linear-gradient(225deg, hsl(35 15% 88% / 0.4) 25%, transparent 25%),
+      linear-gradient(45deg, hsl(35 15% 88% / 0.4) 25%, transparent 25%),
+      linear-gradient(315deg, hsl(35 15% 88% / 0.4) 25%, transparent 25%);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 0, 10px -10px, 0px 10px;
+  }
+
+  /* Trust badge row */
+  .trust-badge-row {
+    @apply flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground;
+  }
+
+  .trust-badge-row > span {
+    @apply flex items-center gap-1.5;
+  }
+
+  /* Service card hover */
+  .service-card-hover {
+    @apply transition-all hover:shadow-md hover:border-accent/30;
+  }
+
+  .service-card-hover:hover {
+    border-left: 3px solid hsl(var(--accent));
   }
 }
 

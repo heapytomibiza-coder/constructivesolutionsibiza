@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Shield } from 'lucide-react';
 
 /**
  * AUTH PAGE
@@ -70,20 +70,23 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-concrete flex items-center justify-center p-4">
+      {/* Subtle pattern overlay */}
+      <div className="absolute inset-0 bg-texture-concrete opacity-30" />
+      
+      <div className="relative w-full max-w-md z-10">
         {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="h-10 w-10 rounded-lg bg-gradient-ocean flex items-center justify-center">
-            <span className="text-primary-foreground font-display font-bold">CS</span>
+          <div className="h-11 w-11 rounded-sm bg-gradient-steel flex items-center justify-center shadow-md">
+            <span className="text-primary-foreground font-display font-bold text-lg">CS</span>
           </div>
           <span className="font-display text-2xl font-semibold text-foreground">
             CS Ibiza
           </span>
         </Link>
 
-        <Card>
-          <CardHeader className="text-center">
+        <Card className="border-border/70">
+          <CardHeader className="text-center pb-4">
             <CardTitle className="font-display text-2xl">Welcome</CardTitle>
             <CardDescription>
               Sign in to your account or create a new one
@@ -107,6 +110,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
@@ -118,6 +122,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      className="h-11"
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
@@ -152,6 +157,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
@@ -164,6 +170,7 @@ const Auth = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
+                      className="h-11"
                     />
                     <p className="text-xs text-muted-foreground">
                       At least 6 characters
@@ -185,7 +192,13 @@ const Auth = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
+        {/* Trust signal */}
+        <div className="flex items-center justify-center gap-2 mt-6 text-sm text-muted-foreground">
+          <Shield className="h-4 w-4" />
+          <span>Used by verified trades across Ibiza</span>
+        </div>
+
+        <p className="text-center text-sm text-muted-foreground mt-4">
           By continuing, you agree to our{' '}
           <Link to="/terms" className="underline hover:text-foreground">
             Terms of Service

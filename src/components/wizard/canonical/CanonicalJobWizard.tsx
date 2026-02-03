@@ -1,8 +1,8 @@
 /**
  * Canonical Job Wizard
- * V2 clean architecture - 6-step flow with string enum steps
+ * V2 clean architecture - 7-step flow with string enum steps
  * 
- * Flow: Category → Subcategory → Micro → Logistics → Extras → Review
+ * Flow: Category → Subcategory → Micro → Questions → Logistics → Extras → Review
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,7 +11,7 @@ import { flushSync } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Loader2, FileText } from 'lucide-react';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -307,7 +307,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       {/* Draft Recovery Modal */}
       {showDraftModal && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
+          <Card className="max-w-md w-full border-border/70">
             <CardContent className="pt-6">
               <h3 className="font-display text-lg font-semibold mb-2">
                 Resume your draft?
@@ -328,26 +328,40 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         </div>
       )}
 
-      {/* Progress Bar */}
+      {/* Progress Bar - Construction style */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-foreground">
-            Step {stepIndex + 1} of {totalSteps}
-          </span>
-          <span className="text-sm text-muted-foreground">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold text-foreground">
+              Step {stepIndex + 1} of {totalSteps}
+            </span>
+          </div>
+          <span className="text-sm text-muted-foreground font-medium">
             {STEP_TITLES[currentStep]}
           </span>
         </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+        
+        {/* Segmented progress bar */}
+        <div className="flex gap-1">
+          {STEP_ORDER.map((step, idx) => (
+            <div 
+              key={step}
+              className={`h-2 flex-1 rounded-sm transition-colors ${
+                idx <= stepIndex ? 'bg-primary' : 'bg-muted'
+              }`}
+            />
+          ))}
         </div>
+        
+        {/* Helper text */}
+        <p className="text-xs text-muted-foreground mt-2">
+          Building your job specification helps professionals quote accurately
+        </p>
       </div>
 
       {/* Step Content */}
-      <Card>
+      <Card className="border-border/70">
         <CardContent className="pt-6">
           {currentStep === WizardStep.Category && (
             <div className="space-y-4">
@@ -380,6 +394,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               <h3 className="font-display text-lg font-semibold">
                 Select the specific tasks you need
               </h3>
+              <p className="text-sm text-muted-foreground">
+                Choose all that apply — this helps match you with the right professionals
+              </p>
               <MicroStep
                 subcategoryId={wizardState.subcategoryId}
                 selectedMicroIds={wizardState.microIds}

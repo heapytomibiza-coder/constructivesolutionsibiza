@@ -45,7 +45,7 @@ const ClientDashboard = () => {
       case 'in_progress':
         return 'outline';
       case 'completed':
-        return 'default';
+        return 'success';
       default:
         return 'secondary';
     }
@@ -54,10 +54,10 @@ const ClientDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b border-border bg-card sticky top-0 z-50">
+      <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-ocean flex items-center justify-center">
+            <div className="h-9 w-9 rounded-sm bg-gradient-steel flex items-center justify-center shadow-sm">
               <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
             </div>
             <span className="font-display text-xl font-semibold text-foreground">
@@ -102,49 +102,55 @@ const ClientDashboard = () => {
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-3 mb-8">
-          <Card>
+          <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Active Jobs
               </CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
+              <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center">
+                <Briefcase className="h-5 w-5 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               ) : (
-                <div className="text-2xl font-bold">{stats.activeJobs}</div>
+                <div className="text-3xl font-bold text-foreground">{stats.activeJobs}</div>
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Draft Jobs
               </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <div className="h-10 w-10 rounded-sm bg-secondary flex items-center justify-center">
+                <FileText className="h-5 w-5 text-muted-foreground" />
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               ) : (
-                <div className="text-2xl font-bold">{stats.draftJobs}</div>
+                <div className="text-3xl font-bold text-foreground">{stats.draftJobs}</div>
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Messages
               </CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
+                <MessageSquare className="h-5 w-5 text-accent" />
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold">{stats.unreadMessages}</span>
+                  <span className="text-3xl font-bold text-foreground">{stats.unreadMessages}</span>
                   {stats.unreadMessages > 0 && (
                     <Badge variant="destructive" className="text-xs">New</Badge>
                   )}
@@ -155,7 +161,7 @@ const ClientDashboard = () => {
         </div>
 
         {/* Jobs List */}
-        <Card>
+        <Card className="border-border/70">
           <CardHeader>
             <CardTitle className="font-display">Your Jobs</CardTitle>
           </CardHeader>
@@ -166,7 +172,9 @@ const ClientDashboard = () => {
               </div>
             ) : jobs.length === 0 ? (
               <div className="py-8 text-center">
-                <Briefcase className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+                <div className="mx-auto h-14 w-14 rounded-sm bg-muted flex items-center justify-center mb-4">
+                  <Briefcase className="h-7 w-7 text-muted-foreground" />
+                </div>
                 <p className="text-muted-foreground mb-4">
                   You haven't posted any jobs yet.
                 </p>
@@ -179,11 +187,13 @@ const ClientDashboard = () => {
                 {jobs.map((job) => (
                   <div 
                     key={job.id}
-                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium truncate">{job.title}</h3>
+                        <h3 className="font-medium truncate group-hover:text-primary transition-colors">
+                          {job.title}
+                        </h3>
                         <Badge variant={getStatusBadgeVariant(job.status)}>
                           {job.status}
                         </Badge>
