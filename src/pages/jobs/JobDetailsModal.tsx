@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, MessageSquare, Share2, Camera, FileText, AlertTriangle, LogIn } from "lucide-react";
+import { Loader2, MessageSquare, Share2, Camera, FileText, AlertTriangle, LogIn, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { JobFlagBadges } from "./components/JobFlagBadges";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -81,6 +81,107 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Photo Lightbox Component
+   ───────────────────────────────────────────────────────────── */
+
+function PhotoLightbox({
+  photos,
+  index,
+  onClose,
+}: {
+  photos: string[];
+  index: number;
+  onClose: () => void;
+}) {
+  const [i, setI] = React.useState(index);
+
+  React.useEffect(() => setI(index), [index]);
+
+  const hasMany = photos.length > 1;
+  const next = React.useCallback(() => setI((x) => (x + 1) % photos.length), [photos.length]);
+  const prev = React.useCallback(() => setI((x) => (x - 1 + photos.length) % photos.length), [photos.length]);
+
+  React.useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (!hasMany) return;
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [hasMany, onClose, next, prev]);
+
+  const src = photos[i];
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4"
+      role="dialog"
+      aria-modal="true"
+      onMouseDown={(e) => {
+        if (e.currentTarget === e.target) onClose();
+      }}
+    >
+      <div className="relative w-full max-w-5xl">
+        <img
+          src={src}
+          alt={`Photo ${i + 1} of ${photos.length}`}
+          className="max-h-[85vh] w-full rounded-lg object-contain"
+          draggable={false}
+        />
+
+        {/* Close button */}
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={onClose}
+          className="absolute right-2 top-2"
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </Button>
+
+        {hasMany && (
+          <>
+            {/* Prev button */}
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={prev}
+              className="absolute left-2 top-1/2 -translate-y-1/2"
+            >
+              <ChevronLeft className="h-5 w-5" />
+              <span className="sr-only">Previous</span>
+            </Button>
+
+            {/* Next button */}
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={next}
+              className="absolute right-2 top-1/2 -translate-y-1/2"
+            >
+              <ChevronRight className="h-5 w-5" />
+              <span className="sr-only">Next</span>
+            </Button>
+
+            {/* Counter */}
+            <div className="mt-3 text-center text-sm text-white/80">
+              {i + 1} / {photos.length}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Main Modal Component
+   ───────────────────────────────────────────────────────────── */
+
 export function JobDetailsModal({
   jobId,
   open,
@@ -113,12 +214,16 @@ export function JobDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Job Details</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="flex h-[85vh] max-h-[85vh] flex-col p-0 sm:max-w-3xl">
+        {/* Fixed Header */}
+        <div className="shrink-0 border-b border-border/70 p-6">
+          <DialogHeader className="p-0">
+            <DialogTitle>Job Details</DialogTitle>
+          </DialogHeader>
+        </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* Scroll Body */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           {isLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -138,11 +243,11 @@ export function JobDetailsModal({
           ) : null}
         </div>
 
+        {/* Fixed Footer */}
         {jobPack && (
-          <JobDetailsActions 
-            jobPack={jobPack} 
-            onClose={() => onOpenChange(false)} 
-          />
+          <div className="shrink-0 border-t border-border/70 bg-background/90 px-6 py-4 backdrop-blur">
+            <JobDetailsActions jobPack={jobPack} onClose={() => onOpenChange(false)} />
+          </div>
         )}
       </DialogContent>
     </Dialog>
@@ -154,6 +259,7 @@ interface JobDetailsBodyContentProps {
 }
 
 function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
+  const [lightboxIndex, setLightboxIndex] = React.useState<number | null>(null);
   const specBadge = getSpecBadge(jobPack);
   const isAsap = jobPack.timing?.display?.toLowerCase().includes("asap");
 
@@ -296,7 +402,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
               </div>
             )}
 
-            {/* Photos */}
+            {/* Photos with lightbox */}
             {jobPack.photos.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -304,16 +410,31 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
                   Photos ({jobPack.photos.length})
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  {jobPack.photos.slice(0, 6).map((url, i) => (
-                    <img
-                      key={i}
-                      src={url}
-                      alt={`Job photo ${i + 1}`}
-                      className="aspect-square rounded-md object-cover"
-                      loading="lazy"
-                    />
+                  {jobPack.photos.slice(0, 6).map((url, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className="aspect-square overflow-hidden rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                      onClick={() => setLightboxIndex(idx)}
+                    >
+                      <img
+                        src={url}
+                        alt={`Job photo ${idx + 1}`}
+                        className="h-full w-full object-cover transition-transform hover:scale-105"
+                        loading="lazy"
+                      />
+                    </button>
                   ))}
                 </div>
+
+                {/* Lightbox */}
+                {lightboxIndex !== null && (
+                  <PhotoLightbox
+                    photos={jobPack.photos}
+                    index={lightboxIndex}
+                    onClose={() => setLightboxIndex(null)}
+                  />
+                )}
               </div>
             )}
 
@@ -370,32 +491,30 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
   };
 
   return (
-    <div className="-mx-6 border-t border-border/70 bg-background/90 px-6 py-4 backdrop-blur">
-      <div className="flex flex-wrap gap-2">
-        {!user ? (
-          <Button onClick={handleMessage} className="gap-2">
-            <LogIn className="h-4 w-4" />
-            Sign in to message
-          </Button>
-        ) : jobPack.isOwner ? null : (
-          <Button 
-            onClick={handleMessage} 
-            disabled={isMessaging || sessionLoading}
-            className="gap-2"
-          >
-            {isMessaging ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <MessageSquare className="h-4 w-4" />
-            )}
-            {isMessaging ? "Starting chat..." : "Message"}
-          </Button>
-        )}
-        <Button variant="outline" disabled className="gap-2">
-          <Share2 className="h-4 w-4" />
-          Share
+    <div className="flex flex-wrap gap-2">
+      {!user ? (
+        <Button onClick={handleMessage} className="gap-2">
+          <LogIn className="h-4 w-4" />
+          Sign in to message
         </Button>
-      </div>
+      ) : jobPack.isOwner ? null : (
+        <Button 
+          onClick={handleMessage} 
+          disabled={isMessaging || sessionLoading}
+          className="gap-2"
+        >
+          {isMessaging ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MessageSquare className="h-4 w-4" />
+          )}
+          {isMessaging ? "Starting chat..." : "Message"}
+        </Button>
+      )}
+      <Button variant="outline" disabled className="gap-2">
+        <Share2 className="h-4 w-4" />
+        Share
+      </Button>
     </div>
   );
 }
