@@ -5,7 +5,7 @@ interface PageHeaderProps {
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
-  trustBadge?: string;
+  trustBadge?: React.ReactNode;
   className?: string;
 }
 
@@ -28,9 +28,9 @@ export function PageHeader({
               <p className="text-muted-foreground">{subtitle}</p>
             )}
             {trustBadge && (
-              <p className="text-sm text-muted-foreground/80 mt-2">
+              <div className="mt-2">
                 {trustBadge}
-              </p>
+              </div>
             )}
           </div>
           {action && <div className="flex-shrink-0">{action}</div>}
