@@ -13,6 +13,8 @@ import { Loader2, MessageSquare, Share2, Camera, FileText, AlertTriangle, LogIn 
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import type { JobDetailsRow, JobAnswers } from "@/pages/jobs/types";
+import { FormattedAnswers } from "@/pages/jobs/components/FormattedAnswers";
+import { extractMicroAnswers, formatLocation } from "@/pages/jobs/lib/answerResolver";
 
 async function fetchJobDetails(jobId: string): Promise<JobDetailsRow> {
   const { data, error } = await supabase
@@ -116,10 +118,13 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
   const logistics = answers?.logistics;
   const extras = answers?.extras;
 
+  // Extract micro answers from nested structure
+  const microAnswers = extractMicroAnswers(answers?.microAnswers as Record<string, unknown> | null);
+  const microSlugs = Object.keys(microAnswers);
+
   // Message button gating
   const handleMessage = async () => {
     if (!user) {
-      // Redirect to auth with return URL
       onClose();
       navigate(`/auth?returnTo=/jobs`);
       return;
@@ -133,7 +138,6 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
       });
 
       if (error) {
-        // Handle specific errors
         if (error.message.includes("Cannot message your own job")) {
           toast.error("You cannot message your own job");
         } else if (error.message.includes("not available")) {
@@ -182,7 +186,9 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
         <Card>
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground">Area</div>
-            <div className="text-sm font-medium">{job.area ?? job.location?.area ?? "Ibiza"}</div>
+            <div className="text-sm font-medium">
+              {formatLocation(logistics?.location, logistics?.customLocation) || job.area || "Ibiza"}
+            </div>
             {job.location?.town && (
               <div className="text-xs text-muted-foreground">{job.location.town}</div>
             )}
@@ -232,36 +238,10 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
 
       <Separator />
 
-      {/* Scope & Specifications */}
+      {/* Scope & Specifications - Now with proper formatted answers */}
       <section className="space-y-2">
         <div className="text-sm font-semibold">Scope & Specifications</div>
-        {!answers?.microAnswers || Object.keys(answers.microAnswers).length === 0 ? (
-          <div className="text-sm text-muted-foreground">No specific answers provided.</div>
-        ) : (
-          <div className="space-y-3">
-            {Object.entries(answers.microAnswers).map(([key, value]) => (
-              <Card key={key}>
-                <CardContent className="p-4">
-                  <div className="text-xs font-medium text-muted-foreground mb-2">{key}</div>
-                  <div className="text-sm">
-                    {typeof value === "object" && value !== null ? (
-                      <div className="space-y-1">
-                        {Object.entries(value as Record<string, unknown>).map(([k, v]) => (
-                          <div key={k} className="flex justify-between">
-                            <span className="text-muted-foreground">{k}:</span>
-                            <span className="font-medium">{String(v)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <span>{String(value)}</span>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+        <FormattedAnswers microAnswers={microAnswers} microSlugs={microSlugs} />
       </section>
 
       <Separator />
@@ -271,8 +251,10 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
         <div className="text-sm font-semibold">Logistics</div>
         <Card>
           <CardContent className="p-4 space-y-2">
-            <InfoRow label="Location" value={logistics?.location} />
-            <InfoRow label="Custom location" value={logistics?.customLocation} />
+            <InfoRow 
+              label="Location" 
+              value={formatLocation(logistics?.location, logistics?.customLocation)} 
+            />
             <InfoRow label="Consultation type" value={renderConsultation(logistics?.consultationType)} />
             <InfoRow label="Consultation date" value={logistics?.consultationDate} />
             <InfoRow label="Consultation time" value={logistics?.consultationTime} />
