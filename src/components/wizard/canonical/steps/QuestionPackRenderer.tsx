@@ -59,6 +59,16 @@ interface Props {
   onAnswerChange: (microSlug: string, questionId: string, value: unknown) => void;
 }
 
+// Question IDs that are handled by Step 5 (Logistics) and should not appear in Step 4
+// This prevents duplicate timing/urgency questions across wizard steps
+const LOGISTICS_HANDLED_QUESTION_IDS = new Set([
+  'timeline',           // "When would you like X done?"
+  'timing',             // "When do you need X?"
+  'urgency',            // "How urgent is this job?"
+  'preferred_timing',   // "Preferred timing for servicing?"
+  'start_timeline',     // Variant timing question
+]);
+
 export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props) {
   // UI protection: dedupe questions by id or label (memoized for performance)
   const uniqueQuestions = useMemo(() => {
@@ -189,8 +199,10 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
     }
   };
 
-  // Filter questions by conditional visibility
-  const visibleQuestions = uniqueQuestions.filter(shouldShowQuestion);
+  // Filter out logistics-handled questions AND apply conditional visibility
+  const visibleQuestions = uniqueQuestions
+    .filter(q => !LOGISTICS_HANDLED_QUESTION_IDS.has(q.id))
+    .filter(shouldShowQuestion);
 
   return (
     <div className="space-y-4">
