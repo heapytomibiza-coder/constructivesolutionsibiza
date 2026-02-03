@@ -37,10 +37,13 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
 
   return (
     <>
-      <Card data-job-id={job.id} className="overflow-hidden hover:shadow-md transition-shadow">
+      <Card 
+        data-job-id={job.id} 
+        className="overflow-hidden hover:shadow-md transition-all hover:border-accent/30 group"
+      >
         <CardHeader className="space-y-2">
           <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1 flex-1">
+            <div className="space-y-1.5 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 {job.category && <Badge variant="secondary">{job.category}</Badge>}
                 {job.subcategory && <Badge variant="outline">{job.subcategory}</Badge>}
@@ -58,7 +61,9 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
                 )}
               </div>
 
-              <h3 className="text-base font-semibold leading-snug">{job.title}</h3>
+              <h3 className="text-base font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
+                {job.title}
+              </h3>
 
               {job.teaser && (
                 <p className="text-sm text-muted-foreground line-clamp-2">{job.teaser}</p>
@@ -75,7 +80,7 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
               <MapPin className="h-3.5 w-3.5" />
               {job.area ?? job.location?.area ?? "Ibiza"}
             </span>
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-1 font-medium text-foreground">
               <Euro className="h-3.5 w-3.5" />
               {formatBudget(job)}
             </span>

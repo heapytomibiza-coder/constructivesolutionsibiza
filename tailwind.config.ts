@@ -17,6 +17,13 @@ export default {
         display: ['"Playfair Display"', 'Georgia', 'serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      fontWeight: {
+        display: '600',
+        'display-bold': '700',
+      },
+      letterSpacing: {
+        'display': '-0.02em',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -79,6 +86,7 @@ export default {
         'glow': 'var(--shadow-glow)',
         'soft': 'var(--shadow-md)',
         'elevated': 'var(--shadow-lg)',
+        'inset-bottom': 'var(--shadow-inset)',
       },
       keyframes: {
         "accordion-down": {
