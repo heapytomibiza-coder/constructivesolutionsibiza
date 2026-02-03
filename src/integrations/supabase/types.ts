@@ -114,6 +114,7 @@ export type Database = {
       }
       forum_posts: {
         Row: {
+          author_display_name: string | null
           author_id: string
           category_id: string
           content: string
@@ -127,6 +128,7 @@ export type Database = {
           view_count: number | null
         }
         Insert: {
+          author_display_name?: string | null
           author_id: string
           category_id: string
           content: string
@@ -140,6 +142,7 @@ export type Database = {
           view_count?: number | null
         }
         Update: {
+          author_display_name?: string | null
           author_id?: string
           category_id?: string
           content?: string
@@ -164,6 +167,7 @@ export type Database = {
       }
       forum_replies: {
         Row: {
+          author_display_name: string | null
           author_id: string
           content: string
           created_at: string | null
@@ -173,6 +177,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          author_display_name?: string | null
           author_id: string
           content: string
           created_at?: string | null
@@ -182,6 +187,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          author_display_name?: string | null
           author_id?: string
           content?: string
           created_at?: string | null

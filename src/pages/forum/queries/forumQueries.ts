@@ -17,6 +17,7 @@ export interface ForumPost {
   id: string;
   category_id: string;
   author_id: string;
+  author_display_name: string;
   title: string;
   content: string;
   tags: string[];
@@ -31,6 +32,7 @@ export interface ForumReply {
   id: string;
   post_id: string;
   author_id: string;
+  author_display_name: string;
   content: string;
   parent_reply_id: string | null;
   created_at: string;

@@ -99,7 +99,7 @@ const ForumPost = () => {
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
                 <span className="flex items-center gap-1">
                   <User className="h-4 w-4" />
-                  Anonymous
+                  {post.author_display_name}
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
@@ -155,7 +155,7 @@ const ForumPost = () => {
                     <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
                       <span className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        Anonymous
+                        {reply.author_display_name}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
