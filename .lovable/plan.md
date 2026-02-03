@@ -1,285 +1,107 @@
 
-# JobDetailsModal "Construction Spec Sheet" Upgrade
+
+# Modal Layout Fix + Photo Lightbox + Pro Dashboard Upgrade
 
 ## Summary
 
-Transform the Job Details Modal from a basic content display into a professional construction spec sheet that matches the upgraded job cards. This adds visual consistency, improves builder trust, and increases messaging conversion.
+This plan addresses three interconnected improvements:
+1. **Fix modal scroll/footer layout** - Make the fixed action bar reliable across all viewport sizes
+2. **Add photo lightbox** - Allow users to view job photos in a full-screen carousel
+3. **Upgrade Pro Dashboard** - Apply the 2-column layout pattern for a more professional feel
 
 ---
 
-## Current State
+## Part 1: Fix Modal Layout (Header Fixed / Body Scrolls / Footer Fixed)
 
-| Feature | Status |
-|---------|--------|
-| Status badge with semantic colors | Missing (uses default variant) |
-| ASAP badge | Missing |
-| Spec quality badge | Missing |
-| "Your job" owner indicator | Missing |
-| Accent rail on Area card | Missing |
-| Services as bulleted list | Using basic list-disc |
-| Scope section with visual container | Missing |
-| Sticky action bar | Missing |
-| FormattedAnswers styling | Basic cards |
+### Current Issues
+
+| Problem | Root Cause |
+|---------|------------|
+| Footer uses `-mx-6` negative margin hack | DialogContent has `p-6` but modal structure doesn't account for it |
+| Scroll wrapper may not reliably work | Parent needs explicit height + `flex flex-col` for `flex-1` to work |
+| `min-h-0` ineffective | Grid layout was causing issues (already fixed to flex) |
+
+### Solution
+
+Take full control of the layout by using `p-0` on DialogContent and managing padding in each section:
+
+```text
+DialogContent (p-0, h-[85vh], flex flex-col)
+├── Header wrapper (shrink-0, border-b, p-6)
+├── Scroll body (min-h-0, flex-1, overflow-y-auto, px-6 py-5)
+└── Footer wrapper (shrink-0, border-t, px-6 py-4)
+```
+
+### Changes to JobDetailsModal.tsx
+
+1. Update DialogContent className to `h-[85vh] max-h-[85vh] flex-col p-0 sm:max-w-3xl`
+2. Wrap DialogHeader in a fixed header div with `shrink-0 border-b border-border/70 p-6`
+3. Update scroll wrapper to use `min-h-0 flex-1 overflow-y-auto px-6 py-5`
+4. Move footer outside scroll wrapper with `shrink-0 border-t border-border/70 px-6 py-4`
+5. Remove `-mx-6` from JobDetailsActions (no longer needed)
 
 ---
 
-## Implementation Plan
+## Part 2: Add Photo Lightbox
 
-### 1. Add Helper Functions
+### Features
 
-Add three helper functions to match the job card pattern:
+- Click thumbnail to open full-size image
+- Keyboard navigation (Escape to close, Arrow keys for next/prev)
+- Click backdrop to close
+- Counter showing current position (1/6)
+- Next/prev buttons for mouse users
 
-```tsx
-// Format status text (snake_case → Title Case)
-function prettyStatus(s: string | null | undefined): string
+### Implementation
 
-// Map status to badge variant
-function statusVariant(status?: string | null): BadgeVariant
+1. Create `PhotoLightbox` component (same file, minimal dependencies)
+2. Add `lightboxIndex` state to `JobDetailsBodyContent`
+3. Convert photo `<img>` elements to `<button>` with click handler
+4. Render lightbox conditionally when `lightboxIndex !== null`
 
-// Compute spec quality score from JobPack
-function getSpecBadge(jobPack: JobPack): { label: string; variant: "success" | "secondary" | "outline" }
-```
-
-### 2. Upgrade Header Section
-
-Add missing badges in the correct order:
-1. Category (secondary)
-2. Subcategory (outline)
-3. Status (semantic variant + formatted text)
-4. "Your job" for owner (outline)
-5. ASAP (accent, when timing includes "asap")
-6. Spec quality (success/secondary/outline)
-7. JobFlagBadges
-8. Photos (outline)
-
-Improve title typography:
-- Larger font size (`text-xl`)
-- Better leading (`leading-snug`)
-
-### 3. Enhance Summary Strip
-
-Add accent rail to the Area card for visual consistency with job cards:
-- Absolute positioned 1px rail on left edge
-- `bg-accent/40` for subtle presence
-
-### 4. Improve Services List
-
-Replace `list-disc pl-5` with styled bullets matching job cards:
-```tsx
-<li className="flex items-start gap-2">
-  <span className="mt-1 text-primary/60">•</span>
-  <span>{s.title}</span>
-</li>
-```
-
-### 5. Wrap Scope Section in Visual Container
-
-Add a bordered container around FormattedAnswers:
-```tsx
-<div className="rounded-lg border border-border/70 bg-card">
-  <div className="p-4">
-    <FormattedAnswers services={jobPack.services} />
-  </div>
-</div>
-```
-
-### 6. Create Sticky Action Bar
-
-Move actions to a sticky footer that stays visible during scroll:
-```tsx
-<div className="sticky bottom-0 -mx-6 mt-2 border-t border-border/70 bg-background/90 px-6 py-4 backdrop-blur">
-  {/* Action buttons */}
-</div>
-```
-
-### 7. Polish FormattedAnswers Component
-
-Update the component to read like a contractor checklist:
-- Remove Card wrapper in favor of lighter styling
-- Use consistent bullet points for question/answer pairs
-- Improve visual hierarchy between service titles and answers
-
-### 8. Use Muted Separators
-
-Change separators from default to muted:
-```tsx
-<Separator className="bg-border/60" />
-```
-
----
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/pages/jobs/JobDetailsModal.tsx` | All modal body upgrades |
-| `src/pages/jobs/components/FormattedAnswers.tsx` | Styling improvements |
-
----
-
-## Technical Details
-
-### Helper Functions (add before `JobDetailsBody`)
+### PhotoLightbox Component
 
 ```tsx
-function prettyStatus(s: string | null | undefined): string {
-  if (!s) return "";
-  return s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
-}
+function PhotoLightbox({
+  photos,
+  index,
+  onClose,
+}: {
+  photos: string[];
+  index: number;
+  onClose: () => void;
+}) {
+  const [i, setI] = React.useState(index);
 
-function statusVariant(
-  status?: string | null
-): "default" | "warning" | "success" | "secondary" | "outline" {
-  switch (status) {
-    case "open":
-      return "default";
-    case "in_progress":
-      return "warning";
-    case "completed":
-      return "success";
-    case "draft":
-      return "secondary";
-    default:
-      return "outline";
-  }
-}
+  React.useEffect(() => setI(index), [index]);
 
-function getSpecBadge(jobPack: JobPack): {
-  label: string;
-  variant: "success" | "secondary" | "outline";
-} {
-  const score =
-    (jobPack.services?.length ?? 0) +
-    (jobPack.hasPhotos ? 2 : 0) +
-    (jobPack.budget?.display && jobPack.budget.display !== "To be discussed" ? 1 : 0);
+  const hasMany = photos.length > 1;
+  const next = () => setI((x) => (x + 1) % photos.length);
+  const prev = () => setI((x) => (x - 1 + photos.length) % photos.length);
 
-  if (score >= 4) return { label: "Good spec", variant: "success" };
-  if (score >= 2) return { label: "Basic spec", variant: "secondary" };
-  return { label: "Needs detail", variant: "outline" };
-}
-```
+  React.useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (!hasMany) return;
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [hasMany, onClose, photos.length]);
 
-### Updated Header Badge Row
-
-```tsx
-<div className="flex flex-wrap items-center gap-2">
-  {jobPack.category && <Badge variant="secondary">{jobPack.category}</Badge>}
-  {jobPack.subcategory && <Badge variant="outline">{jobPack.subcategory}</Badge>}
-
-  {jobPack.status && (
-    <Badge variant={statusVariant(jobPack.status)}>
-      {prettyStatus(jobPack.status)}
-    </Badge>
-  )}
-
-  {jobPack.isOwner && <Badge variant="outline">Your job</Badge>}
-
-  {isAsap && <Badge variant="accent">ASAP</Badge>}
-
-  <Badge variant={specBadge.variant}>{specBadge.label}</Badge>
-
-  <JobFlagBadges
-    flags={jobPack.flags}
-    inspectionBias={jobPack.inspectionBias}
-    safety={jobPack.safety}
-  />
-
-  {jobPack.hasPhotos && (
-    <Badge variant="outline" className="gap-1">
-      <Camera className="h-3 w-3" /> Photos
-    </Badge>
-  )}
-</div>
-```
-
-### Area Card with Accent Rail
-
-```tsx
-<Card className="relative overflow-hidden">
-  <span
-    aria-hidden="true"
-    className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-accent/40"
-  />
-  <CardContent className="p-4 pl-6">
-    <div className="text-xs text-muted-foreground">Area</div>
-    <div className="text-sm font-semibold">{jobPack.location.display}</div>
-    {jobPack.location.town && (
-      <div className="text-xs text-muted-foreground">{jobPack.location.town}</div>
-    )}
-  </CardContent>
-</Card>
-```
-
-### Sticky Action Bar
-
-```tsx
-<div className="sticky bottom-0 -mx-6 mt-2 border-t border-border/70 bg-background/90 px-6 py-4 backdrop-blur">
-  <div className="flex flex-wrap gap-2">
-    {!user ? (
-      <Button onClick={handleMessage} className="gap-2">
-        <LogIn className="h-4 w-4" />
-        Sign in to message
-      </Button>
-    ) : jobPack.isOwner ? null : (
-      <Button
-        onClick={handleMessage}
-        disabled={isMessaging || sessionLoading}
-        className="gap-2"
-      >
-        {isMessaging ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <MessageSquare className="h-4 w-4" />
-        )}
-        {isMessaging ? "Starting chat..." : "Message"}
-      </Button>
-    )}
-
-    <Button variant="outline" disabled className="gap-2">
-      <Share2 className="h-4 w-4" />
-      Share
-    </Button>
-  </div>
-</div>
-```
-
-### FormattedAnswers Update
-
-```tsx
-export function FormattedAnswers({ services }: FormattedAnswersProps) {
-  if (!services.length) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        No specific answers provided.
-      </div>
-    );
-  }
+  const src = photos[i];
 
   return (
-    <div className="space-y-5">
-      {services.map((service) => (
-        <div key={service.slug} className="space-y-3">
-          <div className="text-sm font-semibold text-foreground">
-            {service.title}
-            {service.isFallback && (
-              <span className="ml-2 text-xs text-muted-foreground font-normal">
-                (loading labels…)
-              </span>
-            )}
-          </div>
-          <ul className="grid gap-2">
-            {service.answers.map((answer) => (
-              <li key={answer.questionId} className="flex items-start gap-3 text-sm">
-                <span className="mt-0.5 text-primary/60">•</span>
-                <div className="flex-1">
-                  <span className="text-muted-foreground">{answer.questionLabel}:</span>{" "}
-                  <span className="font-medium">{answer.displayValue}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      role="dialog"
+      aria-modal="true"
+      onMouseDown={(e) => {
+        if (e.currentTarget === e.target) onClose();
+      }}
+    >
+      {/* Image + controls */}
     </div>
   );
 }
@@ -287,26 +109,223 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
 
 ---
 
+## Part 3: Pro Dashboard Layout Upgrade
+
+### Current State
+
+- Single-column layout
+- Stats cards in 3-column grid
+- Matched jobs list below
+
+### Target Layout
+
+```text
+Desktop (lg:grid-cols-[1.6fr_1fr])
+┌────────────────────────┬─────────────────┐
+│ Header (title + action)│                 │
+├────────────────────────┴─────────────────┤
+│ Stats row (3 columns)                    │
+├────────────────────────┬─────────────────┤
+│ Matched Jobs           │ Quick Actions   │
+│ (scrollable list)      │ Profile Status  │
+│                        │ Availability    │
+└────────────────────────┴─────────────────┘
+
+Mobile (stacked)
+```
+
+### Changes
+
+1. Wrap main content in 2-column grid on desktop
+2. Move matched jobs to left column
+3. Add right column with:
+   - Quick Actions card (Update Services, Edit Profile)
+   - Profile completeness indicator (placeholder for now)
+   - Availability toggle (placeholder for now)
+4. Keep stats row above the grid (spans both columns)
+
+### New Structure
+
+```tsx
+{/* Stats row - full width */}
+<div className="grid gap-4 md:grid-cols-3 mb-6">
+  {/* Existing stat cards */}
+</div>
+
+{/* Two-column layout */}
+<div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+  {/* Left: Matched Jobs */}
+  <Card>...</Card>
+
+  {/* Right: Quick Actions + Status */}
+  <div className="space-y-4">
+    <Card>Quick Actions</Card>
+    <Card>Profile Status</Card>
+  </div>
+</div>
+```
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/pages/jobs/JobDetailsModal.tsx` | Layout fix + lightbox component |
+| `src/pages/dashboard/ProDashboard.tsx` | 2-column layout upgrade |
+
+---
+
+## Technical Details
+
+### JobDetailsModal Layout Fix
+
+```tsx
+<DialogContent className="flex h-[85vh] max-h-[85vh] flex-col p-0 sm:max-w-3xl">
+  {/* Fixed Header */}
+  <div className="shrink-0 border-b border-border/70 p-6">
+    <DialogHeader className="p-0">
+      <DialogTitle>Job Details</DialogTitle>
+    </DialogHeader>
+  </div>
+
+  {/* Scroll Body */}
+  <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+    {isLoading ? ... : isError ? ... : jobPack ? (
+      <JobDetailsBodyContent jobPack={jobPack} />
+    ) : null}
+  </div>
+
+  {/* Fixed Footer */}
+  {jobPack && (
+    <div className="shrink-0 border-t border-border/70 bg-background/90 px-6 py-4 backdrop-blur">
+      <JobDetailsActions jobPack={jobPack} onClose={() => onOpenChange(false)} />
+    </div>
+  )}
+</DialogContent>
+```
+
+### JobDetailsActions Simplified
+
+```tsx
+function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
+  // ... existing logic ...
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {/* Buttons only - no wrapper styling */}
+    </div>
+  );
+}
+```
+
+### Photo Thumbnails as Buttons
+
+```tsx
+<div className="grid grid-cols-3 gap-2">
+  {jobPack.photos.slice(0, 6).map((url, i) => (
+    <button
+      key={url}
+      type="button"
+      className="aspect-square overflow-hidden rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      onClick={() => setLightboxIndex(i)}
+    >
+      <img
+        src={url}
+        alt={`Job photo ${i + 1}`}
+        className="h-full w-full object-cover"
+        loading="lazy"
+      />
+    </button>
+  ))}
+</div>
+```
+
+### Pro Dashboard 2-Column Grid
+
+```tsx
+{/* Stats row - spans full width */}
+<div className="grid gap-4 md:grid-cols-3 mb-6">
+  {/* Existing 3 stat cards */}
+</div>
+
+{/* Main content - 2 columns on desktop */}
+<div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+  {/* Left column: Matched Jobs */}
+  <Card className="border-border/70">
+    {/* Existing matched jobs card content */}
+  </Card>
+
+  {/* Right column: Quick Actions + Status */}
+  <div className="space-y-4">
+    <Card className="border-border/70">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <Button className="w-full justify-start gap-2" asChild>
+          <Link to="/professional/service-setup">
+            <Wrench className="h-4 w-4" />
+            Update Services
+          </Link>
+        </Button>
+        <Button variant="outline" className="w-full justify-start gap-2" asChild>
+          <Link to="/professional/portfolio">
+            <Settings className="h-4 w-4" />
+            Edit Profile
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+
+    <Card className="border-border/70">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium">Profile Status</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-sm text-muted-foreground">
+          Complete your profile to appear in search results.
+        </div>
+        {/* Future: Progress bar + checklist */}
+      </CardContent>
+    </Card>
+  </div>
+</div>
+```
+
+---
+
 ## Expected Outcome
 
 After implementation:
-- Modal header matches job card badge language (ASAP, Spec quality, semantic status)
-- Summary strip has visual emphasis on Area card
-- Services and Scope sections read like a contractor brief
-- Action bar is always visible during scroll (improves conversion)
-- Consistent styling with job cards
+- Modal footer stays visible at all times during scroll
+- Header stays fixed at top of modal
+- Only the body content scrolls
+- No negative margin hacks needed
+- Photos can be viewed full-size with keyboard navigation
+- Pro Dashboard has clear visual hierarchy with 2-column layout
+- Quick actions are always visible on desktop
 
 ---
 
 ## Verification Checklist
 
-1. Status badge shows semantic colors (open=default, in_progress=warning, etc.)
-2. ASAP badge appears with accent color for urgent jobs
-3. Spec quality badge matches job card logic
-4. "Your job" badge appears for job owners
-5. Area card has accent rail
-6. Services list uses styled bullets
-7. Scope section has bordered container
-8. Action bar stays visible when scrolling
-9. Separators use muted color
-10. FormattedAnswers shows inline question: answer format
+### Modal Layout
+1. Footer stays visible while scrolling long content
+2. Only body scrolls (not header or footer)
+3. Works correctly on mobile Safari (address bar collapse)
+4. Keyboard focus doesn't jump unexpectedly
+
+### Photo Lightbox
+1. Click thumbnail opens full-size image
+2. Escape key closes lightbox
+3. Arrow keys navigate between photos
+4. Click backdrop closes lightbox
+5. Counter shows correct position
+
+### Pro Dashboard
+1. 2-column layout on desktop (lg breakpoint)
+2. Stacked layout on mobile
+3. Quick Actions card has working links
+4. Stats row spans full width above columns
+
