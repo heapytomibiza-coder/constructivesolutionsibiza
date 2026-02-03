@@ -312,9 +312,11 @@ const ProDashboard = () => {
                     <span className="font-medium">{professionalProfile?.isPubliclyListed ? '✓' : '—'}</span>
                   </div>
                 </div>
-                <p className="mt-4 text-xs text-muted-foreground">
-                  Add services + complete your profile to appear in search results.
-                </p>
+                {(stats.servicesCount === 0 || !professionalProfile?.isPubliclyListed) && (
+                  <p className="mt-4 text-xs text-muted-foreground">
+                    Add services + complete your profile to appear in search results.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
