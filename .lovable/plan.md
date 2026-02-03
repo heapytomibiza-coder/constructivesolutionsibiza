@@ -1,228 +1,256 @@
 
+# Visual Design Refresh: Construction-Grade Professional Look
 
-# V2 MVP: Phase 1 Completion & Metadata Normalization Plan
+## Current State Analysis
 
-## Executive Summary
+The existing design system uses a "Mediterranean luxury" theme with:
+- **Colors**: Ocean blues, warm sand, golden accents (more resort-like than construction)
+- **Typography**: Playfair Display (serif) + Inter (sans) - good pairing but underutilized
+- **Imagery**: No real photos - just placeholder.svg in `/public`
+- **Cards**: Very light, minimal shadow/border presence
+- **Overall feel**: SaaS-generic, polite but bland - doesn't convey "trusted trades"
 
-**Reality check**: The "missing packs" were a metadata classification issue, not a coverage gap. All 5 priority categories (Electrical, Plumbing, HVAC, Kitchen & Bathroom, Construction) have **100% pack coverage** (143/143 micros covered).
+## Target Design Direction
 
-The remaining work is:
-1. Normalize metadata on the 100 legacy packs (analytics cleanup)
-2. Test Forum end-to-end
-3. Enable leaked password protection
-4. Implement Rules Engine UI integration
+**Vibe**: "Trusted local builders, modern system" - solid, human, confident, grounded in real work.
+
+**NOT**: Corporate consultancy, startup SaaS, DIY marketplace chaos
 
 ---
 
-## Task 1: Normalize Pack Metadata (Data Cleanup)
+## Phase 1: Core Design System Overhaul
 
-### Problem
-100 packs have `NULL` metadata, making analytics queries by `category_contract` unreliable.
+### 1.1 Color Palette Shift
 
-### Solution
-Batch update packs to inherit `category_contract` from their parent category via the taxonomy join.
+**Current → New**
 
-### SQL Migration
+```text
+LIGHT MODE
+--------------------------------------------
+Background:   #f8fafb (cool white)    → #f7f5f3 (warm concrete)
+Foreground:   #1a1f2e (near black)    → #2d2a26 (warm charcoal)
+Primary:      hsl(205 80% 45%) blue   → hsl(210 45% 28%) steel blue
+Accent:       hsl(38 70% 55%) gold    → hsl(25 70% 50%) clay/terracotta
+Muted:        hsl(210 15% 93%)        → hsl(35 15% 90%) warm stone
+Card:         pure white              → #fefdfb (cream-white)
+--------------------------------------------
 
-```sql
--- Normalize category_contract for all packs missing it
-WITH pack_categories AS (
-  SELECT 
-    qp.id AS pack_id,
-    c.slug AS category_slug
-  FROM question_packs qp
-  JOIN service_micro_categories m ON m.slug = qp.micro_slug AND m.is_active = true
-  JOIN service_subcategories s ON s.id = m.subcategory_id
-  JOIN service_categories c ON c.id = s.category_id
-  WHERE qp.is_active = true
-    AND (qp.metadata->>'category_contract' IS NULL 
-         OR qp.metadata->>'category_contract' = '')
-)
-UPDATE question_packs qp
-SET metadata = jsonb_set(
-  COALESCE(qp.metadata, '{}'::jsonb),
-  '{category_contract}',
-  to_jsonb(pc.category_slug)
-)
-FROM pack_categories pc
-WHERE qp.id = pc.pack_id;
+DARK MODE  
+--------------------------------------------
+Background:   #14181e               → #1c1a17 (warm dark)
+Primary:      hsl(205 75% 50%)     → hsl(210 50% 55%) muted steel
+--------------------------------------------
 ```
 
-### Acceptance Criteria
-- All 157 packs have `metadata.category_contract` populated
-- Query `SELECT metadata->>'category_contract', COUNT(*) FROM question_packs GROUP BY 1` shows no `(null)` rows
+**Files to modify**:
+- `src/index.css` - CSS variables for both light/dark modes
+
+### 1.2 Typography Enhancement
+
+Keep Playfair Display + Inter, but add weight and confidence:
+
+**Changes**:
+- Headings: Increase font-weight to 600-700 (currently 400-500)
+- Add letter-spacing: -0.02em for display text (tighter = more solid)
+- Body text: Slightly larger base (16px) with 1.6 line-height
+- Add a new utility class `.text-display-lg` for hero headlines
+
+**Files to modify**:
+- `src/index.css` - base layer typography rules
+- `tailwind.config.ts` - add `fontWeight` extensions
+
+### 1.3 Component Visual Weight
+
+**Cards** - more presence, less "floating":
+- Increase border opacity (currently barely visible)
+- Add subtle inset shadow for "grounded" feel
+- Slightly reduce border-radius (0.5rem instead of 0.75rem)
+
+**Buttons** - more confident:
+- Primary: deeper color, subtle shadow on hover
+- Larger touch targets on mobile (h-12 instead of h-10)
+
+**Badges** - trade-appropriate:
+- Less rounded (rounded-sm instead of rounded-full for some)
+- Stronger border for outline variants
+
+**Files to modify**:
+- `src/components/ui/card.tsx`
+- `src/components/ui/button.tsx`
+- `src/components/ui/badge.tsx`
 
 ---
 
-## Task 2: Forum End-to-End Test
+## Phase 2: Page-by-Page Refresh
 
-### Test Flow
-1. Navigate to `/forum`
-2. Verify 4 categories display with icons
-3. Click into "Recommendations" category
-4. Create a new post (requires auth)
-5. View the created post
-6. Reply to the post
-7. Verify `reply_count` increments
+### 2.1 Homepage (`src/pages/Index.tsx`)
 
-### Verification Query
-```sql
-SELECT
-  (SELECT COUNT(*) FROM forum_posts) AS posts,
-  (SELECT COUNT(*) FROM forum_replies) AS replies,
-  (SELECT COUNT(*) FROM forum_posts WHERE reply_count > 0) AS posts_with_replies;
-```
+**Hero Section**:
+- Replace gradient background with a subtle construction texture/pattern OR photo
+- Stronger headline hierarchy
+- Add a "hero image" slot (placeholder initially, real photo later)
+- Trust badge row: "Verified trades | Same-day response | Ibiza-based"
 
-### Acceptance Criteria
-- Authenticated user can create post
-- Another user can reply
-- `author_display_name` shows correctly (not "Anonymous" for logged-in users)
-- `reply_count` updates automatically
+**Categories Grid**:
+- Replace circular icon containers with square/rounded-square (more "tool-like")
+- Add subtle hover state with left border accent (like a tab highlight)
+
+**Trust Signals**:
+- Increase icon size and prominence
+- Add a subtle horizontal rule between each
+
+**CTA Section**:
+- Use terracotta/clay gradient instead of ocean blue
+- More confident copy
+
+### 2.2 Auth Page (`src/pages/auth/Auth.tsx`)
+
+**Changes**:
+- Add blurred background image (construction site silhouette or tools pattern)
+- Reassurance line under logo: "Used by verified trades across Ibiza"
+- Role choice buttons: "I'm hiring" / "I'm a professional" (clearer)
+- Remove decorative gradient, use warm stone background
+
+### 2.3 Job Board (`src/pages/jobs/JobBoardPage.tsx`, `JobListingCard.tsx`)
+
+**Job Cards**:
+- Stronger left border accent on hover
+- Status badges with more contrast
+- Budget displayed more prominently
+- Urgency indicators that feel useful, not spammy
+
+**Hero Section** (`JobBoardHeroSection.tsx`):
+- Replace gradient with solid warm stone
+- Larger, bolder headline
+- Filter toggles with more visual weight
+
+### 2.4 Job Wizard (`CanonicalJobWizard.tsx`)
+
+**Changes**:
+- Progress bar: thicker (h-3), with segment markers
+- Step headers: stronger typography, helper text below
+- Question cards: more padding, clear dividers between questions
+- "You're building a proper brief" reassurance microcopy
+
+### 2.5 Messages (`src/pages/messages/Messages.tsx`)
+
+**Changes**:
+- Conversation list: stronger selected state (solid background, not just border)
+- Thread: WhatsApp-like message bubbles (more familiar)
+- Sender differentiation: left/right alignment, different background colors
+
+### 2.6 Client/Pro Dashboard (`ClientDashboard.tsx`, `ProDashboard.tsx`)
+
+**Changes**:
+- Stats cards: larger numbers, subtle icon backgrounds
+- Job list: stronger hover states, clear action buttons
+- More "workbench" feel - less "admin portal"
+
+### 2.7 Navigation (`PublicNav.tsx`)
+
+**Changes**:
+- Logo mark: square with subtle depth (shadow or gradient)
+- Nav links: underline on hover (not color change only)
+- CTA button: terracotta/clay accent color
 
 ---
 
-## Task 3: Enable Leaked Password Protection
+## Phase 3: Imagery & Assets
 
-### Location
-Lovable Cloud → Auth Settings → Security → Password Protection
+### 3.1 Placeholder Image Strategy
 
-### Action
-Toggle "Leaked Password Protection" to **Enabled**
+Create a set of CSS-based placeholder patterns (no external images needed):
+- Concrete texture (CSS gradient noise)
+- Tool silhouettes (inline SVG)
+- Blueprint grid (CSS pattern)
 
-### Acceptance Criteria
-- Security linter shows **0 warnings**
+### 3.2 Real Photo Guidance (for later upload)
+
+Document the photo requirements:
+- Real people working (not posed)
+- Hands, tools, mid-task moments
+- Natural light, slight grit is good
+- Ibiza-relevant context (Mediterranean architecture, stone walls)
 
 ---
 
-## Task 4: Rules Engine UI Integration
+## Phase 4: Utility Classes & Components
 
-### Objective
-Evaluate `metadata.rules` from question packs when a job is posted, persist computed flags, and display inspection/safety badges on job cards.
+### 4.1 New CSS Utilities
 
-### Implementation Steps
+Add to `src/index.css`:
 
-#### 4.1 Create Rules Evaluator Utility
+```css
+.bg-texture-concrete {
+  /* Subtle noise pattern */
+}
 
-**File**: `src/lib/evaluatePackRules.ts`
+.border-accent-left {
+  border-left: 3px solid hsl(var(--accent));
+}
 
-```typescript
-export type PackRule = {
-  id: string;
-  when: { questionId: string; op: "eq" | "in"; value: unknown };
-  add_flags: string[];
-  set?: { 
-    inspection_bias?: "low" | "medium" | "high" | "mandatory"; 
-    safety?: "green" | "amber" | "red" 
-  };
-};
-
-export type RuleEvaluation = {
-  flags: string[];
-  inspection_bias?: string;
-  safety?: string;
-};
-
-export function evaluateRules(
-  answers: Record<string, unknown>, 
-  rules: PackRule[]
-): RuleEvaluation {
-  const flags = new Set<string>();
-  let inspection_bias: string | undefined;
-  let safety: string | undefined;
-
-  for (const rule of rules ?? []) {
-    const value = answers[rule.when.questionId];
-    const match =
-      (rule.when.op === "eq" && value === rule.when.value) ||
-      (rule.when.op === "in" && 
-       Array.isArray(rule.when.value) && 
-       rule.when.value.includes(value));
-
-    if (match) {
-      rule.add_flags?.forEach(f => flags.add(f));
-      if (rule.set?.inspection_bias) inspection_bias = rule.set.inspection_bias;
-      if (rule.set?.safety) safety = rule.set.safety;
-    }
-  }
-
-  return { 
-    flags: Array.from(flags), 
-    inspection_bias, 
-    safety 
-  };
+.card-grounded {
+  box-shadow: inset 0 -2px 0 hsl(var(--border));
 }
 ```
 
-#### 4.2 Add Database Columns for Computed Flags
+### 4.2 Consistent Pattern Components
 
-```sql
--- Add columns to jobs table for computed flags
-ALTER TABLE jobs ADD COLUMN IF NOT EXISTS flags TEXT[] DEFAULT '{}';
-ALTER TABLE jobs ADD COLUMN IF NOT EXISTS computed_inspection_bias TEXT;
-ALTER TABLE jobs ADD COLUMN IF NOT EXISTS computed_safety TEXT;
-
--- Update jobs_board view to include flags
--- (jobs_board is a view, so update its definition)
-```
-
-#### 4.3 Integrate into Job Wizard Submit
-
-In `buildJobPayload.ts` or the wizard's submit handler:
-1. Fetch question pack for the selected micro
-2. Extract `metadata.rules`
-3. Call `evaluateRules(answers, rules)`
-4. Merge results into job payload before insert
-
-#### 4.4 Display Badges on Job Cards
-
-**Files to modify**:
-- `src/pages/jobs/JobListingCard.tsx`
-- `src/pages/jobs/JobDetailsModal.tsx`
-
-**Badge logic**:
-- If `inspection_bias === "mandatory"` or `inspection_bias === "high"` → Show "Quote subject to inspection" badge
-- If `safety === "red"` → Show "Emergency" badge with red styling
-- If `flags.includes("EMERGENCY")` → Show emergency indicator
-
-### Acceptance Criteria
-- Electrical/Plumbing jobs with rule-triggering answers show appropriate badges
-- Same answers produce same flags deterministically
-- Pros see inspection warnings before engaging
+Create or refine:
+- `HeroSection` - reusable hero block
+- `StatCard` - dashboard stat display
+- `ServiceCard` - category/service display
 
 ---
 
-## Updated Launch Checklist
+## Implementation Order
 
-### Completed
-- [x] Forum tables + RLS
-- [x] Forum UI (4 routes)
-- [x] Forum categories seeded (4)
-- [x] Electrical: 32/32 packs (100%)
-- [x] Plumbing: 10/10 packs (100%)
-- [x] HVAC: 36/36 packs (100%)
-- [x] Kitchen & Bathroom: 15/15 packs (100%)
-- [x] Construction: 50/50 packs (100%)
-- [x] Security definer view warnings resolved
-
-### This Session
-- [x] Task 1: Normalize pack metadata
-- [ ] Task 2: Forum E2E test
-- [ ] Task 3: Enable leaked password protection (manual dashboard action)
-- [x] Task 4: Rules engine integration
-
-### Post-Implementation
-- [ ] End-to-end test: Post Electrical job with rule trigger
-- [ ] End-to-end test: Pro matching flow
-- [ ] WhatsApp share (nice-to-have)
+1. **Core CSS Variables** (index.css) - color palette shift
+2. **Tailwind Config** - typography extensions
+3. **UI Components** (button, card, badge) - visual weight
+4. **Homepage** - hero + categories refresh
+5. **Auth Page** - background + reassurance copy
+6. **Navigation** - logo + CTA styling
+7. **Job Board** - cards + hero section
+8. **Wizard** - progress bar + step headers
+9. **Dashboard** - stats + job list
+10. **Messages** - thread styling
 
 ---
 
-## Recommended Execution Order
+## Technical Summary
 
-1. **Run metadata normalization migration** (Task 1) - 5 minutes
-2. **Enable leaked password protection** (Task 3) - 2 minutes  
-3. **Test Forum E2E** (Task 2) - 15 minutes
-4. **Implement Rules Engine** (Task 4) - 1-2 hours
+### Files to Create
+- None (all changes are modifications)
 
-After Task 4, the platform is **MVP launch-ready**.
+### Files to Modify
+- `src/index.css` - color variables, typography, utilities
+- `tailwind.config.ts` - font weights, new utilities
+- `src/components/ui/button.tsx` - sizing, shadows
+- `src/components/ui/card.tsx` - border, shadow treatment
+- `src/components/ui/badge.tsx` - less rounded variants
+- `src/pages/Index.tsx` - hero, categories, trust signals
+- `src/pages/auth/Auth.tsx` - background, reassurance copy
+- `src/components/layout/PublicNav.tsx` - logo, CTA styling
+- `src/pages/jobs/JobBoardPage.tsx` - page header
+- `src/pages/jobs/JobListingCard.tsx` - card styling
+- `src/pages/jobs/components/JobBoardHeroSection.tsx` - hero styling
+- `src/components/wizard/canonical/CanonicalJobWizard.tsx` - progress bar, step styling
+- `src/pages/dashboard/ClientDashboard.tsx` - stats, job list
+- `src/pages/messages/Messages.tsx` - thread styling
 
+### Dependencies
+- No new packages required
+- All changes use existing Tailwind + CSS
+
+---
+
+## Expected Outcome
+
+After implementation, the platform will feel:
+- **Solid**: Grounded colors, weighted typography, substantial components
+- **Professional**: Clean but not sterile, confident not flashy
+- **Trade-appropriate**: Warm materials palette (stone, terracotta, steel blue)
+- **Trustworthy**: Real-work aesthetic that builders and clients recognize
+
+The overall impression shifts from "generic SaaS" to "serious construction network with a modern digital layer."
