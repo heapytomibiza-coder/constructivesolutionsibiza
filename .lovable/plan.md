@@ -1,286 +1,563 @@
 
-# Fix Job Details Display - Proper Answer Rendering
+# Phase 1 Completion: Modal Refactor + Architecture Guards
 
-## Problems Identified
+## Current State Assessment
 
-### 1. Double-Nested Data Structure
-The actual answers are stored at `microAnswers.microAnswers[slug]` but the component reads `answers.microAnswers` directly, causing it to display:
-- `_pack_slug: full-house-rewiring`
-- `_pack_source: strong`
-- `microAnswers: [object Object]` (the actual answers!)
+The architecture foundation is solid. The following are already implemented:
 
-### 2. Raw Values Instead of Human-Readable Labels
-Answers show internal values like:
-- `property_size: 4plus` instead of "4+ bedrooms / large property"
-- `occupied: yes` instead of "Yes – people will be living there"
-- `finishes: separate_trades` instead of "No – I will use separate trades"
+| Component | Status | Location |
+|-----------|--------|----------|
+| `buildJobPack()` read-model | Done | `src/pages/jobs/lib/buildJobPack.ts` |
+| `ResolvedAnswer` with rawValue/displayValue | Done | `src/pages/jobs/lib/buildJobPack.ts` |
+| Fallback mode for packs loading | Done | `buildFallbackServicePacks()` |
+| Deterministic answer ordering | Done | Sorts by `questionId` |
+| `useQuestionPacks` query | Done | `src/pages/jobs/queries/questionPacks.query.ts` |
+| Query/Action separation | Done | `queries/` and `actions/` folders |
+| `UserError` helper | Done | `src/shared/lib/userError.ts` |
+| `CONTRIBUTING.md` rules | Done | Project root |
 
-### 3. Question IDs Instead of Labels
-Displays `property_size`, `floors`, `occupied` instead of the actual question text like:
-- "Roughly what size is the property?"
-- "How many floors does the property have?"
-- "Will the property be occupied during the rewiring?"
+## Remaining Tasks (Priority Order)
 
-### 4. Location Shows Internal Codes
-Displays `san_jose` instead of "San José"
+### Task 1: Refactor JobDetailsModal to Use JobPack
 
-### 5. Metadata Leaking Into Display
-Pack tracking fields (`_pack_source`, `_pack_slug`, `_pack_missing`) are being shown to users
+**Problem**: Modal still renders raw `JobDetailsRow` and mixes formatting logic in the component.
 
----
+**Solution**: Wire up `buildJobPack()` + `useQuestionPacks()` so UI only sees the display model.
 
-## Solution Architecture
+**File**: `src/pages/jobs/JobDetailsModal.tsx`
 
-### Approach: Fetch Question Packs and Resolve Labels
-
-Since job details needs to display human-readable answers, we need to:
-1. Extract the correct data from the nested structure
-2. Fetch the relevant question packs based on the micro slugs
-3. Build lookup maps for question labels and option labels
-4. Render formatted answers with proper labels
-
----
-
-## Implementation Plan
-
-### Step 1: Create Answer Resolver Utility
-
-Create a new utility file to handle answer resolution:
-
-**File:** `src/pages/jobs/lib/answerResolver.ts`
+Changes:
+- Import `buildJobPack` and `useQuestionPacks`
+- Extract `microSlugs` from row data
+- Fetch question packs using the query hook
+- Build `JobPack` via `useMemo`
+- Replace direct row field access with `jobPack.*` properties
 
 ```typescript
-// Types for question pack structure
-interface QuestionOption {
-  value: string;
-  label: string;
-}
+// New pattern in JobDetailsBody
+const microSlugs = React.useMemo(() => {
+  const answers = safeAnswers(job.answers);
+  const microAnswers = extractMicroAnswers(answers?.microAnswers as Record<string, unknown> | null);
+  return Object.keys(microAnswers);
+}, [job.answers]);
 
-interface QuestionDef {
-  id: string;
-  label: string;
-  type: string;
-  options?: QuestionOption[];
-}
+const { data: packs } = useQuestionPacks(microSlugs, true);
 
-interface QuestionPack {
-  micro_slug: string;
-  title: string;
-  questions: QuestionDef[];
-}
+const jobPack = React.useMemo(() => {
+  return buildJobPack(job, packs ?? []);
+}, [job, packs]);
 
-// Build lookup maps from question packs
-export function buildAnswerLookups(packs: QuestionPack[]) {
-  const questionLabels: Map<string, Map<string, string>> = new Map();
-  const optionLabels: Map<string, Map<string, Map<string, string>>> = new Map();
-  
-  for (const pack of packs) {
-    const qMap = new Map<string, string>();
-    const oMap = new Map<string, Map<string, string>>();
-    
-    for (const q of pack.questions) {
-      qMap.set(q.id, q.label);
-      
-      if (q.options) {
-        const optMap = new Map<string, string>();
-        for (const opt of q.options) {
-          optMap.set(opt.value, opt.label);
-        }
-        oMap.set(q.id, optMap);
-      }
-    }
-    
-    questionLabels.set(pack.micro_slug, qMap);
-    optionLabels.set(pack.micro_slug, oMap);
-  }
-  
-  return { questionLabels, optionLabels };
-}
-
-// Resolve a single answer value to its label
-export function resolveAnswerValue(
-  value: unknown,
-  questionId: string,
-  optionLabels: Map<string, string> | undefined
-): string {
-  if (value === null || value === undefined) return "—";
-  
-  // Handle arrays (checkbox answers)
-  if (Array.isArray(value)) {
-    return value.map(v => optionLabels?.get(String(v)) ?? String(v)).join(", ");
-  }
-  
-  // Handle single values
-  const strValue = String(value);
-  return optionLabels?.get(strValue) ?? strValue;
-}
+// Then render using jobPack.location.display, jobPack.budget.display, etc.
 ```
 
-### Step 2: Create Formatted Answers Component
+### Task 2: Update FormattedAnswers to Use Query Hook
 
-**File:** `src/pages/jobs/components/FormattedAnswers.tsx`
+**Problem**: `FormattedAnswers` has an inline Supabase query instead of using `useQuestionPacks` from the queries module.
 
+**Solution**: Replace inline query with imported hook.
+
+**File**: `src/pages/jobs/components/FormattedAnswers.tsx`
+
+Changes:
+- Remove inline `useQuery` with Supabase call
+- Import `useQuestionPacks` from `../queries`
+- Pass `microSlugs` to the hook
+
+This eliminates the Supabase import from the component (Phase 1 goal: no Supabase in components).
+
+### Task 3: Add Zod Validators for Jobs Domain
+
+**Purpose**: Create a boundary between raw DB data and domain types. Catch schema mismatches early.
+
+**File**: `src/pages/jobs/validators.ts`
+
+```text
+src/pages/jobs/
+  validators.ts   # NEW
+```
+
+Validators to create:
+- `JobLocationSchema` - validates location object shape
+- `JobAnswersSchema` - validates answers structure  
+- `JobsBoardRowSchema` - validates board list items
+- `JobDetailsRowSchema` - validates detail view data
+- Helper functions: `parseJobDetails()`, `parseJobsBoardList()`
+
+Usage pattern (optional for Phase 1, recommended for Phase 2):
 ```typescript
-// Component that fetches packs and renders formatted answers
-export function FormattedAnswers({ 
-  microAnswers,
-  microSlugs 
-}: {
-  microAnswers: Record<string, Record<string, unknown>>;
-  microSlugs: string[];
-}) {
-  // Fetch question packs for the relevant micro slugs
-  const { data: packs } = useQuery({
-    queryKey: ["question_packs_for_display", microSlugs],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("question_packs")
-        .select("micro_slug, title, questions")
-        .in("micro_slug", microSlugs)
-        .eq("is_active", true);
-      return data ?? [];
-    },
-    enabled: microSlugs.length > 0,
-  });
-
-  // Build lookups and render formatted answers
-  // ...
-}
+// In query function
+const { data, error } = await supabase.from("job_details")...
+return parseJobDetails(data); // Validates + types in one step
 ```
 
-### Step 3: Update JobDetailsModal to Use Correct Data Structure
+### Task 4: Add ESLint Architecture Guard
 
-**File:** `src/pages/jobs/JobDetailsModal.tsx`
+**Purpose**: Prevent Supabase imports from leaking into UI components.
 
-Changes needed:
-1. Extract actual answers from `microAnswers.microAnswers` (not `microAnswers` directly)
-2. Filter out metadata fields (`_pack_*`)
-3. Use the new `FormattedAnswers` component
-4. Improve location display using human-readable labels
+**File**: `eslint.config.js`
 
-```typescript
-// Extract the actual nested answers, filtering out metadata
-function extractMicroAnswers(raw: Record<string, unknown>): Record<string, Record<string, unknown>> {
-  // Handle double-nested structure
-  if (raw.microAnswers && typeof raw.microAnswers === 'object') {
-    const nested = raw.microAnswers as Record<string, unknown>;
-    // Filter out _pack_* metadata
-    return Object.fromEntries(
-      Object.entries(nested).filter(([key]) => !key.startsWith('_'))
-    ) as Record<string, Record<string, unknown>>;
-  }
-  
-  // Handle flat structure (legacy or fixed)
-  return Object.fromEntries(
-    Object.entries(raw).filter(([key]) => !key.startsWith('_') && key !== 'microAnswers')
-  ) as Record<string, Record<string, unknown>>;
-}
+The project uses the flat ESLint config format. Add `eslint-plugin-import` and configure restricted paths:
+
+```javascript
+// Target: src/pages/jobs/components/*
+// Block: imports from "@/integrations/supabase"
+// Message: "Use queries/ or actions/ instead"
 ```
 
-### Step 4: Improve Location Display
+Note: This requires installing `eslint-plugin-import` as a dev dependency.
 
-Add location preset mapping for human-readable display:
+### Task 5: E2E Test Setup with Playwright (Optional - Phase 2)
 
-```typescript
-const LOCATION_LABELS: Record<string, string> = {
-  ibiza_town: "Ibiza Town",
-  san_antonio: "San Antonio",
-  santa_eulalia: "Santa Eulalia",
-  san_jose: "San José",
-  other: "Other",
-};
+**Purpose**: Verify the refactored flows work end-to-end.
 
-function formatLocation(logistics: JobAnswers['logistics']): string {
-  const preset = logistics.location;
-  if (!preset) return "Not specified";
-  if (preset === "other") return logistics.customLocation || "Custom location";
-  return LOCATION_LABELS[preset] || preset;
-}
+**Files to create**:
+```text
+e2e/
+  jobs.spec.ts         # Jobs page + modal tests
+  global-setup.ts      # Seeding if needed
+playwright.config.ts   # Config
 ```
+
+**Key tests**:
+- `/jobs` loads and displays job cards
+- Clicking a job card opens the modal
+- Modal displays location/budget/timing correctly
+- Message button behavior (logged out vs logged in)
 
 ---
 
-## Visual Mockup: Before vs After
+## Implementation Sequence
 
-### Before (Current - Broken)
-```
-Scope & Specifications
+```text
+Step 1: Update FormattedAnswers
+        - Remove inline Supabase query
+        - Use useQuestionPacks from queries/
+        
+        Validates: Supabase removed from components
 
-_pack_slug
-full-house-rewiring
+Step 2: Refactor JobDetailsModal
+        - Add useQuestionPacks hook call
+        - Build JobPack in useMemo
+        - Update rendering to use jobPack fields
+        
+        Validates: UI renders from display model only
 
-_pack_source
-strong
+Step 3: Add validators.ts
+        - Create Zod schemas
+        - Export parse functions
+        
+        Validates: Boundary protection established
 
-microAnswers
-full-house-rewiring:[object Object]
-new-circuits-extensions-refits:[object Object]
-```
+Step 4: Add ESLint guard (if eslint-plugin-import available)
+        - Configure restricted paths
+        
+        Validates: Architecture enforced at lint time
 
-### After (Fixed)
-```
-Scope & Specifications
-
-Full house rewiring
-
-  Roughly what size is the property?
-  4+ bedrooms / large property
-
-  How many floors does the property have?
-  2 floors
-
-  Will the property be occupied during the rewiring?
-  Yes – people will be living there
-
-  Do you want to add more sockets, switches or lighting points?
-  Keep similar to existing
-
-  Do you expect the electrician to make good plaster/decoration afterwards?
-  No – I will use separate trades
-
-New circuits for extensions & refits
-
-  What type of property is it?
-  Villa
-
-  Is the property currently occupied?
-  Yes – fully occupied
+Step 5: (Optional) Playwright setup
+        - Basic test that opens modal
+        
+        Validates: End-to-end flow works
 ```
 
----
+## Verification Checklist
 
-## Files to Create/Modify
-
-| File | Action | Description |
-|------|--------|-------------|
-| `src/pages/jobs/lib/answerResolver.ts` | Create | Utility for building lookups and resolving answer values |
-| `src/pages/jobs/components/FormattedAnswers.tsx` | Create | Component that fetches packs and renders formatted answers |
-| `src/pages/jobs/components/index.ts` | Modify | Export new component |
-| `src/pages/jobs/JobDetailsModal.tsx` | Modify | Use new components, fix data extraction, improve layout |
-
----
-
-## Technical Summary
-
-| Aspect | Details |
-|--------|---------|
-| **Data extraction** | Navigate `microAnswers.microAnswers[slug]` correctly |
-| **Metadata filtering** | Exclude `_pack_*` fields from display |
-| **Label resolution** | Fetch question packs to get human-readable labels |
-| **Option resolution** | Map internal values to display labels |
-| **Location formatting** | Map preset codes to readable names |
-| **Layout improvement** | Group by service with clear visual hierarchy |
-
----
-
-## QA Checklist
+After implementation, verify:
 
 | Test | Expected Result |
 |------|-----------------|
-| View job with multiple micro-services | Each service shows as separate section with title |
-| Answer values | Show human-readable labels, not internal codes |
-| Question labels | Show actual questions, not field IDs |
-| Location | Shows "San José" not "san_jose" |
-| No metadata visible | `_pack_source`, `_pack_slug` not shown to users |
-| Empty answers | Shows "No specific answers provided" gracefully |
-| Checkbox answers | Shows comma-separated labels |
+| `/jobs` loads | Board displays correctly |
+| Click job card | Modal opens without errors |
+| Modal location card | Shows `jobPack.location.display` value |
+| Modal budget card | Shows `jobPack.budget.display` value |
+| Modal timing card | Shows `jobPack.timing.display` value |
+| Scope section | Shows resolved answer labels (or fallback while loading) |
+| Message button (logged out) | Redirects to auth |
+| Message button (logged in) | Creates conversation, navigates |
+| DevTools Console | No errors |
+| DevTools Network | job_details query + question_packs query (when needed) |
+| `grep "from.*supabase" src/pages/jobs/components/` | No matches |
+
+## Risk Assessment
+
+| Risk | Mitigation |
+|------|------------|
+| Modal flickers while packs load | Fallback mode already handles this |
+| Cache misses for packs | Stable sorted key prevents this |
+| Type errors during refactor | JobPack interface already defines all fields |
+| Breaking existing UI | Incremental changes, test each step |
+
+## Technical Notes
+
+### Why buildJobPack in useMemo?
+- Row data is stable (from query cache)
+- Packs data is stable (from query cache)
+- Recompute only when dependencies change
+- Keeps derived state logic outside render path
+
+### Why FormattedAnswers refactor matters
+- Removes last Supabase import from `components/` folder
+- Enables ESLint guard to work properly
+- Consistent pattern across all components
+
+
+This is a really clean Phase 1 “finish line” doc. You’ve already done the hard part (read-model + packs resolver + stable keys). What’s left is mostly **wiring** + **guardrails**.
+
+Below is **copy-pasteable scaffolding** for Tasks 1–4 (Modal refactor, FormattedAnswers refactor, Zod validators, ESLint flat config guard). I’m writing this to fit your current structure (`src/pages/jobs/...`, TanStack Query, Supabase, flat ESLint config).
+
+---
+
+# Task 1 — Refactor `JobDetailsModal` to render `JobPack` only
+
+### ✅ Goal
+
+`JobDetailsModal` should never render `JobDetailsRow` directly. It should:
+
+1. Fetch row via `useJobDetails`
+2. Extract micro slugs
+3. Fetch packs via `useQuestionPacks`
+4. Build `jobPack` via `buildJobPack(row, packs)`
+5. Render from `jobPack.*`
+
+### Drop-in pattern (core wiring)
+
+```tsx
+// src/pages/jobs/JobDetailsModal.tsx
+import * as React from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
+import { useSession } from "@/contexts/SessionContext";
+import { isUserError } from "@/shared/lib/userError";
+
+import { useJobDetails } from "./queries";
+import { useQuestionPacks } from "./queries/questionPacks.query"; // or "./queries" barrel
+import { startConversation } from "./actions";
+
+import { buildJobPack } from "./lib/buildJobPack";
+import { safeAnswers, extractMicroAnswers } from "./lib/answerResolver"; // if these exist there
+
+// UI imports omitted for brevity...
+
+export function JobDetailsModal({
+  jobId,
+  open,
+  onOpenChange,
+}: {
+  jobId: string | null;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const navigate = useNavigate();
+  const { user } = useSession();
+
+  const { data: row, isLoading, isError, error, refetch } = useJobDetails(jobId, open);
+
+  // 1) extract micro slugs from the row
+  const microSlugs = React.useMemo(() => {
+    if (!row) return [];
+    const answers = safeAnswers(row.answers);
+    const microAnswers = extractMicroAnswers(
+      (answers?.microAnswers ?? null) as Record<string, Record<string, unknown>> | null
+    );
+    return Object.keys(microAnswers);
+  }, [row]);
+
+  // 2) fetch packs (enabled only when modal open + row present)
+  const { data: packs } = useQuestionPacks(microSlugs, open && !!row);
+
+  // 3) build read-model (JobPack)
+  const jobPack = React.useMemo(() => {
+    if (!row) return null;
+    return buildJobPack(row, packs ?? []);
+  }, [row, packs]);
+
+  const onClose = () => onOpenChange(false);
+
+  const handleMessage = async () => {
+    if (!jobPack) return;
+
+    if (!user) {
+      onClose();
+      navigate(`/auth?returnTo=/jobs`);
+      return;
+    }
+
+    try {
+      const convId = await startConversation(jobPack.id, user.id);
+      onClose();
+      navigate(`/messages/${convId}`);
+    } catch (err) {
+      if (isUserError(err)) toast.error(err.message);
+      else {
+        toast.error("Failed to start conversation");
+        console.error("Message error:", err);
+      }
+    }
+  };
+
+  // ---- render states ----
+  if (!open) return null;
+
+  if (isLoading) {
+    return (
+      <YourDialog open={open} onOpenChange={onOpenChange}>
+        <YourDialogContent>Loading details…</YourDialogContent>
+      </YourDialog>
+    );
+  }
+
+  if (isError) {
+    return (
+      <YourDialog open={open} onOpenChange={onOpenChange}>
+        <YourDialogContent>
+          Failed to load details: {(error as Error)?.message ?? "Unknown error"}
+          <button onClick={() => refetch()}>Retry</button>
+        </YourDialogContent>
+      </YourDialog>
+    );
+  }
+
+  if (!jobPack) return null;
+
+  // ---- render from jobPack only ----
+  return (
+    <YourDialog open={open} onOpenChange={onOpenChange}>
+      <YourDialogContent>
+        <YourDialogHeader>
+          <YourDialogTitle>{jobPack.title}</YourDialogTitle>
+        </YourDialogHeader>
+
+        <div>
+          <div>{jobPack.location.display}</div>
+          <div>{jobPack.budget.display}</div>
+          <div>{jobPack.timing.display}</div>
+        </div>
+
+        {/* scope */}
+        <FormattedAnswers services={jobPack.services} />
+
+        <button onClick={handleMessage}>Message</button>
+      </YourDialogContent>
+    </YourDialog>
+  );
+}
+```
+
+### Notes
+
+* The only “raw” operation left is micro slug extraction, and even that is derived from `row.answers` in one place.
+* Everything else in render comes from `jobPack`.
+
+---
+
+# Task 2 — Refactor `FormattedAnswers` to stop querying Supabase
+
+### ✅ Goal
+
+`FormattedAnswers` should become a pure component.
+
+**If you’ve already moved pack fetching to the modal**, the cleanest design is:
+
+* `FormattedAnswers` receives `services: ResolvedServicePack[]` and just renders.
+
+### Example (pure component)
+
+```tsx
+// src/pages/jobs/components/FormattedAnswers.tsx
+import * as React from "react";
+import type { ResolvedServicePack } from "../types";
+
+export function FormattedAnswers({ services }: { services: ResolvedServicePack[] }) {
+  if (!services.length) return null;
+
+  return (
+    <div className="space-y-4">
+      {services.map((s) => (
+        <div key={s.slug} className="space-y-2">
+          <h3 className="font-semibold">{s.title}</h3>
+
+          <ul className="space-y-1">
+            {s.answers.map((a) => (
+              <li key={a.questionId} className="text-sm">
+                <span className="font-medium">{a.questionLabel}:</span>{" "}
+                <span>{a.displayValue}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### If FormattedAnswers still needs packs (not recommended)
+
+Then it can call `useQuestionPacks`, **but it must not import Supabase directly** — only import the query hook.
+
+However, since you already have fallback packs + resolver in `buildJobPack`, keep pack fetching in the modal.
+
+---
+
+# Task 3 — Add `validators.ts` (Zod boundary)
+
+### ✅ Goal
+
+Fail fast if the DB/view changes unexpectedly. This is “belt and braces”.
+
+Create:
+
+**`src/pages/jobs/validators.ts`**
+
+```ts
+import { z } from "zod";
+
+export const JobLocationSchema = z.object({
+  area: z.string().optional(),
+  town: z.string().nullable().optional(),
+}).passthrough();
+
+export const JobAnswersSchema = z.object({
+  selected: z.unknown().optional(),
+  logistics: z.unknown().optional(),
+  extras: z.unknown().optional(),
+  microAnswers: z.unknown().optional(),
+}).passthrough();
+
+export const JobsBoardRowSchema = z.object({
+  id: z.string().min(1),
+  created_at: z.string().min(1),
+  title: z.string().min(1).optional().nullable(),
+}).passthrough();
+
+export const JobDetailsRowSchema = z.object({
+  id: z.string().min(1),
+  created_at: z.string().min(1),
+  updated_at: z.string().nullable().optional(),
+
+  title: z.string().nullable().optional(),
+  teaser: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
+  subcategory: z.string().nullable().optional(),
+  micro_slug: z.string().nullable().optional(),
+
+  area: z.string().nullable().optional(),
+  location: JobLocationSchema.nullable().optional(),
+
+  start_timing: z.string().nullable().optional(),
+  start_date: z.string().nullable().optional(),
+
+  budget_type: z.string().nullable().optional(),
+  budget_value: z.number().nullable().optional(),
+  budget_min: z.number().nullable().optional(),
+  budget_max: z.number().nullable().optional(),
+
+  has_photos: z.boolean().nullable().optional(),
+  highlights: z.array(z.string()).nullable().optional(),
+
+  is_owner: z.boolean().nullable().optional(),
+  status: z.string().nullable().optional(),
+
+  answers: JobAnswersSchema.nullable().optional(),
+}).passthrough();
+
+export type JobDetailsRowDTO = z.infer<typeof JobDetailsRowSchema>;
+export type JobsBoardRowDTO = z.infer<typeof JobsBoardRowSchema>;
+
+export function parseJobDetails(input: unknown): JobDetailsRowDTO {
+  return JobDetailsRowSchema.parse(input);
+}
+
+export function parseJobsBoardList(input: unknown): JobsBoardRowDTO[] {
+  return z.array(JobsBoardRowSchema).parse(input);
+}
+```
+
+### Where to use it (Phase 1 light touch)
+
+In your query functions:
+
+```ts
+// inside fetchJobDetails
+const raw = data as unknown;
+return parseJobDetails(raw) as unknown as JobDetailsRow;
+```
+
+If your `JobDetailsRow` already matches, this is safe. If it doesn’t, Zod tells you immediately.
+
+---
+
+# Task 4 — ESLint flat config guard (no Supabase in jobs components)
+
+### ✅ Goal
+
+Architecture enforcement via lint.
+
+You said you use **flat config** (`eslint.config.js`). Great.
+
+## 1) Install plugin
+
+```bash
+npm i -D eslint-plugin-import
+```
+
+## 2) Add rule to `eslint.config.js`
+
+```js
+import importPlugin from "eslint-plugin-import";
+
+export default [
+  // ...your existing config blocks...
+
+  {
+    files: ["src/pages/jobs/components/**/*.{ts,tsx}"],
+    plugins: { import: importPlugin },
+    rules: {
+      "import/no-restricted-paths": [
+        "error",
+        {
+          zones: [
+            {
+              target: "./src/pages/jobs/components",
+              from: "./src/integrations/supabase",
+              message: "Do not import Supabase in UI components. Use pages/jobs/queries or pages/jobs/actions.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+];
+```
+
+### Optional: block Supabase in *all* jobs UI (modal too)
+
+Add another block for `src/pages/jobs/**/*` excluding `queries` and `actions`, but keep it Phase 2 if you’re still moving files.
+
+---
+
+# Implementation Sequence (your order is correct)
+
+1. **FormattedAnswers** → pure
+2. **JobDetailsModal** → build `jobPack` + render only jobPack
+3. **validators.ts** → add parse functions and optionally integrate in queryFns
+4. **ESLint guard** → enforce “no Supabase in components”
+
+---
+
+# Final verification (quick + reliable)
+
+Run these after changes:
+
+* `/jobs` loads
+* open modal: location/budget/timing display from `jobPack.*.display`
+* services show resolved labels (fallback until packs arrive is fine)
+* message flow logged out vs logged in
+* run:
+  `grep -R "from.*supabase" src/pages/jobs/components`
+  → **no matches**
+* ESLint should fail if someone reintroduces Supabase into components
+
+---
+
+If you paste your current `JobDetailsModal.tsx` (just the render part), I’ll rewrite it directly into the **jobPack-only** version so you don’t spend time chasing missing fields or UI regressions.
