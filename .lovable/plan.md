@@ -1,563 +1,376 @@
 
-# Phase 1 Completion: Modal Refactor + Architecture Guards
+
+# V2 MVP Launch Plan: Status Recap & Completion Roadmap
+
+## Executive Summary
+
+The V2 rebuild is **70-80% complete** for MVP functionality. Core architecture is solid, critical paths work end-to-end, and the question pack system is partially seeded. This plan identifies the remaining work required to cross the launch line.
+
+---
 
 ## Current State Assessment
 
-The architecture foundation is solid. The following are already implemented:
+### Architecture (DONE)
 
-| Component | Status | Location |
-|-----------|--------|----------|
-| `buildJobPack()` read-model | Done | `src/pages/jobs/lib/buildJobPack.ts` |
-| `ResolvedAnswer` with rawValue/displayValue | Done | `src/pages/jobs/lib/buildJobPack.ts` |
-| Fallback mode for packs loading | Done | `buildFallbackServicePacks()` |
-| Deterministic answer ordering | Done | Sorts by `questionId` |
-| `useQuestionPacks` query | Done | `src/pages/jobs/queries/questionPacks.query.ts` |
-| Query/Action separation | Done | `queries/` and `actions/` folders |
-| `UserError` helper | Done | `src/shared/lib/userError.ts` |
-| `CONTRIBUTING.md` rules | Done | Project root |
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Domain-driven structure | Done | `queries/`, `actions/`, `lib/` separation |
+| Route guard system | Done | `RouteGuard` + `checkAccess()` |
+| Session management | Done | `SessionContext` with roles |
+| Wizard state machine | Done | 7-step flow with URL sync |
+| Job details read-model | Done | `buildJobPack()` transforms raw data |
+| Answer resolver | Done | Labels resolved from question packs |
+| Draft persistence | Done | `sessionStorage` + server-side form_sessions |
+| Zod validators | Done | `validators.ts` boundary protection |
 
-## Remaining Tasks (Priority Order)
+### Database Schema (DONE)
 
-### Task 1: Refactor JobDetailsModal to Use JobPack
+| Table | Status | RLS |
+|-------|--------|-----|
+| `jobs` | Done | Yes |
+| `conversations` | Done | Yes |
+| `messages` | Done | Yes |
+| `user_roles` | Done | Yes |
+| `professional_profiles` | Done | Yes |
+| `professional_services` | Done | Yes |
+| `service_categories` | Done | Public read |
+| `service_subcategories` | Done | Public read |
+| `service_micro_categories` | Done | Public read |
+| `question_packs` | Done | Public read |
 
-**Problem**: Modal still renders raw `JobDetailsRow` and mixes formatting logic in the component.
+**Security Note**: 2 linter warnings to address (security definer view, leaked password protection).
 
-**Solution**: Wire up `buildJobPack()` + `useQuestionPacks()` so UI only sees the display model.
+### User Flows (Status)
 
-**File**: `src/pages/jobs/JobDetailsModal.tsx`
-
-Changes:
-- Import `buildJobPack` and `useQuestionPacks`
-- Extract `microSlugs` from row data
-- Fetch question packs using the query hook
-- Build `JobPack` via `useMemo`
-- Replace direct row field access with `jobPack.*` properties
-
-```typescript
-// New pattern in JobDetailsBody
-const microSlugs = React.useMemo(() => {
-  const answers = safeAnswers(job.answers);
-  const microAnswers = extractMicroAnswers(answers?.microAnswers as Record<string, unknown> | null);
-  return Object.keys(microAnswers);
-}, [job.answers]);
-
-const { data: packs } = useQuestionPacks(microSlugs, true);
-
-const jobPack = React.useMemo(() => {
-  return buildJobPack(job, packs ?? []);
-}, [job, packs]);
-
-// Then render using jobPack.location.display, jobPack.budget.display, etc.
-```
-
-### Task 2: Update FormattedAnswers to Use Query Hook
-
-**Problem**: `FormattedAnswers` has an inline Supabase query instead of using `useQuestionPacks` from the queries module.
-
-**Solution**: Replace inline query with imported hook.
-
-**File**: `src/pages/jobs/components/FormattedAnswers.tsx`
-
-Changes:
-- Remove inline `useQuery` with Supabase call
-- Import `useQuestionPacks` from `../queries`
-- Pass `microSlugs` to the hook
-
-This eliminates the Supabase import from the component (Phase 1 goal: no Supabase in components).
-
-### Task 3: Add Zod Validators for Jobs Domain
-
-**Purpose**: Create a boundary between raw DB data and domain types. Catch schema mismatches early.
-
-**File**: `src/pages/jobs/validators.ts`
-
-```text
-src/pages/jobs/
-  validators.ts   # NEW
-```
-
-Validators to create:
-- `JobLocationSchema` - validates location object shape
-- `JobAnswersSchema` - validates answers structure  
-- `JobsBoardRowSchema` - validates board list items
-- `JobDetailsRowSchema` - validates detail view data
-- Helper functions: `parseJobDetails()`, `parseJobsBoardList()`
-
-Usage pattern (optional for Phase 1, recommended for Phase 2):
-```typescript
-// In query function
-const { data, error } = await supabase.from("job_details")...
-return parseJobDetails(data); // Validates + types in one step
-```
-
-### Task 4: Add ESLint Architecture Guard
-
-**Purpose**: Prevent Supabase imports from leaking into UI components.
-
-**File**: `eslint.config.js`
-
-The project uses the flat ESLint config format. Add `eslint-plugin-import` and configure restricted paths:
-
-```javascript
-// Target: src/pages/jobs/components/*
-// Block: imports from "@/integrations/supabase"
-// Message: "Use queries/ or actions/ instead"
-```
-
-Note: This requires installing `eslint-plugin-import` as a dev dependency.
-
-### Task 5: E2E Test Setup with Playwright (Optional - Phase 2)
-
-**Purpose**: Verify the refactored flows work end-to-end.
-
-**Files to create**:
-```text
-e2e/
-  jobs.spec.ts         # Jobs page + modal tests
-  global-setup.ts      # Seeding if needed
-playwright.config.ts   # Config
-```
-
-**Key tests**:
-- `/jobs` loads and displays job cards
-- Clicking a job card opens the modal
-- Modal displays location/budget/timing correctly
-- Message button behavior (logged out vs logged in)
+| Flow | Status | Notes |
+|------|--------|-------|
+| Homepage | Done | Categories grid, CTAs, trust signals |
+| Auth (email/password) | Done | Sign in, sign up, email verification |
+| Post Job Wizard | Done | 7-step flow, draft recovery |
+| Job Board | Done | Filtering, matched jobs toggle |
+| Job Details Modal | Done | Renders from `JobPack` read-model |
+| Client Dashboard | Done | Stats, job list, messages count |
+| Pro Dashboard | Done | Matched jobs, service setup CTA |
+| Messages | Done | Realtime, mobile-responsive |
+| Professional Onboarding | Done | Service selection by micro |
+| **Forum** | **Not Started** | MVP requirement per memory |
 
 ---
 
-## Implementation Sequence
+## Question Pack Coverage
 
-```text
-Step 1: Update FormattedAnswers
-        - Remove inline Supabase query
-        - Use useQuestionPacks from queries/
-        
-        Validates: Supabase removed from components
+### Current Statistics
 
-Step 2: Refactor JobDetailsModal
-        - Add useQuestionPacks hook call
-        - Build JobPack in useMemo
-        - Update rendering to use jobPack fields
-        
-        Validates: UI renders from display model only
+| Metric | Value |
+|--------|-------|
+| **Total micro-services** | 295 |
+| **Packs seeded** | 121 |
+| **Coverage** | 41% |
 
-Step 3: Add validators.ts
-        - Create Zod schemas
-        - Export parse functions
-        
-        Validates: Boundary protection established
+### Category Breakdown
 
-Step 4: Add ESLint guard (if eslint-plugin-import available)
-        - Configure restricted paths
-        
-        Validates: Architecture enforced at lint time
+| Category | Total Micros | Packs | Coverage | Priority |
+|----------|-------------|-------|----------|----------|
+| **Electrical** | 32 | 32 | 100% | Completed |
+| **Plumbing** | 10 | 10 | 100% | Completed |
+| **Construction** | 50 | 41 | 82% | High |
+| **HVAC** | 36 | 21 | 58% | High |
+| **Carpentry** | 23 | 7 | 30% | Medium |
+| **Kitchen & Bathroom** | 15 | 3 | 20% | High |
+| Pool & Spa | 12 | 0 | 0% | Low |
+| Painting & Decorating | 15 | 0 | 0% | Medium |
+| Floors, Doors & Windows | 13 | 0 | 0% | Medium |
+| Gardening & Landscaping | 9 | 0 | 0% | Low |
+| Transport & Logistics | 15 | 6 | 40% | Low |
+| Cleaning | 12 | 0 | 0% | Low |
+| Handyman & General | 7 | 1 | 14% | Low |
+| Commercial & Industrial | 12 | 0 | 0% | Low |
+| Legal & Regulatory | 12 | 0 | 0% | Low |
+| Architects & Design | 12 | 0 | 0% | Low |
 
-Step 5: (Optional) Playwright setup
-        - Basic test that opens modal
-        
-        Validates: End-to-end flow works
-```
+### Fallback Safety
 
-## Verification Checklist
-
-After implementation, verify:
-
-| Test | Expected Result |
-|------|-----------------|
-| `/jobs` loads | Board displays correctly |
-| Click job card | Modal opens without errors |
-| Modal location card | Shows `jobPack.location.display` value |
-| Modal budget card | Shows `jobPack.budget.display` value |
-| Modal timing card | Shows `jobPack.timing.display` value |
-| Scope section | Shows resolved answer labels (or fallback while loading) |
-| Message button (logged out) | Redirects to auth |
-| Message button (logged in) | Creates conversation, navigates |
-| DevTools Console | No errors |
-| DevTools Network | job_details query + question_packs query (when needed) |
-| `grep "from.*supabase" src/pages/jobs/components/` | No matches |
-
-## Risk Assessment
-
-| Risk | Mitigation |
-|------|------------|
-| Modal flickers while packs load | Fallback mode already handles this |
-| Cache misses for packs | Stable sorted key prevents this |
-| Type errors during refactor | JobPack interface already defines all fields |
-| Breaking existing UI | Incremental changes, test each step |
-
-## Technical Notes
-
-### Why buildJobPack in useMemo?
-- Row data is stable (from query cache)
-- Packs data is stable (from query cache)
-- Recompute only when dependencies change
-- Keeps derived state logic outside render path
-
-### Why FormattedAnswers refactor matters
-- Removes last Supabase import from `components/` folder
-- Enables ESLint guard to work properly
-- Consistent pattern across all components
-
-
-This is a really clean Phase 1 “finish line” doc. You’ve already done the hard part (read-model + packs resolver + stable keys). What’s left is mostly **wiring** + **guardrails**.
-
-Below is **copy-pasteable scaffolding** for Tasks 1–4 (Modal refactor, FormattedAnswers refactor, Zod validators, ESLint flat config guard). I’m writing this to fit your current structure (`src/pages/jobs/...`, TanStack Query, Supabase, flat ESLint config).
+Services without packs use a "General Briefing" fallback. Users can still post jobs, but briefings are generic. This is acceptable for launch with the "Top 30" commercial services covered.
 
 ---
 
-# Task 1 — Refactor `JobDetailsModal` to render `JobPack` only
+## Gap Analysis: What's Missing for MVP
 
-### ✅ Goal
+### CRITICAL (Must Have)
 
-`JobDetailsModal` should never render `JobDetailsRow` directly. It should:
+1. **Forum Feature** - Per MVP requirements, forum is a core feature for WhatsApp-first community
+2. **Top 30 Pack Coverage** - HVAC, Kitchen & Bathroom, and remaining Construction packs
+3. **Security Fixes** - Address 2 linter warnings
 
-1. Fetch row via `useJobDetails`
-2. Extract micro slugs
-3. Fetch packs via `useQuestionPacks`
-4. Build `jobPack` via `buildJobPack(row, packs)`
-5. Render from `jobPack.*`
+### HIGH (Should Have)
 
-### Drop-in pattern (core wiring)
+4. **Rules Engine Integration** - Evaluate `metadata.rules` to compute inspection flags on job cards
+5. **Remaining HVAC Packs** - 15 missing (AC Installation, AC Repair, Boiler services)
+6. **Kitchen & Bathroom Packs** - 12 missing
 
-```tsx
-// src/pages/jobs/JobDetailsModal.tsx
-import * as React from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+### MEDIUM (Nice to Have)
 
-import { useSession } from "@/contexts/SessionContext";
-import { isUserError } from "@/shared/lib/userError";
+7. **Carpentry Packs** - 16 missing
+8. **Painting & Decorating Packs** - 15 missing (entire category)
+9. **WhatsApp Share** - "Share to WhatsApp" on job confirmation
 
-import { useJobDetails } from "./queries";
-import { useQuestionPacks } from "./queries/questionPacks.query"; // or "./queries" barrel
-import { startConversation } from "./actions";
+### LOW (Post-Launch)
 
-import { buildJobPack } from "./lib/buildJobPack";
-import { safeAnswers, extractMicroAnswers } from "./lib/answerResolver"; // if these exist there
+10. **Remaining Categories** - Pool, Cleaning, Commercial, Legal, etc.
 
-// UI imports omitted for brevity...
+---
 
-export function JobDetailsModal({
-  jobId,
-  open,
-  onOpenChange,
-}: {
-  jobId: string | null;
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-}) {
-  const navigate = useNavigate();
-  const { user } = useSession();
+## Completion Roadmap
 
-  const { data: row, isLoading, isError, error, refetch } = useJobDetails(jobId, open);
+### Phase 1: Critical Path (Launch Blockers)
 
-  // 1) extract micro slugs from the row
-  const microSlugs = React.useMemo(() => {
-    if (!row) return [];
-    const answers = safeAnswers(row.answers);
-    const microAnswers = extractMicroAnswers(
-      (answers?.microAnswers ?? null) as Record<string, Record<string, unknown>> | null
-    );
-    return Object.keys(microAnswers);
-  }, [row]);
+```text
+Week 1, Days 1-2
+--------------------------------
+Task 1.1: Forum MVP
+  - Create forum_categories, forum_posts, forum_replies tables
+  - Build /forum route with category list
+  - Build /forum/:categorySlug with post list
+  - Build /forum/post/:id with thread view
+  - Add "New Post" flow
+  - RLS: Authenticated users can post, public can read
+  
+  Acceptance: User can create a forum post, others can reply
 
-  // 2) fetch packs (enabled only when modal open + row present)
-  const { data: packs } = useQuestionPacks(microSlugs, open && !!row);
+Task 1.2: Security Fixes
+  - Review security definer view issue
+  - Enable leaked password protection
+  
+  Acceptance: Linter shows 0 errors
 
-  // 3) build read-model (JobPack)
-  const jobPack = React.useMemo(() => {
-    if (!row) return null;
-    return buildJobPack(row, packs ?? []);
-  }, [row, packs]);
+Task 1.3: Top 30 Packs - HVAC Completion
+  - Seed remaining 15 HVAC packs using lite template
+  - Include metadata.rules for inspection flags
+  
+  Acceptance: HVAC at 100% coverage
+```
 
-  const onClose = () => onOpenChange(false);
+### Phase 2: Pack Coverage (Quality Bar)
 
-  const handleMessage = async () => {
-    if (!jobPack) return;
+```text
+Week 1, Days 3-4
+--------------------------------
+Task 2.1: Kitchen & Bathroom Completion
+  - Seed 12 remaining packs
+  - Use established Gold Standard patterns
+  
+  Acceptance: Kitchen & Bathroom at 100%
 
-    if (!user) {
-      onClose();
-      navigate(`/auth?returnTo=/jobs`);
-      return;
-    }
+Task 2.2: Construction Gap Fill
+  - Seed 9 remaining Construction packs
+  
+  Acceptance: Construction at 100%
 
-    try {
-      const convId = await startConversation(jobPack.id, user.id);
-      onClose();
-      navigate(`/messages/${convId}`);
-    } catch (err) {
-      if (isUserError(err)) toast.error(err.message);
-      else {
-        toast.error("Failed to start conversation");
-        console.error("Message error:", err);
-      }
-    }
+Task 2.3: Rules Engine UI Integration
+  - Create evaluateRules(answers, rules) utility
+  - Display inspection flags on job cards
+  - Show "Quote subject to inspection" badges
+  
+  Acceptance: Flags visible on jobs from Electrical/Plumbing
+```
+
+### Phase 3: Polish & Launch Prep
+
+```text
+Week 2, Days 1-2
+--------------------------------
+Task 3.1: Carpentry Pack Batch
+  - 16 lite packs following established patterns
+  
+Task 3.2: Painting & Decorating Pack Batch
+  - 15 lite packs (new category contract)
+
+Task 3.3: WhatsApp Share
+  - Add share button to job confirmation
+  - Generate shareable link/message
+
+Task 3.4: End-to-End Testing
+  - Full wizard flow for each seeded category
+  - Job details rendering verification
+  - Message flow testing
+  
+  Acceptance: All critical paths work without errors
+```
+
+---
+
+## Technical Implementation Details
+
+### Forum Schema (Task 1.1)
+
+```sql
+-- forum_categories
+CREATE TABLE forum_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT,
+  icon TEXT,
+  sort_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- forum_posts
+CREATE TABLE forum_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id UUID REFERENCES forum_categories(id),
+  author_id UUID REFERENCES auth.users(id),
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  tags TEXT[] DEFAULT '{}',
+  is_pinned BOOLEAN DEFAULT false,
+  reply_count INT DEFAULT 0,
+  view_count INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- forum_replies
+CREATE TABLE forum_replies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id UUID REFERENCES forum_posts(id) ON DELETE CASCADE,
+  author_id UUID REFERENCES auth.users(id),
+  content TEXT NOT NULL,
+  parent_reply_id UUID REFERENCES forum_replies(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- RLS
+ALTER TABLE forum_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum_replies ENABLE ROW LEVEL SECURITY;
+
+-- Public read, authenticated write
+CREATE POLICY "Public can read posts" ON forum_posts FOR SELECT USING (true);
+CREATE POLICY "Authenticated can create posts" ON forum_posts FOR INSERT 
+  WITH CHECK (auth.uid() = author_id);
+```
+
+### Rules Evaluator (Task 2.3)
+
+```typescript
+// src/lib/evaluatePackRules.ts
+
+type PackRule = {
+  id: string;
+  when: { questionId: string; op: "eq" | "in"; value: unknown };
+  add_flags: string[];
+  set?: { 
+    inspection_bias?: "low" | "medium" | "high" | "mandatory"; 
+    safety?: "green" | "amber" | "red" 
   };
+};
 
-  // ---- render states ----
-  if (!open) return null;
+export function evaluateRules(
+  answers: Record<string, unknown>, 
+  rules: PackRule[]
+) {
+  const flags = new Set<string>();
+  let inspection_bias: string | undefined;
+  let safety: string | undefined;
 
-  if (isLoading) {
-    return (
-      <YourDialog open={open} onOpenChange={onOpenChange}>
-        <YourDialogContent>Loading details…</YourDialogContent>
-      </YourDialog>
-    );
+  for (const rule of rules ?? []) {
+    const value = answers[rule.when.questionId];
+    const hit =
+      (rule.when.op === "eq" && value === rule.when.value) ||
+      (rule.when.op === "in" && Array.isArray(rule.when.value) && 
+       rule.when.value.includes(value));
+
+    if (hit) {
+      rule.add_flags?.forEach(f => flags.add(f));
+      if (rule.set?.inspection_bias) inspection_bias = rule.set.inspection_bias;
+      if (rule.set?.safety) safety = rule.set.safety;
+    }
   }
 
-  if (isError) {
-    return (
-      <YourDialog open={open} onOpenChange={onOpenChange}>
-        <YourDialogContent>
-          Failed to load details: {(error as Error)?.message ?? "Unknown error"}
-          <button onClick={() => refetch()}>Retry</button>
-        </YourDialogContent>
-      </YourDialog>
-    );
-  }
-
-  if (!jobPack) return null;
-
-  // ---- render from jobPack only ----
-  return (
-    <YourDialog open={open} onOpenChange={onOpenChange}>
-      <YourDialogContent>
-        <YourDialogHeader>
-          <YourDialogTitle>{jobPack.title}</YourDialogTitle>
-        </YourDialogHeader>
-
-        <div>
-          <div>{jobPack.location.display}</div>
-          <div>{jobPack.budget.display}</div>
-          <div>{jobPack.timing.display}</div>
-        </div>
-
-        {/* scope */}
-        <FormattedAnswers services={jobPack.services} />
-
-        <button onClick={handleMessage}>Message</button>
-      </YourDialogContent>
-    </YourDialog>
-  );
+  return { 
+    flags: Array.from(flags), 
+    inspection_bias, 
+    safety 
+  };
 }
 ```
 
-### Notes
+### Lite Pack Template (for batch seeding)
 
-* The only “raw” operation left is micro slug extraction, and even that is derived from `row.answers` in one place.
-* Everything else in render comes from `jobPack`.
-
----
-
-# Task 2 — Refactor `FormattedAnswers` to stop querying Supabase
-
-### ✅ Goal
-
-`FormattedAnswers` should become a pure component.
-
-**If you’ve already moved pack fetching to the modal**, the cleanest design is:
-
-* `FormattedAnswers` receives `services: ResolvedServicePack[]` and just renders.
-
-### Example (pure component)
-
-```tsx
-// src/pages/jobs/components/FormattedAnswers.tsx
-import * as React from "react";
-import type { ResolvedServicePack } from "../types";
-
-export function FormattedAnswers({ services }: { services: ResolvedServicePack[] }) {
-  if (!services.length) return null;
-
-  return (
-    <div className="space-y-4">
-      {services.map((s) => (
-        <div key={s.slug} className="space-y-2">
-          <h3 className="font-semibold">{s.title}</h3>
-
-          <ul className="space-y-1">
-            {s.answers.map((a) => (
-              <li key={a.questionId} className="text-sm">
-                <span className="font-medium">{a.questionLabel}:</span>{" "}
-                <span>{a.displayValue}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
-}
-```
-
-### If FormattedAnswers still needs packs (not recommended)
-
-Then it can call `useQuestionPacks`, **but it must not import Supabase directly** — only import the query hook.
-
-However, since you already have fallback packs + resolver in `buildJobPack`, keep pack fetching in the modal.
-
----
-
-# Task 3 — Add `validators.ts` (Zod boundary)
-
-### ✅ Goal
-
-Fail fast if the DB/view changes unexpectedly. This is “belt and braces”.
-
-Create:
-
-**`src/pages/jobs/validators.ts`**
-
-```ts
-import { z } from "zod";
-
-export const JobLocationSchema = z.object({
-  area: z.string().optional(),
-  town: z.string().nullable().optional(),
-}).passthrough();
-
-export const JobAnswersSchema = z.object({
-  selected: z.unknown().optional(),
-  logistics: z.unknown().optional(),
-  extras: z.unknown().optional(),
-  microAnswers: z.unknown().optional(),
-}).passthrough();
-
-export const JobsBoardRowSchema = z.object({
-  id: z.string().min(1),
-  created_at: z.string().min(1),
-  title: z.string().min(1).optional().nullable(),
-}).passthrough();
-
-export const JobDetailsRowSchema = z.object({
-  id: z.string().min(1),
-  created_at: z.string().min(1),
-  updated_at: z.string().nullable().optional(),
-
-  title: z.string().nullable().optional(),
-  teaser: z.string().nullable().optional(),
-  category: z.string().nullable().optional(),
-  subcategory: z.string().nullable().optional(),
-  micro_slug: z.string().nullable().optional(),
-
-  area: z.string().nullable().optional(),
-  location: JobLocationSchema.nullable().optional(),
-
-  start_timing: z.string().nullable().optional(),
-  start_date: z.string().nullable().optional(),
-
-  budget_type: z.string().nullable().optional(),
-  budget_value: z.number().nullable().optional(),
-  budget_min: z.number().nullable().optional(),
-  budget_max: z.number().nullable().optional(),
-
-  has_photos: z.boolean().nullable().optional(),
-  highlights: z.array(z.string()).nullable().optional(),
-
-  is_owner: z.boolean().nullable().optional(),
-  status: z.string().nullable().optional(),
-
-  answers: JobAnswersSchema.nullable().optional(),
-}).passthrough();
-
-export type JobDetailsRowDTO = z.infer<typeof JobDetailsRowSchema>;
-export type JobsBoardRowDTO = z.infer<typeof JobsBoardRowSchema>;
-
-export function parseJobDetails(input: unknown): JobDetailsRowDTO {
-  return JobDetailsRowSchema.parse(input);
-}
-
-export function parseJobsBoardList(input: unknown): JobsBoardRowDTO[] {
-  return z.array(JobsBoardRowSchema).parse(input);
-}
-```
-
-### Where to use it (Phase 1 light touch)
-
-In your query functions:
-
-```ts
-// inside fetchJobDetails
-const raw = data as unknown;
-return parseJobDetails(raw) as unknown as JobDetailsRow;
-```
-
-If your `JobDetailsRow` already matches, this is safe. If it doesn’t, Zod tells you immediately.
-
----
-
-# Task 4 — ESLint flat config guard (no Supabase in jobs components)
-
-### ✅ Goal
-
-Architecture enforcement via lint.
-
-You said you use **flat config** (`eslint.config.js`). Great.
-
-## 1) Install plugin
-
-```bash
-npm i -D eslint-plugin-import
-```
-
-## 2) Add rule to `eslint.config.js`
-
-```js
-import importPlugin from "eslint-plugin-import";
-
-export default [
-  // ...your existing config blocks...
-
-  {
-    files: ["src/pages/jobs/components/**/*.{ts,tsx}"],
-    plugins: { import: importPlugin },
-    rules: {
-      "import/no-restricted-paths": [
-        "error",
-        {
-          zones: [
-            {
-              target: "./src/pages/jobs/components",
-              from: "./src/integrations/supabase",
-              message: "Do not import Supabase in UI components. Use pages/jobs/queries or pages/jobs/actions.",
-            },
-          ],
-        },
-      ],
-    },
+```typescript
+// Template for generating remaining packs
+const litePackTemplate = {
+  version: 1,
+  is_active: true,
+  metadata: {
+    category_contract: "category_slug",
+    inspection_bias: "medium",
+    scope_unit: "items",
+    rules: []
   },
-];
+  questions: [
+    // Q1: Task identification (trade-specific)
+    { id: "q_01_task", label: "What do you need?", type: "radio", required: true, options: [] },
+    // Q2: Scope quantification  
+    { id: "q_02_scope", label: "How many/much?", type: "radio", required: true, options: [] },
+    // Q3: Property context
+    { id: "q_03_property", label: "Property type", type: "radio", required: true, options: [] },
+    // Q4: Existing condition
+    { id: "q_04_existing", label: "Current situation", type: "radio", required: true, options: [] },
+    // Q5: Access/method
+    { id: "q_05_access", label: "Access details", type: "radio", required: true, options: [] },
+    // Q6: Urgency
+    { id: "q_06_urgency", label: "Urgency", type: "radio", required: true, options: [] },
+    // Q7: Photos
+    { id: "q_07_photos", label: "Upload photos", type: "file", required: false },
+    // Q8: Notes
+    { id: "q_08_notes", label: "Additional notes", type: "textarea", required: false }
+  ]
+};
 ```
 
-### Optional: block Supabase in *all* jobs UI (modal too)
+---
 
-Add another block for `src/pages/jobs/**/*` excluding `queries` and `actions`, but keep it Phase 2 if you’re still moving files.
+## Launch Checklist
+
+### Pre-Launch (Must Complete)
+
+- [ ] Forum feature implemented
+- [ ] Security linter warnings resolved
+- [ ] Top 30 commercial micros have Strong/Acceptable packs
+- [ ] Electrical: 32/32 packs (Done)
+- [ ] Plumbing: 10/10 packs (Done)
+- [ ] HVAC: 36/36 packs
+- [ ] Kitchen & Bathroom: 15/15 packs
+- [ ] Construction: 50/50 packs
+- [ ] End-to-end test: Post job flow
+- [ ] End-to-end test: Message flow
+- [ ] End-to-end test: Pro matching flow
+
+### Launch Day
+
+- [ ] DNS configured for production domain
+- [ ] Publish to production
+- [ ] Seed initial forum categories
+- [ ] Monitor error logs
+
+### Post-Launch (Week 1)
+
+- [ ] Complete Carpentry packs
+- [ ] Complete Painting & Decorating packs
+- [ ] WhatsApp share feature
+- [ ] Analytics review
 
 ---
 
-# Implementation Sequence (your order is correct)
+## Recommended Immediate Actions
 
-1. **FormattedAnswers** → pure
-2. **JobDetailsModal** → build `jobPack` + render only jobPack
-3. **validators.ts** → add parse functions and optionally integrate in queryFns
-4. **ESLint guard** → enforce “no Supabase in components”
+1. **Start Forum MVP** - This is the biggest gap and a stated MVP requirement
+2. **Run HVAC seeder with remaining packs** - Fastest path to Top 30 coverage
+3. **Fix security warnings** - Quick wins
+4. **Test full wizard flow for Electrical/Plumbing** - Validate what's already built
 
----
+The platform is architecturally solid. The remaining work is primarily content (packs) and one feature (forum). With focused execution, this is achievable in 1-2 weeks.
 
-# Final verification (quick + reliable)
-
-Run these after changes:
-
-* `/jobs` loads
-* open modal: location/budget/timing display from `jobPack.*.display`
-* services show resolved labels (fallback until packs arrive is fine)
-* message flow logged out vs logged in
-* run:
-  `grep -R "from.*supabase" src/pages/jobs/components`
-  → **no matches**
-* ESLint should fail if someone reintroduces Supabase into components
-
----
-
-If you paste your current `JobDetailsModal.tsx` (just the render part), I’ll rewrite it directly into the **jobPack-only** version so you don’t spend time chasing missing fields or UI regressions.
