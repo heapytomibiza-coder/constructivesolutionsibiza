@@ -38,15 +38,15 @@ function prettyStatus(s: string | null): string {
   return s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 }
 
-function getSpecBadge(job: JobsBoardRow): { label: string; variant: "success" | "outline" | "warning" } {
+function getSpecBadge(job: JobsBoardRow): { label: string; variant: "success" | "secondary" | "outline" } {
   const score =
     (job.highlights?.length ?? 0) +
     (job.has_photos ? 2 : 0) +
     (budgetProxy(job) > 0 ? 1 : 0);
 
   if (score >= 4) return { label: "Good spec", variant: "success" };
-  if (score >= 2) return { label: "Basic spec", variant: "outline" };
-  return { label: "Needs detail", variant: "warning" };
+  if (score >= 2) return { label: "Basic spec", variant: "secondary" };
+  return { label: "Needs detail", variant: "outline" };
 }
 
 function formatBudget(j: JobsBoardRow): string {
