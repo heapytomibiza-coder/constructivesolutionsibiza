@@ -1,8 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/contexts/SessionContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,17 +13,9 @@ import { toast } from "sonner";
 import type { JobDetailsRow, JobAnswers } from "@/pages/jobs/types";
 import { FormattedAnswers } from "@/pages/jobs/components/FormattedAnswers";
 import { extractMicroAnswers, formatLocation } from "@/pages/jobs/lib/answerResolver";
-
-async function fetchJobDetails(jobId: string): Promise<JobDetailsRow> {
-  const { data, error } = await supabase
-    .from("job_details")
-    .select("*")
-    .eq("id", jobId)
-    .single();
-
-  if (error) throw error;
-  return data as JobDetailsRow;
-}
+import { useJobDetails } from "./queries";
+import { startConversation } from "./actions";
+import { isUserError } from "@/shared/lib/userError";
 
 function safeAnswers(a: unknown): JobAnswers | null {
   if (!a || typeof a !== "object") return null;
@@ -71,12 +61,7 @@ export function JobDetailsModal({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const query = useQuery({
-    queryKey: ["job_details", jobId],
-    queryFn: () => fetchJobDetails(jobId as string),
-    enabled: open && !!jobId,
-    staleTime: 30_000,
-  });
+  const { data, isLoading, isError, error, refetch } = useJobDetails(jobId, open);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -85,22 +70,22 @@ export function JobDetailsModal({
           <DialogTitle>Job Details</DialogTitle>
         </DialogHeader>
 
-        {query.isLoading ? (
+        {isLoading ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             Loading details…
           </div>
-        ) : query.isError ? (
+        ) : isError ? (
           <div className="space-y-3">
             <div className="text-sm text-destructive">
-              Failed to load details: {(query.error as Error)?.message ?? "Unknown error"}
+              Failed to load details: {(error as Error)?.message ?? "Unknown error"}
             </div>
-            <Button variant="outline" onClick={() => query.refetch()}>
+            <Button variant="outline" onClick={() => refetch()}>
               Retry
             </Button>
           </div>
-        ) : query.data ? (
-          <JobDetailsBody job={query.data} onClose={() => onOpenChange(false)} />
+        ) : data ? (
+          <JobDetailsBody job={data} onClose={() => onOpenChange(false)} />
         ) : null}
       </DialogContent>
     </Dialog>
@@ -132,28 +117,16 @@ function JobDetailsBody({ job, onClose }: { job: JobDetailsRow; onClose: () => v
 
     setIsMessaging(true);
     try {
-      const { data: convId, error } = await supabase.rpc("get_or_create_conversation", {
-        p_job_id: job.id,
-        p_pro_id: user.id,
-      });
-
-      if (error) {
-        if (error.message.includes("Cannot message your own job")) {
-          toast.error("You cannot message your own job");
-        } else if (error.message.includes("not available")) {
-          toast.error("This job is no longer available for messaging");
-        } else {
-          toast.error("Failed to start conversation");
-          console.error("Message error:", error);
-        }
-        return;
-      }
-
+      const convId = await startConversation(job.id, user.id);
       onClose();
       navigate(`/messages/${convId}`);
     } catch (err) {
-      toast.error("Failed to start conversation");
-      console.error("Message error:", err);
+      if (isUserError(err)) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to start conversation");
+        console.error("Message error:", err);
+      }
     } finally {
       setIsMessaging(false);
     }

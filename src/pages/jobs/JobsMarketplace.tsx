@@ -1,13 +1,11 @@
 import * as React from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { JobListingCard } from "@/pages/jobs/JobListingCard";
 import { Loader2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/contexts/SessionContext";
-import { useMatchedJobs } from "@/hooks/useMatchedJobs";
+import { useJobsBoard, useMatchedJobs } from "./queries";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 import {
   JobBoardHeroSection,
@@ -63,17 +61,6 @@ function featuredPredicate(j: JobsBoardRow): boolean {
   return isNewToday(j.created_at) && budgetProxy(j) >= 500 && !!j.has_photos;
 }
 
-async function fetchJobsBoard(): Promise<JobsBoardRow[]> {
-  const { data, error } = await supabase
-    .from("jobs_board")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(200);
-
-  if (error) throw error;
-  return (data ?? []) as JobsBoardRow[];
-}
-
 export function JobsMarketplace() {
   const [filters, setFilters] = React.useState<Filters>(EMPTY_FILTERS);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -83,12 +70,8 @@ export function JobsMarketplace() {
   const showMatchedOnly = searchParams.get("matched") === "true";
   const isProfessional = activeRole === "professional";
 
-  // Fetch all jobs
-  const { data: allJobs, isLoading: allJobsLoading, isError: allJobsError, error: allJobsErrorData, refetch: refetchAllJobs } = useQuery({
-    queryKey: ["jobs_board"],
-    queryFn: fetchJobsBoard,
-    staleTime: 30_000,
-  });
+  // Fetch all jobs using the query hook
+  const { data: allJobs, isLoading: allJobsLoading, isError: allJobsError, error: allJobsErrorData, refetch: refetchAllJobs } = useJobsBoard();
 
   // Fetch matched jobs for professionals
   const { matchedJobs, isLoading: matchedJobsLoading, isError: matchedJobsError, error: matchedJobsErrorData, refetch: refetchMatchedJobs } = useMatchedJobs();
