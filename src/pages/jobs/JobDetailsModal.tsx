@@ -113,6 +113,15 @@ function PhotoLightbox({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [hasMany, onClose, next, prev]);
 
+  // Prevent background scroll while lightbox is open
+  React.useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
   const src = photos[i];
 
   return (
@@ -412,7 +421,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
                 <div className="grid grid-cols-3 gap-2">
                   {jobPack.photos.slice(0, 6).map((url, idx) => (
                     <button
-                      key={idx}
+                      key={url}
                       type="button"
                       className="aspect-square overflow-hidden rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       onClick={() => setLightboxIndex(idx)}
