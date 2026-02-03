@@ -51,7 +51,8 @@ export function JobFlagBadges({
     inspectionBias === "mandatory" || 
     inspectionBias === "high" ||
     flagArray.includes("INSPECTION_MANDATORY") ||
-    flagArray.includes("INSPECTION_REQUIRED")
+    flagArray.includes("INSPECTION_REQUIRED") ||
+    flagArray.includes("QUOTE_SUBJECT_TO_INSPECTION")
   ) {
     badges.push(
       <Badge 
@@ -65,10 +66,12 @@ export function JobFlagBadges({
     );
   }
   
-  // Show specific flags if interesting
-  const interestingFlags = flagArray.filter(f => 
-    !["EMERGENCY", "INSPECTION_MANDATORY", "INSPECTION_REQUIRED", "URGENT"].includes(f)
-  );
+  // Show specific flags if interesting (exclude already-handled ones)
+  const handledFlags = [
+    "EMERGENCY", "URGENT",
+    "INSPECTION_MANDATORY", "INSPECTION_REQUIRED", "QUOTE_SUBJECT_TO_INSPECTION"
+  ];
+  const interestingFlags = flagArray.filter(f => !handledFlags.includes(f));
   
   // Only show first 2 extra flags to avoid clutter
   interestingFlags.slice(0, 2).forEach((flag, i) => {
