@@ -113,72 +113,49 @@ export function JobDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent className="max-h-[85vh] sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Job Details</DialogTitle>
         </DialogHeader>
 
-        {isLoading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading details…
-          </div>
-        ) : isError ? (
-          <div className="space-y-3">
-            <div className="text-sm text-destructive">
-              Failed to load details: {(error as Error)?.message ?? "Unknown error"}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading details…
             </div>
-            <Button variant="outline" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </div>
-        ) : jobPack ? (
-          <JobDetailsBody 
+          ) : isError ? (
+            <div className="space-y-3">
+              <div className="text-sm text-destructive">
+                Failed to load details: {(error as Error)?.message ?? "Unknown error"}
+              </div>
+              <Button variant="outline" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </div>
+          ) : jobPack ? (
+            <JobDetailsBodyContent jobPack={jobPack} />
+          ) : null}
+        </div>
+
+        {jobPack && (
+          <JobDetailsActions 
             jobPack={jobPack} 
             onClose={() => onOpenChange(false)} 
           />
-        ) : null}
+        )}
       </DialogContent>
     </Dialog>
   );
 }
 
-interface JobDetailsBodyProps {
+interface JobDetailsBodyContentProps {
   jobPack: JobPack;
-  onClose: () => void;
 }
 
-function JobDetailsBody({ jobPack, onClose }: JobDetailsBodyProps) {
-  const navigate = useNavigate();
-  const { user, isLoading: sessionLoading } = useSession();
-  const [isMessaging, setIsMessaging] = useState(false);
-
+function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
   const specBadge = getSpecBadge(jobPack);
   const isAsap = jobPack.timing?.display?.toLowerCase().includes("asap");
-
-  const handleMessage = async () => {
-    if (!user) {
-      onClose();
-      navigate(`/auth?returnTo=/jobs`);
-      return;
-    }
-
-    setIsMessaging(true);
-    try {
-      const convId = await startConversation(jobPack.id, user.id);
-      onClose();
-      navigate(`/messages/${convId}`);
-    } catch (err) {
-      if (isUserError(err)) {
-        toast.error(err.message);
-      } else {
-        toast.error("Failed to start conversation");
-        console.error("Message error:", err);
-      }
-    } finally {
-      setIsMessaging(false);
-    }
-  };
 
   return (
     <div className="space-y-5">
@@ -354,34 +331,70 @@ function JobDetailsBody({ jobPack, onClose }: JobDetailsBodyProps) {
           </CardContent>
         </Card>
       </section>
+    </div>
+  );
+}
 
-      {/* Sticky Action Bar */}
-      <div className="sticky bottom-0 -mx-6 mt-2 border-t border-border/70 bg-background/90 px-6 py-4 backdrop-blur">
-        <div className="flex flex-wrap gap-2">
-          {!user ? (
-            <Button onClick={handleMessage} className="gap-2">
-              <LogIn className="h-4 w-4" />
-              Sign in to message
-            </Button>
-          ) : jobPack.isOwner ? null : (
-            <Button 
-              onClick={handleMessage} 
-              disabled={isMessaging || sessionLoading}
-              className="gap-2"
-            >
-              {isMessaging ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <MessageSquare className="h-4 w-4" />
-              )}
-              {isMessaging ? "Starting chat..." : "Message"}
-            </Button>
-          )}
-          <Button variant="outline" disabled className="gap-2">
-            <Share2 className="h-4 w-4" />
-            Share
+interface JobDetailsActionsProps {
+  jobPack: JobPack;
+  onClose: () => void;
+}
+
+function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
+  const navigate = useNavigate();
+  const { user, isLoading: sessionLoading } = useSession();
+  const [isMessaging, setIsMessaging] = useState(false);
+
+  const handleMessage = async () => {
+    if (!user) {
+      onClose();
+      navigate(`/auth?returnTo=/jobs`);
+      return;
+    }
+
+    setIsMessaging(true);
+    try {
+      const convId = await startConversation(jobPack.id, user.id);
+      onClose();
+      navigate(`/messages/${convId}`);
+    } catch (err) {
+      if (isUserError(err)) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to start conversation");
+        console.error("Message error:", err);
+      }
+    } finally {
+      setIsMessaging(false);
+    }
+  };
+
+  return (
+    <div className="-mx-6 border-t border-border/70 bg-background/90 px-6 py-4 backdrop-blur">
+      <div className="flex flex-wrap gap-2">
+        {!user ? (
+          <Button onClick={handleMessage} className="gap-2">
+            <LogIn className="h-4 w-4" />
+            Sign in to message
           </Button>
-        </div>
+        ) : jobPack.isOwner ? null : (
+          <Button 
+            onClick={handleMessage} 
+            disabled={isMessaging || sessionLoading}
+            className="gap-2"
+          >
+            {isMessaging ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquare className="h-4 w-4" />
+            )}
+            {isMessaging ? "Starting chat..." : "Message"}
+          </Button>
+        )}
+        <Button variant="outline" disabled className="gap-2">
+          <Share2 className="h-4 w-4" />
+          Share
+        </Button>
       </div>
     </div>
   );
