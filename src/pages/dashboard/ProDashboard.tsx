@@ -16,7 +16,8 @@ import {
   Settings,
   Loader2,
   ArrowRight,
-  MapPin
+  MapPin,
+  User
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -105,8 +106,8 @@ const ProDashboard = () => {
           </Card>
         )}
 
-        {/* Quick Stats */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
+        {/* Quick Stats - Full Width */}
+        <div className="grid gap-4 md:grid-cols-3 mb-6">
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -170,90 +171,156 @@ const ProDashboard = () => {
           </Card>
         </div>
 
-        {/* Matched Jobs */}
-        <Card className="border-border/70">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="font-display">Matched Jobs</CardTitle>
-              <CardDescription>
-                Jobs that match your selected services
-              </CardDescription>
-            </div>
-            {matchedJobs.length > 0 && (
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/jobs?matched=true" className="gap-1">
-                  View All
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        {/* Two-Column Layout */}
+        <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+          {/* Left Column: Matched Jobs */}
+          <Card className="border-border/70">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="font-display">Matched Jobs</CardTitle>
+                <CardDescription>
+                  Jobs that match your selected services
+                </CardDescription>
               </div>
-            ) : needsServiceSetup ? (
-              <div className="py-8 text-center">
-                <div className="mx-auto h-14 w-14 rounded-sm bg-muted flex items-center justify-center mb-4">
-                  <Wrench className="h-7 w-7 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground mb-4">
-                  Set up your services to see matched jobs.
-                </p>
-                <Button asChild>
-                  <Link to="/professional/service-setup">Set Up Services</Link>
+              {matchedJobs.length > 0 && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/jobs?matched=true" className="gap-1">
+                    View All
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
                 </Button>
-              </div>
-            ) : matchedJobs.length === 0 ? (
-              <div className="py-8 text-center">
-                <div className="mx-auto h-14 w-14 rounded-sm bg-muted flex items-center justify-center mb-4">
-                  <Briefcase className="h-7 w-7 text-muted-foreground" />
+              )}
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
-                <p className="text-muted-foreground mb-4">
-                  No matched jobs yet. Check back soon!
-                </p>
-                <Button variant="outline" asChild>
-                  <Link to="/jobs">Browse All Jobs</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {matchedJobs.slice(0, 5).map((job) => (
-                  <div 
-                    key={job.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate mb-1 group-hover:text-primary transition-colors">
-                        {job.title}
-                      </h3>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        {job.area && (
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {job.area}
-                          </span>
-                        )}
-                        <span>
-                          {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
-                        </span>
-                      </div>
-                      {job.teaser && (
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-                          {job.teaser}
-                        </p>
-                      )}
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/jobs/${job.id}`}>View</Link>
-                    </Button>
+              ) : needsServiceSetup ? (
+                <div className="py-8 text-center">
+                  <div className="mx-auto h-14 w-14 rounded-sm bg-muted flex items-center justify-center mb-4">
+                    <Wrench className="h-7 w-7 text-muted-foreground" />
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <p className="text-muted-foreground mb-4">
+                    Set up your services to see matched jobs.
+                  </p>
+                  <Button asChild>
+                    <Link to="/professional/service-setup">Set Up Services</Link>
+                  </Button>
+                </div>
+              ) : matchedJobs.length === 0 ? (
+                <div className="py-8 text-center">
+                  <div className="mx-auto h-14 w-14 rounded-sm bg-muted flex items-center justify-center mb-4">
+                    <Briefcase className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground mb-4">
+                    No matched jobs yet. Check back soon!
+                  </p>
+                  <Button variant="outline" asChild>
+                    <Link to="/jobs">Browse All Jobs</Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {matchedJobs.slice(0, 5).map((job) => (
+                    <div 
+                      key={job.id}
+                      className="flex items-center justify-between p-4 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate mb-1 group-hover:text-primary transition-colors">
+                          {job.title}
+                        </h3>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          {job.area && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {job.area}
+                            </span>
+                          )}
+                          <span>
+                            {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                        {job.teaser && (
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                            {job.teaser}
+                          </p>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/jobs/${job.id}`}>View</Link>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Right Column: Quick Actions + Status */}
+          <div className="space-y-4">
+            {/* Quick Actions */}
+            <Card className="border-border/70">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button className="w-full justify-start gap-2" asChild>
+                  <Link to="/professional/service-setup">
+                    <Wrench className="h-4 w-4" />
+                    Update Services
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2" asChild>
+                  <Link to="/professional/portfolio">
+                    <User className="h-4 w-4" />
+                    Edit Profile
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2" asChild>
+                  <Link to="/messages">
+                    <MessageSquare className="h-4 w-4" />
+                    View Messages
+                    {stats.unreadMessages > 0 && (
+                      <Badge variant="destructive" className="ml-auto text-xs">
+                        {stats.unreadMessages}
+                      </Badge>
+                    )}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Profile Status */}
+            <Card className="border-border/70">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Profile Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Services added</span>
+                    <span className="font-medium">{stats.servicesCount > 0 ? '✓' : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Profile complete</span>
+                    <span className="font-medium">{stats.servicesCount > 0 ? '✓' : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Publicly visible</span>
+                    <span className="font-medium">{professionalProfile?.isPubliclyListed ? '✓' : '—'}</span>
+                  </div>
+                </div>
+                {stats.servicesCount === 0 && (
+                  <p className="mt-4 text-xs text-muted-foreground">
+                    Complete your profile to appear in search results.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
