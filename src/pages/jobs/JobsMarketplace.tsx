@@ -2,8 +2,9 @@ import * as React from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { JobListingCard } from "@/pages/jobs/JobListingCard";
-import { Loader2, Filter } from "lucide-react";
+import { Loader2, Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useSession } from "@/contexts/SessionContext";
 import { useJobsBoard, useMatchedJobs } from "./queries";
 import type { JobsBoardRow } from "@/pages/jobs/types";
@@ -265,18 +266,25 @@ export function JobsMarketplace() {
             </div>
 
             {regular.length === 0 ? (
-              <div className="rounded-xl border p-6 text-sm text-muted-foreground text-center">
-                {showMatchedOnly && isProfessional ? (
-                  <>
-                    No matched jobs found.{" "}
+              <EmptyState
+                icon={<Search className="h-8 w-8" />}
+                message={
+                  showMatchedOnly && isProfessional
+                    ? "No matched jobs found."
+                    : "No jobs match your filters. Try removing some filters or searching a broader term."
+                }
+                action={
+                  showMatchedOnly && isProfessional ? (
                     <Button variant="link" className="p-0 h-auto" onClick={toggleMatchedFilter}>
                       View all jobs
                     </Button>
-                  </>
-                ) : (
-                  "No jobs match your filters."
-                )}
-              </div>
+                  ) : (
+                    <Button variant="outline" onClick={clearFilters}>
+                      Clear filters
+                    </Button>
+                  )
+                }
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {regular.map((job) => (
