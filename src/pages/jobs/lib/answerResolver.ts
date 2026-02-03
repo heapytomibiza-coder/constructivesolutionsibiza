@@ -1,4 +1,6 @@
-// Types for question pack structure
+/**
+ * Types for question pack structure
+ */
 export interface QuestionOption {
   value: string;
   label: string;

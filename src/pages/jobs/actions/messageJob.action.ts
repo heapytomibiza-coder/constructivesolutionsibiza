@@ -39,5 +39,5 @@ export async function startConversation(
     throw new Error("Conversation ID not returned");
   }
 
-  return data as string;
+  return String(data);
 }
