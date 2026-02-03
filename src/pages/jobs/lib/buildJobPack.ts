@@ -9,11 +9,12 @@ import {
 
 /**
  * A resolved answer with human-readable label and value.
+ * Keeps both raw value (for matching/analytics) and display value (for UI).
  */
 export interface ResolvedAnswer {
   questionId: string;
   questionLabel: string;
-  value: string | string[];
+  rawValue: string | string[];
   displayValue: string;
 }
 
@@ -24,6 +25,8 @@ export interface ResolvedServicePack {
   slug: string;
   title: string;
   answers: ResolvedAnswer[];
+  /** True when using fallback labels (packs not loaded) */
+  isFallback?: boolean;
 }
 
 /**
@@ -154,13 +157,47 @@ function safeAnswers(a: unknown): JobAnswers | null {
 }
 
 /**
+ * Build fallback service packs when question packs aren't loaded yet.
+ * Uses question IDs as labels and raw values as display values.
+ */
+function buildFallbackServicePacks(
+  microAnswers: Record<string, Record<string, unknown>>
+): ResolvedServicePack[] {
+  return Object.entries(microAnswers).map(([slug, answers]) => ({
+    slug,
+    title: slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    isFallback: true,
+    answers: Object.entries(answers)
+      .filter(([k]) => !k.startsWith("_"))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([questionId, v]) => {
+        const rawValue = Array.isArray(v) ? v.map(String) : String(v);
+        const displayValue = Array.isArray(v) ? v.map(String).join(", ") : String(v);
+        return {
+          questionId,
+          questionLabel: questionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+          rawValue,
+          displayValue,
+        };
+      }),
+  }));
+}
+
+/**
  * Resolve micro answers to service packs using question pack definitions.
  * This is the core function that converts raw answers + packs into display-ready data.
+ * 
+ * If packs are not provided or empty, returns fallback packs with raw labels.
  */
 export function resolveServicePacks(
   microAnswers: Record<string, Record<string, unknown>>,
   packs: QuestionPack[]
 ): ResolvedServicePack[] {
+  // Fallback mode: show answers with raw labels when packs aren't loaded
+  if (!packs.length) {
+    return buildFallbackServicePacks(microAnswers);
+  }
+
   const { questionLabels, optionLabels } = buildAnswerLookups(packs);
   
   const result: ResolvedServicePack[] = [];
@@ -174,18 +211,21 @@ export function resolveServicePacks(
     
     const resolvedAnswers: ResolvedAnswer[] = [];
     
-    for (const [questionId, value] of Object.entries(answers)) {
-      // Skip metadata keys
-      if (questionId.startsWith("_")) continue;
-      
+    // Sort entries for deterministic UI ordering
+    const entries = Object.entries(answers)
+      .filter(([k]) => !k.startsWith("_"))
+      .sort(([a], [b]) => a.localeCompare(b));
+    
+    for (const [questionId, value] of entries) {
       const questionLabel = qLabels?.get(questionId) || questionId;
       const questionOptionLabels = oLabels?.get(questionId);
       const displayValue = resolveAnswerValue(value, questionOptionLabels);
+      const rawValue = Array.isArray(value) ? value.map(String) : String(value);
       
       resolvedAnswers.push({
         questionId,
         questionLabel,
-        value: Array.isArray(value) ? value.map(String) : String(value),
+        rawValue,
         displayValue,
       });
     }

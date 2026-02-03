@@ -7,3 +7,4 @@ export * from "./keys";
 export * from "./jobBoard.query";
 export * from "./jobDetails.query";
 export * from "./matchedJobs.query";
+export * from "./questionPacks.query";
