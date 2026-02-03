@@ -25,7 +25,10 @@ export async function fetchJobDetails(jobId: string): Promise<JobDetailsRow> {
 export function useJobDetails(jobId: string | null, enabled = true) {
   return useQuery({
     queryKey: jobId ? jobKeys.details(jobId) : jobKeys.detailsNone(),
-    queryFn: () => fetchJobDetails(jobId!),
+    queryFn: async () => {
+      if (!jobId) throw new Error("jobId required");
+      return fetchJobDetails(jobId);
+    },
     enabled: enabled && !!jobId,
     staleTime: 30_000,
   });

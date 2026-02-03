@@ -28,7 +28,7 @@ export function useMatchedJobs() {
   const isProfessional = activeRole === "professional";
 
   const query = useQuery({
-    queryKey: user?.id ? jobKeys.matched(user.id) : ["matched_jobs", "none"],
+    queryKey: user?.id ? jobKeys.matched(user.id) : jobKeys.matchedNone(),
     queryFn: () => fetchMatchedJobs(user!.id),
     enabled: !!user?.id && isProfessional,
     staleTime: 30_000,
