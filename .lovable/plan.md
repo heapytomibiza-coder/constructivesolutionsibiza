@@ -1,103 +1,209 @@
 
-# Visual Design Refresh: Remaining Pages Completion
 
-## Problem
-The visual refresh was applied to core pages but missed several public and professional pages. The Contact page (current route) and 5+ other pages still have the old bland styling without the "construction-grade professional" treatment.
+# Design System Refinement: Construction-Grade Polish
 
-## Pages Requiring Updates
+## Current State Assessment
 
-### Priority 1: Public Pages
-1. **Contact.tsx** - Add hero section, construction texture, grounded cards
-2. **HowItWorks.tsx** - Add hero section, step cards with grounded styling
-3. **Services.tsx** - Add hero section, service cards with hover accents
-4. **ServiceCategory.tsx** - Add hero section with breadcrumb styling
-5. **Professionals.tsx** - Refresh hero styling, empty state treatment
-6. **ProfessionalDetails.tsx** - Update inline nav to match new patterns
+After reviewing the codebase, the implementation is **actually solid**:
+- No broken JSX or `return ;` placeholders
+- No dangerous global `span` styles
+- No Tailwind config pasted inside button.tsx
+- All components compile correctly
 
-### Priority 2: Professional Flow Pages
-7. **PostJob.tsx** - Update background and inline nav
-8. **ProfessionalOnboarding.tsx** - Update background and inline nav
-9. **ProfessionalServiceSetup.tsx** - Update background and inline nav
-10. **ProfessionalServices.tsx** - Update inline nav
-11. **ProfessionalPortfolio.tsx** - Update inline nav
+**However**, the user's feedback highlights valid UX concerns that need addressing:
 
-### Priority 3: Shared Components
-12. **PublicFooter.tsx** - Use `bg-gradient-steel` explicitly, add grounded styling
+### Issues to Fix
+
+1. **Button `outline` variant** uses `hover:bg-accent` which makes outline buttons look like CTAs on hover
+2. **Missing reusable layout components** (PageHeader, StatTile, EmptyState)
+3. **fontWeight extension in tailwind.config** uses non-standard string keys (`display: '600'`) instead of numeric
+4. **Accent variant** is used inconsistently - should be reserved for Post Job / ASAP / Urgent only
 
 ---
 
-## Implementation Details
+## Implementation Plan
 
-### Contact.tsx (Current Page)
-Add hero section with texture background and warm stone treatment:
-- Hero with `bg-gradient-concrete` and texture overlay
-- Cards using `card-grounded` class
-- Icon containers with square styling (not rounded-lg)
-- Trust signal: "Local team, real responses"
+### Phase 1: Fix Button Hover Behavior
 
-### HowItWorks.tsx
-- Add hero section with construction palette
-- StepCard with `card-grounded` and left accent border on hover
-- Section dividers with warm stone background
+**File**: `src/components/ui/button.tsx`
 
-### Services.tsx
-- Add hero section before category grid
-- Category cards with `border-accent-left` hover effect
-- Trust CTA section with clay/terracotta gradient
+**Change**: `outline` variant should hover to muted concrete, not accent clay
 
-### Professionals.tsx & ProfessionalDetails.tsx
-- Replace `bg-gradient-hero` usage with proper section styling
-- Update empty state with construction-appropriate messaging
-- Inline nav logos: use `bg-gradient-steel` with square `rounded-sm`
+```text
+Current:  hover:bg-accent hover:text-accent-foreground hover:border-accent
+Fixed:    hover:bg-muted/60 hover:text-foreground hover:border-border
+```
 
-### Professional Flow Pages (PostJob, Onboarding, ServiceSetup, etc.)
-All share a common inline nav pattern. Updates:
-- Logo container: `rounded-sm bg-gradient-steel` (not rounded-lg)
-- Background: `bg-texture-concrete` with `bg-gradient-hero`
-- Add shadow-md for the nav
+**Change**: `ghost` variant should also use muted, not accent
 
-### PublicFooter.tsx
-- Change `bg-gradient-ocean` to `bg-gradient-steel`
-- Add subtle top border with accent color
-- Logo container: `rounded-sm` with shadow
+```text
+Current:  hover:bg-accent/10 hover:text-accent-foreground  
+Fixed:    hover:bg-muted/60 hover:text-foreground
+```
+
+This keeps accent reserved for intentional CTAs (Post Job, ASAP urgency).
 
 ---
 
-## Pattern Consistency Checklist
+### Phase 2: Fix Tailwind Config
 
-| Element | Old Style | New Style |
-|---------|-----------|-----------|
-| Hero backgrounds | `bg-gradient-hero` (plain) | `bg-gradient-concrete` + `bg-texture-concrete` overlay |
-| Logo containers | `rounded-lg` | `rounded-sm shadow-md` |
-| Icon containers | `rounded-lg bg-primary/10` | `rounded-sm bg-primary/10` (square-ish) |
-| Cards | Default | Add `card-grounded` class |
-| Page headers | Centered, minimal | Add trust signals, bolder typography |
+**File**: `tailwind.config.ts`
+
+**Remove** the non-standard fontWeight extension:
+```typescript
+// Remove this - doesn't work as expected
+fontWeight: {
+  display: '600',
+  'display-bold': '700',
+},
+```
+
+Use standard Tailwind classes (`font-semibold`, `font-bold`) instead.
+
+---
+
+### Phase 3: Create Reusable Layout Components
+
+These ensure every page feels consistent without copy-pasting styles.
+
+#### 3.1 PageHeader Component
+
+**File**: `src/components/layout/PageHeader.tsx`
+
+A standardized page header with:
+- Title (h1 with display font)
+- Optional subtitle
+- Optional right-side action slot
+- Optional trust badge
+
+```text
+Usage: 
+<PageHeader 
+  title="Job Board" 
+  subtitle="Browse open jobs with full specs" 
+  action={<Button>Post a Job</Button>}
+/>
+```
+
+#### 3.2 StatTile Component
+
+**File**: `src/components/ui/stat-tile.tsx`
+
+Dashboard stats with:
+- Icon circle
+- Label
+- Big number
+- Optional "new" indicator
+
+```text
+Usage:
+<StatTile 
+  icon={<Briefcase />} 
+  label="Active Jobs" 
+  value={12} 
+  isNew 
+/>
+```
+
+#### 3.3 EmptyState Component
+
+**File**: `src/components/ui/empty-state.tsx`
+
+Consistent empty state with:
+- Icon
+- Message
+- CTA button
+
+```text
+Usage:
+<EmptyState 
+  icon={<Inbox />} 
+  message="No jobs posted yet" 
+  action={<Button>Post Your First Job</Button>}
+/>
+```
+
+---
+
+### Phase 4: Polish Job Board (High-Visibility Surface)
+
+This is where builders decide if the platform is worth their time.
+
+#### 4.1 JobListingCard Enhancements
+
+**File**: `src/pages/jobs/JobListingCard.tsx`
+
+- Add `card-grounded` class for stronger visual presence
+- Make budget more prominent (larger text, accent color for high values)
+- ASAP timing should use accent badge variant
+- Add subtle left border accent on hover
+
+#### 4.2 JobBoardHeroSection Polish
+
+**File**: `src/pages/jobs/components/JobBoardHeroSection.tsx`
+
+- Add trust signal row: "Real specs • Less back-and-forth • Ibiza only"
+- Toggle buttons: when active, use `accent` variant for ASAP (urgency indicator)
+- Others use `default` when active
+
+---
+
+### Phase 5: Badge Variant Refinement
+
+**File**: `src/components/ui/badge.tsx`
+
+- Change `rounded-sm` to `rounded-md` (less "label printer", more professional)
+- Add `gap-1` to base styles for icon+text badges
+- Ensure outline variant has subtle background
 
 ---
 
 ## Files to Modify
 
-1. `src/pages/public/Contact.tsx`
-2. `src/pages/public/HowItWorks.tsx`
-3. `src/pages/public/Services.tsx`
-4. `src/pages/public/ServiceCategory.tsx`
-5. `src/pages/public/Professionals.tsx`
-6. `src/pages/public/ProfessionalDetails.tsx`
-7. `src/pages/jobs/PostJob.tsx`
-8. `src/pages/onboarding/ProfessionalOnboarding.tsx`
-9. `src/pages/professional/ProfessionalServiceSetup.tsx`
-10. `src/pages/professional/ProfessionalServices.tsx`
-11. `src/pages/professional/ProfessionalPortfolio.tsx`
-12. `src/components/layout/PublicFooter.tsx`
+1. `src/components/ui/button.tsx` - Fix outline/ghost hover
+2. `tailwind.config.ts` - Remove non-standard fontWeight
+3. `src/components/ui/badge.tsx` - Polish rounding and gap
+
+## Files to Create
+
+4. `src/components/layout/PageHeader.tsx` - Reusable page header
+5. `src/components/ui/stat-tile.tsx` - Dashboard stat component
+6. `src/components/ui/empty-state.tsx` - Empty state component
+
+## Files to Polish
+
+7. `src/pages/jobs/JobListingCard.tsx` - Add grounded styling
+8. `src/pages/jobs/components/JobBoardHeroSection.tsx` - Add trust signal
+
+---
+
+## Implementation Order
+
+1. **Fix button hover** → immediate UX improvement, low risk
+2. **Fix tailwind config** → removes unused/broken extension
+3. **Add PageHeader** → enables consistent page structure
+4. **Add StatTile + EmptyState** → dashboard building blocks
+5. **Polish Job Board** → high-visibility validation of new system
+
+---
+
+## Accent Usage Rules (Guardrail)
+
+After this change, accent should **only** appear in:
+- "Post a Job" CTA buttons
+- ASAP/Urgent badges and toggles
+- Primary call-to-action in marketing sections
+
+Everything else uses `default` / `outline` / `secondary` / `ghost`.
 
 ---
 
 ## Expected Outcome
-After implementation:
-- All public pages feel cohesive with the new construction-grade aesthetic
-- Warm concrete textures and steel blue accents throughout
-- Consistent logo and nav styling across all flows
-- Cards have grounded presence with inset shadows
-- Trust signals appear on key conversion pages
 
-The platform will look consistent whether users land on `/`, `/contact`, `/services`, or any professional flow page.
+- Outline buttons no longer flash orange on hover
+- Pages have consistent header structure
+- Dashboards use unified stat display
+- Empty states guide users to action
+- Job board feels professional and "worth checking daily"
+- Accent color remains special (urgency/CTA only)
+
