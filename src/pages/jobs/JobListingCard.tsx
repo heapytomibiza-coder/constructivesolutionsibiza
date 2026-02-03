@@ -39,8 +39,13 @@ export function JobListingCard({ job }: { job: JobsBoardRow }) {
     <>
       <Card 
         data-job-id={job.id} 
-        className="overflow-hidden hover:shadow-md transition-all hover:border-accent/30 group border-l-2 border-l-transparent hover:border-l-accent"
+        className="group relative overflow-hidden hover:shadow-md transition-all hover:border-accent/30"
       >
+        {/* Accent border indicator - no layout shift */}
+        <span 
+          className="absolute inset-y-0 left-0 w-1 bg-transparent transition-colors group-hover:bg-accent" 
+          aria-hidden="true" 
+        />
         <CardHeader className="space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1.5 flex-1">
