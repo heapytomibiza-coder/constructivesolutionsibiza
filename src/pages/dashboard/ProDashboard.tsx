@@ -20,6 +20,7 @@ import {
   User
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { PendingReviewsCard } from './components/PendingReviewsCard';
 
 /**
  * PROFESSIONAL DASHBOARD
@@ -258,8 +259,11 @@ const ProDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Right Column: Quick Actions + Status */}
+          {/* Right Column: Quick Actions + Status + Pending Reviews */}
           <div className="space-y-4">
+            {/* Pending Reviews */}
+            <PendingReviewsCard />
+            
             {/* Quick Actions */}
             <Card className="border-border/70">
               <CardHeader>

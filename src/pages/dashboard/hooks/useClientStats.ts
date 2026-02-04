@@ -7,6 +7,7 @@ interface ClientStats {
   draftJobs: number;
   totalJobs: number;
   unreadMessages: number;
+  inProgressJobs: number;
 }
 
 interface Job {
@@ -17,6 +18,7 @@ interface Job {
   subcategory: string | null;
   created_at: string;
   is_publicly_listed: boolean;
+  assigned_professional_id: string | null;
 }
 
 export function useClientStats() {
@@ -26,7 +28,7 @@ export function useClientStats() {
     queryKey: ['client_stats', user?.id],
     queryFn: async (): Promise<ClientStats> => {
       if (!user?.id) {
-        return { activeJobs: 0, draftJobs: 0, totalJobs: 0, unreadMessages: 0 };
+        return { activeJobs: 0, draftJobs: 0, totalJobs: 0, unreadMessages: 0, inProgressJobs: 0 };
       }
 
       // Fetch jobs count by status
@@ -39,6 +41,7 @@ export function useClientStats() {
 
       const activeJobs = jobs?.filter(j => j.status === 'open').length || 0;
       const draftJobs = jobs?.filter(j => j.status === 'draft').length || 0;
+      const inProgressJobs = jobs?.filter(j => j.status === 'in_progress').length || 0;
       const totalJobs = jobs?.length || 0;
 
       // Fetch unread messages using RPC
@@ -54,6 +57,7 @@ export function useClientStats() {
         draftJobs,
         totalJobs,
         unreadMessages,
+        inProgressJobs,
       };
     },
     enabled: !!user?.id,
@@ -67,7 +71,7 @@ export function useClientStats() {
 
       const { data, error } = await supabase
         .from('jobs')
-        .select('id, title, status, category, subcategory, created_at, is_publicly_listed')
+        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -79,7 +83,7 @@ export function useClientStats() {
   });
 
   return {
-    stats: statsQuery.data || { activeJobs: 0, draftJobs: 0, totalJobs: 0, unreadMessages: 0 },
+    stats: statsQuery.data || { activeJobs: 0, draftJobs: 0, totalJobs: 0, unreadMessages: 0, inProgressJobs: 0 },
     jobs: jobsQuery.data || [],
     isLoading: statsQuery.isLoading || jobsQuery.isLoading,
     error: statsQuery.error || jobsQuery.error,

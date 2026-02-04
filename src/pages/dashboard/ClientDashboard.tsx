@@ -15,9 +15,10 @@ import {
   MessageSquare,
   LogOut,
   Settings,
-  Loader2
+  Loader2,
+  Clock
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { ClientJobCard } from './components/ClientJobCard';
 
 /**
  * CLIENT DASHBOARD
@@ -27,28 +28,13 @@ import { formatDistanceToNow } from 'date-fns';
  */
 const ClientDashboard = () => {
   const { user, roles } = useSession();
-  const { stats, jobs, isLoading } = useClientStats();
+  const { stats, jobs, isLoading, refetch } = useClientStats();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success('Signed out');
     navigate('/');
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'default';
-      case 'draft':
-        return 'secondary';
-      case 'in_progress':
-        return 'outline';
-      case 'completed':
-        return 'success';
-      default:
-        return 'secondary';
-    }
   };
 
   return (
@@ -101,7 +87,7 @@ const ClientDashboard = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -116,6 +102,23 @@ const ClientDashboard = () => {
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               ) : (
                 <div className="text-3xl font-bold text-foreground">{stats.activeJobs}</div>
+              )}
+            </CardContent>
+          </Card>
+          <Card className="border-border/70">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                In Progress
+              </CardTitle>
+              <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-accent" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : (
+                <div className="text-3xl font-bold text-foreground">{stats.inProgressJobs}</div>
               )}
             </CardContent>
           </Card>
@@ -185,31 +188,11 @@ const ClientDashboard = () => {
             ) : (
               <div className="space-y-3">
                 {jobs.map((job) => (
-                  <div 
+                  <ClientJobCard 
                     key={job.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium truncate group-hover:text-primary transition-colors">
-                          {job.title}
-                        </h3>
-                        <Badge variant={getStatusBadgeVariant(job.status)}>
-                          {job.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {job.category && job.subcategory 
-                          ? `${job.category} → ${job.subcategory}` 
-                          : 'Uncategorized'}
-                        {' · '}
-                        {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/jobs/${job.id}`}>View</Link>
-                    </Button>
-                  </div>
+                    job={job}
+                    onJobUpdated={refetch}
+                  />
                 ))}
               </div>
             )}
