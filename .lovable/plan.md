@@ -236,10 +236,10 @@ const contentHash = btoa(unescape(encodeURIComponent(JSON.stringify({...}))))
 
 | Task | Status | Blocking? |
 |------|--------|-----------|
-| Fix proReadiness phase mismatch | 🔴 TODO | YES |
+| Fix proReadiness phase mismatch | ✅ Done | YES |
 | Run live seeder (157 packs) | ⬜ Ready | NO |
-| Fix shouldShowQuestion for checkboxes | 🟡 Recommended | NO |
-| Fix btoa unicode crash | 🟡 Recommended | NO |
+| Fix shouldShowQuestion for checkboxes | ✅ Done | NO |
+| Fix btoa unicode crash | ✅ Done | NO |
 | Pack coverage 53% acceptable | ✅ Acceptable | NO |
 | Unique constraint verified | ✅ Done | - |
 | Slug fixes verified in DB | ✅ Done | - |
