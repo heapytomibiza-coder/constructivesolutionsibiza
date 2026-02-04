@@ -87,7 +87,7 @@ const ClientDashboard = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -102,6 +102,23 @@ const ClientDashboard = () => {
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               ) : (
                 <div className="text-3xl font-bold text-foreground">{stats.activeJobs}</div>
+              )}
+            </CardContent>
+          </Card>
+          <Card className="border-border/70">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                In Progress
+              </CardTitle>
+              <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-accent" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : (
+                <div className="text-3xl font-bold text-foreground">{stats.inProgressJobs}</div>
               )}
             </CardContent>
           </Card>
