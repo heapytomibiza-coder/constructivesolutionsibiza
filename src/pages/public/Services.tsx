@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PublicLayout } from '@/components/layout';
+import { PublicLayout, HeroBanner } from '@/components/layout';
 import { MAIN_CATEGORIES } from '@/domain/scope';
 import { 
   Hammer, Wrench, Droplets, Zap, Wind, Paintbrush, 
@@ -9,6 +9,7 @@ import {
   ChefHat, DoorOpen, Settings, Building2, FileCheck,
   ArrowRight, Shield
 } from 'lucide-react';
+import heroServices from '@/assets/heroes/hero-services.jpg';
 
 /**
  * SERVICES PAGE - Browse all service categories
@@ -40,22 +41,18 @@ const Services = () => {
   return (
     <PublicLayout>
       {/* Hero Section */}
-      <div className="border-b border-border bg-gradient-concrete bg-texture-concrete py-12">
-        <div className="container">
-          <div className="mx-auto max-w-4xl text-center">
-            <h1 className="font-display text-4xl font-bold text-foreground mb-4">
-              Our Services
-            </h1>
-            <p className="text-lg text-muted-foreground mb-4">
-              Find trusted professionals across all construction and property services
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4 text-primary" />
-              <span>Verified trades • Ibiza-based professionals</span>
-            </div>
+      <HeroBanner
+        imageSrc={heroServices}
+        title="Our Services"
+        subtitle="Find trusted professionals across all construction and property services"
+        height="compact"
+        trustBadge={
+          <div className="hero-trust-badge">
+            <Shield className="h-4 w-4" />
+            Verified trades • Ibiza-based professionals
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="container py-12">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

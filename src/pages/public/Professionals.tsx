@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { PublicLayout } from '@/components/layout';
+import { PublicLayout, HeroBanner } from '@/components/layout';
 import { Search, Shield, Users } from 'lucide-react';
+import heroProfessionals from '@/assets/heroes/hero-professionals.jpg';
 
 /**
  * PROFESSIONALS DIRECTORY PAGE
@@ -16,17 +17,23 @@ const Professionals = () => {
   return (
     <PublicLayout>
       {/* Hero Section */}
-      <div className="border-b border-border bg-gradient-concrete bg-texture-concrete py-12">
+      <HeroBanner
+        imageSrc={heroProfessionals}
+        title="Browse Professionals"
+        subtitle="Discover verified professionals offering premium services across Ibiza"
+        height="compact"
+        trustBadge={
+          <div className="hero-trust-badge">
+            <Shield className="h-4 w-4" />
+            All professionals are verified
+          </div>
+        }
+      />
+
+      {/* Search Section */}
+      <div className="border-b border-border bg-background py-6">
         <div className="container">
-          <h1 className="font-display text-3xl font-bold text-foreground mb-4">
-            Browse Professionals
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mb-6">
-            Discover verified professionals offering premium services across Ibiza.
-          </p>
-          
-          {/* Search */}
-          <div className="flex gap-3 max-w-xl mb-4">
+          <div className="flex gap-3 max-w-xl mx-auto">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
@@ -35,11 +42,6 @@ const Professionals = () => {
               />
             </div>
             <Button>Search</Button>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Shield className="h-4 w-4 text-primary" />
-            <span>All professionals are verified</span>
           </div>
         </div>
       </div>

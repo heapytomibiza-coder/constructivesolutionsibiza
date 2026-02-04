@@ -3,8 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { PublicLayout } from '@/components/layout';
+import { PublicLayout, HeroBanner } from '@/components/layout';
 import { Mail, MapPin, Phone, Shield } from 'lucide-react';
+import heroContact from '@/assets/heroes/hero-contact.jpg';
 
 /**
  * CONTACT PAGE
@@ -23,22 +24,18 @@ const Contact = () => {
   return (
     <PublicLayout>
       {/* Hero Section */}
-      <div className="border-b border-border bg-gradient-concrete bg-texture-concrete py-12">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="font-display text-4xl font-bold text-foreground mb-4">
-              Contact Us
-            </h1>
-            <p className="text-lg text-muted-foreground mb-4">
-              Have a question? We're here to help.
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4 text-primary" />
-              <span>Local team, real responses</span>
-            </div>
+      <HeroBanner
+        imageSrc={heroContact}
+        title="Contact Us"
+        subtitle="Have a question? We're here to help."
+        height="compact"
+        trustBadge={
+          <div className="hero-trust-badge">
+            <Shield className="h-4 w-4" />
+            Local team, real responses
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="container py-12">
         <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">

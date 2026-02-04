@@ -280,6 +280,32 @@
   .service-card-hover:hover {
     border-left: 3px solid hsl(var(--accent));
   }
+
+  /* Hero banner styles */
+  .hero-banner {
+    @apply relative;
+  }
+
+  .hero-overlay {
+    background: linear-gradient(
+      to bottom,
+      hsl(0 0% 0% / 0.25) 0%,
+      hsl(0 0% 0% / 0.5) 100%
+    );
+  }
+
+  .hero-content {
+    @apply py-12 lg:py-16;
+  }
+
+  /* Hero trust badge - light variant for dark backgrounds */
+  .hero-trust-badge {
+    @apply inline-flex items-center gap-2 rounded-sm bg-white/15 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white/90 border border-white/20;
+  }
+
+  .hero-trust-badge svg {
+    @apply h-4 w-4 text-white;
+  }
 }
 
 @layer utilities {

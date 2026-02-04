@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PublicLayout } from '@/components/layout';
+import { PublicLayout, HeroBanner } from '@/components/layout';
 import { ClipboardList, Users, MessageSquare, CheckCircle, ArrowRight, Shield } from 'lucide-react';
+import heroHowItWorks from '@/assets/heroes/hero-how-it-works.jpg';
 
 /**
  * HOW IT WORKS PAGE
@@ -15,22 +16,18 @@ const HowItWorks = () => {
   return (
     <PublicLayout>
       {/* Hero Section */}
-      <div className="border-b border-border bg-gradient-concrete bg-texture-concrete py-12">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="font-display text-4xl font-bold text-foreground mb-4">
-              How It Works
-            </h1>
-            <p className="text-lg text-muted-foreground mb-4">
-              Connecting clients with trusted construction professionals in Ibiza
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4 text-primary" />
-              <span>Verified trades • Same-day response • Ibiza-based</span>
-            </div>
+      <HeroBanner
+        imageSrc={heroHowItWorks}
+        title="How It Works"
+        subtitle="Connecting clients with trusted construction professionals in Ibiza"
+        height="compact"
+        trustBadge={
+          <div className="hero-trust-badge">
+            <Shield className="h-4 w-4" />
+            Verified trades • Same-day response • Ibiza-based
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="container py-12">
         {/* For Clients */}
