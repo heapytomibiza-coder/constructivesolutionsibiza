@@ -314,6 +314,9 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
           </Label>
           {question.help && <p className="text-sm text-muted-foreground">{question.help}</p>}
           {renderQuestion(question)}
+          {errors?.[question.id] && (
+            <p className="text-sm text-destructive">{errors[question.id]}</p>
+          )}
         </div>
       ))}
     </div>

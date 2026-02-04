@@ -439,6 +439,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               microSlugs={wizardState.microSlugs}
               answers={wizardState.answers}
               onChange={handleAnswersChange}
+              onPacksLoaded={handlePacksLoaded}
+              errors={questionErrors}
             />
           )}
 

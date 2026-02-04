@@ -90,6 +90,121 @@ export function isExtrasComplete(): boolean {
   return true;
 }
 
+// === STEP 4 (QUESTIONS) VALIDATION ===
+
+interface QuestionDefForValidation {
+  id: string;
+  type: string;
+  required?: boolean;
+  min?: number;
+  max?: number;
+  show_if?: { questionId: string; value: string | string[] };
+  dependsOn?: { questionId: string; value: string | string[] };
+}
+
+interface QuestionPackForValidation {
+  micro_slug: string;
+  questions: QuestionDefForValidation[];
+}
+
+export type ValidationErrorMap = Record<string, string>;
+
+const isEmpty = (v: unknown): boolean => {
+  if (v == null) return true;
+  if (typeof v === 'string') return v.trim().length === 0;
+  if (Array.isArray(v)) return v.length === 0;
+  return false;
+};
+
+// Check if question should be visible (respect show_if/dependsOn)
+const isQuestionVisible = (
+  question: QuestionDefForValidation,
+  getAnswer: (qid: string) => unknown
+): boolean => {
+  const dep = question.show_if || question.dependsOn;
+  if (!dep?.questionId) return true;
+  
+  const depValue = getAnswer(dep.questionId);
+  const depValueArr = Array.isArray(depValue)
+    ? depValue.map(String)
+    : depValue != null ? [String(depValue)] : [];
+  
+  const requiredArr = Array.isArray(dep.value)
+    ? dep.value.map(String)
+    : [String(dep.value)];
+  
+  return requiredArr.some(v => depValueArr.includes(v));
+};
+
+export function validateQuestionPack(
+  pack: QuestionPackForValidation,
+  microAnswers: Record<string, Record<string, unknown>>
+): ValidationErrorMap {
+  const errors: ValidationErrorMap = {};
+  const answers = microAnswers[pack.micro_slug] || {};
+  const getAnswer = (qid: string) => answers[qid];
+  
+  for (const q of pack.questions) {
+    // Skip hidden questions
+    if (!isQuestionVisible(q, getAnswer)) continue;
+    
+    const v = answers[q.id];
+    
+    // Required check
+    if (q.required && isEmpty(v)) {
+      errors[q.id] = 'Required';
+      continue;
+    }
+    
+    // Number min/max validation (only if value is present)
+    if (q.type === 'number' && v != null && v !== '') {
+      const n = typeof v === 'number' ? v : Number(v);
+      if (Number.isNaN(n)) {
+        errors[q.id] = 'Enter a valid number';
+        continue;
+      }
+      if (typeof q.min === 'number' && n < q.min) {
+        errors[q.id] = `Must be ≥ ${q.min}`;
+      }
+      if (typeof q.max === 'number' && n > q.max) {
+        errors[q.id] = `Must be ≤ ${q.max}`;
+      }
+    }
+  }
+  
+  return errors;
+}
+
+export type PackValidationResult = {
+  valid: boolean;
+  errors: Record<string, ValidationErrorMap>;
+  firstErrorId: string | null;
+};
+
+export function validateAllPacks(
+  packs: QuestionPackForValidation[],
+  microAnswers: Record<string, Record<string, unknown>>
+): PackValidationResult {
+  const allErrors: Record<string, ValidationErrorMap> = {};
+  let firstErrorId: string | null = null;
+  
+  for (const pack of packs) {
+    const packErrors = validateQuestionPack(pack, microAnswers);
+    if (Object.keys(packErrors).length > 0) {
+      allErrors[pack.micro_slug] = packErrors;
+      if (!firstErrorId) {
+        firstErrorId = `${pack.micro_slug}-${Object.keys(packErrors)[0]}`;
+      }
+    }
+  }
+  
+  return {
+    valid: Object.keys(allErrors).length === 0,
+    errors: allErrors,
+    firstErrorId,
+  };
+}
+
 // === FULL WIZARD VALIDATION (for submission) ===
 export type WizardValidation = {
   canSubmit: boolean;

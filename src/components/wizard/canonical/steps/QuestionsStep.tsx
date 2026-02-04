@@ -301,6 +301,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
               pack={pack}
               getAnswer={getAnswer}
               onAnswerChange={handleAnswerChange}
+              errors={errors?.[pack.micro_slug]}
             />
           </div>
         );
