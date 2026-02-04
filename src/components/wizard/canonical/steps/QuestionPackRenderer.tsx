@@ -156,7 +156,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
             id={key}
             type="number"
             placeholder={question.placeholder}
-            value={value ?? ''}
+            value={(value as number | string) ?? ''}
             min={question.min}
             max={question.max}
             step={question.step}
