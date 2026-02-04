@@ -28,28 +28,13 @@ import { ClientJobCard } from './components/ClientJobCard';
  */
 const ClientDashboard = () => {
   const { user, roles } = useSession();
-  const { stats, jobs, isLoading } = useClientStats();
+  const { stats, jobs, isLoading, refetch } = useClientStats();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success('Signed out');
     navigate('/');
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'default';
-      case 'draft':
-        return 'secondary';
-      case 'in_progress':
-        return 'outline';
-      case 'completed':
-        return 'success';
-      default:
-        return 'secondary';
-    }
   };
 
   return (
