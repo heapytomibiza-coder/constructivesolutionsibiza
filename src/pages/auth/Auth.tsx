@@ -54,24 +54,54 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // If intent not selected yet, show the selector first
+    if (!selectedIntent) {
+      setShowIntentSelector(true);
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // Determine roles based on intent
+      const roles = selectedIntent === 'client' 
+        ? ['client'] 
+        : ['client', 'professional'];
+      const activeRole = selectedIntent === 'professional' ? 'professional' : 'client';
+      
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: window.location.origin + '/auth/callback',
+          data: {
+            intent: selectedIntent,
+            initial_roles: roles,
+            initial_active_role: activeRole,
+          },
         },
       });
 
       if (error) throw error;
 
       toast.success('Check your email to confirm your account!');
+      
+      // Reset form
+      setEmail('');
+      setPassword('');
+      setSelectedIntent(null);
+      setShowIntentSelector(false);
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign up');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleIntentContinue = () => {
+    if (selectedIntent) {
+      setShowIntentSelector(false);
     }
   };
 
