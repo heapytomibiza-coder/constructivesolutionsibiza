@@ -505,7 +505,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "skip-hire",
+    microSlug: "heavy-equipment-transport",
     title: "Forklift Hire",
     metadata: { category_contract: "transport", inspection_bias: "medium" },
     questions: [
