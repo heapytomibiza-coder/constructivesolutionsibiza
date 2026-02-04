@@ -18,6 +18,7 @@ import { transportLogisticsQuestionPacksV2 } from "../supabase/functions/_shared
 import { commercialIndustrialQuestionPacksV2 } from "../supabase/functions/_shared/commercialIndustrialQuestionPacksV2";
 import { carpentryQuestionPacksV2 } from "../supabase/functions/_shared/carpentryQuestionPacksV2";
 import { architectsDesignQuestionPacksV2 } from "../supabase/functions/_shared/architectsDesignQuestionPacksV2";
+import { legalRegulatoryQuestionPacksV2 } from "../supabase/functions/_shared/legalRegulatoryQuestionPacksV2";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configuration
@@ -40,6 +41,7 @@ const categories = [
   { name: "Commercial & Industrial", packs: commercialIndustrialQuestionPacksV2 },
   { name: "Carpentry", packs: carpentryQuestionPacksV2 },
   { name: "Architects & Design", packs: architectsDesignQuestionPacksV2 },
+  { name: "Legal & Regulatory", packs: legalRegulatoryQuestionPacksV2 },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -792,4 +792,141 @@ export const poolSpaQuestionPacksV2 = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SPA SERVICES (ADDITIONAL)
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "spa-maintenance",
+    title: "Spa Maintenance",
+    metadata: { category_contract: "pool-spa", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "spa_maintenance_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial_property", label: "Commercial property" },
+          { value: "hotel_resort", label: "Hotel / Resort" },
+        ],
+      },
+      {
+        id: "spa_maintenance_02_scope",
+        label: "Scope",
+        type: "checkbox",
+        required: true,
+        options: [
+          { value: "hot_tub_service", label: "Hot tub service" },
+          { value: "sauna_maintenance", label: "Sauna maintenance" },
+          { value: "steam_room", label: "Steam room service" },
+          { value: "full_spa_check", label: "Full spa system check" },
+        ],
+      },
+      {
+        id: "spa_maintenance_03_issue",
+        label: "Issue",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "routine_service", label: "Routine maintenance" },
+          { value: "not_working", label: "Not working properly" },
+          { value: "water_quality", label: "Water quality issue" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "spa_maintenance_04_frequency",
+        label: "Service frequency",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "one_off", label: "One-off service" },
+          { value: "regular", label: "Regular maintenance" },
+        ],
+      },
+      {
+        id: "spa_maintenance_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "tile-replacement",
+    title: "Tile Replacement",
+    metadata: { category_contract: "pool-spa", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "tile_replacement_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial_property", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "tile_replacement_02_area",
+        label: "Area",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "pool_interior", label: "Pool interior tiles" },
+          { value: "pool_surround", label: "Pool surround / deck" },
+          { value: "waterline", label: "Waterline tiles only" },
+          { value: "steps", label: "Steps / entry area" },
+        ],
+      },
+      {
+        id: "tile_replacement_03_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small_repair", label: "Small repair (few tiles)" },
+          { value: "partial", label: "Partial replacement" },
+          { value: "full", label: "Full tile replacement" },
+        ],
+      },
+      {
+        id: "tile_replacement_04_tile_supply",
+        label: "Tile supply",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "match_existing", label: "Match existing tiles" },
+          { value: "client_supplied", label: "Client supplied" },
+          { value: "need_sourcing", label: "Need help sourcing" },
+        ],
+      },
+      {
+        id: "tile_replacement_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "tile_replacement_06_photos",
+        label: "Upload photos",
+        type: "file",
+        required: false,
+        accept: "image/*",
+      },
+    ],
+  },
 ];
