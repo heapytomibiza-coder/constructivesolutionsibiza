@@ -5,6 +5,9 @@
  * to perform marketplace actions (messaging clients, applying to jobs).
  * 
  * Used by both UI (to disable buttons) and action layer (to throw errors).
+ * 
+ * NOTE: This is UX gating only. Real enforcement should be added to the RPC in V2.
+ * An authenticated user could technically bypass this by calling RPCs directly.
  */
 
 import { UserError } from "@/shared/lib/userError";
@@ -21,8 +24,11 @@ export interface ProReadinessResult {
   reasons: ProReadinessReason[];
 }
 
-/** Valid onboarding phases that indicate sufficient setup progress */
-const VALID_PHASES = new Set(['service_setup', 'complete']);
+/** 
+ * Valid onboarding phases that indicate sufficient setup progress.
+ * Must match canonical phases from onboarding flow.
+ */
+const VALID_PHASES = new Set(['service_configured', 'complete']);
 
 /**
  * Evaluate professional readiness for marketplace actions.
@@ -45,7 +51,8 @@ export function getProReadiness(
     reasons.push('ONBOARDING_INCOMPLETE');
   }
 
-  if ((profile.servicesCount ?? 0) <= 0) {
+  // Only block when servicesCount is definitively zero, not when unknown/loading
+  if (typeof profile.servicesCount === 'number' && profile.servicesCount <= 0) {
     reasons.push('NO_SERVICES');
   }
 
