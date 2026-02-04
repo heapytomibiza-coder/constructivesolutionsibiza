@@ -57,6 +57,7 @@ export function useClientStats() {
         draftJobs,
         totalJobs,
         unreadMessages,
+        inProgressJobs,
       };
     },
     enabled: !!user?.id,
