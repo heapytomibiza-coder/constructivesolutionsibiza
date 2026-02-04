@@ -1,158 +1,232 @@
 
 
-# Complete Question Pack Coverage to 100%
+# V2 QuestionPackRenderer Improvements
 
-## Current State Summary
+## Overview
+Upgrade the `QuestionPackRenderer` component to be fully V2-compatible with improved validation, type support, and future-ready file handling.
 
-Based on the database audit, here are the missing packs for each category:
+## Current State Analysis
 
-| Category | Total Micros | Has Pack | Missing | Status |
-|----------|-------------|----------|---------|--------|
-| **Cleaning** | 12 | 11 | 1 | 92% ✅ |
-| **Commercial & Industrial** | 12 | 11 | 1 | 92% ✅ |
-| **Pool & Spa** | 12 | 10 | 2 | 83% 🔶 |
-| **Gardening & Landscaping** | 14 | 11 | 3* | 78% 🔶 |
-| **Floors, Doors & Windows** | 13 | 9 | 4 | 69% 🔶 |
-| **Architects & Design** | 12 | 7 | 5 | 58% 🔶 |
-| **Painting & Decorating** | 20 | 10 | 10* | 50% 🔶 |
-| **Carpentry** | 23 | 11 | 12 | 48% 🔶 |
-| **Legal & Regulatory** | 12 | 0 | 12 | 0% ⚠️ |
+Based on code review and database audit:
 
-*Some have V2 packs written but with slug mismatches
+| Current Types | Database Count | Status |
+|--------------|----------------|--------|
+| `radio` | 982 | ✅ Supported |
+| `select` | 327 | ✅ Supported (renders as radio) |
+| `file` | 152 | ⚠️ Partial (stores filename only) |
+| `textarea` | 119 | ✅ Supported |
+| `checkbox` | 65 | ✅ Supported |
+| `text` | 2 | ✅ Supported |
+| `number` | 0 | ✅ Supported but has bug |
 
----
-
-## Missing Packs Detail
-
-### Cleaning (1 missing)
-- `move-in-out-cleaning` — Move In/Out Cleaning
-
-### Commercial & Industrial (1 missing)  
-- `shop-front` — Shop Front
-
-### Pool & Spa (2 missing)
-- `spa-maintenance` — Spa Maintenance
-- `tile-replacement` — Tile Replacement
-
-### Gardening & Landscaping (2 missing)
-- `tree-removal` — Tree Removal
-- `turf-installation` — Turf Installation
-
-### Floors, Doors & Windows (4 missing)
-- `double-glazing` — Double Glazing
-- `mirror-installation` — Mirror Installation
-- `window-fitting` — Window Fitting
-- `window-replacement` — Window Replacement
-
-### Architects & Design (5 missing)
-- `3d-rendering` — 3D Rendering
-- `budget-management` — Budget Management
-- `contractor-coordination` — Contractor Coordination
-- `floor-plans` — Floor Plans
-- `virtual-walkthrough` — Virtual Walkthrough
-
-### Painting & Decorating (7 missing - some written but slug mismatch)
-- `cabinet-painting` — Cabinet Painting
-- `feature-walls` — Feature Walls
-- `fence-painting` — Fence Painting
-- `pressure-washing` — Pressure Washing
-- `trim-woodwork` — Trim & Woodwork
-- `wall-painting` — Wall Painting
-- `wallpaper-installation` — Wallpaper Installation
-
-### Carpentry (12 missing)
-- `antique-restoration` — Antique Restoration
-- `beam-installation` — Beam Installation
-- `composite-decking` — Composite Decking
-- `exterior-doors` — Exterior Doors
-- `floor-joists` — Floor Joists
-- `interior-doors` — Interior Doors
-- `pergola-construction` — Pergola Construction
-- `refinishing` — Refinishing
-- `roof-framing` — Roof Framing
-- `shutters` — Shutters
-- `wall-framing` — Wall Framing
-- `wood-repair` — Wood Repair
-
-### Legal & Regulatory (12 missing - not written)
-- `appeal-support` — Appeal Support
-- `building-inspection` — Building Inspection
-- `building-regulations` — Building Regulations
-- `council-liaison` — Council Liaison
-- `document-preparation` — Document Preparation
-- `environmental-compliance` — Environmental Compliance
-- `health-safety` — Health & Safety
-- `permit-application` — Permit Application
-- `planning-submission` — Planning Submission
-- `pre-application-advice` — Pre-Application Advice
-- `pre-purchase-survey` — Pre-Purchase Survey
-- `safety-inspection` — Safety Inspection
+**Issues Found:**
+1. **Number input bug** - Line 122: `(value as number) || ''` treats `0` as falsy
+2. **No V2 type aliases** - `single_select`/`multi_select` not mapped
+3. **File handling** - Only stores filename, no actual upload
+4. **No min/max validation** - Number inputs ignore constraints
+5. **No `question_order` support** - Uses array order only
 
 ---
 
 ## Implementation Plan
 
-### Step 1: Write Missing Packs for Categories Near Completion
-Create question packs for the remaining services to achieve 100% in "near complete" categories:
+### PR1: V2 Type Aliases + Question Order Support
+*Estimated: 30-45 minutes*
 
-**Cleaning** (1 pack)
-- `move-in-out-cleaning`
+**Changes to `QuestionPackRenderer.tsx`:**
 
-**Commercial & Industrial** (1 pack)
-- `shop-front`
+1. Add type normalization function:
+```text
+const normalizeQuestionType = (type: string): QuestionDef['type'] => {
+  switch (type) {
+    case 'single_select': return 'radio';
+    case 'multi_select': return 'checkbox';
+    case 'long_text': return 'textarea';
+    default: return type as QuestionDef['type'];
+  }
+};
+```
 
-**Pool & Spa** (2 packs)
-- `spa-maintenance`
-- `tile-replacement`
+2. Add question ordering:
+```text
+const getOrderedQuestions = (pack: QuestionPack): QuestionDef[] => {
+  const questions = pack.questions || [];
+  const order = (pack as any).question_order as string[] | undefined;
+  
+  if (!order?.length) return questions;
+  
+  const byId = new Map(questions.map(q => [q.id, q]));
+  const ordered = order.map(id => byId.get(id)).filter(Boolean) as QuestionDef[];
+  const unordered = questions.filter(q => !order.includes(q.id));
+  
+  return [...ordered, ...unordered];
+};
+```
 
-### Step 2: Complete Moderate Coverage Categories
-Write packs for categories in the 50–80% range:
+3. Update `uniqueQuestions` memo to use ordered questions
 
-**Gardening & Landscaping** (2 packs)
-- `tree-removal`
-- `turf-installation`
-
-**Floors, Doors & Windows** (4 packs)
-- `double-glazing`, `mirror-installation`, `window-fitting`, `window-replacement`
-
-**Architects & Design** (5 packs)
-- `3d-rendering`, `budget-management`, `contractor-coordination`, `floor-plans`, `virtual-walkthrough`
-
-**Painting & Decorating** (7 packs)
-- `cabinet-painting`, `feature-walls`, `fence-painting`, `pressure-washing`, `trim-woodwork`, `wall-painting`, `wallpaper-installation`
-
-**Carpentry** (12 packs)
-- `antique-restoration`, `beam-installation`, `composite-decking`, `exterior-doors`, `floor-joists`, `interior-doors`, `pergola-construction`, `refinishing`, `roof-framing`, `shutters`, `wall-framing`, `wood-repair`
-
-### Step 3: Write Legal & Regulatory (12 packs)
-Create the entire Legal & Regulatory category from scratch with focus on Ibiza/Spain regulatory context.
-
-### Step 4: Deploy and Seed
-1. Add new packs to existing V2 files
-2. Deploy `seedpacks` edge function (already done)
-3. Seed all packs to database
-4. Verify 100% coverage
-
----
-
-## Technical Details
-
-Each new pack follows the canonical formula:
-- **5–8 questions** per pack
-- **70%+ selection-based** (radio, checkbox)
-- **ID convention**: `{micro_slug}_{NN}_{shortname}`
-- **Required metadata**: `category_contract` and `inspection_bias`
-- **Standard spine**: Location → Scope → Size → Materials/Finish → Access → Timeline → Budget (optional) → Photos (optional)
+**Acceptance Criteria:**
+- V2 packs with `single_select` render as radio buttons
+- V2 packs with `multi_select` render as checkboxes
+- Packs with `question_order` array render in that order
+- No changes needed to existing packs
 
 ---
 
-## Expected Outcome
+### PR2: Number Input Bug Fix + Min/Max Validation
+*Estimated: 30-45 minutes*
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Total Packs | 245 | 295 |
-| Coverage | 83% | **100%** |
-| Categories at 100% | 5 | **16** |
+**Changes to `QuestionPackRenderer.tsx`:**
 
-All 295 active micro-services will have professional question packs, completing the wizard's data foundation.
+1. Fix the zero-value bug (line 122):
+```text
+// BEFORE
+value={(value as number) || ''}
+
+// AFTER
+value={value ?? ''}
+```
+
+2. Add min/max/step props to interface:
+```text
+interface QuestionDef {
+  // ... existing fields
+  min?: number;
+  max?: number;
+  step?: number;
+}
+```
+
+3. Update number input rendering:
+```text
+case 'number':
+  return (
+    <Input
+      id={key}
+      type="number"
+      placeholder={question.placeholder}
+      value={value ?? ''}
+      min={question.min}
+      max={question.max}
+      step={question.step}
+      onChange={(e) => {
+        const num = e.target.valueAsNumber;
+        onAnswerChange(pack.micro_slug, question.id, Number.isNaN(num) ? null : num);
+      }}
+    />
+  );
+```
+
+**Acceptance Criteria:**
+- Entering `0` displays correctly and submits as `0`
+- Min/max attributes render on the input
+- Browser-native validation shows for out-of-range values
+
+---
+
+### PR3: File Input Accept Array Normalization
+*Estimated: 15-20 minutes*
+
+**Changes to `QuestionPackRenderer.tsx`:**
+
+1. Update interface:
+```text
+interface QuestionDef {
+  // ... existing fields
+  accept?: string | string[];
+}
+```
+
+2. Add helper:
+```text
+const normalizeAccept = (accept?: string | string[]): string => {
+  if (!accept) return 'image/*';
+  return Array.isArray(accept) ? accept.join(',') : accept;
+};
+```
+
+3. Update file input:
+```text
+case 'file':
+  return (
+    <Input
+      id={key}
+      type="file"
+      accept={normalizeAccept(question.accept)}
+      onChange={...}
+    />
+  );
+```
+
+**Acceptance Criteria:**
+- File input accepts `accept: ["image/*", "application/pdf"]` format
+- String format still works: `accept: "image/*"`
+- No regressions for existing packs
+
+---
+
+### PR4: File Upload - Honest MVP Stub
+*Estimated: 20-30 minutes*
+
+Since no actual file storage is implemented yet, we should make the UX honest:
+
+**Changes to `QuestionPackRenderer.tsx`:**
+
+1. Update file rendering to show clear placeholder status:
+```text
+case 'file':
+  const fileNames = (value as string[]) || [];
+  return (
+    <div className="space-y-2">
+      <Input
+        id={key}
+        type="file"
+        accept={normalizeAccept(question.accept)}
+        onChange={(e) => {
+          const files = e.target.files;
+          onAnswerChange(
+            pack.micro_slug, 
+            question.id, 
+            files ? Array.from(files).map(f => f.name) : []
+          );
+        }}
+      />
+      {fileNames.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Selected: {fileNames.join(', ')} 
+          <span className="italic"> (uploads after job is posted)</span>
+        </p>
+      )}
+    </div>
+  );
+```
+
+**Acceptance Criteria:**
+- User sees clear feedback that files are selected but upload is deferred
+- No misleading "uploaded" status
+- Prepares for real Storage integration later
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/components/wizard/canonical/steps/QuestionPackRenderer.tsx` | Type aliases, question order, number fix, accept array, file stub |
+| `src/components/wizard/canonical/steps/QuestionsStep.tsx` | No changes needed (types flow through) |
+
+---
+
+## Summary
+
+| PR | Scope | Risk | Time |
+|----|-------|------|------|
+| PR1 | V2 type aliases + question_order | Low | 30-45 min |
+| PR2 | Number `0` fix + min/max | Low | 30-45 min |
+| PR3 | Accept array normalization | Minimal | 15-20 min |
+| PR4 | Honest file upload stub | Low | 20-30 min |
+
+**Total estimated time: 1.5-2.5 hours**
+
+All changes are backward-compatible. Existing packs continue to work unchanged.
 
