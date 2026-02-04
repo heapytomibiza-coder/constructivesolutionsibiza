@@ -184,12 +184,13 @@ export function buildIdempotencyKey(
 ): string {
   const timeBucket = Math.floor(Date.now() / (1000 * 60 * 60)); // 1-hour bucket
   
+  // Unicode-safe base64 encoding to handle non-ASCII characters (e.g., Spanish accents)
   const contentHash = btoa(
-    JSON.stringify({
+    unescape(encodeURIComponent(JSON.stringify({
       id: uniqueId,
       micros: [...wizardState.microIds].sort().join(','),
       location: wizardState.logistics.location,
-    })
+    })))
   ).slice(0, 32);
 
   return `job-${uniqueId.slice(0, 8)}-${contentHash}-${timeBucket}`;
