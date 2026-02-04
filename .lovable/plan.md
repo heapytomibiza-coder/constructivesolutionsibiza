@@ -1,85 +1,158 @@
 
 
-# Seed V2 Question Packs
+# Complete Question Pack Coverage to 100%
 
-## Summary
-Deploy the `seedpacks` edge function and seed all 10 categories of V2 question packs into the database. This will increase coverage from 157 packs (53%) to approximately 265 packs (89%).
+## Current State Summary
 
-## Current State
+Based on the database audit, here are the missing packs for each category:
 
-| Category | Already Seeded | Total Micros | V2 Packs Ready |
-|----------|---------------|--------------|----------------|
-| Architects & Design | 0 | 12 | 12 |
-| Carpentry | 7 | 23 | ✓ V2 file exists |
-| Cleaning | 0 | 12 | 12 |
-| Commercial & Industrial | 0 | 12 | 12 |
-| Construction | 50 | 50 | Already complete |
-| Electrical | 32 | 32 | Already complete |
-| Floors, Doors & Windows | 0 | 13 | 13 |
-| Gardening & Landscaping | 0 | 14 | 14 |
-| Handyman & General | 1 | 7 | 7 |
-| HVAC | 36 | 36 | Already complete |
-| Kitchen & Bathroom | 15 | 15 | Already complete |
-| Painting & Decorating | 0 | 20 | 20 |
-| Plumbing | 10 | 10 | Already complete |
-| Pool & Spa | 0 | 12 | 12 |
-| Transport & Logistics | 6 | 15 | 15 |
-| Legal & Regulatory | 0 | 12 | Not written |
+| Category | Total Micros | Has Pack | Missing | Status |
+|----------|-------------|----------|---------|--------|
+| **Cleaning** | 12 | 11 | 1 | 92% ✅ |
+| **Commercial & Industrial** | 12 | 11 | 1 | 92% ✅ |
+| **Pool & Spa** | 12 | 10 | 2 | 83% 🔶 |
+| **Gardening & Landscaping** | 14 | 11 | 3* | 78% 🔶 |
+| **Floors, Doors & Windows** | 13 | 9 | 4 | 69% 🔶 |
+| **Architects & Design** | 12 | 7 | 5 | 58% 🔶 |
+| **Painting & Decorating** | 20 | 10 | 10* | 50% 🔶 |
+| **Carpentry** | 23 | 11 | 12 | 48% 🔶 |
+| **Legal & Regulatory** | 12 | 0 | 12 | 0% ⚠️ |
 
-**Expected result**: ~108 new packs seeded across 10 categories
+*Some have V2 packs written but with slug mismatches
 
-## Implementation Steps
+---
 
-### Step 1: Deploy the Seedpacks Edge Function
-The `seedpacks` function exists in the codebase but is not deployed. Deploy it first.
+## Missing Packs Detail
 
-### Step 2: Run Dry-Run Validation
-Call the seedpacks function for each category with `dry_run=1` to validate:
-- All micro slugs exist in the database
-- Quality scores (STRONG/ACCEPTABLE/WEAK/FAILING)
-- No duplicate question IDs
+### Cleaning (1 missing)
+- `move-in-out-cleaning` — Move In/Out Cleaning
 
-### Step 3: Execute Live Seeding
-Call seedpacks for each of the 10 V2 categories without dry_run flag:
-1. Pool & Spa (12 packs)
-2. Painting & Decorating (20 packs)
-3. Gardening & Landscaping (14 packs)
-4. Handyman & General (7 packs)
-5. Cleaning (12 packs)
-6. Floors, Doors & Windows (13 packs)
-7. Transport & Logistics (15 packs)
-8. Commercial & Industrial (12 packs)
-9. Carpentry (~16 packs remaining)
-10. Architects & Design (12 packs)
+### Commercial & Industrial (1 missing)  
+- `shop-front` — Shop Front
 
-### Step 4: Verify Results
-Query the database to confirm the new pack count and coverage percentage.
+### Pool & Spa (2 missing)
+- `spa-maintenance` — Spa Maintenance
+- `tile-replacement` — Tile Replacement
+
+### Gardening & Landscaping (2 missing)
+- `tree-removal` — Tree Removal
+- `turf-installation` — Turf Installation
+
+### Floors, Doors & Windows (4 missing)
+- `double-glazing` — Double Glazing
+- `mirror-installation` — Mirror Installation
+- `window-fitting` — Window Fitting
+- `window-replacement` — Window Replacement
+
+### Architects & Design (5 missing)
+- `3d-rendering` — 3D Rendering
+- `budget-management` — Budget Management
+- `contractor-coordination` — Contractor Coordination
+- `floor-plans` — Floor Plans
+- `virtual-walkthrough` — Virtual Walkthrough
+
+### Painting & Decorating (7 missing - some written but slug mismatch)
+- `cabinet-painting` — Cabinet Painting
+- `feature-walls` — Feature Walls
+- `fence-painting` — Fence Painting
+- `pressure-washing` — Pressure Washing
+- `trim-woodwork` — Trim & Woodwork
+- `wall-painting` — Wall Painting
+- `wallpaper-installation` — Wallpaper Installation
+
+### Carpentry (12 missing)
+- `antique-restoration` — Antique Restoration
+- `beam-installation` — Beam Installation
+- `composite-decking` — Composite Decking
+- `exterior-doors` — Exterior Doors
+- `floor-joists` — Floor Joists
+- `interior-doors` — Interior Doors
+- `pergola-construction` — Pergola Construction
+- `refinishing` — Refinishing
+- `roof-framing` — Roof Framing
+- `shutters` — Shutters
+- `wall-framing` — Wall Framing
+- `wood-repair` — Wood Repair
+
+### Legal & Regulatory (12 missing - not written)
+- `appeal-support` — Appeal Support
+- `building-inspection` — Building Inspection
+- `building-regulations` — Building Regulations
+- `council-liaison` — Council Liaison
+- `document-preparation` — Document Preparation
+- `environmental-compliance` — Environmental Compliance
+- `health-safety` — Health & Safety
+- `permit-application` — Permit Application
+- `planning-submission` — Planning Submission
+- `pre-application-advice` — Pre-Application Advice
+- `pre-purchase-survey` — Pre-Purchase Survey
+- `safety-inspection` — Safety Inspection
+
+---
+
+## Implementation Plan
+
+### Step 1: Write Missing Packs for Categories Near Completion
+Create question packs for the remaining services to achieve 100% in "near complete" categories:
+
+**Cleaning** (1 pack)
+- `move-in-out-cleaning`
+
+**Commercial & Industrial** (1 pack)
+- `shop-front`
+
+**Pool & Spa** (2 packs)
+- `spa-maintenance`
+- `tile-replacement`
+
+### Step 2: Complete Moderate Coverage Categories
+Write packs for categories in the 50–80% range:
+
+**Gardening & Landscaping** (2 packs)
+- `tree-removal`
+- `turf-installation`
+
+**Floors, Doors & Windows** (4 packs)
+- `double-glazing`, `mirror-installation`, `window-fitting`, `window-replacement`
+
+**Architects & Design** (5 packs)
+- `3d-rendering`, `budget-management`, `contractor-coordination`, `floor-plans`, `virtual-walkthrough`
+
+**Painting & Decorating** (7 packs)
+- `cabinet-painting`, `feature-walls`, `fence-painting`, `pressure-washing`, `trim-woodwork`, `wall-painting`, `wallpaper-installation`
+
+**Carpentry** (12 packs)
+- `antique-restoration`, `beam-installation`, `composite-decking`, `exterior-doors`, `floor-joists`, `interior-doors`, `pergola-construction`, `refinishing`, `roof-framing`, `shutters`, `wall-framing`, `wood-repair`
+
+### Step 3: Write Legal & Regulatory (12 packs)
+Create the entire Legal & Regulatory category from scratch with focus on Ibiza/Spain regulatory context.
+
+### Step 4: Deploy and Seed
+1. Add new packs to existing V2 files
+2. Deploy `seedpacks` edge function (already done)
+3. Seed all packs to database
+4. Verify 100% coverage
+
+---
 
 ## Technical Details
 
-The `seedpacks` edge function handles:
-- **Slug validation**: Only inserts packs where `micro_slug` matches an active `service_micro_categories.slug`
-- **Quality scoring**: Rates packs as STRONG/ACCEPTABLE/WEAK/FAILING based on question count, type mix, and conditional logic
-- **Deduplication**: Removes duplicate questions by ID or label
-- **Normalization**: Converts `dependsOn` → `show_if`, normalizes question types (`single` → `radio`, `multi` → `checkbox`)
-- **Upsert logic**: Uses `ON CONFLICT micro_slug` to update existing packs rather than failing
+Each new pack follows the canonical formula:
+- **5–8 questions** per pack
+- **70%+ selection-based** (radio, checkbox)
+- **ID convention**: `{micro_slug}_{NN}_{shortname}`
+- **Required metadata**: `category_contract` and `inspection_bias`
+- **Standard spine**: Location → Scope → Size → Materials/Finish → Access → Timeline → Budget (optional) → Photos (optional)
 
-Each V2 pack follows the canonical formula:
-- 5-8 questions per pack
-- 70%+ multiple choice (radio/checkbox)
-- Includes metadata: `category_contract` and `inspection_bias`
-- Question IDs follow `{micro_slug}_{NN}_{shortname}` convention
-
-## Risks & Mitigations
-
-| Risk | Mitigation |
-|------|------------|
-| Missing micro slugs | Dry-run validation first; function reports missing slugs |
-| Quality failures | Quality report identifies FAILING packs before insert |
-| Duplicate question IDs | Function dedupes automatically and reports duplicates |
+---
 
 ## Expected Outcome
-- **Before**: 157 packs (53% coverage)
-- **After**: ~265 packs (89% coverage)
-- Only **Legal & Regulatory** (12 micros) will remain without packs
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Total Packs | 245 | 295 |
+| Coverage | 83% | **100%** |
+| Categories at 100% | 5 | **16** |
+
+All 295 active micro-services will have professional question packs, completing the wizard's data foundation.
 
