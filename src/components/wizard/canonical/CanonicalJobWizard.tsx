@@ -163,9 +163,18 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         ...prev,
         answers,
       }));
+      // Clear question errors when user makes changes
+      if (Object.keys(questionErrors).length > 0) {
+        setQuestionErrors({});
+      }
     },
-    []
+    [questionErrors]
   );
+
+  // Handler for when question packs are loaded
+  const handlePacksLoaded = useCallback((packs: { micro_slug: string; questions: unknown[] }[]) => {
+    setQuestionPacks(packs);
+  }, []);
 
   // === NAVIGATION ===
   
