@@ -183,46 +183,90 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="h-11"
+                {showIntentSelector ? (
+                  <div className="space-y-6">
+                    <IntentSelector
+                      value={selectedIntent}
+                      onChange={setSelectedIntent}
                     />
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => setShowIntentSelector(false)}
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                      </Button>
+                      <Button
+                        type="button"
+                        className="flex-1"
+                        disabled={!selectedIntent}
+                        onClick={handleIntentContinue}
+                      >
+                        Continue
+                      </Button>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      className="h-11"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      At least 6 characters
-                    </p>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      'Create Account'
+                ) : (
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    {selectedIntent && (
+                      <div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">
+                          {selectedIntent === 'client' && '🏠 Signing up to hire'}
+                          {selectedIntent === 'professional' && '🔧 Signing up to offer services'}
+                          {selectedIntent === 'both' && '↔️ Signing up for both'}
+                        </span>
+                        <button
+                          type="button"
+                          className="ml-2 text-xs underline hover:text-foreground"
+                          onClick={() => setShowIntentSelector(true)}
+                        >
+                          Change
+                        </button>
+                      </div>
                     )}
-                  </Button>
-                </form>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        className="h-11"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        At least 6 characters
+                      </p>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating account...
+                        </>
+                      ) : (
+                        selectedIntent ? 'Create Account' : 'Continue'
+                      )}
+                    </Button>
+                  </form>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
