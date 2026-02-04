@@ -476,7 +476,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "heavy-equipment-transport",
+    microSlug: "crane-hire",
     title: "Crane Hire",
     metadata: { category_contract: "transport", inspection_bias: "high" },
     questions: [
