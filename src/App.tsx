@@ -44,6 +44,9 @@ import ProfessionalServices from "./pages/professional/ProfessionalServices";
 import ProfessionalServiceSetup from "./pages/professional/ProfessionalServiceSetup";
 import ProfessionalPortfolio from "./pages/professional/ProfessionalPortfolio";
 
+// Settings
+import { Settings } from "./pages/settings";
+
 // Forum
 import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/forum";
 
