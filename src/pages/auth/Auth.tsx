@@ -7,13 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Shield } from 'lucide-react';
+import { Loader2, Shield, ArrowLeft } from 'lucide-react';
+import { IntentSelector, type UserIntent } from '@/components/auth/IntentSelector';
 
 /**
  * AUTH PAGE
  * 
  * Public page for sign in / sign up.
  * Supports returnUrl for post-login redirect.
+ * Includes intent selection for new signups.
  */
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -21,6 +23,10 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  // Intent selection state (for signup flow)
+  const [showIntentSelector, setShowIntentSelector] = useState(false);
+  const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(null);
 
   const returnUrl = searchParams.get('returnUrl') || '/dashboard/client';
   const defaultTab = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
