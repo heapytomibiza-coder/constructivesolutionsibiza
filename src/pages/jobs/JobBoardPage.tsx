@@ -1,22 +1,27 @@
 import { useNavigate } from "react-router-dom";
-import { PublicLayout, PageHeader } from "@/components/layout";
+import { PublicLayout, HeroBanner } from "@/components/layout";
 import { MobileFAB } from "@/components/MobileFAB";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { JobsMarketplace } from "@/pages/jobs/JobsMarketplace";
+import { Shield } from "lucide-react";
+import heroJobs from "@/assets/heroes/hero-jobs.jpg";
 
 export default function JobBoardPage() {
   const navigate = useNavigate();
 
   return (
     <PublicLayout>
-      <PageHeader
+      <HeroBanner
+        imageSrc={heroJobs}
         title="Job Board"
-        subtitle="Browse open jobs with full specs from the wizard."
+        subtitle="Browse open jobs with full specs from the wizard"
+        height="compact"
         trustBadge={
-          <Badge variant="secondary" className="font-normal">
+          <div className="hero-trust-badge">
+            <Shield className="h-4 w-4" />
             Real specs • Less back-and-forth • Ibiza only
-          </Badge>
+          </div>
         }
         action={
           <Button variant="accent" onClick={() => navigate("/post")}>

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { PublicLayout } from '@/components/layout';
+import { PublicLayout, HeroBanner } from '@/components/layout';
 import { MobileFAB } from '@/components/MobileFAB';
 import { PLATFORM, MAIN_CATEGORIES } from '@/domain/scope';
 import { 
@@ -10,6 +10,7 @@ import {
   ChefHat, DoorOpen, Settings, Building2, FileCheck,
   ArrowRight, Shield, Clock, Star, CheckCircle
 } from 'lucide-react';
+import heroHome from '@/assets/heroes/hero-home.jpg';
 
 /**
  * HOMEPAGE - Construction & Trade Services
@@ -41,53 +42,37 @@ const Index = () => {
   return (
     <PublicLayout>
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-28 bg-gradient-hero overflow-hidden">
-        <div className="container relative z-10">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-sm bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground border border-border/50">
-              <Hammer className="h-4 w-4 text-primary" />
-              Construction & Trade Services
-            </div>
-            <h1 className="text-display-lg text-foreground">
-              Find Trusted
-              <span className="block text-gradient-steel">Construction Professionals</span>
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
-              {PLATFORM.description}
-            </p>
-            
-            {/* Trust Badges Row */}
-            <div className="mt-6 trust-badge-row">
-              <span>
-                <CheckCircle className="h-4 w-4 text-success" />
-                Verified trades
-              </span>
-              <span className="text-border">•</span>
-              <span>
-                <Clock className="h-4 w-4 text-primary" />
-                Same-day response
-              </span>
-              <span className="text-border">•</span>
-              <span>
-                <Shield className="h-4 w-4 text-primary" />
-                Ibiza-based
-              </span>
-            </div>
-
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
-                <Link to="/post">
-                  Post a Job
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link to="/professionals">Browse Professionals</Link>
-              </Button>
-            </div>
+      <HeroBanner
+        imageSrc={heroHome}
+        title="Find Trusted Construction Professionals"
+        subtitle={PLATFORM.description}
+        height="full"
+        trustBadge={
+          <div className="hero-trust-badge">
+            <CheckCircle className="h-4 w-4" />
+            Verified trades
+            <span className="text-white/50">•</span>
+            <Clock className="h-4 w-4" />
+            Same-day response
+            <span className="text-white/50">•</span>
+            <Shield className="h-4 w-4" />
+            Ibiza-based
           </div>
-        </div>
-      </section>
+        }
+        action={
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" asChild>
+              <Link to="/post">
+                Post a Job
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="secondary" asChild>
+              <Link to="/professionals">Browse Professionals</Link>
+            </Button>
+          </div>
+        }
+      />
 
       {/* Categories Grid */}
       <section className="py-16 bg-background">
