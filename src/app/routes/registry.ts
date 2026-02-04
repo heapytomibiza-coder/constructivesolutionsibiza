@@ -59,7 +59,9 @@ export const proOnboardingRoutes: RouteConfig[] = [
 ];
 
 export const proDashboardRoutes: RouteConfig[] = [
-  { path: '/dashboard/pro', access: 'proReady', redirectTo: '/onboarding/professional' },
+  // Dashboard accessible to any professional role - the UI handles "not ready" states
+  // proReady gating reserved for marketplace actions (applying to jobs, etc.)
+  { path: '/dashboard/pro', access: 'role:professional', redirectTo: '/auth' },
 ];
 
 // ============================================
