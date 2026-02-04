@@ -118,7 +118,7 @@ const LOGISTICS_HANDLED_QUESTION_IDS = new Set([
   'start_timeline',     // Variant timing question
 ]);
 
-export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props) {
+export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }: Props) {
   // Normalize + order questions once (V2 safe)
   const normalizedOrderedQuestions = useMemo(() => {
     const ordered = getOrderedQuestions(pack);
