@@ -505,7 +505,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "skip-hire",
+    microSlug: "heavy-equipment-transport",
     title: "Forklift Hire",
     metadata: { category_contract: "transport", inspection_bias: "medium" },
     questions: [
@@ -533,7 +533,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "man-with-van",
+    microSlug: "skip-hire",
     title: "Container Hire",
     metadata: { category_contract: "transport", inspection_bias: "low" },
     questions: [
@@ -558,5 +558,48 @@ export const transportLogisticsQuestionPacksV2 = [
           { value: "long_term", label: "Long term" },
         ],
       },
+    ],
+  },
+
+  {
+    microSlug: "man-with-van",
+    title: "Man with Van",
+    metadata: { category_contract: "transport", inspection_bias: "low" },
+    questions: [
+      {
+        id: "man_with_van_01_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small_move", label: "Small move" },
+          { value: "delivery", label: "Delivery" },
+          { value: "collection", label: "Collection" },
+        ],
+      },
+      {
+        id: "man_with_van_02_item_type",
+        label: "Item type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "furniture", label: "Furniture" },
+          { value: "appliances", label: "Appliances" },
+          { value: "boxes", label: "Boxes" },
+          { value: "mixed", label: "Mixed items" },
+        ],
+      },
+      {
+        id: "man_with_van_03_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_week", label: "Within 1 week" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
   },
 ];
