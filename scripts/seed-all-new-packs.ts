@@ -41,6 +41,7 @@ const categories = [
   { name: "Commercial & Industrial", packs: commercialIndustrialQuestionPacksV2 },
   { name: "Carpentry", packs: carpentryQuestionPacksV2 },
   { name: "Architects & Design", packs: architectsDesignQuestionPacksV2 },
+  { name: "Legal & Regulatory", packs: legalRegulatoryQuestionPacksV2 },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
