@@ -1,336 +1,288 @@
 
-# V1 Pro Ready Gate: Minimal Marketplace Protection
+# Seed Missing Question Packs from Master Framework
+
+## Overview
+
+You've provided question pack definitions for **8 categories** covering **105 micro-services**. I'll transform these into the correct database format and create seeding scripts.
+
+## Current Status
+
+| Category | Missing | Your Definitions | Status |
+|----------|---------|------------------|--------|
+| Pool & Spa | 12 | 12 | Ready to seed |
+| Painting & Decorating | 20 | 20 | Ready to seed |
+| Gardening & Landscaping | 14 | 14 | Ready to seed |
+| Handyman & General | 6 | 7 | Ready to seed |
+| Cleaning | 12 | 12 | Ready to seed |
+| Floors, Doors & Windows | 13 | 13 | Ready to seed |
+| Transport & Logistics | 9 | 15 | Ready to seed |
+| Commercial & Industrial | 12 | 12 | Ready to seed |
+| Architects & Design | 12 | 0 | Not provided |
+| Legal & Regulatory | 12 | 0 | Not provided |
+| Carpentry | 16 | 0 | Not provided |
+
+**Total: 105 packs ready to seed** (from your definitions)
+**Remaining: 40 packs still need definitions** (Architects, Legal, Carpentry)
+
+---
+
+## Implementation Plan
+
+### Phase 1: Create Pack Definition Files
+
+Create TypeScript files in `supabase/functions/_shared/` for each category:
+
+```text
+supabase/functions/_shared/
+├── poolSpaQuestionPacksV2.ts      (12 packs)
+├── paintingDecoratingQuestionPacks.ts  (20 packs)
+├── gardeningLandscapingQuestionPacksV2.ts  (14 packs)
+├── handymanQuestionPacksV2.ts     (7 packs)
+├── cleaningQuestionPacks.ts       (12 packs)
+├── floorsDoorsWindowsQuestionPacksV2.ts  (13 packs)
+├── transportLogisticsQuestionPacks.ts  (15 packs)
+└── commercialIndustrialQuestionPacks.ts  (12 packs)
+```
+
+### Phase 2: Create Seeder Scripts
+
+Create scripts in `scripts/` directory:
+
+```text
+scripts/
+├── seed-pool-spa-v2.ts
+├── seed-painting-decorating.ts
+├── seed-gardening-landscaping-v2.ts
+├── seed-handyman-v2.ts
+├── seed-cleaning.ts
+├── seed-floors-doors-windows-v2.ts
+├── seed-transport-logistics.ts
+└── seed-commercial-industrial.ts
+```
+
+### Phase 3: Run Seeders
+
+Execute in order (dry-run first, then live):
+```bash
+# Dry run
+npx tsx scripts/seed-pool-spa-v2.ts
+
+# Live (after verification)
+DRY_RUN=0 npx tsx scripts/seed-pool-spa-v2.ts
+```
+
+---
+
+## Technical Details
+
+### Pack Format Transformation
+
+Your definitions use a simplified format:
+```
+Q1. Location
+- Apartment
+- Villa / House
+- Commercial property
+```
+
+Transforms to database format:
+```typescript
+{
+  micro_slug: 'concrete-pools',
+  title: 'Concrete Pools',
+  version: 1,
+  is_active: true,
+  metadata: {
+    category_contract: 'pool-spa',
+    inspection_bias: 'medium'
+  },
+  questions: [
+    {
+      id: 'concrete_pools_01_location',
+      label: 'Location',
+      type: 'radio',
+      required: true,
+      options: [
+        { value: 'apartment', label: 'Apartment' },
+        { value: 'villa_house', label: 'Villa / House' },
+        { value: 'commercial_property', label: 'Commercial property' }
+      ]
+    },
+    // ... more questions
+  ]
+}
+```
+
+### Slug Mapping
+
+Your definitions will be mapped to these exact database slugs:
+
+**Pool & Spa (12)**
+```text
+concrete-pools, fibreglass-pools, infinity-pools, chemical-balancing,
+equipment-service, pool-cleaning, pool-deck-repair, pool-resurfacing,
+tile-replacement, hot-tub-installation, sauna-installation, spa-maintenance
+```
+
+**Painting & Decorating (20)**
+```text
+faux-finishes, murals, textured-walls, venetian-plaster,
+paint-facade, paint-fence, deck-staining, facade-painting,
+fence-painting, pressure-washing, paint-ceiling, paint-walls,
+paint-woodwork, cabinet-painting, ceiling-painting, trim-woodwork,
+wall-painting, feature-walls, wallpaper-installation, wallpaper-removal
+```
+
+**Gardening & Landscaping (14)**
+```text
+create-garden-plan, garden-planning, hardscaping, install-irrigation,
+planting-schemes, drip-irrigation, irrigation-repair, sprinkler-installation,
+lawn-treatment, turf-installation, hedge-trimming, lawn-mowing,
+tree-pruning, tree-removal
+```
+
+**Handyman & General (7)** *(includes minor-repairs not in your list)*
+```text
+general-maintenance, gutter-cleaning, pressure-cleaning,
+curtain-rails, picture-hanging, tv-mounting, minor-repairs
+```
+
+**Cleaning (12)**
+```text
+office-cleaning, restaurant-cleaning, retail-cleaning,
+carpet-cleaning, oven-cleaning, upholstery-cleaning,
+debris-removal, dust-removal, final-polish,
+move-in-out-cleaning, regular-cleaning, spring-cleaning
+```
+
+**Floors, Doors & Windows (13)**
+```text
+door-fitting, door-hardware, door-replacement,
+floor-sanding, hardwood-flooring, laminate-flooring, tile-flooring,
+glass-repair, glass-replacement, mirror-installation,
+double-glazing, window-fitting, window-replacement
+```
+
+**Transport & Logistics (15)** *(your list has 15, DB has 9 missing)*
+```text
+same-day-delivery, machinery-rental, scaffolding-rental, tool-rental,
+international-moving, local-moving, packing-services,
+garden-waste, rubbish-clearance
+```
+
+**Commercial & Industrial (12)**
+```text
+office-fit-out, restaurant-fit-out, retail-fit-out,
+factory-building, industrial-flooring, warehouse-construction,
+meeting-rooms, partition-walls, suspended-ceilings,
+bar-construction, hotel-renovation, shop-front
+```
+
+---
+
+## Files to Create
+
+### 1. Pool & Spa Pack File
+`supabase/functions/_shared/poolSpaQuestionPacksV2.ts`
+
+- 12 packs with your exact questions
+- Uses radio buttons for all single-choice
+- Includes file upload for photos/plans
+- Category contract: pool-spa
+
+### 2. Painting & Decorating Pack File
+`supabase/functions/_shared/paintingDecoratingQuestionPacks.ts`
+
+- 20 packs covering all subcategories
+- Decorative Finishes, Exterior, Interior, Wallpapering
+- Category contract: painting
+
+### 3. Gardening & Landscaping Pack File
+`supabase/functions/_shared/gardeningLandscapingQuestionPacksV2.ts`
+
+- 14 packs for garden design, irrigation, lawn care, maintenance
+- Category contract: gardening
+
+### 4. Handyman Pack File
+`supabase/functions/_shared/handymanQuestionPacksV2.ts`
+
+- 7 packs for home maintenance and odd jobs
+- Category contract: handyman
+
+### 5. Cleaning Pack File
+`supabase/functions/_shared/cleaningQuestionPacks.ts`
+
+- 12 packs: commercial, deep cleaning, post-construction, residential
+- Category contract: cleaning
+
+### 6. Floors, Doors & Windows Pack File
+`supabase/functions/_shared/floorsDoorsWindowsQuestionPacksV2.ts`
+
+- 13 packs for doors, flooring, glazing, windows
+- Category contract: floors-doors-windows
+
+### 7. Transport & Logistics Pack File
+`supabase/functions/_shared/transportLogisticsQuestionPacks.ts`
+
+- 15 packs (only 9 will match active DB slugs)
+- Category contract: transport
+
+### 8. Commercial & Industrial Pack File
+`supabase/functions/_shared/commercialIndustrialQuestionPacks.ts`
+
+- 12 packs for fit-outs, industrial, office, retail
+- Category contract: commercial
+
+### 9. Batch Seeder Script
+`scripts/seed-all-new-packs.ts`
+
+- Seeds all 8 categories in sequence
+- Supports dry-run mode
+- Reports quality scores and any missing slugs
+
+---
+
+## Execution Order
+
+1. **Create all pack definition files** (8 files)
+2. **Create batch seeder script** (1 file)
+3. **Run dry-run** to validate slug matching
+4. **Review quality report** for any warnings
+5. **Run live seed** to insert packs
+6. **Verify in wizard** that questions render
+
+---
+
+## Still Needed (Not Provided)
+
+You'll need to create question definitions for:
+
+1. **Architects & Design (12 packs)**
+   - 3D Visualization: 3d-rendering, floor-plans, virtual-walkthrough
+   - Architectural Design: renovation-design, extension-design, new-build-design
+   - Interior Design: space-planning, color-consultation, furniture-selection
+   - Project Management: budget-management, contractor-coordination, construction-management
+
+2. **Legal & Regulatory (12 packs)**
+   - Building Permits: council-liaison, document-preparation, permit-application
+   - Compliance: environmental-compliance, health-safety, building-regulations
+   - Inspections: safety-inspection, pre-purchase-survey, building-inspection
+   - Planning Applications: pre-application-advice, appeal-support, planning-submission
+
+3. **Carpentry (16 packs)**
+   - Custom Furniture: bed-frames
+   - Decking & Pergolas: wooden-decking, pergola-construction, gazebos, composite-decking
+   - Doors & Windows: window-frames, shutters, exterior-doors, interior-doors
+   - Restoration: antique-restoration, wood-repair, refinishing
+   - Structural Carpentry: wall-framing, beam-installation, floor-joists, roof-framing
+
+---
 
 ## Summary
-Add a single `proReady` gate to the messaging action to protect the marketplace flow. This is the minimum viable implementation that:
-- Prevents incomplete professionals from messaging clients
-- Provides clear feedback via UI and action-level guards
-- Leaves the database RPC unchanged (V2 work)
-- Does not require new modules or major restructuring
 
----
+- **105 packs ready** from your definitions
+- **8 TypeScript pack files** to create
+- **1 batch seeder script**
+- **40 packs still need definitions** (Architects, Legal, Carpentry)
 
-## Changes Overview
-
-```text
-+-----------------------------------+-------------------------------------------+
-| File                              | Change                                    |
-+-----------------------------------+-------------------------------------------+
-| src/guard/proReadiness.ts         | NEW - Centralized proReady check          |
-| src/pages/jobs/actions/index.ts   | Add requireProReady guard                 |
-| src/pages/jobs/actions/           | Add guard before RPC call                 |
-|   messageJob.action.ts            |                                           |
-| src/pages/jobs/JobDetailsModal.tsx| Disable Message button when !isProReady   |
-+-----------------------------------+-------------------------------------------+
-```
-
----
-
-## Implementation Details
-
-### 1. Create Centralized Pro Readiness Check
-
-**New file: `src/guard/proReadiness.ts`**
-
-A pure function that evaluates professional readiness and returns both a boolean and reason codes. This ensures the same logic is used by both UI and action layers.
-
-```typescript
-import type { ProfessionalProfileData } from '@/hooks/useSessionSnapshot';
-
-export interface ProReadinessResult {
-  isReady: boolean;
-  reasons: ProReadinessReason[];
-}
-
-export type ProReadinessReason = 
-  | 'NO_PROFILE'
-  | 'NOT_VERIFIED'
-  | 'ONBOARDING_INCOMPLETE'
-  | 'NO_SERVICES';
-
-export function getProReadiness(
-  profile: ProfessionalProfileData | null
-): ProReadinessResult {
-  const reasons: ProReadinessReason[] = [];
-
-  if (!profile) {
-    return { isReady: false, reasons: ['NO_PROFILE'] };
-  }
-
-  if (profile.verificationStatus !== 'verified') {
-    reasons.push('NOT_VERIFIED');
-  }
-
-  const validPhases = ['service_setup', 'complete'];
-  if (!validPhases.includes(profile.onboardingPhase)) {
-    reasons.push('ONBOARDING_INCOMPLETE');
-  }
-
-  if (profile.servicesCount === 0) {
-    reasons.push('NO_SERVICES');
-  }
-
-  return {
-    isReady: reasons.length === 0,
-    reasons,
-  };
-}
-```
-
-This centralizes the logic currently duplicated in `useSessionSnapshot.ts` (lines 210-214).
-
----
-
-### 2. Add Action-Level Guard
-
-**File: `src/pages/jobs/actions/messageJob.action.ts`**
-
-Add a pre-flight check before calling the RPC. This prevents the action from even attempting the database call if the professional isn't ready.
-
-```typescript
-import { supabase } from "@/integrations/supabase/client";
-import { UserError } from "@/shared/lib/userError";
-import { getProReadiness } from "@/guard/proReadiness";
-import type { ProfessionalProfileData } from "@/hooks/useSessionSnapshot";
-
-/**
- * Verify professional is ready before allowing marketplace actions.
- * Throws UserError with code PRO_NOT_READY if requirements not met.
- */
-export function requireProReady(
-  profile: ProfessionalProfileData | null
-): void {
-  const { isReady, reasons } = getProReadiness(profile);
-  
-  if (!isReady) {
-    const message = reasons.includes('NO_SERVICES')
-      ? "Complete your service setup to message clients"
-      : reasons.includes('NOT_VERIFIED')
-      ? "Complete verification to message clients"
-      : "Complete your professional setup to message clients";
-      
-    throw new UserError(message, "PRO_NOT_READY");
-  }
-}
-
-/**
- * Start or get existing conversation between a professional and a job.
- * Now accepts optional profile for pre-flight proReady check.
- */
-export async function startConversation(
-  jobId: string,
-  proId: string,
-  profile?: ProfessionalProfileData | null
-): Promise<string> {
-  // Pre-flight guard: check proReady before hitting DB
-  if (profile !== undefined) {
-    requireProReady(profile);
-  }
-
-  const { data, error } = await supabase.rpc("get_or_create_conversation", {
-    p_job_id: jobId,
-    p_pro_id: proId,
-  });
-
-  // ... existing error handling unchanged
-}
-```
-
-The profile parameter is optional for backward compatibility, but the UI will always pass it.
-
----
-
-### 3. Update UI to Gate Message Button
-
-**File: `src/pages/jobs/JobDetailsModal.tsx`**
-
-Update `JobDetailsActions` to:
-1. Check `isProReady` from session context
-2. Disable button and show tooltip when not ready
-3. Pass profile to the action for server-side validation
-
-```typescript
-function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
-  const navigate = useNavigate();
-  const { 
-    user, 
-    isLoading: sessionLoading,
-    hasRole,
-    isProReady,
-    professionalProfile 
-  } = useSession();
-  const [isMessaging, setIsMessaging] = useState(false);
-
-  // Determine if this user should see the pro gate
-  const isPro = hasRole('professional');
-  const canMessage = !isPro || isProReady;
-
-  const handleMessage = async () => {
-    if (!user) {
-      onClose();
-      navigate(`/auth?returnTo=/jobs`);
-      return;
-    }
-
-    setIsMessaging(true);
-    try {
-      // Pass profile for action-level validation
-      const convId = await startConversation(
-        jobPack.id, 
-        user.id,
-        professionalProfile
-      );
-      onClose();
-      navigate(`/messages/${convId}`);
-    } catch (err) {
-      if (isUserError(err)) {
-        if (err.code === 'PRO_NOT_READY') {
-          toast.error(err.message, {
-            action: {
-              label: 'Complete Setup',
-              onClick: () => {
-                onClose();
-                navigate('/dashboard/pro');
-              },
-            },
-          });
-        } else {
-          toast.error(err.message);
-        }
-      } else {
-        toast.error("Failed to start conversation");
-        console.error("Message error:", err);
-      }
-    } finally {
-      setIsMessaging(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {!user ? (
-        <Button onClick={handleMessage} className="gap-2">
-          <LogIn className="h-4 w-4" />
-          Sign in to message
-        </Button>
-      ) : jobPack.isOwner ? null : (
-        <div className="relative">
-          <Button 
-            onClick={handleMessage} 
-            disabled={isMessaging || sessionLoading || !canMessage}
-            className="gap-2"
-            title={!canMessage ? "Complete your setup to message clients" : undefined}
-          >
-            {isMessaging ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <MessageSquare className="h-4 w-4" />
-            )}
-            {isMessaging ? "Starting chat..." : "Message"}
-          </Button>
-          {!canMessage && (
-            <div className="mt-1 text-xs text-muted-foreground">
-              Complete setup to message
-            </div>
-          )}
-        </div>
-      )}
-      <Button variant="outline" disabled className="gap-2">
-        <Share2 className="h-4 w-4" />
-        Share
-      </Button>
-    </div>
-  );
-}
-```
-
----
-
-### 4. Update Guard Barrel Export
-
-**File: `src/guard/index.ts`**
-
-Add export for the new proReadiness module:
-
-```typescript
-export * from './access';
-export * from './redirects';
-export * from './RouteGuard';
-export * from './proReadiness';
-```
-
----
-
-## Technical Notes
-
-### Why Not Gate in the Database RPC?
-
-The database function `get_or_create_conversation` is the true security boundary, but modifying it requires:
-- Understanding the current SQL implementation
-- Testing RPC error propagation
-- Potential migration work
-
-For V1, the action-level guard is sufficient because:
-- The UI is the only surface calling this action
-- The action throws before the RPC is called
-- The error code allows proper UX handling
-
-**V2**: Add the check inside the RPC for bulletproof enforcement.
-
-### Backward Compatibility
-
-The `profile` parameter in `startConversation` is optional. Existing callers (if any) continue to work, but without the pre-flight check.
-
-### Error Handling Flow
-
-```text
-User clicks Message
-        |
-        v
-+------------------+
-| UI: canMessage?  |--No--> Button disabled + hint text
-+------------------+
-        |
-       Yes
-        v
-+------------------+
-| Action: profile  |--Not Ready--> Toast + "Complete Setup" action
-| proReady check   |
-+------------------+
-        |
-       Ready
-        v
-+------------------+
-| RPC: database    |--Error--> Toast with error message
-| validation       |
-+------------------+
-        |
-      Success
-        v
-  Navigate to /messages/:id
-```
-
----
-
-## Files Changed
-
-| File | Type | Description |
-|------|------|-------------|
-| `src/guard/proReadiness.ts` | New | Centralized readiness check with reason codes |
-| `src/guard/index.ts` | Edit | Add proReadiness export |
-| `src/pages/jobs/actions/messageJob.action.ts` | Edit | Add requireProReady guard |
-| `src/pages/jobs/JobDetailsModal.tsx` | Edit | Disable button + pass profile to action |
-
----
-
-## Testing Checklist
-
-| Scenario | Expected |
-|----------|----------|
-| Client user viewing job | Message button enabled, no gate |
-| Pro ready user viewing job | Message button enabled |
-| Pro not ready (no services) | Button disabled + "Complete setup" hint |
-| Pro not ready clicks (bypass) | Toast with error + link to dashboard |
-| Pro not ready (not verified) | Button disabled + appropriate message |
-| Pro clicks own job | Button hidden (existing behavior) |
-
+After approval, I'll create all the files and you can run the seeder to populate the database.
