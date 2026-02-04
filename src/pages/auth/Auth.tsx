@@ -64,10 +64,14 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // Determine roles based on intent
-      const roles = selectedIntent === 'client' 
+      // Determine roles based on intent (typed correctly)
+      // - 'client' → only client role
+      // - 'professional' or 'both' → both roles (professionals can also post jobs)
+      const roles: string[] = selectedIntent === 'client' 
         ? ['client'] 
         : ['client', 'professional'];
+      
+      // Active role: professional only if explicitly chosen, otherwise client
       const activeRole = selectedIntent === 'professional' ? 'professional' : 'client';
       
       const { data, error } = await supabase.auth.signUp({
@@ -85,15 +89,24 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast.success('Check your email to confirm your account!');
+      // Show appropriate success message based on intent
+      if (selectedIntent === 'both') {
+        toast.success('Check your email to confirm your account!', {
+          description: 'You can switch between Hiring and Working modes in the menu.',
+          duration: 6000,
+        });
+      } else {
+        toast.success('Check your email to confirm your account!');
+      }
       
       // Reset form
       setEmail('');
       setPassword('');
       setSelectedIntent(null);
       setShowIntentSelector(false);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign up');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to sign up';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
