@@ -1534,4 +1534,766 @@ export const carpentryQuestionPacksV2 = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADDITIONAL CARPENTRY SERVICES
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "antique-restoration",
+    title: "Antique Restoration",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
+    questions: [
+      {
+        id: "antique_restoration_01_item",
+        label: "Item type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "furniture", label: "Furniture piece" },
+          { value: "cabinet", label: "Cabinet / dresser" },
+          { value: "architectural", label: "Architectural element" },
+          { value: "other", label: "Other antique" },
+        ],
+      },
+      {
+        id: "antique_restoration_02_scope",
+        label: "Restoration scope",
+        type: "checkbox",
+        required: true,
+        options: [
+          { value: "structural", label: "Structural repair" },
+          { value: "refinish", label: "Refinishing" },
+          { value: "hardware", label: "Hardware restoration" },
+          { value: "upholstery", label: "Upholstery" },
+        ],
+      },
+      {
+        id: "antique_restoration_03_condition",
+        label: "Current condition",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "good", label: "Good (minor wear)" },
+          { value: "fair", label: "Fair (moderate damage)" },
+          { value: "poor", label: "Poor (significant damage)" },
+        ],
+      },
+      {
+        id: "antique_restoration_04_priority",
+        label: "Priority",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "preserve_patina", label: "Preserve original patina" },
+          { value: "full_restoration", label: "Full restoration" },
+          { value: "functional_only", label: "Functional repair only" },
+        ],
+      },
+      {
+        id: "antique_restoration_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "antique_restoration_06_photos",
+        label: "Upload photos",
+        type: "file",
+        required: false,
+        accept: ["image/*"],
+      },
+    ],
+  },
+
+  {
+    microSlug: "beam-installation",
+    title: "Beam Installation",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
+    questions: [
+      {
+        id: "beam_installation_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "beam_installation_02_type",
+        label: "Beam type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "decorative", label: "Decorative / cosmetic" },
+          { value: "structural", label: "Structural beam" },
+          { value: "exposed", label: "Expose existing beams" },
+        ],
+      },
+      {
+        id: "beam_installation_03_material",
+        label: "Material",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "solid_wood", label: "Solid wood" },
+          { value: "reclaimed", label: "Reclaimed timber" },
+          { value: "faux_beam", label: "Faux / hollow beam" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "beam_installation_04_quantity",
+        label: "Number of beams",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "1_2_beams", label: "1–2 beams" },
+          { value: "3_5_beams", label: "3–5 beams" },
+          { value: "ceiling_grid", label: "Full ceiling grid" },
+        ],
+      },
+      {
+        id: "beam_installation_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "composite-decking",
+    title: "Composite Decking",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "composite_decking_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "composite_decking_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_deck", label: "New deck build" },
+          { value: "replace_existing", label: "Replace existing wood deck" },
+          { value: "extend", label: "Extend existing deck" },
+        ],
+      },
+      {
+        id: "composite_decking_03_size",
+        label: "Deck size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (under 15m²)" },
+          { value: "medium", label: "Medium (15–40m²)" },
+          { value: "large", label: "Large (40m²+)" },
+        ],
+      },
+      {
+        id: "composite_decking_04_brand",
+        label: "Material preference",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "standard", label: "Standard composite" },
+          { value: "premium", label: "Premium brand" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "composite_decking_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "exterior-doors",
+    title: "Exterior Doors",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "exterior_doors_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "apartment", label: "Apartment" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "exterior_doors_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_door", label: "New door installation" },
+          { value: "replace", label: "Replace existing" },
+          { value: "repair", label: "Repair / refurbish" },
+        ],
+      },
+      {
+        id: "exterior_doors_03_type",
+        label: "Door type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "front_door", label: "Front door" },
+          { value: "back_door", label: "Back door" },
+          { value: "patio_doors", label: "Patio / sliding doors" },
+          { value: "french_doors", label: "French doors" },
+        ],
+      },
+      {
+        id: "exterior_doors_04_material",
+        label: "Material",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "hardwood", label: "Hardwood" },
+          { value: "upvc", label: "uPVC" },
+          { value: "aluminium", label: "Aluminium" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "exterior_doors_05_supplied",
+        label: "Door supplied",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "yes", label: "Yes, already purchased" },
+          { value: "no", label: "No, need supply & fit" },
+        ],
+      },
+      {
+        id: "exterior_doors_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "floor-joists",
+    title: "Floor Joists",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
+    questions: [
+      {
+        id: "floor_joists_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "floor_joists_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_installation", label: "New installation" },
+          { value: "repair", label: "Repair existing" },
+          { value: "replace", label: "Replace damaged joists" },
+          { value: "strengthen", label: "Strengthen / sister joists" },
+        ],
+      },
+      {
+        id: "floor_joists_03_area",
+        label: "Area",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "single_room", label: "Single room" },
+          { value: "multiple_rooms", label: "Multiple rooms" },
+          { value: "full_floor", label: "Full floor level" },
+        ],
+      },
+      {
+        id: "floor_joists_04_issue",
+        label: "Issue (if repair)",
+        type: "radio",
+        required: false,
+        options: [
+          { value: "rot", label: "Rot / water damage" },
+          { value: "woodworm", label: "Woodworm / insects" },
+          { value: "sagging", label: "Sagging floor" },
+          { value: "na", label: "Not applicable" },
+        ],
+      },
+      {
+        id: "floor_joists_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "interior-doors",
+    title: "Interior Doors",
+    metadata: { category_contract: "carpentry", inspection_bias: "low" },
+    questions: [
+      {
+        id: "interior_doors_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "interior_doors_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_installation", label: "New door installation" },
+          { value: "replace", label: "Replace existing" },
+          { value: "fit_only", label: "Fit only (door supplied)" },
+        ],
+      },
+      {
+        id: "interior_doors_03_quantity",
+        label: "Number of doors",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "1_2_doors", label: "1–2 doors" },
+          { value: "3_5_doors", label: "3–5 doors" },
+          { value: "6_plus", label: "6+ doors" },
+        ],
+      },
+      {
+        id: "interior_doors_04_style",
+        label: "Door style",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "flush", label: "Flush / flat" },
+          { value: "panel", label: "Panel door" },
+          { value: "glazed", label: "Glazed" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "interior_doors_05_supplied",
+        label: "Doors supplied",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "yes", label: "Yes, already purchased" },
+          { value: "no", label: "No, need supply & fit" },
+        ],
+      },
+      {
+        id: "interior_doors_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "pergola-construction",
+    title: "Pergola Construction",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "pergola_construction_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "pergola_construction_02_type",
+        label: "Pergola type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "freestanding", label: "Freestanding" },
+          { value: "attached", label: "Attached to building" },
+        ],
+      },
+      {
+        id: "pergola_construction_03_size",
+        label: "Size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (under 10m²)" },
+          { value: "medium", label: "Medium (10–25m²)" },
+          { value: "large", label: "Large (25m²+)" },
+        ],
+      },
+      {
+        id: "pergola_construction_04_material",
+        label: "Material",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "hardwood", label: "Hardwood" },
+          { value: "softwood", label: "Softwood (treated)" },
+          { value: "aluminium", label: "Aluminium" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "pergola_construction_05_cover",
+        label: "Covering",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "open", label: "Open slats" },
+          { value: "canopy", label: "Fabric canopy" },
+          { value: "solid", label: "Solid roof" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "pergola_construction_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "roof-framing",
+    title: "Roof Framing",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
+    questions: [
+      {
+        id: "roof_framing_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "roof_framing_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_build", label: "New build roof" },
+          { value: "extension", label: "Extension roof" },
+          { value: "repair", label: "Repair existing" },
+          { value: "conversion", label: "Loft conversion" },
+        ],
+      },
+      {
+        id: "roof_framing_03_type",
+        label: "Roof type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "pitched", label: "Pitched roof" },
+          { value: "flat", label: "Flat roof" },
+          { value: "hip", label: "Hip roof" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "roof_framing_04_size",
+        label: "Area",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (under 30m²)" },
+          { value: "medium", label: "Medium (30–80m²)" },
+          { value: "large", label: "Large (80m²+)" },
+        ],
+      },
+      {
+        id: "roof_framing_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "shutters",
+    title: "Shutters",
+    metadata: { category_contract: "carpentry", inspection_bias: "low" },
+    questions: [
+      {
+        id: "shutters_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "shutters_02_type",
+        label: "Shutter type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "interior", label: "Interior plantation" },
+          { value: "exterior", label: "Exterior / traditional" },
+          { value: "cafe_style", label: "Café style" },
+        ],
+      },
+      {
+        id: "shutters_03_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_installation", label: "New installation" },
+          { value: "repair", label: "Repair existing" },
+          { value: "repaint", label: "Repaint / refinish" },
+        ],
+      },
+      {
+        id: "shutters_04_quantity",
+        label: "Number of windows",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "1_3_windows", label: "1–3 windows" },
+          { value: "4_8_windows", label: "4–8 windows" },
+          { value: "full_property", label: "Full property" },
+        ],
+      },
+      {
+        id: "shutters_05_material",
+        label: "Material",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "wood", label: "Wood" },
+          { value: "vinyl", label: "Vinyl / composite" },
+          { value: "aluminium", label: "Aluminium" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "shutters_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "wall-framing",
+    title: "Wall Framing",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
+    questions: [
+      {
+        id: "wall_framing_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "wall_framing_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_partition", label: "New partition wall" },
+          { value: "stud_wall", label: "Stud wall build" },
+          { value: "remove_wall", label: "Remove & reframe" },
+          { value: "opening", label: "Create opening (door/window)" },
+        ],
+      },
+      {
+        id: "wall_framing_03_size",
+        label: "Wall area",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (single wall)" },
+          { value: "medium", label: "Medium (2–3 walls)" },
+          { value: "large", label: "Large (room division)" },
+        ],
+      },
+      {
+        id: "wall_framing_04_finish",
+        label: "Finish required",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "framing_only", label: "Framing only" },
+          { value: "with_plasterboard", label: "With plasterboard" },
+          { value: "full_finish", label: "Full finish (ready for paint)" },
+        ],
+      },
+      {
+        id: "wall_framing_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "wood-repair",
+    title: "Wood Repair",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "wood_repair_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "wood_repair_02_item",
+        label: "What needs repair",
+        type: "checkbox",
+        required: true,
+        options: [
+          { value: "door", label: "Door" },
+          { value: "window_frame", label: "Window frame" },
+          { value: "furniture", label: "Furniture" },
+          { value: "flooring", label: "Flooring" },
+          { value: "skirting", label: "Skirting / trim" },
+        ],
+      },
+      {
+        id: "wood_repair_03_issue",
+        label: "Issue type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "rot", label: "Rot / water damage" },
+          { value: "crack_split", label: "Cracks / splits" },
+          { value: "woodworm", label: "Woodworm damage" },
+          { value: "general_wear", label: "General wear" },
+        ],
+      },
+      {
+        id: "wood_repair_04_severity",
+        label: "Severity",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "minor", label: "Minor (cosmetic)" },
+          { value: "moderate", label: "Moderate" },
+          { value: "significant", label: "Significant damage" },
+        ],
+      },
+      {
+        id: "wood_repair_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "wood_repair_06_photos",
+        label: "Upload photos",
+        type: "file",
+        required: false,
+        accept: ["image/*"],
+      },
+    ],
+  },
 ];

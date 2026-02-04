@@ -779,4 +779,81 @@ export const gardeningLandscapingQuestionPacksV2 = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADDITIONAL SERVICES
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "turf-installation",
+    title: "Turf Installation",
+    metadata: { category_contract: "gardening", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "turf_installation_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "turf_installation_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_lawn", label: "New lawn installation" },
+          { value: "replace_existing", label: "Replace existing lawn" },
+          { value: "extend_lawn", label: "Extend existing lawn" },
+        ],
+      },
+      {
+        id: "turf_installation_03_size",
+        label: "Area size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (under 50m²)" },
+          { value: "medium", label: "Medium (50–150m²)" },
+          { value: "large", label: "Large (150m²+)" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "turf_installation_04_prep",
+        label: "Ground preparation",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "needs_clearing", label: "Needs clearing" },
+          { value: "already_prepared", label: "Already prepared" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "turf_installation_05_irrigation",
+        label: "Irrigation",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "have_irrigation", label: "Have irrigation system" },
+          { value: "need_irrigation", label: "Need irrigation installed" },
+          { value: "manual_watering", label: "Will water manually" },
+        ],
+      },
+      {
+        id: "turf_installation_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
 ];

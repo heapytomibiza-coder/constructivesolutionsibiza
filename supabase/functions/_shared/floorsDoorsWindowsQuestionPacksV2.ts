@@ -742,4 +742,273 @@ export const floorsDoorsWindowsQuestionPacksV2 = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADDITIONAL GLAZING & WINDOWS
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "double-glazing",
+    title: "Double Glazing",
+    metadata: { category_contract: "floors-doors-windows", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "double_glazing_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "double_glazing_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_windows", label: "New double glazed windows" },
+          { value: "upgrade_existing", label: "Upgrade existing to double glazing" },
+          { value: "repair_seal", label: "Repair / reseal existing" },
+        ],
+      },
+      {
+        id: "double_glazing_03_quantity",
+        label: "Number of windows",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "1_3_windows", label: "1–3 windows" },
+          { value: "4_8_windows", label: "4–8 windows" },
+          { value: "full_property", label: "Full property" },
+        ],
+      },
+      {
+        id: "double_glazing_04_frame",
+        label: "Frame type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "upvc", label: "uPVC" },
+          { value: "aluminium", label: "Aluminium" },
+          { value: "wood", label: "Wood" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "double_glazing_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "mirror-installation",
+    title: "Mirror Installation",
+    metadata: { category_contract: "floors-doors-windows", inspection_bias: "low" },
+    questions: [
+      {
+        id: "mirror_installation_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "mirror_installation_02_type",
+        label: "Mirror type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "bathroom", label: "Bathroom mirror" },
+          { value: "wardrobe", label: "Wardrobe / full length" },
+          { value: "decorative", label: "Decorative mirror" },
+          { value: "gym", label: "Gym / studio mirror" },
+        ],
+      },
+      {
+        id: "mirror_installation_03_quantity",
+        label: "Quantity",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "1_mirror", label: "1 mirror" },
+          { value: "2_3_mirrors", label: "2–3 mirrors" },
+          { value: "4_plus", label: "4+ mirrors" },
+        ],
+      },
+      {
+        id: "mirror_installation_04_supply",
+        label: "Mirror supply",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "client_supplied", label: "Already have mirror(s)" },
+          { value: "need_supply", label: "Need supply & install" },
+        ],
+      },
+      {
+        id: "mirror_installation_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "window-fitting",
+    title: "Window Fitting",
+    metadata: { category_contract: "floors-doors-windows", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "window_fitting_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "window_fitting_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "fit_new", label: "Fit new windows" },
+          { value: "refit_existing", label: "Refit existing windows" },
+          { value: "new_opening", label: "Create new window opening" },
+        ],
+      },
+      {
+        id: "window_fitting_03_quantity",
+        label: "Number of windows",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "1_2_windows", label: "1–2 windows" },
+          { value: "3_6_windows", label: "3–6 windows" },
+          { value: "7_plus", label: "7+ windows" },
+        ],
+      },
+      {
+        id: "window_fitting_04_type",
+        label: "Window type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "casement", label: "Casement" },
+          { value: "sliding", label: "Sliding" },
+          { value: "fixed", label: "Fixed" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "window_fitting_05_supplied",
+        label: "Windows supplied",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "yes", label: "Yes, already purchased" },
+          { value: "no", label: "No, need supply & fit" },
+        ],
+      },
+      {
+        id: "window_fitting_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "window-replacement",
+    title: "Window Replacement",
+    metadata: { category_contract: "floors-doors-windows", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "window_replacement_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "window_replacement_02_reason",
+        label: "Reason for replacement",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "damaged", label: "Damaged / broken" },
+          { value: "upgrade", label: "Upgrade (energy efficiency)" },
+          { value: "aesthetic", label: "Aesthetic / style change" },
+          { value: "security", label: "Security upgrade" },
+        ],
+      },
+      {
+        id: "window_replacement_03_quantity",
+        label: "Number of windows",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "1_2_windows", label: "1–2 windows" },
+          { value: "3_6_windows", label: "3–6 windows" },
+          { value: "full_property", label: "Full property" },
+        ],
+      },
+      {
+        id: "window_replacement_04_frame",
+        label: "New frame preference",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "upvc", label: "uPVC" },
+          { value: "aluminium", label: "Aluminium" },
+          { value: "wood", label: "Wood" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "window_replacement_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
 ];

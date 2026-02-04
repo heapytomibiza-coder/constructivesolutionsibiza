@@ -680,4 +680,82 @@ export const cleaningQuestionPacksV2 = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RESIDENTIAL (ADDITIONAL)
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "move-in-out-cleaning",
+    title: "Move In/Out Cleaning",
+    metadata: { category_contract: "cleaning", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "move_in_out_cleaning_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "move_in_out_cleaning_02_type",
+        label: "Move type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "move_out", label: "Moving out (end of tenancy)" },
+          { value: "move_in", label: "Moving in (pre-move clean)" },
+        ],
+      },
+      {
+        id: "move_in_out_cleaning_03_scope",
+        label: "Scope",
+        type: "checkbox",
+        required: true,
+        options: [
+          { value: "full_property", label: "Full property deep clean" },
+          { value: "kitchen_appliances", label: "Kitchen & appliances" },
+          { value: "bathrooms", label: "Bathrooms" },
+          { value: "windows_inside", label: "Windows (inside)" },
+        ],
+      },
+      {
+        id: "move_in_out_cleaning_04_size",
+        label: "Property size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "studio_1_bed", label: "Studio / 1 bedroom" },
+          { value: "2_3_bed", label: "2–3 bedrooms" },
+          { value: "4_plus_bed", label: "4+ bedrooms" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "move_in_out_cleaning_05_condition",
+        label: "Current condition",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "light_clean", label: "Lightly dirty" },
+          { value: "moderate", label: "Moderate cleaning needed" },
+          { value: "heavy", label: "Heavy cleaning needed" },
+        ],
+      },
+      {
+        id: "move_in_out_cleaning_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_week", label: "Within 1 week" },
+          { value: "specific_date", label: "Specific date (move day)" },
+        ],
+      },
+    ],
+  },
 ];

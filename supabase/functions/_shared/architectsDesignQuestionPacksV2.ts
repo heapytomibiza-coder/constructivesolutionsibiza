@@ -858,4 +858,282 @@ export const architectsDesignQuestionPacksV2 = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADDITIONAL SERVICES
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "3d-rendering",
+    title: "3D Rendering",
+    metadata: { category_contract: "architects-design", inspection_bias: "low" },
+    questions: [
+      {
+        id: "3d_rendering_01_type",
+        label: "Rendering type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "exterior", label: "Exterior visualization" },
+          { value: "interior", label: "Interior visualization" },
+          { value: "both", label: "Both exterior & interior" },
+        ],
+      },
+      {
+        id: "3d_rendering_02_purpose",
+        label: "Purpose",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "planning", label: "Planning application" },
+          { value: "marketing", label: "Marketing / sales" },
+          { value: "client_presentation", label: "Client presentation" },
+          { value: "personal", label: "Personal visualization" },
+        ],
+      },
+      {
+        id: "3d_rendering_03_scope",
+        label: "Number of renders",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "1_2_views", label: "1–2 views" },
+          { value: "3_5_views", label: "3–5 views" },
+          { value: "full_set", label: "Full set (6+ views)" },
+        ],
+      },
+      {
+        id: "3d_rendering_04_quality",
+        label: "Quality level",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "standard", label: "Standard quality" },
+          { value: "photorealistic", label: "Photorealistic" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "3d_rendering_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "urgent", label: "Urgent (< 1 week)" },
+          { value: "within_2_weeks", label: "Within 2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "3d_rendering_06_files",
+        label: "Upload plans / references",
+        type: "file",
+        required: false,
+        accept: ["image/*", "application/pdf"],
+      },
+    ],
+  },
+
+  {
+    microSlug: "budget-management",
+    title: "Budget Management",
+    metadata: { category_contract: "architects-design", inspection_bias: "low" },
+    questions: [
+      {
+        id: "budget_management_01_project",
+        label: "Project type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_build", label: "New build" },
+          { value: "renovation", label: "Renovation" },
+          { value: "extension", label: "Extension" },
+          { value: "fit_out", label: "Fit-out / interior" },
+        ],
+      },
+      {
+        id: "budget_management_02_stage",
+        label: "Project stage",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "planning", label: "Planning / pre-construction" },
+          { value: "in_progress", label: "Construction in progress" },
+          { value: "cost_overrun", label: "Managing cost overrun" },
+        ],
+      },
+      {
+        id: "budget_management_03_scope",
+        label: "Services needed",
+        type: "checkbox",
+        required: true,
+        options: [
+          { value: "cost_estimation", label: "Cost estimation" },
+          { value: "budget_tracking", label: "Budget tracking" },
+          { value: "contractor_quotes", label: "Contractor quote review" },
+          { value: "value_engineering", label: "Value engineering" },
+        ],
+      },
+      {
+        id: "budget_management_04_size",
+        label: "Project budget range",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "under_100k", label: "Under €100k" },
+          { value: "100k_500k", label: "€100k – €500k" },
+          { value: "500k_1m", label: "€500k – €1M" },
+          { value: "over_1m", label: "Over €1M" },
+        ],
+      },
+      {
+        id: "budget_management_05_timeline",
+        label: "When do you need help",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "contractor-coordination",
+    title: "Contractor Coordination",
+    metadata: { category_contract: "architects-design", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "contractor_coordination_01_project",
+        label: "Project type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_build", label: "New build" },
+          { value: "renovation", label: "Renovation" },
+          { value: "extension", label: "Extension" },
+          { value: "fit_out", label: "Fit-out" },
+        ],
+      },
+      {
+        id: "contractor_coordination_02_scope",
+        label: "Coordination scope",
+        type: "checkbox",
+        required: true,
+        options: [
+          { value: "trade_scheduling", label: "Trade scheduling" },
+          { value: "site_meetings", label: "Site meetings" },
+          { value: "quality_control", label: "Quality control" },
+          { value: "issue_resolution", label: "Issue resolution" },
+        ],
+      },
+      {
+        id: "contractor_coordination_03_trades",
+        label: "Number of trades",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "2_4_trades", label: "2–4 trades" },
+          { value: "5_8_trades", label: "5–8 trades" },
+          { value: "9_plus", label: "9+ trades" },
+        ],
+      },
+      {
+        id: "contractor_coordination_04_status",
+        label: "Project status",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "not_started", label: "Not yet started" },
+          { value: "in_progress", label: "Already in progress" },
+          { value: "stalled", label: "Stalled / issues" },
+        ],
+      },
+      {
+        id: "contractor_coordination_05_timeline",
+        label: "When do you need help",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "virtual-walkthrough",
+    title: "Virtual Walkthrough",
+    metadata: { category_contract: "architects-design", inspection_bias: "low" },
+    questions: [
+      {
+        id: "virtual_walkthrough_01_type",
+        label: "Property type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "residential", label: "Residential" },
+          { value: "commercial", label: "Commercial" },
+          { value: "hospitality", label: "Hospitality" },
+          { value: "development", label: "Development project" },
+        ],
+      },
+      {
+        id: "virtual_walkthrough_02_purpose",
+        label: "Purpose",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "design_review", label: "Design review" },
+          { value: "marketing", label: "Marketing / sales" },
+          { value: "client_presentation", label: "Client presentation" },
+          { value: "planning", label: "Planning application" },
+        ],
+      },
+      {
+        id: "virtual_walkthrough_03_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "key_spaces", label: "Key spaces only" },
+          { value: "full_interior", label: "Full interior" },
+          { value: "interior_exterior", label: "Interior & exterior" },
+        ],
+      },
+      {
+        id: "virtual_walkthrough_04_format",
+        label: "Format",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "video", label: "Video walkthrough" },
+          { value: "interactive", label: "Interactive 360°" },
+          { value: "vr_ready", label: "VR-ready" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "virtual_walkthrough_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "urgent", label: "Urgent (< 1 week)" },
+          { value: "within_2_weeks", label: "Within 2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "virtual_walkthrough_06_files",
+        label: "Upload plans / 3D files",
+        type: "file",
+        required: false,
+        accept: ["image/*", "application/pdf"],
+      },
+    ],
+  },
 ];

@@ -1049,4 +1049,486 @@ export const paintingDecoratingQuestionPacksV2 = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADDITIONAL SERVICES
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "cabinet-painting",
+    title: "Cabinet Painting",
+    metadata: { category_contract: "painting", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "cabinet_painting_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "cabinet_painting_02_type",
+        label: "Cabinet type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "kitchen", label: "Kitchen cabinets" },
+          { value: "bathroom", label: "Bathroom cabinets" },
+          { value: "wardrobes", label: "Wardrobes" },
+          { value: "other", label: "Other built-in units" },
+        ],
+      },
+      {
+        id: "cabinet_painting_03_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "doors_only", label: "Doors & drawers only" },
+          { value: "full_cabinets", label: "Full cabinets (inside & out)" },
+        ],
+      },
+      {
+        id: "cabinet_painting_04_quantity",
+        label: "Number of cabinets",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small kitchen (< 10 doors)" },
+          { value: "medium", label: "Medium kitchen (10–20 doors)" },
+          { value: "large", label: "Large kitchen (20+ doors)" },
+        ],
+      },
+      {
+        id: "cabinet_painting_05_finish",
+        label: "Finish",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "matt", label: "Matt" },
+          { value: "satin", label: "Satin" },
+          { value: "gloss", label: "Gloss" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "cabinet_painting_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "feature-walls",
+    title: "Feature Walls",
+    metadata: { category_contract: "painting", inspection_bias: "low" },
+    questions: [
+      {
+        id: "feature_walls_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "feature_walls_02_type",
+        label: "Feature type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "bold_color", label: "Bold / accent color" },
+          { value: "pattern", label: "Pattern / geometric" },
+          { value: "texture", label: "Textured finish" },
+          { value: "mural", label: "Mural / artwork" },
+        ],
+      },
+      {
+        id: "feature_walls_03_room",
+        label: "Room",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "living_room", label: "Living room" },
+          { value: "bedroom", label: "Bedroom" },
+          { value: "dining", label: "Dining area" },
+          { value: "office", label: "Office / workspace" },
+        ],
+      },
+      {
+        id: "feature_walls_04_size",
+        label: "Wall size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small" },
+          { value: "medium", label: "Medium" },
+          { value: "large", label: "Large" },
+        ],
+      },
+      {
+        id: "feature_walls_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "fence-painting",
+    title: "Fence Painting",
+    metadata: { category_contract: "painting", inspection_bias: "low" },
+    questions: [
+      {
+        id: "fence_painting_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "fence_painting_02_material",
+        label: "Fence material",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "wooden", label: "Wooden fence" },
+          { value: "metal", label: "Metal fence" },
+          { value: "mixed", label: "Mixed materials" },
+        ],
+      },
+      {
+        id: "fence_painting_03_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "paint_only", label: "Paint / stain only" },
+          { value: "prep_and_paint", label: "Prep, prime & paint" },
+        ],
+      },
+      {
+        id: "fence_painting_04_length",
+        label: "Fence length",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "short", label: "Short (< 10m)" },
+          { value: "medium", label: "Medium (10–30m)" },
+          { value: "long", label: "Long (30m+)" },
+        ],
+      },
+      {
+        id: "fence_painting_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "pressure-washing",
+    title: "Pressure Washing",
+    metadata: { category_contract: "painting", inspection_bias: "low" },
+    questions: [
+      {
+        id: "pressure_washing_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "pressure_washing_02_area",
+        label: "Area to clean",
+        type: "checkbox",
+        required: true,
+        options: [
+          { value: "driveway", label: "Driveway" },
+          { value: "patio", label: "Patio / terrace" },
+          { value: "walls", label: "Exterior walls" },
+          { value: "pool_area", label: "Pool surround" },
+          { value: "fence", label: "Fence / gates" },
+        ],
+      },
+      {
+        id: "pressure_washing_03_size",
+        label: "Area size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small" },
+          { value: "medium", label: "Medium" },
+          { value: "large", label: "Large" },
+        ],
+      },
+      {
+        id: "pressure_washing_04_condition",
+        label: "Current condition",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "light_dirt", label: "Light dirt" },
+          { value: "moderate", label: "Moderate build-up" },
+          { value: "heavy", label: "Heavy dirt / algae" },
+        ],
+      },
+      {
+        id: "pressure_washing_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "trim-woodwork",
+    title: "Trim & Woodwork",
+    metadata: { category_contract: "painting", inspection_bias: "low" },
+    questions: [
+      {
+        id: "trim_woodwork_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "trim_woodwork_02_scope",
+        label: "Scope",
+        type: "checkbox",
+        required: true,
+        options: [
+          { value: "skirting", label: "Skirting boards" },
+          { value: "door_frames", label: "Door frames" },
+          { value: "window_frames", label: "Window frames" },
+          { value: "crown_moulding", label: "Crown moulding" },
+        ],
+      },
+      {
+        id: "trim_woodwork_03_size",
+        label: "Property size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (1–2 rooms)" },
+          { value: "medium", label: "Medium (3–5 rooms)" },
+          { value: "large", label: "Large (6+ rooms)" },
+        ],
+      },
+      {
+        id: "trim_woodwork_04_finish",
+        label: "Finish",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "gloss", label: "Gloss" },
+          { value: "satin", label: "Satin" },
+          { value: "matt", label: "Matt" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "trim_woodwork_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "wall-painting",
+    title: "Wall Painting",
+    metadata: { category_contract: "painting", inspection_bias: "low" },
+    questions: [
+      {
+        id: "wall_painting_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "wall_painting_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "single_room", label: "Single room" },
+          { value: "multiple_rooms", label: "Multiple rooms" },
+          { value: "full_property", label: "Full property" },
+        ],
+      },
+      {
+        id: "wall_painting_03_size",
+        label: "Property size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small" },
+          { value: "medium", label: "Medium" },
+          { value: "large", label: "Large" },
+        ],
+      },
+      {
+        id: "wall_painting_04_prep",
+        label: "Preparation needed",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "minimal", label: "Minimal (clean walls)" },
+          { value: "some", label: "Some (fill holes, sand)" },
+          { value: "extensive", label: "Extensive (repairs, primer)" },
+        ],
+      },
+      {
+        id: "wall_painting_05_finish",
+        label: "Finish",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "matt", label: "Matt" },
+          { value: "eggshell", label: "Eggshell / satin" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "wall_painting_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "wallpaper-installation",
+    title: "Wallpaper Installation",
+    metadata: { category_contract: "painting", inspection_bias: "low" },
+    questions: [
+      {
+        id: "wallpaper_installation_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "apartment", label: "Apartment" },
+          { value: "villa_house", label: "Villa / House" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "wallpaper_installation_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "feature_wall", label: "Feature wall" },
+          { value: "full_room", label: "Full room" },
+          { value: "multiple_rooms", label: "Multiple rooms" },
+        ],
+      },
+      {
+        id: "wallpaper_installation_03_type",
+        label: "Wallpaper type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "standard", label: "Standard paper" },
+          { value: "vinyl", label: "Vinyl / washable" },
+          { value: "textured", label: "Textured / embossed" },
+          { value: "mural", label: "Photo mural" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "wallpaper_installation_04_supply",
+        label: "Wallpaper supply",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "client_supplied", label: "Already have wallpaper" },
+          { value: "need_supply", label: "Need help sourcing" },
+        ],
+      },
+      {
+        id: "wallpaper_installation_05_prep",
+        label: "Wall condition",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "ready", label: "Ready for papering" },
+          { value: "needs_prep", label: "Needs preparation" },
+          { value: "has_existing", label: "Has existing wallpaper" },
+        ],
+      },
+      {
+        id: "wallpaper_installation_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_2_weeks", label: "Within 1–2 weeks" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
 ];
