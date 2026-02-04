@@ -1,6 +1,6 @@
 /**
  * QuestionPackRenderer - Renders a single question pack with dedupe protection
- * Extracted for proper useMemo usage and cleaner separation
+ * V2-compatible with type aliases, question ordering, and improved validation
  */
 
 import React, { useMemo } from 'react';
@@ -26,6 +26,22 @@ const normalizeOption = (opt: OptionType): QuestionOption => {
   return opt;
 };
 
+// Normalize V2 type aliases to renderer types
+const normalizeQuestionType = (type: string): QuestionDef['type'] => {
+  switch (type) {
+    case 'single_select': return 'radio';
+    case 'multi_select': return 'checkbox';
+    case 'long_text': return 'textarea';
+    default: return type as QuestionDef['type'];
+  }
+};
+
+// Normalize accept attribute (can be string or array in V2)
+const normalizeAccept = (accept?: string | string[]): string => {
+  if (!accept) return 'image/*';
+  return Array.isArray(accept) ? accept.join(',') : accept;
+};
+
 // Question definition from the pack
 interface QuestionDef {
   id: string;
@@ -35,7 +51,10 @@ interface QuestionDef {
   required?: boolean;
   placeholder?: string;
   help?: string;
-  accept?: string;
+  accept?: string | string[];
+  min?: number;
+  max?: number;
+  step?: number;
   show_if?: {
     questionId: string;
     value: string | string[];
@@ -51,6 +70,7 @@ interface QuestionPack {
   micro_slug: string;
   title: string;
   questions: QuestionDef[];
+  question_order?: string[];
 }
 
 interface Props {
@@ -69,18 +89,33 @@ const LOGISTICS_HANDLED_QUESTION_IDS = new Set([
   'start_timeline',     // Variant timing question
 ]);
 
+// Get ordered questions respecting question_order if present
+const getOrderedQuestions = (pack: QuestionPack): QuestionDef[] => {
+  const questions = pack.questions || [];
+  const order = pack.question_order;
+  
+  if (!order?.length) return questions;
+  
+  const byId = new Map(questions.map(q => [q.id, q]));
+  const ordered = order.map(id => byId.get(id)).filter(Boolean) as QuestionDef[];
+  const unordered = questions.filter(q => !order.includes(q.id));
+  
+  return [...ordered, ...unordered];
+};
+
 export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props) {
-  // UI protection: dedupe questions by id or label (memoized for performance)
+  // UI protection: dedupe questions by id or label, respecting question_order
   const uniqueQuestions = useMemo(() => {
+    const orderedQuestions = getOrderedQuestions(pack);
     const seen = new Set<string>();
-    return (pack.questions || []).filter((q) => {
+    return orderedQuestions.filter((q) => {
       const key = q?.id?.trim() || q?.label?.trim()?.toLowerCase();
       if (!key) return false;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  }, [pack.questions]);
+  }, [pack]);
 
   // Conditional visibility check - handles both single and multi-select answers
   const shouldShowQuestion = (question: QuestionDef): boolean => {
@@ -100,8 +135,10 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
   const renderQuestion = (question: QuestionDef) => {
     const value = getAnswer(pack.micro_slug, question.id);
     const key = `${pack.micro_slug}-${question.id}`;
+    // Normalize V2 type aliases
+    const normalizedType = normalizeQuestionType(question.type);
 
-    switch (question.type) {
+    switch (normalizedType) {
       case 'text':
         return (
           <Input
@@ -119,8 +156,14 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
             id={key}
             type="number"
             placeholder={question.placeholder}
-            value={(value as number) || ''}
-            onChange={(e) => onAnswerChange(pack.micro_slug, question.id, e.target.valueAsNumber)}
+            value={value ?? ''}
+            min={question.min}
+            max={question.max}
+            step={question.step}
+            onChange={(e) => {
+              const num = e.target.valueAsNumber;
+              onAnswerChange(pack.micro_slug, question.id, Number.isNaN(num) ? null : num);
+            }}
           />
         );
 
@@ -135,19 +178,33 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
           />
         );
 
-      case 'file':
+      case 'file': {
+        const fileNames = (value as string[]) || [];
         return (
-          <Input
-            id={key}
-            type="file"
-            accept={question.accept || 'image/*'}
-            onChange={(e) => {
-              const files = e.target.files;
-              onAnswerChange(pack.micro_slug, question.id, files ? Array.from(files).map(f => f.name) : []);
-            }}
-            className="cursor-pointer"
-          />
+          <div className="space-y-2">
+            <Input
+              id={key}
+              type="file"
+              accept={normalizeAccept(question.accept)}
+              onChange={(e) => {
+                const files = e.target.files;
+                onAnswerChange(
+                  pack.micro_slug, 
+                  question.id, 
+                  files ? Array.from(files).map(f => f.name) : []
+                );
+              }}
+              className="cursor-pointer"
+            />
+            {fileNames.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Selected: {fileNames.join(', ')}
+                <span className="italic"> (uploads after job is posted)</span>
+              </p>
+            )}
+          </div>
         );
+      }
 
       case 'radio':
       case 'select':
@@ -170,7 +227,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
           </RadioGroup>
         );
 
-      case 'checkbox':
+      case 'checkbox': {
         const selectedOptions = (value as string[]) || [];
         return (
           <div className="space-y-2">
@@ -196,6 +253,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
             })}
           </div>
         );
+      }
 
       default:
         return null;
