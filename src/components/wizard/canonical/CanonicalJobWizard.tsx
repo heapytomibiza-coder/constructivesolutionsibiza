@@ -205,13 +205,28 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   }, [currentStep, wizardState]);
 
   const handleNext = useCallback(() => {
+    // Questions step validation
+    if (currentStep === WizardStep.Questions && questionPacks.length > 0) {
+      const microAnswers = (wizardState.answers.microAnswers as Record<string, Record<string, unknown>>) || {};
+      const validation = validateAllPacks(questionPacks as { micro_slug: string; questions: { id: string; type: string; required?: boolean; min?: number; max?: number; show_if?: { questionId: string; value: string | string[] }; dependsOn?: { questionId: string; value: string | string[] } }[] }[], microAnswers);
+      
+      if (!validation.valid) {
+        setQuestionErrors(validation.errors);
+        if (validation.firstErrorId) {
+          document.getElementById(validation.firstErrorId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+      setQuestionErrors({});
+    }
+    
     if (currentStep !== WizardStep.Review && canAdvance()) {
       const nextStep = getNextStep(currentStep);
       if (nextStep) {
         setCurrentStep(nextStep);
       }
     }
-  }, [currentStep, canAdvance]);
+  }, [currentStep, canAdvance, questionPacks, wizardState.answers]);
 
   const handleBack = useCallback(() => {
     const prevStep = getPrevStep(currentStep);
