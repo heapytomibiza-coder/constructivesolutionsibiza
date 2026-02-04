@@ -9,7 +9,7 @@ import { Calendar, Euro, MapPin, Image as ImageIcon, MessageSquare, Send, LogIn 
 import { JobDetailsModal } from "@/pages/jobs/JobDetailsModal";
 import { JobFlagBadges } from "@/pages/jobs/components/JobFlagBadges";
 import { useSession } from "@/contexts/SessionContext";
-import { startConversationAction } from "@/pages/jobs/actions/messageJob.action";
+import { startConversation } from "@/pages/jobs/actions/messageJob.action";
 import { toast } from "sonner";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 
