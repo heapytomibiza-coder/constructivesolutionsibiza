@@ -193,10 +193,15 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
       setPacks(parsedPacks);
       setMissingPacks(missing);
       setLoading(false);
+      
+      // Notify parent of loaded packs for validation
+      if (onPacksLoaded) {
+        onPacksLoaded(parsedPacks);
+      }
     };
 
     fetchPacks();
-  }, [microSlugs]);
+  }, [microSlugs, onPacksLoaded]);
 
   // Initialize answers structure for new packs
   useEffect(() => {
