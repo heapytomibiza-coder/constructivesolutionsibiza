@@ -83,7 +83,7 @@ export function useClientStats() {
   });
 
   return {
-    stats: statsQuery.data || { activeJobs: 0, draftJobs: 0, totalJobs: 0, unreadMessages: 0 },
+    stats: statsQuery.data || { activeJobs: 0, draftJobs: 0, totalJobs: 0, unreadMessages: 0, inProgressJobs: 0 },
     jobs: jobsQuery.data || [],
     isLoading: statsQuery.isLoading || jobsQuery.isLoading,
     error: statsQuery.error || jobsQuery.error,
