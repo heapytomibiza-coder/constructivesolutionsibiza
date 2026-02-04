@@ -15,9 +15,10 @@ import {
   MessageSquare,
   LogOut,
   Settings,
-  Loader2
+  Loader2,
+  Clock
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { ClientJobCard } from './components/ClientJobCard';
 
 /**
  * CLIENT DASHBOARD
