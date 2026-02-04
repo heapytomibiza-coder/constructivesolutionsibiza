@@ -9,18 +9,22 @@
 - **Database**: Micro-service slugs verified for all 8 categories
 - **Seeder Script**: `scripts/seed-all-new-packs.ts` ready
 
-### ⚠️ Slug Mismatches Found (6 packs affected)
+### ✅ Slug Fixes Complete
 
-| Pack File Slug | DB Slug (correct) | Category |
-|----------------|-------------------|----------|
-| `minor-repairs` | `general-project` | Handyman |
-| `material-transport` | `material-delivery` | Transport |
-| `site-deliveries` | `furniture-delivery` | Transport |
-| `forklift-hire` | `heavy-equipment-transport` | Transport |
-| `container-hire` | `skip-hire` | Transport |
-| `storage-services` | `man-with-van` | Transport |
+**Fixed (now match DB):**
+- `minor-repairs` → `general-project` ✅
+- `material-transport` → `material-delivery` ✅
+- `site-deliveries` → `furniture-delivery` ✅
+- `forklift-hire` → `skip-hire` ✅ (repurposed)
+- `container-hire` → `man-with-van` ✅ (repurposed)
 
-**Impact**: These 6 packs will be **skipped** during seeding (reported as "missing slugs").
+**Removed (no DB match):**
+- `storage-solutions` (was `storage-services`) - Removed from pack file
+
+**Already Correct:**
+- `crane-hire` - Already existed in DB
+
+**Status:** 104 packs ready (1 removed), all should match DB slugs.
 
 ---
 

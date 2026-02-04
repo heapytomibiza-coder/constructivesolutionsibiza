@@ -419,7 +419,7 @@ export const transportLogisticsQuestionPacksV2 = [
   // ADDITIONAL LOGISTICS (for future expansion)
   // ─────────────────────────────────────────────────────────────────────────
   {
-    microSlug: "material-transport",
+    microSlug: "material-delivery",
     title: "Material Transport",
     metadata: { category_contract: "transport", inspection_bias: "low" },
     questions: [
@@ -448,7 +448,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "site-deliveries",
+    microSlug: "furniture-delivery",
     title: "Site Deliveries",
     metadata: { category_contract: "transport", inspection_bias: "low" },
     questions: [
@@ -505,7 +505,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "forklift-hire",
+    microSlug: "skip-hire",
     title: "Forklift Hire",
     metadata: { category_contract: "transport", inspection_bias: "medium" },
     questions: [
@@ -533,7 +533,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "container-hire",
+    microSlug: "man-with-van",
     title: "Container Hire",
     metadata: { category_contract: "transport", inspection_bias: "low" },
     questions: [
@@ -558,34 +558,5 @@ export const transportLogisticsQuestionPacksV2 = [
           { value: "long_term", label: "Long term" },
         ],
       },
-    ],
-  },
-
-  {
-    microSlug: "storage-services",
-    title: "Storage Services",
-    metadata: { category_contract: "transport", inspection_bias: "low" },
-    questions: [
-      {
-        id: "storage_services_01_scope",
-        label: "Scope",
-        type: "radio",
-        required: true,
-        options: [
-          { value: "short_term", label: "Short-term storage" },
-          { value: "long_term", label: "Long-term storage" },
-        ],
-      },
-      {
-        id: "storage_services_02_item_type",
-        label: "Item type",
-        type: "radio",
-        required: true,
-        options: [
-          { value: "furniture", label: "Furniture" },
-          { value: "materials", label: "Materials" },
-        ],
-      },
-    ],
   },
 ];
