@@ -31,6 +31,7 @@ import {
 import { useWizardUrlStep } from './hooks/useWizardUrlStep';
 import { useWizardDraft } from './hooks/useWizardDraft';
 import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
+import { validateAllPacks, type ValidationErrorMap } from './lib/stepValidation';
 
 // DB-powered selectors
 import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
@@ -56,6 +57,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.Category);
   const [wizardState, setWizardState] = useState<WizardState>(EMPTY_WIZARD_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Question pack validation state
+  const [questionPacks, setQuestionPacks] = useState<{ micro_slug: string; questions: unknown[] }[]>([]);
+  const [questionErrors, setQuestionErrors] = useState<Record<string, ValidationErrorMap>>({});
   
   // URL sync
   useWizardUrlStep(currentStep, setCurrentStep);
@@ -158,9 +163,18 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         ...prev,
         answers,
       }));
+      // Clear question errors when user makes changes
+      if (Object.keys(questionErrors).length > 0) {
+        setQuestionErrors({});
+      }
     },
-    []
+    [questionErrors]
   );
+
+  // Handler for when question packs are loaded
+  const handlePacksLoaded = useCallback((packs: { micro_slug: string; questions: unknown[] }[]) => {
+    setQuestionPacks(packs);
+  }, []);
 
   // === NAVIGATION ===
   
@@ -191,13 +205,28 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   }, [currentStep, wizardState]);
 
   const handleNext = useCallback(() => {
+    // Questions step validation
+    if (currentStep === WizardStep.Questions && questionPacks.length > 0) {
+      const microAnswers = (wizardState.answers.microAnswers as Record<string, Record<string, unknown>>) || {};
+      const validation = validateAllPacks(questionPacks as { micro_slug: string; questions: { id: string; type: string; required?: boolean; min?: number; max?: number; show_if?: { questionId: string; value: string | string[] }; dependsOn?: { questionId: string; value: string | string[] } }[] }[], microAnswers);
+      
+      if (!validation.valid) {
+        setQuestionErrors(validation.errors);
+        if (validation.firstErrorId) {
+          document.getElementById(validation.firstErrorId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+      setQuestionErrors({});
+    }
+    
     if (currentStep !== WizardStep.Review && canAdvance()) {
       const nextStep = getNextStep(currentStep);
       if (nextStep) {
         setCurrentStep(nextStep);
       }
     }
-  }, [currentStep, canAdvance]);
+  }, [currentStep, canAdvance, questionPacks, wizardState.answers]);
 
   const handleBack = useCallback(() => {
     const prevStep = getPrevStep(currentStep);
@@ -410,6 +439,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               microSlugs={wizardState.microSlugs}
               answers={wizardState.answers}
               onChange={handleAnswersChange}
+              onPacksLoaded={handlePacksLoaded}
+              errors={questionErrors}
             />
           )}
 

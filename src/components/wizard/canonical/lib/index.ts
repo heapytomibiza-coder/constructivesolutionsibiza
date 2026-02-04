@@ -13,7 +13,11 @@ export {
   isLogisticsComplete,
   isExtrasComplete,
   validateWizardForSubmission,
+  validateQuestionPack,
+  validateAllPacks,
   canLeaveStep,
   type Step5Check,
   type WizardValidation,
+  type ValidationErrorMap,
+  type PackValidationResult,
 } from './stepValidation';

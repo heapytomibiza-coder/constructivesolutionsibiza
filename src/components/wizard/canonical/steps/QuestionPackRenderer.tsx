@@ -105,6 +105,7 @@ interface Props {
   pack: QuestionPack;
   getAnswer: (microSlug: string, questionId: string) => unknown;
   onAnswerChange: (microSlug: string, questionId: string, value: unknown) => void;
+  errors?: Record<string, string>; // question_id -> error message
 }
 
 // Question IDs that are handled by Step 5 (Logistics) and should not appear in Step 4
@@ -117,7 +118,7 @@ const LOGISTICS_HANDLED_QUESTION_IDS = new Set([
   'start_timeline',     // Variant timing question
 ]);
 
-export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props) {
+export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }: Props) {
   // Normalize + order questions once (V2 safe)
   const normalizedOrderedQuestions = useMemo(() => {
     const ordered = getOrderedQuestions(pack);
@@ -313,6 +314,9 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
           </Label>
           {question.help && <p className="text-sm text-muted-foreground">{question.help}</p>}
           {renderQuestion(question)}
+          {errors?.[question.id] && (
+            <p className="text-sm text-destructive">{errors[question.id]}</p>
+          )}
         </div>
       ))}
     </div>

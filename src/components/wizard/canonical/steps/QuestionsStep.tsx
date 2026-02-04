@@ -91,9 +91,11 @@ interface Props {
   microSlugs: string[];
   answers: Record<string, unknown>;
   onChange: (answers: Record<string, unknown>) => void;
+  onPacksLoaded?: (packs: QuestionPack[]) => void;
+  errors?: Record<string, Record<string, string>>; // micro_slug -> question_id -> error
 }
 
-export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
+export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, errors }: Props) {
   const [packs, setPacks] = useState<QuestionPack[]>([]);
   const [loading, setLoading] = useState(true);
   const [missingPacks, setMissingPacks] = useState<string[]>([]);
@@ -191,10 +193,15 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
       setPacks(parsedPacks);
       setMissingPacks(missing);
       setLoading(false);
+      
+      // Notify parent of loaded packs for validation
+      if (onPacksLoaded) {
+        onPacksLoaded(parsedPacks);
+      }
     };
 
     fetchPacks();
-  }, [microSlugs]);
+  }, [microSlugs, onPacksLoaded]);
 
   // Initialize answers structure for new packs
   useEffect(() => {
@@ -294,6 +301,7 @@ export function QuestionsStep({ microSlugs, answers, onChange }: Props) {
               pack={pack}
               getAnswer={getAnswer}
               onAnswerChange={handleAnswerChange}
+              errors={errors?.[pack.micro_slug]}
             />
           </div>
         );
