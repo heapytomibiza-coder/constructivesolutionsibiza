@@ -58,6 +58,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const [wizardState, setWizardState] = useState<WizardState>(EMPTY_WIZARD_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Question pack validation state
+  const [questionPacks, setQuestionPacks] = useState<{ micro_slug: string; questions: unknown[] }[]>([]);
+  const [questionErrors, setQuestionErrors] = useState<Record<string, ValidationErrorMap>>({});
+  
   // URL sync
   useWizardUrlStep(currentStep, setCurrentStep);
   
