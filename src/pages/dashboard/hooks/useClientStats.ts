@@ -41,6 +41,7 @@ export function useClientStats() {
 
       const activeJobs = jobs?.filter(j => j.status === 'open').length || 0;
       const draftJobs = jobs?.filter(j => j.status === 'draft').length || 0;
+      const inProgressJobs = jobs?.filter(j => j.status === 'in_progress').length || 0;
       const totalJobs = jobs?.length || 0;
 
       // Fetch unread messages using RPC
