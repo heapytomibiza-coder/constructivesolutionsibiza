@@ -75,6 +75,7 @@ function formatTiming(j: JobsBoardRow): string {
 export function JobListingCard({ job, isMatched }: JobListingCardProps) {
   const [open, setOpen] = React.useState(false);
   const [isMessaging, setIsMessaging] = React.useState(false);
+  const navigate = useNavigate();
   const specBadge = getSpecBadge(job);
   const { user, isAuthenticated, hasRole, isProReady, activeRole } = useSession();
 
@@ -105,8 +106,8 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
     setIsMessaging(true);
     try {
       const conversationId = await startConversation(job.id);
-      // Navigate to the conversation
-      window.location.href = `/messages?conversation=${conversationId}`;
+      // Use SPA navigation instead of hard reload
+      navigate(`/messages?conversation=${conversationId}`);
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
