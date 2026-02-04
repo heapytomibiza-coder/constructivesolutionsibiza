@@ -38,19 +38,26 @@ export async function completeJob(jobId: string): Promise<{ success: boolean; er
     return { success: false, error: 'Job must be in progress to complete' };
   }
 
-  // Update job status to completed
-  const { error } = await supabase
+  // Update job status to completed (include status check to prevent race/double-complete)
+  const { data: updated, error } = await supabase
     .from('jobs')
     .update({
       status: 'completed',
       completed_at: new Date().toISOString(),
     })
     .eq('id', jobId)
-    .eq('user_id', user.id);
+    .eq('user_id', user.id)
+    .eq('status', 'in_progress')
+    .select('id')
+    .maybeSingle();
 
   if (error) {
     console.error('Error completing job:', error);
     return { success: false, error: error.message };
+  }
+
+  if (!updated) {
+    return { success: false, error: 'Job already completed or status changed' };
   }
 
   return { success: true };
