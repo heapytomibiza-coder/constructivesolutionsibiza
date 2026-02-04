@@ -28,7 +28,7 @@ export interface ProReadinessResult {
  * Valid onboarding phases that indicate sufficient setup progress.
  * Must match canonical phases from onboarding flow.
  */
-const VALID_PHASES = new Set(['service_configured', 'complete']);
+const VALID_PHASES = new Set(['service_setup', 'complete']);
 
 /**
  * Evaluate professional readiness for marketplace actions.

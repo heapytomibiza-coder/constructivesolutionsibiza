@@ -82,16 +82,19 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
     });
   }, [pack.questions]);
 
-  // Conditional visibility check
+  // Conditional visibility check - handles both single and multi-select answers
   const shouldShowQuestion = (question: QuestionDef): boolean => {
     const dep = question.show_if || question.dependsOn;
-    if (!dep) return true;
-    
+    if (!dep?.questionId) return true;
+
     const depValue = getAnswer(pack.micro_slug, dep.questionId);
-    if (Array.isArray(dep.value)) {
-      return dep.value.includes(depValue as string);
-    }
-    return depValue === dep.value;
+    
+    // Normalize both sides to arrays of strings for robust comparison
+    const depValueArr = Array.isArray(depValue) ? depValue : depValue != null ? [String(depValue)] : [];
+    const requiredArr = Array.isArray(dep.value) ? dep.value.map(String) : [String(dep.value)];
+
+    // Show if ANY required value is present in the answer
+    return requiredArr.some(v => depValueArr.includes(v));
   };
 
   const renderQuestion = (question: QuestionDef) => {
