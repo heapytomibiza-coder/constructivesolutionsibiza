@@ -495,9 +495,9 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
     setIsMessaging(true);
     try {
       // Pass profile for action-level validation (only for professionals)
+      // proId is derived from session inside the action for security
       const convId = await startConversation(
-        jobPack.id, 
-        user.id,
+        jobPack.id,
         isPro ? professionalProfile : undefined
       );
       onClose();
