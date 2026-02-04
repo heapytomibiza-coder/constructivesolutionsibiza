@@ -419,7 +419,7 @@ export const transportLogisticsQuestionPacksV2 = [
   // ADDITIONAL LOGISTICS (for future expansion)
   // ─────────────────────────────────────────────────────────────────────────
   {
-    microSlug: "material-transport",
+    microSlug: "material-delivery",
     title: "Material Transport",
     metadata: { category_contract: "transport", inspection_bias: "low" },
     questions: [
