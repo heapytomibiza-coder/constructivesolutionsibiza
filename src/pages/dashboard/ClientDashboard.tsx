@@ -171,32 +171,14 @@ const ClientDashboard = () => {
             ) : (
               <div className="space-y-3">
                 {jobs.map((job) => (
-                  <div 
+                  <ClientJobCard 
                     key={job.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium truncate group-hover:text-primary transition-colors">
-                          {job.title}
-                        </h3>
-                        <Badge variant={getStatusBadgeVariant(job.status)}>
-                          {job.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {job.category && job.subcategory 
-                          ? `${job.category} → ${job.subcategory}` 
-                          : 'Uncategorized'}
-                        {' · '}
-                        {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/jobs/${job.id}`}>View</Link>
-                    </Button>
-                  </div>
+                    job={job}
+                    onJobUpdated={refetch}
+                  />
                 ))}
+              </div>
+            )}
               </div>
             )}
           </CardContent>
