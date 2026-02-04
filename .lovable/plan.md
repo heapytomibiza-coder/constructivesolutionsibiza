@@ -1,135 +1,336 @@
 
-
-# Final Fixes: Scroll Lock + Photo Key + Profile Status Polish
+# V1 Pro Ready Gate: Minimal Marketplace Protection
 
 ## Summary
-
-Two small but important fixes needed to complete the modal/lightbox implementation, plus a minor improvement to the Pro Dashboard profile status display.
+Add a single `proReady` gate to the messaging action to protect the marketplace flow. This is the minimum viable implementation that:
+- Prevents incomplete professionals from messaging clients
+- Provides clear feedback via UI and action-level guards
+- Leaves the database RPC unchanged (V2 work)
+- Does not require new modules or major restructuring
 
 ---
 
-## Part 1: Add Scroll Lock to PhotoLightbox
+## Changes Overview
 
-### Problem
-When the lightbox is open, users can still scroll the background page, which feels broken and can cause the dialog behind to shift.
+```text
++-----------------------------------+-------------------------------------------+
+| File                              | Change                                    |
++-----------------------------------+-------------------------------------------+
+| src/guard/proReadiness.ts         | NEW - Centralized proReady check          |
+| src/pages/jobs/actions/index.ts   | Add requireProReady guard                 |
+| src/pages/jobs/actions/           | Add guard before RPC call                 |
+|   messageJob.action.ts            |                                           |
+| src/pages/jobs/JobDetailsModal.tsx| Disable Message button when !isProReady   |
++-----------------------------------+-------------------------------------------+
+```
 
-### Solution
-Add a `useEffect` that locks `document.body.style.overflow` while lightbox is open and restores it on close.
+---
 
-### Change Location
-`src/pages/jobs/JobDetailsModal.tsx` - inside `PhotoLightbox` component, after the keyboard navigation effect.
+## Implementation Details
 
-### Code to Add
-```tsx
-// Prevent background scroll while lightbox is open
-React.useEffect(() => {
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = "hidden";
-  return () => {
-    document.body.style.overflow = prevOverflow;
+### 1. Create Centralized Pro Readiness Check
+
+**New file: `src/guard/proReadiness.ts`**
+
+A pure function that evaluates professional readiness and returns both a boolean and reason codes. This ensures the same logic is used by both UI and action layers.
+
+```typescript
+import type { ProfessionalProfileData } from '@/hooks/useSessionSnapshot';
+
+export interface ProReadinessResult {
+  isReady: boolean;
+  reasons: ProReadinessReason[];
+}
+
+export type ProReadinessReason = 
+  | 'NO_PROFILE'
+  | 'NOT_VERIFIED'
+  | 'ONBOARDING_INCOMPLETE'
+  | 'NO_SERVICES';
+
+export function getProReadiness(
+  profile: ProfessionalProfileData | null
+): ProReadinessResult {
+  const reasons: ProReadinessReason[] = [];
+
+  if (!profile) {
+    return { isReady: false, reasons: ['NO_PROFILE'] };
+  }
+
+  if (profile.verificationStatus !== 'verified') {
+    reasons.push('NOT_VERIFIED');
+  }
+
+  const validPhases = ['service_setup', 'complete'];
+  if (!validPhases.includes(profile.onboardingPhase)) {
+    reasons.push('ONBOARDING_INCOMPLETE');
+  }
+
+  if (profile.servicesCount === 0) {
+    reasons.push('NO_SERVICES');
+  }
+
+  return {
+    isReady: reasons.length === 0,
+    reasons,
   };
-}, []);
+}
 ```
 
+This centralizes the logic currently duplicated in `useSessionSnapshot.ts` (lines 210-214).
+
 ---
 
-## Part 2: Use Stable Key for Photo Thumbnails
+### 2. Add Action-Level Guard
 
-### Problem
-Using `key={idx}` for thumbnails is fragile - if photos array changes, React may incorrectly reuse DOM nodes.
+**File: `src/pages/jobs/actions/messageJob.action.ts`**
 
-### Solution
-Use `key={url}` instead (URLs are unique identifiers for photos).
+Add a pre-flight check before calling the RPC. This prevents the action from even attempting the database call if the professional isn't ready.
 
-### Change Location
-`src/pages/jobs/JobDetailsModal.tsx` - line 413-415 in the photo grid map.
+```typescript
+import { supabase } from "@/integrations/supabase/client";
+import { UserError } from "@/shared/lib/userError";
+import { getProReadiness } from "@/guard/proReadiness";
+import type { ProfessionalProfileData } from "@/hooks/useSessionSnapshot";
 
-### Before
-```tsx
-{jobPack.photos.slice(0, 6).map((url, idx) => (
-  <button key={idx} ...>
+/**
+ * Verify professional is ready before allowing marketplace actions.
+ * Throws UserError with code PRO_NOT_READY if requirements not met.
+ */
+export function requireProReady(
+  profile: ProfessionalProfileData | null
+): void {
+  const { isReady, reasons } = getProReadiness(profile);
+  
+  if (!isReady) {
+    const message = reasons.includes('NO_SERVICES')
+      ? "Complete your service setup to message clients"
+      : reasons.includes('NOT_VERIFIED')
+      ? "Complete verification to message clients"
+      : "Complete your professional setup to message clients";
+      
+    throw new UserError(message, "PRO_NOT_READY");
+  }
+}
+
+/**
+ * Start or get existing conversation between a professional and a job.
+ * Now accepts optional profile for pre-flight proReady check.
+ */
+export async function startConversation(
+  jobId: string,
+  proId: string,
+  profile?: ProfessionalProfileData | null
+): Promise<string> {
+  // Pre-flight guard: check proReady before hitting DB
+  if (profile !== undefined) {
+    requireProReady(profile);
+  }
+
+  const { data, error } = await supabase.rpc("get_or_create_conversation", {
+    p_job_id: jobId,
+    p_pro_id: proId,
+  });
+
+  // ... existing error handling unchanged
+}
 ```
 
-### After
-```tsx
-{jobPack.photos.slice(0, 6).map((url, idx) => (
-  <button key={url} ...>
-```
+The profile parameter is optional for backward compatibility, but the UI will always pass it.
 
 ---
 
-## Part 3: Improve Profile Status Display (Optional Polish)
+### 3. Update UI to Gate Message Button
 
-### Current Issue
-The "Profile complete" check uses `stats.servicesCount > 0`, which duplicates "Services added" and doesn't actually check profile completeness.
+**File: `src/pages/jobs/JobDetailsModal.tsx`**
 
-### Solution
-For now, we can add a comment noting this is a placeholder. The proper fix would be to add a `displayName` field check, but that requires knowing if `professional_profiles` has a `display_name` column.
+Update `JobDetailsActions` to:
+1. Check `isProReady` from session context
+2. Disable button and show tooltip when not ready
+3. Pass profile to the action for server-side validation
 
-### Temporary Fix
-Keep the current behavior but improve the messaging - if we don't have a proper "profile complete" signal, show a checklist of what's needed.
+```typescript
+function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
+  const navigate = useNavigate();
+  const { 
+    user, 
+    isLoading: sessionLoading,
+    hasRole,
+    isProReady,
+    professionalProfile 
+  } = useSession();
+  const [isMessaging, setIsMessaging] = useState(false);
 
----
+  // Determine if this user should see the pro gate
+  const isPro = hasRole('professional');
+  const canMessage = !isPro || isProReady;
 
-## Files to Modify
+  const handleMessage = async () => {
+    if (!user) {
+      onClose();
+      navigate(`/auth?returnTo=/jobs`);
+      return;
+    }
 
-| File | Change |
-|------|--------|
-| `src/pages/jobs/JobDetailsModal.tsx` | Add scroll lock effect + fix photo key |
-
----
-
-## Technical Details
-
-### PhotoLightbox Scroll Lock (add after line 114)
-
-```tsx
-// Prevent background scroll while lightbox is open
-React.useEffect(() => {
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = "hidden";
-  return () => {
-    document.body.style.overflow = prevOverflow;
+    setIsMessaging(true);
+    try {
+      // Pass profile for action-level validation
+      const convId = await startConversation(
+        jobPack.id, 
+        user.id,
+        professionalProfile
+      );
+      onClose();
+      navigate(`/messages/${convId}`);
+    } catch (err) {
+      if (isUserError(err)) {
+        if (err.code === 'PRO_NOT_READY') {
+          toast.error(err.message, {
+            action: {
+              label: 'Complete Setup',
+              onClick: () => {
+                onClose();
+                navigate('/dashboard/pro');
+              },
+            },
+          });
+        } else {
+          toast.error(err.message);
+        }
+      } else {
+        toast.error("Failed to start conversation");
+        console.error("Message error:", err);
+      }
+    } finally {
+      setIsMessaging(false);
+    }
   };
-}, []);
-```
 
-### Photo Thumbnail Key Fix (line 414)
-
-Change from:
-```tsx
-<button
-  key={idx}
-```
-
-To:
-```tsx
-<button
-  key={url}
+  return (
+    <div className="flex flex-wrap gap-2">
+      {!user ? (
+        <Button onClick={handleMessage} className="gap-2">
+          <LogIn className="h-4 w-4" />
+          Sign in to message
+        </Button>
+      ) : jobPack.isOwner ? null : (
+        <div className="relative">
+          <Button 
+            onClick={handleMessage} 
+            disabled={isMessaging || sessionLoading || !canMessage}
+            className="gap-2"
+            title={!canMessage ? "Complete your setup to message clients" : undefined}
+          >
+            {isMessaging ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquare className="h-4 w-4" />
+            )}
+            {isMessaging ? "Starting chat..." : "Message"}
+          </Button>
+          {!canMessage && (
+            <div className="mt-1 text-xs text-muted-foreground">
+              Complete setup to message
+            </div>
+          )}
+        </div>
+      )}
+      <Button variant="outline" disabled className="gap-2">
+        <Share2 className="h-4 w-4" />
+        Share
+      </Button>
+    </div>
+  );
+}
 ```
 
 ---
 
-## Expected Outcome
+### 4. Update Guard Barrel Export
 
-After implementation:
-- Background stays locked when viewing photos in lightbox
-- Photo thumbnails use stable keys for correct React reconciliation
-- Modal + lightbox are production-ready
+**File: `src/guard/index.ts`**
+
+Add export for the new proReadiness module:
+
+```typescript
+export * from './access';
+export * from './redirects';
+export * from './RouteGuard';
+export * from './proReadiness';
+```
 
 ---
 
-## Verification Checklist
+## Technical Notes
 
-### Scroll Lock
-1. Open a job with photos
-2. Click a photo to open lightbox
-3. Try to scroll the page (should not move)
-4. Close lightbox
-5. Scrolling should work again
+### Why Not Gate in the Database RPC?
 
-### Photo Keys
-1. Open a job with photos
-2. Navigate between photos
-3. No visual glitches or unexpected behavior
+The database function `get_or_create_conversation` is the true security boundary, but modifying it requires:
+- Understanding the current SQL implementation
+- Testing RPC error propagation
+- Potential migration work
+
+For V1, the action-level guard is sufficient because:
+- The UI is the only surface calling this action
+- The action throws before the RPC is called
+- The error code allows proper UX handling
+
+**V2**: Add the check inside the RPC for bulletproof enforcement.
+
+### Backward Compatibility
+
+The `profile` parameter in `startConversation` is optional. Existing callers (if any) continue to work, but without the pre-flight check.
+
+### Error Handling Flow
+
+```text
+User clicks Message
+        |
+        v
++------------------+
+| UI: canMessage?  |--No--> Button disabled + hint text
++------------------+
+        |
+       Yes
+        v
++------------------+
+| Action: profile  |--Not Ready--> Toast + "Complete Setup" action
+| proReady check   |
++------------------+
+        |
+       Ready
+        v
++------------------+
+| RPC: database    |--Error--> Toast with error message
+| validation       |
++------------------+
+        |
+      Success
+        v
+  Navigate to /messages/:id
+```
+
+---
+
+## Files Changed
+
+| File | Type | Description |
+|------|------|-------------|
+| `src/guard/proReadiness.ts` | New | Centralized readiness check with reason codes |
+| `src/guard/index.ts` | Edit | Add proReadiness export |
+| `src/pages/jobs/actions/messageJob.action.ts` | Edit | Add requireProReady guard |
+| `src/pages/jobs/JobDetailsModal.tsx` | Edit | Disable button + pass profile to action |
+
+---
+
+## Testing Checklist
+
+| Scenario | Expected |
+|----------|----------|
+| Client user viewing job | Message button enabled, no gate |
+| Pro ready user viewing job | Message button enabled |
+| Pro not ready (no services) | Button disabled + "Complete setup" hint |
+| Pro not ready clicks (bypass) | Toast with error + link to dashboard |
+| Pro not ready (not verified) | Button disabled + appropriate message |
+| Pro clicks own job | Button hidden (existing behavior) |
 
