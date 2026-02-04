@@ -7,6 +7,7 @@ interface ClientStats {
   draftJobs: number;
   totalJobs: number;
   unreadMessages: number;
+  inProgressJobs: number;
 }
 
 interface Job {
@@ -17,6 +18,7 @@ interface Job {
   subcategory: string | null;
   created_at: string;
   is_publicly_listed: boolean;
+  assigned_professional_id: string | null;
 }
 
 export function useClientStats() {
