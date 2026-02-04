@@ -9,22 +9,22 @@
 - **Database**: Micro-service slugs verified for all 8 categories
 - **Seeder Script**: `scripts/seed-all-new-packs.ts` ready
 
-### ✅ Slug Fixes Complete
+### ✅ All Slug Fixes Complete
 
-**Fixed (now match DB):**
+**Fixed slugs (Handyman):**
 - `minor-repairs` → `general-project` ✅
+
+**Fixed slugs (Transport):**
 - `material-transport` → `material-delivery` ✅
 - `site-deliveries` → `furniture-delivery` ✅
-- `forklift-hire` → `skip-hire` ✅ (repurposed)
-- `container-hire` → `man-with-van` ✅ (repurposed)
-
-**Removed (no DB match):**
-- `storage-solutions` (was `storage-services`) - Removed from pack file
+- `forklift-hire` → `heavy-equipment-transport` ✅
+- `container-hire` → `skip-hire` ✅
+- `storage-services` → `man-with-van` ✅
 
 **Already Correct:**
-- `crane-hire` - Already existed in DB
+- `crane-hire` - Already existed in DB ✅
 
-**Status:** 104 packs ready (1 removed), all should match DB slugs.
+**Status:** 105 packs ready, all should match DB slugs.
 
 ---
 
