@@ -1,12 +1,16 @@
 import * as React from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
-import { Calendar, Euro, MapPin, Image as ImageIcon } from "lucide-react";
+import { Calendar, Euro, MapPin, Image as ImageIcon, MessageSquare, Send, LogIn } from "lucide-react";
 import { JobDetailsModal } from "@/pages/jobs/JobDetailsModal";
 import { JobFlagBadges } from "@/pages/jobs/components/JobFlagBadges";
+import { useSession } from "@/contexts/SessionContext";
+import { startConversation } from "@/pages/jobs/actions/messageJob.action";
+import { toast } from "sonner";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 
 interface JobListingCardProps {
@@ -70,7 +74,14 @@ function formatTiming(j: JobsBoardRow): string {
 
 export function JobListingCard({ job, isMatched }: JobListingCardProps) {
   const [open, setOpen] = React.useState(false);
+  const [isMessaging, setIsMessaging] = React.useState(false);
   const specBadge = getSpecBadge(job);
+  const { user, isAuthenticated, hasRole, isProReady, activeRole } = useSession();
+
+  // Check if job is open for actions
+  const isJobOpen = job.status === "open";
+  const isPro = hasRole("professional");
+  const isClient = activeRole === "client";
 
   const handleCardClick = () => setOpen(true);
 
@@ -85,6 +96,30 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
     e.stopPropagation();
     setOpen(true);
   };
+
+  const handleMessageClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!job.id) return;
+    
+    setIsMessaging(true);
+    try {
+      const conversationId = await startConversation(job.id);
+      // Navigate to the conversation
+      window.location.href = `/messages?conversation=${conversationId}`;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
+    } finally {
+      setIsMessaging(false);
+    }
+  };
+
+  // Determine which CTAs to show
+  const showProCTAs = isAuthenticated && isPro && isJobOpen;
+  const showSignInCTA = !isAuthenticated && isJobOpen;
+  const showCompleteProfileCTA = isAuthenticated && isPro && !isProReady && isJobOpen;
 
   return (
     <>
@@ -135,7 +170,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
               )}
             </div>
 
-            <Button onClick={handleButtonClick} variant="outline" size="sm">
+            <Button onClick={handleButtonClick} variant="outline" size="sm" className="hidden sm:inline-flex">
               View
             </Button>
           </div>
@@ -160,10 +195,10 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
         </CardHeader>
 
         {job.highlights?.length > 0 && (
-          <CardContent className="space-y-3 pl-7">
+          <CardContent className="space-y-3 pl-7 pt-0">
             <Separator />
             <ul className="grid gap-1.5 text-sm">
-              {job.highlights.slice(0, 5).map((h, idx) => (
+              {job.highlights.slice(0, 3).map((h, idx) => (
                 <li key={`${job.id}-h-${idx}`} className="text-muted-foreground flex items-start gap-2">
                   <span className="text-primary/60 mt-0.5">•</span>
                   <span>{h}</span>
@@ -172,6 +207,66 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
             </ul>
           </CardContent>
         )}
+
+        {/* CTA Row */}
+        <CardContent className="pt-0 pl-7">
+          <Separator className="mb-3" />
+          <div className="flex flex-col sm:flex-row gap-2">
+            {showSignInCTA && (
+              <Button variant="outline" size="sm" asChild className="flex-1" onClick={(e) => e.stopPropagation()}>
+                <Link to={`/auth?returnUrl=/jobs`}>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign in to respond
+                </Link>
+              </Button>
+            )}
+
+            {showCompleteProfileCTA && (
+              <Button variant="outline" size="sm" asChild className="flex-1" onClick={(e) => e.stopPropagation()}>
+                <Link to="/dashboard/pro">
+                  <Send className="mr-2 h-4 w-4" />
+                  Complete profile to apply
+                </Link>
+              </Button>
+            )}
+
+            {showProCTAs && isProReady && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={handleMessageClick}
+                  disabled={isMessaging}
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  {isMessaging ? "Opening..." : "Message"}
+                </Button>
+                <Button
+                  variant="accent"
+                  size="sm"
+                  className="flex-1"
+                  onClick={handleButtonClick}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  View & Apply
+                </Button>
+              </>
+            )}
+
+            {/* Clients just see View button on mobile */}
+            {isAuthenticated && isClient && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 sm:hidden"
+                onClick={handleButtonClick}
+              >
+                View details
+              </Button>
+            )}
+          </div>
+        </CardContent>
       </Card>
 
       <JobDetailsModal jobId={job.id} open={open} onOpenChange={setOpen} />

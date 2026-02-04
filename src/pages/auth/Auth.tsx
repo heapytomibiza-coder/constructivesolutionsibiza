@@ -7,13 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Shield } from 'lucide-react';
+import { Loader2, Shield, ArrowLeft } from 'lucide-react';
+import { IntentSelector, type UserIntent } from '@/components/auth/IntentSelector';
 
 /**
  * AUTH PAGE
  * 
  * Public page for sign in / sign up.
  * Supports returnUrl for post-login redirect.
+ * Includes intent selection for new signups.
  */
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -21,6 +23,10 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  // Intent selection state (for signup flow)
+  const [showIntentSelector, setShowIntentSelector] = useState(false);
+  const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(null);
 
   const returnUrl = searchParams.get('returnUrl') || '/dashboard/client';
   const defaultTab = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
@@ -48,24 +54,54 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // If intent not selected yet, show the selector first
+    if (!selectedIntent) {
+      setShowIntentSelector(true);
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // Determine roles based on intent
+      const roles = selectedIntent === 'client' 
+        ? ['client'] 
+        : ['client', 'professional'];
+      const activeRole = selectedIntent === 'professional' ? 'professional' : 'client';
+      
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: window.location.origin + '/auth/callback',
+          data: {
+            intent: selectedIntent,
+            initial_roles: roles,
+            initial_active_role: activeRole,
+          },
         },
       });
 
       if (error) throw error;
 
       toast.success('Check your email to confirm your account!');
+      
+      // Reset form
+      setEmail('');
+      setPassword('');
+      setSelectedIntent(null);
+      setShowIntentSelector(false);
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign up');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleIntentContinue = () => {
+    if (selectedIntent) {
+      setShowIntentSelector(false);
     }
   };
 
@@ -147,46 +183,90 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="h-11"
+                {showIntentSelector ? (
+                  <div className="space-y-6">
+                    <IntentSelector
+                      value={selectedIntent}
+                      onChange={setSelectedIntent}
                     />
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => setShowIntentSelector(false)}
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                      </Button>
+                      <Button
+                        type="button"
+                        className="flex-1"
+                        disabled={!selectedIntent}
+                        onClick={handleIntentContinue}
+                      >
+                        Continue
+                      </Button>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      className="h-11"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      At least 6 characters
-                    </p>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      'Create Account'
+                ) : (
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    {selectedIntent && (
+                      <div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">
+                          {selectedIntent === 'client' && '🏠 Signing up to hire'}
+                          {selectedIntent === 'professional' && '🔧 Signing up to offer services'}
+                          {selectedIntent === 'both' && '↔️ Signing up for both'}
+                        </span>
+                        <button
+                          type="button"
+                          className="ml-2 text-xs underline hover:text-foreground"
+                          onClick={() => setShowIntentSelector(true)}
+                        >
+                          Change
+                        </button>
+                      </div>
                     )}
-                  </Button>
-                </form>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        className="h-11"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        At least 6 characters
+                      </p>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating account...
+                        </>
+                      ) : (
+                        selectedIntent ? 'Create Account' : 'Continue'
+                      )}
+                    </Button>
+                  </form>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
