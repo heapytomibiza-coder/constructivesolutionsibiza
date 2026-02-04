@@ -7,18 +7,22 @@
  * Used by both UI (to disable buttons) and action layer (to throw errors).
  */
 
+import { UserError } from "@/shared/lib/userError";
 import type { ProfessionalProfileData } from '@/hooks/useSessionSnapshot';
-
-export interface ProReadinessResult {
-  isReady: boolean;
-  reasons: ProReadinessReason[];
-}
 
 export type ProReadinessReason = 
   | 'NO_PROFILE'
   | 'NOT_VERIFIED'
   | 'ONBOARDING_INCOMPLETE'
   | 'NO_SERVICES';
+
+export interface ProReadinessResult {
+  isReady: boolean;
+  reasons: ProReadinessReason[];
+}
+
+/** Valid onboarding phases that indicate sufficient setup progress */
+const VALID_PHASES = new Set(['service_setup', 'complete']);
 
 /**
  * Evaluate professional readiness for marketplace actions.
@@ -27,23 +31,21 @@ export type ProReadinessReason =
 export function getProReadiness(
   profile: ProfessionalProfileData | null
 ): ProReadinessResult {
-  const reasons: ProReadinessReason[] = [];
-
   if (!profile) {
     return { isReady: false, reasons: ['NO_PROFILE'] };
   }
+
+  const reasons: ProReadinessReason[] = [];
 
   if (profile.verificationStatus !== 'verified') {
     reasons.push('NOT_VERIFIED');
   }
 
-  // Valid phases that indicate onboarding is sufficiently complete
-  const validPhases = ['service_setup', 'complete'];
-  if (!validPhases.includes(profile.onboardingPhase)) {
+  if (!VALID_PHASES.has(profile.onboardingPhase)) {
     reasons.push('ONBOARDING_INCOMPLETE');
   }
 
-  if (profile.servicesCount === 0) {
+  if ((profile.servicesCount ?? 0) <= 0) {
     reasons.push('NO_SERVICES');
   }
 
@@ -54,7 +56,7 @@ export function getProReadiness(
 }
 
 /**
- * Get a user-friendly message based on the first blocking reason.
+ * Get a user-friendly message based on the blocking reasons.
  */
 export function getProReadinessMessage(reasons: ProReadinessReason[]): string {
   if (reasons.includes('NO_SERVICES')) {
@@ -63,11 +65,22 @@ export function getProReadinessMessage(reasons: ProReadinessReason[]): string {
   if (reasons.includes('NOT_VERIFIED')) {
     return "Complete verification to message clients";
   }
-  if (reasons.includes('ONBOARDING_INCOMPLETE')) {
-    return "Complete your professional setup to message clients";
-  }
   if (reasons.includes('NO_PROFILE')) {
     return "Set up your professional profile to message clients";
   }
   return "Complete your professional setup to message clients";
+}
+
+/**
+ * Guard function that throws UserError if professional is not ready.
+ * Use in action layer before performing marketplace operations.
+ */
+export function requireProReady(
+  profile: ProfessionalProfileData | null
+): void {
+  const { isReady, reasons } = getProReadiness(profile);
+  
+  if (!isReady) {
+    throw new UserError(getProReadinessMessage(reasons), "PRO_NOT_READY");
+  }
 }
