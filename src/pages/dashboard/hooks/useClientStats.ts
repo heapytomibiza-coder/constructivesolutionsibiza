@@ -28,7 +28,7 @@ export function useClientStats() {
     queryKey: ['client_stats', user?.id],
     queryFn: async (): Promise<ClientStats> => {
       if (!user?.id) {
-        return { activeJobs: 0, draftJobs: 0, totalJobs: 0, unreadMessages: 0 };
+        return { activeJobs: 0, draftJobs: 0, totalJobs: 0, unreadMessages: 0, inProgressJobs: 0 };
       }
 
       // Fetch jobs count by status
