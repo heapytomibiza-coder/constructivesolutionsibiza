@@ -88,7 +88,7 @@ export const RatingModal = ({
                   className={cn(
                     'h-8 w-8 transition-colors',
                     (hoveredRating || rating) >= star
-                      ? 'fill-yellow-400 text-yellow-400'
+                      ? 'fill-accent text-accent'
                       : 'text-muted-foreground'
                   )}
                 />
