@@ -562,7 +562,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "storage-services",
+    microSlug: "storage-solutions",
     title: "Storage Services",
     metadata: { category_contract: "transport", inspection_bias: "low" },
     questions: [
