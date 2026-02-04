@@ -533,7 +533,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "container-hire",
+    microSlug: "man-with-van",
     title: "Container Hire",
     metadata: { category_contract: "transport", inspection_bias: "low" },
     questions: [

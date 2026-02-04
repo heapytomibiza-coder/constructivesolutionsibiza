@@ -376,7 +376,7 @@ export const handymanQuestionPacksV2 = [
   // QUICK FIXES
   // ─────────────────────────────────────────────────────────────────────────
   {
-    microSlug: "minor-repairs",
+    microSlug: "general-project",
     title: "Minor Repairs",
     metadata: { category_contract: "handyman", inspection_bias: "low" },
     questions: [
