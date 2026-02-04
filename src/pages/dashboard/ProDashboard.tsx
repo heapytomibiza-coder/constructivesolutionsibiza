@@ -20,6 +20,7 @@ import {
   User
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { PendingReviewsCard } from './components/PendingReviewsCard';
 
 /**
  * PROFESSIONAL DASHBOARD
