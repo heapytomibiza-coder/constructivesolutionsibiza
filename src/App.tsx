@@ -44,6 +44,9 @@ import ProfessionalServices from "./pages/professional/ProfessionalServices";
 import ProfessionalServiceSetup from "./pages/professional/ProfessionalServiceSetup";
 import ProfessionalPortfolio from "./pages/professional/ProfessionalPortfolio";
 
+// Settings
+import { Settings } from "./pages/settings";
+
 // Forum
 import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/forum";
 
@@ -95,6 +98,9 @@ const App = () => (
               {/* Messages (shared) */}
               <Route path="/messages" element={<Messages />} />
               <Route path="/messages/:conversationId" element={<Messages />} />
+
+              {/* Settings (shared) */}
+              <Route path="/settings" element={<Settings />} />
 
               {/* Professional Onboarding */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
