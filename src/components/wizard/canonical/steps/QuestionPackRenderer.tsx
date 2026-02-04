@@ -1,6 +1,7 @@
 /**
  * QuestionPackRenderer - Renders a single question pack with dedupe protection
- * V2-compatible with type aliases, question ordering, and improved validation
+ * Upgraded for V2 compatibility: type aliases, question_order, validation-ready number handling,
+ * accept array normalization, and honest file-selection stub UI.
  */
 
 import React, { useMemo } from 'react';
@@ -26,20 +27,41 @@ const normalizeOption = (opt: OptionType): QuestionOption => {
   return opt;
 };
 
-// Normalize V2 type aliases to renderer types
-const normalizeQuestionType = (type: string): QuestionDef['type'] => {
+// --- V2 helpers -------------------------------------------------------------
+
+const normalizeQuestionType = (
+  type: string,
+): QuestionDef['type'] => {
   switch (type) {
-    case 'single_select': return 'radio';
-    case 'multi_select': return 'checkbox';
-    case 'long_text': return 'textarea';
-    default: return type as QuestionDef['type'];
+    case 'single_select':
+      return 'radio';
+    case 'multi_select':
+      return 'checkbox';
+    case 'long_text':
+      return 'textarea';
+    default:
+      return type as QuestionDef['type'];
   }
 };
 
-// Normalize accept attribute (can be string or array in V2)
 const normalizeAccept = (accept?: string | string[]): string => {
   if (!accept) return 'image/*';
   return Array.isArray(accept) ? accept.join(',') : accept;
+};
+
+const getOrderedQuestions = (pack: QuestionPack): QuestionDef[] => {
+  const questions = pack.questions || [];
+  const order = pack.question_order;
+
+  if (!order?.length) return questions;
+
+  const byId = new Map(questions.map((q) => [q.id, q]));
+  const ordered = order
+    .map((id) => byId.get(id))
+    .filter(Boolean) as QuestionDef[];
+
+  const unordered = questions.filter((q) => !order.includes(q.id));
+  return [...ordered, ...unordered];
 };
 
 // Question definition from the pack
@@ -47,14 +69,18 @@ interface QuestionDef {
   id: string;
   label: string;
   type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number' | 'file';
+
   options?: OptionType[];
   required?: boolean;
   placeholder?: string;
   help?: string;
+
+  // V2 compatibility
   accept?: string | string[];
   min?: number;
   max?: number;
   step?: number;
+
   show_if?: {
     questionId: string;
     value: string | string[];
@@ -70,6 +96,8 @@ interface QuestionPack {
   micro_slug: string;
   title: string;
   questions: QuestionDef[];
+
+  // V2 optional ordering
   question_order?: string[];
 }
 
@@ -89,33 +117,29 @@ const LOGISTICS_HANDLED_QUESTION_IDS = new Set([
   'start_timeline',     // Variant timing question
 ]);
 
-// Get ordered questions respecting question_order if present
-const getOrderedQuestions = (pack: QuestionPack): QuestionDef[] => {
-  const questions = pack.questions || [];
-  const order = pack.question_order;
-  
-  if (!order?.length) return questions;
-  
-  const byId = new Map(questions.map(q => [q.id, q]));
-  const ordered = order.map(id => byId.get(id)).filter(Boolean) as QuestionDef[];
-  const unordered = questions.filter(q => !order.includes(q.id));
-  
-  return [...ordered, ...unordered];
-};
-
 export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props) {
-  // UI protection: dedupe questions by id or label, respecting question_order
+  // Normalize + order questions once (V2 safe)
+  const normalizedOrderedQuestions = useMemo(() => {
+    const ordered = getOrderedQuestions(pack);
+
+    // Normalize type aliases per question
+    return ordered.map((q) => ({
+      ...q,
+      type: normalizeQuestionType(q.type),
+    }));
+  }, [pack]);
+
+  // UI protection: dedupe questions by id or label (memoized for performance)
   const uniqueQuestions = useMemo(() => {
-    const orderedQuestions = getOrderedQuestions(pack);
     const seen = new Set<string>();
-    return orderedQuestions.filter((q) => {
+    return (normalizedOrderedQuestions || []).filter((q) => {
       const key = q?.id?.trim() || q?.label?.trim()?.toLowerCase();
       if (!key) return false;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  }, [pack]);
+  }, [normalizedOrderedQuestions]);
 
   // Conditional visibility check - handles both single and multi-select answers
   const shouldShowQuestion = (question: QuestionDef): boolean => {
@@ -123,29 +147,34 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
     if (!dep?.questionId) return true;
 
     const depValue = getAnswer(pack.micro_slug, dep.questionId);
-    
+
     // Normalize both sides to arrays of strings for robust comparison
-    const depValueArr = Array.isArray(depValue) ? depValue : depValue != null ? [String(depValue)] : [];
-    const requiredArr = Array.isArray(dep.value) ? dep.value.map(String) : [String(dep.value)];
+    const depValueArr = Array.isArray(depValue)
+      ? depValue.map(String)
+      : depValue != null
+        ? [String(depValue)]
+        : [];
+
+    const requiredArr = Array.isArray(dep.value)
+      ? dep.value.map(String)
+      : [String(dep.value)];
 
     // Show if ANY required value is present in the answer
-    return requiredArr.some(v => depValueArr.includes(v));
+    return requiredArr.some((v) => depValueArr.includes(v));
   };
 
   const renderQuestion = (question: QuestionDef) => {
     const value = getAnswer(pack.micro_slug, question.id);
     const key = `${pack.micro_slug}-${question.id}`;
-    // Normalize V2 type aliases
-    const normalizedType = normalizeQuestionType(question.type);
 
-    switch (normalizedType) {
+    switch (question.type) {
       case 'text':
         return (
           <Input
             id={key}
             type="text"
             placeholder={question.placeholder}
-            value={(value as string) || ''}
+            value={(value as string) ?? ''}
             onChange={(e) => onAnswerChange(pack.micro_slug, question.id, e.target.value)}
           />
         );
@@ -161,8 +190,14 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
             max={question.max}
             step={question.step}
             onChange={(e) => {
-              const num = e.target.valueAsNumber;
-              onAnswerChange(pack.micro_slug, question.id, Number.isNaN(num) ? null : num);
+              // Safer than valueAsNumber for intermediate states and empty values
+              const raw = e.target.value;
+              if (raw === '') {
+                onAnswerChange(pack.micro_slug, question.id, null);
+                return;
+              }
+              const parsed = Number(raw);
+              onAnswerChange(pack.micro_slug, question.id, Number.isNaN(parsed) ? null : parsed);
             }}
           />
         );
@@ -172,14 +207,14 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
           <Textarea
             id={key}
             placeholder={question.placeholder}
-            value={(value as string) || ''}
+            value={(value as string) ?? ''}
             onChange={(e) => onAnswerChange(pack.micro_slug, question.id, e.target.value)}
             rows={3}
           />
         );
 
       case 'file': {
-        const fileNames = (value as string[]) || [];
+        const fileNames = Array.isArray(value) ? (value as string[]) : [];
         return (
           <div className="space-y-2">
             <Input
@@ -189,17 +224,17 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
               onChange={(e) => {
                 const files = e.target.files;
                 onAnswerChange(
-                  pack.micro_slug, 
-                  question.id, 
-                  files ? Array.from(files).map(f => f.name) : []
+                  pack.micro_slug,
+                  question.id,
+                  files ? Array.from(files).map((f) => f.name) : [],
                 );
               }}
               className="cursor-pointer"
             />
             {fileNames.length > 0 && (
               <p className="text-xs text-muted-foreground">
-                Selected: {fileNames.join(', ')}
-                <span className="italic"> (uploads after job is posted)</span>
+                Selected: {fileNames.join(', ')}{' '}
+                <span className="italic">(uploads after job is posted)</span>
               </p>
             )}
           </div>
@@ -210,7 +245,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
       case 'select':
         return (
           <RadioGroup
-            value={(value as string) || ''}
+            value={(value as string) ?? ''}
             onValueChange={(val) => onAnswerChange(pack.micro_slug, question.id, val)}
           >
             {question.options?.map((opt) => {
@@ -228,7 +263,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
         );
 
       case 'checkbox': {
-        const selectedOptions = (value as string[]) || [];
+        const selectedOptions = Array.isArray(value) ? (value as string[]) : [];
         return (
           <div className="space-y-2">
             {question.options?.map((opt) => {
@@ -239,7 +274,8 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
                     id={`${key}-${option.value}`}
                     checked={selectedOptions.includes(option.value)}
                     onCheckedChange={(checked) => {
-                      const newSelected = checked
+                      const isChecked = checked === true;
+                      const newSelected = isChecked
                         ? [...selectedOptions, option.value]
                         : selectedOptions.filter((o) => o !== option.value);
                       onAnswerChange(pack.micro_slug, question.id, newSelected);
@@ -262,24 +298,20 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange }: Props)
 
   // Filter out logistics-handled questions AND apply conditional visibility
   const visibleQuestions = uniqueQuestions
-    .filter(q => !LOGISTICS_HANDLED_QUESTION_IDS.has(q.id))
+    .filter((q) => !LOGISTICS_HANDLED_QUESTION_IDS.has(q.id))
     .filter(shouldShowQuestion);
 
   return (
     <div className="space-y-4">
-      <h4 className="font-medium text-foreground border-b pb-2">
-        {pack.title}
-      </h4>
-      
+      <h4 className="font-medium text-foreground border-b pb-2">{pack.title}</h4>
+
       {visibleQuestions.map((question) => (
         <div key={question.id} className="space-y-2">
           <Label htmlFor={`${pack.micro_slug}-${question.id}`}>
             {question.label}
             {question.required && <span className="text-destructive ml-1">*</span>}
           </Label>
-          {question.help && (
-            <p className="text-sm text-muted-foreground">{question.help}</p>
-          )}
+          {question.help && <p className="text-sm text-muted-foreground">{question.help}</p>}
           {renderQuestion(question)}
         </div>
       ))}
