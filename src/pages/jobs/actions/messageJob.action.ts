@@ -48,8 +48,9 @@ export async function startConversation(
       );
     }
 
-    // Re-throw original error for unexpected cases
-    throw error;
+    // Wrap unexpected errors with user-friendly message (log original for debugging)
+    console.error("[startConversation] Unexpected RPC error:", error);
+    throw new UserError("Could not start conversation. Please try again.", "CONVO_CREATE_FAILED");
   }
 
   if (!data) {
