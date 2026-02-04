@@ -1,6 +1,6 @@
 /**
  * Batch Seeder Script for All New Question Packs
- * Seeds 105 packs across 8 categories
+ * Seeds 140 packs across 10 categories
  * 
  * Usage:
  *   npx tsx scripts/seed-all-new-packs.ts           # Dry run (default)
@@ -16,6 +16,8 @@ import { cleaningQuestionPacksV2 } from "../supabase/functions/_shared/cleaningQ
 import { floorsDoorsWindowsQuestionPacksV2 } from "../supabase/functions/_shared/floorsDoorsWindowsQuestionPacksV2";
 import { transportLogisticsQuestionPacksV2 } from "../supabase/functions/_shared/transportLogisticsQuestionPacksV2";
 import { commercialIndustrialQuestionPacksV2 } from "../supabase/functions/_shared/commercialIndustrialQuestionPacksV2";
+import { carpentryQuestionPacksV2 } from "../supabase/functions/_shared/carpentryQuestionPacksV2";
+import { architectsDesignQuestionPacksV2 } from "../supabase/functions/_shared/architectsDesignQuestionPacksV2";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configuration
@@ -36,6 +38,8 @@ const categories = [
   { name: "Floors, Doors & Windows", packs: floorsDoorsWindowsQuestionPacksV2 },
   { name: "Transport & Logistics", packs: transportLogisticsQuestionPacksV2 },
   { name: "Commercial & Industrial", packs: commercialIndustrialQuestionPacksV2 },
+  { name: "Carpentry", packs: carpentryQuestionPacksV2 },
+  { name: "Architects & Design", packs: architectsDesignQuestionPacksV2 },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

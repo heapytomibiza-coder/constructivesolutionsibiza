@@ -1,923 +1,1537 @@
 /**
- * Carpentry Question Packs - V2 Format (i18n-based)
- * Uses key-based question identifiers and i18n keys for labels
- * Format: Ready for seed function with normalization
+ * Carpentry Question Packs V2
+ * 23 micro-services covering bespoke joinery, custom furniture, doors/windows, structural, decking, and restoration
  */
 
-export interface QuestionOptionV2 {
-  i18nKey: string;
-  value: string;
-  order: number;
-}
+export const carpentryQuestionPacksV2 = [
+  // ─────────────────────────────────────────────────────────────────────────
+  // BESPOKE JOINERY
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "staircases-handrails",
+    title: "Staircases & Handrails",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
+    questions: [
+      {
+        id: "staircases_handrails_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "villa_house", label: "Villa / House" },
+          { value: "apartment", label: "Apartment" },
+          { value: "commercial", label: "Commercial property" },
+        ],
+      },
+      {
+        id: "staircases_handrails_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_staircase", label: "New staircase" },
+          { value: "replace_existing", label: "Replace existing" },
+          { value: "handrails_only", label: "Handrails only" },
+          { value: "repair", label: "Repair existing" },
+        ],
+      },
+      {
+        id: "staircases_handrails_03_material",
+        label: "Material preference",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "hardwood", label: "Hardwood" },
+          { value: "softwood", label: "Softwood" },
+          { value: "metal_wood_combo", label: "Metal & wood combo" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "staircases_handrails_04_floors",
+        label: "Number of floors",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "single_flight", label: "Single flight" },
+          { value: "two_floors", label: "Two floors" },
+          { value: "three_plus", label: "Three floors+" },
+        ],
+      },
+      {
+        id: "staircases_handrails_05_access",
+        label: "Site access",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "easy", label: "Easy access" },
+          { value: "limited", label: "Limited access" },
+          { value: "restricted", label: "Restricted access" },
+        ],
+      },
+      {
+        id: "staircases_handrails_06_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "staircases_handrails_07_photos",
+        label: "Upload photos / plans",
+        type: "file",
+        required: false,
+        accept: ["image/*", "application/pdf"],
+      },
+    ],
+  },
 
-export interface QuestionDefV2 {
-  key: string;
-  type: 'single' | 'multi' | 'text' | 'textarea' | 'number' | 'file';
-  i18nKey: string;
-  required: boolean;
-  options?: QuestionOptionV2[];
-  placeholder?: string;
-}
+  // ─────────────────────────────────────────────────────────────────────────
+  // FITTED WARDROBES
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "sliding-door-wardrobes",
+    title: "Sliding Door Wardrobes",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "sliding_wardrobes_01_location",
+        label: "Location",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "bedroom", label: "Bedroom" },
+          { value: "hallway", label: "Hallway" },
+          { value: "dressing_room", label: "Dressing room" },
+        ],
+      },
+      {
+        id: "sliding_wardrobes_02_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_installation", label: "New installation" },
+          { value: "replace_existing", label: "Replace existing" },
+        ],
+      },
+      {
+        id: "sliding_wardrobes_03_size",
+        label: "Approximate width",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "up_to_2m", label: "Up to 2m" },
+          { value: "2m_to_4m", label: "2m – 4m" },
+          { value: "over_4m", label: "Over 4m" },
+        ],
+      },
+      {
+        id: "sliding_wardrobes_04_finish",
+        label: "Finish preference",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "painted", label: "Painted" },
+          { value: "natural_wood", label: "Natural wood" },
+          { value: "mirrored", label: "Mirrored" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "sliding_wardrobes_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
 
-export interface MicroservicePackV2 {
-  microSlug: string;
-  subcategorySlug: string;
-  categorySlug: string;
-  questions: QuestionDefV2[];
-}
+  // ─────────────────────────────────────────────────────────────────────────
+  // CUSTOM FURNITURE
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "bespoke-tables",
+    title: "Bespoke Tables",
+    metadata: { category_contract: "carpentry", inspection_bias: "low" },
+    questions: [
+      {
+        id: "bespoke_tables_01_type",
+        label: "Table type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "dining", label: "Dining table" },
+          { value: "coffee", label: "Coffee table" },
+          { value: "console", label: "Console table" },
+          { value: "outdoor", label: "Outdoor table" },
+        ],
+      },
+      {
+        id: "bespoke_tables_02_material",
+        label: "Material",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "hardwood", label: "Hardwood" },
+          { value: "reclaimed", label: "Reclaimed wood" },
+          { value: "wood_metal", label: "Wood & metal" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "bespoke_tables_03_size",
+        label: "Seating capacity",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "2_4_people", label: "2–4 people" },
+          { value: "6_8_people", label: "6–8 people" },
+          { value: "10_plus", label: "10+ people" },
+        ],
+      },
+      {
+        id: "bespoke_tables_04_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "bespoke_tables_05_photos",
+        label: "Upload reference images",
+        type: "file",
+        required: false,
+        accept: ["image/*", "application/pdf"],
+      },
+    ],
+  },
 
-export const newCarpentryQuestionPacks: MicroservicePackV2[] = [
   {
-    microSlug: 'cabinet-installation',
-    subcategorySlug: 'cabinetry-storage',
-    categorySlug: 'carpentry',
+    microSlug: "dining-tables",
+    title: "Dining Tables",
+    metadata: { category_contract: "carpentry", inspection_bias: "low" },
     questions: [
       {
-        key: 'location',
-        type: 'single',
-        i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q1.title',
+        id: "dining_tables_01_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q1.options.kitchen', value: 'kitchen', order: 0 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q1.options.bathroom', value: 'bathroom', order: 1 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q1.options.utility-room', value: 'utility-room', order: 2 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q1.options.living-room', value: 'living-room', order: 3 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q1.options.bedroom', value: 'bedroom', order: 4 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q1.options.hallway', value: 'hallway', order: 5 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q1.options.multiple-areas', value: 'multiple-areas', order: 6 }
-        ]
+          { value: "custom_build", label: "Custom build" },
+          { value: "repair", label: "Repair existing" },
+          { value: "refinish", label: "Refinish existing" },
+        ],
       },
       {
-        key: 'cabinet_type',
-        type: 'single',
-        i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q2.title',
+        id: "dining_tables_02_material",
+        label: "Material",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q2.options.flat-pack', value: 'flat-pack', order: 0 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q2.options.pre-assembled', value: 'pre-assembled', order: 1 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q2.options.custom-made', value: 'custom-made', order: 2 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q2.options.not-sure', value: 'not-sure', order: 3 }
-        ]
+          { value: "solid_wood", label: "Solid wood" },
+          { value: "reclaimed", label: "Reclaimed wood" },
+          { value: "wood_metal", label: "Wood & metal" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'count',
-        type: 'single',
-        i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q3.title',
+        id: "dining_tables_03_size",
+        label: "Size",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q3.options.1-3', value: '1-3', order: 0 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q3.options.4-6', value: '4-6', order: 1 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q3.options.7-10', value: '7-10', order: 2 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q3.options.10-plus', value: '10-plus', order: 3 }
-        ]
+          { value: "4_seater", label: "4 seater" },
+          { value: "6_seater", label: "6 seater" },
+          { value: "8_plus_seater", label: "8+ seater" },
+        ],
       },
       {
-        key: 'removal_needed',
-        type: 'single',
-        i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q4.title',
+        id: "dining_tables_04_timeline",
+        label: "Timeline",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q4.options.yes-remove', value: 'yes-remove', order: 0 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q4.options.no-removal', value: 'no-removal', order: 1 }
-        ]
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
       },
-      {
-        key: 'walls',
-        type: 'single',
-        i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q5.title',
-        required: true,
-        options: [
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q5.options.plasterboard', value: 'plasterboard', order: 0 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q5.options.block', value: 'block', order: 1 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q5.options.concrete', value: 'concrete', order: 2 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q5.options.mixed-unsure', value: 'mixed-unsure', order: 3 }
-        ]
-      },
-      {
-        key: 'extras',
-        type: 'multi',
-        i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q6.title',
-        required: false,
-        options: [
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q6.options.worktop-fitting', value: 'worktop-fitting', order: 0 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q6.options.plumbing-connection', value: 'plumbing-connection', order: 1 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q6.options.electrical-adjustments', value: 'electrical-adjustments', order: 2 },
-          { i18nKey: 'carpentry.cabinetry-storage.cabinet-installation.q6.options.none', value: 'none', order: 3 }
-        ]
-      }
-    ]
+    ],
   },
+
   {
-    microSlug: 'deck-construction',
-    subcategorySlug: 'decking',
-    categorySlug: 'carpentry',
+    microSlug: "shelving-units",
+    title: "Shelving Units",
+    metadata: { category_contract: "carpentry", inspection_bias: "low" },
     questions: [
       {
-        key: 'deck_size',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-construction.q1.title',
+        id: "shelving_units_01_location",
+        label: "Location",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-construction.q1.options.small', value: 'small', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-construction.q1.options.medium', value: 'medium', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-construction.q1.options.large', value: 'large', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-construction.q1.options.extra-large', value: 'extra-large', order: 3 }
-        ]
+          { value: "living_room", label: "Living room" },
+          { value: "bedroom", label: "Bedroom" },
+          { value: "office", label: "Office" },
+          { value: "garage", label: "Garage" },
+        ],
       },
       {
-        key: 'material',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-construction.q2.title',
+        id: "shelving_units_02_type",
+        label: "Type",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-construction.q2.options.softwood', value: 'softwood', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-construction.q2.options.hardwood', value: 'hardwood', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-construction.q2.options.composite', value: 'composite', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-construction.q2.options.pvc', value: 'pvc', order: 3 },
-          { i18nKey: 'carpentry.decking.deck-construction.q2.options.not-sure', value: 'not-sure', order: 4 }
-        ]
+          { value: "floating", label: "Floating shelves" },
+          { value: "freestanding", label: "Freestanding unit" },
+          { value: "built_in", label: "Built-in" },
+        ],
       },
       {
-        key: 'height',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-construction.q3.title',
+        id: "shelving_units_03_size",
+        label: "Size",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-construction.q3.options.ground-level', value: 'ground-level', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-construction.q3.options.low-raised', value: 'low-raised', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-construction.q3.options.raised', value: 'raised', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-construction.q3.options.high-deck', value: 'high-deck', order: 3 }
-        ]
+          { value: "small", label: "Small (under 1m)" },
+          { value: "medium", label: "Medium (1–2m)" },
+          { value: "large", label: "Large (over 2m)" },
+        ],
       },
       {
-        key: 'features',
-        type: 'multi',
-        i18nKey: 'carpentry.decking.deck-construction.q4.title',
-        required: false,
-        options: [
-          { i18nKey: 'carpentry.decking.deck-construction.q4.options.steps', value: 'steps', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-construction.q4.options.railing', value: 'railing', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-construction.q4.options.built-in-seating', value: 'built-in-seating', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-construction.q4.options.lighting', value: 'lighting', order: 3 },
-          { i18nKey: 'carpentry.decking.deck-construction.q4.options.none', value: 'none', order: 4 }
-        ]
-      },
-      {
-        key: 'access',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-construction.q5.title',
+        id: "shelving_units_04_material",
+        label: "Material",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-construction.q5.options.easy', value: 'easy', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-construction.q5.options.moderate', value: 'moderate', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-construction.q5.options.poor', value: 'poor', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-construction.q5.options.unsure', value: 'unsure', order: 3 }
-        ]
+          { value: "solid_wood", label: "Solid wood" },
+          { value: "mdf_painted", label: "MDF (painted)" },
+          { value: "wood_metal", label: "Wood & metal" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'old_deck',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-construction.q6.title',
+        id: "shelving_units_05_timeline",
+        label: "Timeline",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-construction.q6.options.yes', value: 'yes', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-construction.q6.options.no', value: 'no', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-construction.q6.options.no-deck-currently', value: 'no-deck-currently', order: 2 }
-        ]
-      }
-    ]
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
   },
+
   {
-    microSlug: 'deck-repair',
-    subcategorySlug: 'decking',
-    categorySlug: 'carpentry',
+    microSlug: "wardrobes",
+    title: "Wardrobes",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
     questions: [
       {
-        key: 'issues',
-        type: 'multi',
-        i18nKey: 'carpentry.decking.deck-repair.q1.title',
+        id: "wardrobes_01_type",
+        label: "Type",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-repair.q1.options.loose-broken-boards', value: 'loose-broken-boards', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-repair.q1.options.rotten-wood', value: 'rotten-wood', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-repair.q1.options.wobbly-railing', value: 'wobbly-railing', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-repair.q1.options.structural-issues', value: 'structural-issues', order: 3 },
-          { i18nKey: 'carpentry.decking.deck-repair.q1.options.general-wear', value: 'general-wear', order: 4 }
-        ]
+          { value: "fitted", label: "Fitted wardrobe" },
+          { value: "freestanding", label: "Freestanding" },
+          { value: "walk_in", label: "Walk-in closet" },
+        ],
       },
       {
-        key: 'deck_size',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-repair.q2.title',
+        id: "wardrobes_02_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-repair.q2.options.small', value: 'small', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-repair.q2.options.medium', value: 'medium', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-repair.q2.options.large', value: 'large', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-repair.q2.options.unsure', value: 'unsure', order: 3 }
-        ]
+          { value: "new_build", label: "New build" },
+          { value: "replace_existing", label: "Replace existing" },
+          { value: "modify", label: "Modify existing" },
+        ],
       },
       {
-        key: 'material',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-repair.q3.title',
+        id: "wardrobes_03_size",
+        label: "Size",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-repair.q3.options.softwood', value: 'softwood', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-repair.q3.options.hardwood', value: 'hardwood', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-repair.q3.options.composite', value: 'composite', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-repair.q3.options.pvc', value: 'pvc', order: 3 },
-          { i18nKey: 'carpentry.decking.deck-repair.q3.options.unsure', value: 'unsure', order: 4 }
-        ]
+          { value: "single", label: "Single wardrobe" },
+          { value: "double", label: "Double wardrobe" },
+          { value: "full_wall", label: "Full wall" },
+        ],
       },
       {
-        key: 'age',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-repair.q4.title',
-        required: false,
-        options: [
-          { i18nKey: 'carpentry.decking.deck-repair.q4.options.0-5-years', value: '0-5-years', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-repair.q4.options.5-10-years', value: '5-10-years', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-repair.q4.options.10-20-years', value: '10-20-years', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-repair.q4.options.20-plus-years', value: '20-plus-years', order: 3 },
-          { i18nKey: 'carpentry.decking.deck-repair.q4.options.not-sure', value: 'not-sure', order: 4 }
-        ]
-      },
-      {
-        key: 'urgent',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-repair.q5.title',
+        id: "wardrobes_04_finish",
+        label: "Finish",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-repair.q5.options.emergency', value: 'emergency', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-repair.q5.options.within-week', value: 'within-week', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-repair.q5.options.not-urgent', value: 'not-urgent', order: 2 }
-        ]
-      }
-    ]
+          { value: "painted", label: "Painted" },
+          { value: "natural_wood", label: "Natural wood" },
+          { value: "laminate", label: "Laminate" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "wardrobes_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
   },
+
   {
-    microSlug: 'deck-replacement',
-    subcategorySlug: 'decking',
-    categorySlug: 'carpentry',
+    microSlug: "kitchen-cabinets",
+    title: "Kitchen Cabinets",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
     questions: [
       {
-        key: 'reason',
-        type: 'multi',
-        i18nKey: 'carpentry.decking.deck-replacement.q1.title',
+        id: "kitchen_cabinets_01_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-replacement.q1.options.rotten-wood', value: 'rotten-wood', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q1.options.unsafe-structure', value: 'unsafe-structure', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q1.options.old-worn', value: 'old-worn', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q1.options.design-change', value: 'design-change', order: 3 }
-        ]
+          { value: "full_kitchen", label: "Full kitchen" },
+          { value: "base_units", label: "Base units only" },
+          { value: "wall_units", label: "Wall units only" },
+          { value: "replace_doors", label: "Replace doors only" },
+        ],
       },
       {
-        key: 'size',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-replacement.q2.title',
+        id: "kitchen_cabinets_02_material",
+        label: "Material",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-replacement.q2.options.small', value: 'small', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q2.options.medium', value: 'medium', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q2.options.large', value: 'large', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q2.options.extra-large', value: 'extra-large', order: 3 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q2.options.unsure', value: 'unsure', order: 4 }
-        ]
+          { value: "solid_wood", label: "Solid wood" },
+          { value: "mdf_painted", label: "MDF (painted)" },
+          { value: "shaker_style", label: "Shaker style" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'material',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-replacement.q3.title',
+        id: "kitchen_cabinets_03_size",
+        label: "Kitchen size",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-replacement.q3.options.softwood', value: 'softwood', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q3.options.hardwood', value: 'hardwood', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q3.options.composite', value: 'composite', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q3.options.pvc', value: 'pvc', order: 3 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q3.options.not-sure', value: 'not-sure', order: 4 }
-        ]
+          { value: "small", label: "Small (< 10 units)" },
+          { value: "medium", label: "Medium (10–20 units)" },
+          { value: "large", label: "Large (20+ units)" },
+        ],
       },
       {
-        key: 'features',
-        type: 'multi',
-        i18nKey: 'carpentry.decking.deck-replacement.q4.title',
+        id: "kitchen_cabinets_04_worktop",
+        label: "Include worktop",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "yes", label: "Yes" },
+          { value: "no", label: "No" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "kitchen_cabinets_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "kitchen_cabinets_06_photos",
+        label: "Upload photos / plans",
+        type: "file",
         required: false,
-        options: [
-          { i18nKey: 'carpentry.decking.deck-replacement.q4.options.steps', value: 'steps', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q4.options.railing', value: 'railing', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q4.options.lighting', value: 'lighting', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q4.options.built-seating', value: 'built-seating', order: 3 },
-          { i18nKey: 'carpentry.decking.deck-replacement.q4.options.same-as-existing', value: 'same-as-existing', order: 4 }
-        ]
-      }
-    ]
+        accept: ["image/*", "application/pdf"],
+      },
+    ],
   },
+
   {
-    microSlug: 'deck-staining-sealing',
-    subcategorySlug: 'decking',
-    categorySlug: 'carpentry',
+    microSlug: "bed-frames",
+    title: "Bed Frames",
+    metadata: { category_contract: "carpentry", inspection_bias: "low" },
     questions: [
       {
-        key: 'service_type',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-staining-sealing.q1.title',
+        id: "bed_frames_01_size",
+        label: "Bed size",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q1.options.staining', value: 'staining', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q1.options.sealing', value: 'sealing', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q1.options.both', value: 'both', order: 2 }
-        ]
+          { value: "single", label: "Single" },
+          { value: "double", label: "Double" },
+          { value: "king", label: "King" },
+          { value: "super_king", label: "Super King" },
+        ],
       },
       {
-        key: 'deck_condition',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-staining-sealing.q2.title',
+        id: "bed_frames_02_style",
+        label: "Style",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q2.options.good', value: 'good', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q2.options.minor-wear', value: 'minor-wear', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q2.options.damaged', value: 'damaged', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q2.options.grey-weathered', value: 'grey-weathered', order: 3 }
-        ]
+          { value: "platform", label: "Platform bed" },
+          { value: "storage", label: "Storage bed" },
+          { value: "four_poster", label: "Four poster" },
+          { value: "headboard_only", label: "Headboard only" },
+        ],
       },
       {
-        key: 'deck_size',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-staining-sealing.q3.title',
+        id: "bed_frames_03_material",
+        label: "Material",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q3.options.small', value: 'small', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q3.options.medium', value: 'medium', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q3.options.large', value: 'large', order: 2 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q3.options.extra-large', value: 'extra-large', order: 3 }
-        ]
+          { value: "hardwood", label: "Hardwood" },
+          { value: "softwood", label: "Softwood" },
+          { value: "reclaimed", label: "Reclaimed wood" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'cleaning_needed',
-        type: 'single',
-        i18nKey: 'carpentry.decking.deck-staining-sealing.q4.title',
+        id: "bed_frames_04_timeline",
+        label: "Timeline",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q4.options.yes-pressure-wash', value: 'yes-pressure-wash', order: 0 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q4.options.no', value: 'no', order: 1 },
-          { i18nKey: 'carpentry.decking.deck-staining-sealing.q4.options.not-sure', value: 'not-sure', order: 2 }
-        ]
-      }
-    ]
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DOORS & WINDOWS
+  // ─────────────────────────────────────────────────────────────────────────
   {
-    microSlug: 'door-frame-replacement',
-    subcategorySlug: 'doors',
-    categorySlug: 'carpentry',
+    microSlug: "interior-doors",
+    title: "Interior Doors",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
     questions: [
       {
-        key: 'door_location',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-frame-replacement.q1.title',
+        id: "interior_doors_01_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q1.options.front-door', value: 'front-door', order: 0 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q1.options.back-door', value: 'back-door', order: 1 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q1.options.internal-door', value: 'internal-door', order: 2 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q1.options.patio-balcony', value: 'patio-balcony', order: 3 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q1.options.garage-side', value: 'garage-side', order: 4 }
-        ]
+          { value: "supply_fit", label: "Supply & fit" },
+          { value: "fit_only", label: "Fit only (I have doors)" },
+          { value: "repair", label: "Repair existing" },
+        ],
       },
       {
-        key: 'door_count',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-frame-replacement.q2.title',
+        id: "interior_doors_02_quantity",
+        label: "Quantity",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q2.options.1', value: '1', order: 0 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q2.options.2-3', value: '2-3', order: 1 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q2.options.4-6', value: '4-6', order: 2 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q2.options.more-than-6', value: 'more-than-6', order: 3 }
-        ]
+          { value: "1_2", label: "1–2 doors" },
+          { value: "3_5", label: "3–5 doors" },
+          { value: "6_plus", label: "6+ doors" },
+        ],
       },
       {
-        key: 'frame_issue',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-frame-replacement.q3.title',
+        id: "interior_doors_03_type",
+        label: "Door type",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q3.options.rotten-damaged', value: 'rotten-damaged', order: 0 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q3.options.misaligned-twisted', value: 'misaligned-twisted', order: 1 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q3.options.water-damage', value: 'water-damage', order: 2 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q3.options.security-upgrade', value: 'security-upgrade', order: 3 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q3.options.other-not-sure', value: 'other-not-sure', order: 4 }
-        ]
+          { value: "panel", label: "Panel doors" },
+          { value: "flush", label: "Flush doors" },
+          { value: "glazed", label: "Glazed doors" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'material_preference',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-frame-replacement.q4.title',
+        id: "interior_doors_04_frame",
+        label: "Frame work needed",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q4.options.softwood', value: 'softwood', order: 0 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q4.options.hardwood', value: 'hardwood', order: 1 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q4.options.metal', value: 'metal', order: 2 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q4.options.upvc', value: 'upvc', order: 3 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q4.options.match-existing', value: 'match-existing', order: 4 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q4.options.not-sure', value: 'not-sure', order: 5 }
-        ]
+          { value: "no", label: "No (existing frames)" },
+          { value: "yes", label: "Yes (new frames)" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'wall_type',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-frame-replacement.q5.title',
+        id: "interior_doors_05_timeline",
+        label: "Timeline",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q5.options.block-brick', value: 'block-brick', order: 0 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q5.options.stud-plasterboard', value: 'stud-plasterboard', order: 1 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q5.options.concrete', value: 'concrete', order: 2 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q5.options.stone', value: 'stone', order: 3 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q5.options.unsure', value: 'unsure', order: 4 }
-        ]
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
       },
-      {
-        key: 'decoration',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-frame-replacement.q6.title',
-        required: false,
-        options: [
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q6.options.yes-painting', value: 'yes-painting', order: 0 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q6.options.yes-plastering', value: 'yes-plastering', order: 1 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q6.options.both', value: 'both', order: 2 },
-          { i18nKey: 'carpentry.doors.door-frame-replacement.q6.options.no-just-frame', value: 'no-just-frame', order: 3 }
-        ]
-      }
-    ]
+    ],
   },
+
   {
-    microSlug: 'door-hanging',
-    subcategorySlug: 'doors',
-    categorySlug: 'carpentry',
+    microSlug: "exterior-doors",
+    title: "Exterior Doors",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
     questions: [
       {
-        key: 'door_type',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-hanging.q1.title',
+        id: "exterior_doors_01_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-hanging.q1.options.internal', value: 'internal', order: 0 },
-          { i18nKey: 'carpentry.doors.door-hanging.q1.options.front-door', value: 'front-door', order: 1 },
-          { i18nKey: 'carpentry.doors.door-hanging.q1.options.back-door', value: 'back-door', order: 2 },
-          { i18nKey: 'carpentry.doors.door-hanging.q1.options.patio-hinged', value: 'patio-hinged', order: 3 },
-          { i18nKey: 'carpentry.doors.door-hanging.q1.options.other', value: 'other', order: 4 }
-        ]
+          { value: "supply_fit", label: "Supply & fit" },
+          { value: "fit_only", label: "Fit only" },
+          { value: "repair", label: "Repair existing" },
+        ],
       },
       {
-        key: 'door_count',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-hanging.q2.title',
+        id: "exterior_doors_02_type",
+        label: "Door type",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-hanging.q2.options.1', value: '1', order: 0 },
-          { i18nKey: 'carpentry.doors.door-hanging.q2.options.2-3', value: '2-3', order: 1 },
-          { i18nKey: 'carpentry.doors.door-hanging.q2.options.4-6', value: '4-6', order: 2 },
-          { i18nKey: 'carpentry.doors.door-hanging.q2.options.more-than-6', value: 'more-than-6', order: 3 }
-        ]
+          { value: "front_door", label: "Front door" },
+          { value: "back_door", label: "Back door" },
+          { value: "patio_doors", label: "Patio doors" },
+          { value: "french_doors", label: "French doors" },
+        ],
       },
       {
-        key: 'door_supplied',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-hanging.q3.title',
+        id: "exterior_doors_03_material",
+        label: "Material",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-hanging.q3.options.yes-on-site', value: 'yes-on-site', order: 0 },
-          { i18nKey: 'carpentry.doors.door-hanging.q3.options.no-supply-needed', value: 'no-supply-needed', order: 1 },
-          { i18nKey: 'carpentry.doors.door-hanging.q3.options.some-supplied', value: 'some-supplied', order: 2 }
-        ]
+          { value: "solid_wood", label: "Solid wood" },
+          { value: "composite", label: "Composite" },
+          { value: "wood_glass", label: "Wood & glass" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'frame_condition',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-hanging.q4.title',
+        id: "exterior_doors_04_security",
+        label: "Security features",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-hanging.q4.options.good', value: 'good', order: 0 },
-          { i18nKey: 'carpentry.doors.door-hanging.q4.options.minor-adjustments', value: 'minor-adjustments', order: 1 },
-          { i18nKey: 'carpentry.doors.door-hanging.q4.options.repair-replacement', value: 'repair-replacement', order: 2 },
-          { i18nKey: 'carpentry.doors.door-hanging.q4.options.no-frames-yet', value: 'no-frames-yet', order: 3 },
-          { i18nKey: 'carpentry.doors.door-hanging.q4.options.not-sure', value: 'not-sure', order: 4 }
-        ]
+          { value: "standard", label: "Standard locks" },
+          { value: "multipoint", label: "Multipoint locking" },
+          { value: "smart_lock", label: "Smart lock" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'hardware',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-hanging.q5.title',
+        id: "exterior_doors_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "exterior_doors_06_photos",
+        label: "Upload photos",
+        type: "file",
         required: false,
-        options: [
-          { i18nKey: 'carpentry.doors.door-hanging.q5.options.hinges-only', value: 'hinges-only', order: 0 },
-          { i18nKey: 'carpentry.doors.door-hanging.q5.options.hinges-handles', value: 'hinges-handles', order: 1 },
-          { i18nKey: 'carpentry.doors.door-hanging.q5.options.lock-latch', value: 'lock-latch', order: 2 },
-          { i18nKey: 'carpentry.doors.door-hanging.q5.options.all-hardware', value: 'all-hardware', order: 3 },
-          { i18nKey: 'carpentry.doors.door-hanging.q5.options.unsure', value: 'unsure', order: 4 }
-        ]
+        accept: ["image/*"],
       },
-      {
-        key: 'trimming',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-hanging.q6.title',
-        required: false,
-        options: [
-          { i18nKey: 'carpentry.doors.door-hanging.q6.options.yes-most', value: 'yes-most', order: 0 },
-          { i18nKey: 'carpentry.doors.door-hanging.q6.options.maybe-one-two', value: 'maybe-one-two', order: 1 },
-          { i18nKey: 'carpentry.doors.door-hanging.q6.options.no-pre-sized', value: 'no-pre-sized', order: 2 },
-          { i18nKey: 'carpentry.doors.door-hanging.q6.options.not-sure', value: 'not-sure', order: 3 }
-        ]
-      }
-    ]
+    ],
   },
+
   {
-    microSlug: 'door-installation',
-    subcategorySlug: 'doors',
-    categorySlug: 'carpentry',
+    microSlug: "window-frames",
+    title: "Window Frames",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
     questions: [
       {
-        key: 'door_location',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-installation.q1.title',
+        id: "window_frames_01_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-installation.q1.options.new-opening', value: 'new-opening', order: 0 },
-          { i18nKey: 'carpentry.doors.door-installation.q1.options.replacing-old', value: 'replacing-old', order: 1 },
-          { i18nKey: 'carpentry.doors.door-installation.q1.options.window-to-door', value: 'window-to-door', order: 2 },
-          { i18nKey: 'carpentry.doors.door-installation.q1.options.other-not-sure', value: 'other-not-sure', order: 3 }
-        ]
+          { value: "new_frames", label: "New frames" },
+          { value: "repair", label: "Repair existing" },
+          { value: "restore", label: "Restore period frames" },
+        ],
       },
       {
-        key: 'door_position',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-installation.q2.title',
+        id: "window_frames_02_quantity",
+        label: "Quantity",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-installation.q2.options.internal', value: 'internal', order: 0 },
-          { i18nKey: 'carpentry.doors.door-installation.q2.options.front-entrance', value: 'front-entrance', order: 1 },
-          { i18nKey: 'carpentry.doors.door-installation.q2.options.back-side', value: 'back-side', order: 2 },
-          { i18nKey: 'carpentry.doors.door-installation.q2.options.patio-terrace', value: 'patio-terrace', order: 3 }
-        ]
+          { value: "1_3", label: "1–3 windows" },
+          { value: "4_8", label: "4–8 windows" },
+          { value: "9_plus", label: "9+ windows" },
+        ],
       },
       {
-        key: 'door_style',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-installation.q3.title',
+        id: "window_frames_03_type",
+        label: "Window type",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-installation.q3.options.solid-timber', value: 'solid-timber', order: 0 },
-          { i18nKey: 'carpentry.doors.door-installation.q3.options.glazed-timber', value: 'glazed-timber', order: 1 },
-          { i18nKey: 'carpentry.doors.door-installation.q3.options.composite', value: 'composite', order: 2 },
-          { i18nKey: 'carpentry.doors.door-installation.q3.options.upvc', value: 'upvc', order: 3 },
-          { i18nKey: 'carpentry.doors.door-installation.q3.options.metal', value: 'metal', order: 4 },
-          { i18nKey: 'carpentry.doors.door-installation.q3.options.not-sure', value: 'not-sure', order: 5 }
-        ]
+          { value: "casement", label: "Casement" },
+          { value: "sash", label: "Sash" },
+          { value: "fixed", label: "Fixed" },
+          { value: "mixed", label: "Mixed types" },
+        ],
       },
       {
-        key: 'door_supplied',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-installation.q4.title',
+        id: "window_frames_04_material",
+        label: "Material",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-installation.q4.options.have-both', value: 'have-both', order: 0 },
-          { i18nKey: 'carpentry.doors.door-installation.q4.options.door-only', value: 'door-only', order: 1 },
-          { i18nKey: 'carpentry.doors.door-installation.q4.options.need-both', value: 'need-both', order: 2 },
-          { i18nKey: 'carpentry.doors.door-installation.q4.options.not-sure-yet', value: 'not-sure-yet', order: 3 }
-        ]
+          { value: "hardwood", label: "Hardwood" },
+          { value: "softwood", label: "Softwood" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'security_level',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-installation.q5.title',
-        required: false,
+        id: "window_frames_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-installation.q5.options.standard-domestic', value: 'standard-domestic', order: 0 },
-          { i18nKey: 'carpentry.doors.door-installation.q5.options.high-security', value: 'high-security', order: 1 },
-          { i18nKey: 'carpentry.doors.door-installation.q5.options.fire-rated', value: 'fire-rated', order: 2 },
-          { i18nKey: 'carpentry.doors.door-installation.q5.options.not-sure', value: 'not-sure', order: 3 }
-        ]
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
       },
-      {
-        key: 'finishing',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-installation.q6.title',
-        required: false,
-        options: [
-          { i18nKey: 'carpentry.doors.door-installation.q6.options.just-install', value: 'just-install', order: 0 },
-          { i18nKey: 'carpentry.doors.door-installation.q6.options.trim-architrave', value: 'trim-architrave', order: 1 },
-          { i18nKey: 'carpentry.doors.door-installation.q6.options.painting-varnishing', value: 'painting-varnishing', order: 2 },
-          { i18nKey: 'carpentry.doors.door-installation.q6.options.plaster-paint', value: 'plaster-paint', order: 3 }
-        ]
-      }
-    ]
+    ],
   },
+
   {
-    microSlug: 'door-repair',
-    subcategorySlug: 'doors',
-    categorySlug: 'carpentry',
+    microSlug: "shutters",
+    title: "Shutters",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
     questions: [
       {
-        key: 'problem_type',
-        type: 'multi',
-        i18nKey: 'carpentry.doors.door-repair.q1.title',
+        id: "shutters_01_type",
+        label: "Shutter type",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-repair.q1.options.sticking-scraping', value: 'sticking-scraping', order: 0 },
-          { i18nKey: 'carpentry.doors.door-repair.q1.options.wont-close', value: 'wont-close', order: 1 },
-          { i18nKey: 'carpentry.doors.door-repair.q1.options.loose-broken-hinges', value: 'loose-broken-hinges', order: 2 },
-          { i18nKey: 'carpentry.doors.door-repair.q1.options.damaged-frame', value: 'damaged-frame', order: 3 },
-          { i18nKey: 'carpentry.doors.door-repair.q1.options.lock-handle-problem', value: 'lock-handle-problem', order: 4 },
-          { i18nKey: 'carpentry.doors.door-repair.q1.options.other', value: 'other', order: 5 }
-        ]
+          { value: "interior", label: "Interior shutters" },
+          { value: "exterior", label: "Exterior shutters" },
+          { value: "plantation", label: "Plantation shutters" },
+        ],
       },
       {
-        key: 'door_type',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-repair.q2.title',
+        id: "shutters_02_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-repair.q2.options.internal', value: 'internal', order: 0 },
-          { i18nKey: 'carpentry.doors.door-repair.q2.options.front-door', value: 'front-door', order: 1 },
-          { i18nKey: 'carpentry.doors.door-repair.q2.options.back-door', value: 'back-door', order: 2 },
-          { i18nKey: 'carpentry.doors.door-repair.q2.options.patio-balcony', value: 'patio-balcony', order: 3 },
-          { i18nKey: 'carpentry.doors.door-repair.q2.options.sliding-door', value: 'sliding-door', order: 4 }
-        ]
+          { value: "supply_fit", label: "Supply & fit" },
+          { value: "fit_only", label: "Fit only" },
+          { value: "repair", label: "Repair existing" },
+        ],
       },
       {
-        key: 'material',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-repair.q3.title',
+        id: "shutters_03_quantity",
+        label: "Quantity",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-repair.q3.options.timber', value: 'timber', order: 0 },
-          { i18nKey: 'carpentry.doors.door-repair.q3.options.composite', value: 'composite', order: 1 },
-          { i18nKey: 'carpentry.doors.door-repair.q3.options.upvc', value: 'upvc', order: 2 },
-          { i18nKey: 'carpentry.doors.door-repair.q3.options.aluminium', value: 'aluminium', order: 3 },
-          { i18nKey: 'carpentry.doors.door-repair.q3.options.glass', value: 'glass', order: 4 },
-          { i18nKey: 'carpentry.doors.door-repair.q3.options.not-sure', value: 'not-sure', order: 5 }
-        ]
+          { value: "1_3", label: "1–3 windows" },
+          { value: "4_8", label: "4–8 windows" },
+          { value: "9_plus", label: "9+ windows" },
+        ],
       },
       {
-        key: 'frame_condition',
-        type: 'single',
-        i18nKey: 'carpentry.doors.door-repair.q4.title',
+        id: "shutters_04_material",
+        label: "Material",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-repair.q4.options.good', value: 'good', order: 0 },
-          { i18nKey: 'carpentry.doors.door-repair.q4.options.minor-damage', value: 'minor-damage', order: 1 },
-          { i18nKey: 'carpentry.doors.door-repair.q4.options.rotten-severe', value: 'rotten-severe', order: 2 },
-          { i18nKey: 'carpentry.doors.door-repair.q4.options.not-sure', value: 'not-sure', order: 3 }
-        ]
+          { value: "solid_wood", label: "Solid wood" },
+          { value: "composite", label: "Composite" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'hardware',
-        type: 'multi',
-        i18nKey: 'carpentry.doors.door-repair.q5.title',
-        required: false,
+        id: "shutters_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
         options: [
-          { i18nKey: 'carpentry.doors.door-repair.q5.options.hinges', value: 'hinges', order: 0 },
-          { i18nKey: 'carpentry.doors.door-repair.q5.options.handle-latch', value: 'handle-latch', order: 1 },
-          { i18nKey: 'carpentry.doors.door-repair.q5.options.lock-cylinder', value: 'lock-cylinder', order: 2 },
-          { i18nKey: 'carpentry.doors.door-repair.q5.options.door-closer', value: 'door-closer', order: 3 },
-          { i18nKey: 'carpentry.doors.door-repair.q5.options.no-just-door', value: 'no-just-door', order: 4 }
-        ]
-      }
-    ]
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // STRUCTURAL CARPENTRY
+  // ─────────────────────────────────────────────────────────────────────────
   {
-    microSlug: 'fence-installation',
-    subcategorySlug: 'fencing-gates',
-    categorySlug: 'carpentry',
+    microSlug: "roof-framing",
+    title: "Roof Framing",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
     questions: [
       {
-        key: 'fence_purpose',
-        type: 'single',
-        i18nKey: 'carpentry.fencing-gates.fence-installation.q1.title',
+        id: "roof_framing_01_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q1.options.privacy', value: 'privacy', order: 0 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q1.options.security', value: 'security', order: 1 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q1.options.garden-boundary', value: 'garden-boundary', order: 2 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q1.options.pet-child-containment', value: 'pet-child-containment', order: 3 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q1.options.decorative', value: 'decorative', order: 4 }
-        ]
+          { value: "new_build", label: "New build" },
+          { value: "extension", label: "Extension" },
+          { value: "repair", label: "Repair existing" },
+          { value: "replace", label: "Full replacement" },
+        ],
       },
       {
-        key: 'fence_length',
-        type: 'single',
-        i18nKey: 'carpentry.fencing-gates.fence-installation.q2.title',
+        id: "roof_framing_02_type",
+        label: "Roof type",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q2.options.up-to-10m', value: 'up-to-10m', order: 0 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q2.options.10-25m', value: '10-25m', order: 1 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q2.options.25-50m', value: '25-50m', order: 2 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q2.options.50m-plus', value: '50m-plus', order: 3 }
-        ]
+          { value: "pitched", label: "Pitched roof" },
+          { value: "flat", label: "Flat roof" },
+          { value: "hip", label: "Hip roof" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'fence_height',
-        type: 'single',
-        i18nKey: 'carpentry.fencing-gates.fence-installation.q3.title',
+        id: "roof_framing_03_size",
+        label: "Approximate size",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q3.options.up-to-1m', value: 'up-to-1m', order: 0 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q3.options.1-1.5m', value: '1-1.5m', order: 1 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q3.options.1.5-2m', value: '1.5-2m', order: 2 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q3.options.over-2m', value: 'over-2m', order: 3 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q3.options.not-sure', value: 'not-sure', order: 4 }
-        ]
+          { value: "small", label: "Small (< 30m²)" },
+          { value: "medium", label: "Medium (30–80m²)" },
+          { value: "large", label: "Large (80m²+)" },
+        ],
       },
       {
-        key: 'material',
-        type: 'single',
-        i18nKey: 'carpentry.fencing-gates.fence-installation.q4.title',
+        id: "roof_framing_04_access",
+        label: "Site access",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q4.options.timber-panels', value: 'timber-panels', order: 0 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q4.options.timber-post-rail', value: 'timber-post-rail', order: 1 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q4.options.composite', value: 'composite', order: 2 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q4.options.metal-mesh', value: 'metal-mesh', order: 3 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q4.options.stone-brick-panels', value: 'stone-brick-panels', order: 4 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q4.options.not-sure', value: 'not-sure', order: 5 }
-        ]
+          { value: "easy", label: "Easy access" },
+          { value: "limited", label: "Limited access" },
+          { value: "scaffolding_needed", label: "Scaffolding needed" },
+        ],
       },
       {
-        key: 'ground_type',
-        type: 'single',
-        i18nKey: 'carpentry.fencing-gates.fence-installation.q5.title',
+        id: "roof_framing_05_timeline",
+        label: "Timeline",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q5.options.soil-grass', value: 'soil-grass', order: 0 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q5.options.concrete-paving', value: 'concrete-paving', order: 1 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q5.options.mixed-ground', value: 'mixed-ground', order: 2 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q5.options.raised-wall', value: 'raised-wall', order: 3 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q5.options.not-sure', value: 'not-sure', order: 4 }
-        ]
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
       },
       {
-        key: 'old_fence',
-        type: 'single',
-        i18nKey: 'carpentry.fencing-gates.fence-installation.q6.title',
-        required: true,
-        options: [
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q6.options.yes-remove-dispose', value: 'yes-remove-dispose', order: 0 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q6.options.yes-i-remove', value: 'yes-i-remove', order: 1 },
-          { i18nKey: 'carpentry.fencing-gates.fence-installation.q6.options.no-existing', value: 'no-existing', order: 2 }
-        ]
-      }
-    ]
+        id: "roof_framing_06_photos",
+        label: "Upload photos / plans",
+        type: "file",
+        required: false,
+        accept: ["image/*", "application/pdf"],
+      },
+    ],
   },
+
   {
-    microSlug: 'french-doors-installation',
-    subcategorySlug: 'doors',
-    categorySlug: 'carpentry',
+    microSlug: "floor-joists",
+    title: "Floor Joists",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
     questions: [
       {
-        key: 'situation',
-        type: 'single',
-        i18nKey: 'carpentry.doors.french-doors-installation.q1.title',
+        id: "floor_joists_01_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.french-doors-installation.q1.options.replacing-existing', value: 'replacing-existing', order: 0 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q1.options.replacing-window', value: 'replacing-window', order: 1 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q1.options.new-opening', value: 'new-opening', order: 2 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q1.options.replacing-other-door', value: 'replacing-other-door', order: 3 }
-        ]
+          { value: "new_installation", label: "New installation" },
+          { value: "repair", label: "Repair existing" },
+          { value: "replace", label: "Full replacement" },
+          { value: "reinforce", label: "Reinforce existing" },
+        ],
       },
       {
-        key: 'door_size',
-        type: 'single',
-        i18nKey: 'carpentry.doors.french-doors-installation.q2.title',
-        required: false,
-        options: [
-          { i18nKey: 'carpentry.doors.french-doors-installation.q2.options.standard-double', value: 'standard-double', order: 0 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q2.options.extra-wide', value: 'extra-wide', order: 1 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q2.options.not-standard-custom', value: 'not-standard-custom', order: 2 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q2.options.not-sure', value: 'not-sure', order: 3 }
-        ]
-      },
-      {
-        key: 'material',
-        type: 'single',
-        i18nKey: 'carpentry.doors.french-doors-installation.q3.title',
+        id: "floor_joists_02_area",
+        label: "Area",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.doors.french-doors-installation.q3.options.timber', value: 'timber', order: 0 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q3.options.upvc', value: 'upvc', order: 1 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q3.options.aluminium', value: 'aluminium', order: 2 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q3.options.composite', value: 'composite', order: 3 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q3.options.not-sure', value: 'not-sure', order: 4 }
-        ]
+          { value: "single_room", label: "Single room" },
+          { value: "multiple_rooms", label: "Multiple rooms" },
+          { value: "whole_floor", label: "Whole floor" },
+        ],
       },
       {
-        key: 'glazing',
-        type: 'single',
-        i18nKey: 'carpentry.doors.french-doors-installation.q4.title',
-        required: false,
+        id: "floor_joists_03_reason",
+        label: "Reason for work",
+        type: "radio",
+        required: true,
         options: [
-          { i18nKey: 'carpentry.doors.french-doors-installation.q4.options.standard-double', value: 'standard-double', order: 0 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q4.options.high-efficiency', value: 'high-efficiency', order: 1 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q4.options.acoustic', value: 'acoustic', order: 2 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q4.options.not-sure', value: 'not-sure', order: 3 }
-        ]
+          { value: "rot_damage", label: "Rot / damage" },
+          { value: "bounce_squeak", label: "Bounce / squeak" },
+          { value: "new_build", label: "New build / extension" },
+          { value: "not_sure", label: "Not sure" },
+        ],
       },
       {
-        key: 'threshold',
-        type: 'single',
-        i18nKey: 'carpentry.doors.french-doors-installation.q5.title',
-        required: false,
+        id: "floor_joists_04_access",
+        label: "Underfloor access",
+        type: "radio",
+        required: true,
         options: [
-          { i18nKey: 'carpentry.doors.french-doors-installation.q5.options.standard-step', value: 'standard-step', order: 0 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q5.options.low-flush', value: 'low-flush', order: 1 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q5.options.wheelchair-accessible', value: 'wheelchair-accessible', order: 2 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q5.options.not-sure', value: 'not-sure', order: 3 }
-        ]
+          { value: "crawl_space", label: "Crawl space" },
+          { value: "basement", label: "Basement" },
+          { value: "no_access", label: "No access" },
+        ],
       },
       {
-        key: 'finishing',
-        type: 'multi',
-        i18nKey: 'carpentry.doors.french-doors-installation.q6.title',
-        required: false,
+        id: "floor_joists_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
         options: [
-          { i18nKey: 'carpentry.doors.french-doors-installation.q6.options.internal-plaster', value: 'internal-plaster', order: 0 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q6.options.external-render', value: 'external-render', order: 1 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q6.options.painting-decorating', value: 'painting-decorating', order: 2 },
-          { i18nKey: 'carpentry.doors.french-doors-installation.q6.options.no-additional-work', value: 'no-additional-work', order: 3 }
-        ]
-      }
-    ]
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
   },
+
   {
-    microSlug: 'gazebo-construction',
-    subcategorySlug: 'outdoor-structures',
-    categorySlug: 'carpentry',
+    microSlug: "wall-framing",
+    title: "Wall Framing",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
     questions: [
       {
-        key: 'gazebo_type',
-        type: 'single',
-        i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q1.title',
+        id: "wall_framing_01_scope",
+        label: "Scope",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q1.options.pre-made-kit', value: 'pre-made-kit', order: 0 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q1.options.custom-built', value: 'custom-built', order: 1 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q1.options.metal-aluminium', value: 'metal-aluminium', order: 2 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q1.options.not-sure-yet', value: 'not-sure-yet', order: 3 }
-        ]
+          { value: "new_partition", label: "New partition wall" },
+          { value: "remove_wall", label: "Remove wall" },
+          { value: "modify", label: "Modify existing" },
+        ],
       },
       {
-        key: 'size',
-        type: 'single',
-        i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q2.title',
+        id: "wall_framing_02_quantity",
+        label: "Number of walls",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q2.options.small', value: 'small', order: 0 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q2.options.medium', value: 'medium', order: 1 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q2.options.large', value: 'large', order: 2 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q2.options.very-large-bespoke', value: 'very-large-bespoke', order: 3 }
-        ]
+          { value: "1", label: "1 wall" },
+          { value: "2_3", label: "2–3 walls" },
+          { value: "4_plus", label: "4+ walls" },
+        ],
       },
       {
-        key: 'roof_style',
-        type: 'single',
-        i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q3.title',
+        id: "wall_framing_03_finish",
+        label: "Finish required",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q3.options.flat', value: 'flat', order: 0 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q3.options.pitched', value: 'pitched', order: 1 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q3.options.hipped', value: 'hipped', order: 2 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q3.options.thatched-look', value: 'thatched-look', order: 3 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q3.options.open-pergola-style', value: 'open-pergola-style', order: 4 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q3.options.not-sure', value: 'not-sure', order: 5 }
-        ]
+          { value: "frame_only", label: "Frame only" },
+          { value: "frame_plaster", label: "Frame + plasterboard" },
+          { value: "full_finish", label: "Full finish (skim ready)" },
+        ],
       },
       {
-        key: 'base_prepared',
-        type: 'single',
-        i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q4.title',
+        id: "wall_framing_04_doors",
+        label: "Door openings needed",
+        type: "radio",
         required: true,
         options: [
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q4.options.yes-solid-level', value: 'yes-solid-level', order: 0 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q4.options.rough-base', value: 'rough-base', order: 1 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q4.options.grass-soil-only', value: 'grass-soil-only', order: 2 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q4.options.not-sure', value: 'not-sure', order: 3 }
-        ]
+          { value: "none", label: "None" },
+          { value: "1_2", label: "1–2 doors" },
+          { value: "3_plus", label: "3+ doors" },
+        ],
       },
       {
-        key: 'features',
-        type: 'multi',
-        i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q5.title',
+        id: "wall_framing_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "beam-installation",
+    title: "Beam Installation",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
+    questions: [
+      {
+        id: "beam_installation_01_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_beam", label: "New beam installation" },
+          { value: "replace", label: "Replace existing" },
+          { value: "decorative", label: "Decorative beam" },
+        ],
+      },
+      {
+        id: "beam_installation_02_purpose",
+        label: "Purpose",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "structural", label: "Structural support" },
+          { value: "wall_removal", label: "Wall removal support" },
+          { value: "decorative", label: "Decorative only" },
+        ],
+      },
+      {
+        id: "beam_installation_03_material",
+        label: "Material",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "oak", label: "Oak" },
+          { value: "steel_clad", label: "Steel (wood clad)" },
+          { value: "reclaimed", label: "Reclaimed timber" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "beam_installation_04_length",
+        label: "Approximate span",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "under_3m", label: "Under 3m" },
+          { value: "3_5m", label: "3–5m" },
+          { value: "over_5m", label: "Over 5m" },
+        ],
+      },
+      {
+        id: "beam_installation_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "beam_installation_06_photos",
+        label: "Upload photos / plans",
+        type: "file",
+        required: false,
+        accept: ["image/*", "application/pdf"],
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DECKING & PERGOLAS
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "wooden-decking",
+    title: "Wooden Decking",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "wooden_decking_01_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_build", label: "New build" },
+          { value: "extend", label: "Extend existing" },
+          { value: "replace", label: "Replace existing" },
+          { value: "repair", label: "Repair" },
+        ],
+      },
+      {
+        id: "wooden_decking_02_size",
+        label: "Size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (< 15m²)" },
+          { value: "medium", label: "Medium (15–30m²)" },
+          { value: "large", label: "Large (30m²+)" },
+        ],
+      },
+      {
+        id: "wooden_decking_03_wood",
+        label: "Wood type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "softwood_treated", label: "Softwood (treated)" },
+          { value: "hardwood", label: "Hardwood" },
+          { value: "cedar", label: "Cedar" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "wooden_decking_04_features",
+        label: "Additional features",
+        type: "checkbox",
         required: false,
         options: [
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q5.options.balustrades-railings', value: 'balustrades-railings', order: 0 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q5.options.built-in-seating', value: 'built-in-seating', order: 1 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q5.options.lighting-cabling', value: 'lighting-cabling', order: 2 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q5.options.cladding-screening', value: 'cladding-screening', order: 3 },
-          { i18nKey: 'carpentry.outdoor-structures.gazebo-construction.q5.options.no-extras', value: 'no-extras', order: 4 }
-        ]
-      }
-    ]
-  }
-  // More packs to be added - file was cut off at pergola-installation
+          { value: "steps", label: "Steps" },
+          { value: "railings", label: "Railings" },
+          { value: "lighting", label: "Lighting" },
+          { value: "none", label: "None" },
+        ],
+      },
+      {
+        id: "wooden_decking_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "composite-decking",
+    title: "Composite Decking",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "composite_decking_01_scope",
+        label: "Scope",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "new_build", label: "New build" },
+          { value: "replace_wood", label: "Replace wooden decking" },
+          { value: "extend", label: "Extend existing" },
+        ],
+      },
+      {
+        id: "composite_decking_02_size",
+        label: "Size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (< 15m²)" },
+          { value: "medium", label: "Medium (15–30m²)" },
+          { value: "large", label: "Large (30m²+)" },
+        ],
+      },
+      {
+        id: "composite_decking_03_finish",
+        label: "Finish preference",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "wood_grain", label: "Wood grain effect" },
+          { value: "smooth", label: "Smooth" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "composite_decking_04_features",
+        label: "Additional features",
+        type: "checkbox",
+        required: false,
+        options: [
+          { value: "steps", label: "Steps" },
+          { value: "railings", label: "Railings" },
+          { value: "lighting", label: "Lighting" },
+          { value: "none", label: "None" },
+        ],
+      },
+      {
+        id: "composite_decking_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "pergola-construction",
+    title: "Pergola Construction",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "pergola_01_type",
+        label: "Pergola type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "freestanding", label: "Freestanding" },
+          { value: "attached", label: "Attached to building" },
+        ],
+      },
+      {
+        id: "pergola_02_size",
+        label: "Size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (< 10m²)" },
+          { value: "medium", label: "Medium (10–20m²)" },
+          { value: "large", label: "Large (20m²+)" },
+        ],
+      },
+      {
+        id: "pergola_03_material",
+        label: "Material",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "softwood", label: "Softwood (treated)" },
+          { value: "hardwood", label: "Hardwood" },
+          { value: "oak", label: "Oak" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "pergola_04_roof",
+        label: "Roof covering",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "open_slats", label: "Open slats" },
+          { value: "canvas", label: "Canvas / fabric" },
+          { value: "polycarbonate", label: "Polycarbonate" },
+          { value: "none", label: "None" },
+        ],
+      },
+      {
+        id: "pergola_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  {
+    microSlug: "gazebos",
+    title: "Gazebos",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "gazebos_01_type",
+        label: "Type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "open", label: "Open gazebo" },
+          { value: "enclosed", label: "Enclosed / screened" },
+          { value: "hot_tub", label: "Hot tub enclosure" },
+        ],
+      },
+      {
+        id: "gazebos_02_size",
+        label: "Size",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "small", label: "Small (< 10m²)" },
+          { value: "medium", label: "Medium (10–15m²)" },
+          { value: "large", label: "Large (15m²+)" },
+        ],
+      },
+      {
+        id: "gazebos_03_material",
+        label: "Material",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "softwood", label: "Softwood" },
+          { value: "hardwood", label: "Hardwood" },
+          { value: "cedar", label: "Cedar" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "gazebos_04_roof",
+        label: "Roof type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "shingle", label: "Shingle" },
+          { value: "tiles", label: "Tiles" },
+          { value: "thatch", label: "Thatch" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "gazebos_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RESTORATION
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    microSlug: "antique-restoration",
+    title: "Antique Restoration",
+    metadata: { category_contract: "carpentry", inspection_bias: "high" },
+    questions: [
+      {
+        id: "antique_restoration_01_item",
+        label: "Item type",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "furniture", label: "Furniture" },
+          { value: "doors", label: "Doors" },
+          { value: "paneling", label: "Wall paneling" },
+          { value: "other", label: "Other" },
+        ],
+      },
+      {
+        id: "antique_restoration_02_quantity",
+        label: "Quantity",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "single", label: "Single item" },
+          { value: "2_3", label: "2–3 items" },
+          { value: "4_plus", label: "4+ items" },
+        ],
+      },
+      {
+        id: "antique_restoration_03_condition",
+        label: "Current condition",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "good", label: "Good (minor repairs)" },
+          { value: "fair", label: "Fair (moderate damage)" },
+          { value: "poor", label: "Poor (significant damage)" },
+        ],
+      },
+      {
+        id: "antique_restoration_04_scope",
+        label: "Scope",
+        type: "checkbox",
+        required: true,
+        options: [
+          { value: "structural_repair", label: "Structural repair" },
+          { value: "refinish", label: "Refinishing" },
+          { value: "veneer", label: "Veneer repair" },
+          { value: "upholstery", label: "Upholstery" },
+        ],
+      },
+      {
+        id: "antique_restoration_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "antique_restoration_06_photos",
+        label: "Upload photos",
+        type: "file",
+        required: false,
+        accept: ["image/*"],
+      },
+    ],
+  },
+
+  {
+    microSlug: "wood-repair",
+    title: "Wood Repair",
+    metadata: { category_contract: "carpentry", inspection_bias: "medium" },
+    questions: [
+      {
+        id: "wood_repair_01_item",
+        label: "What needs repair",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "doors", label: "Doors" },
+          { value: "windows", label: "Window frames" },
+          { value: "furniture", label: "Furniture" },
+          { value: "flooring", label: "Flooring" },
+          { value: "other", label: "Other" },
+        ],
+      },
+      {
+        id: "wood_repair_02_damage",
+        label: "Type of damage",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "rot", label: "Rot" },
+          { value: "cracks", label: "Cracks / splits" },
+          { value: "water_damage", label: "Water damage" },
+          { value: "general_wear", label: "General wear" },
+        ],
+      },
+      {
+        id: "wood_repair_03_extent",
+        label: "Extent",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "minor", label: "Minor (localized)" },
+          { value: "moderate", label: "Moderate" },
+          { value: "extensive", label: "Extensive" },
+        ],
+      },
+      {
+        id: "wood_repair_04_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "asap", label: "ASAP" },
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+      {
+        id: "wood_repair_05_photos",
+        label: "Upload photos",
+        type: "file",
+        required: false,
+        accept: ["image/*"],
+      },
+    ],
+  },
+
+  {
+    microSlug: "refinishing",
+    title: "Refinishing",
+    metadata: { category_contract: "carpentry", inspection_bias: "low" },
+    questions: [
+      {
+        id: "refinishing_01_item",
+        label: "What needs refinishing",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "furniture", label: "Furniture" },
+          { value: "cabinets", label: "Cabinets" },
+          { value: "doors", label: "Doors" },
+          { value: "flooring", label: "Flooring" },
+          { value: "other", label: "Other" },
+        ],
+      },
+      {
+        id: "refinishing_02_quantity",
+        label: "Quantity",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "single", label: "Single item" },
+          { value: "2_5", label: "2–5 items" },
+          { value: "6_plus", label: "6+ items" },
+        ],
+      },
+      {
+        id: "refinishing_03_finish",
+        label: "Desired finish",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "natural", label: "Natural / clear" },
+          { value: "stain", label: "Stained" },
+          { value: "painted", label: "Painted" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "refinishing_04_strip",
+        label: "Stripping needed",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "yes", label: "Yes (existing finish)" },
+          { value: "no", label: "No (raw wood)" },
+          { value: "not_sure", label: "Not sure" },
+        ],
+      },
+      {
+        id: "refinishing_05_timeline",
+        label: "Timeline",
+        type: "radio",
+        required: true,
+        options: [
+          { value: "within_1_month", label: "Within 1 month" },
+          { value: "within_3_months", label: "Within 3 months" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
+    ],
+  },
 ];
