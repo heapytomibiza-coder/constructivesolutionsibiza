@@ -472,8 +472,18 @@ interface JobDetailsActionsProps {
 
 function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
   const navigate = useNavigate();
-  const { user, isLoading: sessionLoading } = useSession();
+  const { 
+    user, 
+    isLoading: sessionLoading,
+    hasRole,
+    isProReady,
+    professionalProfile 
+  } = useSession();
   const [isMessaging, setIsMessaging] = useState(false);
+
+  // Determine if this user should see the pro gate
+  const isPro = hasRole('professional');
+  const canMessage = !isPro || isProReady;
 
   const handleMessage = async () => {
     if (!user) {
@@ -484,12 +494,29 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
 
     setIsMessaging(true);
     try {
-      const convId = await startConversation(jobPack.id, user.id);
+      // Pass profile for action-level validation (only for professionals)
+      const convId = await startConversation(
+        jobPack.id, 
+        user.id,
+        isPro ? professionalProfile : undefined
+      );
       onClose();
       navigate(`/messages/${convId}`);
     } catch (err) {
       if (isUserError(err)) {
-        toast.error(err.message);
+        if (err.code === 'PRO_NOT_READY') {
+          toast.error(err.message, {
+            action: {
+              label: 'Complete Setup',
+              onClick: () => {
+                onClose();
+                navigate('/dashboard/pro');
+              },
+            },
+          });
+        } else {
+          toast.error(err.message);
+        }
       } else {
         toast.error("Failed to start conversation");
         console.error("Message error:", err);
@@ -507,18 +534,26 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
           Sign in to message
         </Button>
       ) : jobPack.isOwner ? null : (
-        <Button 
-          onClick={handleMessage} 
-          disabled={isMessaging || sessionLoading}
-          className="gap-2"
-        >
-          {isMessaging ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <MessageSquare className="h-4 w-4" />
+        <div className="flex flex-col gap-1">
+          <Button 
+            onClick={handleMessage} 
+            disabled={isMessaging || sessionLoading || !canMessage}
+            className="gap-2"
+            title={!canMessage ? "Complete your setup to message clients" : undefined}
+          >
+            {isMessaging ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquare className="h-4 w-4" />
+            )}
+            {isMessaging ? "Starting chat..." : "Message"}
+          </Button>
+          {!canMessage && (
+            <span className="text-xs text-muted-foreground">
+              Complete setup to message
+            </span>
           )}
-          {isMessaging ? "Starting chat..." : "Message"}
-        </Button>
+        </div>
       )}
       <Button variant="outline" disabled className="gap-2">
         <Share2 className="h-4 w-4" />
