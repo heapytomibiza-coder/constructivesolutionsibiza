@@ -31,6 +31,7 @@ import {
 import { useWizardUrlStep } from './hooks/useWizardUrlStep';
 import { useWizardDraft } from './hooks/useWizardDraft';
 import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
+import { validateAllPacks, type ValidationErrorMap } from './lib/stepValidation';
 
 // DB-powered selectors
 import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
