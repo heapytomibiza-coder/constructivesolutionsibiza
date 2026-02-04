@@ -105,6 +105,7 @@ interface Props {
   pack: QuestionPack;
   getAnswer: (microSlug: string, questionId: string) => unknown;
   onAnswerChange: (microSlug: string, questionId: string, value: unknown) => void;
+  errors?: Record<string, string>; // question_id -> error message
 }
 
 // Question IDs that are handled by Step 5 (Logistics) and should not appear in Step 4
