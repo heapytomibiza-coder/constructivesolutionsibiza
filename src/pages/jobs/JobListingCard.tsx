@@ -1,12 +1,16 @@
 import * as React from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
-import { Calendar, Euro, MapPin, Image as ImageIcon } from "lucide-react";
+import { Calendar, Euro, MapPin, Image as ImageIcon, MessageSquare, Send, LogIn } from "lucide-react";
 import { JobDetailsModal } from "@/pages/jobs/JobDetailsModal";
 import { JobFlagBadges } from "@/pages/jobs/components/JobFlagBadges";
+import { useSession } from "@/contexts/SessionContext";
+import { startConversationAction } from "@/pages/jobs/actions/messageJob.action";
+import { toast } from "sonner";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 
 interface JobListingCardProps {
