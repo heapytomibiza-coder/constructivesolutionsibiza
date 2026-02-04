@@ -448,7 +448,7 @@ export const transportLogisticsQuestionPacksV2 = [
   },
 
   {
-    microSlug: "site-deliveries",
+    microSlug: "furniture-delivery",
     title: "Site Deliveries",
     metadata: { category_contract: "transport", inspection_bias: "low" },
     questions: [
