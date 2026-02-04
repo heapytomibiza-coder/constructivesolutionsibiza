@@ -104,9 +104,13 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
     
     setIsMessaging(true);
     try {
-      await startConversationAction(job.id);
+      const conversationId = await startConversation(job.id);
+      // Navigate to the conversation
+      window.location.href = `/messages?conversation=${conversationId}`;
     } catch (error: unknown) {
-      // Error is handled by the action
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
     } finally {
       setIsMessaging(false);
     }
