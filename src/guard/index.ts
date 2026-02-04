@@ -8,3 +8,9 @@
 export { RouteGuard, PublicOnlyGuard } from './RouteGuard';
 export { checkAccess, type AccessContext, type Role } from './access';
 export { buildRedirectUrl, buildReturnUrl } from './redirects';
+export { 
+  getProReadiness, 
+  getProReadinessMessage,
+  type ProReadinessResult, 
+  type ProReadinessReason 
+} from './proReadiness';
