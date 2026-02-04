@@ -44,6 +44,7 @@ export const clientRoutes: RouteConfig[] = [
   { path: '/dashboard/client', access: 'role:client', redirectTo: '/auth' },
   { path: '/messages', access: 'auth', redirectTo: '/auth' },
   { path: '/messages/:id', access: 'auth', redirectTo: '/auth' },
+  { path: '/settings', access: 'auth', redirectTo: '/auth' },
   // Forum - new post requires auth
   { path: '/forum/:categorySlug/new', access: 'auth', redirectTo: '/auth' },
 ];
