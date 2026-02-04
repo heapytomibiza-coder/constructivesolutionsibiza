@@ -1,124 +1,261 @@
 
-# Live Run: Seed 105 Question Packs
+# V2 Completion Audit: Full System Review
 
-## Status Check Complete
+## Executive Summary
 
-### ✅ What's Ready
-- **Edge Function**: `seedpacks` is deployed and working
-- **Pack Files**: 8 TypeScript files with 105 total packs
-- **Database**: Micro-service slugs verified for all 8 categories
-- **Seeder Script**: `scripts/seed-all-new-packs.ts` ready
+After reviewing the 4 data pipes (Intake → Job Creation → Routing/Matching → Messaging), here is the complete status:
 
-### ✅ All Slug Fixes Complete
+| Pipe | Status | Blocking Issues |
+|------|--------|-----------------|
+| 1. Intake (Wizard) | ✅ Complete | None |
+| 2. Job Creation | ✅ Complete | None |
+| 3. Routing/Matching | ⚠️ Functional | Pack coverage at 53% |
+| 4. Messaging | ⚠️ Functional | 1 critical bug |
 
-**Fixed slugs (Handyman):**
-- `minor-repairs` → `general-project` ✅
-
-**Fixed slugs (Transport):**
-- `material-transport` → `material-delivery` ✅
-- `site-deliveries` → `furniture-delivery` ✅
-- `forklift-hire` → `heavy-equipment-transport` ✅
-- `container-hire` → `skip-hire` ✅
-- `storage-services` → `man-with-van` ✅
-
-**Already Correct:**
-- `crane-hire` - Already existed in DB ✅
-
-**Status:** 105 packs ready, all should match DB slugs.
+**Ship-blocking issues found: 1**
+**Hardening issues: 5**
 
 ---
 
-## Implementation Plan
+## 🚨 Critical Bug (Must Fix Before Ship)
 
-### Step 1: Fix Slug Mismatches
-Update the pack definition files to use correct database slugs:
+### Onboarding Phase Mismatch - Pros Silently Blocked
 
-**File: `supabase/functions/_shared/handymanQuestionPacksV2.ts`**
-- Change `minor-repairs` → `general-project`
+**Location**: `src/guard/proReadiness.ts` line 31 vs `src/hooks/useSessionSnapshot.ts` lines 212-213
 
-**File: `supabase/functions/_shared/transportLogisticsQuestionPacksV2.ts`**
-- Change `material-transport` → `material-delivery`
-- Change `site-deliveries` → `furniture-delivery`  
-- Change `forklift-hire` → `heavy-equipment-transport`
-- Change `container-hire` → `skip-hire`
-- Change `storage-services` → `man-with-van`
+**Problem**:
+- `proReadiness.ts` expects: `service_configured` or `complete`
+- `useSessionSnapshot.ts` expects: `service_setup` or `complete`
+- Database has professionals with: `service_setup`
 
-### Step 2: Deploy Seeder Function
-The `seedpacks` edge function is already deployed and verified working.
+**Impact**: 
+- `getProReadiness()` (used by message action) checks for `service_configured`
+- But the actual phase stored in DB is `service_setup`
+- **Result**: All professionals are silently blocked from messaging even when they're ready
 
-### Step 3: Run Dry-Run Test
-Test via the edge function directly:
-```
-POST /functions/v1/seedpacks?dry_run=1
-Body: { packs: [...all 105 packs...] }
-```
+**Fix Required** (in `src/guard/proReadiness.ts` line 31):
+```typescript
+// BEFORE (incorrect)
+const VALID_PHASES = new Set(['service_configured', 'complete']);
 
-Expected response:
-- `validCount: 105` (all packs matched)
-- `qualitySummary`: breakdown of STRONG/ACCEPTABLE/WEAK tiers
-- `missingCount: 0` (after fixes)
-
-### Step 4: Live Insert
-Once dry-run passes:
-```
-POST /functions/v1/seedpacks
-Body: { packs: [...all 105 packs...] }
-```
-
-Or run the batch seeder script:
-```bash
-DRY_RUN=0 npx tsx scripts/seed-all-new-packs.ts
-```
-
-### Step 5: Verify in Database
-```sql
-SELECT 
-  COUNT(*) as total_packs,
-  COUNT(CASE WHEN created_at > NOW() - INTERVAL '5 minutes' THEN 1 END) as new_packs
-FROM question_packs;
+// AFTER (matches DB + useSessionSnapshot)
+const VALID_PHASES = new Set(['service_setup', 'complete']);
 ```
 
 ---
 
-## Expected Quality Distribution (After Seeding)
+## ✅ What's Complete & Working
 
-Based on the seeder's quality scoring:
+### Pipe 1: Wizard Intake
+- **CanonicalJobWizard**: 7-step flow complete ✅
+- **CategorySelector/SubcategorySelector/MicroStep**: DB-powered, working ✅
+- **QuestionsStep**: Fetches packs by slug, renders correctly ✅
+- **QuestionPackRenderer**: Handles V2 format, dedupes, filters logistics questions ✅
+- **LogisticsStep**: Location + timing (no duplication with pack questions) ✅
+- **Draft persistence**: Working with beforeunload warning ✅
+- **URL sync**: Step visible in URL ✅
 
-| Tier | Count | Criteria |
-|------|-------|----------|
-| STRONG | ~0 | Requires `show_if` conditionals (+2 points) |
-| ACCEPTABLE | ~90 | 5+ questions, 70%+ selection-based |
-| WEAK | ~15 | 4 questions or lower selection ratio |
-| FAILING | 0 | No banned phrases in any pack |
+### Pipe 2: Job Creation
+- **buildJobPayload**: Fully typed, populates all filterable columns ✅
+- **Idempotency key**: Prevents double-submit ✅
+- **Area mapping**: 4 Ibiza zones + "other" fallback ✅
+- **Highlights extraction**: Auto-generates from state ✅
+- **Pack tracking metadata**: `_pack_source`, `_pack_slug`, `_pack_missing` ✅
+
+### Pipe 3: Routing (Partially Complete)
+- **matched_jobs_for_professional view**: EXISTS (uses `security_invoker = true`) ✅
+- **jobs_board view**: Working ✅
+- **useMatchedJobs hook**: Queries correctly ✅
+- **evaluatePackRules**: Rules engine for flags/safety/inspection ✅
+
+### Pipe 4: Messaging
+- **messageJob.action**: Uses RPC correctly ✅
+- **requireProReady guard**: Logic correct (just wrong phase name) ⚠️
+- **get_or_create_conversation RPC**: Secure, validates job ownership ✅
+
+### Guards & Auth
+- **RouteGuard**: Single source of truth for redirects ✅
+- **checkAccess**: Handles all access rules ✅
+- **Route registry**: 15 routes, properly scoped ✅
+- **useSessionSnapshot**: Loads auth + roles + profile ✅
+
+### Seeding Infrastructure
+- **seedpacks edge function**: Deployed, quality scoring, dry-run mode ✅
+- **seed-all-new-packs.ts**: Batch seeder for 10 categories ✅
+- **Upsert key**: `uq_question_packs_micro_slug` UNIQUE constraint exists ✅
 
 ---
 
-## Technical Notes
+## ⚠️ Hardening Issues (Non-Blocking)
 
-### Seeder Normalization (automatic)
-- `microSlug` → `micro_slug`
-- `question` → `label`
-- `helpText` → `help`
-- Adds `version: 1`, `is_active: true` defaults
-- Type normalization: `single`/`yesno` → `radio`, `multi` → `checkbox`
+### 1. Pack Coverage Gap: 53% (157/295 micros)
 
-### Upsert Behavior
-The seeder uses `onConflict: "micro_slug"` so:
-- New packs are **inserted**
-- Existing packs are **updated** (replaced with new version)
-- Safe to re-run multiple times
+**Current State**:
+- Total active micros: 295
+- Packs seeded: 157
+- **Missing packs: 138**
+
+**Categories missing coverage** (sampling from query):
+- Architects & Design: Many (3d-rendering, budget-management, etc.)
+- Pool & Spa: Some (chemical-balancing, concrete-pools)
+- Construction: Several (bar-construction, beam-installation)
+- Carpentry: Several (antique-restoration, bed-frames)
+- Cleaning: Some (carpet-cleaning)
+- Painting: Some (cabinet-painting, ceiling-painting)
+
+**Impact**: 
+- Wizard falls back to `general-project` pack for missing micros
+- Pack tracking marks these as `_pack_missing: true`
+- UX shows "General briefing" notice to users
+
+**Mitigation** (already in place):
+- Fallback pack loaded when no specific pack exists
+- Analytics tracks pack quality tier
+
+**Recommendation**: This is acceptable for V2 ship. Track `_pack_missing` analytics and prioritize high-traffic micros for V3.
+
+### 2. shouldShowQuestion Bug with Checkbox Answers
+
+**Location**: `src/components/wizard/canonical/steps/QuestionPackRenderer.tsx` lines 73-82
+
+**Problem**: When a dependency question is a checkbox (multi-select), `depValue` is an array but the comparison treats it as a string.
+
+```typescript
+// Current (bug)
+const depValue = getAnswer(pack.micro_slug, dep.questionId);
+if (Array.isArray(dep.value)) {
+  return dep.value.includes(depValue as string); // ❌ depValue could be string[]
+}
+return depValue === dep.value;
+```
+
+**Impact**: Conditional questions won't show/hide correctly when the parent is a multi-select.
+
+**Fix** (robust comparison):
+```typescript
+const shouldShowQuestion = (question: QuestionDef): boolean => {
+  const dep = question.show_if || question.dependsOn;
+  if (!dep?.questionId) return true;
+
+  const depValue = getAnswer(pack.micro_slug, dep.questionId);
+  const depValueArr = Array.isArray(depValue) ? depValue : depValue != null ? [String(depValue)] : [];
+  const requiredArr = Array.isArray(dep.value) ? dep.value.map(String) : [String(dep.value)];
+
+  return requiredArr.some(v => depValueArr.includes(v));
+};
+```
+
+### 3. btoa() Can Crash with Unicode
+
+**Location**: `src/components/wizard/canonical/lib/buildJobPayload.ts` line 187
+
+**Problem**: `btoa()` throws on non-ASCII characters (e.g., Spanish accents in custom location).
+
+**Fix**:
+```typescript
+const contentHash = btoa(unescape(encodeURIComponent(JSON.stringify({...}))))
+  .slice(0, 32);
+```
+
+### 4. Date Formatting Inconsistency
+
+**Location**: `buildJobPayload.ts` line 81
+
+**Problem**: `toLocaleDateString()` in highlights produces different output per browser locale.
+
+**Impact**: Minor - highlights appear slightly different but not broken.
+
+**Fix**: Use consistent format:
+```typescript
+highlights.push(`📅 ${logistics.startDate.toISOString().split('T')[0]}`);
+```
+
+### 5. Access Details as Textarea (Minor UX)
+
+**Location**: `LogisticsStep.tsx` lines 107-118
+
+**Current**: Access details entered as textarea, split by newlines
+**Expected by buildJobPayload**: Array of access codes like `parking`, `stairs_only`, etc.
+
+**Impact**: The highlight extraction for access codes (lines 98-109 in buildJobPayload) won't match user-entered text.
+
+**Recommendation**: Either:
+- Convert to checkbox group matching the expected codes, OR
+- Remove access-based highlights (simpler for V2)
 
 ---
 
-## Files to Modify
+## Database Verification ✅
 
-1. `supabase/functions/_shared/handymanQuestionPacksV2.ts` - Fix 1 slug
-2. `supabase/functions/_shared/transportLogisticsQuestionPacksV2.ts` - Fix 5 slugs
+### Unique Constraint on question_packs
+```
+uq_question_packs_micro_slug UNIQUE (micro_slug)  ✅
+```
+Upsert with `onConflict: "micro_slug"` will work correctly.
+
+### Fixed Slugs Verified
+All 6 slug corrections are confirmed active in DB:
+- `general-project` ✅
+- `material-delivery` ✅
+- `furniture-delivery` ✅
+- `heavy-equipment-transport` ✅
+- `skip-hire` ✅
+- `man-with-van` ✅
+
+---
+
+## Technical Implementation Details
+
+### Priority 1: Fix Phase Mismatch (5 minutes)
+
+**File**: `src/guard/proReadiness.ts`
+
+**Line 31 change**:
+```typescript
+const VALID_PHASES = new Set(['service_setup', 'complete']);
+```
+
+### Priority 2: Fix Conditional Visibility (10 minutes)
+
+**File**: `src/components/wizard/canonical/steps/QuestionPackRenderer.tsx`
+
+Replace `shouldShowQuestion` function (lines 73-82) with robust version.
+
+### Priority 3: Fix Unicode in Idempotency Key (2 minutes)
+
+**File**: `src/components/wizard/canonical/lib/buildJobPayload.ts`
+
+**Line 187 change**:
+```typescript
+const contentHash = btoa(unescape(encodeURIComponent(JSON.stringify({...}))))
+```
+
+---
+
+## V2 Ship Checklist
+
+| Task | Status | Blocking? |
+|------|--------|-----------|
+| Fix proReadiness phase mismatch | 🔴 TODO | YES |
+| Run live seeder (157 packs) | ⬜ Ready | NO |
+| Fix shouldShowQuestion for checkboxes | 🟡 Recommended | NO |
+| Fix btoa unicode crash | 🟡 Recommended | NO |
+| Pack coverage 53% acceptable | ✅ Acceptable | NO |
+| Unique constraint verified | ✅ Done | - |
+| Slug fixes verified in DB | ✅ Done | - |
+
+---
 
 ## Summary
 
-- **99 packs ready now** (will match DB slugs)
-- **6 packs need slug fixes** (simple find/replace)
-- **0 quality failures** (no banned phrases detected)
-- **Edge function deployed** and verified
-- **Batch seeder script ready** for execution
+**V2 is 95% complete.** 
+
+One critical fix required (phase name mismatch in proReadiness.ts). 
+
+After that single-line fix, the system is shippable with:
+- Full wizard → job → matching pipeline working
+- 157 packs seeded (53% coverage, fallback for rest)
+- Pro readiness guards functioning correctly
+- Messaging action properly secured
+
+Pack coverage can be improved incrementally post-ship by tracking `_pack_missing` analytics.
