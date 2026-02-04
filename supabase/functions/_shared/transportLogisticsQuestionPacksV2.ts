@@ -558,34 +558,5 @@ export const transportLogisticsQuestionPacksV2 = [
           { value: "long_term", label: "Long term" },
         ],
       },
-    ],
-  },
-
-  {
-    microSlug: "storage-solutions",
-    title: "Storage Services",
-    metadata: { category_contract: "transport", inspection_bias: "low" },
-    questions: [
-      {
-        id: "storage_services_01_scope",
-        label: "Scope",
-        type: "radio",
-        required: true,
-        options: [
-          { value: "short_term", label: "Short-term storage" },
-          { value: "long_term", label: "Long-term storage" },
-        ],
-      },
-      {
-        id: "storage_services_02_item_type",
-        label: "Item type",
-        type: "radio",
-        required: true,
-        options: [
-          { value: "furniture", label: "Furniture" },
-          { value: "materials", label: "Materials" },
-        ],
-      },
-    ],
   },
 ];
