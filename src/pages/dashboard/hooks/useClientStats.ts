@@ -71,7 +71,7 @@ export function useClientStats() {
 
       const { data, error } = await supabase
         .from('jobs')
-        .select('id, title, status, category, subcategory, created_at, is_publicly_listed')
+        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10);
