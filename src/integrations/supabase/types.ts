@@ -224,6 +224,7 @@ export type Database = {
           reviewee_user_id: string
           reviewer_role: string
           reviewer_user_id: string
+          updated_at: string | null
           visibility: string
         }
         Insert: {
@@ -236,6 +237,7 @@ export type Database = {
           reviewee_user_id: string
           reviewer_role: string
           reviewer_user_id: string
+          updated_at?: string | null
           visibility?: string
         }
         Update: {
@@ -248,6 +250,7 @@ export type Database = {
           reviewee_user_id?: string
           reviewer_role?: string
           reviewer_user_id?: string
+          updated_at?: string | null
           visibility?: string
         }
         Relationships: [
