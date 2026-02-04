@@ -213,15 +213,85 @@ export type Database = {
           },
         ]
       }
+      job_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          job_id: string
+          rating: number
+          reviewee_role: string
+          reviewee_user_id: string
+          reviewer_role: string
+          reviewer_user_id: string
+          visibility: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          rating: number
+          reviewee_role: string
+          reviewee_user_id: string
+          reviewer_role: string
+          reviewer_user_id: string
+          visibility?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          rating?: number
+          reviewee_role?: string
+          reviewee_user_id?: string
+          reviewer_role?: string
+          reviewer_user_id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_reviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_reviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_reviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_reviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           answers: Json | null
           area: string | null
+          assigned_professional_id: string | null
           budget_max: number | null
           budget_min: number | null
           budget_type: string | null
           budget_value: number | null
           category: string | null
+          completed_at: string | null
           computed_inspection_bias: string | null
           computed_safety: string | null
           created_at: string
@@ -245,11 +315,13 @@ export type Database = {
         Insert: {
           answers?: Json | null
           area?: string | null
+          assigned_professional_id?: string | null
           budget_max?: number | null
           budget_min?: number | null
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
+          completed_at?: string | null
           computed_inspection_bias?: string | null
           computed_safety?: string | null
           created_at?: string
@@ -273,11 +345,13 @@ export type Database = {
         Update: {
           answers?: Json | null
           area?: string | null
+          assigned_professional_id?: string | null
           budget_max?: number | null
           budget_min?: number | null
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
+          completed_at?: string | null
           computed_inspection_bias?: string | null
           computed_safety?: string | null
           created_at?: string
