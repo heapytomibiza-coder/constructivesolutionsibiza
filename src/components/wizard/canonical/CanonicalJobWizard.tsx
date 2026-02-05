@@ -371,6 +371,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // === DRAFT RECOVERY ===
   
   const handleResumeDraft = useCallback(() => {
+    // Mark deep-link as applied (ignore it) when resuming draft
+    deepLinkAppliedRef.current = true;
+    pendingDeepLinkRef.current = null;
+    
     const draft = getPendingDraft();
     if (draft) {
       setWizardState(draft);
@@ -393,6 +397,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     setWizardState(EMPTY_WIZARD_STATE);
     setCurrentStep(WizardStep.Category);
     setShowDraftModal(false);
+    
+    // Allow deep-link to apply after modal closes
+    deepLinkAppliedRef.current = false;
   }, [clearDraft]);
 
   // === SUBMISSION ===
