@@ -1,9 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PublicLayout } from '@/components/layout';
+import { PublicLayout, HeroBanner } from '@/components/layout';
 import { MAIN_CATEGORIES } from '@/domain/scope';
 import { ArrowLeft, ArrowRight, Shield } from 'lucide-react';
+import heroServices from '@/assets/heroes/hero-services.jpg';
 
 /**
  * SERVICE CATEGORY PAGE - View subcategories and professionals
