@@ -70,7 +70,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   
   // Deep-link refs
   const deepLinkAppliedRef = useRef(false);
-  const pendingDeepLinkRef = useRef<{ categoryId?: string; subcategoryId?: string } | null>(null);
+  const pendingDeepLinkRef = useRef<{ categoryId?: string; subcategoryId?: string; targetProfessionalId?: string } | null>(null);
   
   // URL sync
   useWizardUrlStep(currentStep, setCurrentStep);
@@ -86,9 +86,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     const sp = new URLSearchParams(location.search);
     const categoryId = sp.get('category') || undefined;
     const subcategoryId = sp.get('subcategory') || undefined;
+    const targetProfessionalId = sp.get('pro') || undefined;
     
-    if (categoryId || subcategoryId) {
-      pendingDeepLinkRef.current = { categoryId, subcategoryId };
+    if (categoryId || subcategoryId || targetProfessionalId) {
+      pendingDeepLinkRef.current = { categoryId, subcategoryId, targetProfessionalId };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -110,7 +111,33 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       return;
     }
 
-    const { categoryId, subcategoryId } = pendingDeepLinkRef.current;
+    const { categoryId, subcategoryId, targetProfessionalId } = pendingDeepLinkRef.current;
+
+    // Handle target professional (direct mode)
+    if (targetProfessionalId) {
+      try {
+        const { data: pro } = await supabase
+          .from('professional_profiles')
+          .select('display_name')
+          .eq('user_id', targetProfessionalId)
+          .single();
+        
+        setWizardState(prev => ({
+          ...prev,
+          dispatchMode: 'direct',
+          targetProfessionalId,
+          targetProfessionalName: pro?.display_name || 'Professional',
+        }));
+      } catch (e) {
+        console.warn('Failed to fetch professional name:', e);
+        setWizardState(prev => ({
+          ...prev,
+          dispatchMode: 'direct',
+          targetProfessionalId,
+          targetProfessionalName: 'Professional',
+        }));
+      }
+    }
 
     if (!categoryId) {
       deepLinkAppliedRef.current = true;
@@ -295,6 +322,19 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     [questionErrors]
   );
 
+  // Handler for dispatch mode changes
+  const handleDispatchModeChange = useCallback(
+    (mode: 'direct' | 'broadcast') => {
+      setWizardState(prev => ({
+        ...prev,
+        dispatchMode: mode,
+        // Clear target professional when switching to broadcast
+        ...(mode === 'broadcast' ? { targetProfessionalId: undefined, targetProfessionalName: undefined } : {}),
+      }));
+    },
+    []
+  );
+
   // Handler for when question packs are loaded
   const handlePacksLoaded = useCallback((packs: { micro_slug: string; questions: unknown[] }[]) => {
     setQuestionPacks(packs);
@@ -420,10 +460,22 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       return;
     }
 
+    // Direct mode validation
+    if (wizardState.dispatchMode === 'direct' && !wizardState.targetProfessionalId) {
+      toast.error('Please select a professional to send this job to');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const payload = buildJobInsert(user.id, wizardState);
+      
+      // Set visibility based on dispatch mode
+      if (wizardState.dispatchMode === 'direct') {
+        payload.is_publicly_listed = false;
+        payload.assigned_professional_id = wizardState.targetProfessionalId;
+      }
       
       const { data, error } = await supabase
         .from('jobs')
@@ -441,11 +493,40 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         throw error;
       }
 
-      // Success - clear draft, invalidate cache, and navigate
+      // For direct mode: also create conversation
+      if (wizardState.dispatchMode === 'direct' && wizardState.targetProfessionalId) {
+        const { data: convoId, error: convoError } = await supabase.rpc(
+          'create_direct_conversation',
+          {
+            p_job_id: data.id,
+            p_client_id: user.id,
+            p_pro_id: wizardState.targetProfessionalId,
+          }
+        );
+
+        if (convoError) {
+          console.error('Failed to create conversation:', convoError);
+          // Job still created, just navigate to dashboard
+          clearDraft();
+          resetSession();
+          toast.warning('Job saved but could not start conversation');
+          navigate('/dashboard');
+          return;
+        }
+
+        // Success - navigate to conversation
+        clearDraft();
+        resetSession();
+        toast.success('Job sent to professional!');
+        navigate(`/messages/${convoId}`);
+        return;
+      }
+
+      // Broadcast mode: standard flow
       clearDraft();
       resetSession();
       queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
-      toast.success('Job posted successfully!');
+      toast.success('Job posted to marketplace!');
       navigate(`/jobs?highlight=${data.id}`);
       
     } catch (error) {
@@ -454,7 +535,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     } finally {
       setIsSubmitting(false);
     }
-  }, [isAuthenticated, user, wizardState, navigate, clearDraft, resetSession]);
+  }, [isAuthenticated, user, wizardState, navigate, clearDraft, resetSession, queryClient]);
 
   // === RENDER ===
   
@@ -607,6 +688,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             <ReviewStep
               wizardState={wizardState}
               onEdit={handleJumpToStep}
+              onDispatchModeChange={handleDispatchModeChange}
               isAuthenticated={isAuthenticated}
             />
           )}

@@ -1,20 +1,23 @@
 /**
  * Review Step
- * Final review before submission
+ * Final review before submission with dispatch mode selection
  */
 
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Edit2 } from 'lucide-react';
-import { WizardState, WizardStep } from '../types';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Edit2, Users, User } from 'lucide-react';
+import { WizardState, WizardStep, DispatchMode } from '../types';
 
 interface ReviewStepProps {
   wizardState: WizardState;
   onEdit: (step: WizardStep) => void;
+  onDispatchModeChange: (mode: DispatchMode) => void;
   isAuthenticated: boolean;
 }
 
-export function ReviewStep({ wizardState, onEdit, isAuthenticated }: ReviewStepProps) {
-  const { mainCategory, subcategory, microNames, logistics, extras } = wizardState;
+export function ReviewStep({ wizardState, onEdit, onDispatchModeChange, isAuthenticated }: ReviewStepProps) {
+  const { mainCategory, subcategory, microNames, logistics, extras, dispatchMode, targetProfessionalId, targetProfessionalName } = wizardState;
 
   return (
     <div className="space-y-6">
@@ -168,6 +171,66 @@ export function ReviewStep({ wizardState, onEdit, isAuthenticated }: ReviewStepP
           </div>
         </div>
       )}
+
+      {/* Dispatch Mode Selection */}
+      <div className="p-4 rounded-lg bg-muted/50 border border-border space-y-4">
+        <span className="text-xs text-muted-foreground uppercase tracking-wide">
+          How would you like to send this job?
+        </span>
+        
+        <RadioGroup 
+          value={dispatchMode} 
+          onValueChange={(value) => onDispatchModeChange(value as DispatchMode)}
+          className="space-y-3"
+        >
+          <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-colors">
+            <RadioGroupItem value="broadcast" className="mt-0.5" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                <p className="font-medium">Send to available professionals</p>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Your job will be visible to matching professionals who can respond
+              </p>
+            </div>
+          </label>
+          
+          <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-colors">
+            <RadioGroupItem value="direct" className="mt-0.5" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-primary" />
+                <p className="font-medium">Send to a specific professional</p>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Start a private conversation — no public listing
+              </p>
+            </div>
+          </label>
+        </RadioGroup>
+        
+        {/* Show selected professional if in direct mode */}
+        {dispatchMode === 'direct' && (
+          <div className="mt-3 pt-3 border-t border-border">
+            {targetProfessionalId ? (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">{targetProfessionalName || 'Professional'}</p>
+                  <p className="text-xs text-muted-foreground">Selected professional</p>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/professionals?select=true">Change</Link>
+                </Button>
+              </div>
+            ) : (
+              <Button variant="outline" asChild className="w-full">
+                <Link to="/professionals?select=true">Choose a Professional</Link>
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Auth notice */}
       {!isAuthenticated && (

@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Shield, Users, X, CheckCircle2 } from 'lucide-react';
+import { Search, Shield, Users, X, CheckCircle2, ArrowLeft } from 'lucide-react';
 import heroProfessionals from '@/assets/heroes/hero-professionals.jpg';
 
 /**
@@ -21,6 +21,7 @@ import heroProfessionals from '@/assets/heroes/hero-professionals.jpg';
 
 interface Professional {
   id: string;
+  user_id?: string; // For selection mode
   display_name: string | null;
   avatar_url: string | null;
   services_count: number | null;
@@ -33,9 +34,11 @@ interface FilterNames {
 }
 
 const Professionals = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryId = searchParams.get('category');
   const subcategoryId = searchParams.get('subcategory');
+  const selectMode = searchParams.get('select') === 'true';
 
   // Fetch filter names for display
   const { data: filterNames } = useQuery({
@@ -125,10 +128,10 @@ const Professionals = () => {
           return [];
         }
 
-        // Step 3: Get professional profiles for these users (that are publicly listed)
+      // Step 3: Get professional profiles for these users (that are publicly listed)
         const { data: profiles, error: profilesError } = await supabase
           .from('professional_profiles')
-          .select('id, display_name, avatar_url, services_count, verification_status')
+          .select('id, user_id, display_name, avatar_url, services_count, verification_status')
           .in('user_id', userIds)
           .eq('is_publicly_listed', true);
 
@@ -138,9 +141,11 @@ const Professionals = () => {
       }
 
       // No filters - just get all publicly listed professionals
+      // Note: For unfiltered view, we need to query professional_profiles to get user_id
       const { data, error } = await supabase
-        .from('public_professionals_preview')
-        .select('id, display_name, avatar_url, services_count, verification_status');
+        .from('professional_profiles')
+        .select('id, user_id, display_name, avatar_url, services_count, verification_status')
+        .eq('is_publicly_listed', true);
 
       if (error) throw error;
       return (data || []) as Professional[];
@@ -163,13 +168,39 @@ const Professionals = () => {
 
   const hasFilters = !!(categoryId || subcategoryId);
 
+  // Handle professional selection in select mode
+  const handleSelectProfessional = (pro: Professional) => {
+    if (pro.user_id) {
+      // Navigate back to wizard with the professional selected
+      navigate(`/post?pro=${pro.user_id}`);
+    }
+  };
+
   return (
     <PublicLayout>
+      {/* Select Mode Banner */}
+      {selectMode && (
+        <div className="bg-primary/10 border-b border-primary/20 py-3">
+          <div className="container flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Job
+            </Button>
+            <span className="text-sm font-medium text-primary">
+              Select a professional to send your job to
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <HeroBanner
         imageSrc={heroProfessionals}
-        title="Browse Professionals"
-        subtitle="Discover verified professionals offering premium services across Ibiza"
+        title={selectMode ? "Choose a Professional" : "Browse Professionals"}
+        subtitle={selectMode 
+          ? "Select who you'd like to send your job request to"
+          : "Discover verified professionals offering premium services across Ibiza"
+        }
         height="compact"
         trustBadge={
           <div className="hero-trust-badge">
@@ -262,7 +293,7 @@ const Professionals = () => {
             {professionals.map((pro) => (
               <Card key={pro.id} className="card-grounded hover:border-primary/50 transition-colors">
                 <CardContent className="p-4">
-                  <Link to={`/professionals/${pro.id}`} className="flex items-center gap-4">
+                  <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={pro.avatar_url || undefined} alt={pro.display_name || 'Professional'} />
                       <AvatarFallback>
@@ -282,7 +313,21 @@ const Professionals = () => {
                         {pro.services_count || 0} services offered
                       </p>
                     </div>
-                  </Link>
+                    {/* Action button - Select in select mode, View otherwise */}
+                    {selectMode ? (
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleSelectProfessional(pro)}
+                        disabled={!pro.user_id}
+                      >
+                        Select
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/professionals/${pro.id}`}>View</Link>
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
