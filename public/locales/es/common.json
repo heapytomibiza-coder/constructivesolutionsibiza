@@ -1,4 +1,7 @@
  {
+   "debug": {
+     "hello": "Hola (ES)"
+   },
    "nav": {
      "services": "Servicios",
      "jobs": "Trabajos",

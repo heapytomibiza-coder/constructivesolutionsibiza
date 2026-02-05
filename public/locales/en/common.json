@@ -1,4 +1,7 @@
  {
+   "debug": {
+     "hello": "Hello (EN)"
+   },
    "nav": {
      "services": "Services",
      "jobs": "Jobs",

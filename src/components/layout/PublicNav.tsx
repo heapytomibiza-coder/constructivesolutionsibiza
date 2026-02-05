@@ -5,6 +5,7 @@ import { PLATFORM } from '@/domain/scope';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
+ import { I18nSmokeTest } from '@/components/layout/I18nSmokeTest';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -50,6 +51,7 @@ export function PublicNav() {
               {PLATFORM.shortName}
             </span>
           </Link>
+          <I18nSmokeTest />
         </div>
 
         {/* Desktop nav links */}
