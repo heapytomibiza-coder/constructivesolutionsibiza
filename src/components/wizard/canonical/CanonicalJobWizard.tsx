@@ -86,9 +86,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     const sp = new URLSearchParams(location.search);
     const categoryId = sp.get('category') || undefined;
     const subcategoryId = sp.get('subcategory') || undefined;
+    const targetProfessionalId = sp.get('pro') || undefined;
     
-    if (categoryId || subcategoryId) {
-      pendingDeepLinkRef.current = { categoryId, subcategoryId };
+    if (categoryId || subcategoryId || targetProfessionalId) {
+      pendingDeepLinkRef.current = { categoryId, subcategoryId, targetProfessionalId };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
