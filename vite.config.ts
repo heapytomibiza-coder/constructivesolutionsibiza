@@ -18,5 +18,6 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime"],
+     // Ensure all React-related packages use the same instance
   },
 }));
