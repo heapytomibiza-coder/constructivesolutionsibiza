@@ -37,6 +37,7 @@ import { validateAllPacks, type ValidationErrorMap } from './lib/stepValidation'
 import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
 import SubcategorySelector from '@/components/wizard/db-powered/SubcategorySelector';
 import MicroStep from '@/components/wizard/db-powered/MicroStep';
+import { ServiceSearchBar, type SearchResult } from '@/components/wizard/db-powered/ServiceSearchBar';
 
 // Step components
 import { LogisticsStep } from './steps/LogisticsStep';
