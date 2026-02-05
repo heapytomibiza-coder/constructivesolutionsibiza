@@ -91,12 +91,14 @@ export function useCreatePost() {
       title,
       content,
       tags,
+      photos,
     }: {
       categoryId: string;
       title: string;
       content: string;
       tags?: string[];
-    }) => createForumPost(categoryId, title, content, tags),
+      photos?: string[];
+    }) => createForumPost(categoryId, title, content, tags, photos),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.posts(variables.categoryId),

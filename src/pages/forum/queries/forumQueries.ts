@@ -21,6 +21,7 @@ export interface ForumPost {
   title: string;
   content: string;
   tags: string[];
+  photos: string[];
   is_pinned: boolean;
   reply_count: number;
   view_count: number;
@@ -118,7 +119,8 @@ export async function createForumPost(
   categoryId: string,
   title: string,
   content: string,
-  tags: string[] = []
+  tags: string[] = [],
+  photos: string[] = []
 ): Promise<ForumPost> {
   const { data: session } = await supabase.auth.getSession();
   if (!session.session?.user) throw new Error("Not authenticated");
@@ -131,6 +133,7 @@ export async function createForumPost(
       title,
       content,
       tags,
+      photos,
     })
     .select()
     .single();
