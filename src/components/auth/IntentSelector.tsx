@@ -1,5 +1,5 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Home, Wrench, ArrowLeftRight } from 'lucide-react';
+ import { Card, CardContent } from '@/components/ui/card';
+ import { HelpCircle, Briefcase, ArrowLeftRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type UserIntent = 'client' | 'professional' | 'both';
@@ -11,26 +11,26 @@ interface IntentOption {
   description: string;
 }
 
-const intentOptions: IntentOption[] = [
-  {
-    value: 'client',
-    icon: Home,
-    title: 'I need help with a project',
-    description: 'Post jobs, get quotes, hire professionals',
-  },
-  {
-    value: 'professional',
-    icon: Wrench,
-    title: 'I offer my services',
-    description: 'Find work, apply for jobs, grow your business',
-  },
-  {
-    value: 'both',
-    icon: ArrowLeftRight,
-    title: 'Both',
-    description: 'I hire and offer services',
-  },
-];
+ const intentOptions: IntentOption[] = [
+   {
+     value: 'client',
+     icon: HelpCircle,
+     title: "I'm an Asker",
+     description: 'I need help with a project — post jobs, get quotes, hire professionals',
+   },
+   {
+     value: 'professional',
+     icon: Briefcase,
+     title: "I'm a Tasker",
+     description: 'I offer my services — find work, apply for jobs, grow my business',
+   },
+   {
+     value: 'both',
+     icon: ArrowLeftRight,
+     title: 'Both',
+     description: 'I hire professionals AND offer my own services',
+   },
+ ];
 
 interface IntentSelectorProps {
   value: UserIntent | null;
@@ -40,14 +40,14 @@ interface IntentSelectorProps {
 export function IntentSelector({ value, onChange }: IntentSelectorProps) {
   return (
     <div className="space-y-4">
-      <div className="text-center">
-        <h3 className="font-display text-lg font-semibold text-foreground">
-          What brings you here?
-        </h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          You can always switch modes later
-        </p>
-      </div>
+       <div className="text-center">
+         <h3 className="font-display text-lg font-semibold text-foreground">
+           Are you asking or tasking?
+         </h3>
+         <p className="mt-1 text-sm text-muted-foreground">
+           Choose how you'll use CS Ibiza — you can switch anytime
+         </p>
+       </div>
 
       <div className="grid gap-3">
         {intentOptions.map((option) => {
