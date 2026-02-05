@@ -111,7 +111,33 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       return;
     }
 
-    const { categoryId, subcategoryId } = pendingDeepLinkRef.current;
+    const { categoryId, subcategoryId, targetProfessionalId } = pendingDeepLinkRef.current;
+
+    // Handle target professional (direct mode)
+    if (targetProfessionalId) {
+      try {
+        const { data: pro } = await supabase
+          .from('professional_profiles')
+          .select('display_name')
+          .eq('user_id', targetProfessionalId)
+          .single();
+        
+        setWizardState(prev => ({
+          ...prev,
+          dispatchMode: 'direct',
+          targetProfessionalId,
+          targetProfessionalName: pro?.display_name || 'Professional',
+        }));
+      } catch (e) {
+        console.warn('Failed to fetch professional name:', e);
+        setWizardState(prev => ({
+          ...prev,
+          dispatchMode: 'direct',
+          targetProfessionalId,
+          targetProfessionalName: 'Professional',
+        }));
+      }
+    }
 
     if (!categoryId) {
       deepLinkAppliedRef.current = true;
