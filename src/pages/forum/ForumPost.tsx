@@ -6,10 +6,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForumPost, useForumReplies, useCreateReply, useForumCategory } from "./hooks/useForumData";
 import { useSession } from "@/contexts/SessionContext";
 import { incrementPostViewCount } from "./queries/forumQueries";
-import { ArrowLeft, MessageCircle, Clock, User, Send } from "lucide-react";
+import { ArrowLeft, MessageCircle, Clock, User, Send, Image } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ const ForumPost = () => {
   const { postId } = useParams<{ postId: string }>();
   const { session } = useSession();
   const [replyContent, setReplyContent] = useState("");
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const { data: post, isLoading: postLoading } = useForumPost(postId ?? "");
   const { data: replies, isLoading: repliesLoading } = useForumReplies(postId ?? "");
@@ -124,6 +126,31 @@ const ForumPost = () => {
               <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
                 {post.content}
               </div>
+              
+              {/* Photos */}
+              {post.photos && post.photos.length > 0 && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                    <Image className="h-4 w-4" />
+                    {post.photos.length} {post.photos.length === 1 ? "photo" : "photos"}
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {post.photos.map((url, index) => (
+                      <button
+                        key={url}
+                        onClick={() => setLightboxUrl(url)}
+                        className="aspect-square overflow-hidden rounded-lg border hover:opacity-90 transition-opacity"
+                      >
+                        <img
+                          src={url}
+                          alt={`Photo ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -215,6 +242,19 @@ const ForumPost = () => {
           </Card>
         )}
       </div>
+
+      {/* Photo Lightbox */}
+      <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
+        <DialogContent className="max-w-4xl p-0 bg-black/90 border-none">
+          {lightboxUrl && (
+            <img
+              src={lightboxUrl}
+              alt="Full size"
+              className="w-full h-auto max-h-[90vh] object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </PublicLayout>
   );
 };
