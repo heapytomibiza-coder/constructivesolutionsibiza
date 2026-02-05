@@ -141,9 +141,11 @@ const Professionals = () => {
       }
 
       // No filters - just get all publicly listed professionals
+      // Note: For unfiltered view, we need to query professional_profiles to get user_id
       const { data, error } = await supabase
-        .from('public_professionals_preview')
-        .select('id, display_name, avatar_url, services_count, verification_status');
+        .from('professional_profiles')
+        .select('id, user_id, display_name, avatar_url, services_count, verification_status')
+        .eq('is_publicly_listed', true);
 
       if (error) throw error;
       return (data || []) as Professional[];
