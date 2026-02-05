@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils';
 
 export type UserIntent = 'client' | 'professional' | 'both';
 
-interface IntentOption {
-  value: UserIntent;
-  icon: typeof Home;
+ interface IntentOption {
+   value: UserIntent;
+   icon: typeof HelpCircle;
   title: string;
   description: string;
 }
