@@ -1,0 +1,63 @@
+ {
+   "nav": {
+     "services": "Servicios",
+     "jobs": "Trabajos",
+     "professionals": "Profesionales",
+     "howItWorks": "Cómo funciona",
+     "community": "Comunidad",
+     "contact": "Contacto",
+     "signIn": "Iniciar sesión",
+     "signOut": "Cerrar sesión",
+     "dashboard": "Panel",
+     "messages": "Mensajes",
+     "postJob": "Publicar trabajo"
+   },
+   "hero": {
+     "title": "Encuentra Profesionales de Construcción de Confianza",
+     "subtitle": "Servicios de Construcción y Oficios en Ibiza",
+     "postJob": "Publicar un Trabajo",
+     "browsePros": "Ver Profesionales"
+   },
+   "trust": {
+     "verified": "Oficios verificados",
+     "sameDay": "Respuesta el mismo día",
+     "local": "En Ibiza",
+     "realSpecs": "Especificaciones reales",
+     "lessBackForth": "Menos ida y vuelta",
+     "ibizaOnly": "Solo Ibiza"
+   },
+   "toast": {
+     "signOutSuccess": "Sesión cerrada correctamente",
+     "signOutError": "Error al cerrar sesión"
+   },
+   "footer": {
+     "rights": "Todos los derechos reservados.",
+     "tagline": "Conectando Ibiza con profesionales de la construcción de confianza."
+   },
+   "jobBoard": {
+     "title": "Bolsa de Trabajo",
+     "subtitle": "Explora trabajos abiertos con especificaciones completas",
+     "findWork": "Encuentra trabajo rápido",
+     "realScope": "Alcance real, respuestas reales, menos ida y vuelta.",
+     "searchPlaceholder": "Buscar trabajos (ej. fontanería, estantes, fuga)…",
+     "asap": "Urgente",
+     "highBudget": "Alto presupuesto",
+     "photos": "Fotos",
+     "newToday": "Nuevo hoy"
+   },
+   "common": {
+     "cancel": "Cancelar",
+     "confirm": "Confirmar",
+     "save": "Guardar",
+     "delete": "Eliminar",
+     "edit": "Editar",
+     "loading": "Cargando...",
+     "error": "Ocurrió un error",
+     "success": "Éxito"
+   },
+   "completion": {
+     "title": "¿Marcar trabajo como completado?",
+     "description": "Confirma que el trabajo para \"{{jobTitle}}\" ha sido completado. Luego se te pedirá que califiques tu experiencia.",
+     "confirm": "Sí, Completar"
+   }
+ }
