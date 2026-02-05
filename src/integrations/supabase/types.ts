@@ -1011,6 +1011,10 @@ export type Database = {
       }
     }
     Functions: {
+      create_direct_conversation: {
+        Args: { p_client_id: string; p_job_id: string; p_pro_id: string }
+        Returns: string
+      }
       get_conversations_with_unread: {
         Args: never
         Returns: {
