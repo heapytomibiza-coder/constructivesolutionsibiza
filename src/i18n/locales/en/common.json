@@ -1,0 +1,63 @@
+ {
+   "nav": {
+     "services": "Services",
+     "jobs": "Jobs",
+     "professionals": "Professionals",
+     "howItWorks": "How it works",
+     "community": "Community",
+     "contact": "Contact",
+     "signIn": "Sign in",
+     "signOut": "Sign out",
+     "dashboard": "Dashboard",
+     "messages": "Messages",
+     "postJob": "Post a job"
+   },
+   "hero": {
+     "title": "Find Trusted Construction Professionals",
+     "subtitle": "Construction & Trade Services in Ibiza",
+     "postJob": "Post a Job",
+     "browsePros": "Browse Professionals"
+   },
+   "trust": {
+     "verified": "Verified trades",
+     "sameDay": "Same-day response",
+     "local": "Ibiza-based",
+     "realSpecs": "Real specs",
+     "lessBackForth": "Less back-and-forth",
+     "ibizaOnly": "Ibiza only"
+   },
+   "toast": {
+     "signOutSuccess": "Signed out successfully",
+     "signOutError": "Failed to sign out"
+   },
+   "footer": {
+     "rights": "All rights reserved.",
+     "tagline": "Connecting Ibiza with trusted construction professionals."
+   },
+   "jobBoard": {
+     "title": "Job Board",
+     "subtitle": "Browse open jobs with full specs from the wizard",
+     "findWork": "Find work fast",
+     "realScope": "Real scope, real answers, less back-and-forth.",
+     "searchPlaceholder": "Search jobs (e.g. plumbing, shelves, leak)…",
+     "asap": "ASAP",
+     "highBudget": "High budget",
+     "photos": "Photos",
+     "newToday": "New today"
+   },
+   "common": {
+     "cancel": "Cancel",
+     "confirm": "Confirm",
+     "save": "Save",
+     "delete": "Delete",
+     "edit": "Edit",
+     "loading": "Loading...",
+     "error": "An error occurred",
+     "success": "Success"
+   },
+   "completion": {
+     "title": "Mark job as completed?",
+     "description": "Confirm that the work for \"{{jobTitle}}\" has been completed. You'll be asked to rate your experience next.",
+     "confirm": "Yes, Complete"
+   }
+ }
