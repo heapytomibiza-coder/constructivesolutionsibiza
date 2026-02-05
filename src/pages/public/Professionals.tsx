@@ -168,13 +168,39 @@ const Professionals = () => {
 
   const hasFilters = !!(categoryId || subcategoryId);
 
+  // Handle professional selection in select mode
+  const handleSelectProfessional = (pro: Professional) => {
+    if (pro.user_id) {
+      // Navigate back to wizard with the professional selected
+      navigate(`/post?pro=${pro.user_id}`);
+    }
+  };
+
   return (
     <PublicLayout>
+      {/* Select Mode Banner */}
+      {selectMode && (
+        <div className="bg-primary/10 border-b border-primary/20 py-3">
+          <div className="container flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Job
+            </Button>
+            <span className="text-sm font-medium text-primary">
+              Select a professional to send your job to
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <HeroBanner
         imageSrc={heroProfessionals}
-        title="Browse Professionals"
-        subtitle="Discover verified professionals offering premium services across Ibiza"
+        title={selectMode ? "Choose a Professional" : "Browse Professionals"}
+        subtitle={selectMode 
+          ? "Select who you'd like to send your job request to"
+          : "Discover verified professionals offering premium services across Ibiza"
+        }
         height="compact"
         trustBadge={
           <div className="hero-trust-badge">
