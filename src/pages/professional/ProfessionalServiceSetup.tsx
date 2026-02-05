@@ -177,16 +177,16 @@ const ProfessionalServiceSetup = () => {
         if (prefsError) throw prefsError;
       }
 
-      // Update services count
-      const { error: countError } = await supabase.rpc('update_professional_services_count', {
-        p_user_id: user.id,
-      }).catch(() => {
-        // Fallback: manual count update
-        return supabase
-          .from('professional_profiles')
-          .update({ services_count: servicesWithDetails.length + data.microIds.length })
-          .eq('user_id', user.id);
-      });
+      // Update services count directly
+      const { count } = await supabase
+        .from('professional_services')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      await supabase
+        .from('professional_profiles')
+        .update({ services_count: count || 0 })
+        .eq('user_id', user.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professional-services-with-prefs'] });
