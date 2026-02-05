@@ -57,7 +57,7 @@ const Services = () => {
       <div className="container py-12">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {MAIN_CATEGORIES.map((category) => {
-            const slug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const slug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
             return (
               <Link key={category} to={`/services/${slug}`}>
                 <Card className="h-full card-grounded transition-all hover:shadow-soft hover:border-accent/50 cursor-pointer group">
