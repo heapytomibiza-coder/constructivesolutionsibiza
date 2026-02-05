@@ -1,204 +1,160 @@
 
-# Mobile Version Optimization
+
+# Service Category Deep-Link + Professional Filtering Implementation
 
 ## Overview
-Comprehensive mobile UX improvements across the job posting wizard, navigation, and key interactive components to ensure touch-friendly interfaces, proper sizing, and smooth mobile workflows.
+
+Connect the `/services/:categorySlug` page to the database, display real subcategories with selection UI, and enable two user paths that preserve context through URL parameters:
+
+1. **Post Job Path**: `/post?category=<uuid>&subcategory=<uuid>` → Wizard jumps to Step 3 (Micro)
+2. **Browse Pros Path**: `/professionals?category=<uuid>&subcategory=<uuid>` → Filtered professional directory
 
 ---
 
-## Identified Issues & Fixes
-
-### 1. Touch Target Optimization (Apple HIG: 44pt minimum)
-
-**Current Issues:**
-- Radio/checkbox options have small touch targets (`flex items-center space-x-2`)
-- Category/subcategory buttons are adequate (`p-4`) but could benefit from larger tap zones on mobile
-- Search bar input height is 44px (`h-11`) ✓ - good
-- Navigation wizard buttons use default sizing
-
-**Fixes:**
-- Increase radio/checkbox touch targets with larger padding on mobile
-- Add `min-h-[48px]` to selection buttons on mobile
-- Ensure navigation buttons have at least 48px height on mobile
-
----
-
-### 2. Wizard Navigation Buttons (Sticky Footer Pattern)
-
-**Current Issues:**
-- Back/Continue buttons scroll out of view on long forms
-- Users must scroll down to find navigation on the Logistics and Questions steps
-- Mobile users lose context of their progress
-
-**Fixes:**
-- Make wizard navigation buttons sticky at the bottom of the viewport on mobile
-- Add safe-area padding for notched devices
-- Add subtle top border and blur backdrop to sticky footer
+## User Flow Diagram
 
 ```text
-┌─────────────────────────┐
-│  Step 4 of 7 - Logistics│
-│  ▓▓▓▓▓▓▓░░░░░░          │
-├─────────────────────────┤
-│                         │
-│  [Form Content]         │
-│                         │
-│                         │
-│                         │
-├─────────────────────────┤◄── Sticky on mobile
-│ [← Back]     [Continue→]│
-└─────────────────────────┘
+/services                          /services/hvac
+┌────────────────────┐            ┌──────────────────────────────────┐
+│ [Construction]     │            │  HVAC                            │
+│ [Plumbing]         │  click     │  ─────────────────────────────── │
+│ [HVAC]      ───────┼───────────▶│  Select a subcategory:           │
+│ [Electrical]       │            │  ○ Air Conditioning              │
+│ ...                │            │  ● Heating Systems  ← selected   │
+└────────────────────┘            │  ○ Ventilation                   │
+                                  │  ○ Maintenance                   │
+                                  │                                  │
+                                  │ [Post HVAC Job →] [Browse Pros]  │
+                                  └───────────┬──────────────┬───────┘
+                                              │              │
+                                              ▼              ▼
+                                  ┌──────────────────┐  ┌─────────────────────┐
+                                  │ /post            │  │ /professionals      │
+                                  │ ?category=abc    │  │ ?category=abc       │
+                                  │ &subcategory=xyz │  │ &subcategory=xyz    │
+                                  │                  │  │                     │
+                                  │ Step 3: Micro    │  │ Filtered pro list   │
+                                  │ (cat+sub filled) │  │ matching services   │
+                                  └──────────────────┘  └─────────────────────┘
 ```
 
 ---
 
-### 3. Service Search Bar Mobile Optimization
+## Implementation Details
 
-**Current Issues:**
-- Dropdown results may overflow on small screens
-- Touch targets in search results could be larger
-- Keyboard should auto-dismiss on selection
+### 1. ServiceCategory.tsx - DB-Driven Subcategory Page
 
-**Fixes:**
-- Increase result item padding on mobile (`py-3` instead of `py-2`)
-- Ensure dropdown doesn't extend beyond viewport
-- Add visual feedback (ripple/highlight) for touch
+**Current State**: Uses static `MAIN_CATEGORIES` array, placeholder content for subcategories
 
----
+**Changes**:
+- Fetch category by slug from `service_categories` table
+- Fetch subcategories for that category from `service_subcategories` table
+- Add radio button selection UI for subcategories
+- Pass `category` and `subcategory` UUIDs to CTA links
+- Auto-select first subcategory for "idiot-proof" UX
 
-### 4. Form Input Spacing (Logistics & Questions Steps)
+**Query Pattern**:
+```sql
+-- Get category by slug
+SELECT id, name, slug FROM service_categories 
+WHERE slug = 'hvac' AND is_active = true;
 
-**Current Issues:**
-- `space-y-2` and `space-y-3` are tight for mobile forms
-- Labels and inputs feel cramped on small screens
-- Radio button groups need more vertical breathing room
+-- Get subcategories
+SELECT id, name, slug FROM service_subcategories 
+WHERE category_id = '<uuid>' AND is_active = true 
+ORDER BY display_order;
+```
 
-**Fixes:**
-- Increase spacing between form groups on mobile (`space-y-4` → `space-y-6` for groups, `space-y-3` → `space-y-4` for options)
-- Add responsive spacing classes
-
----
-
-### 5. Photo Grid in Extras Step
-
-**Current Issues:**
-- 3-column grid (`grid-cols-3`) results in tiny thumbnails on narrow phones
-- Remove button is small (`p-1`)
-
-**Fixes:**
-- Switch to 2-column grid on mobile (`grid-cols-2 sm:grid-cols-3`)
-- Increase remove button size for mobile (`p-2`)
-
----
-
-### 6. Review Step Card Layout
-
-**Current Issues:**
-- Edit buttons are small and far from content on mobile
-- Photo thumbnails are very small (`w-12 h-12`)
-
-**Fixes:**
-- Stack edit button below content on mobile instead of inline
-- Increase photo thumbnail size on mobile (`w-16 h-16`)
-
----
-
-### 7. Select Dropdowns (Radix Select)
-
-**Current Issues:**
-- Location dropdown has many options - can be difficult to scroll on mobile
-- Grouped options work but need larger touch targets
-
-**Fixes:**
-- Increase SelectItem padding for mobile
-- Consider sheet/drawer pattern for location picker on mobile (future enhancement)
-
----
-
-### 8. Progress Bar Mobile Polish
-
-**Current Issues:**
-- Segmented progress bar is functional but could use more visual weight on mobile
-- Step text may wrap awkwardly
-
-**Fixes:**
-- Increase segment height on mobile (`h-2` → `h-3`)
-- Adjust flex layout to prevent text wrapping
-
----
-
-### 9. PostJob Page Container Padding
-
-**Current Issues:**
-- `container py-8` may result in content too close to edges on small phones
-
-**Fixes:**
-- Add horizontal padding for extra-small screens
-- Ensure card doesn't touch screen edges
-
----
-
-## Implementation Steps
-
-### Step 1: Wizard Navigation Sticky Footer
-- Add responsive sticky positioning to navigation buttons
-- Include safe-area-inset-bottom for iOS notch
-- Add backdrop blur and border for visual separation
-
-### Step 2: Touch Target Improvements
-- Update LogisticsStep radio groups with larger touch areas
-- Update QuestionPackRenderer with mobile-responsive options
-- Update ExtrasStep photo grid and remove buttons
-
-### Step 3: Form Spacing Optimization
-- Add responsive spacing classes throughout wizard steps
-- Improve label/input gap on mobile
-
-### Step 4: Search Bar Mobile Polish
-- Increase result item padding
-- Ensure viewport containment
-
-### Step 5: Review Step Mobile Layout
-- Stack edit buttons on mobile
-- Increase thumbnail sizes
-
-### Step 6: Global Mobile Utilities (CSS)
-- Add safe-area utility classes
-- Add touch-target utility for minimum 48px interactive areas
-
----
-
-## Technical Details
-
-### Sticky Footer Implementation
+**CTA Links**:
 ```typescript
-// Add to CanonicalJobWizard.tsx navigation section
-<div className="mt-6 md:static fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border md:border-0 md:bg-transparent p-4 md:p-0 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-0 z-40">
-  {/* Back/Continue buttons */}
-</div>
+// Post Job CTA
+/post?category=${categoryId}&subcategory=${selectedSubcategoryId}
+
+// Browse Pros CTA  
+/professionals?category=${categoryId}&subcategory=${selectedSubcategoryId}
 ```
 
-### Touch Target Utility
-```css
-/* Add to index.css */
-.touch-target-min {
-  @apply min-h-[48px] min-w-[48px];
-}
+---
 
-/* Safe area utilities */
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 0);
+### 2. CanonicalJobWizard.tsx - Deep-Link Initialization
+
+**Current State**: No URL parameter reading on mount
+
+**Changes**:
+- Read `category` and `subcategory` query params via `useLocation` + `URLSearchParams`
+- Fetch category/subcategory names from DB (IDs come from URL, names needed for UI)
+- Validate subcategory belongs to category (security/integrity check)
+- Populate wizard state with fetched data
+- Jump to correct step:
+  - `?category=abc` → Step 2 (Subcategory)
+  - `?category=abc&subcategory=xyz` → Step 3 (Micro)
+- Integration with draft modal:
+  - If draft exists → wait for user decision
+  - "Resume Draft" → ignore deep-link params
+  - "Start Fresh" → apply deep-link params
+
+**New Refs**:
+```typescript
+const deepLinkAppliedRef = useRef(false);
+const pendingDeepLinkRef = useRef<{ categoryId?: string; subcategoryId?: string } | null>(null);
+```
+
+**Step Jump Logic**:
+```typescript
+if (validSubcategory) {
+  setCurrentStep(WizardStep.Micro);  // Step 3
+} else if (validCategory) {
+  setCurrentStep(WizardStep.Subcategory);  // Step 2
 }
 ```
 
-### Responsive Radio Groups
-```typescript
-// Example for LogisticsStep
-<div className="flex items-center space-x-3 py-2 md:py-1 min-h-[48px] md:min-h-0">
-  <RadioGroupItem ... />
-  <Label ... />
-</div>
+---
+
+### 3. Professionals.tsx - Category/Subcategory Filtering
+
+**Current State**: Static empty state, no filtering
+
+**Changes**:
+- Read `category` and `subcategory` query params
+- Build query that joins:
+  - `professional_profiles` → `professional_services` → `service_micro_categories` → `service_subcategories` → `service_categories`
+- Filter professionals who have registered services matching the category/subcategory
+- Show filter badges with clear buttons
+- Handle empty results gracefully
+
+**Query Strategy**:
+```sql
+-- Professionals who have ANY micro-service under the given subcategory
+SELECT DISTINCT pp.id, pp.display_name, pp.avatar_url
+FROM professional_profiles pp
+JOIN professional_services ps ON ps.user_id = pp.user_id
+JOIN service_micro_categories m ON m.id = ps.micro_id
+JOIN service_subcategories s ON s.id = m.subcategory_id
+WHERE s.category_id = '<category_uuid>'
+  AND s.id = '<subcategory_uuid>'  -- optional
+  AND pp.is_publicly_listed = true;
 ```
+
+---
+
+## Wizard Entry Point Summary
+
+| Entry Source | URL | Starting Step | Pre-populated |
+|--------------|-----|---------------|---------------|
+| Direct `/post` | `/post` | Step 1 (Category) | None |
+| Category only | `/post?category=abc` | Step 2 (Subcategory) | mainCategory + mainCategoryId |
+| Category + Sub | `/post?category=abc&subcategory=xyz` | Step 3 (Micro) | All taxonomy fields |
+| Search micro | `/post?step=questions` | Step 4 (Questions) | Full taxonomy via search bar |
+
+---
+
+## Edge Cases Handled
+
+1. **Invalid/inactive category slug** → Show "Category not found" with back link
+2. **Subcategory doesn't belong to category** → Ignore subcategory, go to Step 2
+3. **Draft modal showing** → Wait for user decision before applying deep-link
+4. **User resumes draft** → Deep-link params ignored (draft takes priority)
+5. **No subcategories exist** → Show message, CTA still works with category-only
 
 ---
 
@@ -206,23 +162,33 @@ Comprehensive mobile UX improvements across the job posting wizard, navigation, 
 
 | File | Changes |
 |------|---------|
-| `src/components/wizard/canonical/CanonicalJobWizard.tsx` | Sticky navigation footer, add bottom padding for content |
-| `src/components/wizard/canonical/steps/LogisticsStep.tsx` | Larger radio touch targets, responsive spacing |
-| `src/components/wizard/canonical/steps/ExtrasStep.tsx` | 2-col photo grid on mobile, larger remove buttons |
-| `src/components/wizard/canonical/steps/ReviewStep.tsx` | Stacked edit layout on mobile, larger thumbnails |
-| `src/components/wizard/canonical/steps/QuestionPackRenderer.tsx` | Larger option touch targets |
-| `src/components/wizard/db-powered/ServiceSearchBar.tsx` | Larger result items on mobile |
-| `src/components/wizard/db-powered/CategorySelector.tsx` | Ensure minimum height on buttons |
-| `src/components/wizard/db-powered/MicroStep.tsx` | Minimum height for selection buttons |
-| `src/pages/jobs/PostJob.tsx` | Container padding adjustment |
-| `src/index.css` | Safe-area and touch-target utilities |
+| `src/pages/public/ServiceCategory.tsx` | Complete rewrite: DB queries, radio selection, dynamic CTAs |
+| `src/components/wizard/canonical/CanonicalJobWizard.tsx` | Add deep-link initialization effect, refs, draft integration |
+| `src/pages/public/Professionals.tsx` | Add filtering logic, query params, filter badges |
 
 ---
 
-## Expected Outcomes
+## Technical Notes
 
-- **Touch accuracy**: All interactive elements meet 48px minimum tap target
-- **Navigation visibility**: Back/Continue buttons always visible without scrolling
-- **Form usability**: Adequate spacing between form elements for thumb input
-- **Visual consistency**: Polished mobile experience matching construction-grade aesthetic
-- **Accessibility**: Improved for users with motor control considerations
+### Why `useLocation` instead of `useSearchParams`?
+
+The project already uses `useSearchParams` in the wizard URL hook, so both work. Using `useLocation` with manual `URLSearchParams` is equally valid and more explicit about when we read vs. write params.
+
+### Database Relationship Chain
+
+```text
+service_categories (16 rows)
+       ↓ category_id
+service_subcategories (84 rows)
+       ↓ subcategory_id  
+service_micro_categories (295 rows)
+       ↓ micro_id
+professional_services (join table)
+       ↓ user_id
+professional_profiles (directory)
+```
+
+### State Consistency
+
+Deep-link initialization uses the same `setWizardState` pattern as existing handlers (`handleCategorySelect`, `handleSubcategorySelect`), ensuring downstream fields are properly reset when jumping in mid-flow.
+
