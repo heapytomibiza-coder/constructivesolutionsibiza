@@ -11,6 +11,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
+ import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { RouteGuard, PublicOnlyGuard } from "@/guard";
 
 // Public Pages
@@ -59,6 +60,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <SessionProvider>
+           <ScrollToTop />
           <Routes>
             {/* ============================================
                 PUBLIC ROUTES - No auth required
