@@ -1,4 +1,5 @@
 export { HeroBanner } from './HeroBanner';
+export { LanguageSwitcher } from './LanguageSwitcher';
 export { MobileNav } from './MobileNav';
 export { PageHeader } from './PageHeader';
 export { PublicFooter } from './PublicFooter';

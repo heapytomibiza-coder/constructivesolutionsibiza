@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,20 +26,21 @@ export const CompletionModal = ({
   onConfirm,
   isLoading = false,
 }: CompletionModalProps) => {
+  const { t } = useTranslation();
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="font-display">
-            Mark job as completed?
+            {t('completion.title')}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Confirm that the work for "{jobTitle}" has been completed. 
-            You'll be asked to rate your experience next.
+            {t('completion.description', { jobTitle })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isLoading}>{t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -48,7 +50,7 @@ export const CompletionModal = ({
             className="gap-2"
           >
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Yes, Complete
+            {t('completion.confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
