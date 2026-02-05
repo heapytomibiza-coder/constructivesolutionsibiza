@@ -21,6 +21,7 @@ import heroProfessionals from '@/assets/heroes/hero-professionals.jpg';
 
 interface Professional {
   id: string;
+  user_id?: string; // For selection mode
   display_name: string | null;
   avatar_url: string | null;
   services_count: number | null;
