@@ -248,13 +248,14 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
           <RadioGroup
             value={(value as string) ?? ''}
             onValueChange={(val) => onAnswerChange(pack.micro_slug, question.id, val)}
+            className="space-y-3 md:space-y-2"
           >
             {question.options?.map((opt) => {
               const option = normalizeOption(opt);
               return (
-                <div key={option.value} className="flex items-center space-x-2">
+                <div key={option.value} className="flex items-center space-x-3 min-h-[48px] md:min-h-0 py-1">
                   <RadioGroupItem value={option.value} id={`${key}-${option.value}`} />
-                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer">
+                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer flex-1">
                     {option.label}
                   </Label>
                 </div>
