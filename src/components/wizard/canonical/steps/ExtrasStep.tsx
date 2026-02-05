@@ -64,7 +64,7 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
 
       {/* Photos */}
       <div className="space-y-2">
-        <Label>Photos (optional)</Label>
+        <Label className="font-normal">Photos <span className="text-muted-foreground">(optional)</span></Label>
         <p className="text-xs text-muted-foreground mb-3">
           Add photos to help professionals understand the job better
         </p>
