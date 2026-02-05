@@ -501,13 +501,19 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         </CardContent>
       </Card>
 
-      {/* Navigation Buttons */}
-      <div className="flex items-center justify-between mt-6">
+      {/* Navigation Buttons - Sticky on mobile */}
+      <div className="
+        mt-6 md:static md:bg-transparent md:border-0 md:p-0 md:pb-0 md:backdrop-blur-none
+        fixed bottom-0 left-0 right-0 z-40
+        bg-background/95 backdrop-blur-sm border-t border-border
+        p-4 pb-safe-4
+        flex items-center justify-between
+      ">
         <Button
           variant="outline"
           onClick={handleBack}
           disabled={currentStep === WizardStep.Category}
-          className="gap-2"
+          className="gap-2 min-h-[48px] md:min-h-0"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -517,7 +523,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           <Button 
             onClick={handleSubmit} 
             disabled={isSubmitting}
-            className="gap-2"
+            className="gap-2 min-h-[48px] md:min-h-0"
           >
             {isSubmitting ? (
               <>
@@ -542,7 +548,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             <Button
               onClick={handleNext}
               disabled={!canAdvance()}
-              className="gap-2"
+              className="gap-2 min-h-[48px] md:min-h-0"
             >
               Continue
               <ArrowRight className="h-4 w-4" />

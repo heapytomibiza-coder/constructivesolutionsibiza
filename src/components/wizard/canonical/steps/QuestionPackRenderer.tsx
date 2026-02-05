@@ -267,11 +267,11 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
       case 'checkbox': {
         const selectedOptions = Array.isArray(value) ? (value as string[]) : [];
         return (
-          <div className="space-y-2">
+          <div className="space-y-3 md:space-y-2">
             {question.options?.map((opt) => {
               const option = normalizeOption(opt);
               return (
-                <div key={option.value} className="flex items-center space-x-2">
+                <div key={option.value} className="flex items-center space-x-3 min-h-[48px] md:min-h-0 py-1">
                   <Checkbox
                     id={`${key}-${option.value}`}
                     checked={selectedOptions.includes(option.value)}
@@ -283,7 +283,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
                       onAnswerChange(pack.micro_slug, question.id, newSelected);
                     }}
                   />
-                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer">
+                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer flex-1">
                     {option.label}
                   </Label>
                 </div>

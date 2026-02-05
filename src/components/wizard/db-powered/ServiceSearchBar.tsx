@@ -131,7 +131,7 @@ export function ServiceSearchBar({
         </div>
 
         {showResults && (
-          <CommandList className="max-h-[300px] overflow-y-auto">
+          <CommandList className="max-h-[50vh] md:max-h-[300px] overflow-y-auto">
             {!hasResults && !isLoading && (
               <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
                 No services found for "{debouncedQuery}"
@@ -145,20 +145,20 @@ export function ServiceSearchBar({
                     key={result.microId}
                     value={result.microSlug}
                     onSelect={() => handleSelect(result)}
-                    className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-md hover:bg-accent"
+                    className="flex items-center gap-2 px-3 py-3 md:py-2 cursor-pointer rounded-md hover:bg-accent min-h-[48px] md:min-h-0"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1 text-xs text-muted-foreground mb-0.5">
-                        <span>{result.categoryName}</span>
-                        <ChevronRight className="h-3 w-3" />
-                        <span>{result.subcategoryName}</span>
+                        <span className="truncate">{result.categoryName}</span>
+                        <ChevronRight className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{result.subcategoryName}</span>
                       </div>
                       <span className="font-medium text-foreground">
                         {result.microName}
                       </span>
                     </div>
                     {result.hasPack && (
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full shrink-0">
                         Ready
                       </span>
                     )}

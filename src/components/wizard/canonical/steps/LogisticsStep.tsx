@@ -209,11 +209,11 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
         <RadioGroup
           value={logistics.budgetRange || ''}
           onValueChange={(val) => onChange({ budgetRange: val })}
-          className="space-y-2"
+          className="space-y-3 md:space-y-2"
         >
           {BUDGET_OPTIONS.map((opt) => (
-            <div key={opt.value} className="flex items-start space-x-3">
-              <RadioGroupItem value={opt.value} id={`budget-${opt.value}`} className="mt-0.5" />
+            <div key={opt.value} className="flex items-start space-x-3 min-h-[48px] md:min-h-0 py-1">
+              <RadioGroupItem value={opt.value} id={`budget-${opt.value}`} className="mt-1" />
               <div className="flex-1">
                 <Label htmlFor={`budget-${opt.value}`} className="font-normal cursor-pointer">
                   {opt.label}

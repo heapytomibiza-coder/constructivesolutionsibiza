@@ -126,16 +126,17 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
         />
       </div>
 
-      {/* Permits concern */}
-      <div className="flex items-start gap-3 p-4 rounded-lg border border-border bg-muted/30">
+      {/* Permits concern - larger touch target on mobile */}
+      <div className="flex items-start gap-3 p-4 rounded-lg border border-border bg-muted/30 min-h-[64px] md:min-h-0">
         <Checkbox
           id="permits"
           checked={extras.permitsConcern || false}
           onCheckedChange={(checked) => 
             onChange({ permitsConcern: checked === true })
           }
+          className="mt-0.5"
         />
-        <div className="space-y-1">
+        <div className="space-y-1 flex-1">
           <Label htmlFor="permits" className="cursor-pointer">
             I'm unsure if permits are needed
           </Label>

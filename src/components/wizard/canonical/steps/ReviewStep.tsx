@@ -122,24 +122,25 @@ export function ReviewStep({ wizardState, onEdit, isAuthenticated }: ReviewStepP
       {/* Photos & Notes */}
       {(extras.photos.length > 0 || extras.notes) && (
         <div className="p-4 rounded-lg border border-border space-y-3">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div className="space-y-2 flex-1">
               {extras.photos.length > 0 && (
                 <div>
                   <span className="text-xs text-muted-foreground uppercase tracking-wide">
                     Photos
                   </span>
-                  <div className="flex gap-2 mt-2">
+                  {/* Larger thumbnails on mobile */}
+                  <div className="flex gap-2 mt-2 flex-wrap">
                     {extras.photos.slice(0, 4).map((photo, i) => (
                       <img
                         key={i}
                         src={photo}
                         alt={`Photo ${i + 1}`}
-                        className="w-12 h-12 rounded object-cover border border-border"
+                        className="w-16 h-16 sm:w-12 sm:h-12 rounded object-cover border border-border"
                       />
                     ))}
                     {extras.photos.length > 4 && (
-                      <div className="w-12 h-12 rounded bg-muted flex items-center justify-center text-sm text-muted-foreground">
+                      <div className="w-16 h-16 sm:w-12 sm:h-12 rounded bg-muted flex items-center justify-center text-sm text-muted-foreground">
                         +{extras.photos.length - 4}
                       </div>
                     )}
@@ -159,8 +160,10 @@ export function ReviewStep({ wizardState, onEdit, isAuthenticated }: ReviewStepP
               variant="ghost"
               size="sm"
               onClick={() => onEdit(WizardStep.Extras)}
+              className="self-start min-h-[44px] md:min-h-0"
             >
-              <Edit2 className="h-4 w-4" />
+              <Edit2 className="h-4 w-4 mr-2 sm:mr-0" />
+              <span className="sm:hidden">Edit</span>
             </Button>
           </div>
         </div>

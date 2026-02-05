@@ -47,7 +47,7 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext }:
             key={category.id}
             type="button"
             onClick={() => onSelect(category.name, category.id)}
-            className={`w-full text-left p-4 rounded-lg border transition-colors ${
+            className={`w-full text-left p-4 rounded-lg border transition-colors min-h-[56px] md:min-h-0 ${
               isSelected
                 ? 'border-primary bg-primary/10 text-foreground'
                 : 'border-border bg-card hover:border-primary/50'
