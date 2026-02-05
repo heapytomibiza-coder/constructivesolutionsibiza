@@ -73,85 +73,31 @@ const Professionals = () => {
     },
   });
 
-  // Fetch professionals - with filtering if params present
+  // Fetch professionals - with ranking when filters are present
   const { data: professionals, isLoading } = useQuery({
     queryKey: ['professionals', categoryId, subcategoryId],
     queryFn: async (): Promise<Professional[]> => {
-      // If we have filters, we need to join through the service tables
+      // If we have filters, use the ranked query (preference + verification + completions)
       if (categoryId || subcategoryId) {
-        // Build query that joins professional_profiles → professional_services → service_micro_categories → service_subcategories
-        // Since we can't do complex joins with the JS client, we'll use a different approach:
-        // 1. Find all micro_ids that match our category/subcategory filter
-        // 2. Find all user_ids that have those micro_ids in professional_services
-        // 3. Fetch professional_profiles for those user_ids
-
-        // Step 1: Get micro IDs matching the filter
-        let microQuery = supabase
-          .from('service_micro_categories')
-          .select('id, subcategory_id');
-
-        if (subcategoryId) {
-          microQuery = microQuery.eq('subcategory_id', subcategoryId);
-        }
-
-        const { data: micros, error: microError } = await microQuery;
-        if (microError) throw microError;
-
-        // If filtering by category but not subcategory, we need to filter by subcategory's category
-        let filteredMicroIds: string[] = [];
+        const microIds = await getMicroIdsForFilter(categoryId, subcategoryId);
         
-        if (subcategoryId) {
-          filteredMicroIds = (micros || []).map(m => m.id);
-        } else if (categoryId) {
-          // Get all subcategories for this category
-          const { data: subs } = await supabase
-            .from('service_subcategories')
-            .select('id')
-            .eq('category_id', categoryId);
-          
-          const subIds = (subs || []).map(s => s.id);
-          filteredMicroIds = (micros || []).filter(m => subIds.includes(m.subcategory_id)).map(m => m.id);
-        }
-
-        if (filteredMicroIds.length === 0) {
+        if (microIds.length === 0) {
           return [];
         }
 
-        // Step 2: Get user_ids from professional_services that have these micro_ids
-        const { data: services, error: servicesError } = await supabase
-          .from('professional_services')
-          .select('user_id')
-          .in('micro_id', filteredMicroIds);
-
-        if (servicesError) throw servicesError;
-
-        const userIds = [...new Set((services || []).map(s => s.user_id))];
-        
-        if (userIds.length === 0) {
-          return [];
-        }
-
-      // Step 3: Get professional profiles for these users (that are publicly listed)
-        const { data: profiles, error: profilesError } = await supabase
-          .from('professional_profiles')
-          .select('id, user_id, display_name, avatar_url, services_count, verification_status')
-          .in('user_id', userIds)
-          .eq('is_publicly_listed', true);
-
-        if (profilesError) throw profilesError;
-
-        return (profiles || []) as Professional[];
+        // Use ranked query - professionals who "love" these tasks rank higher
+        const ranked = await getRankedProfessionals(microIds);
+        return ranked;
       }
 
-      // No filters - just get all publicly listed professionals
-      // Note: For unfiltered view, we need to query professional_profiles to get user_id
+      // No filters - just get all publicly listed professionals (no ranking needed)
       const { data, error } = await supabase
         .from('professional_profiles')
         .select('id, user_id, display_name, avatar_url, services_count, verification_status')
         .eq('is_publicly_listed', true);
 
       if (error) throw error;
-      return (data || []) as Professional[];
+      return (data || []).map(p => ({ ...p, match_score: 0, coverage: 0 }));
     },
   });
 

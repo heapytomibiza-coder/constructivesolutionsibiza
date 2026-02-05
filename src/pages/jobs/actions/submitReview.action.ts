@@ -55,6 +55,29 @@ export async function submitReview({
     return { success: false, error: error.message };
   }
 
+  // Award stats when CLIENT rates PROFESSIONAL
+  // This drives the verification ladder: unverified → progressing → verified → expert
+  if (reviewerRole === 'client') {
+    const { data: job } = await supabase
+      .from('jobs')
+      .select('answers')
+      .eq('id', jobId)
+      .single();
+
+    if (job?.answers) {
+      const answers = job.answers as { selected?: { microIds?: string[] } };
+      const microIds = answers.selected?.microIds ?? [];
+      
+      if (microIds.length > 0) {
+        await awardProStats({
+          professionalUserId: revieweeId,
+          microIds,
+          rating,
+        });
+      }
+    }
+  }
+
   return { success: true };
 }
 
