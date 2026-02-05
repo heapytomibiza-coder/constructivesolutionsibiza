@@ -41,31 +41,29 @@ const ServiceCategory = () => {
 
   return (
     <PublicLayout>
-      {/* Hero Section */}
-      <div className="border-b border-border bg-gradient-concrete bg-texture-concrete py-12">
-        <div className="container">
-          {/* Breadcrumb */}
-          <div className="mb-6">
-            <Link 
-              to="/services" 
-              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 w-fit"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Services
-            </Link>
-          </div>
-
-          <h1 className="font-display text-4xl font-bold text-foreground mb-4">
-            {categoryName}
-          </h1>
-          <p className="text-lg text-muted-foreground mb-4">
-            Find trusted {categoryName.toLowerCase()} professionals in Ibiza
-          </p>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Shield className="h-4 w-4 text-primary" />
+      {/* Hero Banner */}
+      <HeroBanner
+        imageSrc={heroServices}
+        title={categoryName}
+        subtitle={`Find trusted ${categoryName.toLowerCase()} professionals in Ibiza`}
+        height="compact"
+        trustBadge={
+          <div className="flex items-center justify-center gap-2 text-sm text-white/90">
+            <Shield className="h-4 w-4" />
             <span>Verified professionals only</span>
           </div>
-        </div>
+        }
+      />
+
+      {/* Breadcrumb */}
+      <div className="container pt-6">
+        <Link 
+          to="/services" 
+          className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 w-fit"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Services
+        </Link>
       </div>
 
       <div className="container py-12">
