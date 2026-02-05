@@ -129,6 +129,24 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     setCurrentStep(WizardStep.Micro);
   }, []);
 
+  // Deep-link handler for search results - skips directly to Questions
+  const handleSearchSelect = useCallback((result: SearchResult) => {
+    flushSync(() => {
+      setWizardState(prev => ({
+        ...prev,
+        mainCategory: result.categoryName,
+        mainCategoryId: result.categoryId,
+        subcategory: result.subcategoryName,
+        subcategoryId: result.subcategoryId,
+        microNames: [result.microName],
+        microIds: [result.microId],
+        microSlugs: [result.microSlug],
+        answers: {},
+      }));
+    });
+    setCurrentStep(WizardStep.Questions);
+  }, []);
+
   const handleMicroSelect = useCallback((microNames: string[], microIds: string[], microSlugs: string[]) => {
     setWizardState(prev => ({
       ...prev,
