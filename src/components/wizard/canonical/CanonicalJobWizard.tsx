@@ -412,10 +412,24 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       <Card className="border-border/70">
         <CardContent className="pt-6">
           {currentStep === WizardStep.Category && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <h3 className="font-display text-lg font-semibold">
                 What type of service do you need?
               </h3>
+              
+              {/* Universal Search Bar */}
+              <ServiceSearchBar onSelect={handleSearchSelect} />
+              
+              {/* Divider */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                  or browse categories
+                </span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+              
+              {/* Category Grid */}
               <CategorySelector
                 selectedCategory={wizardState.mainCategory}
                 onSelect={handleCategorySelect}
