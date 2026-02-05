@@ -322,6 +322,19 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     [questionErrors]
   );
 
+  // Handler for dispatch mode changes
+  const handleDispatchModeChange = useCallback(
+    (mode: 'direct' | 'broadcast') => {
+      setWizardState(prev => ({
+        ...prev,
+        dispatchMode: mode,
+        // Clear target professional when switching to broadcast
+        ...(mode === 'broadcast' ? { targetProfessionalId: undefined, targetProfessionalName: undefined } : {}),
+      }));
+    },
+    []
+  );
+
   // Handler for when question packs are loaded
   const handlePacksLoaded = useCallback((packs: { micro_slug: string; questions: unknown[] }[]) => {
     setQuestionPacks(packs);
