@@ -493,6 +493,13 @@ export type Database = {
             referencedRelation: "service_micro_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "professional_services_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_search_index"
+            referencedColumns: ["micro_id"]
+          },
         ]
       }
       profiles: {
@@ -645,6 +652,13 @@ export type Database = {
             foreignKeyName: "service_micro_categories_subcategory_id_fkey"
             columns: ["subcategory_id"]
             isOneToOne: false
+            referencedRelation: "service_search_index"
+            referencedColumns: ["subcategory_id"]
+          },
+          {
+            foreignKeyName: "service_micro_categories_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
             referencedRelation: "service_subcategories"
             referencedColumns: ["id"]
           },
@@ -697,6 +711,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "service_categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_search_index"
+            referencedColumns: ["category_id"]
           },
         ]
       }
@@ -971,6 +992,20 @@ export type Database = {
           id?: string | null
           services_count?: number | null
           verification_status?: string | null
+        }
+        Relationships: []
+      }
+      service_search_index: {
+        Row: {
+          category_id: string | null
+          category_name: string | null
+          has_pack: boolean | null
+          micro_id: string | null
+          micro_name: string | null
+          micro_slug: string | null
+          search_text: string | null
+          subcategory_id: string | null
+          subcategory_name: string | null
         }
         Relationships: []
       }
