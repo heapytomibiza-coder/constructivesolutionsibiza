@@ -37,6 +37,7 @@ import { validateAllPacks, type ValidationErrorMap } from './lib/stepValidation'
 import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
 import SubcategorySelector from '@/components/wizard/db-powered/SubcategorySelector';
 import MicroStep from '@/components/wizard/db-powered/MicroStep';
+import { ServiceSearchBar, type SearchResult } from '@/components/wizard/db-powered/ServiceSearchBar';
 
 // Step components
 import { LogisticsStep } from './steps/LogisticsStep';
@@ -126,6 +127,24 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       }));
     });
     setCurrentStep(WizardStep.Micro);
+  }, []);
+
+  // Deep-link handler for search results - skips directly to Questions
+  const handleSearchSelect = useCallback((result: SearchResult) => {
+    flushSync(() => {
+      setWizardState(prev => ({
+        ...prev,
+        mainCategory: result.categoryName,
+        mainCategoryId: result.categoryId,
+        subcategory: result.subcategoryName,
+        subcategoryId: result.subcategoryId,
+        microNames: [result.microName],
+        microIds: [result.microId],
+        microSlugs: [result.microSlug],
+        answers: {},
+      }));
+    });
+    setCurrentStep(WizardStep.Questions);
   }, []);
 
   const handleMicroSelect = useCallback((microNames: string[], microIds: string[], microSlugs: string[]) => {
@@ -393,10 +412,24 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       <Card className="border-border/70">
         <CardContent className="pt-6">
           {currentStep === WizardStep.Category && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <h3 className="font-display text-lg font-semibold">
                 What type of service do you need?
               </h3>
+              
+              {/* Universal Search Bar */}
+              <ServiceSearchBar onSelect={handleSearchSelect} />
+              
+              {/* Divider */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                  or browse categories
+                </span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+              
+              {/* Category Grid */}
               <CategorySelector
                 selectedCategory={wizardState.mainCategory}
                 onSelect={handleCategorySelect}
