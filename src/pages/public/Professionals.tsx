@@ -128,10 +128,10 @@ const Professionals = () => {
           return [];
         }
 
-        // Step 3: Get professional profiles for these users (that are publicly listed)
+      // Step 3: Get professional profiles for these users (that are publicly listed)
         const { data: profiles, error: profilesError } = await supabase
           .from('professional_profiles')
-          .select('id, display_name, avatar_url, services_count, verification_status')
+          .select('id, user_id, display_name, avatar_url, services_count, verification_status')
           .in('user_id', userIds)
           .eq('is_publicly_listed', true);
 
