@@ -76,6 +76,12 @@ export function PublicNav() {
             How it works
           </Link>
           <Link 
+            to="/forum" 
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:after:w-full"
+          >
+            Community
+          </Link>
+          <Link 
             to="/contact" 
             className="text-sm text-muted-foreground hover:text-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:after:w-full"
           >

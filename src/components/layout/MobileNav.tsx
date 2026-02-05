@@ -23,6 +23,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   LogOut,
+  Users,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -32,6 +33,7 @@ const publicNavLinks = [
   { to: '/jobs', label: 'Jobs', icon: ClipboardList },
   { to: '/professionals', label: 'Professionals', icon: HardHat },
   { to: '/how-it-works', label: 'How it works', icon: HelpCircle },
+  { to: '/forum', label: 'Community', icon: Users },
   { to: '/contact', label: 'Contact', icon: Mail },
 ];
 
