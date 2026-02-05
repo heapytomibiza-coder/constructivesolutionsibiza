@@ -48,9 +48,9 @@ const PostJob = () => {
           </div>
         </nav>
 
-        {/* Wizard Container */}
-        <div className="container py-8">
-          <div className="mx-auto max-w-2xl">
+        {/* Wizard Container - extra horizontal padding on small screens */}
+        <div className="container py-6 md:py-8 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl pb-24 md:pb-0">
             <CanonicalJobWizard />
           </div>
         </div>

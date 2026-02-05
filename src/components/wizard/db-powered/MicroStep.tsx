@@ -96,7 +96,7 @@ export default function MicroStep({
                 key={micro.id}
                 type="button"
                 onClick={() => handleToggle(micro)}
-                className={`w-full text-left p-4 rounded-lg border transition-colors ${
+                className={`w-full text-left p-4 rounded-lg border transition-colors min-h-[56px] md:min-h-0 ${
                   isSelected 
                     ? 'border-primary bg-primary/10 text-foreground' 
                     : 'border-border bg-card hover:border-primary/50'
@@ -112,7 +112,7 @@ export default function MicroStep({
                     )}
                   </div>
                   {isSelected && (
-                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-3">
+                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-3 shrink-0">
                       <Check className="w-3 h-3 text-primary-foreground" />
                     </div>
                   )}

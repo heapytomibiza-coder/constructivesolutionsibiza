@@ -309,6 +309,20 @@
 }
 
 @layer utilities {
+  /* Safe area utilities for notched devices */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .pb-safe-4 {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+  }
+
+  /* Touch target minimum (Apple HIG: 44pt) */
+  .touch-target-min {
+    @apply min-h-[48px] min-w-[48px];
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
   }

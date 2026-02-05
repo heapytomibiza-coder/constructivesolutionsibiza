@@ -90,7 +90,7 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
   const grouped = groupLocations(LOCATION_OPTIONS);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:space-y-6">
       <h3 className="font-display text-lg font-semibold">
         Logistics
       </h3>
@@ -190,12 +190,12 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
         <RadioGroup
           value={logistics.consultationType || ''}
           onValueChange={(val) => onChange({ consultationType: val as ConsultationType })}
-          className="space-y-2"
+          className="space-y-3 md:space-y-2"
         >
           {CONTACT_OPTIONS.map((opt) => (
-            <div key={opt.value} className="flex items-center space-x-3">
+            <div key={opt.value} className="flex items-center space-x-3 min-h-[48px] md:min-h-0 py-1">
               <RadioGroupItem value={opt.value} id={`contact-${opt.value}`} />
-              <Label htmlFor={`contact-${opt.value}`} className="font-normal cursor-pointer">
+              <Label htmlFor={`contact-${opt.value}`} className="font-normal cursor-pointer flex-1">
                 {opt.label}
               </Label>
             </div>
@@ -209,11 +209,11 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
         <RadioGroup
           value={logistics.budgetRange || ''}
           onValueChange={(val) => onChange({ budgetRange: val })}
-          className="space-y-2"
+          className="space-y-3 md:space-y-2"
         >
           {BUDGET_OPTIONS.map((opt) => (
-            <div key={opt.value} className="flex items-start space-x-3">
-              <RadioGroupItem value={opt.value} id={`budget-${opt.value}`} className="mt-0.5" />
+            <div key={opt.value} className="flex items-start space-x-3 min-h-[48px] md:min-h-0 py-1">
+              <RadioGroupItem value={opt.value} id={`budget-${opt.value}`} className="mt-1" />
               <div className="flex-1">
                 <Label htmlFor={`budget-${opt.value}`} className="font-normal cursor-pointer">
                   {opt.label}

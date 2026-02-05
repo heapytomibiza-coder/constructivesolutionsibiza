@@ -78,7 +78,8 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
           onChange={handleFileSelect}
         />
 
-        <div className="grid grid-cols-3 gap-3">
+        {/* 2-col on mobile, 3-col on larger screens */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {extras.photos.map((photo, index) => (
             <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-border">
               <img 
@@ -89,7 +90,7 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
               <button
                 type="button"
                 onClick={() => removePhoto(index)}
-                className="absolute top-1 right-1 p-1 rounded-full bg-background/80 hover:bg-background text-foreground"
+                className="absolute top-1.5 right-1.5 p-2 rounded-full bg-background/80 hover:bg-background text-foreground touch-target-min flex items-center justify-center"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -100,7 +101,7 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
             <Button
               type="button"
               variant="outline"
-              className="aspect-square flex flex-col items-center justify-center gap-2"
+              className="aspect-square flex flex-col items-center justify-center gap-2 min-h-[100px]"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
             >
@@ -125,16 +126,17 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
         />
       </div>
 
-      {/* Permits concern */}
-      <div className="flex items-start gap-3 p-4 rounded-lg border border-border bg-muted/30">
+      {/* Permits concern - larger touch target on mobile */}
+      <div className="flex items-start gap-3 p-4 rounded-lg border border-border bg-muted/30 min-h-[64px] md:min-h-0">
         <Checkbox
           id="permits"
           checked={extras.permitsConcern || false}
           onCheckedChange={(checked) => 
             onChange({ permitsConcern: checked === true })
           }
+          className="mt-0.5"
         />
-        <div className="space-y-1">
+        <div className="space-y-1 flex-1">
           <Label htmlFor="permits" className="cursor-pointer">
             I'm unsure if permits are needed
           </Label>
