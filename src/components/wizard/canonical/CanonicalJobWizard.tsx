@@ -3,10 +3,14 @@
  * V2 clean architecture - 7-step flow with string enum steps
  * 
  * Flow: Category → Subcategory → Micro → Questions → Logistics → Extras → Review
+ * 
+ * Supports deep-linking:
+ * - /post?category=<uuid> → Step 2 (Subcategory)
+ * - /post?category=<uuid>&subcategory=<uuid> → Step 3 (Micro)
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { flushSync } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -51,6 +55,7 @@ interface CanonicalJobWizardProps {
 
 export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useSession();
   
@@ -63,6 +68,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const [questionPacks, setQuestionPacks] = useState<{ micro_slug: string; questions: unknown[] }[]>([]);
   const [questionErrors, setQuestionErrors] = useState<Record<string, ValidationErrorMap>>({});
   
+  // Deep-link refs
+  const deepLinkAppliedRef = useRef(false);
+  const pendingDeepLinkRef = useRef<{ categoryId?: string; subcategoryId?: string } | null>(null);
+  
   // URL sync
   useWizardUrlStep(currentStep, setCurrentStep);
   
@@ -72,6 +81,18 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // Draft recovery modal state
   const [showDraftModal, setShowDraftModal] = useState(false);
   
+  // Capture deep-link params on mount (before draft check)
+  useEffect(() => {
+    const sp = new URLSearchParams(location.search);
+    const categoryId = sp.get('category') || undefined;
+    const subcategoryId = sp.get('subcategory') || undefined;
+    
+    if (categoryId || subcategoryId) {
+      pendingDeepLinkRef.current = { categoryId, subcategoryId };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
   // Check for draft on mount
   useEffect(() => {
     const result = checkForDraft();
@@ -79,6 +100,90 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       setShowDraftModal(true);
     }
   }, []);
+  
+  // Apply deep-link after draft decision (or if no draft)
+  const applyDeepLink = useCallback(async () => {
+    if (deepLinkAppliedRef.current) return;
+    if (showDraftModal) return; // Wait for user decision
+    if (!pendingDeepLinkRef.current) {
+      deepLinkAppliedRef.current = true;
+      return;
+    }
+
+    const { categoryId, subcategoryId } = pendingDeepLinkRef.current;
+
+    if (!categoryId) {
+      deepLinkAppliedRef.current = true;
+      pendingDeepLinkRef.current = null;
+      return;
+    }
+
+    try {
+      // Fetch category name
+      const { data: cat, error: catErr } = await supabase
+        .from('service_categories')
+        .select('id, name')
+        .eq('id', categoryId)
+        .eq('is_active', true)
+        .single();
+
+      if (catErr || !cat) {
+        console.warn('Deep-link: Category not found', categoryId);
+        deepLinkAppliedRef.current = true;
+        pendingDeepLinkRef.current = null;
+        return;
+      }
+
+      // Fetch subcategory if provided, validate it belongs to category
+      let sub: { id: string; name: string; category_id: string } | null = null;
+
+      if (subcategoryId) {
+        const { data: subData, error: subErr } = await supabase
+          .from('service_subcategories')
+          .select('id, name, category_id')
+          .eq('id', subcategoryId)
+          .eq('is_active', true)
+          .single();
+
+        if (!subErr && subData && subData.category_id === cat.id) {
+          sub = subData;
+        }
+      }
+
+      // Populate wizard state
+      flushSync(() => {
+        setWizardState(prev => ({
+          ...prev,
+          mainCategory: cat.name,
+          mainCategoryId: cat.id,
+          subcategory: sub ? sub.name : '',
+          subcategoryId: sub ? sub.id : '',
+          // Reset downstream selections
+          microNames: [],
+          microIds: [],
+          microSlugs: [],
+          answers: {},
+        }));
+      });
+
+      // Jump to correct step
+      if (sub) {
+        setCurrentStep(WizardStep.Micro); // Step 3
+      } else {
+        setCurrentStep(WizardStep.Subcategory); // Step 2
+      }
+
+    } catch (e) {
+      console.warn('Deep-link init failed:', e);
+    } finally {
+      deepLinkAppliedRef.current = true;
+      pendingDeepLinkRef.current = null;
+    }
+  }, [showDraftModal]);
+
+  useEffect(() => {
+    applyDeepLink();
+  }, [applyDeepLink]);
   
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -266,6 +371,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // === DRAFT RECOVERY ===
   
   const handleResumeDraft = useCallback(() => {
+    // Mark deep-link as applied (ignore it) when resuming draft
+    deepLinkAppliedRef.current = true;
+    pendingDeepLinkRef.current = null;
+    
     const draft = getPendingDraft();
     if (draft) {
       setWizardState(draft);
@@ -288,6 +397,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     setWizardState(EMPTY_WIZARD_STATE);
     setCurrentStep(WizardStep.Category);
     setShowDraftModal(false);
+    
+    // Allow deep-link to apply after modal closes
+    deepLinkAppliedRef.current = false;
   }, [clearDraft]);
 
   // === SUBMISSION ===
