@@ -3,7 +3,7 @@
  * V2: string enum steps (URL-safe, debuggable)
  */
 
-export type ConsultationType = "site_visit" | "phone_call" | "video_call";
+export type ConsultationType = "site_visit" | "phone_call" | "video_call" | "message";
 
 // === STEP ENUM (string-based for URL sync + debugging) ===
 export enum WizardStep {
