@@ -390,12 +390,12 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           </span>
         </div>
         
-        {/* Segmented progress bar */}
+        {/* Segmented progress bar - taller on mobile */}
         <div className="flex gap-1">
           {STEP_ORDER.map((step, idx) => (
             <div 
               key={step}
-              className={`h-2 flex-1 rounded-sm transition-colors ${
+              className={`h-2.5 md:h-2 flex-1 rounded-sm transition-colors ${
                 idx <= stepIndex ? 'bg-primary' : 'bg-muted'
               }`}
             />
@@ -403,7 +403,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         </div>
         
         {/* Helper text */}
-        <p className="text-xs text-muted-foreground mt-2">
+        <p className="text-xs text-muted-foreground mt-2 hidden sm:block">
           Building your job specification helps professionals quote accurately
         </p>
       </div>
