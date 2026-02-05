@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, ArrowRight, Shield, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Search, Shield, Users, Zap } from 'lucide-react';
 import heroServices from '@/assets/heroes/hero-services.jpg';
 
 /**
