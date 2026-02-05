@@ -1,401 +1,221 @@
 
-# Dispatch Mode Implementation: Direct vs Broadcast
+
+# Clear Explanation Copy + Auto-Advance UX
 
 ## Overview
 
-Add a **dispatch mode** choice to the job wizard that determines where the job spec is sent after the same 7-step flow completes:
-
-- **Direct Mode** (`direct`): Send to a specific professional → creates private conversation, job NOT publicly listed
-- **Broadcast Mode** (`broadcast`): Send to the collective → job publicly listed on marketplace
-
-The wizard itself remains unchanged. The only difference is what happens at submission.
+Add clear, idiot-proof explanation copy to the ServiceCategory page explaining the difference between "Post a Job" (broadcast) and "Browse Professionals" (direct/search), while confirming the existing auto-advance behavior on single-choice steps is working correctly.
 
 ---
 
-## Architecture Diagram
+## Current State (Already Working ✓)
 
-```text
-┌──────────────────────────────────────────────────────────────────┐
-│                     SAME 7-STEP WIZARD                           │
-│  [Category] → [Subcategory] → [Micro] → [Questions]              │
-│           → [Logistics] → [Extras] → [Review]                    │
-└───────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-                    ┌─────────────────────┐
-                    │   DISPATCH CHOICE   │
-                    │ (on Review step)    │
-                    └─────────┬───────────┘
-                              │
-           ┌──────────────────┴──────────────────┐
-           │                                     │
-           ▼                                     ▼
-    ┌─────────────────┐               ┌─────────────────┐
-    │  DIRECT MODE    │               │  BROADCAST MODE │
-    │  ─────────────  │               │  ────────────── │
-    │  targetProId    │               │  No target      │
-    │  is_publicly_   │               │  is_publicly_   │
-    │  listed: false  │               │  listed: true   │
-    │                 │               │                 │
-    │  Creates:       │               │  Creates:       │
-    │  - Job (hidden) │               │  - Job (public) │
-    │  - Conversation │               │                 │
-    │  - Initial msg  │               │  Pros respond   │
-    └─────────────────┘               └─────────────────┘
-```
+The wizard **already auto-advances** on single-choice steps:
+
+| Step | Type | Behavior |
+|------|------|----------|
+| Category | Single-select | Auto-advances on click ✓ |
+| Subcategory | Single-select | Auto-advances on click ✓ |
+| Micro | Multi-select | Shows Continue button ✓ |
+| Questions → Review | Multi-field | Shows Continue button ✓ |
+
+This is confirmed in the code at lines 760-769: the Continue button only appears from Micro step onwards (Category and Subcategory don't show it).
 
 ---
 
-## Implementation Details
+## Changes Needed
 
-### 1. Extend WizardState Type
+### 1. ServiceCategory Page - Clear CTA Section
 
-**File: `src/components/wizard/canonical/types.ts`**
+Replace the current simple CTA buttons with an explanation section that makes the choice crystal clear.
 
-Add dispatch mode and target professional fields:
-
-```typescript
-export interface WizardState {
-  // ... existing fields ...
-
-  // === DISPATCH MODE (set outside the form, determines submission outcome) ===
-  dispatchMode: 'direct' | 'broadcast';
-  targetProfessionalId?: string;
-  targetProfessionalName?: string; // For display in Review
-}
+**Current (unclear):**
+```
+[Post a Carpentry Job →]  [Browse Carpentry Professionals]
 ```
 
-Update `EMPTY_WIZARD_STATE`:
-```typescript
-export const EMPTY_WIZARD_STATE: WizardState = {
-  // ... existing fields ...
-  dispatchMode: 'broadcast', // Default: send to marketplace
-  targetProfessionalId: undefined,
-  targetProfessionalName: undefined,
-};
+**New (clear):**
 ```
+┌─────────────────────────────────────────────────────────────────┐
+│ How would you like to find help?                                │
+├─────────────────────────────────────────────────────────────────┤
+│ ┌─────────────────────────────┐ ┌─────────────────────────────┐ │
+│ │ 🚀 Post a Job               │ │ 🔍 Browse Professionals     │ │
+│ │ ─────────────               │ │ ─────────────────────────── │ │
+│ │ Get quotes fast from        │ │ Choose who you want to      │ │
+│ │ available professionals     │ │ work with first             │ │
+│ │                             │ │                             │ │
+│ │ • Send to matching pros     │ │ • Browse profiles & reviews │ │
+│ │ • Get multiple quotes       │ │ • Pick the right person     │ │
+│ │ • Fastest response          │ │ • Start a conversation      │ │
+│ │                             │ │                             │ │
+│ │    [Post Job →]             │ │    [Browse Pros →]          │ │
+│ └─────────────────────────────┘ └─────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 2. File Changes
+
+**File: `src/pages/public/ServiceCategory.tsx`**
+
+Replace the current CTA section (lines 219-239) with a new explanatory card layout:
+
+| Element | Content |
+|---------|---------|
+| Section header | "How would you like to find help?" |
+| Card 1 - Post Job | Icon: Megaphone/Zap, Title: "Post a Job", Subtitle: "Get quotes fast", Bullet points explaining broadcast, Primary CTA button |
+| Card 2 - Browse Pros | Icon: Search/Users, Title: "Browse Professionals", Subtitle: "Choose who you work with", Bullet points explaining direct search, Outline CTA button |
+
+### 3. Copy Details
+
+**Post a Job Card:**
+- **Title:** "Post a Job"
+- **Subtitle:** "Get quotes fast from available professionals"
+- **Benefits:**
+  - Send your request to matching pros
+  - Receive multiple quotes to compare
+  - Fastest way to get responses
+- **Button:** "Post Job →" (primary)
+- **Micro-copy:** "Same 7-step form, broadcast to all matching pros"
+
+**Browse Professionals Card:**
+- **Title:** "Browse Professionals"  
+- **Subtitle:** "Choose who you want to work with"
+- **Benefits:**
+  - View profiles, ratings & reviews
+  - Pick the right person for you
+  - Start a private conversation
+- **Button:** "Browse Pros →" (outline)
+- **Micro-copy:** "Same 7-step form, sent to the pro you choose"
+
+### 4. Auto-Advance Confirmation
+
+The wizard already implements auto-advance correctly:
+
+1. **Category step:** User clicks a category → `handleCategorySelect` fires → state updates → `setCurrentStep(WizardStep.Subcategory)` auto-navigates
+2. **Subcategory step:** User clicks a subcategory → `handleSubcategorySelect` fires → state updates → `setCurrentStep(WizardStep.Micro)` auto-navigates
+3. **Micro step onwards:** Continue button appears (multi-select/multi-field steps need explicit confirmation)
+
+No code changes needed for auto-advance - it's already working as designed.
 
 ---
 
-### 2. Add Deep-Link Support for Direct Mode
+## Implementation
 
-**File: `src/components/wizard/canonical/CanonicalJobWizard.tsx`**
+### Step 1: Update ServiceCategory.tsx CTA Section
 
-Parse `?pro=<uuid>` parameter to enable direct mode:
+Replace the simple button row with a two-card layout using clear copy and visual hierarchy:
 
 ```typescript
-// In pendingDeepLinkRef
-pendingDeepLinkRef.current = { 
-  categoryId, 
-  subcategoryId,
-  targetProfessionalId: sp.get('pro') || undefined 
-};
-
-// In applyDeepLink
-if (targetProfessionalId) {
-  // Fetch professional name for display
-  const { data: pro } = await supabase
-    .from('professional_profiles')
-    .select('display_name')
-    .eq('user_id', targetProfessionalId)
-    .single();
+{/* How to Find Help - Clear Choice */}
+<div className="space-y-4">
+  <h3 className="font-display text-lg font-semibold text-center">
+    How would you like to find help?
+  </h3>
   
-  setWizardState(prev => ({
-    ...prev,
-    dispatchMode: 'direct',
-    targetProfessionalId,
-    targetProfessionalName: pro?.display_name || 'Professional',
-  }));
-}
-```
-
----
-
-### 3. Add Dispatch Mode Toggle to Review Step
-
-**File: `src/components/wizard/canonical/steps/ReviewStep.tsx`**
-
-Add a section above the submit button that shows dispatch intent:
-
-```typescript
-interface ReviewStepProps {
-  wizardState: WizardState;
-  onEdit: (step: WizardStep) => void;
-  onDispatchModeChange: (mode: 'direct' | 'broadcast') => void; // NEW
-  isAuthenticated: boolean;
-}
-
-// In component:
-{/* Dispatch Mode Selection */}
-<div className="p-4 rounded-lg bg-muted/50 border border-border space-y-4">
-  <span className="text-xs text-muted-foreground uppercase tracking-wide">
-    How would you like to send this job?
-  </span>
-  
-  <RadioGroup 
-    value={wizardState.dispatchMode} 
-    onValueChange={onDispatchModeChange}
-    className="space-y-3"
-  >
-    <label className="flex items-start gap-3 cursor-pointer">
-      <RadioGroupItem value="broadcast" />
-      <div>
-        <p className="font-medium">Send to available professionals</p>
-        <p className="text-sm text-muted-foreground">
-          Your job will be visible to matching professionals who can respond
-        </p>
-      </div>
-    </label>
-    
-    <label className="flex items-start gap-3 cursor-pointer">
-      <RadioGroupItem value="direct" />
-      <div>
-        <p className="font-medium">Send to a specific professional</p>
-        <p className="text-sm text-muted-foreground">
-          Start a private conversation - no public listing
-        </p>
-      </div>
-    </label>
-  </RadioGroup>
-  
-  {/* Show selected professional if in direct mode */}
-  {wizardState.dispatchMode === 'direct' && (
-    <div className="mt-3 pt-3 border-t border-border">
-      {wizardState.targetProfessionalId ? (
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium">{wizardState.targetProfessionalName}</p>
-            <p className="text-xs text-muted-foreground">Selected professional</p>
+  <div className="grid gap-4 sm:grid-cols-2">
+    {/* Option 1: Post Job (Broadcast) */}
+    <Card className="relative overflow-hidden border-primary/20 hover:border-primary/50 transition-colors">
+      <CardContent className="pt-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
+            <Zap className="h-5 w-5 text-primary" />
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/professionals">Change</Link>
-          </Button>
+          <div>
+            <h4 className="font-semibold">Post a Job</h4>
+            <p className="text-sm text-muted-foreground">Get quotes fast</p>
+          </div>
         </div>
-      ) : (
-        <Button variant="outline" asChild className="w-full">
-          <Link to="/professionals?select=true">Choose a Professional</Link>
+        
+        <ul className="text-sm text-muted-foreground space-y-2">
+          <li className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+            Send to matching professionals
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+            Receive multiple quotes
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+            Fastest response time
+          </li>
+        </ul>
+        
+        <Button asChild className="w-full">
+          <Link to={postHref}>
+            Post Job
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
         </Button>
-      )}
-    </div>
-  )}
+      </CardContent>
+    </Card>
+
+    {/* Option 2: Browse Pros (Direct) */}
+    <Card className="relative overflow-hidden hover:border-primary/30 transition-colors">
+      <CardContent className="pt-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
+            <Search className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <div>
+            <h4 className="font-semibold">Browse Professionals</h4>
+            <p className="text-sm text-muted-foreground">Choose who you work with</p>
+          </div>
+        </div>
+        
+        <ul className="text-sm text-muted-foreground space-y-2">
+          <li className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            View profiles & reviews
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            Pick the right person
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            Start a private conversation
+          </li>
+        </ul>
+        
+        <Button variant="outline" asChild className="w-full">
+          <Link to={prosHref}>
+            Browse Pros
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  </div>
+  
+  {/* Bottom helper text */}
+  <p className="text-xs text-muted-foreground text-center">
+    Both options use the same 7-step form — the difference is who receives your request
+  </p>
 </div>
 ```
 
----
+### Step 2: Add Required Imports
 
-### 4. Update Submission Logic
-
-**File: `src/components/wizard/canonical/CanonicalJobWizard.tsx`**
-
-Modify `handleSubmit` to branch based on dispatch mode:
-
-```typescript
-const handleSubmit = useCallback(async () => {
-  // ... existing auth/validation ...
-
-  setIsSubmitting(true);
-
-  try {
-    const payload = buildJobInsert(user.id, wizardState);
-    
-    // Set public visibility based on dispatch mode
-    if (wizardState.dispatchMode === 'direct') {
-      payload.is_publicly_listed = false;
-      payload.assigned_professional_id = wizardState.targetProfessionalId;
-    }
-    
-    // Create the job
-    const { data: job, error } = await supabase
-      .from('jobs')
-      .insert([payload])
-      .select('id')
-      .single();
-
-    if (error) throw error;
-
-    // For direct mode: also create conversation
-    if (wizardState.dispatchMode === 'direct' && wizardState.targetProfessionalId) {
-      // Create conversation using existing RPC
-      const { data: convoId, error: convoError } = await supabase.rpc(
-        'create_direct_conversation',
-        {
-          p_job_id: job.id,
-          p_client_id: user.id,
-          p_pro_id: wizardState.targetProfessionalId,
-        }
-      );
-
-      if (convoError) {
-        console.error('Failed to create conversation:', convoError);
-        // Job still created, just navigate to dashboard
-        toast.warning('Job saved but could not start conversation');
-        navigate('/dashboard');
-        return;
-      }
-
-      // Success - navigate to conversation
-      clearDraft();
-      resetSession();
-      toast.success('Job sent to professional!');
-      navigate(`/messages/${convoId}`);
-      return;
-    }
-
-    // Broadcast mode: standard flow
-    clearDraft();
-    resetSession();
-    queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
-    toast.success('Job posted to marketplace!');
-    navigate(`/jobs?highlight=${job.id}`);
-    
-  } catch (error) {
-    console.error('Submit error:', error);
-    toast.error('Failed to post job. Please try again.');
-  } finally {
-    setIsSubmitting(false);
-  }
-}, [wizardState, user, ...]);
-```
+Add to the import statement at the top:
+- `Zap` icon (for broadcast/speed)
+- `Search` icon (for browse)
+- `CheckCircle` icon (for benefit bullets)
 
 ---
 
-### 5. Create Database RPC for Direct Conversations
+## Summary
 
-**New Migration**
+| Change | Status |
+|--------|--------|
+| Auto-advance on Category click | Already works ✓ |
+| Auto-advance on Subcategory click | Already works ✓ |
+| Continue button only from Micro onwards | Already works ✓ |
+| Clear CTA explanation on ServiceCategory | New implementation |
 
-Create a new RPC that allows clients to create conversations (current RPC is pro-initiated):
+This creates crystal-clear UX where:
+1. Users understand the difference between broadcast and direct
+2. Single-choice steps auto-advance (no friction)
+3. Multi-select/form steps require explicit Continue (prevents accidents)
 
-```sql
-CREATE OR REPLACE FUNCTION create_direct_conversation(
-  p_job_id UUID,
-  p_client_id UUID,
-  p_pro_id UUID
-)
-RETURNS UUID
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-  v_conversation_id UUID;
-  v_job_owner UUID;
-BEGIN
-  -- Verify client owns the job
-  SELECT user_id INTO v_job_owner
-  FROM jobs
-  WHERE id = p_job_id;
-  
-  IF v_job_owner IS NULL THEN
-    RAISE EXCEPTION 'Job not found';
-  END IF;
-  
-  IF v_job_owner != p_client_id THEN
-    RAISE EXCEPTION 'Not authorized';
-  END IF;
-  
-  -- Check for existing conversation
-  SELECT id INTO v_conversation_id
-  FROM conversations
-  WHERE job_id = p_job_id 
-    AND client_id = p_client_id 
-    AND pro_id = p_pro_id;
-  
-  IF v_conversation_id IS NOT NULL THEN
-    RETURN v_conversation_id;
-  END IF;
-  
-  -- Create new conversation
-  INSERT INTO conversations (job_id, client_id, pro_id)
-  VALUES (p_job_id, p_client_id, p_pro_id)
-  RETURNING id INTO v_conversation_id;
-  
-  RETURN v_conversation_id;
-END;
-$$;
-```
-
----
-
-### 6. Update Professional Details/Directory for Selection
-
-**File: `src/pages/public/Professionals.tsx`**
-
-Add selection mode when `?select=true`:
-
-```typescript
-const selectMode = params.get('select') === 'true';
-
-// In the pro card:
-{selectMode ? (
-  <Button 
-    onClick={() => {
-      // Store selection and go back to wizard
-      navigate(`/post?pro=${pro.user_id}`);
-    }}
-  >
-    Select
-  </Button>
-) : (
-  <Link to={`/professionals/${pro.id}`}>View</Link>
-)}
-```
-
----
-
-## Entry Points Summary
-
-| Entry | URL | Dispatch Mode | Target |
-|-------|-----|---------------|--------|
-| Post Job (Services) | `/post?category=...` | `broadcast` | None |
-| Post Job (Direct) | `/post?category=...&pro=<uuid>` | `direct` | Pre-set |
-| Post Job (Blank) | `/post` | `broadcast` | None |
-| Choose Pro (Wizard) | `/professionals?select=true` | (returns to wizard) | User chooses |
-
----
-
-## User Experience Flow
-
-### Broadcast Path (Default)
-1. User goes to `/services/hvac` → clicks "Post Job"
-2. Completes wizard
-3. Review step shows: "Send to available professionals" (default selected)
-4. Submits → Job appears on marketplace
-5. Pros can respond
-
-### Direct Path (From Professional)
-1. User browses `/professionals` → finds Maria
-2. Clicks "Start Job" on Maria's profile
-3. URL becomes `/post?pro=maria-uuid`
-4. Completes same wizard
-5. Review step shows: "Send to a specific professional" (pre-selected), Maria shown
-6. Submits → Private job created, conversation opened
-7. Maria sees it in her messages
-
-### Direct Path (Choose During Review)
-1. User starts wizard normally
-2. On Review step, switches to "Send to a specific professional"
-3. Clicks "Choose a Professional"
-4. Selects from directory → returns to wizard
-5. Submits → Private job + conversation
-
----
-
-## Files to Create/Modify
-
-| File | Change |
-|------|--------|
-| `src/components/wizard/canonical/types.ts` | Add `dispatchMode`, `targetProfessionalId`, `targetProfessionalName` |
-| `src/components/wizard/canonical/CanonicalJobWizard.tsx` | Parse `?pro=` param, update submit logic |
-| `src/components/wizard/canonical/steps/ReviewStep.tsx` | Add dispatch mode selection UI |
-| `src/pages/public/Professionals.tsx` | Add selection mode for `?select=true` |
-| `src/pages/public/ProfessionalDetails.tsx` | Add "Start Job" CTA linking to `/post?pro=<id>` |
-| **New Migration** | `create_direct_conversation` RPC |
-
----
-
-## Key Design Decisions
-
-1. **Same wizard, always**: No branching inside the 7 steps
-2. **Mode set outside form**: Via URL param (`?pro=`) or Review step toggle
-3. **Default is broadcast**: Simpler UX for most users
-4. **Direct = hidden + conversation**: Job exists but isn't public
-5. **Clear copy**: "Send to available" vs "Send to specific" - no jargon
