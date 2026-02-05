@@ -88,7 +88,7 @@ const Index = () => {
 
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {MAIN_CATEGORIES.slice(0, 8).map((category) => {
-              const slug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+              const slug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
               return (
                 <Link key={category} to={`/services/${slug}`}>
                   <Card className="h-full service-card-hover cursor-pointer group">
