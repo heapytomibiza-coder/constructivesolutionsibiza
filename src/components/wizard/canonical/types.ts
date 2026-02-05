@@ -36,6 +36,9 @@ export const STEP_TITLES: Record<WizardStep, string> = {
   [WizardStep.Review]: "Review & Submit",
 };
 
+// === DISPATCH MODE (determines submission outcome) ===
+export type DispatchMode = 'broadcast' | 'direct';
+
 // === WIZARD STATE (single source of truth) ===
 export interface WizardState {
   // === CATEGORY SELECTION ===
@@ -76,6 +79,11 @@ export interface WizardState {
     notes?: string;
     permitsConcern?: boolean;
   };
+
+  // === DISPATCH MODE (set outside the form, determines submission outcome) ===
+  dispatchMode: DispatchMode;
+  targetProfessionalId?: string;
+  targetProfessionalName?: string; // For display in Review
 }
 
 // === EMPTY STATE (canonical default) ===
