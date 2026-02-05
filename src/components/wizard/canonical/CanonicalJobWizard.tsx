@@ -261,7 +261,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     setCurrentStep(WizardStep.Micro);
   }, []);
 
-  // Deep-link handler for search results - skips directly to Questions
+  // Deep-link handler for search results - uses depth to determine starting step
   const handleSearchSelect = useCallback((result: SearchResult) => {
     flushSync(() => {
       setWizardState(prev => ({
@@ -274,9 +274,28 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         microIds: [result.microId],
         microSlugs: [result.microSlug],
         answers: {},
+        // Pre-fill logistics from extracted signals if available
+        logistics: result.extracted?.urgency ? {
+          ...prev.logistics,
+          startDatePreset: result.extracted.urgency,
+        } : prev.logistics,
       }));
     });
-    setCurrentStep(WizardStep.Questions);
+    
+    // Navigate to appropriate step based on search depth
+    switch (result.depth) {
+      case 'category':
+        setCurrentStep(WizardStep.Subcategory);
+        break;
+      case 'subcategory':
+        setCurrentStep(WizardStep.Micro);
+        break;
+      case 'micro':
+      case 'questions':
+      default:
+        setCurrentStep(WizardStep.Questions);
+        break;
+    }
   }, []);
 
   const handleMicroSelect = useCallback((microNames: string[], microIds: string[], microSlugs: string[]) => {
