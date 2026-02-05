@@ -1,27 +1,30 @@
- import i18n from 'i18next';
- import { initReactI18next } from 'react-i18next';
- import LanguageDetector from 'i18next-browser-languagedetector';
- 
- import enCommon from './locales/en/common.json';
- import esCommon from './locales/es/common.json';
- 
- i18n
-   .use(LanguageDetector)
-   .use(initReactI18next)
-   .init({
-     resources: {
-       en: { common: enCommon },
-       es: { common: esCommon },
-     },
-     fallbackLng: 'en',
-     defaultNS: 'common',
-     detection: {
-       order: ['localStorage', 'navigator'],
-       caches: ['localStorage'],
-     },
-     interpolation: {
-       escapeValue: false,
-     },
-   });
- 
- export default i18n;
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
+import HttpBackend from "i18next-http-backend";
+
+i18n
+  .use(HttpBackend)
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    fallbackLng: "en",
+    supportedLngs: ["en", "es"],
+    ns: ["common", "auth", "jobs", "forum", "dashboard"],
+    defaultNS: "common",
+    backend: {
+      loadPath: "/locales/{{lng}}/{{ns}}.json",
+    },
+    detection: {
+      order: ["localStorage", "navigator"],
+      caches: ["localStorage"],
+    },
+    interpolation: {
+      escapeValue: false,
+    },
+    react: {
+      useSuspense: true,
+    },
+  });
+
+export default i18n;
