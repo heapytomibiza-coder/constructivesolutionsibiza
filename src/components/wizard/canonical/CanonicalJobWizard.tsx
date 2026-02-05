@@ -460,10 +460,22 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       return;
     }
 
+    // Direct mode validation
+    if (wizardState.dispatchMode === 'direct' && !wizardState.targetProfessionalId) {
+      toast.error('Please select a professional to send this job to');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const payload = buildJobInsert(user.id, wizardState);
+      
+      // Set visibility based on dispatch mode
+      if (wizardState.dispatchMode === 'direct') {
+        payload.is_publicly_listed = false;
+        payload.assigned_professional_id = wizardState.targetProfessionalId;
+      }
       
       const { data, error } = await supabase
         .from('jobs')
@@ -481,11 +493,40 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         throw error;
       }
 
-      // Success - clear draft, invalidate cache, and navigate
+      // For direct mode: also create conversation
+      if (wizardState.dispatchMode === 'direct' && wizardState.targetProfessionalId) {
+        const { data: convoId, error: convoError } = await supabase.rpc(
+          'create_direct_conversation',
+          {
+            p_job_id: data.id,
+            p_client_id: user.id,
+            p_pro_id: wizardState.targetProfessionalId,
+          }
+        );
+
+        if (convoError) {
+          console.error('Failed to create conversation:', convoError);
+          // Job still created, just navigate to dashboard
+          clearDraft();
+          resetSession();
+          toast.warning('Job saved but could not start conversation');
+          navigate('/dashboard');
+          return;
+        }
+
+        // Success - navigate to conversation
+        clearDraft();
+        resetSession();
+        toast.success('Job sent to professional!');
+        navigate(`/messages/${convoId}`);
+        return;
+      }
+
+      // Broadcast mode: standard flow
       clearDraft();
       resetSession();
       queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
-      toast.success('Job posted successfully!');
+      toast.success('Job posted to marketplace!');
       navigate(`/jobs?highlight=${data.id}`);
       
     } catch (error) {
@@ -494,7 +535,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     } finally {
       setIsSubmitting(false);
     }
-  }, [isAuthenticated, user, wizardState, navigate, clearDraft, resetSession]);
+  }, [isAuthenticated, user, wizardState, navigate, clearDraft, resetSession, queryClient]);
 
   // === RENDER ===
   
