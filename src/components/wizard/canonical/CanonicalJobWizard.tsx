@@ -70,7 +70,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   
   // Deep-link refs
   const deepLinkAppliedRef = useRef(false);
-  const pendingDeepLinkRef = useRef<{ categoryId?: string; subcategoryId?: string } | null>(null);
+  const pendingDeepLinkRef = useRef<{ categoryId?: string; subcategoryId?: string; targetProfessionalId?: string } | null>(null);
   
   // URL sync
   useWizardUrlStep(currentStep, setCurrentStep);
