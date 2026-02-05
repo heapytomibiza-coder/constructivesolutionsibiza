@@ -78,7 +78,8 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
           onChange={handleFileSelect}
         />
 
-        <div className="grid grid-cols-3 gap-3">
+        {/* 2-col on mobile, 3-col on larger screens */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {extras.photos.map((photo, index) => (
             <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-border">
               <img 
@@ -89,7 +90,7 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
               <button
                 type="button"
                 onClick={() => removePhoto(index)}
-                className="absolute top-1 right-1 p-1 rounded-full bg-background/80 hover:bg-background text-foreground"
+                className="absolute top-1.5 right-1.5 p-2 rounded-full bg-background/80 hover:bg-background text-foreground touch-target-min flex items-center justify-center"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -100,7 +101,7 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
             <Button
               type="button"
               variant="outline"
-              className="aspect-square flex flex-col items-center justify-center gap-2"
+              className="aspect-square flex flex-col items-center justify-center gap-2 min-h-[100px]"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
             >
