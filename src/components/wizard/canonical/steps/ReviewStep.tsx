@@ -75,8 +75,8 @@ export function ReviewStep({ wizardState, onEdit, isAuthenticated }: ReviewStepP
 
       {/* Location & Timing */}
       <div className="p-4 rounded-lg border border-border space-y-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="space-y-2 flex-1">
             <div>
               <span className="text-xs text-muted-foreground uppercase tracking-wide">
                 Location
@@ -111,8 +111,10 @@ export function ReviewStep({ wizardState, onEdit, isAuthenticated }: ReviewStepP
             variant="ghost"
             size="sm"
             onClick={() => onEdit(WizardStep.Logistics)}
+            className="self-start min-h-[44px] md:min-h-0"
           >
-            <Edit2 className="h-4 w-4" />
+            <Edit2 className="h-4 w-4 mr-2 sm:mr-0" />
+            <span className="sm:hidden">Edit</span>
           </Button>
         </div>
       </div>
