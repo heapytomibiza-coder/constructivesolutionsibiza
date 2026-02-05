@@ -1,0 +1,44 @@
+ {
+   "board": {
+     "title": "Bolsa de Trabajo",
+     "subtitle": "Explora trabajos abiertos con especificaciones completas",
+     "findWork": "Encuentra trabajo rápido",
+     "realScope": "Alcance real, respuestas reales, menos ida y vuelta.",
+     "searchPlaceholder": "Buscar trabajos (ej. fontanería, estantes, fuga)…",
+     "asap": "Urgente",
+     "highBudget": "Alto presupuesto",
+     "photos": "Fotos",
+     "newToday": "Nuevo hoy",
+     "noJobs": "No se encontraron trabajos con esos criterios"
+   },
+   "wizard": {
+     "stepCategory": "Categoría",
+     "stepSubcategory": "Subcategoría",
+     "stepMicro": "Tipo de Servicio",
+     "stepQuestions": "Información Profesional",
+     "stepLogistics": "Tiempo y Presupuesto",
+     "stepExtras": "Fotos",
+     "stepReview": "Revisar y Publicar",
+     "next": "Continuar",
+     "back": "Atrás",
+     "submit": "Publicar Trabajo"
+   },
+   "completion": {
+     "title": "¿Marcar trabajo como completado?",
+     "description": "Confirma que el trabajo para \"{{jobTitle}}\" ha sido completado. Luego se te pedirá que califiques tu experiencia.",
+     "confirm": "Sí, Completar"
+   },
+   "details": {
+     "postedBy": "Publicado por",
+     "location": "Ubicación",
+     "budget": "Presupuesto",
+     "timing": "Disponibilidad",
+     "photos": "Fotos"
+   },
+   "actions": {
+     "message": "Enviar mensaje",
+     "assign": "Asignar Profesional",
+     "complete": "Marcar Completado",
+     "viewDetails": "Ver Detalles"
+   }
+ }

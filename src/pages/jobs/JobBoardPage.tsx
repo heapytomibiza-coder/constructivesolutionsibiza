@@ -9,24 +9,25 @@ import heroJobs from "@/assets/heroes/hero-jobs.jpg";
 
 export default function JobBoardPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t } = useTranslation("jobs");
+  const { t: tc } = useTranslation("common");
 
   return (
     <PublicLayout>
       <HeroBanner
         imageSrc={heroJobs}
-        title={t('jobBoard.title')}
-        subtitle={t('jobBoard.subtitle')}
+        title={t('board.title')}
+        subtitle={t('board.subtitle')}
         height="compact"
         trustBadge={
           <div className="hero-trust-badge">
             <Shield className="h-4 w-4" />
-            {t('trust.realSpecs')} • {t('trust.lessBackForth')} • {t('trust.ibizaOnly')}
+            {tc('trust.realSpecs')} • {tc('trust.lessBackForth')} • {tc('trust.ibizaOnly')}
           </div>
         }
         action={
           <Button variant="accent" onClick={() => navigate("/post")}>
-            {t('hero.postJob')}
+            {tc('hero.postJob')}
           </Button>
         }
       />

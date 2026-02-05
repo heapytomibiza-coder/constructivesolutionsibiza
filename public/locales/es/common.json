@@ -28,36 +28,35 @@
    },
    "toast": {
      "signOutSuccess": "Sesión cerrada correctamente",
-     "signOutError": "Error al cerrar sesión"
+     "signOutError": "Error al cerrar sesión",
+     "saved": "Guardado correctamente",
+     "error": "Algo salió mal"
    },
    "footer": {
      "rights": "Todos los derechos reservados.",
      "tagline": "Conectando Ibiza con profesionales de la construcción de confianza."
    },
-   "jobBoard": {
-     "title": "Bolsa de Trabajo",
-     "subtitle": "Explora trabajos abiertos con especificaciones completas",
-     "findWork": "Encuentra trabajo rápido",
-     "realScope": "Alcance real, respuestas reales, menos ida y vuelta.",
-     "searchPlaceholder": "Buscar trabajos (ej. fontanería, estantes, fuga)…",
-     "asap": "Urgente",
-     "highBudget": "Alto presupuesto",
-     "photos": "Fotos",
-     "newToday": "Nuevo hoy"
-   },
-   "common": {
+   "buttons": {
      "cancel": "Cancelar",
      "confirm": "Confirmar",
      "save": "Guardar",
      "delete": "Eliminar",
      "edit": "Editar",
+     "continue": "Continuar",
+     "back": "Atrás",
+     "submit": "Enviar",
+     "close": "Cerrar"
+   },
+   "status": {
      "loading": "Cargando...",
      "error": "Ocurrió un error",
-     "success": "Éxito"
+     "success": "Éxito",
+     "empty": "No se encontraron elementos"
    },
-   "completion": {
-     "title": "¿Marcar trabajo como completado?",
-     "description": "Confirma que el trabajo para \"{{jobTitle}}\" ha sido completado. Luego se te pedirá que califiques tu experiencia.",
-     "confirm": "Sí, Completar"
+   "validation": {
+     "required": "Este campo es obligatorio",
+     "invalidEmail": "Por favor, introduce un email válido",
+     "tooShort": "Debe tener al menos {{min}} caracteres",
+     "tooLong": "Debe tener como máximo {{max}} caracteres"
    }
  }

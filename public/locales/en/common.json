@@ -28,36 +28,35 @@
    },
    "toast": {
      "signOutSuccess": "Signed out successfully",
-     "signOutError": "Failed to sign out"
+     "signOutError": "Failed to sign out",
+     "saved": "Saved successfully",
+     "error": "Something went wrong"
    },
    "footer": {
      "rights": "All rights reserved.",
      "tagline": "Connecting Ibiza with trusted construction professionals."
    },
-   "jobBoard": {
-     "title": "Job Board",
-     "subtitle": "Browse open jobs with full specs from the wizard",
-     "findWork": "Find work fast",
-     "realScope": "Real scope, real answers, less back-and-forth.",
-     "searchPlaceholder": "Search jobs (e.g. plumbing, shelves, leak)…",
-     "asap": "ASAP",
-     "highBudget": "High budget",
-     "photos": "Photos",
-     "newToday": "New today"
-   },
-   "common": {
+   "buttons": {
      "cancel": "Cancel",
      "confirm": "Confirm",
      "save": "Save",
      "delete": "Delete",
      "edit": "Edit",
+     "continue": "Continue",
+     "back": "Back",
+     "submit": "Submit",
+     "close": "Close"
+   },
+   "status": {
      "loading": "Loading...",
      "error": "An error occurred",
-     "success": "Success"
+     "success": "Success",
+     "empty": "No items found"
    },
-   "completion": {
-     "title": "Mark job as completed?",
-     "description": "Confirm that the work for \"{{jobTitle}}\" has been completed. You'll be asked to rate your experience next.",
-     "confirm": "Yes, Complete"
+   "validation": {
+     "required": "This field is required",
+     "invalidEmail": "Please enter a valid email",
+     "tooShort": "Must be at least {{min}} characters",
+     "tooLong": "Must be at most {{max}} characters"
    }
  }

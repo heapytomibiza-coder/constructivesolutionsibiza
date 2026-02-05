@@ -1,0 +1,30 @@
+ {
+   "title": "Comunidad",
+   "subtitle": "Conecta con locales y profesionales en Ibiza",
+   "newPost": "Nueva Publicación",
+   "categories": {
+     "recommendations": "Recomendaciones",
+     "whereCanIFind": "¿Dónde puedo encontrar...?",
+     "generalHelp": "Ayuda General",
+     "warnings": "Advertencias"
+   },
+   "post": {
+     "title": "Título",
+     "titlePlaceholder": "¿Cuál es tu pregunta o tema?",
+     "content": "Contenido",
+     "contentPlaceholder": "Comparte los detalles...",
+     "tags": "Etiquetas",
+     "tagsPlaceholder": "fontanero, cocina, urgente",
+     "tagsHelp": "Añade hasta 5 etiquetas para ayudar a otros a encontrar tu publicación.",
+     "photos": "Fotos",
+     "photosHelp": "Añade hasta 4 fotos para explicar mejor lo que necesitas.",
+     "publish": "Publicar",
+     "publishing": "Publicando..."
+   },
+   "replies": {
+     "title": "Respuestas",
+     "write": "Escribe una respuesta...",
+     "submit": "Responder",
+     "noReplies": "Aún no hay respuestas. ¡Sé el primero en responder!"
+   }
+ }

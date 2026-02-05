@@ -26,7 +26,8 @@ export const CompletionModal = ({
   onConfirm,
   isLoading = false,
 }: CompletionModalProps) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("jobs");
+  const { t: tc } = useTranslation("common");
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -40,7 +41,7 @@ export const CompletionModal = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>{t('common.cancel')}</AlertDialogCancel>
+          <AlertDialogCancel disabled={isLoading}>{tc('buttons.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();

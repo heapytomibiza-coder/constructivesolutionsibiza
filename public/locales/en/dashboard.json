@@ -1,0 +1,22 @@
+ {
+   "client": {
+     "title": "My Dashboard",
+     "activeJobs": "Active Jobs",
+     "completedJobs": "Completed",
+     "pendingReviews": "Pending Reviews",
+     "noJobs": "You haven't posted any jobs yet.",
+     "postFirst": "Post your first job"
+   },
+   "pro": {
+     "title": "Professional Dashboard",
+     "matchedJobs": "Matched Jobs",
+     "activeConversations": "Active Conversations",
+     "completedJobs": "Jobs Completed",
+     "noMatches": "No matched jobs yet. Update your services to see relevant opportunities."
+   },
+   "stats": {
+     "jobs": "Jobs",
+     "messages": "Messages",
+     "reviews": "Reviews"
+   }
+ }

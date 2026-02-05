@@ -1,0 +1,30 @@
+ {
+   "title": "Community",
+   "subtitle": "Connect with locals and professionals in Ibiza",
+   "newPost": "New Post",
+   "categories": {
+     "recommendations": "Recommendations",
+     "whereCanIFind": "Where can I find...",
+     "generalHelp": "General Help",
+     "warnings": "Warnings"
+   },
+   "post": {
+     "title": "Title",
+     "titlePlaceholder": "What's your question or topic?",
+     "content": "Content",
+     "contentPlaceholder": "Share the details...",
+     "tags": "Tags",
+     "tagsPlaceholder": "plumber, kitchen, urgent",
+     "tagsHelp": "Add up to 5 tags to help others find your post.",
+     "photos": "Photos",
+     "photosHelp": "Add up to 4 photos to help explain what you need.",
+     "publish": "Publish Post",
+     "publishing": "Posting..."
+   },
+   "replies": {
+     "title": "Replies",
+     "write": "Write a reply...",
+     "submit": "Reply",
+     "noReplies": "No replies yet. Be the first to respond!"
+   }
+ }

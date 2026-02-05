@@ -1,0 +1,22 @@
+ {
+   "client": {
+     "title": "Mi Panel",
+     "activeJobs": "Trabajos Activos",
+     "completedJobs": "Completados",
+     "pendingReviews": "Reseñas Pendientes",
+     "noJobs": "Aún no has publicado ningún trabajo.",
+     "postFirst": "Publica tu primer trabajo"
+   },
+   "pro": {
+     "title": "Panel de Profesional",
+     "matchedJobs": "Trabajos Coincidentes",
+     "activeConversations": "Conversaciones Activas",
+     "completedJobs": "Trabajos Completados",
+     "noMatches": "Aún no hay trabajos coincidentes. Actualiza tus servicios para ver oportunidades relevantes."
+   },
+   "stats": {
+     "jobs": "Trabajos",
+     "messages": "Mensajes",
+     "reviews": "Reseñas"
+   }
+ }
