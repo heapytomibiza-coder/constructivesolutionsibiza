@@ -310,7 +310,8 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
         <div key={question.id} className="space-y-2">
           <Label htmlFor={`${pack.micro_slug}-${question.id}`}>
             {question.label}
-            {question.required && <span className="text-destructive ml-1">*</span>}
+            {/* File inputs are optional (uploads after posting) - never show asterisk */}
+            {question.required && question.type !== 'file' && <span className="text-destructive ml-1">*</span>}
           </Label>
           {question.help && <p className="text-sm text-muted-foreground">{question.help}</p>}
           {renderQuestion(question)}

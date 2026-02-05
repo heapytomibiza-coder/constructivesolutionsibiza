@@ -148,6 +148,9 @@ export function validateQuestionPack(
     // Skip hidden questions
     if (!isQuestionVisible(q, getAnswer)) continue;
     
+    // Skip file inputs - uploads happen after job is posted, so don't block progression
+    if (q.type === 'file') continue;
+    
     const v = answers[q.id];
     
     // Required check
