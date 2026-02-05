@@ -1,8 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { PLATFORM } from '@/domain/scope';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -17,15 +19,16 @@ import { User, LayoutDashboard, MessageSquare, LogOut } from 'lucide-react';
 
 export function PublicNav() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, isAuthenticated, activeRole, roles } = useSession();
 
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      toast.success('Signed out successfully');
+      toast.success(t('toast.signOutSuccess'));
       navigate('/');
     } catch (error) {
-      toast.error('Failed to sign out');
+      toast.error(t('toast.signOutError'));
     }
   };
 
@@ -55,42 +58,44 @@ export function PublicNav() {
             to="/services" 
             className="text-sm text-muted-foreground hover:text-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:after:w-full"
           >
-            Services
+            {t('nav.services')}
           </Link>
           <Link 
             to="/jobs" 
             className="text-sm text-muted-foreground hover:text-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:after:w-full"
           >
-            Jobs
+            {t('nav.jobs')}
           </Link>
           <Link 
             to="/professionals" 
             className="text-sm text-muted-foreground hover:text-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:after:w-full"
           >
-            Professionals
+            {t('nav.professionals')}
           </Link>
           <Link 
             to="/how-it-works" 
             className="text-sm text-muted-foreground hover:text-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:after:w-full"
           >
-            How it works
+            {t('nav.howItWorks')}
           </Link>
           <Link 
             to="/forum" 
             className="text-sm text-muted-foreground hover:text-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:after:w-full"
           >
-            Community
+            {t('nav.community')}
           </Link>
           <Link 
             to="/contact" 
             className="text-sm text-muted-foreground hover:text-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:after:w-full"
           >
-            Contact
+            {t('nav.contact')}
           </Link>
         </div>
 
         {/* Right side: Auth or User menu */}
         <div className="flex items-center gap-3">
+          <LanguageSwitcher />
+          
           {isAuthenticated ? (
             <>
               {/* Role switcher for desktop (multi-role users) */}
@@ -112,13 +117,13 @@ export function PublicNav() {
                   <DropdownMenuItem asChild>
                     <Link to={dashboardPath} className="flex items-center gap-2">
                       <LayoutDashboard className="h-4 w-4" />
-                      Dashboard
+                      {t('nav.dashboard')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/messages" className="flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" />
-                      Messages
+                      {t('nav.messages')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -127,23 +132,23 @@ export function PublicNav() {
                     className="text-destructive focus:text-destructive"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
+                    {t('nav.signOut')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               {/* Post a job button (always visible) */}
               <Button variant="accent" asChild className="hidden sm:inline-flex">
-                <Link to="/post">Post a job</Link>
+                <Link to="/post">{t('nav.postJob')}</Link>
               </Button>
             </>
           ) : (
             <>
               <Button variant="ghost" asChild className="hidden sm:inline-flex">
-                <Link to="/auth">Sign in</Link>
+                <Link to="/auth">{t('nav.signIn')}</Link>
               </Button>
               <Button variant="accent" asChild>
-                <Link to="/post">Post a job</Link>
+                <Link to="/post">{t('nav.postJob')}</Link>
               </Button>
             </>
           )}
