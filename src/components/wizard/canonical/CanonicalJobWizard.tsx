@@ -688,6 +688,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             <ReviewStep
               wizardState={wizardState}
               onEdit={handleJumpToStep}
+              onDispatchModeChange={handleDispatchModeChange}
               isAuthenticated={isAuthenticated}
             />
           )}
