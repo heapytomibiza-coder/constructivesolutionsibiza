@@ -412,6 +412,123 @@ export type Database = {
           },
         ]
       }
+      professional_micro_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          max_distance_km: number | null
+          micro_id: string
+          min_budget_eur: number | null
+          notes: string | null
+          preference: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_distance_km?: number | null
+          micro_id: string
+          min_budget_eur?: number | null
+          notes?: string | null
+          preference?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_distance_km?: number | null
+          micro_id?: string
+          min_budget_eur?: number | null
+          notes?: string | null
+          preference?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_micro_preferences_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_micro_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_micro_preferences_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_search_index"
+            referencedColumns: ["micro_id"]
+          },
+        ]
+      }
+      professional_micro_stats: {
+        Row: {
+          accepted_jobs_count: number
+          avg_rating: number | null
+          avg_response_minutes: number | null
+          completed_jobs_count: number
+          created_at: string
+          declined_jobs_count: number
+          id: string
+          last_completed_at: string | null
+          micro_id: string
+          rating_count: number
+          total_rating_sum: number
+          updated_at: string
+          user_id: string
+          verification_level: string
+        }
+        Insert: {
+          accepted_jobs_count?: number
+          avg_rating?: number | null
+          avg_response_minutes?: number | null
+          completed_jobs_count?: number
+          created_at?: string
+          declined_jobs_count?: number
+          id?: string
+          last_completed_at?: string | null
+          micro_id: string
+          rating_count?: number
+          total_rating_sum?: number
+          updated_at?: string
+          user_id: string
+          verification_level?: string
+        }
+        Update: {
+          accepted_jobs_count?: number
+          avg_rating?: number | null
+          avg_response_minutes?: number | null
+          completed_jobs_count?: number
+          created_at?: string
+          declined_jobs_count?: number
+          id?: string
+          last_completed_at?: string | null
+          micro_id?: string
+          rating_count?: number
+          total_rating_sum?: number
+          updated_at?: string
+          user_id?: string
+          verification_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_micro_stats_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_micro_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_micro_stats_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_search_index"
+            referencedColumns: ["micro_id"]
+          },
+        ]
+      }
       professional_profiles: {
         Row: {
           avatar_url: string | null
@@ -467,6 +584,7 @@ export type Database = {
           micro_id: string
           notify: boolean | null
           searchable: boolean | null
+          status: string
           user_id: string
         }
         Insert: {
@@ -475,6 +593,7 @@ export type Database = {
           micro_id: string
           notify?: boolean | null
           searchable?: boolean | null
+          status?: string
           user_id: string
         }
         Update: {
@@ -483,6 +602,7 @@ export type Database = {
           micro_id?: string
           notify?: boolean | null
           searchable?: boolean | null
+          status?: string
           user_id?: string
         }
         Relationships: [
@@ -944,6 +1064,36 @@ export type Database = {
         }
         Relationships: []
       }
+      professional_matching_scores: {
+        Row: {
+          avg_rating: number | null
+          completed_jobs_count: number | null
+          match_score: number | null
+          micro_id: string | null
+          notify: boolean | null
+          preference: string | null
+          searchable: boolean | null
+          status: string | null
+          user_id: string | null
+          verification_level: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_services_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_micro_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_services_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_search_index"
+            referencedColumns: ["micro_id"]
+          },
+        ]
+      }
       public_professional_details: {
         Row: {
           avatar_url: string | null
@@ -1033,6 +1183,10 @@ export type Database = {
       get_or_create_conversation: {
         Args: { p_job_id: string; p_pro_id: string }
         Returns: string
+      }
+      increment_professional_micro_stats: {
+        Args: { p_micro_id: string; p_rating?: number; p_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
