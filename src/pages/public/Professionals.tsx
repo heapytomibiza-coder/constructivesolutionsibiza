@@ -293,7 +293,7 @@ const Professionals = () => {
             {professionals.map((pro) => (
               <Card key={pro.id} className="card-grounded hover:border-primary/50 transition-colors">
                 <CardContent className="p-4">
-                  <Link to={`/professionals/${pro.id}`} className="flex items-center gap-4">
+                  <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={pro.avatar_url || undefined} alt={pro.display_name || 'Professional'} />
                       <AvatarFallback>
@@ -313,7 +313,21 @@ const Professionals = () => {
                         {pro.services_count || 0} services offered
                       </p>
                     </div>
-                  </Link>
+                    {/* Action button - Select in select mode, View otherwise */}
+                    {selectMode ? (
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleSelectProfessional(pro)}
+                        disabled={!pro.user_id}
+                      >
+                        Select
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/professionals/${pro.id}`}>View</Link>
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}

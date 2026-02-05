@@ -108,6 +108,11 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   extras: {
     photos: [],
   },
+
+  // Default to broadcast (public marketplace listing)
+  dispatchMode: 'broadcast',
+  targetProfessionalId: undefined,
+  targetProfessionalName: undefined,
 };
 
 // === STEP UTILITIES ===
