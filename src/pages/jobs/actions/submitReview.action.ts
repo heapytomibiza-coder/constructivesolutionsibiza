@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { awardProStats } from './awardProStats.action';
 
 interface SubmitReviewParams {
   jobId: string;
