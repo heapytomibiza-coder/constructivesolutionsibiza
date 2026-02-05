@@ -1,0 +1,44 @@
+ {
+   "board": {
+     "title": "Job Board",
+     "subtitle": "Browse open jobs with full specs from the wizard",
+     "findWork": "Find work fast",
+     "realScope": "Real scope, real answers, less back-and-forth.",
+     "searchPlaceholder": "Search jobs (e.g. plumbing, shelves, leak)…",
+     "asap": "ASAP",
+     "highBudget": "High budget",
+     "photos": "Photos",
+     "newToday": "New today",
+     "noJobs": "No jobs found matching your criteria"
+   },
+   "wizard": {
+     "stepCategory": "Category",
+     "stepSubcategory": "Subcategory",
+     "stepMicro": "Service Type",
+     "stepQuestions": "Professional Briefing",
+     "stepLogistics": "Timing & Budget",
+     "stepExtras": "Photos",
+     "stepReview": "Review & Post",
+     "next": "Continue",
+     "back": "Back",
+     "submit": "Post Job"
+   },
+   "completion": {
+     "title": "Mark job as completed?",
+     "description": "Confirm that the work for \"{{jobTitle}}\" has been completed. You'll be asked to rate your experience next.",
+     "confirm": "Yes, Complete"
+   },
+   "details": {
+     "postedBy": "Posted by",
+     "location": "Location",
+     "budget": "Budget",
+     "timing": "Timing",
+     "photos": "Photos"
+   },
+   "actions": {
+     "message": "Message",
+     "assign": "Assign Professional",
+     "complete": "Mark Complete",
+     "viewDetails": "View Details"
+   }
+ }

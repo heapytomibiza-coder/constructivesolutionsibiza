@@ -1,0 +1,62 @@
+ {
+   "nav": {
+     "services": "Servicios",
+     "jobs": "Trabajos",
+     "professionals": "Profesionales",
+     "howItWorks": "Cómo funciona",
+     "community": "Comunidad",
+     "contact": "Contacto",
+     "signIn": "Iniciar sesión",
+     "signOut": "Cerrar sesión",
+     "dashboard": "Panel",
+     "messages": "Mensajes",
+     "postJob": "Publicar trabajo"
+   },
+   "hero": {
+     "title": "Encuentra Profesionales de Construcción de Confianza",
+     "subtitle": "Servicios de Construcción y Oficios en Ibiza",
+     "postJob": "Publicar un Trabajo",
+     "browsePros": "Ver Profesionales"
+   },
+   "trust": {
+     "verified": "Oficios verificados",
+     "sameDay": "Respuesta el mismo día",
+     "local": "En Ibiza",
+     "realSpecs": "Especificaciones reales",
+     "lessBackForth": "Menos ida y vuelta",
+     "ibizaOnly": "Solo Ibiza"
+   },
+   "toast": {
+     "signOutSuccess": "Sesión cerrada correctamente",
+     "signOutError": "Error al cerrar sesión",
+     "saved": "Guardado correctamente",
+     "error": "Algo salió mal"
+   },
+   "footer": {
+     "rights": "Todos los derechos reservados.",
+     "tagline": "Conectando Ibiza con profesionales de la construcción de confianza."
+   },
+   "buttons": {
+     "cancel": "Cancelar",
+     "confirm": "Confirmar",
+     "save": "Guardar",
+     "delete": "Eliminar",
+     "edit": "Editar",
+     "continue": "Continuar",
+     "back": "Atrás",
+     "submit": "Enviar",
+     "close": "Cerrar"
+   },
+   "status": {
+     "loading": "Cargando...",
+     "error": "Ocurrió un error",
+     "success": "Éxito",
+     "empty": "No se encontraron elementos"
+   },
+   "validation": {
+     "required": "Este campo es obligatorio",
+     "invalidEmail": "Por favor, introduce un email válido",
+     "tooShort": "Debe tener al menos {{min}} caracteres",
+     "tooLong": "Debe tener como máximo {{max}} caracteres"
+   }
+ }
