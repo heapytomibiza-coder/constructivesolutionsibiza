@@ -24,8 +24,8 @@ export function ReviewStep({ wizardState, onEdit, isAuthenticated }: ReviewStepP
 
       {/* Category & Services */}
       <div className="p-4 rounded-lg border border-border space-y-3">
-        <div className="flex items-start justify-between">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex-1">
             <span className="text-xs text-muted-foreground uppercase tracking-wide">
               Category
             </span>
@@ -36,8 +36,10 @@ export function ReviewStep({ wizardState, onEdit, isAuthenticated }: ReviewStepP
             variant="ghost"
             size="sm"
             onClick={() => onEdit(WizardStep.Category)}
+            className="self-start min-h-[44px] md:min-h-0"
           >
-            <Edit2 className="h-4 w-4" />
+            <Edit2 className="h-4 w-4 mr-2 sm:mr-0" />
+            <span className="sm:hidden">Edit</span>
           </Button>
         </div>
       </div>
