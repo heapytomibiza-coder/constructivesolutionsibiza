@@ -90,7 +90,7 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
   const grouped = groupLocations(LOCATION_OPTIONS);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:space-y-6">
       <h3 className="font-display text-lg font-semibold">
         Logistics
       </h3>
