@@ -216,27 +216,93 @@ const ServiceCategory = () => {
           </CardContent>
         </Card>
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Button asChild size="lg" className="flex-1">
-            <Link to={postHref}>
-              Post a {category.name} Job
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button variant="outline" asChild size="lg" className="flex-1">
-            <Link to={prosHref}>
-              Browse {category.name} Professionals
-            </Link>
-          </Button>
-        </div>
+        {/* How to Find Help - Clear Choice */}
+        <div className="space-y-4">
+          <h3 className="font-display text-lg font-semibold text-center">
+            How would you like to find help?
+          </h3>
+          
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Option 1: Post Job (Broadcast) */}
+            <Card className="relative overflow-hidden border-primary/20 hover:border-primary/50 transition-colors">
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
+                    <Zap className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Post a Job</h4>
+                    <p className="text-sm text-muted-foreground">Get quotes fast</p>
+                  </div>
+                </div>
+                
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                    Send to matching professionals
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                    Receive multiple quotes
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                    Fastest response time
+                  </li>
+                </ul>
+                
+                <Button asChild className="w-full">
+                  <Link to={postHref}>
+                    Post Job
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
 
-        {/* Helper text */}
-        {selectedSubcategoryId && (
-          <p className="text-xs text-muted-foreground text-center mt-4">
-            Your selection will be pre-filled in the next step
+            {/* Option 2: Browse Pros (Direct) */}
+            <Card className="relative overflow-hidden hover:border-primary/30 transition-colors">
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
+                    <Search className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Browse Professionals</h4>
+                    <p className="text-sm text-muted-foreground">Choose who you work with</p>
+                  </div>
+                </div>
+                
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    View profiles & reviews
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    Pick the right person
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    Start a private conversation
+                  </li>
+                </ul>
+                
+                <Button variant="outline" asChild className="w-full">
+                  <Link to={prosHref}>
+                    Browse Pros
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Bottom helper text */}
+          <p className="text-xs text-muted-foreground text-center">
+            Both options use the same 7-step form — the difference is who receives your request
           </p>
-        )}
+        </div>
       </div>
     </PublicLayout>
   );
