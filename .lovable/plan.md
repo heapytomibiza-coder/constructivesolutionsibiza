@@ -1,157 +1,394 @@
 
 
-# Add Photo Uploads to Community Forum Posts
+# Internationalization (i18n) Implementation Plan
 
-## Overview
+## Tech Stack Clarification
 
-Enable users to attach photos when creating forum posts, making it easier to explain what they need. "A picture is worth a thousand words" - especially for trade/repair questions.
+**This is NOT a Next.js project.** The stack is:
+- React 18 + Vite
+- React Router DOM v6
+- shadcn/ui + Radix primitives
+- Supabase backend
 
----
-
-## Current State
-
-- Forum posts have: title, content, tags
-- No photo support
-- No storage bucket exists
+The i18n approach needs to be adapted accordingly.
 
 ---
 
-## Proposed User Experience
+## Recommended Library: react-i18next
 
-When creating a new post:
+`react-i18next` is the most mature, well-documented solution for React SPAs. It provides:
+- Simple `t()` function for translations
+- React hooks (`useTranslation`)
+- Namespace support for code splitting
+- Pluralization and interpolation
+- Language detection
+
+---
+
+## Proposed Architecture
+
 ```text
-+-------------------------------------------+
-|  New Post in "Where can I find..."        |
-+-------------------------------------------+
-|  Title: [________________________]        |
-|                                           |
-|  Content:                                 |
-|  [_________________________________]      |
-|  [_________________________________]      |
-|                                           |
-|  Photos (optional):                       |
-|  +-------+  +-------+  +-------+          |
-|  | Photo |  | Photo |  |  Add  |          |
-|  |   1   |  |   2   |  | Photo |          |
-|  +-------+  +-------+  +-------+          |
-|  "Add photos to help explain your need"  |
-|                                           |
-|  Tags: [plumber, kitchen_______]          |
-|                                           |
-|  [Publish Post]  [Cancel]                 |
-+-------------------------------------------+
+src/
+├── i18n/
+│   ├── index.ts           # i18n initialization
+│   ├── locales/
+│   │   ├── en/
+│   │   │   ├── common.json     # nav, buttons, shared
+│   │   │   ├── auth.json       # login/signup
+│   │   │   ├── jobs.json       # job wizard, board
+│   │   │   ├── forum.json      # community
+│   │   │   └── dashboard.json  # dashboards
+│   │   └── es/
+│   │       ├── common.json
+│   │       ├── auth.json
+│   │       ├── jobs.json
+│   │       ├── forum.json
+│   │       └── dashboard.json
+│   └── types.ts           # TypeScript types for keys
 ```
-
-When viewing a post:
-- Photos display below the content
-- Clickable thumbnails open full-size images
 
 ---
 
-## Implementation Details
+## Implementation Phases
 
-### 1. Create Storage Bucket
+### Phase A: Foundation (Quick Win)
 
-Create a public bucket for forum post images:
+| Task | Details |
+|------|---------|
+| Install react-i18next | `npm install react-i18next i18next i18next-browser-languagedetector` |
+| Create i18n config | Initialize with language detection, fallback |
+| Add LocaleContext | Store preference in localStorage |
+| Add LanguageSwitcher | Simple EN/ES toggle in nav |
+| Translate nav + footer | First visible elements |
 
-```sql
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('forum-images', 'forum-images', true);
-```
+### Phase B: Core UI Translation
 
-Add RLS policies:
-- Anyone can view (public bucket)
-- Authenticated users can upload
-- Users can delete their own uploads
+| Task | Details |
+|------|---------|
+| Homepage | Hero, trust signals, CTAs |
+| Auth pages | Login/signup forms, toasts |
+| Job wizard | All steps, labels, buttons |
+| Job board | Filters, cards, modals |
 
-### 2. Add Photos Column to forum_posts
+### Phase C: Deep Integration
 
-```sql
-ALTER TABLE public.forum_posts
-ADD COLUMN photos text[] DEFAULT '{}';
-```
+| Task | Details |
+|------|---------|
+| Forum | Categories, post form, replies |
+| Dashboards | Stats, cards, actions |
+| Messages | Thread UI, empty states |
+| Settings | All form labels |
 
-This stores an array of public URLs to the uploaded images.
+### Phase D: Data Layer
 
-### 3. Update ForumNewPost.tsx
+| Task | Details |
+|------|---------|
+| Taxonomy tables | Add `name_en`, `name_es` columns |
+| Question packs | Bilingual labels |
+| Validation errors | Use translation keys |
+| Date/number formatting | Use `Intl` with locale |
 
-Add photo upload functionality similar to ExtrasStep in the job wizard:
+---
 
-- Add state: `photos: string[]`
-- Add file input with `accept="image/*"` and `multiple`
-- Upload to storage bucket on file select
-- Show thumbnails with remove buttons
-- Limit to 4 photos max
-- Pass photos array to createForumPost
+## Technical Implementation Details
 
-### 4. Update forumQueries.ts
+### 1. i18n Configuration
 
-Modify `createForumPost` to accept and insert photos:
+Create `src/i18n/index.ts`:
 
 ```typescript
-export async function createForumPost(
-  categoryId: string,
-  title: string,
-  content: string,
-  tags: string[] = [],
-  photos: string[] = []  // NEW
-): Promise<ForumPost> {
-  // ... existing code ...
-  const { data, error } = await supabase
-    .from("forum_posts")
-    .insert({
-      category_id: categoryId,
-      author_id: session.session.user.id,
-      title,
-      content,
-      tags,
-      photos,  // NEW
-    })
-    // ...
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+// Import translation files
+import enCommon from './locales/en/common.json';
+import esCommon from './locales/es/common.json';
+// ... other namespaces
+
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: { common: enCommon },
+      es: { common: esCommon },
+    },
+    fallbackLng: 'en',
+    defaultNS: 'common',
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+    },
+    interpolation: {
+      escapeValue: false, // React handles escaping
+    },
+  });
+
+export default i18n;
+```
+
+### 2. Translation File Structure
+
+Example `src/i18n/locales/en/common.json`:
+
+```json
+{
+  "nav": {
+    "services": "Services",
+    "jobs": "Jobs",
+    "professionals": "Professionals",
+    "howItWorks": "How it works",
+    "community": "Community",
+    "contact": "Contact",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "dashboard": "Dashboard",
+    "messages": "Messages"
+  },
+  "hero": {
+    "title": "Find Trusted Construction Professionals",
+    "postJob": "Post a Job",
+    "browsePros": "Browse Professionals"
+  },
+  "trust": {
+    "verified": "Verified trades",
+    "sameDay": "Same-day response",
+    "local": "Ibiza-based"
+  },
+  "toast": {
+    "signOutSuccess": "Signed out successfully",
+    "signOutError": "Failed to sign out"
+  }
 }
 ```
 
-### 5. Update useForumData.ts Hook
+Spanish version `src/i18n/locales/es/common.json`:
 
-Update mutation to include photos parameter.
+```json
+{
+  "nav": {
+    "services": "Servicios",
+    "jobs": "Trabajos",
+    "professionals": "Profesionales",
+    "howItWorks": "Cómo funciona",
+    "community": "Comunidad",
+    "contact": "Contacto",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "dashboard": "Panel",
+    "messages": "Mensajes"
+  },
+  "hero": {
+    "title": "Encuentra Profesionales de Construcción de Confianza",
+    "postJob": "Publicar un Trabajo",
+    "browsePros": "Ver Profesionales"
+  },
+  "trust": {
+    "verified": "Oficios verificados",
+    "sameDay": "Respuesta el mismo día",
+    "local": "En Ibiza"
+  },
+  "toast": {
+    "signOutSuccess": "Sesión cerrada correctamente",
+    "signOutError": "Error al cerrar sesión"
+  }
+}
+```
 
-### 6. Update ForumPost.tsx (Display)
+### 3. Language Switcher Component
 
-Show photos in the post view:
-- Grid of clickable thumbnails below content
-- On click, open full-size image (using existing lightbox pattern or simple modal)
-
-### 7. Update ForumPost Type
-
-Add photos to the TypeScript interface:
+Create `src/components/layout/LanguageSwitcher.tsx`:
 
 ```typescript
-export interface ForumPost {
-  // ... existing fields ...
-  photos: string[];
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Globe } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+export function LanguageSwitcher() {
+  const { i18n } = useTranslation();
+  
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+  
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Globe className="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => changeLanguage('en')}>
+          English
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeLanguage('es')}>
+          Español
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+```
+
+### 4. Usage in Components
+
+Before (hardcoded):
+```tsx
+<Button>Post a Job</Button>
+toast.success('Signed out successfully');
+```
+
+After (translated):
+```tsx
+import { useTranslation } from 'react-i18next';
+
+const { t } = useTranslation();
+
+<Button>{t('hero.postJob')}</Button>
+toast.success(t('toast.signOutSuccess'));
+```
+
+### 5. Locale-Aware Formatting
+
+Create `src/lib/formatters.ts`:
+
+```typescript
+import { useTranslation } from 'react-i18next';
+
+export function useFormatters() {
+  const { i18n } = useTranslation();
+  const locale = i18n.language === 'es' ? 'es-ES' : 'en-GB';
+  
+  return {
+    formatDate: (date: Date) => 
+      new Intl.DateTimeFormat(locale, { 
+        dateStyle: 'medium' 
+      }).format(date),
+    
+    formatCurrency: (amount: number) =>
+      new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'EUR',
+      }).format(amount),
+  };
 }
 ```
 
 ---
 
-## File Changes Summary
+## Database: Bilingual Taxonomy
 
-| Task | File(s) | Type |
-|------|---------|------|
-| Create `forum-images` bucket | Migration | DB |
-| Add `photos` column | Migration | DB |
-| Add storage RLS policies | Migration | DB |
-| Photo upload UI | `ForumNewPost.tsx` | UI |
-| Update create function | `forumQueries.ts` | Logic |
-| Update mutation hook | `useForumData.ts` | Logic |
-| Display photos | `ForumPost.tsx` | UI |
+Currently, taxonomy tables have single `name` columns. To support bilingual:
+
+### Option A: Add separate columns (Recommended)
+
+```sql
+ALTER TABLE service_categories
+ADD COLUMN name_en text,
+ADD COLUMN name_es text;
+
+-- Backfill from existing name (English)
+UPDATE service_categories SET name_en = name;
+
+-- Same for subcategories and micro_categories
+```
+
+### Option B: JSONB structure
+
+```sql
+ALTER TABLE service_categories
+ADD COLUMN labels jsonb DEFAULT '{}';
+
+-- Store as: {"en": "Plumbing", "es": "Fontanería"}
+```
+
+Option A is simpler and more queryable.
 
 ---
 
-## Why This Matters
+## URL Routing Decision
 
-- Users often struggle to describe plumbing leaks, electrical issues, or damage in words
-- Photos immediately clarify the scope and nature of the problem
-- Professionals can give better advice when they can see the actual situation
-- Reduces back-and-forth "can you describe it more?" replies
+**Two approaches:**
+
+### A. No locale in URL (simpler)
+- Same URLs: `/jobs`, `/services`
+- Language stored in localStorage/cookie
+- Less SEO benefit but simpler to implement
+- No need to change React Router setup
+
+### B. Locale prefix in URL (better SEO)
+- URLs become: `/en/jobs`, `/es/jobs`
+- Requires wrapping all routes in `/:locale`
+- Better for Google indexing
+
+**Recommendation for MVP:** Start with Option A (no URL prefix) to ship faster. Add locale routing later if SEO becomes important.
+
+---
+
+## Validation Errors (Zod)
+
+Instead of hardcoding English error messages:
+
+```typescript
+// Before
+const schema = z.object({
+  email: z.string().email('Invalid email'),
+});
+
+// After - return error codes
+const schema = z.object({
+  email: z.string().email({ message: 'validation.invalidEmail' }),
+});
+
+// In component, translate the error key
+const errorMessage = errors.email 
+  ? t(errors.email.message) 
+  : null;
+```
+
+---
+
+## Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| `src/i18n/index.ts` | Create - i18n initialization |
+| `src/i18n/locales/en/*.json` | Create - English translations |
+| `src/i18n/locales/es/*.json` | Create - Spanish translations |
+| `src/components/layout/LanguageSwitcher.tsx` | Create - language toggle |
+| `src/main.tsx` | Modify - import i18n |
+| `src/components/layout/PublicNav.tsx` | Modify - add LanguageSwitcher |
+| `src/domain/scope.ts` | Modify - bilingual PLATFORM config |
+| All UI components | Modify - replace hardcoded strings with `t()` |
+
+---
+
+## Estimated Scope
+
+| Phase | Effort | Priority |
+|-------|--------|----------|
+| A - Foundation | 2-3 hours | High |
+| B - Core UI | 4-6 hours | High |
+| C - Deep Integration | 4-6 hours | Medium |
+| D - Data Layer | 2-4 hours | Low (can defer) |
+
+Total: ~15-20 hours for full implementation
+
+---
+
+## Why This Approach Scales
+
+1. **Separation of concerns**: Translations live in JSON files, not code
+2. **TypeScript safety**: Can type translation keys for autocomplete
+3. **Namespace splitting**: Load only needed translations per route
+4. **Easy to extend**: Adding a third language (German, French) is just more JSON files
+5. **Team-friendly**: Translators can edit JSON without touching code
 
