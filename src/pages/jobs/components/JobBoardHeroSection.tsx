@@ -24,26 +24,27 @@ export function JobBoardHeroSection({
   toggles,
   onToggle,
 }: JobBoardHeroSectionProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("jobs");
+  const { t: tc } = useTranslation("common");
 
   return (
     <div className="rounded-lg bg-gradient-concrete border border-border/50 p-6 mb-6">
       <div className="mb-4">
         <h1 className="text-2xl font-display font-bold tracking-tight text-foreground">
-          {t('jobBoard.findWork')}
+          {t('board.findWork')}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {t('jobBoard.realScope')}
+          {t('board.realScope')}
         </p>
         <p className="text-xs text-muted-foreground/70 mt-1">
-          {t('trust.realSpecs')} • {t('trust.lessBackForth')} • {t('trust.ibizaOnly')}
+          {tc('trust.realSpecs')} • {tc('trust.lessBackForth')} • {tc('trust.ibizaOnly')}
         </p>
       </div>
 
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder={t('jobBoard.searchPlaceholder')}
+          placeholder={t('board.searchPlaceholder')}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 h-12 border-border/70"
@@ -57,7 +58,7 @@ export function JobBoardHeroSection({
           onClick={() => onToggle("asapOnly")}
           className="font-medium"
         >
-          ⚡ {t('jobBoard.asap')}
+          ⚡ {t('board.asap')}
         </Button>
         <Button
           size="sm"
@@ -65,7 +66,7 @@ export function JobBoardHeroSection({
           onClick={() => onToggle("highBudget")}
           className="font-medium"
         >
-          💰 {t('jobBoard.highBudget')}
+          💰 {t('board.highBudget')}
         </Button>
         <Button
           size="sm"
@@ -73,7 +74,7 @@ export function JobBoardHeroSection({
           onClick={() => onToggle("hasPhotos")}
           className="font-medium"
         >
-          📸 {t('jobBoard.photos')}
+          📸 {t('board.photos')}
         </Button>
         <Button
           size="sm"
@@ -81,7 +82,7 @@ export function JobBoardHeroSection({
           onClick={() => onToggle("newToday")}
           className="font-medium"
         >
-          🆕 {t('jobBoard.newToday')}
+          🆕 {t('board.newToday')}
         </Button>
       </div>
     </div>
