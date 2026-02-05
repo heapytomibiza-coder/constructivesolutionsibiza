@@ -34,9 +34,11 @@ interface FilterNames {
 }
 
 const Professionals = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryId = searchParams.get('category');
   const subcategoryId = searchParams.get('subcategory');
+  const selectMode = searchParams.get('select') === 'true';
 
   // Fetch filter names for display
   const { data: filterNames } = useQuery({
