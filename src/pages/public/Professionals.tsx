@@ -27,6 +27,8 @@ interface Professional {
   avatar_url: string | null;
   services_count: number | null;
   verification_status: string | null;
+  match_score?: number;
+  coverage?: number;
 }
 
 interface FilterNames {
