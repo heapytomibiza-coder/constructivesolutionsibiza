@@ -8,6 +8,7 @@ import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Briefcase, 
   Plus, 
@@ -27,13 +28,14 @@ import { ClientJobCard } from './components/ClientJobCard';
  * Shows user's jobs and real stats.
  */
 const ClientDashboard = () => {
+  const { t } = useTranslation('dashboard');
   const { user, roles } = useSession();
   const { stats, jobs, isLoading, refetch } = useClientStats();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    toast.success('Signed out');
+    toast.success(t('auth.signedOut'));
     navigate('/');
   };
 
@@ -72,16 +74,16 @@ const ClientDashboard = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-display text-3xl font-bold text-foreground">
-              Dashboard
+              {t('client.title')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Welcome back, {user?.email}
+              {t('client.welcomeBack', { email: user?.email || '' })}
             </p>
           </div>
           <Button className="gap-2" asChild>
             <Link to="/post">
               <Plus className="h-4 w-4" />
-              Post a Job
+              {t('client.postJob')}
             </Link>
           </Button>
         </div>
@@ -91,7 +93,7 @@ const ClientDashboard = () => {
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Jobs
+                {t('client.activeJobs')}
               </CardTitle>
               <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center">
                 <Briefcase className="h-5 w-5 text-primary" />
@@ -108,7 +110,7 @@ const ClientDashboard = () => {
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                In Progress
+                {t('client.inProgress')}
               </CardTitle>
               <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
                 <Clock className="h-5 w-5 text-accent" />
@@ -125,7 +127,7 @@ const ClientDashboard = () => {
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Draft Jobs
+                {t('client.draftJobs')}
               </CardTitle>
               <div className="h-10 w-10 rounded-sm bg-secondary flex items-center justify-center">
                 <FileText className="h-5 w-5 text-muted-foreground" />
@@ -142,7 +144,7 @@ const ClientDashboard = () => {
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Messages
+                {t('pro.messages')}
               </CardTitle>
               <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
                 <MessageSquare className="h-5 w-5 text-accent" />
@@ -155,7 +157,7 @@ const ClientDashboard = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-bold text-foreground">{stats.unreadMessages}</span>
                   {stats.unreadMessages > 0 && (
-                    <Badge variant="destructive" className="text-xs">New</Badge>
+                    <Badge variant="destructive" className="text-xs">{t('stats.unread')}</Badge>
                   )}
                 </div>
               )}
@@ -166,7 +168,7 @@ const ClientDashboard = () => {
         {/* Jobs List */}
         <Card className="border-border/70">
           <CardHeader>
-            <CardTitle className="font-display">Your Jobs</CardTitle>
+            <CardTitle className="font-display">{t('client.yourJobs')}</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -179,10 +181,10 @@ const ClientDashboard = () => {
                   <Briefcase className="h-7 w-7 text-muted-foreground" />
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  You haven't posted any jobs yet.
+                  {t('client.noJobs')}
                 </p>
                 <Button asChild>
-                  <Link to="/post">Post Your First Job</Link>
+                  <Link to="/post">{t('client.postFirst')}</Link>
                 </Button>
               </div>
             ) : (

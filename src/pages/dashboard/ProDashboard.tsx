@@ -8,6 +8,7 @@ import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Briefcase, 
   Wrench,
@@ -29,13 +30,14 @@ import { PendingReviewsCard } from './components/PendingReviewsCard';
  * (verified + onboarding complete + has services)
  */
 const ProDashboard = () => {
+  const { t } = useTranslation('dashboard');
   const { user, roles, professionalProfile } = useSession();
   const { stats, matchedJobs, isLoading } = useProStats();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    toast.success('Signed out');
+    toast.success(t('auth.signedOut'));
     navigate('/');
   };
 
@@ -76,14 +78,14 @@ const ProDashboard = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-display text-3xl font-bold text-foreground">
-              Professional Dashboard
+              {t('pro.title')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Welcome back, {user?.email}
+              {t('pro.welcomeBack', { email: user?.email || '' })}
             </p>
           </div>
           <Button asChild>
-            <Link to="/jobs">Browse All Jobs</Link>
+            <Link to="/jobs">{t('pro.browseAllJobs')}</Link>
           </Button>
         </div>
 
@@ -91,16 +93,16 @@ const ProDashboard = () => {
         {needsServiceSetup && (
           <Card className="mb-6 border-accent bg-accent/5">
             <CardHeader>
-              <CardTitle className="font-display text-accent">Complete Your Setup</CardTitle>
+              <CardTitle className="font-display text-accent">{t('pro.completeSetup')}</CardTitle>
               <CardDescription>
-                Add your services to start receiving matched job opportunities.
+                {t('pro.setupDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="accent" asChild>
                 <Link to="/professional/service-setup" className="gap-2">
                   <Wrench className="h-4 w-4" />
-                  Set Up Services
+                  {t('pro.setUpServices')}
                 </Link>
               </Button>
             </CardContent>
@@ -112,7 +114,7 @@ const ProDashboard = () => {
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Your Services
+                {t('pro.yourServices')}
               </CardTitle>
               <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center">
                 <Wrench className="h-5 w-5 text-primary" />
@@ -125,7 +127,7 @@ const ProDashboard = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-bold text-foreground">{stats.servicesCount}</span>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to="/professional/service-setup">Edit</Link>
+                    <Link to="/professional/service-setup">{t('common.edit')}</Link>
                   </Button>
                 </div>
               )}
@@ -134,7 +136,7 @@ const ProDashboard = () => {
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Matched Jobs
+                {t('pro.matchedJobs')}
               </CardTitle>
               <div className="h-10 w-10 rounded-sm bg-success/10 flex items-center justify-center">
                 <Briefcase className="h-5 w-5 text-success" />
@@ -151,7 +153,7 @@ const ProDashboard = () => {
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Messages
+                {t('pro.messages')}
               </CardTitle>
               <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
                 <MessageSquare className="h-5 w-5 text-accent" />
@@ -164,7 +166,7 @@ const ProDashboard = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-bold text-foreground">{stats.unreadMessages}</span>
                   {stats.unreadMessages > 0 && (
-                    <Badge variant="destructive" className="text-xs">New</Badge>
+                    <Badge variant="destructive" className="text-xs">{t('stats.unread')}</Badge>
                   )}
                 </div>
               )}
@@ -178,15 +180,15 @@ const ProDashboard = () => {
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="font-display">Matched Jobs</CardTitle>
+                <CardTitle className="font-display">{t('pro.matchedJobs')}</CardTitle>
                 <CardDescription>
-                  Jobs that match your selected services
+                  {t('pro.matchedJobsDesc')}
                 </CardDescription>
               </div>
               {matchedJobs.length > 0 && (
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/jobs?matched=true" className="gap-1">
-                    View All
+                    {t('pro.viewAll')}
                     <ArrowRight className="h-3 w-3" />
                   </Link>
                 </Button>
@@ -203,10 +205,10 @@ const ProDashboard = () => {
                     <Wrench className="h-7 w-7 text-muted-foreground" />
                   </div>
                   <p className="text-muted-foreground mb-4">
-                    Set up your services to see matched jobs.
+                    {t('pro.setUpServicesToSee')}
                   </p>
                   <Button asChild>
-                    <Link to="/professional/service-setup">Set Up Services</Link>
+                    <Link to="/professional/service-setup">{t('pro.setUpServices')}</Link>
                   </Button>
                 </div>
               ) : matchedJobs.length === 0 ? (
@@ -215,10 +217,10 @@ const ProDashboard = () => {
                     <Briefcase className="h-7 w-7 text-muted-foreground" />
                   </div>
                   <p className="text-muted-foreground mb-4">
-                    No matched jobs yet. Check back soon!
+                    {t('pro.noMatchedJobs')}
                   </p>
                   <Button variant="outline" asChild>
-                    <Link to="/jobs">Browse All Jobs</Link>
+                    <Link to="/jobs">{t('pro.browseAllJobs')}</Link>
                   </Button>
                 </div>
               ) : (
@@ -250,7 +252,7 @@ const ProDashboard = () => {
                         )}
                       </div>
                       <Button variant="outline" size="sm" asChild>
-                        <Link to={`/jobs/${job.id}`}>View</Link>
+                        <Link to={`/jobs/${job.id}`}>{t('client.view')}</Link>
                       </Button>
                     </div>
                   ))}
@@ -267,25 +269,25 @@ const ProDashboard = () => {
             {/* Quick Actions */}
             <Card className="border-border/70">
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('pro.quickActions')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button className="w-full justify-start gap-2" asChild>
                   <Link to="/professional/service-setup">
                     <Wrench className="h-4 w-4" />
-                    Update Services
+                    {t('pro.updateServices')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2" asChild>
                   <Link to="/professional/portfolio">
                     <User className="h-4 w-4" />
-                    Edit Profile
+                    {t('pro.editProfile')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2" asChild>
                   <Link to="/messages">
                     <MessageSquare className="h-4 w-4" />
-                    View Messages
+                    {t('pro.viewMessages')}
                     {stats.unreadMessages > 0 && (
                       <Badge variant="destructive" className="ml-auto text-xs">
                         {stats.unreadMessages}
@@ -299,26 +301,26 @@ const ProDashboard = () => {
             {/* Profile Status */}
             <Card className="border-border/70">
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Profile Status</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('pro.profileStatus')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Services added</span>
+                    <span className="text-muted-foreground">{t('pro.servicesAdded')}</span>
                     <span className="font-medium">{stats.servicesCount > 0 ? '✓' : '—'}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Profile details</span>
+                    <span className="text-muted-foreground">{t('pro.profileDetails')}</span>
                     <span className="font-medium text-muted-foreground">—</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Publicly visible</span>
+                    <span className="text-muted-foreground">{t('pro.publiclyVisible')}</span>
                     <span className="font-medium">{professionalProfile?.isPubliclyListed ? '✓' : '—'}</span>
                   </div>
                 </div>
                 {(stats.servicesCount === 0 || !professionalProfile?.isPubliclyListed) && (
                   <p className="mt-4 text-xs text-muted-foreground">
-                    Add services + complete your profile to appear in search results.
+                    {t('pro.addServicesHint')}
                   </p>
                 )}
               </CardContent>
