@@ -466,9 +466,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const handleSubmit = useCallback(async () => {
     // Auth check
     if (!isAuthenticated || !user) {
-      // Save current state and redirect to auth
+      // Save current state and set redirect to resume wizard after auth
       sessionStorage.setItem('wizardState', JSON.stringify(wizardState));
-      navigate('/auth?returnUrl=/post');
+      sessionStorage.setItem('authRedirect', '/post?resume=true');
+      navigate('/auth');
       return;
     }
 
