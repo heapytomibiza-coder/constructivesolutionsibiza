@@ -1,0 +1,65 @@
+{
+  "title": "Unlock Your Job Types",
+  "subtitle": "Choose which jobs you want to receive. The more specific, the better your matches.",
+  "trustLine": "Better matching = more quality leads you actually want",
+  
+  "progress": {
+    "unlocked": "{{count}} of {{min}} job types unlocked",
+    "hint": "Unlock at least {{min}} to start receiving matched leads",
+    "ready": "You're ready to receive matches!"
+  },
+  
+  "browse": {
+    "yourTypes": "Your Job Types",
+    "empty": "No job types unlocked yet",
+    "emptyHint": "Unlock your first job type to get started",
+    "unlockMore": "Unlock More",
+    "configured": "{{count}} job type configured",
+    "configured_plural": "{{count}} job types configured"
+  },
+  
+  "steps": {
+    "browseByTrade": "Browse by trade",
+    "selectType": "Select service type",
+    "unlockTypes": "Unlock job types",
+    "setPriorities": "Set your priorities"
+  },
+  
+  "micro": {
+    "clientProvides": "Client provides:",
+    "openJobs": "{{count}} open job",
+    "openJobs_plural": "{{count}} open jobs",
+    "noJobs": "New job type",
+    "timingAsap": "Usually ASAP",
+    "timingFlexible": "Usually flexible",
+    "timingScheduled": "Usually scheduled",
+    "unlocked": "Unlocked"
+  },
+  
+  "recommended": {
+    "title": "Recommended for {{trade}}",
+    "subtitle": "Based on active demand",
+    "jobsWaiting": "{{count}} job waiting",
+    "jobsWaiting_plural": "{{count}} jobs waiting"
+  },
+  
+  "actions": {
+    "selectAll": "Select All",
+    "clear": "Clear",
+    "continue": "Set Priorities",
+    "unlock": "Unlock {{count}} Job Type",
+    "unlock_plural": "Unlock {{count}} Job Types",
+    "complete": "Start Receiving Matches",
+    "backToOnboarding": "Back to Onboarding"
+  },
+  
+  "preferences": {
+    "title": "Set Your Priorities",
+    "subtitle": "Tell us which jobs you love vs prefer to avoid",
+    "setAllTo": "Set all to:",
+    "love": "Love it",
+    "like": "Like",
+    "neutral": "Neutral",
+    "avoid": "Avoid"
+  }
+}

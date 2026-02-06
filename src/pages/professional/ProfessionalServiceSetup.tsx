@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,9 +12,15 @@ import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
 import SubcategorySelector from '@/components/wizard/db-powered/SubcategorySelector';
 import { 
   ArrowLeft, Check, Plus, X, Loader2, Shield, Heart, 
-  ThumbsUp, Minus, Ban, CheckCircle2, Zap 
+  ThumbsUp, Minus, Ban, Unlock
 } from 'lucide-react';
 import { PLATFORM } from '@/domain/scope';
+import { JobTypeCard } from './components/JobTypeCard';
+import { UnlockProgress } from './components/UnlockProgress';
+import { RecommendedJobTypes } from './components/RecommendedJobTypes';
+import { useJobTypeStats } from './hooks/useJobTypeStats';
+import { useRecommendedJobTypes } from './hooks/useRecommendedJobTypes';
+import { useQuestionPackMeta } from './hooks/useQuestionPackMeta';
 
 type SetupStep = 'browse' | 'category' | 'subcategory' | 'micro' | 'preferences';
 type Preference = 'love' | 'like' | 'neutral' | 'avoid';
@@ -37,22 +43,24 @@ interface ServiceWithDetails {
 }
 
 const PREFERENCE_CONFIG: Record<Preference, { icon: React.ReactNode; label: string; color: string }> = {
-  love: { icon: <Heart className="h-4 w-4" />, label: 'Love it', color: 'text-red-500' },
-  like: { icon: <ThumbsUp className="h-4 w-4" />, label: 'Like', color: 'text-green-500' },
+  love: { icon: <Heart className="h-4 w-4" />, label: 'Love it', color: 'text-destructive' },
+  like: { icon: <ThumbsUp className="h-4 w-4" />, label: 'Like', color: 'text-primary' },
   neutral: { icon: <Minus className="h-4 w-4" />, label: 'Neutral', color: 'text-muted-foreground' },
-  avoid: { icon: <Ban className="h-4 w-4" />, label: 'Avoid', color: 'text-orange-500' },
+  avoid: { icon: <Ban className="h-4 w-4" />, label: 'Avoid', color: 'text-accent-foreground' },
 };
 
 /**
- * PROFESSIONAL SERVICE SETUP V2
+ * PROFESSIONAL SERVICE SETUP - "Unlock Your Job Types"
  * 
- * Multi-click capability builder with preferences.
- * Steps 1-4 for professionals to declare what they do and how much they like it.
+ * Reframed as job unlocking rather than service configuration.
+ * Each micro represents a job type the builder can receive.
  */
 const ProfessionalServiceSetup = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, refresh } = useSession();
+  const { t } = useTranslation('onboarding');
+  const { t: tCommon } = useTranslation('common');
 
   // Wizard state
   const [step, setStep] = useState<SetupStep>('browse');
@@ -139,6 +147,14 @@ const ProfessionalServiceSetup = () => {
     },
   });
 
+  // Get slugs for stats query
+  const microSlugs = useMemo(() => microCategories.map(m => m.slug), [microCategories]);
+
+  // Job intelligence hooks
+  const { data: jobStats = {} } = useJobTypeStats(microSlugs);
+  const { data: recommendations = [] } = useRecommendedJobTypes(selectedSubcategoryId);
+  const { data: packMeta = {} } = useQuestionPackMeta(microSlugs);
+
   const existingMicroIds = useMemo(() => 
     new Set(servicesWithDetails.map(s => s.micro_id)), 
     [servicesWithDetails]
@@ -190,12 +206,12 @@ const ProfessionalServiceSetup = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professional-services-with-prefs'] });
-      toast.success(`Added ${pendingMicroIds.length} service(s)`);
+      toast.success(t('actions.unlock', { count: pendingMicroIds.length }));
       resetWizard();
     },
     onError: (error) => {
       console.error('Error adding services:', error);
-      toast.error('Failed to add services');
+      toast.error('Failed to unlock job types');
     },
   });
 
@@ -211,10 +227,10 @@ const ProfessionalServiceSetup = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professional-services-with-prefs'] });
-      toast.success('Service removed');
+      toast.success('Job type removed');
     },
     onError: () => {
-      toast.error('Failed to remove service');
+      toast.error('Failed to remove job type');
     },
   });
 
@@ -284,6 +300,14 @@ const ProfessionalServiceSetup = () => {
     }
   };
 
+  const handleRecommendedSelect = (microId: string, microSlug: string, _microName: string) => {
+    if (!existingMicroIds.has(microId) && !pendingMicroIds.includes(microId)) {
+      setPendingMicroIds(prev => [...prev, microId]);
+      setPendingMicroSlugs(prev => [...prev, microSlug]);
+      setPendingPreferences(prev => ({ ...prev, [microId]: 'like' }));
+    }
+  };
+
   const handleSelectAll = () => {
     const available = microCategories.filter(m => !existingMicroIds.has(m.id));
     setPendingMicroIds(available.map(m => m.id));
@@ -309,7 +333,7 @@ const ProfessionalServiceSetup = () => {
 
   const handleContinueToPreferences = () => {
     if (pendingMicroIds.length === 0) {
-      toast.error('Please select at least one service');
+      toast.error('Please select at least one job type');
       return;
     }
     setStep('preferences');
@@ -324,7 +348,7 @@ const ProfessionalServiceSetup = () => {
 
   const handleComplete = async () => {
     if (servicesWithDetails.length === 0) {
-      toast.error('Please add at least one service before completing');
+      toast.error('Please unlock at least one job type before completing');
       return;
     }
 
@@ -337,7 +361,7 @@ const ProfessionalServiceSetup = () => {
       if (error) throw error;
 
       await refresh();
-      toast.success('Service setup complete!');
+      toast.success('Setup complete! You can now receive matched jobs.');
       navigate('/dashboard/pro');
     } catch (error) {
       console.error('Error completing setup:', error);
@@ -353,6 +377,12 @@ const ProfessionalServiceSetup = () => {
   };
 
   const servicesCount = servicesWithDetails.length;
+
+  // Get translated preference config
+  const getPreferenceConfig = (pref: Preference) => ({
+    ...PREFERENCE_CONFIG[pref],
+    label: t(`preferences.${pref}`),
+  });
 
   return (
     <div className="min-h-screen bg-gradient-hero bg-texture-concrete">
@@ -371,44 +401,51 @@ const ProfessionalServiceSetup = () => {
           </Link>
           <Button variant="ghost" onClick={() => navigate('/onboarding/professional')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Onboarding
+            {t('actions.backToOnboarding')}
           </Button>
         </div>
       </nav>
 
       <div className="container py-8">
         <div className="mx-auto max-w-3xl">
-          {/* Header */}
+          {/* Header - Unlock-focused messaging */}
           <div className="text-center mb-8">
-            <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-              Set Up Your Services
-            </h1>
+            <div className="inline-flex items-center gap-2 mb-2">
+              <Unlock className="h-6 w-6 text-primary" />
+              <h1 className="font-display text-3xl font-bold text-foreground">
+                {t('title')}
+              </h1>
+            </div>
             <p className="text-muted-foreground mb-4">
-              Select services you offer and tell us how much you enjoy them.
-              This helps us match you with the jobs you love.
+              {t('subtitle')}
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Shield className="h-4 w-4 text-primary" />
-              <span>Better matching = more quality leads you actually want</span>
+              <span>{t('trustLine')}</span>
             </div>
           </div>
 
-          {/* Current Services */}
+          {/* Unlock Progress */}
+          <div className="mb-6">
+            <UnlockProgress unlockedCount={servicesCount} minimumRequired={5} />
+          </div>
+
+          {/* Current Job Types */}
           <Card className="mb-6 card-grounded">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="font-display">Your Services</CardTitle>
+                  <CardTitle className="font-display">{t('browse.yourTypes')}</CardTitle>
                   <CardDescription>
                     {servicesCount === 0 
-                      ? 'No services added yet' 
-                      : `${servicesCount} service${servicesCount !== 1 ? 's' : ''} configured`}
+                      ? t('browse.empty')
+                      : t('browse.configured', { count: servicesCount })}
                   </CardDescription>
                 </div>
                 {step === 'browse' && (
                   <Button onClick={() => setStep('category')} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Add Services
+                    {t('browse.unlockMore')}
                   </Button>
                 )}
               </div>
@@ -420,7 +457,7 @@ const ProfessionalServiceSetup = () => {
                 </div>
               ) : servicesWithDetails.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <p>Add your first service to get started.</p>
+                  <p>{t('browse.emptyHint')}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -433,8 +470,8 @@ const ProfessionalServiceSetup = () => {
                         <div className="flex items-center gap-2">
                           <p className="font-medium truncate">{service.micro_name}</p>
                           {service.preference && (
-                            <span className={PREFERENCE_CONFIG[service.preference].color}>
-                              {PREFERENCE_CONFIG[service.preference].icon}
+                            <span className={getPreferenceConfig(service.preference).color}>
+                              {getPreferenceConfig(service.preference).icon}
                             </span>
                           )}
                         </div>
@@ -451,12 +488,12 @@ const ProfessionalServiceSetup = () => {
                             onClick={() => updatePreferenceMutation.mutate({ microId: service.micro_id, preference: pref })}
                             className={`p-1.5 rounded-sm transition-colors ${
                               service.preference === pref 
-                                ? `${PREFERENCE_CONFIG[pref].color} bg-muted` 
+                                ? `${getPreferenceConfig(pref).color} bg-muted` 
                                 : 'text-muted-foreground/50 hover:text-muted-foreground'
                             }`}
-                            title={PREFERENCE_CONFIG[pref].label}
+                            title={getPreferenceConfig(pref).label}
                           >
-                            {PREFERENCE_CONFIG[pref].icon}
+                            {getPreferenceConfig(pref).icon}
                           </button>
                         ))}
                       </div>
@@ -476,7 +513,7 @@ const ProfessionalServiceSetup = () => {
             </CardContent>
           </Card>
 
-          {/* Add Services Wizard */}
+          {/* Unlock Job Types Wizard */}
           {step !== 'browse' && (
             <Card className="mb-6 card-grounded">
               <CardHeader>
@@ -486,16 +523,16 @@ const ProfessionalServiceSetup = () => {
                   </Button>
                   <div>
                     <CardTitle className="font-display">
-                      {step === 'category' && 'Select Category'}
+                      {step === 'category' && t('steps.browseByTrade')}
                       {step === 'subcategory' && selectedCategoryName}
-                      {step === 'micro' && `${selectedSubcategoryName} — Select Tasks`}
-                      {step === 'preferences' && 'Set Your Preferences'}
+                      {step === 'micro' && `${selectedSubcategoryName} — ${t('steps.unlockTypes')}`}
+                      {step === 'preferences' && t('preferences.title')}
                     </CardTitle>
                     <CardDescription>
-                      {step === 'category' && 'Choose a category to browse services'}
-                      {step === 'subcategory' && 'Select a service type'}
-                      {step === 'micro' && 'Check all services you offer'}
-                      {step === 'preferences' && 'Tell us which jobs you love vs prefer to avoid'}
+                      {step === 'category' && tCommon('nav.services')}
+                      {step === 'subcategory' && t('steps.selectType')}
+                      {step === 'micro' && t('subtitle')}
+                      {step === 'preferences' && t('preferences.subtitle')}
                     </CardDescription>
                   </div>
                 </div>
@@ -518,13 +555,23 @@ const ProfessionalServiceSetup = () => {
 
                 {step === 'micro' && (
                   <>
+                    {/* Recommended job types */}
+                    {recommendations.length > 0 && (
+                      <RecommendedJobTypes
+                        recommendations={recommendations}
+                        tradeName={selectedSubcategoryName}
+                        existingMicroIds={existingMicroIds}
+                        onSelect={handleRecommendedSelect}
+                      />
+                    )}
+
                     {/* Bulk actions */}
                     <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
                       <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                        Select All
+                        {t('actions.selectAll')}
                       </Button>
                       <Button variant="outline" size="sm" onClick={handleClearAll}>
-                        Clear
+                        {t('actions.clear')}
                       </Button>
                       <span className="text-sm text-muted-foreground ml-auto">
                         {pendingMicroIds.length} selected
@@ -542,31 +589,15 @@ const ProfessionalServiceSetup = () => {
                           const isSelected = pendingMicroIds.includes(micro.id);
                           
                           return (
-                            <label
+                            <JobTypeCard
                               key={micro.id}
-                              className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
-                                isExisting
-                                  ? 'border-primary/30 bg-primary/5 cursor-not-allowed'
-                                  : isSelected
-                                    ? 'border-primary bg-primary/10'
-                                    : 'border-border bg-card hover:border-primary/50'
-                              }`}
-                            >
-                              <Checkbox
-                                checked={isSelected || isExisting}
-                                disabled={isExisting}
-                                onCheckedChange={(checked) => handleMicroToggle(micro, !!checked)}
-                              />
-                              <span className={isExisting ? 'text-muted-foreground' : 'text-foreground'}>
-                                {micro.name}
-                              </span>
-                              {isExisting && (
-                                <Badge variant="secondary" className="ml-auto text-xs">
-                                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                                  Added
-                                </Badge>
-                              )}
-                            </label>
+                              micro={micro}
+                              stats={jobStats[micro.slug]}
+                              clientProvides={packMeta[micro.slug]}
+                              isSelected={isSelected}
+                              isExisting={isExisting}
+                              onToggle={(checked) => handleMicroToggle(micro, checked)}
+                            />
                           );
                         })}
                       </div>
@@ -575,8 +606,8 @@ const ProfessionalServiceSetup = () => {
                     {pendingMicroIds.length > 0 && (
                       <div className="mt-6 flex justify-end">
                         <Button onClick={handleContinueToPreferences} className="gap-2">
-                          Continue to Preferences
-                          <Zap className="h-4 w-4" />
+                          {t('actions.continue')}
+                          <ArrowLeft className="h-4 w-4 rotate-180" />
                         </Button>
                       </div>
                     )}
@@ -587,17 +618,17 @@ const ProfessionalServiceSetup = () => {
                   <>
                     {/* Bulk preference actions */}
                     <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border flex-wrap">
-                      <span className="text-sm text-muted-foreground mr-2">Set all to:</span>
+                      <span className="text-sm text-muted-foreground mr-2">{t('preferences.setAllTo')}</span>
                       {(['love', 'like', 'neutral', 'avoid'] as Preference[]).map((pref) => (
                         <Button
                           key={pref}
                           variant="outline"
                           size="sm"
                           onClick={() => handleBulkPreference(pref)}
-                          className={`gap-1 ${PREFERENCE_CONFIG[pref].color}`}
+                          className={`gap-1 ${getPreferenceConfig(pref).color}`}
                         >
-                          {PREFERENCE_CONFIG[pref].icon}
-                          {PREFERENCE_CONFIG[pref].label}
+                          {getPreferenceConfig(pref).icon}
+                          {getPreferenceConfig(pref).label}
                         </Button>
                       ))}
                     </div>
@@ -622,12 +653,12 @@ const ProfessionalServiceSetup = () => {
                                   onClick={() => setPendingPreferences(prev => ({ ...prev, [microId]: pref }))}
                                   className={`p-2 rounded-sm transition-colors ${
                                     currentPref === pref 
-                                      ? `${PREFERENCE_CONFIG[pref].color} bg-muted` 
+                                      ? `${getPreferenceConfig(pref).color} bg-muted` 
                                       : 'text-muted-foreground/50 hover:text-muted-foreground'
                                   }`}
-                                  title={PREFERENCE_CONFIG[pref].label}
+                                  title={getPreferenceConfig(pref).label}
                                 >
-                                  {PREFERENCE_CONFIG[pref].icon}
+                                  {getPreferenceConfig(pref).icon}
                                 </button>
                               ))}
                             </div>
@@ -645,9 +676,9 @@ const ProfessionalServiceSetup = () => {
                         {addServicesMutation.isPending ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Check className="h-4 w-4" />
+                          <Unlock className="h-4 w-4" />
                         )}
-                        Add {pendingMicroIds.length} Service{pendingMicroIds.length !== 1 ? 's' : ''}
+                        {t('actions.unlock', { count: pendingMicroIds.length })}
                       </Button>
                     </div>
                   </>
@@ -661,7 +692,7 @@ const ProfessionalServiceSetup = () => {
             <div className="flex justify-end">
               <Button size="lg" onClick={handleComplete} className="gap-2">
                 <Check className="h-4 w-4" />
-                Complete Setup
+                {t('actions.complete')}
               </Button>
             </div>
           )}

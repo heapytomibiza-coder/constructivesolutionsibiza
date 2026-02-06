@@ -1,0 +1,65 @@
+{
+  "title": "Desbloquea Tus Tipos de Trabajo",
+  "subtitle": "Elige qué trabajos quieres recibir. Cuanto más específico, mejores coincidencias.",
+  "trustLine": "Mejor coincidencia = más oportunidades de calidad que realmente quieres",
+  
+  "progress": {
+    "unlocked": "{{count}} de {{min}} tipos de trabajo desbloqueados",
+    "hint": "Desbloquea al menos {{min}} para empezar a recibir coincidencias",
+    "ready": "¡Estás listo para recibir coincidencias!"
+  },
+  
+  "browse": {
+    "yourTypes": "Tus Tipos de Trabajo",
+    "empty": "Aún no hay tipos de trabajo desbloqueados",
+    "emptyHint": "Desbloquea tu primer tipo de trabajo para comenzar",
+    "unlockMore": "Desbloquear Más",
+    "configured": "{{count}} tipo de trabajo configurado",
+    "configured_plural": "{{count}} tipos de trabajo configurados"
+  },
+  
+  "steps": {
+    "browseByTrade": "Buscar por oficio",
+    "selectType": "Seleccionar tipo de servicio",
+    "unlockTypes": "Desbloquear tipos de trabajo",
+    "setPriorities": "Establecer tus prioridades"
+  },
+  
+  "micro": {
+    "clientProvides": "El cliente proporciona:",
+    "openJobs": "{{count}} trabajo abierto",
+    "openJobs_plural": "{{count}} trabajos abiertos",
+    "noJobs": "Nuevo tipo de trabajo",
+    "timingAsap": "Normalmente urgente",
+    "timingFlexible": "Normalmente flexible",
+    "timingScheduled": "Normalmente programado",
+    "unlocked": "Desbloqueado"
+  },
+  
+  "recommended": {
+    "title": "Recomendado para {{trade}}",
+    "subtitle": "Basado en demanda activa",
+    "jobsWaiting": "{{count}} trabajo esperando",
+    "jobsWaiting_plural": "{{count}} trabajos esperando"
+  },
+  
+  "actions": {
+    "selectAll": "Seleccionar Todo",
+    "clear": "Limpiar",
+    "continue": "Establecer Prioridades",
+    "unlock": "Desbloquear {{count}} Tipo de Trabajo",
+    "unlock_plural": "Desbloquear {{count}} Tipos de Trabajo",
+    "complete": "Empezar a Recibir Coincidencias",
+    "backToOnboarding": "Volver a Incorporación"
+  },
+  
+  "preferences": {
+    "title": "Establece Tus Prioridades",
+    "subtitle": "Dinos qué trabajos te encantan vs cuáles prefieres evitar",
+    "setAllTo": "Establecer todos a:",
+    "love": "Me encanta",
+    "like": "Me gusta",
+    "neutral": "Neutral",
+    "avoid": "Evitar"
+  }
+}
