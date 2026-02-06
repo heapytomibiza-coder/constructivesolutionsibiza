@@ -1,22 +1,56 @@
- {
-   "client": {
-     "title": "My Dashboard",
-     "activeJobs": "Active Jobs",
-     "completedJobs": "Completed",
-     "pendingReviews": "Pending Reviews",
-     "noJobs": "You haven't posted any jobs yet.",
-     "postFirst": "Post your first job"
-   },
-   "pro": {
-     "title": "Professional Dashboard",
-     "matchedJobs": "Matched Jobs",
-     "activeConversations": "Active Conversations",
-     "completedJobs": "Jobs Completed",
-     "noMatches": "No matched jobs yet. Update your services to see relevant opportunities."
-   },
-   "stats": {
-     "jobs": "Jobs",
-     "messages": "Messages",
-     "reviews": "Reviews"
-   }
- }
+{
+  "client": {
+    "title": "Dashboard",
+    "welcomeBack": "Welcome back, {{email}}",
+    "postJob": "Post a Job",
+    "yourJobs": "Your Jobs",
+    "activeJobs": "Active Jobs",
+    "inProgress": "In Progress",
+    "draftJobs": "Draft Jobs",
+    "completedJobs": "Completed",
+    "pendingReviews": "Pending Reviews",
+    "noJobs": "You haven't posted any jobs yet.",
+    "postFirst": "Post Your First Job",
+    "view": "View",
+    "complete": "Complete",
+    "assign": "Assign",
+    "selectPro": "Select pro",
+    "noProsYet": "No professionals have messaged yet"
+  },
+  "pro": {
+    "title": "Professional Dashboard",
+    "welcomeBack": "Welcome back, {{email}}",
+    "browseAllJobs": "Browse All Jobs",
+    "completeSetup": "Complete Your Setup",
+    "setupDescription": "Add your services to start receiving matched job opportunities.",
+    "setUpServices": "Set Up Services",
+    "yourServices": "Your Services",
+    "matchedJobs": "Matched Jobs",
+    "matchedJobsDesc": "Jobs that match your selected services",
+    "messages": "Messages",
+    "viewAll": "View All",
+    "noMatchedJobs": "No matched jobs yet. Check back soon!",
+    "setUpServicesToSee": "Set up your services to see matched jobs.",
+    "quickActions": "Quick Actions",
+    "updateServices": "Update Services",
+    "editProfile": "Edit Profile",
+    "viewMessages": "View Messages",
+    "profileStatus": "Profile Status",
+    "servicesAdded": "Services added",
+    "profileDetails": "Profile details",
+    "publiclyVisible": "Publicly visible",
+    "addServicesHint": "Add services + complete your profile to appear in search results."
+  },
+  "stats": {
+    "jobs": "Jobs",
+    "messages": "Messages",
+    "reviews": "Reviews",
+    "unread": "New"
+  },
+  "status": {
+    "open": "Open",
+    "draft": "Draft",
+    "in_progress": "In Progress",
+    "completed": "Completed"
+  }
+}
