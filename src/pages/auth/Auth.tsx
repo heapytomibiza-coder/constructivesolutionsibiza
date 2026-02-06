@@ -1,5 +1,6 @@
- import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,21 +13,23 @@ import { IntentSelector, type UserIntent } from '@/components/auth/IntentSelecto
 
 /**
  * AUTH PAGE
- * 
+ *
  * Public page for sign in / sign up.
  * Supports returnUrl for post-login redirect.
  * Includes intent selection for new signups.
  */
 const Auth = () => {
+  const { t } = useTranslation('auth');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
-   // Intent selection state (for signup flow) - START with intent selector
-   const [showIntentSelector, setShowIntentSelector] = useState(true);
-   const [phone, setPhone] = useState('');
+
+  // Intent selection state (for signup flow) - START with intent selector
+  const [showIntentSelector, setShowIntentSelector] = useState(true);
+  const [phone, setPhone] = useState('');
   const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(null);
 
   const returnUrl = searchParams.get('returnUrl') || '/dashboard/client';
@@ -44,92 +47,103 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast.success('Welcome back!');
+      toast.success(t('toast.welcomeBack', { defaultValue: 'Welcome back!' }));
       navigate(returnUrl);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+      toast.error(error?.message || t('toast.signInFailed', { defaultValue: 'Failed to sign in' }));
     } finally {
       setIsLoading(false);
     }
   };
 
- 
-   const handleSignUp = async (e: React.FormEvent) => {
-     e.preventDefault();
-     
-     // Intent must be selected (flow enforces this)
-     if (!selectedIntent) {
-       return;
-     }
-     
-     setIsLoading(true);
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Intent must be selected (flow enforces this)
+    if (!selectedIntent) return;
+
+    setIsLoading(true);
 
     try {
-      // Determine roles based on intent (typed correctly)
+      // Determine roles based on intent
       // - 'client' → only client role
-      // - 'professional' or 'both' → both roles (professionals can also post jobs)
-      const roles: string[] = selectedIntent === 'client' 
-        ? ['client'] 
-        : ['client', 'professional'];
-      
+      // - 'professional' or 'both' → both roles
+      const roles: string[] = selectedIntent === 'client' ? ['client'] : ['client', 'professional'];
+
       // Active role: professional only if explicitly chosen, otherwise client
       const activeRole = selectedIntent === 'professional' ? 'professional' : 'client';
-      
-       const { error } = await supabase.auth.signUp({
+
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: window.location.origin + '/auth/callback',
-           data: {
-             intent: selectedIntent,
-             phone: phone || null,
-             initial_roles: roles,
-             initial_active_role: activeRole,
-           },
+          data: {
+            intent: selectedIntent,
+            phone: phone || null,
+            initial_roles: roles,
+            initial_active_role: activeRole,
+          },
         },
       });
 
       if (error) throw error;
 
-      // Show appropriate success message based on intent
+      // Success messaging (with "both" description)
       if (selectedIntent === 'both') {
-        toast.success('Check your email to confirm your account!', {
-          description: 'You can switch between Hiring and Working modes in the menu.',
-          duration: 6000,
-        });
+        toast.success(
+          t('toast.confirmEmail.title', { defaultValue: 'Check your email to confirm your account!' }),
+          {
+            description: t('toast.confirmEmail.bothDescription', {
+              defaultValue: 'You can switch between Hiring and Working modes in the menu.',
+            }),
+            duration: 6000,
+          }
+        );
       } else {
-        toast.success('Check your email to confirm your account!');
+        toast.success(
+          t('toast.confirmEmail.title', { defaultValue: 'Check your email to confirm your account!' })
+        );
       }
-      
-       // Reset form
-       setEmail('');
-       setPassword('');
-       setPhone('');
-       setSelectedIntent(null);
-       setShowIntentSelector(true);
+
+      // Reset form
+      setEmail('');
+      setPassword('');
+      setPhone('');
+      setSelectedIntent(null);
+      setShowIntentSelector(true);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to sign up';
+      const message =
+        error instanceof Error
+          ? error.message
+          : t('toast.signUpFailed', { defaultValue: 'Failed to sign up' });
+
       toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
-   const handleIntentSelect = (intent: UserIntent) => {
-     setSelectedIntent(intent);
-   };
- 
-   const handleIntentContinue = () => {
-     if (selectedIntent) {
-       setShowIntentSelector(false);
-     }
-   };
+  const handleIntentSelect = (intent: UserIntent) => setSelectedIntent(intent);
+
+  const handleIntentContinue = () => {
+    if (selectedIntent) setShowIntentSelector(false);
+  };
+
+  const intentBadgeText =
+    selectedIntent === 'client'
+      ? t('signUp.intentBadge.client')
+      : selectedIntent === 'professional'
+        ? t('signUp.intentBadge.professional')
+        : selectedIntent === 'both'
+          ? t('signUp.intentBadge.both')
+          : '';
 
   return (
     <div className="min-h-screen bg-gradient-concrete flex items-center justify-center p-4">
       {/* Subtle pattern overlay */}
       <div className="absolute inset-0 bg-texture-concrete opacity-30" />
-      
+
       <div className="relative w-full max-w-md z-10">
         {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
@@ -143,162 +157,167 @@ const Auth = () => {
 
         <Card className="border-border/70">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="font-display text-2xl">Welcome</CardTitle>
-            <CardDescription>
-              Sign in to your account or create a new one
-            </CardDescription>
+            <CardTitle className="font-display text-2xl">{t('page.title')}</CardTitle>
+            <CardDescription>{t('page.subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue={defaultTab}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="signin">{t('tabs.signIn')}</TabsTrigger>
+                <TabsTrigger value="signup">{t('tabs.signUp')}</TabsTrigger>
               </TabsList>
 
+              {/* SIGN IN */}
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email">{t('form.email.label')}</Label>
                     <Input
                       id="signin-email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder={t('form.email.placeholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       className="h-11"
+                      autoComplete="email"
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password">{t('form.password.label')}</Label>
                     <Input
                       id="signin-password"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder={t('form.password.placeholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       className="h-11"
+                      autoComplete="current-password"
                     />
                   </div>
+
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
+                        {t('signIn.loading')}
                       </>
                     ) : (
-                      'Sign In'
+                      t('tabs.signIn')
                     )}
                   </Button>
+
                   <div className="text-center">
-                    <Link 
-                      to="/auth/forgot-password" 
+                    <Link
+                      to="/auth/forgot-password"
                       className="text-sm text-muted-foreground hover:text-primary transition-colors"
                     >
-                      Forgot password?
+                      {t('forgotPassword')}
                     </Link>
                   </div>
                 </form>
               </TabsContent>
 
-               <TabsContent value="signup">
-                 {showIntentSelector ? (
-                   <div className="space-y-6">
-                     <IntentSelector
-                       value={selectedIntent}
-                       onChange={handleIntentSelect}
-                     />
-                     <Button
-                       type="button"
-                       className="w-full"
-                       disabled={!selectedIntent}
-                       onClick={handleIntentContinue}
-                     >
-                       Continue
-                     </Button>
-                   </div>
-                 ) : (
-                   <form onSubmit={handleSignUp} className="space-y-4">
-                     <div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                       <span className="font-medium text-foreground">
-                         {selectedIntent === 'client' && '❓ Signing up as an Asker'}
-                         {selectedIntent === 'professional' && '💼 Signing up as a Tasker'}
-                         {selectedIntent === 'both' && '↔️ Signing up for both'}
-                       </span>
-                       <button
-                         type="button"
-                         className="ml-2 text-xs underline hover:text-foreground"
-                         onClick={() => setShowIntentSelector(true)}
-                       >
-                         Change
-                       </button>
-                     </div>
-                     <div className="space-y-2">
-                       <Label htmlFor="signup-email">Email</Label>
-                       <Input
-                         id="signup-email"
-                         type="email"
-                         placeholder="you@example.com"
-                         value={email}
-                         onChange={(e) => setEmail(e.target.value)}
-                         required
-                         className="h-11"
-                       />
-                     </div>
-                     <div className="space-y-2">
-                       <Label htmlFor="signup-phone">Phone number</Label>
-                       <Input
-                         id="signup-phone"
-                         type="tel"
-                         placeholder="+34 XXX XXX XXX"
-                         value={phone}
-                         onChange={(e) => setPhone(e.target.value)}
-                         className="h-11"
-                       />
-                       <p className="text-xs text-muted-foreground">
-                         Optional — for faster communication via WhatsApp
-                       </p>
-                     </div>
-                     <div className="space-y-2">
-                       <Label htmlFor="signup-password">Password</Label>
-                       <Input
-                         id="signup-password"
-                         type="password"
-                         placeholder="••••••••"
-                         value={password}
-                         onChange={(e) => setPassword(e.target.value)}
-                         required
-                         minLength={6}
-                         className="h-11"
-                       />
-                       <p className="text-xs text-muted-foreground">
-                         At least 6 characters
-                       </p>
-                     </div>
-                     <div className="flex gap-3">
-                       <Button
-                         type="button"
-                         variant="outline"
-                         onClick={() => setShowIntentSelector(true)}
-                       >
-                         <ArrowLeft className="mr-2 h-4 w-4" />
-                         Back
-                       </Button>
-                       <Button type="submit" className="flex-1" disabled={isLoading}>
-                         {isLoading ? (
-                           <>
-                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                             Creating account...
-                           </>
-                         ) : (
-                           'Create Account'
-                         )}
-                       </Button>
-                     </div>
-                   </form>
-                 )}
-               </TabsContent>
+              {/* SIGN UP */}
+              <TabsContent value="signup">
+                {showIntentSelector ? (
+                  <div className="space-y-6">
+                    <IntentSelector value={selectedIntent} onChange={handleIntentSelect} />
+                    <Button
+                      type="button"
+                      className="w-full"
+                      disabled={!selectedIntent}
+                      onClick={handleIntentContinue}
+                    >
+                      {t('signUp.continue')}
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        {selectedIntent === 'client' && `❓ ${intentBadgeText}`}
+                        {selectedIntent === 'professional' && `💼 ${intentBadgeText}`}
+                        {selectedIntent === 'both' && `↔️ ${intentBadgeText}`}
+                      </span>
+                      <button
+                        type="button"
+                        className="ml-2 text-xs underline hover:text-foreground"
+                        onClick={() => setShowIntentSelector(true)}
+                      >
+                        {t('signUp.intentBadge.change')}
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">{t('form.email.label')}</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder={t('form.email.placeholder')}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="h-11"
+                        autoComplete="email"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-phone">{t('signUp.phone.label')}</Label>
+                      <Input
+                        id="signup-phone"
+                        type="tel"
+                        placeholder={t('signUp.phone.placeholder')}
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="h-11"
+                        autoComplete="tel"
+                      />
+                      <p className="text-xs text-muted-foreground">{t('signUp.phone.hint')}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">{t('form.password.label')}</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder={t('form.password.placeholder')}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        className="h-11"
+                        autoComplete="new-password"
+                      />
+                      <p className="text-xs text-muted-foreground">{t('signUp.passwordHint')}</p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowIntentSelector(true)}
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        {t('signUp.back')}
+                      </Button>
+                      <Button type="submit" className="flex-1" disabled={isLoading}>
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t('signUp.loading')}
+                          </>
+                        ) : (
+                          t('signUp.button')
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
@@ -306,17 +325,17 @@ const Auth = () => {
         {/* Trust signal */}
         <div className="flex items-center justify-center gap-2 mt-6 text-sm text-muted-foreground">
           <Shield className="h-4 w-4" />
-          <span>Used by verified trades across Ibiza</span>
+          <span>{t('trust')}</span>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-4">
-          By continuing, you agree to our{' '}
+          {t('legal.prefix')}{' '}
           <Link to="/terms" className="underline hover:text-foreground">
-            Terms of Service
+            {t('legal.terms')}
           </Link>
-          {' '}and{' '}
+          {' '}{t('legal.and')}{' '}
           <Link to="/privacy" className="underline hover:text-foreground">
-            Privacy Policy
+            {t('legal.privacy')}
           </Link>
         </p>
       </div>

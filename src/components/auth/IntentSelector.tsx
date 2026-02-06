@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Hammer, RefreshCw, Check } from 'lucide-react';
+import { HelpCircle, Briefcase, ArrowLeftRight, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AuthHeroVisual } from './AuthHeroVisual';
 
@@ -8,39 +9,12 @@ export type UserIntent = 'client' | 'professional' | 'both';
 
 interface IntentOption {
   value: UserIntent;
-  icon: typeof Search;
-  titleKey: string;
-  descriptionKey: string;
+  icon: typeof HelpCircle;
+  title: string;
+  description: string;
   gradient: string;
   accentClass: string;
 }
-
-const intentOptions: IntentOption[] = [
-  {
-    value: 'client',
-    icon: Search,
-    titleKey: 'intent.client.title',
-    descriptionKey: 'intent.client.description',
-    gradient: 'bg-gradient-steel',
-    accentClass: 'text-primary',
-  },
-  {
-    value: 'professional',
-    icon: Hammer,
-    titleKey: 'intent.professional.title',
-    descriptionKey: 'intent.professional.description',
-    gradient: 'bg-gradient-clay',
-    accentClass: 'text-accent',
-  },
-  {
-    value: 'both',
-    icon: RefreshCw,
-    titleKey: 'intent.both.title',
-    descriptionKey: 'intent.both.description',
-    gradient: 'bg-gradient-steel',
-    accentClass: 'text-primary',
-  },
-];
 
 interface IntentSelectorProps {
   value: UserIntent | null;
@@ -50,6 +24,36 @@ interface IntentSelectorProps {
 export function IntentSelector({ value, onChange }: IntentSelectorProps) {
   const { t } = useTranslation('auth');
 
+  const intentOptions: IntentOption[] = useMemo(
+    () => [
+      {
+        value: 'client',
+        icon: HelpCircle,
+        title: t('intent.options.client.title'),
+        description: t('intent.options.client.description'),
+        gradient: 'bg-gradient-steel',
+        accentClass: 'text-primary',
+      },
+      {
+        value: 'professional',
+        icon: Briefcase,
+        title: t('intent.options.professional.title'),
+        description: t('intent.options.professional.description'),
+        gradient: 'bg-gradient-clay',
+        accentClass: 'text-accent',
+      },
+      {
+        value: 'both',
+        icon: ArrowLeftRight,
+        title: t('intent.options.both.title'),
+        description: t('intent.options.both.description'),
+        gradient: 'bg-gradient-steel',
+        accentClass: 'text-primary',
+      },
+    ],
+    [t]
+  );
+
   return (
     <div className="space-y-5">
       {/* Welcome visual - warm Mediterranean moment */}
@@ -58,10 +62,10 @@ export function IntentSelector({ value, onChange }: IntentSelectorProps) {
       {/* Expressive header */}
       <div className="text-center space-y-2">
         <h3 className="font-display text-xl font-semibold text-foreground">
-          {t('intent.header')}
+          {t('intent.title')}
         </h3>
         <p className="text-muted-foreground">
-          {t('intent.subheader')}
+          {t('intent.subtitle')}
         </p>
       </div>
 
@@ -115,10 +119,10 @@ export function IntentSelector({ value, onChange }: IntentSelectorProps) {
                       isSelected && option.accentClass
                     )}
                   >
-                    {t(option.titleKey)}
+                    {option.title}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {t(option.descriptionKey)}
+                    {option.description}
                   </p>
                 </div>
 
