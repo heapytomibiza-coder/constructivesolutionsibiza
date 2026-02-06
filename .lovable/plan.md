@@ -1,56 +1,98 @@
 
-# Two Lanes → One Hub Navigation Architecture
 
-## Overview
+# Transform Builder Onboarding: "Select Services" → "Unlock Jobs"
 
-Transform the route registry and navigation system to clearly separate **Hiring** (Client) and **Working** (Professional) pathways while showing where they **meet** in a **Shared Hub** (Messages, Settings, Community). This creates visual clarity without adding borders - just clear mental models.
+## The Core Problem
+
+Current builder service setup feels like **admin** - filling out a form so the platform works. The language ("Select Category", "Check all services you offer") reinforces this.
+
+**Current flow:**
+```
+Category → Subcategory → Micro → Preferences → Done
+"Please configure your profile"
+```
+
+**Target flow:**
+```
+Job Types → Unlock → Preferences → See Matches
+"Here's what you can earn - claim it"
+```
+
+The goal: **Every tap should feel like unlocking money, not filling forms.**
 
 ---
 
-## Current State Analysis
+## Implementation Strategy
 
-| Component | Issue |
-|-----------|-------|
-| `rules.ts` | Only has `AccessRule`, no concept of "lane" or "pathway" |
-| `registry.ts` | Routes grouped by access, not by user journey |
-| `match.ts` | Basic path matching, no lane helpers |
-| `PublicNav.tsx` | Hardcoded links, no role-aware sections |
-| `MobileNav.tsx` | Hardcoded links, no section headings |
-| `RoleSwitcher.tsx` | Uses hardcoded labels ("Client"/"Professional") instead of i18n |
+### Phase 1: Language & Framing Overhaul
 
----
+| Current Copy | New Copy |
+|-------------|----------|
+| "Set Up Your Services" | "Unlock Your Job Types" |
+| "Select services you offer" | "Choose which jobs you want to receive" |
+| "Check all services you offer" | "Unlock job types that match your skills" |
+| "Select Category" | "Browse by trade" |
+| "Add Services" | "Unlock More" |
+| "Continue to Preferences" | "Set Your Priorities" |
+| "Add X Service(s)" | "Unlock X Job Type(s)" |
+| "Complete Setup" | "Start Receiving Matches" |
 
-## Solution Architecture
+### Phase 2: Show Job Intelligence Per Micro
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                     PUBLIC DISCOVERY                         │
-│      Home • Services • Jobs • Professionals • How it Works  │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       PATHWAY FORK                          │
-│                 (Intent Selector at Auth)                   │
-│                                                             │
-│    ┌─────────────────┐           ┌─────────────────┐       │
-│    │   HIRING LANE   │           │  WORKING LANE   │       │
-│    │    (Client)     │           │ (Professional)  │       │
-│    │                 │           │                 │       │
-│    │  • Post a Job   │           │  • Dashboard    │       │
-│    │  • My Dashboard │           │  • Job Feed     │       │
-│    └────────┬────────┘           └────────┬────────┘       │
-│             │                             │                 │
-│             └──────────────┬──────────────┘                 │
-│                            ▼                                │
-│    ┌─────────────────────────────────────────────────────┐ │
-│    │                   SHARED HUB                         │ │
-│    │                                                      │ │
-│    │  Messages • Settings • Community • Profile           │ │
-│    │                                                      │ │
-│    │  (Same systems, role-aware content)                  │ │
-│    └─────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+For each micro in the selection list, show **what the builder is actually unlocking**:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ ☐  Tap Replacement                                      │
+│     ─────────────────────────────────────────────────── │
+│     Client provides: photos, location, access, urgency  │
+│     💼 3 open jobs  •  ⚡ Usually ASAP                   │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│ ☐  Bathroom Fitting                                     │
+│     ─────────────────────────────────────────────────── │
+│     Client provides: room size, fixtures, style prefs   │
+│     💼 7 open jobs  •  📅 Usually flexible timeline     │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Data sources:**
+- **Open jobs count**: Live query from `jobs` table filtered by micro_slug
+- **Client provides**: From question pack metadata (already exists)
+- **Timing pattern**: Aggregated from jobs `start_timing` column
+
+### Phase 3: Recommended Job Types
+
+Add a "Recommended for you" section at the top of the micro selection:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  ⭐ RECOMMENDED FOR PLUMBERS                            │
+│                                                         │
+│  Based on active demand in Ibiza:                       │
+│  • Tap Replacement (8 jobs waiting)                     │
+│  • Leak Detection & Repair (5 jobs waiting)             │
+│  • Emergency Call-Out (4 jobs waiting)                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Logic:**
+1. Query jobs by subcategory for the last 30 days
+2. Count per micro_slug
+3. Show top 3-5 with highest demand
+
+### Phase 4: Unlock Progress Indicator
+
+Replace generic progress bar with job-focused messaging:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🔓 2 of 5 job types unlocked                           │
+│  ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
+│                                                         │
+│  Unlock at least 5 to start receiving matched leads     │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -59,258 +101,251 @@ Transform the route registry and navigation system to clearly separate **Hiring*
 
 | File | Action | Purpose |
 |------|--------|---------|
-| `src/app/routes/rules.ts` | **Modify** | Add `RouteLane` and `NavSection` types |
-| `src/app/routes/registry.ts` | **Modify** | Add `lane` and `nav` metadata to routes |
-| `src/app/routes/match.ts` | **Modify** | Add `getLaneForPath()` and `getNavRoutes()` helpers |
-| `src/app/routes/index.ts` | **Modify** | Export new types and helpers |
-| `src/components/layout/LaneHeader.tsx` | **Create** | Mode indicator pill for key pages |
-| `src/components/layout/MobileNav.tsx` | **Modify** | Section-based menu with headings |
-| `src/components/layout/RoleSwitcher.tsx` | **Modify** | Use i18n for labels |
-| `public/locales/en/common.json` | **Modify** | Add lane/section translation keys |
-| `public/locales/es/common.json` | **Modify** | Add Spanish lane/section translations |
+| `public/locales/en/onboarding.json` | **Create** | New namespace for onboarding copy |
+| `public/locales/es/onboarding.json` | **Create** | Spanish translations |
+| `src/i18n/namespaces.ts` | **Modify** | Add 'onboarding' namespace |
+| `src/pages/professional/ProfessionalServiceSetup.tsx` | **Modify** | Core UI transformation |
+| `src/pages/professional/hooks/useJobTypeStats.ts` | **Create** | Query for open jobs per micro |
+| `src/pages/professional/hooks/useRecommendedJobTypes.ts` | **Create** | Query for demand-based recommendations |
+| `src/pages/professional/components/JobTypeCard.tsx` | **Create** | New card component showing micro + job intelligence |
+| `src/pages/professional/components/UnlockProgress.tsx` | **Create** | Progress indicator focused on job unlocking |
+| `src/pages/professional/components/RecommendedJobTypes.tsx` | **Create** | Recommended section component |
 
 ---
 
-## Implementation Details
+## Technical Implementation
 
-### 1. Update Route Types (`rules.ts`)
-
-Add lane and navigation metadata types without changing existing access rules:
+### 1. Job Type Stats Query
 
 ```typescript
-// NEW: Visual pathway map
-export type RouteLane = 'public' | 'auth' | 'client' | 'professional' | 'shared';
-
-// NEW: Navigation sections for grouped menus
-export type NavSection = 'public' | 'hiring' | 'working' | 'shared' | 'account';
-
-export interface RouteConfig {
-  path: string;
-  access: AccessRule;
-  redirectTo?: string;
-  
-  // NEW: Pathway mapping
-  lane?: RouteLane;
-  
-  // NEW: Optional nav metadata (if present, route appears in auto-generated nav)
-  nav?: {
-    section: NavSection;
-    labelKey: string;     // i18n key (e.g., 'nav.postJob')
-    order?: number;       // Sort order within section
-  };
+// src/pages/professional/hooks/useJobTypeStats.ts
+export function useJobTypeStats(microSlugs: string[]) {
+  return useQuery({
+    queryKey: ['job_type_stats', microSlugs],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('jobs')
+        .select('micro_slug, start_timing')
+        .in('micro_slug', microSlugs)
+        .eq('status', 'open')
+        .gte('created_at', thirtyDaysAgo());
+      
+      // Aggregate: count per micro, most common timing
+      return aggregateStats(data);
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 }
 ```
 
-### 2. Annotate Routes with Lanes (`registry.ts`)
+### 2. Question Pack Metadata
 
-Add `lane` and `nav` properties to key routes:
-
-```typescript
-// Public discovery
-{ path: '/', access: 'public', lane: 'public', nav: { section: 'public', labelKey: 'nav.home', order: 1 } },
-{ path: '/services', access: 'public', lane: 'public', nav: { section: 'public', labelKey: 'nav.services', order: 2 } },
-
-// Hiring lane
-{ path: '/post', access: 'public', lane: 'client', nav: { section: 'hiring', labelKey: 'nav.postJob', order: 1 } },
-{ path: '/dashboard/client', access: 'role:client', lane: 'client', nav: { section: 'hiring', labelKey: 'nav.dashboard', order: 2 } },
-
-// Working lane  
-{ path: '/dashboard/pro', access: 'role:professional', lane: 'professional', nav: { section: 'working', labelKey: 'nav.dashboard', order: 1 } },
-
-// Shared hub
-{ path: '/messages', access: 'auth', lane: 'shared', nav: { section: 'shared', labelKey: 'nav.messages', order: 1 } },
-{ path: '/settings', access: 'auth', lane: 'shared', nav: { section: 'account', labelKey: 'nav.settings', order: 99 } },
-{ path: '/forum', access: 'public', lane: 'public', nav: { section: 'shared', labelKey: 'nav.community', order: 50 } },
-```
-
-### 3. Add Route Helpers (`match.ts`)
+The existing `question_packs` table already contains metadata we can use:
 
 ```typescript
-// Cache for compiled regexes
-const regexCache = new Map<string, RegExp>();
-
-// Get current lane for any path
-export function getLaneForPath(path: string): RouteLane {
-  return getRouteConfig(path)?.lane ?? 'public';
-}
-
-// Get all nav-enabled routes (for auto-building menus)
-export function getNavRoutes(): RouteConfig[] {
-  return allRoutes
-    .filter((r) => r.nav)
-    .sort((a, b) => (a.nav!.order ?? 999) - (b.nav!.order ?? 999));
+// Extract "client provides" from pack questions
+function getClientProvides(pack: QuestionPack): string[] {
+  return pack.questions
+    .filter(q => q.required)
+    .map(q => q.label)
+    .slice(0, 4); // Top 4 required fields
 }
 ```
 
-### 4. Create LaneHeader Component
-
-A small persistent cue showing which mode the user is in:
+### 3. Job Type Card Component
 
 ```tsx
-// src/components/layout/LaneHeader.tsx
-export function LaneHeader() {
-  const { activeRole } = useSession();
-  const { t } = useTranslation();
-  
-  const isHiring = activeRole === 'client';
-  const label = isHiring ? t('lanes.hiring') : t('lanes.working');
-  
+// src/pages/professional/components/JobTypeCard.tsx
+interface JobTypeCardProps {
+  micro: MicroCategory;
+  stats?: { openJobs: number; commonTiming: string };
+  clientProvides?: string[];
+  isSelected: boolean;
+  isExisting: boolean;
+  onToggle: (checked: boolean) => void;
+}
+
+export function JobTypeCard({ micro, stats, clientProvides, isSelected, isExisting, onToggle }: JobTypeCardProps) {
   return (
-    <div className="bg-muted/50 py-1.5 border-b border-border/50">
-      <div className="container flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">
-          {label}
-        </span>
-        <RoleSwitcher className="h-7 text-xs" />
+    <label className="...">
+      <Checkbox checked={isSelected || isExisting} disabled={isExisting} onCheckedChange={onToggle} />
+      
+      <div className="flex-1">
+        <span className="font-medium">{micro.name}</span>
+        
+        {/* Client provides preview */}
+        {clientProvides && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Client provides: {clientProvides.join(', ')}
+          </p>
+        )}
+        
+        {/* Job stats */}
+        {stats && (
+          <div className="flex items-center gap-3 mt-1 text-xs">
+            <span className="text-primary">
+              <Briefcase className="h-3 w-3 inline mr-1" />
+              {stats.openJobs} open jobs
+            </span>
+            <span className="text-muted-foreground">
+              {formatTiming(stats.commonTiming)}
+            </span>
+          </div>
+        )}
       </div>
-    </div>
+      
+      {isExisting && (
+        <Badge variant="secondary">
+          <CheckCircle2 className="h-3 w-3 mr-1" />
+          Unlocked
+        </Badge>
+      )}
+    </label>
   );
 }
 ```
 
-### 5. Update MobileNav with Section Headings
+### 4. I18n Keys Structure
 
-Transform flat link list into grouped sections:
-
-```tsx
-// Section headings make pathways clear
-<p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-  {t('lanes.hiring')}
-</p>
-{/* Post Job, Client Dashboard */}
-
-<p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-  {t('lanes.working')}
-</p>
-{/* Pro Dashboard */}
-
-<p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-  {t('lanes.shared')}
-</p>
-{/* Messages, Community, Settings */}
-```
-
-### 6. Internationalize RoleSwitcher
-
-Replace hardcoded labels with i18n:
-
-```typescript
-const roleLabels: Record<UserRole, string> = {
-  client: t('roles.client'),        // "Hiring" / "Contratando"
-  professional: t('roles.professional'), // "Working" / "Trabajando"
-  admin: t('roles.admin'),
-};
-```
-
-### 7. Add Translation Keys
-
-**English (`en/common.json`):**
 ```json
+// public/locales/en/onboarding.json
 {
-  "nav": {
-    "home": "Home",
-    "settings": "Settings"
+  "title": "Unlock Your Job Types",
+  "subtitle": "Choose which jobs you want to receive. The more specific, the better your matches.",
+  "trustLine": "Better matching = more quality leads you actually want",
+  
+  "progress": {
+    "unlocked": "{{count}} of {{min}} job types unlocked",
+    "hint": "Unlock at least {{min}} to start receiving matched leads",
+    "ready": "You're ready to receive matches!"
   },
-  "lanes": {
-    "hiring": "Hiring Mode",
-    "working": "Working Mode",
-    "shared": "Shared"
+  
+  "browse": {
+    "yourTypes": "Your Job Types",
+    "empty": "No job types unlocked yet",
+    "emptyHint": "Unlock your first job type to get started",
+    "unlockMore": "Unlock More"
   },
-  "roles": {
-    "client": "Hiring",
-    "professional": "Working",
-    "admin": "Admin"
-  }
-}
-```
-
-**Spanish (`es/common.json`):**
-```json
-{
-  "nav": {
-    "home": "Inicio",
-    "settings": "Ajustes"
+  
+  "steps": {
+    "browseByTrade": "Browse by trade",
+    "selectType": "Select service type",
+    "unlockTypes": "Unlock job types",
+    "setPriorities": "Set your priorities"
   },
-  "lanes": {
-    "hiring": "Modo Contratación",
-    "working": "Modo Trabajo",
-    "shared": "Compartido"
+  
+  "micro": {
+    "clientProvides": "Client provides:",
+    "openJobs": "{{count}} open jobs",
+    "timingAsap": "Usually ASAP",
+    "timingFlexible": "Usually flexible",
+    "timingScheduled": "Usually scheduled"
   },
-  "roles": {
-    "client": "Contratando",
-    "professional": "Trabajando",
-    "admin": "Admin"
+  
+  "recommended": {
+    "title": "Recommended for {{trade}}",
+    "subtitle": "Based on active demand in Ibiza",
+    "jobsWaiting": "{{count}} jobs waiting"
+  },
+  
+  "actions": {
+    "selectAll": "Select All",
+    "clear": "Clear",
+    "continue": "Set Priorities",
+    "unlock": "Unlock {{count}} Job Type",
+    "unlock_plural": "Unlock {{count}} Job Types",
+    "complete": "Start Receiving Matches"
+  },
+  
+  "preferences": {
+    "title": "Set Your Priorities",
+    "subtitle": "Tell us which jobs you love vs prefer to avoid",
+    "setAllTo": "Set all to:",
+    "love": "Love it",
+    "like": "Like",
+    "neutral": "Neutral",
+    "avoid": "Avoid"
   }
 }
 ```
 
 ---
 
-## Navigation Rendering Logic
+## Visual Flow Comparison
 
-### Desktop Nav (PublicNav)
+**Before:**
+```
+┌─────────────────────────────────────────────┐
+│ Set Up Your Services                         │
+│ Select services you offer                    │
+│                                              │
+│ ☐ Tap Replacement                           │
+│ ☐ Bathroom Fitting                          │
+│ ☐ Emergency Plumbing                        │
+│                                              │
+│              [Continue to Preferences]       │
+└─────────────────────────────────────────────┘
+```
 
-| Condition | Links Shown |
-|-----------|-------------|
-| Not authenticated | Public links + Sign In + Post Job |
-| Authenticated as Client only | Public + Hiring section + Shared |
-| Authenticated as Pro only | Public + Working section + Shared |
-| Authenticated with both roles | Public + Active lane section + Shared + RoleSwitcher |
-
-### Mobile Nav (MobileNav)
-
-Render sections with headings based on user roles:
-
-```text
-DISCOVER
-  Home
-  Services
-  Jobs
-  Professionals
-  How it Works
-
-─────────────────────
-
-HIRING              ← Only if has client role
-  Post a Job
-  Dashboard
-
-WORKING             ← Only if has professional role
-  Pro Dashboard
-
-─────────────────────
-
-SHARED
-  Messages
-  Community
-  Settings
-
-─────────────────────
-
-Sign out
+**After:**
+```
+┌─────────────────────────────────────────────┐
+│ 🔓 Unlock Your Job Types                     │
+│ Choose which jobs you want to receive        │
+│                                              │
+│ ┌─────────────────────────────────────────┐ │
+│ │ ⭐ RECOMMENDED FOR PLUMBERS             │ │
+│ │ • Tap Replacement (8 jobs waiting)      │ │
+│ │ • Leak Detection (5 jobs waiting)       │ │
+│ └─────────────────────────────────────────┘ │
+│                                              │
+│ ┌─────────────────────────────────────────┐ │
+│ │ ☐  Tap Replacement                      │ │
+│ │     Client provides: photos, location   │ │
+│ │     💼 8 open  •  ⚡ Usually ASAP        │ │
+│ └─────────────────────────────────────────┘ │
+│                                              │
+│ ┌─────────────────────────────────────────┐ │
+│ │ ☐  Bathroom Fitting                     │ │
+│ │     Client provides: room size, style   │ │
+│ │     💼 7 open  •  📅 Usually flexible   │ │
+│ └─────────────────────────────────────────┘ │
+│                                              │
+│ 🔓 0 of 5 unlocked                           │
+│ ████████████████████████████████████░░░░░░░ │
+│                                              │
+│              [Set Priorities →]              │
+└─────────────────────────────────────────────┘
 ```
 
 ---
 
-## Key Benefits
+## Alignment Payoff
 
-| Benefit | How Achieved |
-|---------|--------------|
-| **Clear pathways** | Lane metadata on routes + section headings in nav |
-| **Obvious convergence** | Shared section clearly labeled |
-| **No extra borders** | Spacing + headings, not lines |
-| **Role-aware UI** | Navigation adapts to user's roles |
-| **Maintainable** | Routes auto-derive nav from registry |
-| **i18n ready** | All labels use translation keys |
+| Before | After |
+|--------|-------|
+| "Fill in your services" | "Unlock jobs waiting for you" |
+| Abstract categories | Concrete job opportunities |
+| No feedback until later | Immediate value visibility |
+| Setup feels like admin | Setup feels like claiming money |
+| Builders skip preferences | Preferences = priority control |
+
+**The Rule Applied:**
+> "The system never asks for effort without immediately giving value back."
+
+Every micro now shows:
+1. What the builder unlocks (job type)
+2. What they'll receive (client provides)
+3. How much is waiting (open jobs count)
+4. When it typically happens (timing pattern)
 
 ---
 
-## Testing Checklist
+## Implementation Order
 
-1. **Public visitor**: Sees public links only, no lane sections
-2. **Client only**: Sees Hiring section + Shared section
-3. **Professional only**: Sees Working section + Shared section
-4. **Dual-role user**: Sees RoleSwitcher, active lane section changes with role
-5. **Mobile menu**: Section headings render correctly
-6. **Language switch**: All lane labels translate properly
-7. **LaneHeader**: Shows correct mode on dashboard pages
+1. **Create i18n namespace** - `onboarding.json` files
+2. **Create query hooks** - `useJobTypeStats.ts`, `useRecommendedJobTypes.ts`
+3. **Create components** - `JobTypeCard`, `UnlockProgress`, `RecommendedJobTypes`
+4. **Update main page** - Transform `ProfessionalServiceSetup.tsx`
+5. **Test with real data** - Verify stats show correctly for active micros
+
