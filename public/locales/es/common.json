@@ -3,6 +3,7 @@
     "hello": "Hola (ES)"
   },
   "nav": {
+    "home": "Inicio",
     "services": "Servicios",
     "jobs": "Trabajos",
     "professionals": "Profesionales",
@@ -13,7 +14,20 @@
     "signOut": "Cerrar sesión",
     "dashboard": "Panel",
     "messages": "Mensajes",
-    "postJob": "Publicar trabajo"
+    "postJob": "Publicar trabajo",
+    "settings": "Ajustes"
+  },
+  "lanes": {
+    "hiring": "Modo Contratación",
+    "working": "Modo Trabajo",
+    "shared": "Compartido",
+    "switchMode": "Cambiar modo",
+    "selectMode": "Seleccionar modo"
+  },
+  "roles": {
+    "client": "Contratando",
+    "professional": "Trabajando",
+    "admin": "Admin"
   },
   "hero": {
     "title": "Encuentra Profesionales de Construcción de Confianza",

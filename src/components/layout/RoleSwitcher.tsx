@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/contexts/SessionContext';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
@@ -10,12 +11,6 @@ import {
 } from '@/components/ui/select';
 import { User, Briefcase } from 'lucide-react';
 
-const roleLabels: Record<UserRole, string> = {
-  client: 'Client',
-  professional: 'Professional',
-  admin: 'Admin',
-};
-
 const roleIcons: Record<UserRole, React.ReactNode> = {
   client: <User className="h-4 w-4" />,
   professional: <Briefcase className="h-4 w-4" />,
@@ -27,6 +22,7 @@ interface RoleSwitcherProps {
 }
 
 export function RoleSwitcher({ className }: RoleSwitcherProps) {
+  const { t } = useTranslation();
   const { roles, activeRole, switchRole } = useSession();
   const queryClient = useQueryClient();
 
@@ -34,6 +30,20 @@ export function RoleSwitcher({ className }: RoleSwitcherProps) {
   if (roles.length <= 1) {
     return null;
   }
+
+  // i18n labels for roles
+  const getRoleLabel = (role: UserRole): string => {
+    switch (role) {
+      case 'client':
+        return t('roles.client');
+      case 'professional':
+        return t('roles.professional');
+      case 'admin':
+        return t('roles.admin');
+      default:
+        return role;
+    }
+  };
 
   const handleRoleChange = async (newRole: string) => {
     if (newRole === activeRole) return;
@@ -56,7 +66,7 @@ export function RoleSwitcher({ className }: RoleSwitcherProps) {
       <SelectTrigger className={className}>
         <div className="flex items-center gap-2">
           {roleIcons[activeRole]}
-          <SelectValue placeholder="Select role" />
+          <SelectValue placeholder={t('lanes.selectMode')} />
         </div>
       </SelectTrigger>
       <SelectContent>
@@ -64,7 +74,7 @@ export function RoleSwitcher({ className }: RoleSwitcherProps) {
           <SelectItem key={role} value={role}>
             <div className="flex items-center gap-2">
               {roleIcons[role]}
-              {roleLabels[role]}
+              {getRoleLabel(role)}
             </div>
           </SelectItem>
         ))}
