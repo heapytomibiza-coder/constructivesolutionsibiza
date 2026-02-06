@@ -1,6 +1,6 @@
- /**
-  * i18n namespace constants for type-safe translations
-  */
+/**
+ * i18n namespace constants for type-safe translations
+ */
 export const NS = {
   common: "common",
   auth: "auth",
@@ -8,6 +8,7 @@ export const NS = {
   forum: "forum",
   dashboard: "dashboard",
   wizard: "wizard",
+  onboarding: "onboarding",
 } as const;
- 
- export type Namespace = (typeof NS)[keyof typeof NS];
+
+export type Namespace = (typeof NS)[keyof typeof NS];
