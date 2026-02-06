@@ -98,8 +98,16 @@
     "ctaDesc": "Post your job for free and receive quotes from trusted local professionals.",
     "ctaButton": "Post a Job Now"
   },
-  "serviceCategory": {
-    "selectSubcategory": "Select a Subcategory",
+"services": {
+  "title": "Our Services",
+  "subtitle": "Find trusted professionals across all construction and property services",
+  "trustBadge": "Verified trades • Ibiza-based professionals",
+  "viewServices": "View services",
+  "cantFind": "Can't find what you're looking for?",
+  "postCustomJob": "Post a Custom Job"
+},
+"serviceCategory": {
+  "selectSubcategory": "Select a Subcategory",
     "selectSubcategoryDesc": "Choose a specific service type to get started",
     "backToServices": "Back to Services",
     "categoryNotFound": "Category Not Found",
