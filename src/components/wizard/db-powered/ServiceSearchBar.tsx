@@ -122,18 +122,26 @@ function determineDepth(
   }
 }
 
-// Depth display config
-const DEPTH_CONFIG: Record<SearchDepth, { icon: React.ReactNode; label: string; color: string }> = {
-  category: { icon: <Folder className="h-3 w-3" />, label: 'Category', color: 'bg-blue-500/10 text-blue-600' },
-  subcategory: { icon: <Tag className="h-3 w-3" />, label: 'Service', color: 'bg-purple-500/10 text-purple-600' },
-  micro: { icon: <Wrench className="h-3 w-3" />, label: 'Task', color: 'bg-green-500/10 text-green-600' },
-  questions: { icon: <FileText className="h-3 w-3" />, label: 'Job Request', color: 'bg-primary/10 text-primary' },
+// Depth display config - keys for translation
+const DEPTH_KEYS: Record<SearchDepth, { icon: React.ReactNode; labelKey: string }> = {
+  category: { icon: <Folder className="h-3 w-3" />, labelKey: 'search.depthCategory' },
+  subcategory: { icon: <Tag className="h-3 w-3" />, labelKey: 'search.depthService' },
+  micro: { icon: <Wrench className="h-3 w-3" />, labelKey: 'search.depthTask' },
+  questions: { icon: <FileText className="h-3 w-3" />, labelKey: 'search.depthJobRequest' },
+};
+
+const DEPTH_COLORS: Record<SearchDepth, string> = {
+  category: 'bg-blue-500/10 text-blue-600',
+  subcategory: 'bg-purple-500/10 text-purple-600',
+  micro: 'bg-green-500/10 text-green-600',
+  questions: 'bg-primary/10 text-primary',
 };
 
 export function ServiceSearchBar({ 
   onSelect, 
-  placeholder = "Search for a service (e.g., underfloor heating, need painter ASAP)..." 
+  placeholder
 }: ServiceSearchBarProps) {
+  const { t } = useTranslation('wizard');
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
 
