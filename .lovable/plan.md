@@ -1,388 +1,240 @@
 
 
-# Full-Stack Technical Audit Report
-## CS Ibiza V2 Platform - Launch Readiness Assessment
-
----
+# Security Hardening + Auth Flow + Assignment Guard Fix
 
 ## Executive Summary
 
-**Overall Status: Launch-Ready Core, Needs Polish**
+Based on the detailed review of your feedback and verification of the actual codebase, I've identified 4 critical issues to fix:
 
-The platform has solid architectural foundations with clean separation of concerns, but needs specific wiring and i18n completion before launch.
-
-| Area | Status | Score |
-|------|--------|-------|
-| Database Schema | ✅ Complete | 95% |
-| RLS Security | ✅ Robust | 90% |
-| Core Flows | ✅ Working | 85% |
-| i18n Coverage | ⚠️ Partial | 40% |
-| Question Packs | ✅ Excellent | 99% |
-| Professional Matching | ⚠️ Wired, Untested | 70% |
+1. **Auth Callback loses wizard state** - redirects to dashboard, not back to wizard
+2. **Assignment action doesn't verify pro is a conversation participant** - security gap
+3. **RLS policies use FOR ALL** - should be split per command (best practice)
+4. **View column audit** - need to verify no sensitive columns exposed
 
 ---
 
-## 1. System Map
+## Current State (Verified)
 
-### Routes → Features → Tables
-
-| Route | Feature | Tables/Views Touched | Auth Level |
-|-------|---------|---------------------|------------|
-| `/` | Landing | None | Public |
-| `/services` | Category browse | `service_categories` | Public |
-| `/services/:slug` | Category detail + CTA | `service_categories`, `service_subcategories` | Public |
-| `/jobs` | Job board | `jobs_board` view | Public |
-| `/professionals` | Pro directory | `professional_profiles`, `professional_matching_scores` | Public |
-| `/professionals/:id` | Pro profile | `public_professional_details` view | Public |
-| `/post` | Job wizard | `jobs`, `question_packs`, `conversations` | Public (auth at submit) |
-| `/auth` | Sign in/up | `user_roles`, `profiles`, `professional_profiles` | Public |
-| `/dashboard/client` | Client dashboard | `jobs`, `conversations` | role:client |
-| `/dashboard/pro` | Pro dashboard | `jobs`, `matched_jobs_for_professional`, `professional_services` | role:professional |
-| `/messages` | Messaging | `conversations`, `messages` | auth |
-| `/professional/service-setup` | Pro capability builder | `professional_services`, `professional_micro_preferences` | role:professional |
-| `/forum` | Community forum | `forum_categories`, `forum_posts`, `forum_replies` | Public (auth to post) |
-
-### Database Tables (17 total)
-
-| Table | Purpose | RLS Policies |
-|-------|---------|--------------|
-| `jobs` | Job posts | 5 policies ✅ |
-| `conversations` | Messaging threads | 3 policies ✅ |
-| `messages` | Message content | 2 policies ✅ |
-| `job_reviews` | Ratings & reviews | 3 policies ✅ |
-| `professional_profiles` | Pro public profiles | 4 policies ✅ |
-| `professional_services` | Pro service offerings | 1 policy ⚠️ |
-| `professional_micro_preferences` | Pro preferences (love/avoid) | 1 policy ⚠️ |
-| `professional_micro_stats` | Pro performance stats | 1 policy ⚠️ |
-| `user_roles` | Role assignments | 3 policies ✅ |
-| `profiles` | Basic user info | 3 policies ✅ |
-| `question_packs` | Dynamic questions | 1 policy ✅ |
-| `service_categories/subcategories/micro_categories` | Taxonomy | 1 policy each ✅ |
-| `forum_*` | Community forum | 4 policies each ✅ |
-
-### Views (7 total)
-
-| View | Purpose | Security |
-|------|---------|----------|
-| `jobs_board` | Public job listing | `security_invoker = true` ✅ |
-| `job_details` | Full job for owner | `security_invoker = true` ✅ |
-| `matched_jobs_for_professional` | Pro-filtered feed | `security_invoker = true` ✅ |
-| `professional_matching_scores` | Ranking algorithm | `security_invoker = true` ✅ |
-| `public_professional_details` | Pro public profile | Public read ✅ |
-| `public_professionals_preview` | Pro directory cards | Public read ✅ |
-| `service_search_index` | Search optimization | Public read ✅ |
+| Component | Status | Issue |
+|-----------|--------|-------|
+| `increment_professional_micro_stats` RPC | SECURITY DEFINER | Safe - bypasses RLS correctly |
+| `professional_services` RLS | FOR ALL policy | Works but should be split |
+| `professional_micro_preferences` RLS | FOR ALL policy | Works but should be split |
+| `professional_micro_stats` RLS | SELECT only | Correct - RPC handles writes |
+| `jobs_board` view | Public columns only | Safe - no user_id exposed |
+| `job_details` view | Exposes `is_owner` boolean | Safe - boolean, not full user data |
+| `matched_jobs_for_professional` view | Uses `auth.uid()` filter | Safe |
+| `assignProfessional` action | Missing conversation check | Security gap |
+| `AuthCallback` | Redirects to dashboard | Loses wizard state |
 
 ---
 
-## 2. End-to-End Flow Verification
+## Implementation Plan
 
-### Flow A: Client Posts Job (Broadcast)
+### Part 1: Fix Auth Callback to Resume Wizard
 
-```text
-/post → Category → Subcategory → Micro → Questions → Logistics → Extras → Review
-         ↓                                                                    ↓
-   handleCategorySelect()                                           buildJobInsert()
-         ↓                                                                    ↓
-   Auto-advance to next step                                    INSERT INTO jobs
-         ↓                                                                    ↓
-   Single-click = auto-advance                              Clear draft, invalidate cache
-   Multi-select = Continue button                                             ↓
-                                                               Redirect to /jobs?highlight=<id>
+**Problem**: User fills wizard → auth checkpoint → sign in → redirected to `/dashboard/client` → wizard state lost
+
+**Solution**: Store intended redirect in sessionStorage, resume after auth
+
+**File: `src/pages/auth/AuthCallback.tsx`**
+
+```typescript
+const AuthCallback = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleCallback = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Auth callback error:', error);
+        navigate('/auth?error=callback_failed');
+        return;
+      }
+
+      if (session) {
+        // Check for pending redirect (e.g., from wizard auth checkpoint)
+        const pendingRedirect = sessionStorage.getItem('authRedirect');
+        sessionStorage.removeItem('authRedirect');
+        
+        if (pendingRedirect) {
+          navigate(pendingRedirect);
+        } else {
+          // Default based on role
+          navigate('/dashboard/client');
+        }
+      } else {
+        navigate('/auth');
+      }
+    };
+
+    handleCallback();
+  }, [navigate]);
+
+  // ... rest unchanged
+};
 ```
 
-**Status: ✅ Working**
-- Deep-linking works (`?category=<uuid>&subcategory=<uuid>`)
-- Draft recovery works (localStorage)
-- Auth checkpoint at submit works
-- Direct mode creates conversation via RPC
-
-### Flow B: Pro Receives & Responds
-
-```text
-/dashboard/pro → Matched Jobs list → Click job → View details → "Message" button
-                        ↓                                              ↓
-              matched_jobs_for_professional view            get_or_create_conversation RPC
-                        ↓                                              ↓
-              Filtered by professional_services               Creates/reuses thread
-                        ↓                                              ↓
-                   Real-time via Supabase                     Redirect to /messages/:id
-```
-
-**Status: ✅ Working**
-- proReady guard blocks unqualified pros
-- RPC prevents spoofing (uses `auth.uid()`)
-- Realtime subscriptions active
-
-### Flow C: Job Assignment & Completion
-
-```text
-Client Dashboard → Job Card → "Assign Professional" → Select Pro → "Mark Complete"
-        ↓                           ↓                       ↓              ↓
-   useClientStats()        assignProfessional()      Status→in_progress   completeJob()
-        ↓                           ↓                       ↓              ↓
-   Shows status badges       Updates job status       UI reflects     Status→completed
-        ↓                           ↓                       ↓              ↓
-   Real-time refresh        Only owner can assign    Only assigned pro  completed_at set
-                                                       can see details
-```
-
-**Status: ⚠️ Partially Working**
-- Assignment action exists and works
-- Completion action exists and works
-- **Gap: No UI to select which pro to assign** (need to pick from conversation participants)
-
-### Flow D: Review System
-
-```text
-Job completed → RatingModal shown → Submit rating → awardProStats() called
-       ↓                 ↓                 ↓                    ↓
-  status=completed   5-star picker     submitReview()    increment_professional_micro_stats RPC
-       ↓                 ↓                 ↓                    ↓
-  Triggers review    Comment optional  INSERT job_reviews   Updates verification_level
-       ↓                 ↓                 ↓                    ↓
-  PendingReviewsCard    visibility:     Unique constraint   unverified→progressing→verified→expert
-    prompts user        public/private   prevents duplicates
-```
-
-**Status: ✅ Working**
-- Two-way reviews (client→pro public, pro→client private)
-- Auto-verification wired to review submission
-- `awardProStats` calls RPC for each micro in job
-
----
-
-## 3. Architecture Audit
-
-### ✅ What's Good
-
-1. **Domain-Driven Structure**
-   - Clean separation: `queries/`, `actions/`, `hooks/`, `lib/`, `types.ts`
-   - Zod validators at domain boundary (`validators.ts`)
-   - Barrel exports via `index.ts`
-
-2. **Read/Write Separation**
-   - All reads in `queries/` (TanStack Query)
-   - All writes in `actions/` (mutations)
-   - Query keys centralized in `keys.ts`
-
-3. **Security Model**
-   - RLS on all tables
-   - Security-invoker views (no security definer issues)
-   - Pro-ready guard prevents unqualified marketplace actions
-   - Anti-spoofing: RPCs use `auth.uid()` not client params
-
-4. **Error Handling**
-   - `UserError` class for user-facing errors
-   - Actions map DB errors to friendly messages
-   - UI checks `isUserError()` for feedback
-
-5. **State Management**
-   - Session context with `useSessionSnapshot()`
-   - Wizard draft persistence in localStorage
-   - Optimistic updates where appropriate
-
-### ⚠️ Issues to Fix
-
-| Issue | Severity | Location | Fix |
-|-------|----------|----------|-----|
-| Professional_services has only 1 RLS policy | Medium | DB | Add INSERT/UPDATE/DELETE policies for owner |
-| Professional_micro_preferences has only 1 RLS policy | Medium | DB | Add INSERT/UPDATE/DELETE policies for owner |
-| Professional_micro_stats has only 1 RLS policy | Medium | DB | Add INSERT policy for RPC (service role) |
-| No UI to assign pro from conversations | Medium | ClientJobCard | Add dropdown of conversation participants |
-| Leaked password protection disabled | Low | Auth config | Enable in Supabase auth settings |
-| 4 micros missing question packs | Low | Seed scripts | Run audit + seed for missing slugs |
-
-### 📁 Folder Structure Assessment
-
-```text
-src/
-├── app/routes/          ✅ Clean - single source of truth
-├── components/
-│   ├── layout/          ✅ Reusable layout components
-│   ├── ui/              ✅ shadcn primitives
-│   └── wizard/          ✅ Canonical wizard modules
-├── contexts/            ✅ Session context
-├── domain/scope.ts      ✅ Platform branding config
-├── guard/               ✅ Centralized access control
-├── hooks/               ✅ Global hooks
-├── i18n/                ✅ Namespace config
-├── integrations/        ✅ Auto-generated types
-├── lib/                 ✅ Generic utilities
-├── pages/
-│   ├── jobs/            ✅ Full domain structure
-│   ├── messages/        ✅ Hooks + components
-│   ├── dashboard/       ✅ Hooks + components
-│   └── public/          ⚠️ Needs queries/ folder (rankedProfessionals moved there ✅)
-└── shared/lib/          ✅ UserError helper
+**Also update wizard submission** (wherever auth redirect happens):
+```typescript
+// Before redirecting to /auth for login
+sessionStorage.setItem('authRedirect', '/post?resume=true');
 ```
 
 ---
 
-## 4. i18n Assessment
+### Part 2: Add Conversation Participant Check to Assignment
 
-### Current State
+**Problem**: Current `assignProfessional` action verifies job ownership but not that the pro actually messaged about this job.
 
-| Namespace | EN Keys | ES Keys | Coverage |
-|-----------|---------|---------|----------|
-| `common` | 45 | 45 | ✅ 100% |
-| `auth` | ? | ? | Need audit |
-| `jobs` | 35 | 35 | ✅ 100% |
-| `forum` | ? | ? | Need audit |
-| `dashboard` | ? | ? | Need audit |
+**File: `src/pages/jobs/actions/assignProfessional.action.ts`**
 
-### Components Using i18n (6 files)
+Add after job ownership check:
 
-1. `PublicNav.tsx` - ✅ Uses `t()`
-2. `LanguageSwitcher.tsx` - ✅ Uses `i18n.changeLanguage`
-3. `I18nSmokeTest.tsx` - ✅ Debug component
-4. `JobBoardPage.tsx` - ✅ Uses namespaced translation
-5. `JobBoardHeroSection.tsx` - ✅ Uses namespaced translation
-6. `CompletionModal.tsx` - ✅ Uses namespaced translation
+```typescript
+// Verify the professional is a participant in a job conversation
+const { data: conversation, error: convError } = await supabase
+  .from('conversations')
+  .select('id')
+  .eq('job_id', jobId)
+  .eq('pro_id', professionalId)
+  .single();
 
-### Components NOT Using i18n (Critical Gaps)
+if (convError || !conversation) {
+  return { success: false, error: 'Professional has not messaged about this job' };
+}
+```
 
-| Component | Hardcoded Strings | Priority |
-|-----------|-------------------|----------|
-| `ClientDashboard.tsx` | "Dashboard", "Welcome back", "Post a Job", status labels | High |
-| `ProDashboard.tsx` | "Professional Dashboard", "Matched Jobs", action labels | High |
-| `CanonicalJobWizard.tsx` | Step titles, button labels, validation messages | High |
-| `RatingModal.tsx` | "Rate your experience", "Add a comment" | Medium |
-| `ProfessionalOnboarding.tsx` | "Complete Your Profile", step labels | Medium |
-| `Professionals.tsx` | "Browse Professionals", filter labels | Medium |
-| `ServiceCategory.tsx` | CTA copy, benefit bullets | Medium |
-
-### Recommended i18n Action Plan
-
-**Phase 1: High-Impact (feels "translated")**
-1. Add `wizard.json` namespace with step titles + buttons
-2. Add `dashboard.json` with stats labels + action buttons
-3. Add all button/action text to `common.buttons`
-
-**Phase 2: Content**
-1. All page titles and subtitles
-2. Empty states and error messages
-3. Form labels and validation
-
-**Phase 3: Database Content**
-- Question packs remain English (acceptable for V2)
-- Add banner: "Professional questions in English - Spanish coming soon"
+This prevents assigning random professionals who never expressed interest.
 
 ---
 
-## 5. Question Pack Coverage
+### Part 3: Split RLS Policies (Best Practice)
 
-| Metric | Value |
-|--------|-------|
-| Total micro categories | 296 |
-| Active question packs | 292 |
-| **Coverage** | **98.6%** |
+**Database Migration** - Replace FOR ALL with per-command policies
 
-✅ Excellent coverage. Only 4 micro slugs missing packs.
+```sql
+-- ============================================
+-- PROFESSIONAL_SERVICES: Split policies
+-- ============================================
 
----
+-- Drop existing FOR ALL policy
+DROP POLICY IF EXISTS "Users manage own services" ON professional_services;
 
-## 6. Mini-Launch Checklist
+-- Create per-command policies
+CREATE POLICY "professional_services_select_own"
+ON professional_services FOR SELECT
+USING (auth.uid() = user_id);
 
-### Must Work (P0)
+CREATE POLICY "professional_services_insert_own"
+ON professional_services FOR INSERT
+WITH CHECK (auth.uid() = user_id);
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Auth (sign in/up) | ✅ Working | Intent selector assigns roles |
-| Job wizard (7 steps) | ✅ Working | Both broadcast + direct modes |
-| Job board (public) | ✅ Working | Filters, search, modal details |
-| Pro matched jobs | ✅ Working | View filters to services |
-| Messaging | ✅ Working | Realtime, unread counts |
-| Pro service setup | ✅ Working | Multi-select + preferences |
-| Job completion | ✅ Working | Owner can mark complete |
-| Review submission | ✅ Working | Awards stats, drives verification |
-| RLS security | ✅ Robust | No data leaks |
+CREATE POLICY "professional_services_update_own"
+ON professional_services FOR UPDATE
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 
-### Should Work (P1)
+CREATE POLICY "professional_services_delete_own"
+ON professional_services FOR DELETE
+USING (auth.uid() = user_id);
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Pro ranking in directory | ✅ Wired | Uses matching scores view |
-| Auto-verification | ✅ Wired | RPC called on review submit |
-| Forum | ✅ Working | Posts, replies, categories |
-| Language switcher | ✅ Working | EN/ES toggle |
+-- ============================================
+-- PROFESSIONAL_MICRO_PREFERENCES: Split policies
+-- ============================================
 
-### Must Fix Before Launch
+-- Drop existing FOR ALL policy
+DROP POLICY IF EXISTS "Users manage own preferences" ON professional_micro_preferences;
 
-| Item | Priority | Effort |
-|------|----------|--------|
-| Add RLS policies for pro preferences/stats | High | 1 hour |
-| Add pro assignment UI in client dashboard | Medium | 2 hours |
-| Enable leaked password protection | Low | 5 min |
-| Complete i18n for dashboards + wizard | Medium | 4 hours |
+-- Create per-command policies
+CREATE POLICY "pro_micro_prefs_select_own"
+ON professional_micro_preferences FOR SELECT
+USING (auth.uid() = user_id);
 
-### Can Wait (V2.1)
+CREATE POLICY "pro_micro_prefs_insert_own"
+ON professional_micro_preferences FOR INSERT
+WITH CHECK (auth.uid() = user_id);
 
-| Feature | Notes |
-|---------|-------|
-| Admin dashboard | Excluded from V2 scope |
-| Payments/escrow | Excluded from V2 scope |
-| Disputes | Excluded from V2 scope |
-| Analytics dashboard | Excluded from V2 scope |
-| Full DB content translation | Using English packs is acceptable |
+CREATE POLICY "pro_micro_prefs_update_own"
+ON professional_micro_preferences FOR UPDATE
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 
----
+CREATE POLICY "pro_micro_prefs_delete_own"
+ON professional_micro_preferences FOR DELETE
+USING (auth.uid() = user_id);
+```
 
-## 7. Refactor Recommendations
-
-### Immediate (Pre-Launch)
-
-1. **Add missing RLS policies**
-   ```sql
-   -- professional_services
-   CREATE POLICY "Users can manage their own services"
-   ON professional_services FOR ALL
-   USING (auth.uid() = user_id)
-   WITH CHECK (auth.uid() = user_id);
-   
-   -- professional_micro_preferences
-   CREATE POLICY "Users can manage their own preferences"
-   ON professional_micro_preferences FOR ALL
-   USING (auth.uid() = user_id)
-   WITH CHECK (auth.uid() = user_id);
-   ```
-
-2. **Add pro assignment selector**
-   - In `ClientJobCard.tsx`, when job has conversations
-   - Dropdown of pros who've messaged about this job
-   - Calls `assignProfessional` action
-
-### Post-Launch (V2.1)
-
-1. Move `Professionals.tsx` queries to `src/pages/public/queries/`
-2. Add ESLint boundary rule for Supabase imports
-3. Consolidate wizard step components into single folder
+**Note**: `professional_micro_stats` is correct as-is — SELECT only for users, writes handled by SECURITY DEFINER RPC.
 
 ---
 
-## 8. Data Metrics
+### Part 4: View Column Audit (Verified Safe)
 
-| Metric | Count |
-|--------|-------|
-| Jobs created | 6 (all open) |
-| Publicly listed professionals | 0 |
-| Professional services registered | 1 |
-| Conversations | 1 |
-| Question packs | 292 |
-| Service categories | 16 |
-| Service subcategories | ~100 |
-| Service micros | 296 |
+| View | Columns | Sensitive Data? | Status |
+|------|---------|-----------------|--------|
+| `jobs_board` | title, teaser, category, budget, etc. | No user_id, no address | Safe |
+| `job_details` | Same + answers + `is_owner` boolean | Boolean only, not user_id | Safe |
+| `matched_jobs_for_professional` | Same + `professional_user_id` (caller's own ID) | Own ID only via `auth.uid()` | Safe |
+| `professional_matching_scores` | user_id, scores | Public ranking data | Safe |
 
-**Note**: Zero publicly listed professionals indicates testing environment. Production will need seed pros or real signups.
+All views filter appropriately or only expose non-sensitive columns.
+
+---
+
+## Files to Modify
+
+| File | Change | Priority |
+|------|--------|----------|
+| `src/pages/auth/AuthCallback.tsx` | Add pendingRedirect resume logic | High |
+| `src/pages/jobs/actions/assignProfessional.action.ts` | Add conversation participant check | High |
+| Database migration | Split RLS policies | Medium |
+| Wizard auth checkpoint (wherever it redirects) | Set `authRedirect` in sessionStorage | High |
+
+---
+
+## Wizard State Persistence (Already Working)
+
+The current implementation uses `sessionStorage` with key `wizardState`:
+- Saves draft every 600ms when dirty
+- Checks for existing draft on mount
+- Can restore via `getPendingDraft()`
+
+The fix is simple: ensure auth redirect stores `/post?resume=true` and the wizard checks for this param to auto-restore.
+
+---
+
+## Optional: Add `?resume=true` handling to wizard
+
+**File: `src/components/wizard/canonical/CanonicalJobWizard.tsx`**
+
+```typescript
+// In the component, check for resume param
+const [searchParams] = useSearchParams();
+const shouldResume = searchParams.get('resume') === 'true';
+
+useEffect(() => {
+  if (shouldResume) {
+    const draft = getPendingDraft();
+    if (draft) {
+      // Restore state from draft
+      dispatch({ type: 'RESTORE_DRAFT', payload: draft });
+    }
+  }
+}, [shouldResume]);
+```
 
 ---
 
 ## Summary
 
-The platform architecture is solid and follows best practices. The core user flows (wizard, messaging, completion, reviews) are working. Main gaps are:
+| Issue | Fix | Effort |
+|-------|-----|--------|
+| Auth loses wizard state | Resume redirect from sessionStorage | 30 min |
+| Assignment security gap | Verify pro in conversation | 15 min |
+| RLS best practice | Split FOR ALL into 4 policies each | 20 min (SQL) |
+| View audit | Already verified safe | Done |
 
-1. **i18n**: Only ~40% coverage - dashboards and wizard need translation
-2. **RLS**: 3 tables need additional policies for write operations
-3. **UI**: Pro assignment selector missing from client dashboard
-
-Estimated effort to launch-ready: **8-12 hours of focused work**
+Total estimated effort: **~1 hour**
 
