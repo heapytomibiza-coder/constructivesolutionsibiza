@@ -48,7 +48,7 @@ const Index = () => {
       <HeroBanner
         imageSrc={heroHome}
         title={t('hero.title')}
-        subtitle={PLATFORM.description}
+        subtitle={t('hero.subtitle')}
         height="full"
         trustBadge={
           <div className="hero-trust-badge">

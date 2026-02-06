@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { PLATFORM } from '@/domain/scope';
 
 export function PublicFooter() {
+  const { t } = useTranslation('common');
+
   return (
     <footer className="border-t border-border bg-card py-12 mt-auto">
       <div className="container">
@@ -17,23 +20,23 @@ export function PublicFooter() {
                 {PLATFORM.shortName}
               </p>
               <p className="text-sm text-muted-foreground">
-                {PLATFORM.tagline}
+                {t('footer.tagline')}
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
             <Link to="/how-it-works" className="hover:text-foreground transition-colors">
-              How it works
+              {t('footer.howItWorks')}
             </Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">
-              Contact
+              {t('footer.contact')}
             </Link>
             <Link to="/privacy" className="hover:text-foreground transition-colors">
-              Privacy
+              {t('footer.privacy')}
             </Link>
             <Link to="/terms" className="hover:text-foreground transition-colors">
-              Terms
+              {t('footer.terms')}
             </Link>
           </div>
 
