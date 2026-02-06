@@ -1,40 +1,40 @@
- {
-   "debug": {
-     "hello": "Hola (ES)"
-   },
-   "nav": {
-     "services": "Servicios",
-     "jobs": "Trabajos",
-     "professionals": "Profesionales",
-     "howItWorks": "Cómo funciona",
-     "community": "Comunidad",
-     "contact": "Contacto",
-     "signIn": "Iniciar sesión",
-     "signOut": "Cerrar sesión",
-     "dashboard": "Panel",
-     "messages": "Mensajes",
-     "postJob": "Publicar trabajo"
-   },
-   "hero": {
-     "title": "Encuentra Profesionales de Construcción de Confianza",
-     "subtitle": "Servicios de Construcción y Oficios en Ibiza",
-     "postJob": "Publicar un Trabajo",
-     "browsePros": "Ver Profesionales"
-   },
-   "trust": {
-     "verified": "Oficios verificados",
-     "sameDay": "Respuesta el mismo día",
-     "local": "En Ibiza",
-     "realSpecs": "Especificaciones reales",
-     "lessBackForth": "Menos ida y vuelta",
-     "ibizaOnly": "Solo Ibiza"
-   },
-   "toast": {
-     "signOutSuccess": "Sesión cerrada correctamente",
-     "signOutError": "Error al cerrar sesión",
-     "saved": "Guardado correctamente",
-     "error": "Algo salió mal"
-   },
+{
+  "debug": {
+    "hello": "Hola (ES)"
+  },
+  "nav": {
+    "services": "Servicios",
+    "jobs": "Trabajos",
+    "professionals": "Profesionales",
+    "howItWorks": "Cómo funciona",
+    "community": "Comunidad",
+    "contact": "Contacto",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "dashboard": "Panel",
+    "messages": "Mensajes",
+    "postJob": "Publicar trabajo"
+  },
+  "hero": {
+    "title": "Encuentra Profesionales de Construcción de Confianza",
+    "subtitle": "Servicios de Construcción y Oficios en Ibiza",
+    "postJob": "Publicar un Trabajo",
+    "browsePros": "Ver Profesionales"
+  },
+  "trust": {
+    "verified": "Oficios verificados",
+    "sameDay": "Respuesta el mismo día",
+    "local": "En Ibiza",
+    "realSpecs": "Especificaciones reales",
+    "lessBackForth": "Menos ida y vuelta",
+    "ibizaOnly": "Solo Ibiza"
+  },
+  "toast": {
+    "signOutSuccess": "Sesión cerrada correctamente",
+    "signOutError": "Error al cerrar sesión",
+    "saved": "Guardado correctamente",
+    "error": "Algo salió mal"
+  },
   "footer": {
     "rights": "Todos los derechos reservados.",
     "tagline": "Conectando Ibiza con profesionales de la construcción de confianza.",
@@ -43,23 +43,23 @@
     "privacy": "Privacidad",
     "terms": "Términos"
   },
-   "buttons": {
-     "cancel": "Cancelar",
-     "confirm": "Confirmar",
-     "save": "Guardar",
-     "delete": "Eliminar",
-     "edit": "Editar",
-     "continue": "Continuar",
-     "back": "Atrás",
-     "submit": "Enviar",
-     "close": "Cerrar"
-   },
-   "status": {
-     "loading": "Cargando...",
-     "error": "Ocurrió un error",
-     "success": "Éxito",
-     "empty": "No se encontraron elementos"
-   },
+  "buttons": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "continue": "Continuar",
+    "back": "Atrás",
+    "submit": "Enviar",
+    "close": "Cerrar"
+  },
+  "status": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "success": "Éxito",
+    "empty": "No se encontraron elementos"
+  },
   "validation": {
     "required": "Este campo es obligatorio",
     "invalidEmail": "Por favor, introduce un email válido",
@@ -98,16 +98,16 @@
     "ctaDesc": "Publica tu trabajo gratis y recibe presupuestos de profesionales locales.",
     "ctaButton": "Publicar Trabajo Ahora"
   },
-"services": {
-  "title": "Nuestros Servicios",
-  "subtitle": "Encuentra profesionales de confianza en todos los servicios de construcción e inmobiliarios",
-  "trustBadge": "Oficios verificados • Profesionales de Ibiza",
-  "viewServices": "Ver servicios",
-  "cantFind": "¿No encuentras lo que buscas?",
-  "postCustomJob": "Publicar un trabajo personalizado"
-},
-"serviceCategory": {
-  "selectSubcategory": "Selecciona una subcategoría",
+  "services": {
+    "title": "Nuestros Servicios",
+    "subtitle": "Encuentra profesionales de confianza en todos los servicios de construcción e inmobiliarios",
+    "trustBadge": "Oficios verificados • Profesionales de Ibiza",
+    "viewServices": "Ver servicios",
+    "cantFind": "¿No encuentras lo que buscas?",
+    "postCustomJob": "Publicar un trabajo personalizado"
+  },
+  "serviceCategory": {
+    "selectSubcategory": "Selecciona una subcategoría",
     "selectSubcategoryDesc": "Elige un tipo de servicio específico para empezar",
     "backToServices": "Volver a Servicios",
     "categoryNotFound": "Categoría no encontrada",
@@ -218,5 +218,70 @@
     "planning-applications": "Solicitudes Urbanísticas",
     "inspections": "Inspecciones",
     "compliance": "Cumplimiento Normativo"
+  },
+  "contact": {
+    "title": "Contacto",
+    "subtitle": "¿Tienes alguna pregunta? Estamos aquí para ayudarte.",
+    "trustBadge": "Equipo local, respuestas reales",
+    "formTitle": "Envíanos un mensaje",
+    "formDesc": "Rellena el formulario y te responderemos pronto.",
+    "labelName": "Nombre",
+    "labelEmail": "Email",
+    "labelSubject": "Asunto",
+    "labelMessage": "Mensaje",
+    "placeholderName": "Tu nombre",
+    "placeholderEmail": "tu@email.com",
+    "placeholderSubject": "¿En qué podemos ayudarte?",
+    "placeholderMessage": "Cuéntanos más sobre tu consulta...",
+    "sendButton": "Enviar Mensaje",
+    "emailLabel": "Email",
+    "phoneLabel": "Teléfono",
+    "locationLabel": "Ubicación",
+    "locationValue": "Ibiza, España"
+  },
+  "howItWorks": {
+    "title": "Cómo Funciona",
+    "subtitle": "Conectando clientes con profesionales de construcción de confianza en Ibiza",
+    "trustBadge": "Oficios verificados • Respuesta el mismo día • En Ibiza",
+    "forClients": "Para Clientes",
+    "forProfessionals": "Para Profesionales",
+    "postJobButton": "Publicar un Trabajo",
+    "joinAsProButton": "Unirse como Profesional",
+    "clientStep1Title": "Publica Tu Proyecto",
+    "clientStep1Desc": "Describe tus necesidades de construcción o reforma usando nuestro asistente guiado.",
+    "clientStep2Title": "Recibe Coincidencias",
+    "clientStep2Desc": "Notificamos a profesionales verificados que coincidan con los requisitos de tu proyecto.",
+    "clientStep3Title": "Recibe Presupuestos",
+    "clientStep3Desc": "Compara presupuestos, revisa perfiles y contacta directamente con los profesionales.",
+    "clientStep4Title": "Contrata y Completa",
+    "clientStep4Desc": "Elige a tu profesional y completa tu proyecto con confianza.",
+    "proStep1Title": "Crea Tu Perfil",
+    "proStep1Desc": "Regístrate y completa tu perfil profesional con tus servicios y portafolio.",
+    "proStep2Title": "Verifica Tu Cuenta",
+    "proStep2Desc": "Completa nuestro proceso de verificación para generar confianza con clientes potenciales.",
+    "proStep3Title": "Recibe Alertas de Trabajos",
+    "proStep3Desc": "Recibe notificaciones cuando se publiquen trabajos que coincidan con tus habilidades.",
+    "proStep4Title": "Gana Trabajo",
+    "proStep4Desc": "Envía presupuestos, comunícate con clientes y haz crecer tu negocio."
+  },
+  "professionals": {
+    "title": "Explorar Profesionales",
+    "titleSelect": "Elige un Profesional",
+    "subtitle": "Descubre profesionales verificados que ofrecen servicios premium en Ibiza",
+    "subtitleSelect": "Selecciona a quién te gustaría enviar tu solicitud de trabajo",
+    "trustBadge": "Todos los profesionales están verificados",
+    "searchPlaceholder": "Buscar profesionales...",
+    "searchButton": "Buscar",
+    "filteringBy": "Filtrando por:",
+    "clearAll": "Limpiar todo",
+    "servicesOffered": "{{count}} servicios ofrecidos",
+    "viewButton": "Ver",
+    "selectButton": "Seleccionar",
+    "backToJob": "Volver al Trabajo",
+    "selectProBanner": "Selecciona un profesional para enviar tu trabajo",
+    "noResultsFiltered": "No se encontraron profesionales con estos filtros.",
+    "noResultsEmpty": "Aún no hay profesionales listados. ¡Vuelve pronto!",
+    "clearFilters": "Limpiar Filtros",
+    "joinAsPro": "Unirse como Profesional"
   }
 }

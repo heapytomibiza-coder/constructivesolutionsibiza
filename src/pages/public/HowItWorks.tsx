@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PublicLayout, HeroBanner } from '@/components/layout';
@@ -13,18 +14,20 @@ import heroHowItWorks from '@/assets/heroes/hero-how-it-works.jpg';
  */
 
 const HowItWorks = () => {
+  const { t } = useTranslation('common');
+
   return (
     <PublicLayout>
       {/* Hero Section */}
       <HeroBanner
         imageSrc={heroHowItWorks}
-        title="How It Works"
-        subtitle="Connecting clients with trusted construction professionals in Ibiza"
+        title={t('howItWorks.title')}
+        subtitle={t('howItWorks.subtitle')}
         height="compact"
         trustBadge={
           <div className="hero-trust-badge">
             <Shield className="h-4 w-4" />
-            Verified trades • Same-day response • Ibiza-based
+            {t('howItWorks.trustBadge')}
           </div>
         }
       />
@@ -33,38 +36,38 @@ const HowItWorks = () => {
         {/* For Clients */}
         <section className="mb-20">
           <h2 className="font-display text-2xl font-semibold text-foreground mb-8 text-center">
-            For Clients
+            {t('howItWorks.forClients')}
           </h2>
           <div className="grid gap-8 md:grid-cols-4">
             <StepCard
               step={1}
               icon={<ClipboardList className="h-6 w-6" />}
-              title="Post Your Project"
-              description="Describe your construction or renovation needs using our guided wizard."
+              title={t('howItWorks.clientStep1Title')}
+              description={t('howItWorks.clientStep1Desc')}
             />
             <StepCard
               step={2}
               icon={<Users className="h-6 w-6" />}
-              title="Get Matched"
-              description="We notify verified professionals who match your project requirements."
+              title={t('howItWorks.clientStep2Title')}
+              description={t('howItWorks.clientStep2Desc')}
             />
             <StepCard
               step={3}
               icon={<MessageSquare className="h-6 w-6" />}
-              title="Receive Quotes"
-              description="Compare quotes, review profiles, and message professionals directly."
+              title={t('howItWorks.clientStep3Title')}
+              description={t('howItWorks.clientStep3Desc')}
             />
             <StepCard
               step={4}
               icon={<CheckCircle className="h-6 w-6" />}
-              title="Hire & Complete"
-              description="Choose your professional and complete your project with confidence."
+              title={t('howItWorks.clientStep4Title')}
+              description={t('howItWorks.clientStep4Desc')}
             />
           </div>
           <div className="text-center mt-8">
             <Button size="lg" asChild>
               <Link to="/post">
-                Post a Job
+                {t('howItWorks.postJobButton')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -74,38 +77,38 @@ const HowItWorks = () => {
         {/* For Professionals */}
         <section className="bg-muted/30 rounded-lg p-8">
           <h2 className="font-display text-2xl font-semibold text-foreground mb-8 text-center">
-            For Professionals
+            {t('howItWorks.forProfessionals')}
           </h2>
           <div className="grid gap-8 md:grid-cols-4">
             <StepCard
               step={1}
               icon={<ClipboardList className="h-6 w-6" />}
-              title="Create Your Profile"
-              description="Sign up and complete your professional profile with your services and portfolio."
+              title={t('howItWorks.proStep1Title')}
+              description={t('howItWorks.proStep1Desc')}
             />
             <StepCard
               step={2}
               icon={<CheckCircle className="h-6 w-6" />}
-              title="Get Verified"
-              description="Complete our verification process to build trust with potential clients."
+              title={t('howItWorks.proStep2Title')}
+              description={t('howItWorks.proStep2Desc')}
             />
             <StepCard
               step={3}
               icon={<MessageSquare className="h-6 w-6" />}
-              title="Receive Job Alerts"
-              description="Get notified when jobs matching your skills are posted in your area."
+              title={t('howItWorks.proStep3Title')}
+              description={t('howItWorks.proStep3Desc')}
             />
             <StepCard
               step={4}
               icon={<Users className="h-6 w-6" />}
-              title="Win Work"
-              description="Send quotes, communicate with clients, and grow your business."
+              title={t('howItWorks.proStep4Title')}
+              description={t('howItWorks.proStep4Desc')}
             />
           </div>
           <div className="text-center mt-8">
             <Button size="lg" variant="outline" asChild>
               <Link to="/auth?mode=pro">
-                Join as Professional
+                {t('howItWorks.joinAsProButton')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

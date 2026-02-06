@@ -1,40 +1,40 @@
- {
-   "debug": {
-     "hello": "Hello (EN)"
-   },
-   "nav": {
-     "services": "Services",
-     "jobs": "Jobs",
-     "professionals": "Professionals",
-     "howItWorks": "How it works",
-     "community": "Community",
-     "contact": "Contact",
-     "signIn": "Sign in",
-     "signOut": "Sign out",
-     "dashboard": "Dashboard",
-     "messages": "Messages",
-     "postJob": "Post a job"
-   },
-   "hero": {
-     "title": "Find Trusted Construction Professionals",
-     "subtitle": "Construction & Trade Services in Ibiza",
-     "postJob": "Post a Job",
-     "browsePros": "Browse Professionals"
-   },
-   "trust": {
-     "verified": "Verified trades",
-     "sameDay": "Same-day response",
-     "local": "Ibiza-based",
-     "realSpecs": "Real specs",
-     "lessBackForth": "Less back-and-forth",
-     "ibizaOnly": "Ibiza only"
-   },
-   "toast": {
-     "signOutSuccess": "Signed out successfully",
-     "signOutError": "Failed to sign out",
-     "saved": "Saved successfully",
-     "error": "Something went wrong"
-   },
+{
+  "debug": {
+    "hello": "Hello (EN)"
+  },
+  "nav": {
+    "services": "Services",
+    "jobs": "Jobs",
+    "professionals": "Professionals",
+    "howItWorks": "How it works",
+    "community": "Community",
+    "contact": "Contact",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "dashboard": "Dashboard",
+    "messages": "Messages",
+    "postJob": "Post a job"
+  },
+  "hero": {
+    "title": "Find Trusted Construction Professionals",
+    "subtitle": "Construction & Trade Services in Ibiza",
+    "postJob": "Post a Job",
+    "browsePros": "Browse Professionals"
+  },
+  "trust": {
+    "verified": "Verified trades",
+    "sameDay": "Same-day response",
+    "local": "Ibiza-based",
+    "realSpecs": "Real specs",
+    "lessBackForth": "Less back-and-forth",
+    "ibizaOnly": "Ibiza only"
+  },
+  "toast": {
+    "signOutSuccess": "Signed out successfully",
+    "signOutError": "Failed to sign out",
+    "saved": "Saved successfully",
+    "error": "Something went wrong"
+  },
   "footer": {
     "rights": "All rights reserved.",
     "tagline": "Connecting Ibiza with trusted construction professionals.",
@@ -43,23 +43,23 @@
     "privacy": "Privacy",
     "terms": "Terms"
   },
-   "buttons": {
-     "cancel": "Cancel",
-     "confirm": "Confirm",
-     "save": "Save",
-     "delete": "Delete",
-     "edit": "Edit",
-     "continue": "Continue",
-     "back": "Back",
-     "submit": "Submit",
-     "close": "Close"
-   },
-   "status": {
-     "loading": "Loading...",
-     "error": "An error occurred",
-     "success": "Success",
-     "empty": "No items found"
-   },
+  "buttons": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "continue": "Continue",
+    "back": "Back",
+    "submit": "Submit",
+    "close": "Close"
+  },
+  "status": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "empty": "No items found"
+  },
   "validation": {
     "required": "This field is required",
     "invalidEmail": "Please enter a valid email",
@@ -98,16 +98,16 @@
     "ctaDesc": "Post your job for free and receive quotes from trusted local professionals.",
     "ctaButton": "Post a Job Now"
   },
-"services": {
-  "title": "Our Services",
-  "subtitle": "Find trusted professionals across all construction and property services",
-  "trustBadge": "Verified trades • Ibiza-based professionals",
-  "viewServices": "View services",
-  "cantFind": "Can't find what you're looking for?",
-  "postCustomJob": "Post a Custom Job"
-},
-"serviceCategory": {
-  "selectSubcategory": "Select a Subcategory",
+  "services": {
+    "title": "Our Services",
+    "subtitle": "Find trusted professionals across all construction and property services",
+    "trustBadge": "Verified trades • Ibiza-based professionals",
+    "viewServices": "View services",
+    "cantFind": "Can't find what you're looking for?",
+    "postCustomJob": "Post a Custom Job"
+  },
+  "serviceCategory": {
+    "selectSubcategory": "Select a Subcategory",
     "selectSubcategoryDesc": "Choose a specific service type to get started",
     "backToServices": "Back to Services",
     "categoryNotFound": "Category Not Found",
@@ -218,5 +218,70 @@
     "planning-applications": "Planning Applications",
     "inspections": "Inspections",
     "compliance": "Compliance"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Have a question? We're here to help.",
+    "trustBadge": "Local team, real responses",
+    "formTitle": "Send us a message",
+    "formDesc": "Fill out the form and we'll get back to you shortly.",
+    "labelName": "Name",
+    "labelEmail": "Email",
+    "labelSubject": "Subject",
+    "labelMessage": "Message",
+    "placeholderName": "Your name",
+    "placeholderEmail": "your@email.com",
+    "placeholderSubject": "How can we help?",
+    "placeholderMessage": "Tell us more about your enquiry...",
+    "sendButton": "Send Message",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "locationLabel": "Location",
+    "locationValue": "Ibiza, Spain"
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Connecting clients with trusted construction professionals in Ibiza",
+    "trustBadge": "Verified trades • Same-day response • Ibiza-based",
+    "forClients": "For Clients",
+    "forProfessionals": "For Professionals",
+    "postJobButton": "Post a Job",
+    "joinAsProButton": "Join as Professional",
+    "clientStep1Title": "Post Your Project",
+    "clientStep1Desc": "Describe your construction or renovation needs using our guided wizard.",
+    "clientStep2Title": "Get Matched",
+    "clientStep2Desc": "We notify verified professionals who match your project requirements.",
+    "clientStep3Title": "Receive Quotes",
+    "clientStep3Desc": "Compare quotes, review profiles, and message professionals directly.",
+    "clientStep4Title": "Hire & Complete",
+    "clientStep4Desc": "Choose your professional and complete your project with confidence.",
+    "proStep1Title": "Create Your Profile",
+    "proStep1Desc": "Sign up and complete your professional profile with your services and portfolio.",
+    "proStep2Title": "Get Verified",
+    "proStep2Desc": "Complete our verification process to build trust with potential clients.",
+    "proStep3Title": "Receive Job Alerts",
+    "proStep3Desc": "Get notified when jobs matching your skills are posted in your area.",
+    "proStep4Title": "Win Work",
+    "proStep4Desc": "Send quotes, communicate with clients, and grow your business."
+  },
+  "professionals": {
+    "title": "Browse Professionals",
+    "titleSelect": "Choose a Professional",
+    "subtitle": "Discover verified professionals offering premium services across Ibiza",
+    "subtitleSelect": "Select who you'd like to send your job request to",
+    "trustBadge": "All professionals are verified",
+    "searchPlaceholder": "Search professionals...",
+    "searchButton": "Search",
+    "filteringBy": "Filtering by:",
+    "clearAll": "Clear all",
+    "servicesOffered": "{{count}} services offered",
+    "viewButton": "View",
+    "selectButton": "Select",
+    "backToJob": "Back to Job",
+    "selectProBanner": "Select a professional to send your job to",
+    "noResultsFiltered": "No professionals found matching these filters.",
+    "noResultsEmpty": "No professionals listed yet. Check back soon!",
+    "clearFilters": "Clear Filters",
+    "joinAsPro": "Join as Professional"
   }
 }

@@ -1,4 +1,5 @@
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -37,6 +38,7 @@ interface FilterNames {
 }
 
 const Professionals = () => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryId = searchParams.get('category');
@@ -133,10 +135,10 @@ const Professionals = () => {
           <div className="container flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back to Job
+              {t('professionals.backToJob')}
             </Button>
             <span className="text-sm font-medium text-primary">
-              Select a professional to send your job to
+              {t('professionals.selectProBanner')}
             </span>
           </div>
         </div>
@@ -145,16 +147,16 @@ const Professionals = () => {
       {/* Hero Section */}
       <HeroBanner
         imageSrc={heroProfessionals}
-        title={selectMode ? "Choose a Professional" : "Browse Professionals"}
+        title={selectMode ? t('professionals.titleSelect') : t('professionals.title')}
         subtitle={selectMode 
-          ? "Select who you'd like to send your job request to"
-          : "Discover verified professionals offering premium services across Ibiza"
+          ? t('professionals.subtitleSelect')
+          : t('professionals.subtitle')
         }
         height="compact"
         trustBadge={
           <div className="hero-trust-badge">
             <Shield className="h-4 w-4" />
-            All professionals are verified
+            {t('professionals.trustBadge')}
           </div>
         }
       />
@@ -166,11 +168,11 @@ const Professionals = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Search professionals..." 
+                placeholder={t('professionals.searchPlaceholder')} 
                 className="pl-10"
               />
             </div>
-            <Button>Search</Button>
+            <Button>{t('professionals.searchButton')}</Button>
           </div>
         </div>
       </div>
@@ -180,7 +182,7 @@ const Professionals = () => {
         <div className="border-b border-border bg-muted/30 py-3">
           <div className="container">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-muted-foreground">Filtering by:</span>
+              <span className="text-sm text-muted-foreground">{t('professionals.filteringBy')}</span>
               
               {categoryId && filterNames?.categoryName && (
                 <Badge variant="secondary" className="gap-1 pr-1">
@@ -212,7 +214,7 @@ const Professionals = () => {
                 onClick={clearAllFilters}
                 className="text-xs h-7"
               >
-                Clear all
+                {t('professionals.clearAll')}
               </Button>
             </div>
           </div>
@@ -259,7 +261,7 @@ const Professionals = () => {
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {pro.services_count || 0} services offered
+                        {t('professionals.servicesOffered', { count: pro.services_count || 0 })}
                       </p>
                     </div>
                     {/* Action button - Select in select mode, View otherwise */}
@@ -269,11 +271,11 @@ const Professionals = () => {
                         onClick={() => handleSelectProfessional(pro)}
                         disabled={!pro.user_id}
                       >
-                        Select
+                        {t('professionals.selectButton')}
                       </Button>
                     ) : (
                       <Button variant="outline" size="sm" asChild>
-                        <Link to={`/professionals/${pro.id}`}>View</Link>
+                        <Link to={`/professionals/${pro.id}`}>{t('professionals.viewButton')}</Link>
                       </Button>
                     )}
                   </div>
@@ -289,17 +291,17 @@ const Professionals = () => {
               </div>
               <p className="text-muted-foreground mb-4">
                 {hasFilters 
-                  ? 'No professionals found matching these filters.'
-                  : 'No professionals listed yet. Check back soon!'
+                  ? t('professionals.noResultsFiltered')
+                  : t('professionals.noResultsEmpty')
                 }
               </p>
               {hasFilters ? (
                 <Button variant="outline" onClick={clearAllFilters}>
-                  Clear Filters
+                  {t('professionals.clearFilters')}
                 </Button>
               ) : (
                 <Button variant="outline" asChild>
-                  <Link to="/auth?mode=pro">Join as Professional</Link>
+                  <Link to="/auth?mode=pro">{t('professionals.joinAsPro')}</Link>
                 </Button>
               )}
             </CardContent>
