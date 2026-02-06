@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,8 @@ import heroContact from '@/assets/heroes/hero-contact.jpg';
  */
 
 const Contact = () => {
+  const { t } = useTranslation('common');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: Implement contact form submission
@@ -26,13 +29,13 @@ const Contact = () => {
       {/* Hero Section */}
       <HeroBanner
         imageSrc={heroContact}
-        title="Contact Us"
-        subtitle="Have a question? We're here to help."
+        title={t('contact.title')}
+        subtitle={t('contact.subtitle')}
         height="compact"
         trustBadge={
           <div className="hero-trust-badge">
             <Shield className="h-4 w-4" />
-            Local team, real responses
+            {t('contact.trustBadge')}
           </div>
         }
       />
@@ -42,36 +45,36 @@ const Contact = () => {
           {/* Contact Form */}
           <Card className="card-grounded">
             <CardHeader>
-              <CardTitle className="font-display">Send us a message</CardTitle>
+              <CardTitle className="font-display">{t('contact.formTitle')}</CardTitle>
               <CardDescription>
-                Fill out the form and we'll get back to you shortly.
+                {t('contact.formDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" placeholder="Your name" required />
+                  <Label htmlFor="name">{t('contact.labelName')}</Label>
+                  <Input id="name" placeholder={t('contact.placeholderName')} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="your@email.com" required />
+                  <Label htmlFor="email">{t('contact.labelEmail')}</Label>
+                  <Input id="email" type="email" placeholder={t('contact.placeholderEmail')} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="How can we help?" required />
+                  <Label htmlFor="subject">{t('contact.labelSubject')}</Label>
+                  <Input id="subject" placeholder={t('contact.placeholderSubject')} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
+                  <Label htmlFor="message">{t('contact.labelMessage')}</Label>
                   <Textarea 
                     id="message" 
-                    placeholder="Tell us more about your enquiry..."
+                    placeholder={t('contact.placeholderMessage')}
                     rows={4}
                     required 
                   />
                 </div>
                 <Button type="submit" className="w-full">
-                  Send Message
+                  {t('contact.sendButton')}
                 </Button>
               </form>
             </CardContent>
@@ -86,7 +89,7 @@ const Contact = () => {
                     <Mail className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">Email</h3>
+                    <h3 className="font-medium text-foreground">{t('contact.emailLabel')}</h3>
                     <a href="mailto:constructivesolutionsibiza@gmail.com" className="text-muted-foreground hover:text-primary transition-colors">
                       constructivesolutionsibiza@gmail.com
                     </a>
@@ -102,7 +105,7 @@ const Contact = () => {
                     <Phone className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">Phone</h3>
+                    <h3 className="font-medium text-foreground">{t('contact.phoneLabel')}</h3>
                     <a href="tel:+34602403536" className="text-muted-foreground hover:text-primary transition-colors">
                       +34 602 403 536
                     </a>
@@ -118,8 +121,8 @@ const Contact = () => {
                     <MapPin className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">Location</h3>
-                    <p className="text-muted-foreground">Ibiza, Spain</p>
+                    <h3 className="font-medium text-foreground">{t('contact.locationLabel')}</h3>
+                    <p className="text-muted-foreground">{t('contact.locationValue')}</p>
                   </div>
                 </div>
               </CardContent>
