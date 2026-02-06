@@ -66,6 +66,24 @@
     "tooShort": "Debe tener al menos {{min}} caracteres",
     "tooLong": "Debe tener como máximo {{max}} caracteres"
   },
+  "categories": {
+    "construction": "Construcción",
+    "carpentry": "Carpintería",
+    "plumbing": "Fontanería",
+    "electrical": "Electricidad",
+    "hvac": "Climatización",
+    "paintingDecorating": "Pintura y Decoración",
+    "cleaning": "Limpieza",
+    "gardeningLandscaping": "Jardinería y Paisajismo",
+    "poolSpa": "Piscina y Spa",
+    "architectsDesign": "Arquitectos y Diseño",
+    "transportLogistics": "Transporte y Logística",
+    "kitchenBathroom": "Cocina y Baño",
+    "floorsDoorsWindows": "Suelos, Puertas y Ventanas",
+    "handymanGeneral": "Manitas y General",
+    "commercialIndustrial": "Comercial e Industrial",
+    "legalRegulatory": "Legal y Normativo"
+  },
   "home": {
     "ourServices": "Nuestros Servicios",
     "ourServicesDesc": "Encuentra profesionales de confianza en todos los servicios de construcción",
