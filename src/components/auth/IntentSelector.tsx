@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Search, Hammer, RefreshCw, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { AuthHeroVisual } from './AuthHeroVisual';
 
 export type UserIntent = 'client' | 'professional' | 'both';
 
@@ -51,6 +52,9 @@ export function IntentSelector({ value, onChange }: IntentSelectorProps) {
 
   return (
     <div className="space-y-5">
+      {/* Welcome visual - warm Mediterranean moment */}
+      <AuthHeroVisual />
+
       {/* Expressive header */}
       <div className="text-center space-y-2">
         <h3 className="font-display text-xl font-semibold text-foreground">
