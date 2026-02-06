@@ -284,7 +284,7 @@ export function ServiceSearchBar({
               <div className="px-3 py-2 border-b border-border bg-primary/5">
                 <p className="text-xs text-primary flex items-center gap-1">
                   <FileText className="h-3 w-3" />
-                  We detected a job request — we'll skip ahead to save you time
+                  {t('search.jobDetected')}
                   {jobSignals.urgency && <Badge variant="secondary" className="ml-1 text-xs">{jobSignals.urgency}</Badge>}
                   {jobSignals.locationText && <Badge variant="secondary" className="ml-1 text-xs">{jobSignals.locationText}</Badge>}
                 </p>
