@@ -1,0 +1,51 @@
+{
+  "steps": {
+    "category": "Service Type",
+    "subcategory": "Service Details",
+    "micro": "Specific Tasks",
+    "questions": "Professional Briefing",
+    "logistics": "Timing & Location",
+    "extras": "Photos & Notes",
+    "review": "Review & Post"
+  },
+  "draft": {
+    "title": "Resume your draft?",
+    "description": "We found an unfinished job posting. Would you like to continue where you left off?",
+    "startFresh": "Start Fresh",
+    "resume": "Resume Draft"
+  },
+  "progress": {
+    "stepOf": "Step {{current}} of {{total}}",
+    "helper": "Building your job specification helps professionals quote accurately"
+  },
+  "category": {
+    "headline": "What type of service do you need?",
+    "orBrowse": "or browse categories"
+  },
+  "subcategory": {
+    "headline": "What kind of {{category}} work?"
+  },
+  "micro": {
+    "headline": "Select the specific tasks you need",
+    "hint": "Choose all that apply — this helps match you with the right professionals"
+  },
+  "buttons": {
+    "back": "Back",
+    "continue": "Continue",
+    "submit": "Post Job",
+    "signInToSubmit": "Sign In to Post"
+  },
+  "ui": {
+    "submitting": "Submitting..."
+  },
+  "toasts": {
+    "duplicate": "This job was already submitted",
+    "convoFailed": "Job saved but could not start conversation",
+    "directSuccess": "Job sent to professional!",
+    "broadcastSuccess": "Job posted to marketplace!",
+    "submitFailed": "Failed to post job. Please try again."
+  },
+  "errors": {
+    "selectPro": "Please select a professional to send this job to"
+  }
+}

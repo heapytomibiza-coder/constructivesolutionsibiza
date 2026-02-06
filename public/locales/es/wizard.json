@@ -1,0 +1,51 @@
+{
+  "steps": {
+    "category": "Tipo de Servicio",
+    "subcategory": "Detalles del Servicio",
+    "micro": "Tareas Específicas",
+    "questions": "Información para el Profesional",
+    "logistics": "Tiempo y Ubicación",
+    "extras": "Fotos y Notas",
+    "review": "Revisar y Publicar"
+  },
+  "draft": {
+    "title": "¿Reanudar tu borrador?",
+    "description": "Hemos encontrado un trabajo sin terminar. ¿Quieres continuar donde lo dejaste?",
+    "startFresh": "Empezar de cero",
+    "resume": "Reanudar borrador"
+  },
+  "progress": {
+    "stepOf": "Paso {{current}} de {{total}}",
+    "helper": "Construir una especificación clara ayuda a los profesionales a presupuestar con precisión"
+  },
+  "category": {
+    "headline": "¿Qué tipo de servicio necesitas?",
+    "orBrowse": "o explorar categorías"
+  },
+  "subcategory": {
+    "headline": "¿Qué tipo de trabajo de {{category}}?"
+  },
+  "micro": {
+    "headline": "Selecciona las tareas específicas que necesitas",
+    "hint": "Elige todas las que correspondan — esto ayuda a encontrar al profesional adecuado"
+  },
+  "buttons": {
+    "back": "Atrás",
+    "continue": "Continuar",
+    "submit": "Publicar Trabajo",
+    "signInToSubmit": "Iniciar sesión para publicar"
+  },
+  "ui": {
+    "submitting": "Enviando..."
+  },
+  "toasts": {
+    "duplicate": "Este trabajo ya fue enviado",
+    "convoFailed": "Trabajo guardado, pero no se pudo iniciar la conversación",
+    "directSuccess": "¡Trabajo enviado al profesional!",
+    "broadcastSuccess": "¡Trabajo publicado en el marketplace!",
+    "submitFailed": "No se pudo publicar. Inténtalo de nuevo."
+  },
+  "errors": {
+    "selectPro": "Selecciona un profesional para enviarle este trabajo"
+  }
+}
