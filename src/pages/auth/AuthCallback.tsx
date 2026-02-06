@@ -22,8 +22,16 @@ const AuthCallback = () => {
       }
 
       if (session) {
-        // Redirect to dashboard
-        navigate('/dashboard/client');
+        // Check for pending redirect (e.g., from wizard auth checkpoint)
+        const pendingRedirect = sessionStorage.getItem('authRedirect');
+        sessionStorage.removeItem('authRedirect');
+        
+        if (pendingRedirect) {
+          navigate(pendingRedirect);
+        } else {
+          // Default redirect
+          navigate('/dashboard/client');
+        }
       } else {
         navigate('/auth');
       }

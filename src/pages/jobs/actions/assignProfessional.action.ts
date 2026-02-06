@@ -38,6 +38,18 @@ export async function assignProfessional(
     return { success: false, error: 'Job must be open to assign a professional' };
   }
 
+  // Security: Verify the professional has messaged about this job
+  const { data: conversation, error: convError } = await supabase
+    .from('conversations')
+    .select('id')
+    .eq('job_id', jobId)
+    .eq('pro_id', professionalId)
+    .single();
+
+  if (convError || !conversation) {
+    return { success: false, error: 'Professional has not messaged about this job' };
+  }
+
   // Update job with assigned pro and set to in_progress
   const { error } = await supabase
     .from('jobs')
