@@ -1,36 +1,45 @@
- import { Card, CardContent } from '@/components/ui/card';
- import { HelpCircle, Briefcase, ArrowLeftRight } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Search, Hammer, RefreshCw, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export type UserIntent = 'client' | 'professional' | 'both';
 
- interface IntentOption {
-   value: UserIntent;
-   icon: typeof HelpCircle;
-  title: string;
-  description: string;
+interface IntentOption {
+  value: UserIntent;
+  icon: typeof Search;
+  titleKey: string;
+  descriptionKey: string;
+  gradient: string;
+  accentClass: string;
 }
 
- const intentOptions: IntentOption[] = [
-   {
-     value: 'client',
-     icon: HelpCircle,
-     title: "I'm an Asker",
-     description: 'I need help with a project — post jobs, get quotes, hire professionals',
-   },
-   {
-     value: 'professional',
-     icon: Briefcase,
-     title: "I'm a Tasker",
-     description: 'I offer my services — find work, apply for jobs, grow my business',
-   },
-   {
-     value: 'both',
-     icon: ArrowLeftRight,
-     title: 'Both',
-     description: 'I hire professionals AND offer my own services',
-   },
- ];
+const intentOptions: IntentOption[] = [
+  {
+    value: 'client',
+    icon: Search,
+    titleKey: 'intent.client.title',
+    descriptionKey: 'intent.client.description',
+    gradient: 'bg-gradient-steel',
+    accentClass: 'text-primary',
+  },
+  {
+    value: 'professional',
+    icon: Hammer,
+    titleKey: 'intent.professional.title',
+    descriptionKey: 'intent.professional.description',
+    gradient: 'bg-gradient-clay',
+    accentClass: 'text-accent',
+  },
+  {
+    value: 'both',
+    icon: RefreshCw,
+    titleKey: 'intent.both.title',
+    descriptionKey: 'intent.both.description',
+    gradient: 'bg-gradient-steel',
+    accentClass: 'text-primary',
+  },
+];
 
 interface IntentSelectorProps {
   value: UserIntent | null;
@@ -38,19 +47,23 @@ interface IntentSelectorProps {
 }
 
 export function IntentSelector({ value, onChange }: IntentSelectorProps) {
-  return (
-    <div className="space-y-4">
-       <div className="text-center">
-         <h3 className="font-display text-lg font-semibold text-foreground">
-           Are you asking or tasking?
-         </h3>
-         <p className="mt-1 text-sm text-muted-foreground">
-           Choose how you'll use CS Ibiza — you can switch anytime
-         </p>
-       </div>
+  const { t } = useTranslation('auth');
 
+  return (
+    <div className="space-y-5">
+      {/* Expressive header */}
+      <div className="text-center space-y-2">
+        <h3 className="font-display text-xl font-semibold text-foreground">
+          {t('intent.header')}
+        </h3>
+        <p className="text-muted-foreground">
+          {t('intent.subheader')}
+        </p>
+      </div>
+
+      {/* Intent cards with staggered animation */}
       <div className="grid gap-3">
-        {intentOptions.map((option) => {
+        {intentOptions.map((option, index) => {
           const isSelected = value === option.value;
           const Icon = option.icon;
 
@@ -67,32 +80,50 @@ export function IntentSelector({ value, onChange }: IntentSelectorProps) {
                 }
               }}
               className={cn(
-                'cursor-pointer transition-all hover:border-accent/50 hover:shadow-sm',
-                isSelected && 'border-accent bg-accent/5 ring-1 ring-accent/30'
+                'cursor-pointer transition-all duration-300 opacity-0 animate-slide-up',
+                'hover:shadow-md hover:border-accent/40',
+                isSelected && 'border-accent ring-2 ring-accent/20 scale-[1.02] shadow-glow'
               )}
+              style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
             >
-              <CardContent className="flex items-center gap-4 p-4">
+              <CardContent className="flex items-center gap-4 p-5">
+                {/* Gradient icon container */}
                 <div
                   className={cn(
-                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted transition-colors',
-                    isSelected && 'bg-accent/20 text-accent'
+                    'flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-all duration-300',
+                    isSelected ? option.gradient : 'bg-muted',
+                    isSelected && 'shadow-md'
                   )}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon
+                    className={cn(
+                      'h-6 w-6 transition-colors duration-300',
+                      isSelected ? 'text-white' : option.accentClass
+                    )}
+                  />
                 </div>
+
+                {/* Text content */}
                 <div className="flex-1 text-left">
                   <p
                     className={cn(
-                      'font-medium text-foreground',
-                      isSelected && 'text-accent'
+                      'font-display text-lg font-semibold transition-colors duration-300',
+                      isSelected && option.accentClass
                     )}
                   >
-                    {option.title}
+                    {t(option.titleKey)}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {option.description}
+                    {t(option.descriptionKey)}
                   </p>
                 </div>
+
+                {/* Selection indicator */}
+                {isSelected && (
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white animate-scale-in">
+                    <Check className="h-4 w-4" />
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
