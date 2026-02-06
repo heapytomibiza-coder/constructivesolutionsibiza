@@ -39,6 +39,26 @@ const categoryIcons: Record<string, React.ReactNode> = {
   'Legal & Regulatory': <FileCheck className="h-5 w-5" />,
 };
 
+// Category name to translation key mapping
+const CATEGORY_KEYS: Record<string, string> = {
+  'Construction': 'categories.construction',
+  'Carpentry': 'categories.carpentry',
+  'Plumbing': 'categories.plumbing',
+  'Electrical': 'categories.electrical',
+  'HVAC': 'categories.hvac',
+  'Painting & Decorating': 'categories.paintingDecorating',
+  'Cleaning': 'categories.cleaning',
+  'Gardening & Landscaping': 'categories.gardeningLandscaping',
+  'Pool & Spa': 'categories.poolSpa',
+  'Architects & Design': 'categories.architectsDesign',
+  'Transport & Logistics': 'categories.transportLogistics',
+  'Kitchen & Bathroom': 'categories.kitchenBathroom',
+  'Floors, Doors & Windows': 'categories.floorsDoorsWindows',
+  'Handyman & General': 'categories.handymanGeneral',
+  'Commercial & Industrial': 'categories.commercialIndustrial',
+  'Legal & Regulatory': 'categories.legalRegulatory',
+};
+
 const Index = () => {
   const { t } = useTranslation('common');
 
@@ -99,7 +119,9 @@ const Index = () => {
                       <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary group-hover:bg-accent/10 group-hover:text-accent transition-colors">
                         {categoryIcons[category] || <Hammer className="h-5 w-5" />}
                       </div>
-                      <span className="font-medium text-foreground">{category}</span>
+                      <span className="font-medium text-foreground">
+                        {t(CATEGORY_KEYS[category] || category)}
+                      </span>
                     </CardContent>
                   </Card>
                 </Link>
