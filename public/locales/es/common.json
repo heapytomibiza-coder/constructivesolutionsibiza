@@ -35,10 +35,14 @@
      "saved": "Guardado correctamente",
      "error": "Algo salió mal"
    },
-   "footer": {
-     "rights": "Todos los derechos reservados.",
-     "tagline": "Conectando Ibiza con profesionales de la construcción de confianza."
-   },
+  "footer": {
+    "rights": "Todos los derechos reservados.",
+    "tagline": "Conectando Ibiza con profesionales de la construcción de confianza.",
+    "howItWorks": "Cómo funciona",
+    "contact": "Contacto",
+    "privacy": "Privacidad",
+    "terms": "Términos"
+  },
    "buttons": {
      "cancel": "Cancelar",
      "confirm": "Confirmar",
