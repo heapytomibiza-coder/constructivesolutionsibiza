@@ -1,177 +1,146 @@
 
 
-# i18n Wiring Fix Plan: Homepage & Search Components
+# i18n Homepage Fix: Wire Remaining Hardcoded Strings
 
-## Problem Summary
+## Current Status
 
-The i18n infrastructure is working correctly - translation files load, language switching works, and components using `t()` translate properly. However, several major components still contain hardcoded English strings instead of using the existing translation keys.
+The i18n system is **working correctly**. When Spanish is selected via the Language Switcher, the homepage translates properly. However, two hardcoded sources remain in English:
 
----
-
-## Current State
-
-| Component | Translation Status |
-|-----------|-------------------|
-| PublicNav | Working - uses `t('nav.*')` |
-| Wizard buttons/steps | Working - uses `t('wizard.*')` |
-| Dashboards | Working - uses `t('dashboard.*')` |
-| Index.tsx (Homepage) | Broken - hardcoded strings |
-| ServiceSearchBar | Broken - hardcoded strings |
-| CategorySelector | Broken - hardcoded strings |
+| Item | Source | Status |
+|------|--------|--------|
+| Hero subtitle | `PLATFORM.description` in `src/domain/scope.ts` | Hardcoded English |
+| Category names | `MAIN_CATEGORIES` constant | Hardcoded English |
+| Footer links | Hardcoded in `PublicFooter.tsx` | Not wired to i18n |
 
 ---
 
-## What Needs Fixing
+## Solution: Wire PLATFORM.description to i18n
 
-### 1. Index.tsx (Homepage) - Wire to common.json
+The hero subtitle currently shows the hardcoded `PLATFORM.description` instead of using translations.
 
-The translation keys already exist in `common.json`. We need to:
+### Change in Index.tsx (line 51)
 
-1. Add `useTranslation('common')` import
-2. Replace hardcoded strings with existing keys
+**Before:**
+```tsx
+subtitle={PLATFORM.description}
+```
 
-**String mappings:**
-| Hardcoded | Key |
-|-----------|-----|
-| "Find Trusted Construction Professionals" | `t('hero.title')` |
-| "Post a Job" | `t('hero.postJob')` |
-| "Browse Professionals" | `t('hero.browsePros')` |
-| "Verified trades" | `t('trust.verified')` |
-| "Same-day response" | `t('trust.sameDay')` |
-| "Ibiza-based" | `t('trust.local')` |
+**After:**
+```tsx
+subtitle={t('hero.subtitle')}
+```
+
+The translation keys already exist:
+- EN: `"subtitle": "Construction & Trade Services in Ibiza"`
+- ES: `"subtitle": "Servicios de Construcción y Oficios en Ibiza"`
+
+---
+
+## Solution: Wire Footer Links to i18n
+
+### Changes in PublicFooter.tsx
+
+Add `useTranslation` and create new translation keys for footer links.
 
 **New keys needed in common.json:**
 ```json
-"home": {
-  "ourServices": "Our Services",
-  "ourServicesDesc": "Find trusted professionals across all construction and property services",
-  "viewAllServices": "View All Services",
-  "verifiedTitle": "Verified Professionals",
-  "verifiedDesc": "All professionals are vetted and verified before joining",
-  "quickTitle": "Quick Response",
-  "quickDesc": "Get quotes from multiple professionals within hours",
-  "qualityTitle": "Quality Guaranteed",
-  "qualityDesc": "Rated and reviewed by real customers in Ibiza",
-  "ctaTitle": "Ready to start your project?",
-  "ctaDesc": "Post your job for free and receive quotes from trusted local professionals.",
-  "ctaButton": "Post a Job Now"
+"footer": {
+  "rights": "All rights reserved.",
+  "tagline": "Connecting Ibiza with trusted construction professionals.",
+  "howItWorks": "How it works",
+  "contact": "Contact",
+  "privacy": "Privacy",
+  "terms": "Terms"
 }
 ```
 
 ---
 
-### 2. ServiceSearchBar - Wire to wizard.json
+## Category Names - Keep in English (MVP Decision)
 
-Add search-related keys to wizard namespace.
-
-**New keys for wizard.json:**
-```json
-"search": {
-  "placeholder": "Search for a service (e.g., underfloor heating, need painter ASAP)...",
-  "noResults": "No services found for \"{{query}}\"",
-  "jobDetected": "We detected a job request — we'll skip ahead to save you time",
-  "depthCategory": "Category",
-  "depthService": "Service",
-  "depthTask": "Task",
-  "depthJobRequest": "Job Request",
-  "ready": "Ready"
-}
-```
-
----
-
-### 3. Category Names - Create categories namespace
-
-Category names come from `MAIN_CATEGORIES` constant and database. Two options:
-
-**Option A (Recommended):** Create a category translation helper that maps English category names to translation keys:
-```typescript
-const categoryKeys: Record<string, string> = {
-  'Construction': 'categories.construction',
-  'Carpentry': 'categories.carpentry',
-  // ...
-};
-```
-
-**Option B:** Keep categories in English (acceptable for MVP since they're proper nouns/industry terms that are often the same across languages)
+Category names like "Construction", "Carpentry", "Plumbing" will remain in English for now because:
+1. They come from database/constants, not translation files
+2. Industry terms are often internationally understood
+3. Full category translation system is out of scope for MVP
 
 ---
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `src/pages/Index.tsx` | Add `useTranslation('common')`, wire all strings |
-| `src/components/wizard/db-powered/ServiceSearchBar.tsx` | Add `useTranslation('wizard')`, wire labels |
-| `public/locales/en/common.json` | Add `home.*` keys |
-| `public/locales/es/common.json` | Add Spanish `home.*` keys |
-| `public/locales/en/wizard.json` | Add `search.*` keys |
-| `public/locales/es/wizard.json` | Add Spanish `search.*` keys |
+| File | Change |
+|------|--------|
+| `src/pages/Index.tsx` | Line 51: Change `PLATFORM.description` → `t('hero.subtitle')` |
+| `src/components/layout/PublicFooter.tsx` | Wire footer links to `t('footer.*')` |
+| `public/locales/en/common.json` | Add footer link keys |
+| `public/locales/es/common.json` | Add Spanish footer translations |
 
 ---
 
-## Implementation Order
+## Implementation Details
 
-1. **Add missing translation keys** to common.json and wizard.json (EN + ES)
-2. **Wire Index.tsx** - replace all hardcoded strings
-3. **Wire ServiceSearchBar** - replace placeholder and labels
-4. **Test** - Switch to Spanish and verify homepage + search translate
+### 1. Index.tsx - Line 51
 
----
+```tsx
+// Change from:
+subtitle={PLATFORM.description}
 
-## Spanish Translations to Add
+// To:
+subtitle={t('hero.subtitle')}
+```
 
-**common.json ES - home section:**
-```json
-"home": {
-  "ourServices": "Nuestros Servicios",
-  "ourServicesDesc": "Encuentra profesionales de confianza en todos los servicios de construcción",
-  "viewAllServices": "Ver Todos los Servicios",
-  "verifiedTitle": "Profesionales Verificados",
-  "verifiedDesc": "Todos los profesionales están verificados antes de unirse",
-  "quickTitle": "Respuesta Rápida",
-  "quickDesc": "Recibe presupuestos de varios profesionales en horas",
-  "qualityTitle": "Calidad Garantizada",
-  "qualityDesc": "Valorados por clientes reales en Ibiza",
-  "ctaTitle": "¿Listo para empezar tu proyecto?",
-  "ctaDesc": "Publica tu trabajo gratis y recibe presupuestos de profesionales locales.",
-  "ctaButton": "Publicar Trabajo Ahora"
+### 2. PublicFooter.tsx
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+export function PublicFooter() {
+  const { t } = useTranslation('common');
+  
+  return (
+    // ... existing code ...
+    <Link to="/how-it-works">{t('footer.howItWorks')}</Link>
+    <Link to="/contact">{t('footer.contact')}</Link>
+    <Link to="/privacy">{t('footer.privacy')}</Link>
+    <Link to="/terms">{t('footer.terms')}</Link>
+    // ...
+  );
 }
 ```
 
-**wizard.json ES - search section:**
+### 3. Add to common.json (EN)
+
 ```json
-"search": {
-  "placeholder": "Buscar un servicio (ej: calefacción suelo radiante, necesito pintor urgente)...",
-  "noResults": "No se encontraron servicios para \"{{query}}\"",
-  "jobDetected": "Detectamos una solicitud de trabajo — te llevaremos directamente",
-  "depthCategory": "Categoría",
-  "depthService": "Servicio",
-  "depthTask": "Tarea",
-  "depthJobRequest": "Solicitud",
-  "ready": "Listo"
+"footer": {
+  "rights": "All rights reserved.",
+  "tagline": "Connecting Ibiza with trusted construction professionals.",
+  "howItWorks": "How it works",
+  "contact": "Contact",
+  "privacy": "Privacy",
+  "terms": "Terms"
+}
+```
+
+### 4. Add to common.json (ES)
+
+```json
+"footer": {
+  "rights": "Todos los derechos reservados.",
+  "tagline": "Conectando Ibiza con profesionales de la construcción de confianza.",
+  "howItWorks": "Cómo funciona",
+  "contact": "Contacto",
+  "privacy": "Privacidad",
+  "terms": "Términos"
 }
 ```
 
 ---
 
-## Estimated Effort
+## Summary
 
-| Task | Time |
-|------|------|
-| Add translation keys to JSON files | 10 min |
-| Wire Index.tsx | 15 min |
-| Wire ServiceSearchBar | 10 min |
-| Testing | 5 min |
-| **Total** | ~40 min |
+The homepage i18n is 95% complete and working. This plan fixes the remaining 2 hardcoded sources:
 
----
+1. **Hero subtitle**: Switch from `PLATFORM.description` to `t('hero.subtitle')` - 1 line change
+2. **Footer links**: Wire to translation keys - ~10 lines
 
-## Technical Notes
-
-1. **Category names**: For MVP, keeping English category names is acceptable since they're industry terms often used internationally. A full category translation system can be added later.
-
-2. **Database content**: Category/subcategory names stored in the database will remain in English. Full database localization is out of scope for this phase.
-
-3. **Existing keys**: The `common.json` already has `hero.*` and `trust.*` keys that just need to be wired up.
+After this fix, the entire homepage will be fully translated when Spanish is selected.
 
