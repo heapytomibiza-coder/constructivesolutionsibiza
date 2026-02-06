@@ -265,7 +265,7 @@ export function ServiceSearchBar({
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={placeholder}
+            placeholder={placeholder || t('search.placeholder')}
             className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
           />
           {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
@@ -275,7 +275,7 @@ export function ServiceSearchBar({
           <CommandList className="max-h-[50vh] md:max-h-[300px] overflow-y-auto">
             {!hasResults && !isLoading && (
               <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-                No services found for "{debouncedQuery}"
+                {t('search.noResults', { query: debouncedQuery })}
               </CommandEmpty>
             )}
 
