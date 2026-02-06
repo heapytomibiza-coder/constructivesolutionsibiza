@@ -314,15 +314,15 @@ export function ServiceSearchBar({
                     {/* Depth badge */}
                     <Badge 
                       variant="secondary" 
-                      className={`text-xs gap-1 shrink-0 ${DEPTH_CONFIG[result.depth].color}`}
+                      className={`text-xs gap-1 shrink-0 ${DEPTH_COLORS[result.depth]}`}
                     >
-                      {DEPTH_CONFIG[result.depth].icon}
-                      {DEPTH_CONFIG[result.depth].label}
+                      {DEPTH_KEYS[result.depth].icon}
+                      {t(DEPTH_KEYS[result.depth].labelKey)}
                     </Badge>
                     
                     {result.hasPack && result.depth === 'micro' && (
                       <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full shrink-0">
-                        Ready
+                        {t('search.ready')}
                       </span>
                     )}
                   </CommandItem>
