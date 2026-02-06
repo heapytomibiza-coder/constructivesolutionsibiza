@@ -36,7 +36,8 @@
     "signInToSubmit": "Sign In to Post"
   },
   "ui": {
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "professionalFallback": "Professional"
   },
   "toasts": {
     "duplicate": "This job was already submitted",
