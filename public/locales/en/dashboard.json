@@ -15,7 +15,11 @@
     "complete": "Complete",
     "assign": "Assign",
     "selectPro": "Select pro",
-    "noProsYet": "No professionals have messaged yet"
+    "noProsYet": "No professionals have messaged yet",
+    "loading": "Loading...",
+    "professionalFallback": "Professional",
+    "assignedSuccess": "Professional assigned successfully",
+    "assignedFail": "Failed to assign professional"
   },
   "pro": {
     "title": "Professional Dashboard",
