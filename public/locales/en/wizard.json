@@ -49,5 +49,15 @@
   "errors": {
     "authRequired": "You need to sign in to submit a job",
     "selectPro": "Please select a professional to send this job to"
+  },
+  "search": {
+    "placeholder": "Search for a service (e.g., underfloor heating, need painter ASAP)...",
+    "noResults": "No services found for \"{{query}}\"",
+    "jobDetected": "We detected a job request — we'll skip ahead to save you time",
+    "depthCategory": "Category",
+    "depthService": "Service",
+    "depthTask": "Task",
+    "depthJobRequest": "Job Request",
+    "ready": "Ready"
   }
 }

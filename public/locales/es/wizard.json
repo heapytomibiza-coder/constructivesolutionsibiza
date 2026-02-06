@@ -49,5 +49,15 @@
   "errors": {
     "authRequired": "Necesitas iniciar sesión para publicar un trabajo",
     "selectPro": "Selecciona un profesional para enviarle este trabajo"
+  },
+  "search": {
+    "placeholder": "Buscar un servicio (ej: calefacción suelo radiante, necesito pintor urgente)...",
+    "noResults": "No se encontraron servicios para \"{{query}}\"",
+    "jobDetected": "Detectamos una solicitud de trabajo — te llevaremos directamente",
+    "depthCategory": "Categoría",
+    "depthService": "Servicio",
+    "depthTask": "Tarea",
+    "depthJobRequest": "Solicitud",
+    "ready": "Listo"
   }
 }

@@ -10,6 +10,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Search, ChevronRight, Loader2, Tag, Folder, Wrench, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -121,18 +122,26 @@ function determineDepth(
   }
 }
 
-// Depth display config
-const DEPTH_CONFIG: Record<SearchDepth, { icon: React.ReactNode; label: string; color: string }> = {
-  category: { icon: <Folder className="h-3 w-3" />, label: 'Category', color: 'bg-blue-500/10 text-blue-600' },
-  subcategory: { icon: <Tag className="h-3 w-3" />, label: 'Service', color: 'bg-purple-500/10 text-purple-600' },
-  micro: { icon: <Wrench className="h-3 w-3" />, label: 'Task', color: 'bg-green-500/10 text-green-600' },
-  questions: { icon: <FileText className="h-3 w-3" />, label: 'Job Request', color: 'bg-primary/10 text-primary' },
+// Depth display config - keys for translation
+const DEPTH_KEYS: Record<SearchDepth, { icon: React.ReactNode; labelKey: string }> = {
+  category: { icon: <Folder className="h-3 w-3" />, labelKey: 'search.depthCategory' },
+  subcategory: { icon: <Tag className="h-3 w-3" />, labelKey: 'search.depthService' },
+  micro: { icon: <Wrench className="h-3 w-3" />, labelKey: 'search.depthTask' },
+  questions: { icon: <FileText className="h-3 w-3" />, labelKey: 'search.depthJobRequest' },
+};
+
+const DEPTH_COLORS: Record<SearchDepth, string> = {
+  category: 'bg-blue-500/10 text-blue-600',
+  subcategory: 'bg-purple-500/10 text-purple-600',
+  micro: 'bg-green-500/10 text-green-600',
+  questions: 'bg-primary/10 text-primary',
 };
 
 export function ServiceSearchBar({ 
   onSelect, 
-  placeholder = "Search for a service (e.g., underfloor heating, need painter ASAP)..." 
+  placeholder
 }: ServiceSearchBarProps) {
+  const { t } = useTranslation('wizard');
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
 
@@ -256,7 +265,7 @@ export function ServiceSearchBar({
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={placeholder}
+            placeholder={placeholder || t('search.placeholder')}
             className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
           />
           {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
@@ -266,7 +275,7 @@ export function ServiceSearchBar({
           <CommandList className="max-h-[50vh] md:max-h-[300px] overflow-y-auto">
             {!hasResults && !isLoading && (
               <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-                No services found for "{debouncedQuery}"
+                {t('search.noResults', { query: debouncedQuery })}
               </CommandEmpty>
             )}
 
@@ -275,7 +284,7 @@ export function ServiceSearchBar({
               <div className="px-3 py-2 border-b border-border bg-primary/5">
                 <p className="text-xs text-primary flex items-center gap-1">
                   <FileText className="h-3 w-3" />
-                  We detected a job request — we'll skip ahead to save you time
+                  {t('search.jobDetected')}
                   {jobSignals.urgency && <Badge variant="secondary" className="ml-1 text-xs">{jobSignals.urgency}</Badge>}
                   {jobSignals.locationText && <Badge variant="secondary" className="ml-1 text-xs">{jobSignals.locationText}</Badge>}
                 </p>
@@ -305,15 +314,15 @@ export function ServiceSearchBar({
                     {/* Depth badge */}
                     <Badge 
                       variant="secondary" 
-                      className={`text-xs gap-1 shrink-0 ${DEPTH_CONFIG[result.depth].color}`}
+                      className={`text-xs gap-1 shrink-0 ${DEPTH_COLORS[result.depth]}`}
                     >
-                      {DEPTH_CONFIG[result.depth].icon}
-                      {DEPTH_CONFIG[result.depth].label}
+                      {DEPTH_KEYS[result.depth].icon}
+                      {t(DEPTH_KEYS[result.depth].labelKey)}
                     </Badge>
                     
                     {result.hasPack && result.depth === 'micro' && (
                       <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full shrink-0">
-                        Ready
+                        {t('search.ready')}
                       </span>
                     )}
                   </CommandItem>
