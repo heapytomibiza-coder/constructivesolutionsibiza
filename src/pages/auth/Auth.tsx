@@ -47,10 +47,10 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast.success(t('toast.welcomeBack', { defaultValue: 'Welcome back!' }));
+      toast.success(t('toast.welcomeBack'));
       navigate(returnUrl);
     } catch (error: any) {
-      toast.error(error?.message || t('toast.signInFailed', { defaultValue: 'Failed to sign in' }));
+      toast.error(error?.message || t('toast.signInFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -91,19 +91,12 @@ const Auth = () => {
 
       // Success messaging (with "both" description)
       if (selectedIntent === 'both') {
-        toast.success(
-          t('toast.confirmEmail.title', { defaultValue: 'Check your email to confirm your account!' }),
-          {
-            description: t('toast.confirmEmail.bothDescription', {
-              defaultValue: 'You can switch between Hiring and Working modes in the menu.',
-            }),
-            duration: 6000,
-          }
-        );
+        toast.success(t('toast.confirmEmail.title'), {
+          description: t('toast.confirmEmail.bothDescription'),
+          duration: 6000,
+        });
       } else {
-        toast.success(
-          t('toast.confirmEmail.title', { defaultValue: 'Check your email to confirm your account!' })
-        );
+        toast.success(t('toast.confirmEmail.title'));
       }
 
       // Reset form
@@ -116,7 +109,7 @@ const Auth = () => {
       const message =
         error instanceof Error
           ? error.message
-          : t('toast.signUpFailed', { defaultValue: 'Failed to sign up' });
+          : t('toast.signUpFailed');
 
       toast.error(message);
     } finally {
