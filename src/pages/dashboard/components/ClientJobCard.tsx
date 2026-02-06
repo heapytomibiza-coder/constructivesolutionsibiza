@@ -107,7 +107,11 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Show assignment selector for open jobs without assigned pro */}
+          {job.status === 'open' && !job.assigned_professional_id && (
+            <AssignProSelector jobId={job.id} onAssigned={onJobUpdated} />
+          )}
           {canComplete && (
             <Button 
               variant="outline" 

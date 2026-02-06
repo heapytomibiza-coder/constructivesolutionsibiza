@@ -1,22 +1,56 @@
- {
-   "client": {
-     "title": "Mi Panel",
-     "activeJobs": "Trabajos Activos",
-     "completedJobs": "Completados",
-     "pendingReviews": "Reseñas Pendientes",
-     "noJobs": "Aún no has publicado ningún trabajo.",
-     "postFirst": "Publica tu primer trabajo"
-   },
-   "pro": {
-     "title": "Panel de Profesional",
-     "matchedJobs": "Trabajos Coincidentes",
-     "activeConversations": "Conversaciones Activas",
-     "completedJobs": "Trabajos Completados",
-     "noMatches": "Aún no hay trabajos coincidentes. Actualiza tus servicios para ver oportunidades relevantes."
-   },
-   "stats": {
-     "jobs": "Trabajos",
-     "messages": "Mensajes",
-     "reviews": "Reseñas"
-   }
- }
+{
+  "client": {
+    "title": "Panel",
+    "welcomeBack": "Bienvenido de nuevo, {{email}}",
+    "postJob": "Publicar Trabajo",
+    "yourJobs": "Tus Trabajos",
+    "activeJobs": "Trabajos Activos",
+    "inProgress": "En Progreso",
+    "draftJobs": "Borradores",
+    "completedJobs": "Completados",
+    "pendingReviews": "Reseñas Pendientes",
+    "noJobs": "Aún no has publicado ningún trabajo.",
+    "postFirst": "Publica Tu Primer Trabajo",
+    "view": "Ver",
+    "complete": "Completar",
+    "assign": "Asignar",
+    "selectPro": "Seleccionar profesional",
+    "noProsYet": "Aún no hay profesionales que hayan enviado mensajes"
+  },
+  "pro": {
+    "title": "Panel de Profesional",
+    "welcomeBack": "Bienvenido de nuevo, {{email}}",
+    "browseAllJobs": "Ver Todos los Trabajos",
+    "completeSetup": "Completa tu Configuración",
+    "setupDescription": "Añade tus servicios para empezar a recibir oportunidades de trabajo.",
+    "setUpServices": "Configurar Servicios",
+    "yourServices": "Tus Servicios",
+    "matchedJobs": "Trabajos Coincidentes",
+    "matchedJobsDesc": "Trabajos que coinciden con tus servicios seleccionados",
+    "messages": "Mensajes",
+    "viewAll": "Ver Todo",
+    "noMatchedJobs": "Aún no hay trabajos coincidentes. ¡Vuelve pronto!",
+    "setUpServicesToSee": "Configura tus servicios para ver trabajos coincidentes.",
+    "quickActions": "Acciones Rápidas",
+    "updateServices": "Actualizar Servicios",
+    "editProfile": "Editar Perfil",
+    "viewMessages": "Ver Mensajes",
+    "profileStatus": "Estado del Perfil",
+    "servicesAdded": "Servicios añadidos",
+    "profileDetails": "Detalles del perfil",
+    "publiclyVisible": "Visible públicamente",
+    "addServicesHint": "Añade servicios y completa tu perfil para aparecer en los resultados de búsqueda."
+  },
+  "stats": {
+    "jobs": "Trabajos",
+    "messages": "Mensajes",
+    "reviews": "Reseñas",
+    "unread": "Nuevo"
+  },
+  "status": {
+    "open": "Abierto",
+    "draft": "Borrador",
+    "in_progress": "En Progreso",
+    "completed": "Completado"
+  }
+}
