@@ -13,15 +13,24 @@
     "signIn": "Sign in",
     "signOut": "Sign out",
     "dashboard": "Dashboard",
+    "clientDashboard": "My Dashboard",
+    "proDashboard": "Pro Dashboard",
     "messages": "Messages",
     "postJob": "Post a job",
-    "settings": "Settings"
+    "settings": "Settings",
+    "openMenu": "Open menu",
+    "menu": "Menu",
+    "userMenu": "User menu",
+    "selectRole": "Select mode"
   },
   "lanes": {
-    "hiring": "Hiring Mode",
-    "working": "Working Mode",
+    "discover": "Discover",
+    "hiring": "Hiring",
+    "working": "Working",
     "shared": "Shared",
+    "account": "Account",
     "switchMode": "Switch mode",
+    "switchModeHint": "Switch mode to see the right dashboard and jobs",
     "selectMode": "Select mode"
   },
   "roles": {

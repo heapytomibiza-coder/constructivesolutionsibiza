@@ -56,5 +56,12 @@ export interface RouteConfig {
     section: NavSection;
     labelKey: string; // i18n key (e.g., 'nav.postJob')
     order?: number; // Sort order within section
+    hideWhenAuthed?: boolean; // Hide from nav when user is authenticated
+    hideWhenPublic?: boolean; // Hide from nav when user is NOT authenticated
   };
+
+  /**
+   * Optional page title key (for headers/breadcrumbs)
+   */
+  titleKey?: string;
 }

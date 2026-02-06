@@ -13,15 +13,24 @@
     "signIn": "Iniciar sesión",
     "signOut": "Cerrar sesión",
     "dashboard": "Panel",
+    "clientDashboard": "Mi Panel",
+    "proDashboard": "Panel Pro",
     "messages": "Mensajes",
     "postJob": "Publicar trabajo",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "openMenu": "Abrir menú",
+    "menu": "Menú",
+    "userMenu": "Menú de usuario",
+    "selectRole": "Seleccionar modo"
   },
   "lanes": {
-    "hiring": "Modo Contratación",
-    "working": "Modo Trabajo",
+    "discover": "Descubrir",
+    "hiring": "Contratando",
+    "working": "Trabajando",
     "shared": "Compartido",
+    "account": "Cuenta",
     "switchMode": "Cambiar modo",
+    "switchModeHint": "Cambia de modo para ver el panel y trabajos correctos",
     "selectMode": "Seleccionar modo"
   },
   "roles": {

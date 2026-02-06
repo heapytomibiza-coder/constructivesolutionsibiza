@@ -8,9 +8,33 @@
  * Do not import from submodules directly in application code.
  */
 
-export { allRoutes } from './registry';
-export { getRouteConfig, getLaneForPath, getNavRoutes } from './match';
+// Route registry
+export { 
+  allRoutes,
+  publicRoutes,
+  authRoutes,
+  clientRoutes,
+  proOnboardingRoutes,
+  proDashboardRoutes,
+} from './registry';
+
+// Route matching
+export { getRouteConfig, getLaneForPath, getNavRoutes, getNavBySection } from './match';
+
+// Route types
 export type { AccessRule, RouteConfig, RouteLane, NavSection } from './rules';
+
+// Nav helpers
+export {
+  SECTION_ORDER,
+  SECTION_LABELS,
+  getActiveLaneSection,
+  getVisibleSections,
+  canSeeRoute,
+  getRoutesForSection,
+  getVisibleNavModel,
+  getDashboardPath,
+} from './nav';
 
 import { getRouteConfig } from './match';
 
