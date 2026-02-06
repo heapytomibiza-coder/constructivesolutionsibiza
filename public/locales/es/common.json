@@ -98,8 +98,16 @@
     "ctaDesc": "Publica tu trabajo gratis y recibe presupuestos de profesionales locales.",
     "ctaButton": "Publicar Trabajo Ahora"
   },
-  "serviceCategory": {
-    "selectSubcategory": "Selecciona una subcategoría",
+"services": {
+  "title": "Nuestros Servicios",
+  "subtitle": "Encuentra profesionales de confianza en todos los servicios de construcción e inmobiliarios",
+  "trustBadge": "Oficios verificados • Profesionales de Ibiza",
+  "viewServices": "Ver servicios",
+  "cantFind": "¿No encuentras lo que buscas?",
+  "postCustomJob": "Publicar un trabajo personalizado"
+},
+"serviceCategory": {
+  "selectSubcategory": "Selecciona una subcategoría",
     "selectSubcategoryDesc": "Elige un tipo de servicio específico para empezar",
     "backToServices": "Volver a Servicios",
     "categoryNotFound": "Categoría no encontrada",

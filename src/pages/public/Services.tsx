@@ -47,13 +47,13 @@ const Services = () => {
       {/* Hero Section */}
       <HeroBanner
         imageSrc={heroServices}
-        title="Our Services"
-        subtitle="Find trusted professionals across all construction and property services"
+        title={t('services.title')}
+        subtitle={t('services.subtitle')}
         height="compact"
         trustBadge={
           <div className="hero-trust-badge">
             <Shield className="h-4 w-4" />
-            Verified trades • Ibiza-based professionals
+            {t('services.trustBadge')}
           </div>
         }
       />
@@ -73,7 +73,7 @@ const Services = () => {
                   </CardHeader>
                   <CardContent>
                     <CardDescription className="flex items-center gap-1">
-                      View services <ArrowRight className="h-3 w-3" />
+                      {t('services.viewServices')} <ArrowRight className="h-3 w-3" />
                     </CardDescription>
                   </CardContent>
                 </Card>
@@ -85,10 +85,10 @@ const Services = () => {
         {/* CTA */}
         <div className="mt-16 text-center bg-gradient-accent rounded-lg p-8">
           <p className="text-accent-foreground/80 mb-4">
-            Can't find what you're looking for?
+            {t('services.cantFind')}
           </p>
           <Button variant="secondary" asChild>
-            <Link to="/post">Post a Custom Job</Link>
+            <Link to="/post">{t('services.postCustomJob')}</Link>
           </Button>
         </div>
       </div>
