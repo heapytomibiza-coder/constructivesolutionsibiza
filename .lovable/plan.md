@@ -1,233 +1,164 @@
 
 
-# Fix Language Switching Lag
+# Clean Up Mobile Visual Clutter - Remove Excessive Border Lines
 
 ## The Problem
 
-The current `LanguageSwitcher` uses a naive approach that triggers a synchronous language change without preloading namespaces. With `i18next-http-backend` + lazy loading, the first switch to Spanish causes a visible pause while JSON files are fetched over the network.
+On mobile viewports, the `/professionals` page (and similar pages) stacks multiple horizontal borders (`border-b`) creating a confusing "lined" appearance:
 
-**Current behavior:**
-```tsx
-const changeLanguage = (lng: string) => {
-  i18n.changeLanguage(lng); // ← blocks UI while fetching
-};
+```text
+┌─────────────────────────────┐
+│ Nav bar           border-b  │ ← line 1
+├─────────────────────────────┤
+│ Hero Section                │
+├─────────────────────────────┤
+│ Search Section    border-b  │ ← line 2
+├─────────────────────────────┤
+│ Filter Badges     border-b  │ ← line 3 (when filters active)
+├─────────────────────────────┤
+│ Card ┌──────────────────┐   │ ← line 4 (card border)
+│      │ Professional     │   │
+│      └──────────────────┘   │
+│ Card ┌──────────────────┐   │ ← line 5
+│      │ Professional     │   │
+│      └──────────────────┘   │
+├─────────────────────────────┤
+│ Footer            border-t  │ ← line 6
+└─────────────────────────────┘
 ```
 
----
-
-## Solution Overview
-
-Implement a 4-part fix to make language switching feel instant:
-
-| Fix | Description |
-|-----|-------------|
-| **1. Preload on idle** | After app mounts, quietly load Spanish namespaces in background |
-| **2. Safe language switch** | Load namespaces first, then switch language |
-| **3. Utility function** | Create reusable `preloadLanguage` helper |
-| **4. Better Suspense fallback** | Replace `null` with subtle loading indicator |
+On mobile, these 5-6 visible horizontal lines create visual noise.
 
 ---
 
-## Files to Create/Modify
+## Solution: Mobile-First Border Reduction
 
-| File | Action |
-|------|--------|
-| `src/i18n/preload.ts` | **Create** - Utility functions for preloading |
-| `src/components/layout/LanguageSwitcher.tsx` | **Update** - Use safe async switch |
-| `src/App.tsx` | **Update** - Add idle preload hook |
-| `src/main.tsx` | **Update** - Better Suspense fallback |
+Apply conditional border visibility using Tailwind's responsive modifiers to reduce visual clutter on mobile while keeping desktop polish.
+
+| Element | Current | Mobile Fix |
+|---------|---------|------------|
+| Search section | `border-b border-border` | Remove `border-b` on mobile, keep on `md:` |
+| Filter badges | `border-b border-border` | Remove `border-b` on mobile, keep on `md:` |
+| Professional cards | Visible borders | Use subtle shadow on mobile instead of hard borders |
+| Footer | `border-t border-border` | Keep (important visual separator) |
+| Nav | `border-b border-border` | Keep (sticky nav needs clear boundary) |
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/pages/public/Professionals.tsx` | Conditional borders on search/filter sections, card styling tweak |
+| `src/components/ui/card.tsx` | Add optional `borderless` variant for mobile-friendly cards |
+| `src/index.css` | Add utility class for mobile-optimized cards |
 
 ---
 
 ## Implementation Details
 
-### 1. Create `src/i18n/preload.ts`
+### 1. Update Professionals.tsx - Remove stacked borders on mobile
 
-```typescript
-import i18n from './index';
-import { NS } from './namespaces';
+```tsx
+{/* Search Section - remove border on mobile */}
+<div className="md:border-b md:border-border bg-background py-6">
 
-// All namespaces we want to preload
-const CORE_NAMESPACES = Object.values(NS);
+{/* Filter Badges - remove border on mobile */}
+{hasFilters && (
+  <div className="md:border-b md:border-border bg-muted/30 py-3">
+```
 
-/**
- * Preload a language's namespaces before switching
- * Prevents visible lag on first switch
- */
-export async function changeLanguageSafe(lng: string): Promise<void> {
-  // Load the language bundle first
-  await i18n.loadLanguages(lng);
-  // Ensure all namespaces are loaded
-  await i18n.loadNamespaces(CORE_NAMESPACES);
-  // Now switch - instant because everything is cached
-  await i18n.changeLanguage(lng);
-}
+### 2. Softer card treatment on mobile
 
-/**
- * Preload the alternate language in background
- * Call this on app mount after a small delay
- */
-export function preloadAlternateLanguage(): void {
-  const current = i18n.language?.startsWith('es') ? 'es' : 'en';
-  const alternate = current === 'en' ? 'es' : 'en';
+Instead of hard borders on every card, use:
+- **Mobile**: Subtle background differentiation + shadow
+- **Desktop**: Keep current bordered style
+
+```tsx
+{/* Professional card - softer mobile styling */}
+<Card key={pro.id} className="card-grounded border-0 shadow-sm md:border md:border-border/70 hover:border-primary/50 transition-colors">
+```
+
+### 3. Add mobile card utility in index.css
+
+```css
+@layer components {
+  /* Mobile-friendly card - no border on small screens */
+  .card-mobile-clean {
+    @apply border-0 shadow-sm;
+  }
   
-  // Load in background, don't await
-  i18n.loadLanguages(alternate);
-  i18n.loadNamespaces(CORE_NAMESPACES);
-}
-```
-
-### 2. Update `LanguageSwitcher.tsx`
-
-```tsx
-import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Globe, Loader2 } from 'lucide-react';
-import { changeLanguageSafe } from '@/i18n/preload';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
-export function LanguageSwitcher() {
-  const { i18n } = useTranslation();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleLanguageChange = async (lng: string) => {
-    if (isLoading) return;
-    setIsLoading(true);
-    try {
-      await changeLanguageSafe(lng);
-    } finally {
-      setIsLoading(false);
+  @screen md {
+    .card-mobile-clean {
+      @apply border border-border/70 shadow-sm;
     }
-  };
-
-  const currentLang = i18n.language?.startsWith('es') ? 'es' : 'en';
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="gap-1">
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Globe className="h-4 w-4" />
-          )}
-          <span className="text-xs font-medium uppercase">{currentLang}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem 
-          onClick={() => handleLanguageChange('en')}
-          className={currentLang === 'en' ? 'bg-accent' : ''}
-          disabled={isLoading}
-        >
-          🇬🇧 English
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => handleLanguageChange('es')}
-          className={currentLang === 'es' ? 'bg-accent' : ''}
-          disabled={isLoading}
-        >
-          🇪🇸 Español
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  }
 }
 ```
 
-### 3. Update `App.tsx` - Add idle preload
-
-```tsx
-import { useEffect } from 'react';
-import { preloadAlternateLanguage } from '@/i18n/preload';
-
-const App = () => {
-  // Preload alternate language on idle (800ms after mount)
-  useEffect(() => {
-    const id = window.setTimeout(() => {
-      preloadAlternateLanguage();
-    }, 800);
-    return () => window.clearTimeout(id);
-  }, []);
-
-  return (
-    // ... rest of component
-  );
-};
-```
-
-### 4. Update `main.tsx` - Better fallback
-
-```tsx
-import { Suspense } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
-import "./i18n";
-
-// Subtle loading indicator instead of blank screen
-const LoadingFallback = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-background">
-    <div className="h-1 w-24 overflow-hidden rounded-full bg-muted">
-      <div className="h-full w-1/2 animate-pulse bg-accent" />
-    </div>
-  </div>
-);
-
-createRoot(document.getElementById("root")!).render(
-  <Suspense fallback={<LoadingFallback />}>
-    <App />
-  </Suspense>
-);
-```
-
 ---
 
-## How It Works
+## Visual Result
 
+**Before (Mobile):**
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                      App Mounts (EN)                        │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼ (800ms delay)
-┌─────────────────────────────────────────────────────────────┐
-│           Background: Preload ES namespaces                 │
-│           (common, auth, jobs, forum, dashboard, wizard)    │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼ (User clicks 🇪🇸 Español)
-┌─────────────────────────────────────────────────────────────┐
-│           changeLanguageSafe('es')                          │
-│           └─ Already cached → instant switch!               │
-└─────────────────────────────────────────────────────────────┘
+─────────────────────────
+─────────────────────────
+─────────────────────────
+┌─────────────────────┐
+├─────────────────────┤
+└─────────────────────┘
+─────────────────────────
+```
+
+**After (Mobile):**
+```text
+─────────────────────────  ← Nav only (important)
+
+     Search Section
+     
+     ╭─────────────────╮   ← Soft shadows, no borders
+     │  Professional   │
+     ╰─────────────────╯
+     
+     ╭─────────────────╮
+     │  Professional   │
+     ╰─────────────────╯
+
+─────────────────────────  ← Footer (important)
 ```
 
 ---
 
-## Result
+## Technical Notes
 
-| Before | After |
-|--------|-------|
-| 500-800ms pause on first Spanish switch | Instant (< 50ms) |
-| Blank screen during initial load | Subtle animated bar |
-| No loading indicator during switch | Spinner on globe icon |
+1. **Responsive modifiers**: Using `md:border-b` means "apply border only on medium screens and up"
+
+2. **Shadow vs Border**: Shadows feel softer and less "boxy" on mobile - creates visual separation without harsh lines
+
+3. **Keep critical borders**: Nav and Footer borders remain as they mark fixed UI boundaries
+
+4. **card-grounded class**: Already exists, will add responsive border behavior to it
+
+---
+
+## Affected Pages
+
+This pattern should be applied consistently to:
+- `/professionals` (this fix)
+- `/jobs` (has similar structure)
+- `/services` (similar card grid)
+
+For now, focusing on `/professionals` as the primary fix - can extend to other pages as follow-up.
 
 ---
 
 ## Testing Checklist
 
-1. Clear localStorage (to reset language detection)
-2. Load app in English
-3. Wait 1 second (preload completes)
-4. Click 🇪🇸 Español → should be instant
-5. Refresh page → Spanish should persist
-6. Switch back to English → instant
-7. Hard refresh with cleared cache → subtle loading bar appears
+1. View `/professionals` on mobile (390px width)
+2. Confirm search section has no bottom border
+3. Add a filter - confirm filter section has no bottom border on mobile
+4. Verify cards have soft shadows instead of hard borders
+5. Switch to desktop (1024px+) - borders should return
+6. Visual hierarchy still clear (nav at top, footer at bottom clearly separated)
 
