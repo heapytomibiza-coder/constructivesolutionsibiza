@@ -35,19 +35,28 @@ export const AssignProSelector = ({ jobId, onAssigned }: AssignProSelectorProps)
   const { data: pros, isLoading } = useQuery({
     queryKey: ['job-conversation-pros', jobId],
     queryFn: async (): Promise<ConversationPro[]> => {
-      const { data, error } = await supabase
+      // First get conversations for this job
+      const { data: conversations, error: convError } = await supabase
         .from('conversations')
-        .select(`
-          pro_id,
-          professional_profiles!inner(display_name)
-        `)
+        .select('pro_id')
         .eq('job_id', jobId);
 
-      if (error) throw error;
+      if (convError) throw convError;
+      if (!conversations || conversations.length === 0) return [];
 
-      return (data || []).map((row) => ({
-        pro_id: row.pro_id,
-        display_name: (row.professional_profiles as { display_name: string | null })?.display_name,
+      const proIds = conversations.map((c) => c.pro_id);
+
+      // Then fetch professional profiles
+      const { data: profiles, error: profileError } = await supabase
+        .from('professional_profiles')
+        .select('user_id, display_name')
+        .in('user_id', proIds);
+
+      if (profileError) throw profileError;
+
+      return (profiles || []).map((p) => ({
+        pro_id: p.user_id,
+        display_name: p.display_name,
       }));
     },
   });
