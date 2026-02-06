@@ -21,8 +21,40 @@ export type AccessRule =
   | 'proReady'
   | 'admin2FA';
 
+/**
+ * Lane = "clear pathways" + "where they meet"
+ * - public: Discovery pages (home, services, professionals)
+ * - auth: Auth flow pages
+ * - client: Hiring lane (post job, client dashboard)
+ * - professional: Working lane (pro dashboard, onboarding)
+ * - shared: Where both meet (messages, settings, forum posting)
+ */
+export type RouteLane = 'public' | 'auth' | 'client' | 'professional' | 'shared';
+
+/**
+ * Nav sections = how you visually group links in navigation
+ */
+export type NavSection = 'public' | 'hiring' | 'working' | 'shared' | 'account';
+
 export interface RouteConfig {
   path: string;
   access: AccessRule;
   redirectTo?: string; // Where to redirect if access denied
+
+  /**
+   * Visual pathway map
+   * - client = Hiring lane
+   * - professional = Working lane
+   * - shared = where both meet (messages/settings/etc)
+   */
+  lane?: RouteLane;
+
+  /**
+   * Optional nav model - if present, route can be auto-rendered in nav
+   */
+  nav?: {
+    section: NavSection;
+    labelKey: string; // i18n key (e.g., 'nav.postJob')
+    order?: number; // Sort order within section
+  };
 }

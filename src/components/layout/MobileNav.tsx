@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -24,36 +25,58 @@ import {
   MessageSquare,
   LogOut,
   Users,
+  Settings,
+  PlusCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 
+// Public discovery links
 const publicNavLinks = [
-  { to: '/', label: 'Home', icon: Home },
-  { to: '/services', label: 'Services', icon: Wrench },
-  { to: '/jobs', label: 'Jobs', icon: ClipboardList },
-  { to: '/professionals', label: 'Professionals', icon: HardHat },
-  { to: '/how-it-works', label: 'How it works', icon: HelpCircle },
-  { to: '/forum', label: 'Community', icon: Users },
-  { to: '/contact', label: 'Contact', icon: Mail },
+  { to: '/', labelKey: 'nav.home', icon: Home },
+  { to: '/services', labelKey: 'nav.services', icon: Wrench },
+  { to: '/jobs', labelKey: 'nav.jobs', icon: ClipboardList },
+  { to: '/professionals', labelKey: 'nav.professionals', icon: HardHat },
+  { to: '/how-it-works', labelKey: 'nav.howItWorks', icon: HelpCircle },
+  { to: '/contact', labelKey: 'nav.contact', icon: Mail },
+];
+
+// Hiring lane links (client)
+const hiringLinks = [
+  { to: '/post', labelKey: 'nav.postJob', icon: PlusCircle },
+  { to: '/dashboard/client', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+];
+
+// Working lane links (professional)
+const workingLinks = [
+  { to: '/dashboard/pro', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+];
+
+// Shared hub links
+const sharedLinks = [
+  { to: '/messages', labelKey: 'nav.messages', icon: MessageSquare },
+  { to: '/forum', labelKey: 'nav.community', icon: Users },
+  { to: '/settings', labelKey: 'nav.settings', icon: Settings },
 ];
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, isAuthenticated, activeRole, roles } = useSession();
+  const { t } = useTranslation();
+  const { isAuthenticated, activeRole, roles } = useSession();
 
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
       setOpen(false);
-      toast.success('Signed out successfully');
+      toast.success(t('toast.signOutSuccess'));
       navigate('/');
     } catch (error) {
-      toast.error('Failed to sign out');
+      toast.error(t('toast.signOutError'));
     }
   };
 
-  const dashboardPath = activeRole === 'professional' ? '/dashboard/pro' : '/dashboard/client';
+  const hasClientRole = roles.includes('client');
+  const hasProRole = roles.includes('professional');
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -68,6 +91,7 @@ export function MobileNav() {
           <SheetTitle className="font-display text-lg">Menu</SheetTitle>
         </SheetHeader>
 
+        {/* PUBLIC DISCOVERY */}
         <nav className="mt-6 flex flex-col gap-1">
           {publicNavLinks.map((link) => (
             <Link
@@ -77,37 +101,85 @@ export function MobileNav() {
               className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <link.icon className="h-4 w-4" />
-              {link.label}
+              {t(link.labelKey)}
             </Link>
           ))}
         </nav>
 
-        <Separator className="my-4" />
+        {isAuthenticated && (
+          <>
+            <Separator className="my-4" />
 
-        {isAuthenticated ? (
-          <div className="flex flex-col gap-1">
-            <Link
-              to={dashboardPath}
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </Link>
-            <Link
-              to="/messages"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <MessageSquare className="h-4 w-4" />
-              Messages
-            </Link>
+            {/* HIRING LANE - Only if user has client role */}
+            {hasClientRole && (
+              <>
+                <p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {t('lanes.hiring')}
+                </p>
+                <nav className="flex flex-col gap-1">
+                  {hiringLinks.map((link) => (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <link.icon className="h-4 w-4" />
+                      {t(link.labelKey)}
+                    </Link>
+                  ))}
+                </nav>
+              </>
+            )}
 
+            {/* WORKING LANE - Only if user has professional role */}
+            {hasProRole && (
+              <>
+                <p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-3">
+                  {t('lanes.working')}
+                </p>
+                <nav className="flex flex-col gap-1">
+                  {workingLinks.map((link) => (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <link.icon className="h-4 w-4" />
+                      {t(link.labelKey)}
+                    </Link>
+                  ))}
+                </nav>
+              </>
+            )}
+
+            {/* SHARED HUB - Where both lanes meet */}
+            <p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-3">
+              {t('lanes.shared')}
+            </p>
+            <nav className="flex flex-col gap-1">
+              {sharedLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <link.icon className="h-4 w-4" />
+                  {t(link.labelKey)}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Role Switcher for dual-role users */}
             {roles.length > 1 && (
               <>
                 <Separator className="my-3" />
                 <div className="px-3">
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">Switch mode</p>
+                  <p className="mb-2 text-xs font-medium text-muted-foreground">
+                    {t('lanes.switchMode')}
+                  </p>
                   <RoleSwitcher className="w-full" />
                 </div>
               </>
@@ -115,27 +187,34 @@ export function MobileNav() {
 
             <Separator className="my-3" />
 
+            {/* Sign Out */}
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive w-full text-left"
             >
               <LogOut className="h-4 w-4" />
-              Sign out
+              {t('nav.signOut')}
             </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2 px-3">
-            <Button variant="outline" asChild className="w-full">
-              <Link to="/auth" onClick={() => setOpen(false)}>
-                Sign in
-              </Link>
-            </Button>
-            <Button variant="accent" asChild className="w-full">
-              <Link to="/post" onClick={() => setOpen(false)}>
-                Post a job
-              </Link>
-            </Button>
-          </div>
+          </>
+        )}
+
+        {/* Not authenticated - Show sign in + post job */}
+        {!isAuthenticated && (
+          <>
+            <Separator className="my-4" />
+            <div className="flex flex-col gap-2 px-3">
+              <Button variant="outline" asChild className="w-full">
+                <Link to="/auth" onClick={() => setOpen(false)}>
+                  {t('nav.signIn')}
+                </Link>
+              </Button>
+              <Button variant="accent" asChild className="w-full">
+                <Link to="/post" onClick={() => setOpen(false)}>
+                  {t('nav.postJob')}
+                </Link>
+              </Button>
+            </div>
+          </>
         )}
       </SheetContent>
     </Sheet>

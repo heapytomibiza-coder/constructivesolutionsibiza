@@ -3,6 +3,7 @@
     "hello": "Hello (EN)"
   },
   "nav": {
+    "home": "Home",
     "services": "Services",
     "jobs": "Jobs",
     "professionals": "Professionals",
@@ -13,7 +14,20 @@
     "signOut": "Sign out",
     "dashboard": "Dashboard",
     "messages": "Messages",
-    "postJob": "Post a job"
+    "postJob": "Post a job",
+    "settings": "Settings"
+  },
+  "lanes": {
+    "hiring": "Hiring Mode",
+    "working": "Working Mode",
+    "shared": "Shared",
+    "switchMode": "Switch mode",
+    "selectMode": "Select mode"
+  },
+  "roles": {
+    "client": "Hiring",
+    "professional": "Working",
+    "admin": "Admin"
   },
   "hero": {
     "title": "Find Trusted Construction Professionals",

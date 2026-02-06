@@ -9,8 +9,8 @@
  */
 
 export { allRoutes } from './registry';
-export { getRouteConfig } from './match';
-export type { AccessRule, RouteConfig } from './rules';
+export { getRouteConfig, getLaneForPath, getNavRoutes } from './match';
+export type { AccessRule, RouteConfig, RouteLane, NavSection } from './rules';
 
 import { getRouteConfig } from './match';
 
