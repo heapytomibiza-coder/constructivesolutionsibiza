@@ -12,6 +12,7 @@ import {
   ArrowRight, Shield, Clock, Star, CheckCircle
 } from 'lucide-react';
 import heroHome from '@/assets/heroes/hero-home.jpg';
+import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
 
 /**
  * HOMEPAGE - Construction & Trade Services
@@ -39,25 +40,6 @@ const categoryIcons: Record<string, React.ReactNode> = {
   'Legal & Regulatory': <FileCheck className="h-5 w-5" />,
 };
 
-// Category name to translation key mapping
-const CATEGORY_KEYS: Record<string, string> = {
-  'Construction': 'categories.construction',
-  'Carpentry': 'categories.carpentry',
-  'Plumbing': 'categories.plumbing',
-  'Electrical': 'categories.electrical',
-  'HVAC': 'categories.hvac',
-  'Painting & Decorating': 'categories.paintingDecorating',
-  'Cleaning': 'categories.cleaning',
-  'Gardening & Landscaping': 'categories.gardeningLandscaping',
-  'Pool & Spa': 'categories.poolSpa',
-  'Architects & Design': 'categories.architectsDesign',
-  'Transport & Logistics': 'categories.transportLogistics',
-  'Kitchen & Bathroom': 'categories.kitchenBathroom',
-  'Floors, Doors & Windows': 'categories.floorsDoorsWindows',
-  'Handyman & General': 'categories.handymanGeneral',
-  'Commercial & Industrial': 'categories.commercialIndustrial',
-  'Legal & Regulatory': 'categories.legalRegulatory',
-};
 
 const Index = () => {
   const { t } = useTranslation('common');

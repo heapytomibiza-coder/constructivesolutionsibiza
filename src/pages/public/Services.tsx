@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { MAIN_CATEGORIES } from '@/domain/scope';
+import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
 import { 
   Hammer, Wrench, Droplets, Zap, Wind, Paintbrush, 
   Sparkles, TreePine, Waves, PenTool, Truck, 
@@ -38,6 +40,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 const Services = () => {
+  const { t } = useTranslation('common');
+
   return (
     <PublicLayout>
       {/* Hero Section */}
@@ -65,7 +69,7 @@ const Services = () => {
                     <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-sm bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       {categoryIcons[category] || <Hammer className="h-6 w-6" />}
                     </div>
-                    <CardTitle className="font-display text-lg">{category}</CardTitle>
+                    <CardTitle className="font-display text-lg">{t(CATEGORY_KEYS[category] || category)}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <CardDescription className="flex items-center gap-1">
