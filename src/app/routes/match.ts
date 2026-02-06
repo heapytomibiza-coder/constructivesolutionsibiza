@@ -4,7 +4,7 @@
  * This module handles converting route patterns to regex and finding route configs.
  */
 
-import type { RouteConfig, RouteLane } from './rules';
+import type { RouteConfig, RouteLane, NavSection } from './rules';
 import { allRoutes } from './registry';
 
 // Cache for compiled regexes (performance optimization)
@@ -66,4 +66,18 @@ export function getNavRoutes(): RouteConfig[] {
   return allRoutes
     .filter((r) => r.nav)
     .sort((a, b) => (a.nav!.order ?? 999) - (b.nav!.order ?? 999));
+}
+
+/**
+ * Get nav routes grouped by section, pre-sorted by order
+ */
+export function getNavBySection(): Record<NavSection, RouteConfig[]> {
+  const grouped: Partial<Record<NavSection, RouteConfig[]>> = {};
+  
+  for (const r of getNavRoutes()) {
+    const section = r.nav!.section;
+    (grouped[section] ||= []).push(r);
+  }
+  
+  return grouped as Record<NavSection, RouteConfig[]>;
 }
