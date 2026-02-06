@@ -15,7 +15,11 @@
     "complete": "Completar",
     "assign": "Asignar",
     "selectPro": "Seleccionar profesional",
-    "noProsYet": "Aún no hay profesionales que hayan enviado mensajes"
+    "noProsYet": "Aún no hay profesionales que hayan enviado mensajes",
+    "loading": "Cargando...",
+    "professionalFallback": "Profesional",
+    "assignedSuccess": "Profesional asignado correctamente",
+    "assignedFail": "No se pudo asignar al profesional"
   },
   "pro": {
     "title": "Panel de Profesional",
