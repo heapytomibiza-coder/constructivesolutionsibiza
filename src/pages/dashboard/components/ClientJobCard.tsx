@@ -8,6 +8,7 @@ import { CompletionModal, RatingModal } from '@/pages/jobs/components';
 import { completeJob } from '@/pages/jobs/actions/completeJob.action';
 import { submitReview } from '@/pages/jobs/actions/submitReview.action';
 import { toast } from 'sonner';
+import { AssignProSelector } from './AssignProSelector';
 
 interface Job {
   id: string;
