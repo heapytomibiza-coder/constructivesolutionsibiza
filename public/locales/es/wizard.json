@@ -36,7 +36,8 @@
     "signInToSubmit": "Iniciar sesión para publicar"
   },
   "ui": {
-    "submitting": "Enviando..."
+    "submitting": "Enviando...",
+    "professionalFallback": "Profesional"
   },
   "toasts": {
     "duplicate": "Este trabajo ya fue enviado",
