@@ -281,6 +281,17 @@
     border-left: 3px solid hsl(var(--accent));
   }
 
+  /* Mobile-friendly card - soft shadows on mobile, borders on desktop */
+  .card-mobile-clean {
+    @apply border-0 shadow-sm bg-card rounded-lg;
+  }
+
+  @media (min-width: 768px) {
+    .card-mobile-clean {
+      @apply border border-border/70;
+    }
+  }
+
   /* Hero banner styles */
   .hero-banner {
     @apply relative;

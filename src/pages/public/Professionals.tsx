@@ -161,8 +161,8 @@ const Professionals = () => {
         }
       />
 
-      {/* Search Section */}
-      <div className="border-b border-border bg-background py-6">
+      {/* Search Section - no border on mobile */}
+      <div className="md:border-b md:border-border bg-background py-6">
         <div className="container">
           <div className="flex gap-3 max-w-xl mx-auto">
             <div className="relative flex-1">
@@ -177,9 +177,9 @@ const Professionals = () => {
         </div>
       </div>
 
-      {/* Filter Badges */}
+      {/* Filter Badges - no border on mobile */}
       {hasFilters && (
-        <div className="border-b border-border bg-muted/30 py-3">
+        <div className="md:border-b md:border-border bg-muted/30 py-3">
           <div className="container">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm text-muted-foreground">{t('professionals.filteringBy')}</span>
@@ -242,7 +242,7 @@ const Professionals = () => {
         ) : professionals && professionals.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {professionals.map((pro) => (
-              <Card key={pro.id} className="card-grounded hover:border-primary/50 transition-colors">
+              <Card key={pro.id} className="card-mobile-clean md:card-grounded hover:md:border-primary/50 transition-colors">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
