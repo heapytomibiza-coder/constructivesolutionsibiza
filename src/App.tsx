@@ -5,14 +5,16 @@
  * 15 routes total. No admin, payments, disputes, or AI dashboards.
  */
 
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
- import { ScrollToTop } from "@/components/layout/ScrollToTop";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { RouteGuard, PublicOnlyGuard } from "@/guard";
+import { preloadAlternateLanguage } from "@/i18n/preload";
 
 // Public Pages
 import Index from "./pages/Index";
@@ -53,7 +55,16 @@ import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/foru
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  // Preload alternate language on idle (800ms after mount)
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      preloadAlternateLanguage();
+    }, 800);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -126,6 +137,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
