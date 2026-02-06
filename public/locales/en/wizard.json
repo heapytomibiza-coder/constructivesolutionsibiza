@@ -36,7 +36,8 @@
     "signInToSubmit": "Sign In to Post"
   },
   "ui": {
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "professionalFallback": "Professional"
   },
   "toasts": {
     "duplicate": "This job was already submitted",
@@ -46,6 +47,7 @@
     "submitFailed": "Failed to post job. Please try again."
   },
   "errors": {
+    "authRequired": "You need to sign in to submit a job",
     "selectPro": "Please select a professional to send this job to"
   }
 }
