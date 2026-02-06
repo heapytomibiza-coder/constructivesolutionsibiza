@@ -56,5 +56,11 @@
     "draft": "Draft",
     "in_progress": "In Progress",
     "completed": "Completed"
+  },
+  "auth": {
+    "signedOut": "Signed out"
+  },
+  "common": {
+    "edit": "Edit"
   }
 }

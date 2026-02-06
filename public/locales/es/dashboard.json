@@ -56,5 +56,11 @@
     "draft": "Borrador",
     "in_progress": "En Progreso",
     "completed": "Completado"
+  },
+  "auth": {
+    "signedOut": "Sesión cerrada"
+  },
+  "common": {
+    "edit": "Editar"
   }
 }

@@ -13,6 +13,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { flushSync } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, Check, Loader2, FileText } from 'lucide-react';
@@ -25,12 +26,10 @@ import {
   WizardState, 
   WizardStep, 
   EMPTY_WIZARD_STATE, 
-  STEP_TITLES,
   STEP_ORDER,
   getStepIndex,
   getNextStep,
   getPrevStep,
-  isValidStep,
 } from './types';
 import { useWizardUrlStep } from './hooks/useWizardUrlStep';
 import { useWizardDraft } from './hooks/useWizardDraft';
@@ -49,6 +48,17 @@ import { ExtrasStep } from './steps/ExtrasStep';
 import { ReviewStep } from './steps/ReviewStep';
 import { QuestionsStep } from './steps/QuestionsStep';
 
+// Step title key mapping
+const STEP_TITLE_KEYS: Record<WizardStep, string> = {
+  [WizardStep.Category]: 'steps.category',
+  [WizardStep.Subcategory]: 'steps.subcategory',
+  [WizardStep.Micro]: 'steps.micro',
+  [WizardStep.Questions]: 'steps.questions',
+  [WizardStep.Logistics]: 'steps.logistics',
+  [WizardStep.Extras]: 'steps.extras',
+  [WizardStep.Review]: 'steps.review',
+};
+
 interface CanonicalJobWizardProps {
   className?: string;
 }
@@ -57,6 +67,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { t } = useTranslation('wizard');
   const { user, isAuthenticated } = useSession();
   
   // Core wizard state
@@ -482,7 +493,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
     // Direct mode validation
     if (wizardState.dispatchMode === 'direct' && !wizardState.targetProfessionalId) {
-      toast.error('Please select a professional to send this job to');
+      toast.error(t('errors.selectPro'));
       return;
     }
 
@@ -506,7 +517,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       if (error) {
         // Check for duplicate
         if (error.code === '23505') {
-          toast.info('This job was already submitted');
+          toast.info(t('toasts.duplicate'));
           navigate('/dashboard');
           return;
         }
@@ -529,7 +540,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           // Job still created, just navigate to dashboard
           clearDraft();
           resetSession();
-          toast.warning('Job saved but could not start conversation');
+          toast.warning(t('toasts.convoFailed'));
           navigate('/dashboard');
           return;
         }
@@ -537,7 +548,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         // Success - navigate to conversation
         clearDraft();
         resetSession();
-        toast.success('Job sent to professional!');
+        toast.success(t('toasts.directSuccess'));
         navigate(`/messages/${convoId}`);
         return;
       }
@@ -546,22 +557,21 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       clearDraft();
       resetSession();
       queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
-      toast.success('Job posted to marketplace!');
+      toast.success(t('toasts.broadcastSuccess'));
       navigate(`/jobs?highlight=${data.id}`);
       
     } catch (error) {
       console.error('Submit error:', error);
-      toast.error('Failed to post job. Please try again.');
+      toast.error(t('toasts.submitFailed'));
     } finally {
       setIsSubmitting(false);
     }
-  }, [isAuthenticated, user, wizardState, navigate, clearDraft, resetSession, queryClient]);
+  }, [isAuthenticated, user, wizardState, navigate, clearDraft, resetSession, queryClient, t]);
 
   // === RENDER ===
   
   const stepIndex = getStepIndex(currentStep);
   const totalSteps = STEP_ORDER.length;
-  const progress = (stepIndex / (totalSteps - 1)) * 100;
 
   return (
     <div className={className}>
@@ -571,17 +581,17 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           <Card className="max-w-md w-full border-border/70">
             <CardContent className="pt-6">
               <h3 className="font-display text-lg font-semibold mb-2">
-                Resume your draft?
+                {t('draft.title')}
               </h3>
               <p className="text-muted-foreground text-sm mb-4">
-                We found an unfinished job posting. Would you like to continue where you left off?
+                {t('draft.description')}
               </p>
               <div className="flex gap-3">
                 <Button variant="outline" onClick={handleStartFresh} className="flex-1">
-                  Start Fresh
+                  {t('draft.startFresh')}
                 </Button>
                 <Button onClick={handleResumeDraft} className="flex-1">
-                  Resume Draft
+                  {t('draft.resume')}
                 </Button>
               </div>
             </CardContent>
@@ -595,11 +605,11 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-foreground">
-              Step {stepIndex + 1} of {totalSteps}
+              {t('progress.stepOf', { current: stepIndex + 1, total: totalSteps })}
             </span>
           </div>
           <span className="text-sm text-muted-foreground font-medium">
-            {STEP_TITLES[currentStep]}
+            {t(STEP_TITLE_KEYS[currentStep])}
           </span>
         </div>
         
@@ -617,7 +627,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         
         {/* Helper text */}
         <p className="text-xs text-muted-foreground mt-2 hidden sm:block">
-          Building your job specification helps professionals quote accurately
+          {t('progress.helper')}
         </p>
       </div>
 
@@ -627,7 +637,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           {currentStep === WizardStep.Category && (
             <div className="space-y-6">
               <h3 className="font-display text-lg font-semibold">
-                What type of service do you need?
+                {t('category.headline')}
               </h3>
               
               {/* Universal Search Bar */}
@@ -637,7 +647,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               <div className="flex items-center gap-4">
                 <div className="flex-1 h-px bg-border" />
                 <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                  or browse categories
+                  {t('category.orBrowse')}
                 </span>
                 <div className="flex-1 h-px bg-border" />
               </div>
@@ -653,7 +663,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           {currentStep === WizardStep.Subcategory && (
             <div className="space-y-4">
               <h3 className="font-display text-lg font-semibold">
-                What kind of {wizardState.mainCategory.toLowerCase()} work?
+                {t('subcategory.headline', { category: wizardState.mainCategory.toLowerCase() })}
               </h3>
               <SubcategorySelector
                 categoryId={wizardState.mainCategoryId}
@@ -667,10 +677,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           {currentStep === WizardStep.Micro && (
             <div className="space-y-4">
               <h3 className="font-display text-lg font-semibold">
-                Select the specific tasks you need
+                {t('micro.headline')}
               </h3>
               <p className="text-sm text-muted-foreground">
-                Choose all that apply — this helps match you with the right professionals
+                {t('micro.hint')}
               </p>
               <MicroStep
                 subcategoryId={wizardState.subcategoryId}
@@ -730,7 +740,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           className="gap-2 min-h-[48px] md:min-h-0"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          {t('buttons.back')}
         </Button>
 
         {currentStep === WizardStep.Review ? (
@@ -742,16 +752,16 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Submitting...
+                {t('ui.submitting')}
               </>
             ) : isAuthenticated ? (
               <>
-                Post Job
+                {t('buttons.submit')}
                 <Check className="h-4 w-4" />
               </>
             ) : (
               <>
-                Sign In to Post
+                {t('buttons.signInToSubmit')}
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -764,7 +774,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               disabled={!canAdvance()}
               className="gap-2 min-h-[48px] md:min-h-0"
             >
-              Continue
+              {t('buttons.continue')}
               <ArrowRight className="h-4 w-4" />
             </Button>
           )
