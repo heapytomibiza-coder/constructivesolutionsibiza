@@ -143,8 +143,8 @@ const ClientDashboard = () => {
           </Card>
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {t('pro.messages')}
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t('stats.messages')}
               </CardTitle>
               <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
                 <MessageSquare className="h-5 w-5 text-accent" />

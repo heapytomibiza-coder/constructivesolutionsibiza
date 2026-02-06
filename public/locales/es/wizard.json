@@ -47,6 +47,7 @@
     "submitFailed": "No se pudo publicar. Inténtalo de nuevo."
   },
   "errors": {
+    "authRequired": "Necesitas iniciar sesión para publicar un trabajo",
     "selectPro": "Selecciona un profesional para enviarle este trabajo"
   }
 }
