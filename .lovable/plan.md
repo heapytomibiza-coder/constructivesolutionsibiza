@@ -1,146 +1,132 @@
 
 
-# i18n Homepage Fix: Wire Remaining Hardcoded Strings
+# Translate Category Names in Service Tiles
 
-## Current Status
+## Problem
 
-The i18n system is **working correctly**. When Spanish is selected via the Language Switcher, the homepage translates properly. However, two hardcoded sources remain in English:
-
-| Item | Source | Status |
-|------|--------|--------|
-| Hero subtitle | `PLATFORM.description` in `src/domain/scope.ts` | Hardcoded English |
-| Category names | `MAIN_CATEGORIES` constant | Hardcoded English |
-| Footer links | Hardcoded in `PublicFooter.tsx` | Not wired to i18n |
+The service category tiles on the homepage display hardcoded English names from the `MAIN_CATEGORIES` constant, even when Spanish is selected. As shown in the screenshot, everything translates except: "Construction", "Carpentry", "Plumbing", etc.
 
 ---
 
-## Solution: Wire PLATFORM.description to i18n
+## Solution
 
-The hero subtitle currently shows the hardcoded `PLATFORM.description` instead of using translations.
-
-### Change in Index.tsx (line 51)
-
-**Before:**
-```tsx
-subtitle={PLATFORM.description}
-```
-
-**After:**
-```tsx
-subtitle={t('hero.subtitle')}
-```
-
-The translation keys already exist:
-- EN: `"subtitle": "Construction & Trade Services in Ibiza"`
-- ES: `"subtitle": "Servicios de Construcción y Oficios en Ibiza"`
-
----
-
-## Solution: Wire Footer Links to i18n
-
-### Changes in PublicFooter.tsx
-
-Add `useTranslation` and create new translation keys for footer links.
-
-**New keys needed in common.json:**
-```json
-"footer": {
-  "rights": "All rights reserved.",
-  "tagline": "Connecting Ibiza with trusted construction professionals.",
-  "howItWorks": "How it works",
-  "contact": "Contact",
-  "privacy": "Privacy",
-  "terms": "Terms"
-}
-```
-
----
-
-## Category Names - Keep in English (MVP Decision)
-
-Category names like "Construction", "Carpentry", "Plumbing" will remain in English for now because:
-1. They come from database/constants, not translation files
-2. Industry terms are often internationally understood
-3. Full category translation system is out of scope for MVP
+Add a `categories` namespace to `common.json` and create a translation helper to map English category names to localized versions.
 
 ---
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/pages/Index.tsx` | Line 51: Change `PLATFORM.description` → `t('hero.subtitle')` |
-| `src/components/layout/PublicFooter.tsx` | Wire footer links to `t('footer.*')` |
-| `public/locales/en/common.json` | Add footer link keys |
-| `public/locales/es/common.json` | Add Spanish footer translations |
+| File | Changes |
+|------|---------|
+| `public/locales/en/common.json` | Add `categories.*` keys for all 16 categories |
+| `public/locales/es/common.json` | Add Spanish translations for all 16 categories |
+| `src/pages/Index.tsx` | Use translation helper to display localized category names |
 
 ---
 
-## Implementation Details
+## Translation Keys to Add
 
-### 1. Index.tsx - Line 51
-
-```tsx
-// Change from:
-subtitle={PLATFORM.description}
-
-// To:
-subtitle={t('hero.subtitle')}
-```
-
-### 2. PublicFooter.tsx
-
-```tsx
-import { useTranslation } from 'react-i18next';
-
-export function PublicFooter() {
-  const { t } = useTranslation('common');
-  
-  return (
-    // ... existing code ...
-    <Link to="/how-it-works">{t('footer.howItWorks')}</Link>
-    <Link to="/contact">{t('footer.contact')}</Link>
-    <Link to="/privacy">{t('footer.privacy')}</Link>
-    <Link to="/terms">{t('footer.terms')}</Link>
-    // ...
-  );
+### English (common.json)
+```json
+"categories": {
+  "construction": "Construction",
+  "carpentry": "Carpentry",
+  "plumbing": "Plumbing",
+  "electrical": "Electrical",
+  "hvac": "HVAC",
+  "paintingDecorating": "Painting & Decorating",
+  "cleaning": "Cleaning",
+  "gardeningLandscaping": "Gardening & Landscaping",
+  "poolSpa": "Pool & Spa",
+  "architectsDesign": "Architects & Design",
+  "transportLogistics": "Transport & Logistics",
+  "kitchenBathroom": "Kitchen & Bathroom",
+  "floorsDoorsWindows": "Floors, Doors & Windows",
+  "handymanGeneral": "Handyman & General",
+  "commercialIndustrial": "Commercial & Industrial",
+  "legalRegulatory": "Legal & Regulatory"
 }
 ```
 
-### 3. Add to common.json (EN)
-
+### Spanish (common.json)
 ```json
-"footer": {
-  "rights": "All rights reserved.",
-  "tagline": "Connecting Ibiza with trusted construction professionals.",
-  "howItWorks": "How it works",
-  "contact": "Contact",
-  "privacy": "Privacy",
-  "terms": "Terms"
-}
-```
-
-### 4. Add to common.json (ES)
-
-```json
-"footer": {
-  "rights": "Todos los derechos reservados.",
-  "tagline": "Conectando Ibiza con profesionales de la construcción de confianza.",
-  "howItWorks": "Cómo funciona",
-  "contact": "Contacto",
-  "privacy": "Privacidad",
-  "terms": "Términos"
+"categories": {
+  "construction": "Construcción",
+  "carpentry": "Carpintería",
+  "plumbing": "Fontanería",
+  "electrical": "Electricidad",
+  "hvac": "Climatización",
+  "paintingDecorating": "Pintura y Decoración",
+  "cleaning": "Limpieza",
+  "gardeningLandscaping": "Jardinería y Paisajismo",
+  "poolSpa": "Piscina y Spa",
+  "architectsDesign": "Arquitectos y Diseño",
+  "transportLogistics": "Transporte y Logística",
+  "kitchenBathroom": "Cocina y Baño",
+  "floorsDoorsWindows": "Suelos, Puertas y Ventanas",
+  "handymanGeneral": "Manitas y General",
+  "commercialIndustrial": "Comercial e Industrial",
+  "legalRegulatory": "Legal y Normativo"
 }
 ```
 
 ---
 
-## Summary
+## Index.tsx Changes
 
-The homepage i18n is 95% complete and working. This plan fixes the remaining 2 hardcoded sources:
+Create a mapping from English category names to translation keys:
 
-1. **Hero subtitle**: Switch from `PLATFORM.description` to `t('hero.subtitle')` - 1 line change
-2. **Footer links**: Wire to translation keys - ~10 lines
+```typescript
+// Category name to translation key mapping
+const CATEGORY_KEYS: Record<string, string> = {
+  'Construction': 'categories.construction',
+  'Carpentry': 'categories.carpentry',
+  'Plumbing': 'categories.plumbing',
+  'Electrical': 'categories.electrical',
+  'HVAC': 'categories.hvac',
+  'Painting & Decorating': 'categories.paintingDecorating',
+  'Cleaning': 'categories.cleaning',
+  'Gardening & Landscaping': 'categories.gardeningLandscaping',
+  'Pool & Spa': 'categories.poolSpa',
+  'Architects & Design': 'categories.architectsDesign',
+  'Transport & Logistics': 'categories.transportLogistics',
+  'Kitchen & Bathroom': 'categories.kitchenBathroom',
+  'Floors, Doors & Windows': 'categories.floorsDoorsWindows',
+  'Handyman & General': 'categories.handymanGeneral',
+  'Commercial & Industrial': 'categories.commercialIndustrial',
+  'Legal & Regulatory': 'categories.legalRegulatory',
+};
+```
 
-After this fix, the entire homepage will be fully translated when Spanish is selected.
+Then update line 102 from:
+```tsx
+<span className="font-medium text-foreground">{category}</span>
+```
+
+To:
+```tsx
+<span className="font-medium text-foreground">
+  {t(CATEGORY_KEYS[category] || category)}
+</span>
+```
+
+---
+
+## Result
+
+After this change:
+- **English**: Construction, Carpentry, Plumbing...
+- **Spanish**: Construcción, Carpintería, Fontanería...
+
+The URL slugs remain in English (e.g., `/services/construction`) for SEO and consistency with database values.
+
+---
+
+## Implementation Order
+
+1. Add `categories.*` keys to EN common.json
+2. Add Spanish translations to ES common.json
+3. Add `CATEGORY_KEYS` mapping to Index.tsx
+4. Update the category label render to use `t()`
+5. Test language switching on homepage
 
