@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -10,6 +11,7 @@ import { PublicLayout, HeroBanner } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowRight, CheckCircle, Search, Shield, Users, Zap } from 'lucide-react';
 import heroServices from '@/assets/heroes/hero-services.jpg';
+import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
 
 /**
  * SERVICE CATEGORY PAGE - View subcategories and professionals
@@ -34,6 +36,7 @@ interface DbSubcategory {
 const ServiceCategory = () => {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string | null>(null);
+  const { t } = useTranslation('common');
 
   // Fetch category by slug
   const {
@@ -101,15 +104,15 @@ const ServiceCategory = () => {
       <PublicLayout>
         <div className="container py-20 text-center">
           <h1 className="font-display text-2xl font-bold text-foreground mb-4">
-            Category Not Found
+            {t('serviceCategory.categoryNotFound')}
           </h1>
           <p className="text-muted-foreground mb-6">
-            This service category doesn't exist or is no longer available.
+            {t('serviceCategory.categoryNotFoundDesc')}
           </p>
           <Button asChild>
             <Link to="/services">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Services
+              {t('serviceCategory.backToServices')}
             </Link>
           </Button>
         </div>
@@ -126,18 +129,21 @@ const ServiceCategory = () => {
     ? `/professionals?category=${encodeURIComponent(category.id)}&subcategory=${encodeURIComponent(selectedSubcategoryId)}`
     : `/professionals?category=${encodeURIComponent(category.id)}`;
 
+  // Translate category name
+  const categoryLabel = t(CATEGORY_KEYS[category.name] || category.name);
+
   return (
     <PublicLayout>
       {/* Hero Banner */}
       <HeroBanner
         imageSrc={heroServices}
-        title={category.name}
-        subtitle={`Find trusted ${category.name.toLowerCase()} professionals in Ibiza`}
+        title={categoryLabel}
+        subtitle={t('serviceCategory.heroSubtitle', { category: categoryLabel.toLowerCase() })}
         height="compact"
         trustBadge={
           <div className="flex items-center justify-center gap-2 text-sm text-white/90">
             <Shield className="h-4 w-4" />
-            <span>Verified professionals only</span>
+            <span>{t('serviceCategory.verifiedOnly')}</span>
           </div>
         }
       />
@@ -149,7 +155,7 @@ const ServiceCategory = () => {
           className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 w-fit"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Services
+          {t('serviceCategory.backToServices')}
         </Link>
       </div>
 
@@ -157,9 +163,9 @@ const ServiceCategory = () => {
         {/* Subcategory Selection */}
         <Card className="mb-8 card-grounded">
           <CardHeader>
-            <CardTitle className="font-display">Select a Subcategory</CardTitle>
+            <CardTitle className="font-display">{t('serviceCategory.selectSubcategory')}</CardTitle>
             <CardDescription>
-              Choose a specific service type to get started
+              {t('serviceCategory.selectSubcategoryDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -193,7 +199,9 @@ const ServiceCategory = () => {
                       htmlFor={sub.id} 
                       className="flex-1 cursor-pointer"
                     >
-                      <span className="font-medium">{sub.name}</span>
+                      <span className="font-medium">
+                        {t(`subcategories.${sub.slug}`, { defaultValue: sub.name })}
+                      </span>
                       {sub.description && (
                         <span className="block text-sm text-muted-foreground mt-0.5">
                           {sub.description}
@@ -209,7 +217,7 @@ const ServiceCategory = () => {
                   <Users className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <p className="text-muted-foreground">
-                  No subcategories available for this service.
+                  {t('serviceCategory.noSubcategories')}
                 </p>
               </div>
             )}
@@ -219,7 +227,7 @@ const ServiceCategory = () => {
         {/* How to Find Help - Clear Choice */}
         <div className="space-y-4">
           <h3 className="font-display text-lg font-semibold text-center">
-            How would you like to find help?
+            {t('serviceCategory.howToFindHelp')}
           </h3>
           
           <div className="grid gap-4 sm:grid-cols-2">
@@ -231,29 +239,29 @@ const ServiceCategory = () => {
                     <Zap className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-semibold">Post a Job</h4>
-                    <p className="text-sm text-muted-foreground">Get quotes fast</p>
+                    <h4 className="font-semibold">{t('serviceCategory.postJob')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('serviceCategory.getQuotesFast')}</p>
                   </div>
                 </div>
                 
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                    Send to matching professionals
+                    {t('serviceCategory.sendToMatching')}
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                    Receive multiple quotes
+                    {t('serviceCategory.receiveMultipleQuotes')}
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                    Fastest response time
+                    {t('serviceCategory.fastestResponse')}
                   </li>
                 </ul>
                 
                 <Button asChild className="w-full">
                   <Link to={postHref}>
-                    Post Job
+                    {t('serviceCategory.postJob')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -268,29 +276,29 @@ const ServiceCategory = () => {
                     <Search className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <h4 className="font-semibold">Browse Professionals</h4>
-                    <p className="text-sm text-muted-foreground">Choose who you work with</p>
+                    <h4 className="font-semibold">{t('serviceCategory.browseProfessionals')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('serviceCategory.chooseWhoYouWork')}</p>
                   </div>
                 </div>
                 
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    View profiles & reviews
+                    {t('serviceCategory.viewProfiles')}
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    Pick the right person
+                    {t('serviceCategory.pickRightPerson')}
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    Start a private conversation
+                    {t('serviceCategory.startConversation')}
                   </li>
                 </ul>
                 
                 <Button variant="outline" asChild className="w-full">
                   <Link to={prosHref}>
-                    Browse Pros
+                    {t('serviceCategory.browsePros')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -300,7 +308,7 @@ const ServiceCategory = () => {
           
           {/* Bottom helper text */}
           <p className="text-xs text-muted-foreground text-center">
-            Both options use the same 7-step form — the difference is who receives your request
+            {t('serviceCategory.bottomHelper')}
           </p>
         </div>
       </div>
