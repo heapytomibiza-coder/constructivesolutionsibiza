@@ -3,14 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 /**
  * Assign a professional to a job and set status to in_progress.
  * Only the job owner (client) can assign.
- * MVP: Used for testing the completion flow.
+ * Security: professional must be a conversation participant on this job.
  */
+
+// Accept multiple status names until DB is fully normalized
+const ASSIGNABLE_STATUSES = ['open', 'posted'] as const;
+
 export async function assignProfessional(
-  jobId: string, 
+  jobId: string,
   professionalId: string
 ): Promise<{ success: boolean; error?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     return { success: false, error: 'Not authenticated' };
   }
@@ -34,24 +38,30 @@ export async function assignProfessional(
     return { success: false, error: 'Job already has an assigned professional' };
   }
 
-  if (job.status !== 'open') {
+  // Accept 'open' or 'posted' status
+  if (!ASSIGNABLE_STATUSES.includes(job.status as typeof ASSIGNABLE_STATUSES[number])) {
     return { success: false, error: 'Job must be open to assign a professional' };
   }
 
-  // Security: Verify the professional has messaged about this job
+  // Security: Verify the professional is a conversation participant for this job
   const { data: conversation, error: convError } = await supabase
     .from('conversations')
     .select('id')
     .eq('job_id', jobId)
     .eq('pro_id', professionalId)
-    .single();
+    .maybeSingle();
 
-  if (convError || !conversation) {
+  if (convError) {
+    console.error('Error verifying conversation:', convError);
+    return { success: false, error: 'Unable to verify conversation participant' };
+  }
+
+  if (!conversation) {
     return { success: false, error: 'Professional has not messaged about this job' };
   }
 
-  // Update job with assigned pro and set to in_progress
-  const { error } = await supabase
+  // Atomic update: only succeeds if still unassigned + in assignable status
+  const { data, error } = await supabase
     .from('jobs')
     .update({
       assigned_professional_id: professionalId,
@@ -59,11 +69,19 @@ export async function assignProfessional(
     })
     .eq('id', jobId)
     .eq('user_id', user.id)
-    .eq('status', 'open');
+    .in('status', [...ASSIGNABLE_STATUSES])
+    .is('assigned_professional_id', null)
+    .select('id')
+    .single();
 
   if (error) {
     console.error('Error assigning professional:', error);
     return { success: false, error: error.message };
+  }
+
+  // No rows updated means race condition or status changed
+  if (!data) {
+    return { success: false, error: 'Job could not be assigned (it may have changed)' };
   }
 
   return { success: true };
