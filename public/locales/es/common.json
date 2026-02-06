@@ -56,10 +56,24 @@
      "success": "Éxito",
      "empty": "No se encontraron elementos"
    },
-   "validation": {
-     "required": "Este campo es obligatorio",
-     "invalidEmail": "Por favor, introduce un email válido",
-     "tooShort": "Debe tener al menos {{min}} caracteres",
-     "tooLong": "Debe tener como máximo {{max}} caracteres"
-   }
- }
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Por favor, introduce un email válido",
+    "tooShort": "Debe tener al menos {{min}} caracteres",
+    "tooLong": "Debe tener como máximo {{max}} caracteres"
+  },
+  "home": {
+    "ourServices": "Nuestros Servicios",
+    "ourServicesDesc": "Encuentra profesionales de confianza en todos los servicios de construcción",
+    "viewAllServices": "Ver Todos los Servicios",
+    "verifiedTitle": "Profesionales Verificados",
+    "verifiedDesc": "Todos los profesionales están verificados antes de unirse",
+    "quickTitle": "Respuesta Rápida",
+    "quickDesc": "Recibe presupuestos de varios profesionales en horas",
+    "qualityTitle": "Calidad Garantizada",
+    "qualityDesc": "Valorados por clientes reales en Ibiza",
+    "ctaTitle": "¿Listo para empezar tu proyecto?",
+    "ctaDesc": "Publica tu trabajo gratis y recibe presupuestos de profesionales locales.",
+    "ctaButton": "Publicar Trabajo Ahora"
+  }
+}
