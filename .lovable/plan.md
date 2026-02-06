@@ -1,236 +1,241 @@
 
 
-# Elevate the Intent Selector: Expressive First Impression
+# Add Welcoming Visual to Auth Intent Selector
 
-## The Problem
+## The Vision
 
-The current `/auth` signup flow feels **functional but flat**. The Intent Selector lacks personality and emotional resonance. For a first impression, it should feel warm, inviting, and expressive — communicating "you belong here" before the user even picks an option.
+A **compact hero image** above the intent cards that creates an emotional "welcome" moment without adding friction. As you said:
 
----
-
-## Design Direction
-
-Transform from **sterile form** → **welcoming moment**
-
-| Before | After |
-|--------|-------|
-| Plain gray icon boxes | Gradient-accented icon containers with personality |
-| Static cards | Subtle entrance animations + hover states |
-| Generic titles | Warm, expressive copy with emoji accents |
-| Neutral colors | Steel blue icons for Asker, terracotta for Tasker |
-| No visual hierarchy | Selected state with scale + glow |
+> "A welcoming smile before the handshake."
 
 ---
 
-## Visual Enhancements
+## Design Specification
 
-### 1. Expressive Icons with Color Personality
-
-Each intent gets a distinct visual identity:
+### Layout (Desktop & Mobile)
 
 ```text
-┌─────────────────────────────────────────────────┐
-│  [🔵 Icon]  I'm looking for help                │
-│             Find pros, post jobs, get quotes    │
-└─────────────────────────────────────────────────┘
-┌─────────────────────────────────────────────────┐
-│  [🟠 Icon]  I'm offering my services            │
-│             Find work, build my reputation      │
-└─────────────────────────────────────────────────┘
-┌─────────────────────────────────────────────────┐
-│  [🔷 Icon]  Both                                │
-│             I hire AND offer services           │
-└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────┐
+│           [CS Ibiza Logo]               │
+├─────────────────────────────────────────┤
+│   ┌─────────────────────────────────┐   │
+│   │                                 │   │
+│   │     [ Compact Hero Visual ]     │   │  ← 120-140px desktop
+│   │       Warm / human / Ibiza      │   │    90-100px mobile
+│   │       Soft gradient overlay     │   │
+│   │                                 │   │
+│   └─────────────────────────────────┘   │
+│                                         │
+│        How will you use CS Ibiza?       │
+│      Choose your path — switch later    │
+│                                         │
+│   ┌─────────────────────────────────┐   │
+│   │  🔵 I'm looking for help        │   │
+│   └─────────────────────────────────┘   │
+│   ┌─────────────────────────────────┐   │
+│   │  🟠 I offer my services         │   │
+│   └─────────────────────────────────┘   │
+│   ┌─────────────────────────────────┐   │
+│   │  🔷 A bit of both               │   │
+│   └─────────────────────────────────┘   │
+│                                         │
+│          [ Continue Button ]            │
+└─────────────────────────────────────────┘
 ```
 
-- **Asker**: Steel blue gradient icon background (trust, reliability)
-- **Tasker**: Terracotta/clay gradient icon background (warmth, action)
-- **Both**: Steel blue outline with clay accent
+### Image Characteristics
 
-### 2. Entrance Animations
+**Style: Documentary-warm, not stock-corporate**
 
-Cards animate in staggered sequence:
-- Card 1: `animate-slide-up` with 0ms delay
-- Card 2: `animate-slide-up` with 100ms delay
-- Card 3: `animate-slide-up` with 200ms delay
+The image should convey:
+- **Human moment** — hands on work, conversation, collaboration
+- **Trust + warmth** — natural light, Ibiza colors (honey sandstone, terracotta)
+- **Professional but approachable** — not industrial, not sterile
 
-### 3. Selection States
+**What TO show:**
+- A professional talking with a client in warm natural light
+- Hands over plans/tablet at a worksite
+- Tools and materials organized (tidy, not chaotic)
+- Subtle Mediterranean context (light, texture, stone — not palm trees)
 
-When selected:
-- Card scales up slightly (`scale-[1.02]`)
-- Border changes to accent color with subtle glow
-- Icon container gets gradient background
-- Check mark appears in corner
+**What NOT to show:**
+- Faces staring into camera
+- Stock-photo smiles
+- Heavy machinery or hard hats
+- Messy construction chaos
 
-### 4. Warmer, More Human Copy
+### Technical Implementation
 
-| Current | New |
-|---------|-----|
-| "I'm an Asker" | "I'm looking for help" |
-| "I'm a Tasker" | "I offer my services" |
-| Dry descriptions | Warmer, action-oriented language |
+**New component: `AuthHeroVisual.tsx`**
+
+A lightweight, auth-specific visual component:
+- Rounded corners (matches card aesthetic)
+- Fixed aspect ratio (responsive height)
+- Gradient overlay (steel → clay blend)
+- Subtle entrance animation
 
 ---
 
-## Files to Modify
+## Files to Create/Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/auth/IntentSelector.tsx` | Redesign cards with gradients, animations, expressive copy |
-| `public/locales/en/auth.json` | Add intent selector translation keys |
-| `public/locales/es/auth.json` | Add Spanish translations |
+| `src/assets/heroes/hero-auth.jpg` | New image asset (to be provided/generated) |
+| `src/components/auth/AuthHeroVisual.tsx` | New compact hero component for auth flow |
+| `src/components/auth/IntentSelector.tsx` | Import and render the hero visual above header |
+| `public/locales/en/auth.json` | Optional: Add alt text translation |
+| `public/locales/es/auth.json` | Optional: Add Spanish alt text |
 
 ---
 
 ## Implementation Details
 
-### IntentSelector.tsx Changes
+### New Component: `AuthHeroVisual.tsx`
 
 ```tsx
-// New intent options with warmer copy
-const intentOptions = [
-  {
-    value: 'client',
-    icon: Search, // More expressive icon
-    title: "I'm looking for help",
-    description: 'Post jobs, get quotes, and hire trusted professionals',
-    gradient: 'bg-gradient-steel', // Steel blue
-    accentClass: 'text-primary',
-  },
-  {
-    value: 'professional',
-    icon: Hammer, // Trade-oriented icon
-    title: 'I offer my services',
-    description: 'Find work, win projects, and grow your business',
-    gradient: 'bg-gradient-clay', // Terracotta
-    accentClass: 'text-accent',
-  },
-  {
-    value: 'both',
-    icon: RefreshCw, // Exchange/both
-    title: 'A bit of both',
-    description: 'I hire professionals AND offer my own services',
-    gradient: 'bg-gradient-steel',
-    accentClass: 'text-primary',
-  },
-];
+import { cn } from '@/lib/utils';
+import heroAuth from '@/assets/heroes/hero-auth.jpg';
+
+interface AuthHeroVisualProps {
+  className?: string;
+}
+
+export function AuthHeroVisual({ className }: AuthHeroVisualProps) {
+  return (
+    <div
+      className={cn(
+        'relative w-full overflow-hidden rounded-lg',
+        'h-[100px] sm:h-[120px] md:h-[140px]',
+        'animate-fade-in',
+        className
+      )}
+    >
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${heroAuth})` }}
+      />
+      
+      {/* Warm gradient overlay (steel → clay blend) */}
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/40 via-primary/20 to-accent/30" />
+      
+      {/* Subtle vignette for depth */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10" />
+    </div>
+  );
+}
 ```
 
-### Card Styling
+### IntentSelector.tsx Updates
 
 ```tsx
-<Card
-  className={cn(
-    'cursor-pointer transition-all duration-300',
-    'hover:shadow-md hover:border-accent/40',
-    isSelected && 'border-accent ring-2 ring-accent/20 scale-[1.02] shadow-glow'
-  )}
-  style={{ animationDelay: `${index * 100}ms` }}
->
-  <CardContent className="flex items-center gap-4 p-5">
-    {/* Gradient icon container */}
-    <div className={cn(
-      'flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-all',
-      isSelected ? option.gradient : 'bg-muted',
-      isSelected && 'shadow-md'
-    )}>
-      <Icon className={cn(
-        'h-6 w-6 transition-colors',
-        isSelected ? 'text-white' : option.accentClass
-      )} />
-    </div>
-    
-    {/* Text content */}
-    <div className="flex-1">
-      <p className={cn(
-        'font-display text-lg font-semibold',
-        isSelected && option.accentClass
-      )}>
-        {option.title}
-      </p>
-      <p className="text-sm text-muted-foreground">
-        {option.description}
-      </p>
-    </div>
-    
-    {/* Selection indicator */}
-    {isSelected && (
-      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white">
-        <Check className="h-4 w-4" />
+import { AuthHeroVisual } from './AuthHeroVisual';
+
+export function IntentSelector({ value, onChange }: IntentSelectorProps) {
+  const { t } = useTranslation('auth');
+
+  return (
+    <div className="space-y-5">
+      {/* Welcome visual - warm Mediterranean moment */}
+      <AuthHeroVisual />
+      
+      {/* Expressive header */}
+      <div className="text-center space-y-2">
+        <h3 className="font-display text-xl font-semibold text-foreground">
+          {t('intent.header')}
+        </h3>
+        <p className="text-muted-foreground">
+          {t('intent.subheader')}
+        </p>
       </div>
-    )}
-  </CardContent>
-</Card>
-```
 
-### Header Copy
-
-```tsx
-<div className="text-center space-y-2">
-  <h3 className="font-display text-xl font-semibold text-foreground">
-    How will you use CS Ibiza?
-  </h3>
-  <p className="text-muted-foreground">
-    Choose your path — you can always switch later
-  </p>
-</div>
+      {/* Intent cards - unchanged */}
+      <div className="grid gap-3">
+        {intentOptions.map((option, index) => {
+          // ... existing card code
+        })}
+      </div>
+    </div>
+  );
+}
 ```
 
 ---
 
-## Translation Keys
+## Image Asset Options
 
-### EN (`auth.json`)
+### Option A: AI-Generated (Fastest)
+
+Use the Nano banana model to generate a Mediterranean construction moment:
+
+**Prompt:**
+> "Professional builder and client reviewing plans together in warm Ibiza sunlight, honey-colored sandstone background, hands pointing at tablet or blueprint, warm terracotta accents, natural documentary style, shallow depth of field, no direct eye contact with camera, professional but human, aspect ratio 3:1"
+
+### Option B: Stock Photo (If you have a source)
+
+Search terms:
+- "Mediterranean construction consultation"
+- "Builder client meeting natural light"
+- "Renovation planning warm tones"
+
+### Option C: Upload Your Own
+
+If you have a specific image that captures the CS Ibiza vibe.
+
+---
+
+## Translation Keys (Optional)
+
+**EN (`auth.json`):**
 ```json
 "intent": {
-  "header": "How will you use CS Ibiza?",
-  "subheader": "Choose your path — you can always switch later",
-  "client": {
-    "title": "I'm looking for help",
-    "description": "Post jobs, get quotes, and hire trusted professionals"
-  },
-  "professional": {
-    "title": "I offer my services",
-    "description": "Find work, win projects, and grow your business"
-  },
-  "both": {
-    "title": "A bit of both",
-    "description": "I hire professionals AND offer my own services"
-  }
+  "heroAlt": "Professional consultation in Mediterranean light",
+  // ... existing keys
 }
 ```
 
-### ES (`auth.json`)
+**ES (`auth.json`):**
 ```json
 "intent": {
-  "header": "¿Cómo usarás CS Ibiza?",
-  "subheader": "Elige tu camino — siempre puedes cambiar después",
-  "client": {
-    "title": "Busco ayuda",
-    "description": "Publica trabajos, recibe presupuestos y contrata profesionales de confianza"
-  },
-  "professional": {
-    "title": "Ofrezco mis servicios",
-    "description": "Encuentra trabajo, gana proyectos y haz crecer tu negocio"
-  },
-  "both": {
-    "title": "Un poco de ambos",
-    "description": "Contrato profesionales Y ofrezco mis propios servicios"
-  }
+  "heroAlt": "Consulta profesional en luz mediterránea",
+  // ... existing keys
 }
 ```
+
+---
+
+## Responsive Behavior
+
+| Breakpoint | Hero Height | Card Spacing |
+|------------|-------------|--------------|
+| Mobile (< 640px) | 100px | gap-3 |
+| Tablet (640-768px) | 120px | gap-3 |
+| Desktop (768px+) | 140px | gap-3 |
+
+No scroll required on mobile — everything fits above the fold.
+
+---
+
+## Future Enhancements (v2)
+
+Once the base visual is in place, you could later add:
+- Subtle parallax on scroll
+- Image swap based on selected intent (steel tones → clay tones)
+- Micro-copy overlay ("You're in the right place")
+
+But v1 stays **simple, warm, fast**.
 
 ---
 
 ## Summary
 
-This transforms the Intent Selector from a plain form element into an **expressive first impression moment**:
+This adds a **compact welcome visual** above the intent selector that:
 
-- **Visual personality**: Gradient icons with steel blue (trust) and terracotta (action) accents
-- **Motion**: Staggered entrance animations and smooth selection transitions
-- **Warmth**: Human-centered copy that speaks to user goals, not abstract roles
-- **Clarity**: Clear selection states with check indicators and subtle glow
-- **i18n-ready**: All copy wired to translation files for EN/ES
+- Creates immediate warmth and personality
+- Uses Mediterranean construction photography (documentary style)
+- Maintains fast signup flow (no extra clicks)
+- Matches existing page patterns (consistent with other heroes)
+- Stays responsive and mobile-friendly
 
-The result feels welcoming, confident, and memorable — matching the "construction-grade professional" brand identity while adding warmth for new users.
+The image itself should feel like a **welcoming moment** — trust, collaboration, Ibiza light — not a sterile stock photo or chaotic construction site.
 
