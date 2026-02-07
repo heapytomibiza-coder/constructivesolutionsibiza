@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { MobileFAB } from '@/components/MobileFAB';
 import { PLATFORM, MAIN_CATEGORIES } from '@/domain/scope';
+import { UniversalSearchBar } from '@/components/search';
 import { 
   Hammer, Wrench, Droplets, Zap, Wind, Paintbrush, 
   Sparkles, TreePine, Waves, PenTool, Truck, 
@@ -65,19 +66,30 @@ const Index = () => {
           </div>
         }
         action={
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link to="/post">
-                {t('hero.postJob')}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="secondary" asChild>
-              <Link to="/professionals">{t('hero.browsePros')}</Link>
-            </Button>
+          <div className="flex flex-col gap-6 items-center">
+            {/* Universal Search */}
+            <UniversalSearchBar className="w-full" />
+            
+            {/* Secondary CTA buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" asChild>
+                <Link to="/post">
+                  {t('hero.postJob')}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="secondary" asChild>
+                <Link to="/professionals">{t('hero.browsePros')}</Link>
+              </Button>
+            </div>
           </div>
         }
-      />
+      >
+        {/* Brand lockup above title */}
+        <p className="mb-4 text-sm sm:text-base font-semibold tracking-widest uppercase text-white/90">
+          {PLATFORM.name}
+        </p>
+      </HeroBanner>
 
       {/* Categories Grid */}
       <section className="py-16 bg-background">
