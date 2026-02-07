@@ -33,6 +33,7 @@ import AuthCallback from "./pages/auth/AuthCallback";
 // Job Wizard & Board
 import PostJob from "./pages/jobs/PostJob";
 import JobBoardPage from "./pages/jobs/JobBoardPage";
+import JobDetailsPage from "./pages/jobs/JobDetailsPage";
 
 // Dashboards
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
@@ -80,6 +81,7 @@ const App = () => {
             <Route path="/services" element={<Services />} />
             <Route path="/services/:categorySlug" element={<ServiceCategory />} />
             <Route path="/jobs" element={<JobBoardPage />} />
+            <Route path="/jobs/:jobId" element={<JobDetailsPage />} />
             <Route path="/professionals" element={<Professionals />} />
             <Route path="/professionals/:id" element={<ProfessionalDetails />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
