@@ -61,15 +61,18 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     return (selectedCount / RECOMMENDED_MIN) * 100;
   }, [selectedCount]);
 
+  // Helper to show quiet saved badge
+  const flashSaved = useCallback(() => {
+    setShowSaved(true);
+    window.setTimeout(() => setShowSaved(false), 1200);
+  }, []);
+
   // Handle micro toggle with quiet autosave feedback
   const handleMicroToggle = useCallback((microId: string) => {
     const isCurrentlySelected = selectedMicroIds.has(microId);
     toggleService({ microId, isSelected: !isCurrentlySelected });
-    
-    // Quiet "Saved" indicator - appears briefly, no toast
-    setShowSaved(true);
-    setTimeout(() => setShowSaved(false), 1200);
-  }, [selectedMicroIds, toggleService]);
+    flashSaved();
+  }, [selectedMicroIds, toggleService, flashSaved]);
 
   // Handle select all for a category
   const handleSelectAllCategory = useCallback((categoryId: string) => {
@@ -83,10 +86,9 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     
     if (newMicroIds.length > 0) {
       bulkAddServices(newMicroIds);
-      setShowSaved(true);
-      setTimeout(() => setShowSaved(false), 1200);
+      flashSaved();
     }
-  }, [categories, selectedMicroIds, bulkAddServices]);
+  }, [categories, selectedMicroIds, bulkAddServices, flashSaved]);
 
   // Handle clear all for a category
   const handleClearCategory = useCallback((categoryId: string) => {
@@ -100,10 +102,23 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     
     if (selectedInCategory.length > 0) {
       bulkRemoveServices(selectedInCategory);
-      setShowSaved(true);
-      setTimeout(() => setShowSaved(false), 1200);
+      flashSaved();
     }
-  }, [categories, selectedMicroIds, bulkRemoveServices]);
+  }, [categories, selectedMicroIds, bulkRemoveServices, flashSaved]);
+
+  // Memoize search results check for performance
+  const hasAnySearchResults = useMemo(() => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return categories.some((c) =>
+      c.subcategories.some((s) =>
+        s.micros.some((m) => 
+          m.name.toLowerCase().includes(q) || 
+          m.slug.toLowerCase().includes(q)
+        )
+      )
+    );
+  }, [categories, searchQuery]);
 
   // Handle continue
   const handleContinue = () => {
@@ -202,14 +217,7 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
           ))}
 
           {/* Empty search results */}
-          {searchQuery && categories.every(c => 
-            c.subcategories.every(s => 
-              !s.micros.some(m => 
-                m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                m.slug.toLowerCase().includes(searchQuery.toLowerCase())
-              )
-            )
-          ) && (
+          {!hasAnySearchResults && (
             <div className="text-center py-8 text-muted-foreground">
               <p>No jobs found for "{searchQuery}"</p>
               <Button

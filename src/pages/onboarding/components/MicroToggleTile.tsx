@@ -51,14 +51,17 @@ export function MicroToggleTile({
       )}
     >
       <span className="flex-1 truncate">{micro.name}</span>
-      {isSelected && (
-        <div className={cn(
-          'flex h-5 w-5 items-center justify-center rounded-full bg-primary shrink-0 ml-2',
-          'transition-transform duration-150',
-          isFirstSelection && 'animate-scale-in'
-        )}>
-          <Check className="h-3 w-3 text-primary-foreground" />
-        </div>
+      <span className={cn(
+        'ml-3 inline-flex h-6 w-6 items-center justify-center rounded-full transition shrink-0',
+        isSelected 
+          ? 'bg-primary text-primary-foreground' 
+          : 'bg-muted text-muted-foreground'
+      )}>
+        {isSelected ? <Check className="h-4 w-4" /> : <span className="text-xs">+</span>}
+      </span>
+      {/* Subtle ring on first selection */}
+      {isSelected && isFirstSelection && (
+        <span className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-primary/40" />
       )}
     </button>
   );
