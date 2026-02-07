@@ -36,16 +36,18 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Encuentra Profesionales de Construcción de Confianza",
-    "subtitle": "Servicios de Construcción y Oficios en Ibiza",
-    "postJob": "Publicar un Trabajo",
-    "browsePros": "Ver Profesionales"
+    "title": "El puente entre tu idea y la obra",
+    "subtitle": "Te ayudamos a entender tu proyecto y te conectamos con los profesionales adecuados",
+    "postJob": "Iniciar proyecto",
+    "browsePros": "Ver profesionales"
   },
   "trust": {
     "verified": "Oficios verificados",
     "sameDay": "Respuesta el mismo día",
     "local": "En Ibiza",
-    "realSpecs": "Especificaciones reales",
+    "guided": "Proceso guiado",
+    "clarity": "Comunicación clara",
+    "realSpecs": "Especificaciones claras",
     "lessBackForth": "Menos ida y vuelta",
     "ibizaOnly": "Solo Ibiza"
   },
@@ -57,7 +59,7 @@
   },
   "footer": {
     "rights": "Todos los derechos reservados.",
-    "tagline": "Conectando Ibiza con profesionales de la construcción de confianza.",
+    "tagline": "Conectando clientes y profesionales de la construcción en Ibiza.",
     "howItWorks": "Cómo funciona",
     "contact": "Contacto",
     "privacy": "Privacidad",
@@ -105,18 +107,18 @@
     "legalRegulatory": "Legal y Normativo"
   },
   "home": {
-    "ourServices": "Nuestros Servicios",
-    "ourServicesDesc": "Encuentra profesionales de confianza en todos los servicios de construcción",
+    "ourServices": "¿Qué necesitas?",
+    "ourServicesDesc": "Cuéntanos tu proyecto: te ayudamos a definirlo y a conectar con el oficio adecuado",
     "viewAllServices": "Ver Todos los Servicios",
-    "verifiedTitle": "Profesionales Verificados",
-    "verifiedDesc": "Todos los profesionales están verificados antes de unirse",
-    "quickTitle": "Respuesta Rápida",
-    "quickDesc": "Recibe presupuestos de varios profesionales en horas",
-    "qualityTitle": "Calidad Garantizada",
-    "qualityDesc": "Valorados por clientes reales en Ibiza",
-    "ctaTitle": "¿Listo para empezar tu proyecto?",
-    "ctaDesc": "Publica tu trabajo gratis y recibe presupuestos de profesionales locales.",
-    "ctaButton": "Publicar Trabajo Ahora"
+    "verifiedTitle": "Claridad primero",
+    "verifiedDesc": "Nuestras preguntas guiadas convierten tu idea en un encargo claro",
+    "quickTitle": "Expectativas alineadas",
+    "quickDesc": "Cliente y profesional empiezan con la misma visión desde el primer día",
+    "qualityTitle": "Conexiones de confianza",
+    "qualityDesc": "Profesionales verificados que entienden exactamente lo que se necesita",
+    "ctaTitle": "¿No sabes por dónde empezar?",
+    "ctaDesc": "Responde a unas preguntas rápidas y te ayudamos a definir el alcance.",
+    "ctaButton": "Empezar"
   },
   "services": {
     "title": "Nuestros Servicios",
