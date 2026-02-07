@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Category {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function CategorySelector({ selectedCategory, onSelect, onNext }: Props) {
+  const { t } = useTranslation('wizard');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +37,7 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext }:
   }, []);
 
   if (loading) {
-    return <p className="text-muted-foreground">Loading categories…</p>;
+    return <p className="text-muted-foreground">{t('category.loading')}</p>;
   }
 
   return (
