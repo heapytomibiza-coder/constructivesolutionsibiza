@@ -1,75 +1,82 @@
 
-# Remove Messages and Contact from Main Header Navigation
 
-## Current State
+# Fix i18n Translation Keys Flash on Auth Page
 
-The main header shows these links:
-- Services → Jobs → Professionals → How it works → **Contact** → **Messages** → Community
+## Problem
 
-"Messages" and "Contact" are redundant:
-- Messages is already in the user dropdown menu
-- Contact is accessible via footer
+The auth confirmation screen shows raw translation keys (e.g., `confirmation.title`) because:
+
+1. `preloadAlternateLanguage()` only preloads the **other** language (not current)
+2. The current language namespaces load lazily via `i18next-http-backend`
+3. `useSuspense: false` allows components to render before translations are ready
+4. Auth page renders immediately → namespace not loaded → raw keys visible
 
 ## Solution
 
-Remove the `nav` property from these two routes in the registry. This removes them from the header while keeping the routes functional.
+Two-part fix:
+
+1. **Add `preloadCoreNamespaces()`** - Preload all namespaces for the current language on app mount
+2. **Add `ready` guard on Auth page** - Fallback protection for slow connections
 
 ## Changes
 
-### File: `src/app/routes/registry.ts`
+### File 1: `src/i18n/preload.ts`
 
-**Remove nav from Contact route (lines 66-71):**
+Add new function to preload current language namespaces:
 
-Before:
 ```typescript
-{ 
-  path: '/contact', 
-  access: 'public', 
-  lane: 'public', 
-  nav: { section: 'public', labelKey: 'nav.contact', order: 6 },
-  titleKey: 'nav.contact',
-},
+/**
+ * Preload core namespaces for current language
+ * Call on app mount to prevent raw keys flash
+ */
+export async function preloadCoreNamespaces(): Promise<void> {
+  await i18n.loadNamespaces(CORE_NAMESPACES);
+}
 ```
 
-After:
+### File 2: `src/App.tsx`
+
+Update the useEffect to preload current language first, then alternate:
+
 ```typescript
-{ 
-  path: '/contact', 
-  access: 'public', 
-  lane: 'public', 
-  titleKey: 'nav.contact',
-},
+import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
+
+useEffect(() => {
+  // Preload current language immediately
+  preloadCoreNamespaces();
+  // Preload alternate language after delay
+  const id = window.setTimeout(preloadAlternateLanguage, 400);
+  return () => window.clearTimeout(id);
+}, []);
 ```
 
-**Remove nav from Messages route (lines 115-121):**
+### File 3: `src/pages/auth/Auth.tsx`
 
-Before:
+Add `ready` guard as fallback protection:
+
 ```typescript
-{ 
-  path: '/messages', 
-  access: 'auth', 
-  redirectTo: '/auth', 
-  lane: 'shared', 
-  nav: { section: 'shared', labelKey: 'nav.messages', order: 1, hideWhenPublic: true },
-  titleKey: 'nav.messages',
-},
+const { t, ready } = useTranslation('auth');
+
+if (!ready) {
+  return (
+    <div className="min-h-screen bg-gradient-concrete flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
 ```
 
-After:
-```typescript
-{ 
-  path: '/messages', 
-  access: 'auth', 
-  redirectTo: '/auth', 
-  lane: 'shared', 
-  titleKey: 'nav.messages',
-},
-```
+## Summary
 
-## Result
+| File | Change |
+|------|--------|
+| `src/i18n/preload.ts` | Add `preloadCoreNamespaces()` function |
+| `src/App.tsx` | Call `preloadCoreNamespaces()` on mount, import it |
+| `src/pages/auth/Auth.tsx` | Add `ready` guard with loading spinner |
 
-Header will show: **Services → Jobs → Professionals → How it works → Community**
+## Expected Result
 
-Users can still access:
-- Messages via user dropdown (already there)
-- Contact via footer or direct URL
+- No raw translation keys ever visible
+- Auth page shows spinner until translations ready (only on very slow connections)
+- Works on first visit, refresh, and language switch
+
