@@ -51,42 +51,43 @@ const IBIZA_ZONES = [
 
 /**
  * ZoneTile - Touch-friendly zone selection tile
- * Matches the TileOption pattern from LogisticsStep
+ * Builder-friendly: Larger, clearer, higher contrast
  */
 function ZoneTile({ 
   selected, 
   onClick, 
   label,
-  animationDelay = 0,
 }: { 
   selected: boolean; 
   onClick: () => void; 
   label: string;
-  animationDelay?: number;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      style={{ animationDelay: `${animationDelay}ms` }}
       className={cn(
-        // Base styles - 48px min touch target
+        // Base styles - 56px min touch target
         'relative flex items-center justify-between',
-        'min-h-[48px] px-4 py-3 rounded-lg',
-        'text-left text-sm font-medium',
-        'border-2 transition-all duration-150',
+        'min-h-[56px] px-4 py-3.5 rounded-xl',
+        'text-left text-base font-medium',
+        'border-2 transition-colors duration-200',
         'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-        'animate-slide-up opacity-0 [animation-fill-mode:forwards]',
         // Unselected state
-        !selected && 'border-border bg-muted/30 hover:border-primary/50 hover:bg-accent/50',
-        // Selected state with glow
-        selected && 'border-primary bg-primary/5 shadow-glow scale-[1.02]',
+        !selected && 'border-border bg-card hover:border-primary/50 hover:bg-primary/5',
+        // Selected state - high contrast
+        selected && 'border-primary bg-primary/15 shadow-md',
       )}
     >
       <span className="flex-1">{label}</span>
-      {selected && (
-        <Check className="h-4 w-4 text-primary shrink-0 ml-2" />
-      )}
+      <span className={cn(
+        'ml-3 inline-flex h-7 w-7 items-center justify-center rounded-full transition shrink-0',
+        selected 
+          ? 'bg-primary text-primary-foreground' 
+          : 'bg-muted text-muted-foreground'
+      )}>
+        {selected ? <Check className="h-4 w-4" /> : <span className="text-sm">+</span>}
+      </span>
     </button>
   );
 }
@@ -137,7 +138,7 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
         .update({
           service_zones: zones,
           service_area_type: 'zones',
-          onboarding_phase: 'verification', // Next phase
+          onboarding_phase: 'verification',
         })
         .eq('user_id', user.id);
 
@@ -146,12 +147,12 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['professional-service-area'] });
       await refresh();
-      toast.success('Service area saved!');
+      toast.success('Saved!');
       onComplete();
     },
     onError: (error) => {
       console.error('Error saving service area:', error);
-      toast.error('Failed to save. Please try again.');
+      toast.error('Something went wrong. Please try again.');
     },
   });
 
@@ -190,7 +191,7 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
     e.preventDefault();
     
     if (selectedZones.length === 0) {
-      toast.error('Please select at least one zone');
+      toast.error('Please select at least one area');
       return;
     }
 
@@ -199,94 +200,86 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
       </div>
     );
   }
 
-  // Calculate stagger delay for animations
-  let globalZoneIndex = 0;
-
   return (
     <Card className="card-grounded animate-fade-in">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          {/* Gradient icon container */}
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-steel shadow-md">
-            <MapPin className="h-5 w-5 text-white" />
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-4">
+          {/* Icon container */}
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-steel shadow-md">
+            <MapPin className="h-7 w-7 text-white" />
           </div>
           <div>
-            <CardTitle className="font-display">Where do you work?</CardTitle>
-            <CardDescription>
-              Select the areas of Ibiza where you're available for jobs.
+            <CardTitle className="text-xl font-semibold">Where do you work?</CardTitle>
+            <CardDescription className="text-base">
+              Tap the areas of Ibiza where you're happy to take jobs.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Island-wide toggle - Featured tile with accent */}
+        <form onSubmit={handleSubmit} className="space-y-7">
+          {/* Island-wide toggle - Featured tile */}
           <button
             type="button"
             onClick={handleIslandWide}
             className={cn(
               'w-full flex items-center justify-between',
-              'min-h-[56px] px-4 py-3 rounded-lg',
-              'text-left font-medium',
-              'border-2 transition-all duration-150',
+              'min-h-[64px] px-5 py-4 rounded-xl',
+              'text-left text-lg font-semibold',
+              'border-2 transition-colors duration-200',
               'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              'animate-slide-up',
-              !islandWide && 'border-accent/50 bg-accent/10 hover:border-accent hover:bg-accent/20',
-              islandWide && 'border-accent bg-accent/20 shadow-glow scale-[1.01]',
+              !islandWide && 'border-accent/50 bg-accent/10 hover:border-accent hover:bg-accent/15',
+              islandWide && 'border-accent bg-accent/20 shadow-lg',
             )}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <Globe className={cn(
-                'h-5 w-5 transition-colors',
+                'h-6 w-6 transition-colors',
                 islandWide ? 'text-accent' : 'text-accent/70'
               )} />
               <span>I cover the entire island</span>
             </div>
-            {islandWide && (
-              <Check className="h-5 w-5 text-accent shrink-0" />
-            )}
+            <span className={cn(
+              'inline-flex h-8 w-8 items-center justify-center rounded-full transition shrink-0',
+              islandWide 
+                ? 'bg-accent text-accent-foreground' 
+                : 'bg-accent/20 text-accent/70'
+            )}>
+              {islandWide ? <Check className="h-5 w-5" /> : <span className="text-base">+</span>}
+            </span>
           </button>
 
           {/* Zone groups */}
           <div className="space-y-6">
-            {IBIZA_ZONES.map((group, groupIndex) => (
-              <div 
-                key={group.group} 
-                className="space-y-3"
-                style={{ animationDelay: `${groupIndex * 50}ms` }}
-              >
+            {IBIZA_ZONES.map((group) => (
+              <div key={group.group} className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-foreground">{group.group}</h4>
+                  <h4 className="text-base font-semibold text-foreground">{group.group}</h4>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => handleSelectGroup(group.zones)}
-                    className="text-xs text-primary hover:text-primary/80"
+                    className="text-sm text-primary hover:text-primary/80"
                   >
                     {group.zones.every(z => selectedZones.includes(z.id)) ? 'Deselect all' : 'Select all'}
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {group.zones.map((zone) => {
-                    const delay = globalZoneIndex * 30;
-                    globalZoneIndex++;
-                    return (
-                      <ZoneTile
-                        key={zone.id}
-                        selected={selectedZones.includes(zone.id)}
-                        onClick={() => handleZoneToggle(zone.id)}
-                        label={zone.label}
-                        animationDelay={delay}
-                      />
-                    );
-                  })}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {group.zones.map((zone) => (
+                    <ZoneTile
+                      key={zone.id}
+                      selected={selectedZones.includes(zone.id)}
+                      onClick={() => handleZoneToggle(zone.id)}
+                      label={zone.label}
+                    />
+                  ))}
                 </div>
               </div>
             ))}
@@ -294,38 +287,40 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
 
           {/* Selection summary */}
           {selectedZones.length > 0 && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground animate-fade-in">
-              <MapPin className="h-4 w-4 text-primary shrink-0" />
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 text-base text-foreground animate-fade-in">
+              <MapPin className="h-5 w-5 text-primary shrink-0" />
               <span>
                 {islandWide 
-                  ? 'You\'ll receive jobs from across Ibiza' 
-                  : `${selectedZones.length} zone${selectedZones.length > 1 ? 's' : ''} selected`}
+                  ? "Great! You'll receive jobs from across Ibiza" 
+                  : `${selectedZones.length} area${selectedZones.length > 1 ? 's' : ''} selected`}
               </span>
             </div>
           )}
 
           {/* Navigation */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-4 pt-2">
             <Button 
               type="button" 
               variant="outline"
+              size="lg"
               onClick={onBack}
               className="flex-1"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Go Back
             </Button>
             <Button 
               type="submit" 
-              className="flex-1 hover:scale-[1.02] transition-transform"
+              size="lg"
+              className="flex-1"
               disabled={saveMutation.isPending || selectedZones.length === 0}
             >
               {saveMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
               ) : (
-                <ArrowRight className="h-4 w-4 mr-2" />
+                <ArrowRight className="h-5 w-5 mr-2" />
               )}
-              Save & Continue
+              Next Step
             </Button>
           </div>
         </form>

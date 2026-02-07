@@ -102,12 +102,12 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['professional-basic-info'] });
       await refresh();
-      toast.success('Basic info saved!');
+      toast.success('Saved!');
       onComplete();
     },
     onError: (error) => {
       console.error('Error saving basic info:', error);
-      toast.error('Failed to save. Please try again.');
+      toast.error('Something went wrong. Please try again.');
     },
   });
 
@@ -128,36 +128,33 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
       </div>
     );
   }
 
   return (
     <Card className="card-grounded animate-fade-in">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          {/* Gradient icon container - matches IntentSelector pattern */}
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-steel shadow-md">
-            <User className="h-5 w-5 text-white" />
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-4">
+          {/* Icon container */}
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-steel shadow-md">
+            <User className="h-7 w-7 text-white" />
           </div>
           <div>
-            <CardTitle className="font-display">Tell us about yourself</CardTitle>
-            <CardDescription>
-              This information will be visible to clients when they view your profile.
+            <CardTitle className="text-xl font-semibold">Tell us about yourself</CardTitle>
+            <CardDescription className="text-base">
+              This is what clients will see when they view your profile.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-7">
           {/* Name - Required */}
-          <div 
-            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
-            style={{ animationDelay: '50ms' }}
-          >
-            <Label htmlFor="display_name">
+          <div className="space-y-2 animate-fade-in">
+            <Label htmlFor="display_name" className="text-base font-medium">
               Your Name <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -166,17 +163,13 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               value={formData.display_name}
               onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
               required
-              className="rounded-sm"
             />
           </div>
 
           {/* Phone */}
-          <div 
-            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
-            style={{ animationDelay: '100ms' }}
-          >
-            <Label htmlFor="phone" className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
+          <div className="space-y-2 animate-fade-in">
+            <Label htmlFor="phone" className="text-base font-medium flex items-center gap-2">
+              <Phone className="h-5 w-5 text-muted-foreground" />
               Phone Number
             </Label>
             <Input
@@ -185,37 +178,29 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               placeholder="+34 600 000 000"
               value={formData.phone}
               onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-              className="rounded-sm"
             />
-            <p className="text-xs text-muted-foreground">
-              Used for WhatsApp notifications about new jobs
+            <p className="text-sm text-muted-foreground">
+              We'll send you WhatsApp notifications about new jobs
             </p>
           </div>
 
           {/* Business Name - Optional */}
-          <div 
-            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
-            style={{ animationDelay: '150ms' }}
-          >
-            <Label htmlFor="business_name">
-              Business Name <span className="text-muted-foreground text-xs">(optional)</span>
+          <div className="space-y-2 animate-fade-in">
+            <Label htmlFor="business_name" className="text-base font-medium">
+              Business Name <span className="text-muted-foreground text-sm">(optional)</span>
             </Label>
             <Input
               id="business_name"
               placeholder="e.g. García Electricidad S.L."
               value={formData.business_name}
               onChange={(e) => setFormData(prev => ({ ...prev, business_name: e.target.value }))}
-              className="rounded-sm"
             />
           </div>
 
           {/* Tagline */}
-          <div 
-            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
-            style={{ animationDelay: '200ms' }}
-          >
-            <Label htmlFor="tagline" className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
+          <div className="space-y-2 animate-fade-in">
+            <Label htmlFor="tagline" className="text-base font-medium flex items-center gap-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
               Tagline
             </Label>
             <Input
@@ -224,10 +209,9 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               value={formData.tagline}
               onChange={(e) => setFormData(prev => ({ ...prev, tagline: e.target.value }))}
               maxLength={100}
-              className="rounded-sm"
             />
             <p className={cn(
-              'text-xs transition-colors',
+              'text-sm transition-colors',
               taglineNearLimit ? 'text-accent' : 'text-muted-foreground'
             )}>
               A short headline that appears with your name • {formData.tagline.length}/100
@@ -235,11 +219,8 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
           </div>
 
           {/* Bio */}
-          <div 
-            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
-            style={{ animationDelay: '250ms' }}
-          >
-            <Label htmlFor="bio">About You</Label>
+          <div className="space-y-2 animate-fade-in">
+            <Label htmlFor="bio" className="text-base font-medium">About You</Label>
             <Textarea
               id="bio"
               placeholder="Tell clients about your experience, qualifications, and what makes you great at what you do..."
@@ -247,10 +228,10 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
               rows={4}
               maxLength={500}
-              className="rounded-sm resize-none"
+              className="resize-none text-lg"
             />
             <p className={cn(
-              'text-xs transition-colors',
+              'text-sm transition-colors',
               bioNearLimit ? 'text-accent' : 'text-muted-foreground'
             )}>
               {formData.bio.length}/500 characters
@@ -259,16 +240,16 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
 
           <Button 
             type="submit" 
-            className="w-full hover:scale-[1.02] transition-transform animate-slide-up opacity-0 [animation-fill-mode:forwards]"
-            style={{ animationDelay: '300ms' }}
+            size="lg"
+            className="w-full animate-fade-in"
             disabled={saveMutation.isPending}
           >
             {saveMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
             ) : (
-              <ArrowRight className="h-4 w-4 mr-2" />
+              <ArrowRight className="h-5 w-5 mr-2" />
             )}
-            Save & Continue
+            Next Step
           </Button>
         </form>
       </CardContent>

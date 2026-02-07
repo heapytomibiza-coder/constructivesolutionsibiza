@@ -1,5 +1,6 @@
 /**
  * ServiceSearchBar - Debounced search input for filtering services
+ * Builder-friendly: Larger, clearer
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -17,7 +18,7 @@ interface ServiceSearchBarProps {
 export function ServiceSearchBar({ 
   value, 
   onChange, 
-  placeholder = 'Search services...',
+  placeholder = 'Search jobs...',
   className 
 }: ServiceSearchBarProps) {
   const [localValue, setLocalValue] = useState(value);
@@ -43,21 +44,21 @@ export function ServiceSearchBar({
 
   return (
     <div className={cn('relative', className)}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
       <Input
         type="text"
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         placeholder={placeholder}
-        className="pl-9 pr-9 h-11"
+        className="pl-12 pr-12 h-14 text-lg"
       />
       {localValue && (
         <button
           type="button"
           onClick={handleClear}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
       )}
     </div>

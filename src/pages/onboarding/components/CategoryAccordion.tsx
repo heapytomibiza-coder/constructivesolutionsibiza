@@ -1,6 +1,6 @@
 /**
  * CategoryAccordion - Collapsible category card with micro-service tiles
- * Shows selection count badge and completion bar when collapsed
+ * Builder-friendly: Larger headers, clearer states, simpler layout
  */
 
 import { useMemo } from 'react';
@@ -82,45 +82,45 @@ export function CategoryAccordion({
 
   return (
     <div className={cn(
-      'border border-border rounded-lg bg-card overflow-hidden transition-all duration-200',
-      isExpanded && 'border-primary/50 shadow-md'
+      'border-2 border-border rounded-xl bg-card overflow-hidden transition-all duration-200',
+      isExpanded && 'border-primary/50 shadow-lg'
     )}>
-      {/* Header with completion bar */}
+      {/* Header - Larger, clearer */}
       <button
         type="button"
         onClick={onToggle}
         className={cn(
-          'w-full flex flex-col gap-2 p-4',
-          'hover:bg-muted/50 transition-colors',
+          'w-full flex flex-col gap-2 p-5',
+          'hover:bg-muted/40 transition-colors',
           'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset'
         )}
       >
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">{category.icon_emoji || '📦'}</span>
+          <div className="flex items-center gap-4">
+            <span className="text-3xl">{category.icon_emoji || '📦'}</span>
             <div className="text-left">
-              <h3 className="font-semibold text-foreground">{category.name}</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-lg font-semibold text-foreground">{category.name}</h3>
+              <p className="text-base text-muted-foreground">
                 {totalMicros} jobs available
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {selectedCount > 0 && (
-              <Badge variant="secondary" className="bg-primary/10 text-primary">
-                <Check className="h-3 w-3 mr-1" />
+              <Badge variant="secondary" className="bg-primary/15 text-primary text-sm px-3 py-1">
+                <Check className="h-4 w-4 mr-1" />
                 {selectedCount}
               </Badge>
             )}
             <ChevronRight className={cn(
-              'h-5 w-5 text-muted-foreground transition-transform duration-200',
+              'h-6 w-6 text-muted-foreground transition-transform duration-200',
               isExpanded && 'rotate-90'
             )} />
           </div>
         </div>
-        {/* Completion bar - visual progress indicator */}
+        {/* Completion bar */}
         {selectedCount > 0 && (
-          <div className="w-full h-1 bg-muted rounded-full overflow-hidden ml-9">
+          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden ml-12">
             <div 
               className="h-full bg-primary/60 transition-all duration-300"
               style={{ width: `${completionPercent}%` }}
@@ -131,9 +131,9 @@ export function CategoryAccordion({
 
       {/* Content */}
       {isExpanded && (
-        <div className="border-t border-border">
+        <div className="border-t-2 border-border">
           {/* Bulk actions */}
-          <div className="flex items-center gap-2 px-4 py-3 bg-muted/30 border-b border-border">
+          <div className="flex items-center gap-3 px-5 py-4 bg-muted/30 border-b border-border">
             <Button
               type="button"
               variant="outline"
@@ -142,7 +142,7 @@ export function CategoryAccordion({
                 e.stopPropagation();
                 onSelectAll();
               }}
-              className="text-xs"
+              className="text-sm"
             >
               Select all
             </Button>
@@ -154,33 +154,32 @@ export function CategoryAccordion({
                 e.stopPropagation();
                 onClearAll();
               }}
-              className="text-xs text-muted-foreground"
+              className="text-sm text-muted-foreground"
             >
               Clear
             </Button>
-            <span className="ml-auto text-xs text-muted-foreground">
-              Toggle the jobs you take on
+            <span className="ml-auto text-sm text-muted-foreground">
+              Tap any job you're happy to do
             </span>
           </div>
 
           {/* Subcategories with micros */}
-          <div className="p-4 space-y-6">
-            {filteredSubcategories.map((subcategory, subIndex) => (
+          <div className="p-5 space-y-7">
+            {filteredSubcategories.map((subcategory) => (
               <div key={subcategory.id}>
-                {/* Subcategory header - soft section label */}
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                {/* Subcategory header */}
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   {subcategory.name}
                 </h4>
                 
-                {/* Micro tiles grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {subcategory.micros.map((micro, microIndex) => (
+                {/* Micro tiles grid - single column on mobile */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {subcategory.micros.map((micro) => (
                     <MicroToggleTile
                       key={micro.id}
                       micro={micro}
                       isSelected={selectedMicroIds.has(micro.id)}
                       onToggle={() => onMicroToggle(micro.id)}
-                      animationDelay={(subIndex * 50) + (microIndex * 30)}
                       isFirstSelection={isFirstSelection}
                     />
                   ))}
