@@ -1,71 +1,177 @@
 
 
-# Fix i18n Translation Keys Still Showing Raw
+# Redesign Logistics Step for Quick, Easy, Informative Flow
 
-## Problem Analysis
+## Current Problems
 
-The screenshot shows raw translation keys (`confirmation.title`, `confirmation.description`, etc.) on the confirmation screen even though:
-1. The `ready` guard exists in Auth.tsx
-2. Translations exist in `public/locales/en/auth.json`
-3. Preloading is configured
+Looking at the screenshot, the Logistics step has **7 different inputs** all visible at once:
+1. Location (select)
+2. When to start (select) 
+3. Completion date (date picker)
+4. Contact preference (3 radio options)
+5. Budget range (6 radio options)
+6. Access details (textarea)
 
-**Root Cause**: The `ready` flag from `useTranslation('auth')` can return `true` before the actual translation content is loaded from the HTTP backend. This is a known edge case with `useSuspense: false` and lazy-loaded namespaces.
+This creates:
+- **Visual overwhelm** — too much to process at once
+- **Decision fatigue** — budget has 6 choices stacked vertically  
+- **Inconsistent UX** — Step 4 uses beautiful one-at-a-time tiles, Step 5 reverts to a dense form
+- **Mobile scroll pain** — requires significant scrolling to complete
 
-## Solution
+## Proposed Solution: Focused Card Flow
 
-Two-pronged fix to guarantee translations are loaded:
+Restructure Logistics into **4 focused sections** with a logical conversational flow:
 
-### 1. Add explicit translation validation check
+```text
+┌─────────────────────────────────────────┐
+│  Section 1: WHERE                       │
+│  ┌───────────────────────────────────┐  │
+│  │ 📍 Where is the work needed?      │  │
+│  │     [Location Tiles - Top 5]      │  │
+│  │     + "Other area" option         │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+          ↓
+┌─────────────────────────────────────────┐
+│  Section 2: WHEN                        │
+│  ┌───────────────────────────────────┐  │
+│  │ 🗓️ When do you need this?         │  │
+│  │     [ASAP] [This week]            │  │
+│  │     [This month] [Flexible]       │  │
+│  │     [Specific date →]             │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+          ↓
+┌─────────────────────────────────────────┐
+│  Section 3: BUDGET                      │
+│  ┌───────────────────────────────────┐  │
+│  │ 💰 What's your budget range?      │  │
+│  │     [Under €500] [€500-1k]        │  │
+│  │     [€1k-2.5k]  [€2.5k-5k]        │  │
+│  │     [Over €5k]  [Need quote]      │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+          ↓
+┌─────────────────────────────────────────┐
+│  Section 4: CONTACT (Collapsible)       │
+│  ┌───────────────────────────────────┐  │
+│  │ 📞 How should pros reach you?     │  │
+│  │     [Site visit] [Call] [Message] │  │
+│  │                                   │  │
+│  │ + Any access notes? (optional)    │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+```
 
-Instead of relying solely on `ready`, also verify that a known translation key actually resolves (not to itself):
+## Key UX Improvements
 
-```typescript
-const { t, ready } = useTranslation('auth');
+### 1. Use Tile Cards (Consistent with Step 4)
+Replace radio buttons + selects with tappable tile cards:
+- 48px minimum touch target
+- Visual selection state (checkmark + primary border)
+- Auto-advance on single selection
 
-// Double-check: if t('page.title') returns the key itself, translations aren't loaded
-const translationsLoaded = ready && t('page.title') !== 'page.title';
+### 2. Group Logically with Visual Sections
+Instead of one long form, use collapsible/progressive sections:
+- **WHERE** — Location tiles (show top 5 + "More areas" expandable)
+- **WHEN** — Timing tiles in 2x2 grid + optional date picker
+- **BUDGET** — Compact 2x3 tile grid 
+- **CONTACT** — Simple 3-option tiles + optional notes
 
-if (!translationsLoaded) {
-  return <LoadingSpinner />;
+### 3. Remove Completion Date
+Currently asks for both "When to start" AND "When to complete" — this is redundant for 80% of jobs. 
+- **Remove completion date** (or move to optional "More details" section)
+- Most users just want to say "ASAP" or "This month"
+
+### 4. Smart Defaults
+- Pre-select "Message" for contact (lowest friction)
+- Show location search/autocomplete for faster selection
+
+## Technical Changes
+
+### File: `src/components/wizard/canonical/steps/LogisticsStep.tsx`
+
+**Complete rewrite with:**
+
+1. **TileOption component** — Reusable tappable card matching Questions step style
+2. **Section groups** — Visual separation with subtle headers  
+3. **2-column grid** — Better use of space for tiles
+4. **Progressive disclosure** — Location "Show more areas" expander
+5. **Remove completion date field** — Simplify to start timing only
+6. **i18n ready** — Move all labels to translation files
+
+### Estimated Structure:
+
+```tsx
+function LogisticsStep({ logistics, onChange }) {
+  return (
+    <div className="space-y-8">
+      {/* Section: Location */}
+      <LogisticsSection title="Where is the work?">
+        <div className="grid grid-cols-2 gap-3">
+          {TOP_LOCATIONS.map(loc => (
+            <TileOption 
+              selected={logistics.location === loc.value}
+              onClick={() => onChange({ location: loc.value })}
+            >
+              {loc.label}
+            </TileOption>
+          ))}
+        </div>
+        <button>More areas...</button>
+      </LogisticsSection>
+
+      {/* Section: Timing */}
+      <LogisticsSection title="When do you need this?">
+        <div className="grid grid-cols-2 gap-3">
+          {TIMING_OPTIONS.map(...)}
+        </div>
+      </LogisticsSection>
+
+      {/* Section: Budget */}
+      <LogisticsSection title="What's your budget?">
+        <div className="grid grid-cols-2 gap-3">
+          {BUDGET_OPTIONS.map(...)}
+        </div>
+      </LogisticsSection>
+
+      {/* Section: Contact */}
+      <LogisticsSection title="How should pros reach you?">
+        {CONTACT_OPTIONS.map(...)}
+        <Textarea placeholder="Access notes (optional)" />
+      </LogisticsSection>
+    </div>
+  );
 }
 ```
 
-### 2. Move i18n initialization to block rendering
+### Translation Updates
 
-Ensure `preloadCoreNamespaces()` completes before the app renders by using a loading state in App.tsx:
+Add new keys to `public/locales/en/wizard.json` and `es/wizard.json`:
 
-```typescript
-const [i18nReady, setI18nReady] = useState(false);
-
-useEffect(() => {
-  preloadCoreNamespaces().then(() => setI18nReady(true));
-  // ...
-}, []);
-
-if (!i18nReady) return <GlobalLoader />;
+```json
+{
+  "logistics": {
+    "where": "Where is the work?",
+    "when": "When do you need this?",
+    "budget": "What's your budget?",
+    "contact": "How should pros reach you?",
+    "moreAreas": "More areas...",
+    "accessNotes": "Access notes (optional)",
+    "accessPlaceholder": "Gate code, parking, building access..."
+  }
+}
 ```
 
-## Files to Modify
+## Summary
 
-| File | Change |
-|------|--------|
-| `src/pages/auth/Auth.tsx` | Add explicit translation validation check (belt-and-suspenders) |
-| `src/App.tsx` | Block routing until namespaces are loaded |
+| Before | After |
+|--------|-------|
+| 7 inputs in one long form | 4 focused sections |
+| Radio buttons + selects | Touch-friendly tiles |
+| Lots of scrolling | Fits on one screen |
+| Inconsistent with Step 4 | Matches tile-based UX |
+| Completion date (redundant) | Removed |
 
-## Implementation Details
-
-### Auth.tsx Changes
-- Add a secondary check that `t('page.title')` doesn't return the raw key
-- This catches the edge case where `ready` is `true` but HTTP fetch hasn't completed
-
-### App.tsx Changes  
-- Add `i18nReady` state that starts as `false`
-- Only render `<Routes>` after `preloadCoreNamespaces()` promise resolves
-- Show a minimal loader during the ~100ms fetch time
-
-## Expected Result
-
-- Zero possibility of raw translation keys showing
-- Consistent loading experience across all auth screens
-- Works on slow connections, cold cache, and first visits
+**Result:** A quick, tap-friendly flow that feels consistent with the rest of the wizard and respects the user's time.
 
