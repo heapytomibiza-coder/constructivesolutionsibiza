@@ -1,259 +1,105 @@
 
-
-# Seamless Service Category → Wizard Journey
+# Fix Mobile Header: Remove Debug Text & Optimize Spacing
 
 ## The Problem
 
-Right now, the `/services/hvac` page breaks momentum:
-
-```text
-User lands on /services/hvac
-    ↓
-Sees subcategory options (Air Conditioning, Heating, etc.)
-    ↓
-Selects one (good!)
-    ↓
-... still on the same page
-    ↓
-Must scroll down and click "Post a Job"
-    ↓
-Then navigates to /post (starts wizard)
+The mobile header currently shows:
+```
+[≡] [CS] Constructive [Hola (ES)] [🌐 ES] [Publicar...]
 ```
 
-This is two decisions when it should be **one flowing motion**.
+Issues identified:
+1. **"Hola (ES)"** - A temporary i18n debug component that was never removed
+2. **Cramped spacing** - Too many elements competing for limited mobile width
+3. **Truncated button** - "Publicar" button is cut off
 
-## The Solution: Auto-Advance on Selection
+## The Solution
 
-When a user selects a subcategory on the Service Category page, **immediately continue to the next logical step** - navigating them into the wizard flow with their selection pre-filled.
+### 1. Remove the I18nSmokeTest Component
 
-```text
-User lands on /services/hvac
-    ↓
-Taps "Air Conditioning"
-    ↓
-Instant transition: "What type of AC work?"
-    ↓
-Shows micro-services (Repair, Install, Servicing, etc.)
-    ↓
-Journey continues...
+The file explicitly states it's temporary:
+```tsx
+/**
+ * Temporary smoke test component to verify i18n switching works.
+ * Remove after verification is complete.
+ */
 ```
 
-The flow becomes a natural conversation rather than forms + buttons.
+Remove it from `PublicNav.tsx` line 89.
 
-## Implementation Approach
+### 2. Optimize Mobile Header Layout
 
-### Option A: Navigate to Wizard (Recommended)
+Current layout priorities:
+- Burger menu (essential)
+- Logo mark + short name (essential)
+- Language switcher (keep, but compact)
+- Post Job button (important CTA)
 
-When subcategory is selected, navigate to `/post` with deep-link params:
-
-```typescript
-// ServiceCategory.tsx
-const handleSubcategoryClick = (subId: string) => {
-  navigate(`/post?category=${category.id}&subcategory=${subId}`);
-};
-```
-
-The wizard already handles these params perfectly (lines 117-219 in CanonicalJobWizard.tsx):
-- Fetches category/subcategory names
-- Pre-populates wizard state
-- Jumps to Step 3 (Micro selection)
-
-**Benefits:**
-- Uses existing deep-link logic (proven)
-- Single canonical wizard flow
-- URL reflects progress (bookmarkable, shareable)
-
-### Option B: Inline Wizard Steps (More Complex)
-
-Embed the wizard steps directly in the ServiceCategory page for a seamless experience. This would require:
-- Managing wizard state outside the wizard
-- Deciding when to "hand off" to the full wizard
-- More code to maintain
-
-**Not recommended** - adds complexity without clear benefit.
-
----
+Changes:
+- Remove debug component entirely
+- Hide full brand name on very small screens, show only "CS" mark
+- Tighten gap between elements
+- Ensure "Post Job" button fits
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/pages/public/ServiceCategory.tsx` | Remove radio buttons; use click-to-navigate cards |
-| `public/locales/en/common.json` | Add momentum-focused copy |
-| `public/locales/es/common.json` | Spanish translations |
-
----
+| `src/components/layout/PublicNav.tsx` | Remove `I18nSmokeTest` import and usage, optimize mobile spacing |
+| `src/components/layout/I18nSmokeTest.tsx` | Delete file (or keep for dev-only) |
+| `public/locales/en/common.json` | Remove `debug.hello` key |
+| `public/locales/es/common.json` | Remove `debug.hello` key |
 
 ## Detailed Changes
 
-### 1. Transform Subcategory Selection to Auto-Advance Cards
+### PublicNav.tsx Changes
 
-Replace the RadioGroup pattern with clickable cards that navigate on tap:
-
+**Remove I18nSmokeTest:**
 ```tsx
-// ServiceCategory.tsx
+// REMOVE this import
+import { I18nSmokeTest } from '@/components/layout/I18nSmokeTest';
 
-// BEFORE: Radio buttons that just select
-<RadioGroup onValueChange={setSelectedSubcategoryId}>
-  {subcategories.map((sub) => (
-    <div onClick={() => setSelectedSubcategoryId(sub.id)}>
-      <RadioGroupItem value={sub.id} />
-      <Label>{sub.name}</Label>
-    </div>
-  ))}
-</RadioGroup>
-
-// AFTER: Cards that navigate immediately
-{subcategories.map((sub) => (
-  <button
-    key={sub.id}
-    onClick={() => navigate(`/post?category=${category.id}&subcategory=${sub.id}`)}
-    className="w-full text-left p-4 rounded-lg border hover:border-primary transition-all group"
-  >
-    <div className="flex items-center justify-between">
-      <span className="font-medium">{sub.name}</span>
-      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-    </div>
-    {sub.description && (
-      <span className="text-sm text-muted-foreground">{sub.description}</span>
-    )}
-  </button>
-))}
+// REMOVE this line (~line 89)
+<I18nSmokeTest />
 ```
 
-### 2. Update Page Header Copy for Momentum
-
-Change the framing from "Select a Subcategory" to something action-oriented:
-
-**Current copy:**
-- "Select a Subcategory"
-- "Choose a specific service type to get started"
-
-**New copy:**
-- "What kind of work do you need?"
-- "Tap to continue — we'll ask a few quick questions"
-
-### 3. Remove Two-Card Choice Section
-
-The current page shows two cards after subcategory selection:
-1. "Post a Job" (broadcast)
-2. "Browse Professionals" (search)
-
-**For the momentum flow**, we should:
-- Keep "Post a Job" as the default action (clicking subcategory = Post Job flow)
-- Add a subtle link for "Browse Professionals" as an alternative
-
+**Optimize mobile logo area:**
 ```tsx
-{/* Alternative path - subtle, not blocking */}
-<p className="text-xs text-muted-foreground text-center mt-6">
-  {t('serviceCategory.orBrowse')}{' '}
-  <Link to={`/professionals?category=${category.id}`} className="underline hover:text-foreground">
-    {t('serviceCategory.browseProsLink')}
-  </Link>
-</p>
+{/* Before */}
+<span className="font-display text-xl font-semibold text-foreground">
+  {PLATFORM.shortName}
+</span>
+
+{/* After - hide on extra small screens */}
+<span className="font-display text-xl font-semibold text-foreground hidden xs:inline sm:inline">
+  {PLATFORM.shortName}
+</span>
 ```
 
-### 4. Add Visual Momentum Cue
-
-Add an arrow or chevron to each subcategory card to signal "tap to continue":
-
+**Tighten gaps:**
 ```tsx
-<button className="... group">
-  <div className="flex items-center justify-between">
-    <span>{sub.name}</span>
-    <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-  </div>
-</button>
+{/* Before */}
+<div className="flex items-center gap-2">
+
+{/* After */}
+<div className="flex items-center gap-1.5 sm:gap-2">
 ```
 
----
+### Result
 
-## Translation Keys to Add
-
-**English (`en/common.json`):**
-```json
-{
-  "serviceCategory": {
-    "whatKindOfWork": "What kind of work do you need?",
-    "tapToContinue": "Tap to continue — we'll ask a few quick questions",
-    "orBrowse": "Or",
-    "browseProsLink": "browse professionals directly"
-  }
-}
+Clean mobile header:
+```
+[≡] [CS] Constructive  [🌐 ES] [Publicar un Trabajo]
 ```
 
-**Spanish (`es/common.json`):**
-```json
-{
-  "serviceCategory": {
-    "whatKindOfWork": "¿Qué tipo de trabajo necesitas?",
-    "tapToContinue": "Toca para continuar — te haremos unas preguntas rápidas",
-    "orBrowse": "O",
-    "browseProsLink": "ver profesionales directamente"
-  }
-}
+Or on very narrow screens:
 ```
-
----
-
-## Flow Comparison
-
-### Before (Broken Momentum)
-```text
-┌────────────────────────────────────────┐
-│ HVAC Services                          │
-│                                        │
-│ ○ Air Conditioning     [selected]      │
-│ ○ Heating Systems                      │
-│ ○ Ventilation                          │
-│ ○ Maintenance                          │
-│                                        │
-│ ─────────────────────────────────────  │
-│                                        │
-│ ┌──────────────┐  ┌──────────────┐    │
-│ │  Post Job    │  │ Browse Pros  │    │
-│ │   [Button]   │  │   [Button]   │    │
-│ └──────────────┘  └──────────────┘    │
-└────────────────────────────────────────┘
+[≡] [CS]  [🌐 ES] [Publicar]
 ```
-
-### After (Flowing Journey)
-```text
-┌────────────────────────────────────────┐
-│ HVAC Services                          │
-│                                        │
-│ What kind of work do you need?         │
-│ Tap to continue                        │
-│                                        │
-│ ┌──────────────────────────────────┐  │
-│ │ Air Conditioning              →  │  │ ← Tap = navigate to wizard
-│ └──────────────────────────────────┘  │
-│ ┌──────────────────────────────────┐  │
-│ │ Heating Systems               →  │  │
-│ └──────────────────────────────────┘  │
-│ ┌──────────────────────────────────┐  │
-│ │ Ventilation                   →  │  │
-│ └──────────────────────────────────┘  │
-│                                        │
-│ Or browse professionals directly       │
-└────────────────────────────────────────┘
-```
-
----
 
 ## Summary
 
-The core change is simple: **clicking a subcategory immediately navigates to the wizard** with category + subcategory pre-filled.
-
-This removes:
-- The "select then click button" friction
-- The two-card decision point (post vs browse)
-- The feeling of "filling out forms"
-
-And adds:
-- Natural conversational flow
-- Clear momentum ("tap to continue")
-- Deep-link integration with existing wizard logic
-
-The wizard's existing deep-link handler (lines 117-219) already does all the heavy lifting — we just need to send users there on subcategory tap.
-
+- Delete the temporary `I18nSmokeTest` component (it has served its purpose)
+- Remove the debug translation keys
+- Add responsive hiding for brand name on tiny viewports
+- Tighten spacing gaps for mobile comfort
