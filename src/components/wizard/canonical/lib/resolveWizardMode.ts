@@ -72,14 +72,13 @@ function getDraft(): WizardState | null {
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (!stored) return null;
-    
+
     const parsed = JSON.parse(stored) as WizardState;
-    
+
     // Validate draft has meaningful data
-    if (!parsed.mainCategoryId && parsed.microIds?.length === 0) {
-      return null;
-    }
-    
+    const hasMicros = Array.isArray(parsed.microIds) && parsed.microIds.length > 0;
+    if (!parsed.mainCategoryId && !hasMicros) return null;
+
     return parsed;
   } catch {
     return null;
@@ -105,63 +104,29 @@ export function clearDraftChecked(): void {
  * This replaces mutable step state with computed values.
  */
 export function deriveStepFromState(state: WizardState): WizardStep {
-  // Step 7: Review - all required fields present
-  if (
-    state.mainCategoryId &&
-    state.subcategoryId &&
-    state.microIds.length > 0 &&
-    state.logistics.location &&
-    state.logistics.budgetRange
-  ) {
-    return WizardStep.Review;
-  }
-  
-  // Step 6: Extras - logistics complete
-  if (
-    state.mainCategoryId &&
-    state.subcategoryId &&
-    state.microIds.length > 0 &&
-    state.logistics.location &&
-    state.logistics.budgetRange
-  ) {
-    return WizardStep.Extras;
-  }
-  
-  // Step 5: Logistics - questions answered or skipped
-  if (
-    state.mainCategoryId &&
-    state.subcategoryId &&
-    state.microIds.length > 0
-  ) {
-    // If user has already filled logistics, go there
-    if (state.logistics.location) {
-      return WizardStep.Logistics;
-    }
-    // Otherwise, continue to questions if micros are selected
-    return WizardStep.Questions;
-  }
-  
-  // Step 4: Questions - micros selected
-  if (
-    state.mainCategoryId &&
-    state.subcategoryId &&
-    state.microIds.length > 0
-  ) {
-    return WizardStep.Questions;
-  }
-  
-  // Step 3: Micro - subcategory selected
-  if (state.mainCategoryId && state.subcategoryId) {
-    return WizardStep.Micro;
-  }
-  
-  // Step 2: Subcategory - category selected
-  if (state.mainCategoryId) {
-    return WizardStep.Subcategory;
-  }
-  
-  // Step 1: Category - start
-  return WizardStep.Category;
+  // Step 1: Category
+  if (!state.mainCategoryId) return WizardStep.Category;
+
+  // Step 2: Subcategory
+  if (!state.subcategoryId) return WizardStep.Subcategory;
+
+  // Step 3: Micro
+  if (!state.microIds || state.microIds.length === 0) return WizardStep.Micro;
+
+  // Step 4: Questions
+  // If logistics is already partially filled, user may have progressed past questions
+  const hasAnyAnswers = state.answers && Object.keys(state.answers).length > 0;
+  const hasLogisticsStarted = !!state.logistics?.location || !!state.logistics?.budgetRange;
+  if (!hasAnyAnswers && !hasLogisticsStarted) return WizardStep.Questions;
+
+  // Step 5: Logistics
+  const hasLocation = !!state.logistics?.location;
+  const hasBudget = !!state.logistics?.budgetRange;
+  if (!hasLocation || !hasBudget) return WizardStep.Logistics;
+
+  // Step 6: Extras / Step 7: Review
+  // Once required logistics is complete, Review is reachable
+  return WizardStep.Review;
 }
 
 // === MAIN RESOLVER ===
