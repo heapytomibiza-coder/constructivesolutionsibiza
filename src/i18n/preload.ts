@@ -18,6 +18,14 @@ export async function changeLanguageSafe(lng: string): Promise<void> {
 }
 
 /**
+ * Preload core namespaces for current language
+ * Call on app mount to prevent raw keys flash
+ */
+export async function preloadCoreNamespaces(): Promise<void> {
+  await i18n.loadNamespaces(CORE_NAMESPACES);
+}
+
+/**
  * Preload the alternate language in background
  * Call this on app mount after a small delay
  */

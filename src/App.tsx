@@ -14,7 +14,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { RouteGuard, PublicOnlyGuard } from "@/guard";
-import { preloadAlternateLanguage } from "@/i18n/preload";
+import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
 
 // Public Pages
 import Index from "./pages/Index";
@@ -57,11 +57,10 @@ import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/foru
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Preload alternate language on idle (800ms after mount)
+  // Preload current language namespaces immediately, alternate after delay
   useEffect(() => {
-    const id = window.setTimeout(() => {
-      preloadAlternateLanguage();
-    }, 800);
+    preloadCoreNamespaces();
+    const id = window.setTimeout(preloadAlternateLanguage, 400);
     return () => window.clearTimeout(id);
   }, []);
 
