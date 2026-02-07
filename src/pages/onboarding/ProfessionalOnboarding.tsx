@@ -39,36 +39,61 @@ const ProfessionalOnboarding = () => {
   // Determine completed steps based on onboarding phase
   const phase = professionalProfile?.onboardingPhase || 'not_started';
   
-  const getStepStatus = (stepId: string) => {
-    // Map phases to their corresponding step
-    // 'not_started' means basic_info is the current step
-    const phaseToCurrentStep: Record<string, string> = {
-      'not_started': 'basic_info',
-      'basic_info': 'service_area',    // basic_info done → service_area current
-      'verification': 'services',       // service_area done → services current
-      'service_setup': 'review',        // services done → review current
-      'complete': 'done',               // all done
+  type StepStatus = "complete" | "current" | "pending";
+  const stepOrder = ["basic_info", "service_area", "services", "review"] as const;
+  type StepId = (typeof stepOrder)[number];
+
+  /**
+   * Returns status for a step based on onboarding phase.
+   *
+   * Rules:
+   * - not_started => basic_info is current
+   * - otherwise current step is derived from phase
+   * - steps before current are complete, after are pending
+   */
+  const getStepStatus = (stepId: StepId): StepStatus => {
+    // Defensive: normalize phase just in case it comes back null/undefined
+    const p = (phase ?? "not_started") as string;
+
+    /**
+     * Map a stored onboarding phase to "what step should be current now"
+     * This is a "phase -> current step" mapping (not "phase -> completed step").
+     */
+    const phaseToCurrentStep: Record<string, StepId | "done"> = {
+      // start state
+      not_started: "basic_info",
+
+      // MVP phases (matching step completion)
+      basic_info: "service_area",
+      service_area: "services",
+      services: "review",
+      review: "done",
+      complete: "done",
+
+      // Backwards-compatible aliases (if older names exist in DB)
+      verification: "services",
+      service_setup: "review",
     };
-    
-    const stepOrder = ['basic_info', 'service_area', 'services', 'review'];
-    const currentStepId = phaseToCurrentStep[phase] || 'basic_info';
-    
+
+    const currentStepId = phaseToCurrentStep[p] ?? "basic_info";
+
+    if (currentStepId === "done") return "complete";
+
     const stepIndex = stepOrder.indexOf(stepId);
     const currentIndex = stepOrder.indexOf(currentStepId);
-    
-    if (currentStepId === 'done') return 'complete'; // All steps complete
-    if (stepIndex < currentIndex) return 'complete';
-    if (stepIndex === currentIndex) return 'current';
-    return 'pending';
+
+    if (stepIndex < currentIndex) return "complete";
+    if (stepIndex === currentIndex) return "current";
+    return "pending";
   };
 
-  const completedSteps = STEPS.filter(s => getStepStatus(s.id) === 'complete').length;
+  const completedSteps = STEPS.filter(s => getStepStatus(s.id as StepId) === 'complete').length;
   const progress = phase === 'complete' || phase === 'service_setup' 
     ? 100 
     : ((completedSteps + 1) / STEPS.length) * 100;
 
   const handleStepClick = (stepId: string) => {
-    const status = getStepStatus(stepId);
+    const status = getStepStatus(stepId as StepId);
     if (status === 'complete' || status === 'current') {
       setCurrentStep(stepId as WizardStep);
     }
@@ -163,7 +188,7 @@ const ProfessionalOnboarding = () => {
               {/* Step indicators */}
               <div className="flex justify-between mt-3">
                 {STEPS.map((step, index) => {
-                  const status = getStepStatus(step.id);
+                const status = getStepStatus(step.id as StepId);
                   return (
                     <div 
                       key={step.id}
@@ -190,7 +215,7 @@ const ProfessionalOnboarding = () => {
           {currentStep === 'tracker' ? (
             <div className="space-y-4">
               {STEPS.map((step, index) => {
-                const status = getStepStatus(step.id);
+                const status = getStepStatus(step.id as StepId);
                 const isComplete = status === 'complete';
                 const isCurrent = status === 'current';
                 const canClick = isComplete || isCurrent;
