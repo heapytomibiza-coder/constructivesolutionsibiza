@@ -297,5 +297,14 @@
     "noResultsEmpty": "Aún no hay profesionales listados. ¡Vuelve pronto!",
     "clearFilters": "Limpiar Filtros",
     "joinAsPro": "Unirse como Profesional"
+  },
+  "universalSearch": {
+    "placeholder": "¿Qué podemos ayudarte a encontrar?",
+    "noResults": "Sin resultados para \"{{query}}\"",
+    "services": "Servicios",
+    "community": "Publicaciones de la Comunidad",
+    "replies": "{{count}} respuestas",
+    "startProject": "Iniciar un proyecto para \"{{query}}\"",
+    "askCommunity": "Preguntar a la comunidad"
   }
 }

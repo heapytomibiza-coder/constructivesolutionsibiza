@@ -294,5 +294,14 @@
     "noResultsEmpty": "No professionals listed yet. Check back soon!",
     "clearFilters": "Clear Filters",
     "joinAsPro": "Join as Professional"
+  },
+  "universalSearch": {
+    "placeholder": "What can we help you find?",
+    "noResults": "No results for \"{{query}}\"",
+    "services": "Services",
+    "community": "Community Posts",
+    "replies": "{{count}} replies",
+    "startProject": "Start a project for \"{{query}}\"",
+    "askCommunity": "Ask the community"
   }
 }

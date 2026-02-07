@@ -57,6 +57,9 @@ export function HeroBanner({
       {/* Content */}
       <div className="hero-content container relative z-10 text-center">
         <div className="mx-auto max-w-3xl">
+          {/* Children render above title (e.g., brand lockup) */}
+          {children}
+          
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white drop-shadow-lg">
             {title}
           </h1>
