@@ -1,119 +1,119 @@
-# Binary Micro-Category Onboarding - IMPLEMENTED
 
-## Status: ✅ Complete
 
-The professional onboarding now uses a binary IN/OUT toggle system for micro-service selection.
+# Polish: Apply "Gold" Version Refinements to Onboarding Components
 
----
+## Overview
 
-## Core Principle
-
-**"This is not a form. This is a catalogue."**
-
-Every micro-service is a simple toggle:
-- **IN** = Row in `professional_services` → receives job matches
-- **OUT** = No row → no matches for this job type
+The current components are **95% complete and functional**. This plan applies the final polish from the "gold" version to ensure the UI is idiot-proof and slick.
 
 ---
 
-## Implementation Summary
+## Changes Summary
 
-### Components Created
-
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| `ServiceUnlockStep` | `src/pages/onboarding/steps/` | Main accordion wizard with search, progress, binary toggles |
-| `CategoryAccordion` | `src/pages/onboarding/components/` | Collapsible category with completion bar and bulk actions |
-| `MicroToggleTile` | `src/pages/onboarding/components/` | 48px touch-friendly toggle tile |
-| `ServiceSearchBar` | `src/pages/onboarding/components/` | Debounced search filter |
-| `ReviewStep` | `src/pages/onboarding/steps/` | Go Live checklist with selected jobs preview |
-
-### Hooks Created
-
-| Hook | Location | Purpose |
-|------|----------|---------|
-| `useServiceTaxonomy` | `src/pages/onboarding/hooks/` | Fetches full category→subcategory→micro tree |
-| `useProfessionalServices` | `src/pages/onboarding/hooks/` | Manages binary selections with optimistic updates |
+| File | Change | Impact |
+|------|--------|--------|
+| `MicroToggleTile.tsx` | Add `+` indicator on unselected tiles | Clearer affordance that tiles are additive |
+| `ServiceUnlockStep.tsx` | Extract `flashSaved` to `useCallback` | Cleaner timer management, no memory leaks |
+| `ServiceUnlockStep.tsx` | Memoize `hasAnySearchResults` | Cleaner code, better performance |
 
 ---
 
-## UX Features
+## Detailed Changes
 
-### Progressive Disclosure
-- 16 category accordions (collapsed by default)
-- Subcategories as soft section headers within
-- Never show all 296 micros at once
+### 1. MicroToggleTile.tsx - Add `+` Indicator
 
-### Completion Cues
-- Category cards show: name, total count, selected count, completion bar
-- Header shows: total selected, progress bar, "Saved ✓" indicator
+**Current behavior:** Unselected tiles show nothing on the right side, only showing a checkmark when selected.
 
-### Permission to Stop
-- Strategic messaging: "Most professionals select 5–15 services"
-- "You don't need to select everything"
-- "You can always add more later"
+**New behavior:** Unselected tiles show a muted `+` symbol, making it crystal clear that clicking will add this service.
 
-### Search Without Breaking Context
-- Results grouped under category labels
-- Clear search returns to previous state
-
-### Autosave Without Anxiety
-- Quiet "Saved ✓" badge (no toast)
-- Fades out automatically after 1.2s
-
----
-
-## Database
-
-Uses existing `professional_services` table (binary truth):
-```sql
--- Toggle ON: insert row
-INSERT INTO professional_services (user_id, micro_id, status)
-VALUES (user_id, micro_id, 'offered')
-ON CONFLICT (user_id, micro_id) DO NOTHING;
-
--- Toggle OFF: delete row
-DELETE FROM professional_services
-WHERE user_id = :user_id AND micro_id = :micro_id;
+```tsx
+// Unselected: shows + in muted circle
+// Selected: shows ✓ in primary circle
+<span className={cn(
+  "ml-3 inline-flex h-6 w-6 items-center justify-center rounded-full transition",
+  isSelected 
+    ? "bg-primary text-primary-foreground" 
+    : "bg-muted text-muted-foreground"
+)}>
+  {isSelected ? <Check className="h-4 w-4" /> : <span className="text-xs">+</span>}
+</span>
 ```
 
-Matching algorithm unchanged - already uses `professional_services.micro_id`.
-
----
-
-## Go Live Requirements
-
-```typescript
-const canGoLive = 
-  displayName?.trim() !== '' &&
-  phone?.trim() !== '' &&
-  serviceZones.length > 0 &&
-  selectedMicroIds.size >= 1;
-```
-
-On Go Live:
-```sql
-UPDATE professional_profiles 
-SET profile_status = 'live',
-    onboarding_phase = 'complete',
-    submitted_at = NOW()
-WHERE user_id = auth.uid();
+Also adds a subtle ring effect on first selection:
+```tsx
+{isSelected && isFirstSelection && (
+  <span className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-primary/40" />
+)}
 ```
 
 ---
 
-## Onboarding Flow
+### 2. ServiceUnlockStep.tsx - Clean `flashSaved` Pattern
 
-1. **Basic Info** → Name, phone, bio
-2. **Service Area** → Zone selection
-3. **Services** → Binary tile selector (this implementation)
-4. **Review & Go Live** → Checklist + confirmation
+**Current:** Timer is created inline in each handler, could leak on unmount.
+
+**New:** Extract to `useCallback` with proper pattern:
+```tsx
+const flashSaved = useCallback(() => {
+  setShowSaved(true);
+  window.setTimeout(() => setShowSaved(false), 1200);
+}, []);
+```
+
+Then use `flashSaved()` in handlers instead of repeating the timer logic.
 
 ---
 
-## Future Enhancements (V2)
+### 3. ServiceUnlockStep.tsx - Memoize Search Results Check
 
-- [ ] Tooltip on tiles for job descriptions
-- [ ] First-time bulk action confirmation microcopy
-- [ ] Number tween animation on count changes
-- [ ] Category tick badge when at least one selected
+**Current:** Complex nested `.every()` check inline in JSX.
+
+**New:** Memoized for clarity:
+```tsx
+const hasAnySearchResults = useMemo(() => {
+  if (!searchQuery) return true;
+  const q = searchQuery.toLowerCase();
+  return categories.some((c) =>
+    c.subcategories.some((s) =>
+      s.micros.some((m) => 
+        m.name.toLowerCase().includes(q) || 
+        m.slug.toLowerCase().includes(q)
+      )
+    )
+  );
+}, [categories, searchQuery]);
+```
+
+---
+
+## Verification Checklist
+
+After implementation, verify:
+
+- [ ] Unselected tiles show a `+` symbol on the right
+- [ ] Selected tiles show a `✓` checkmark on the right
+- [ ] First selection has subtle ring animation
+- [ ] "Saved ✓" appears quietly and disappears after ~1.2s
+- [ ] Search filters categories correctly
+- [ ] "No jobs found" message appears when search has no results
+- [ ] Category shows `✓ X` badge when collapsed with selections
+- [ ] Category shows progress bar only when selections > 0
+- [ ] Continue button disabled until at least 1 selected
+- [ ] All touch targets are 48px minimum height
+
+---
+
+## Files to Modify
+
+1. `src/pages/onboarding/components/MicroToggleTile.tsx`
+2. `src/pages/onboarding/steps/ServiceUnlockStep.tsx`
+
+---
+
+## Technical Notes
+
+- All CSS animations already exist in `index.css`
+- Hook signature is already correct: `toggleService({ microId, isSelected })`
+- No database changes required
+- No new dependencies needed
+
