@@ -39,6 +39,10 @@ export interface ProfessionalProfileData {
   verificationStatus: VerificationStatus;
   servicesCount: number;
   isPubliclyListed: boolean;
+  displayName: string | null;
+  businessName: string | null;
+  phone: string | null;
+  serviceZones: string[];
 }
 
 export interface SessionSnapshot {
@@ -101,7 +105,7 @@ export function useSessionSnapshot(): SessionSnapshot {
       if (userRoles.includes('professional')) {
         const { data: profileData, error: profileError } = await supabase
           .from('professional_profiles')
-          .select('onboarding_phase, verification_status, services_count, is_publicly_listed')
+          .select('onboarding_phase, verification_status, services_count, is_publicly_listed, display_name, business_name, service_zones')
           .eq('user_id', userId)
           .single();
 
@@ -110,11 +114,22 @@ export function useSessionSnapshot(): SessionSnapshot {
         }
 
         if (profileData) {
+          // Also fetch phone from profiles table
+          const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('phone')
+            .eq('user_id', userId)
+            .single();
+
           setProfessionalProfile({
             onboardingPhase: profileData.onboarding_phase as OnboardingPhase,
             verificationStatus: profileData.verification_status as VerificationStatus,
             servicesCount: profileData.services_count,
             isPubliclyListed: profileData.is_publicly_listed,
+            displayName: profileData.display_name,
+            businessName: profileData.business_name,
+            phone: userProfile?.phone || null,
+            serviceZones: profileData.service_zones || [],
           });
         }
       }

@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useSession } from '@/contexts/SessionContext';
-import { CheckCircle2, ArrowRight, Shield, ArrowLeft, User, MapPin, Briefcase } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Shield, ArrowLeft, User, MapPin, Briefcase, Rocket } from 'lucide-react';
 import { PLATFORM } from '@/domain/scope';
-import { BasicInfoStep, ServiceAreaStep } from './steps';
+import { BasicInfoStep, ServiceAreaStep, ServiceUnlockStep, ReviewStep } from './steps';
 import { cn } from '@/lib/utils';
 
-type WizardStep = 'tracker' | 'basic_info' | 'service_area' | 'job_types';
+type WizardStep = 'tracker' | 'basic_info' | 'service_area' | 'services' | 'review';
 
 interface StepConfig {
   id: string;
@@ -21,7 +21,8 @@ interface StepConfig {
 const STEPS: StepConfig[] = [
   { id: 'basic_info', label: 'Basic Information', description: 'Name, contact, and bio', icon: User },
   { id: 'service_area', label: 'Service Area', description: 'Where you work in Ibiza', icon: MapPin },
-  { id: 'job_types', label: 'Job Types', description: 'What services you offer', icon: Briefcase },
+  { id: 'services', label: 'Services', description: 'What work you want', icon: Briefcase },
+  { id: 'review', label: 'Review & Go Live', description: 'Check and launch', icon: Rocket },
 ];
 
 /**
@@ -43,7 +44,8 @@ const ProfessionalOnboarding = () => {
     const stepToPhase: Record<string, string> = {
       'basic_info': 'basic_info',
       'service_area': 'verification',
-      'job_types': 'service_setup',
+      'services': 'service_setup',
+      'review': 'complete',
     };
     
     const currentPhaseIndex = phaseOrder.indexOf(phase);
@@ -78,8 +80,11 @@ const ProfessionalOnboarding = () => {
   };
 
   const handleServiceAreaComplete = () => {
-    // Navigate to the dedicated job types page
-    navigate('/professional/service-setup');
+    setCurrentStep('services');
+  };
+
+  const handleServicesComplete = () => {
+    setCurrentStep('review');
   };
 
   // Show loading state
@@ -123,7 +128,8 @@ const ProfessionalOnboarding = () => {
               {currentStep === 'tracker' ? 'Complete Your Profile' : 
                currentStep === 'basic_info' ? 'Step 1: About You' :
                currentStep === 'service_area' ? 'Step 2: Service Area' :
-               'Step 3: Job Types'}
+               currentStep === 'services' ? 'Step 3: Services' :
+               'Step 4: Review & Go Live'}
             </h1>
             <p className="text-muted-foreground mb-4">
               {currentStep === 'tracker' 
@@ -230,6 +236,15 @@ const ProfessionalOnboarding = () => {
             <ServiceAreaStep 
               onComplete={handleServiceAreaComplete} 
               onBack={() => setCurrentStep('basic_info')}
+            />
+          ) : currentStep === 'services' ? (
+            <ServiceUnlockStep
+              onComplete={handleServicesComplete}
+              onBack={() => setCurrentStep('service_area')}
+            />
+          ) : currentStep === 'review' ? (
+            <ReviewStep
+              onBack={() => setCurrentStep('services')}
             />
           ) : null}
         </div>
