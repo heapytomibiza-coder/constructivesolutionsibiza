@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useSession } from '@/contexts/SessionContext';
-import { CheckCircle2, ArrowRight, Shield, ArrowLeft, User, MapPin, Briefcase, Rocket } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ArrowLeft, User, MapPin, Briefcase, Rocket } from 'lucide-react';
 import { PLATFORM } from '@/domain/scope';
 import { BasicInfoStep, ServiceAreaStep, ServiceUnlockStep, ReviewStep } from './steps';
 import { cn } from '@/lib/utils';
@@ -19,17 +19,17 @@ interface StepConfig {
 }
 
 const STEPS: StepConfig[] = [
-  { id: 'basic_info', label: 'Basic Information', description: 'Name, contact, and bio', icon: User },
-  { id: 'service_area', label: 'Service Area', description: 'Where you work in Ibiza', icon: MapPin },
-  { id: 'services', label: 'Services', description: 'What work you want', icon: Briefcase },
-  { id: 'review', label: 'Review & Go Live', description: 'Check and launch', icon: Rocket },
+  { id: 'basic_info', label: 'About You', description: 'Your name and contact details', icon: User },
+  { id: 'service_area', label: 'Where You Work', description: 'Which areas of Ibiza', icon: MapPin },
+  { id: 'services', label: 'The Work You Do', description: 'Jobs you want to receive', icon: Briefcase },
+  { id: 'review', label: 'All Done!', description: 'Check and go live', icon: Rocket },
 ];
 
 /**
  * PROFESSIONAL ONBOARDING WIZARD
  * 
- * Multi-step guided onboarding for new professionals.
- * Collects: Basic info → Service area → Job types
+ * Builder-friendly multi-step onboarding.
+ * Warm, conversational language. Large touch targets.
  */
 const ProfessionalOnboarding = () => {
   const navigate = useNavigate();
@@ -62,7 +62,6 @@ const ProfessionalOnboarding = () => {
 
   const handleStepClick = (stepId: string) => {
     const status = getStepStatus(stepId);
-    // Allow navigating to completed or current steps
     if (status === 'complete' || status === 'current') {
       setCurrentStep(stepId as WizardStep);
     }
@@ -90,74 +89,92 @@ const ProfessionalOnboarding = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-hero bg-texture-concrete flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground text-lg">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-hero bg-texture-concrete">
-      {/* Navigation */}
-      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-sm bg-gradient-steel shadow-md flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">
+    <div className="min-h-screen bg-gradient-hero">
+      {/* Navigation - Friendlier */}
+      <nav className="border-b border-border bg-card/90 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <div className="container flex h-18 items-center justify-between py-4">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-gradient-steel shadow-md flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-base">
                 {PLATFORM.mark}
               </span>
             </div>
-            <span className="font-display text-xl font-semibold text-foreground">
-              {PLATFORM.shortName}
-            </span>
+            <div className="hidden sm:block">
+              <span className="text-xl font-semibold text-foreground">
+                {PLATFORM.shortName}
+              </span>
+            </div>
           </Link>
           {currentStep !== 'tracker' && (
-            <Button variant="ghost" onClick={() => setCurrentStep('tracker')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button variant="ghost" size="sm" onClick={() => setCurrentStep('tracker')}>
+              <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Overview
             </Button>
           )}
         </div>
       </nav>
 
-      <div className="container py-12">
-        <div className="mx-auto max-w-2xl">
-          {/* Header */}
-          <div className="text-center mb-8 animate-fade-in">
-            <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-              {currentStep === 'tracker' ? 'Complete Your Profile' : 
+      <div className="container py-10 sm:py-14">
+        <div className="mx-auto max-w-xl">
+          {/* Header - Warm, friendly */}
+          <div className="text-center mb-10 animate-fade-in">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
+              {currentStep === 'tracker' ? "Let's get you started" : 
                currentStep === 'basic_info' ? 'Step 1: About You' :
-               currentStep === 'service_area' ? 'Step 2: Service Area' :
-               currentStep === 'services' ? 'Step 3: Services' :
-               'Step 4: Review & Go Live'}
+               currentStep === 'service_area' ? 'Step 2: Where You Work' :
+               currentStep === 'services' ? 'Step 3: The Work You Do' :
+               'Step 4: All Done!'}
             </h1>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-lg text-muted-foreground">
               {currentStep === 'tracker' 
-                ? 'Finish setting up your professional profile to start receiving job requests.'
-                : 'Complete this step to continue with your profile setup.'}
+                ? "Just a few quick steps and you'll be ready to receive work."
+                : 'Complete this step to continue.'}
             </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4 text-primary" />
-              <span>Join Ibiza's trusted trades network</span>
-            </div>
           </div>
 
-          {/* Progress Card */}
-          <Card className="mb-6 card-grounded animate-fade-in">
-            <CardHeader>
+          {/* Progress Card - Encouraging */}
+          <Card className="mb-8 card-grounded animate-fade-in">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="font-display">Progress</CardTitle>
-                <span className="text-sm font-medium text-primary">{Math.round(progress)}%</span>
+                <CardTitle className="text-lg font-semibold">
+                  You're doing great!
+                </CardTitle>
+                <span className="text-base font-semibold text-primary">
+                  {completedSteps} of {STEPS.length} done
+                </span>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="relative">
-                <Progress value={progress} className="h-3" />
-                {/* Gradient overlay for progress bar */}
-                <div 
-                  className="absolute inset-0 h-3 rounded-full bg-gradient-steel opacity-20"
-                  style={{ width: `${progress}%` }}
-                />
+              <Progress value={progress} className="h-3" />
+              {/* Step indicators */}
+              <div className="flex justify-between mt-3">
+                {STEPS.map((step, index) => {
+                  const status = getStepStatus(step.id);
+                  return (
+                    <div 
+                      key={step.id}
+                      className={cn(
+                        'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors',
+                        status === 'complete' && 'bg-primary text-primary-foreground',
+                        status === 'current' && 'bg-primary/20 text-primary border-2 border-primary',
+                        status === 'pending' && 'bg-muted text-muted-foreground'
+                      )}
+                    >
+                      {status === 'complete' ? (
+                        <CheckCircle2 className="h-5 w-5" />
+                      ) : (
+                        index + 1
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -175,60 +192,65 @@ const ProfessionalOnboarding = () => {
                 return (
                   <Card 
                     key={step.id}
-                    style={{ animationDelay: `${index * 100}ms` }}
                     className={cn(
-                      'card-grounded transition-all duration-200',
-                      'animate-slide-up opacity-0 [animation-fill-mode:forwards]',
-                      isCurrent && 'border-primary ring-1 ring-primary/20 shadow-glow',
-                      canClick && 'cursor-pointer hover:border-primary/50 hover:scale-[1.01]',
-                      !canClick && 'opacity-60'
+                      'card-grounded transition-all duration-300',
+                      'animate-fade-in',
+                      isCurrent && 'border-primary/60 ring-2 ring-primary/20 shadow-lg',
+                      canClick && 'cursor-pointer hover:border-primary/50',
+                      !canClick && 'opacity-50'
                     )}
+                    style={{ animationDelay: `${index * 80}ms` }}
                     onClick={() => canClick && handleStepClick(step.id)}
                   >
-                    <CardContent className="flex items-center justify-between py-4">
+                    <CardContent className="flex items-center justify-between py-5 px-5">
                       <div className="flex items-center gap-4">
-                        {/* Step icon with gradient container for current/complete */}
-                        {isComplete ? (
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
-                            <CheckCircle2 className="h-6 w-6 text-success" />
-                          </div>
-                        ) : isCurrent ? (
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-steel shadow-md">
-                            <Icon className="h-5 w-5 text-white" />
-                          </div>
-                        ) : (
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
-                            <Icon className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        )}
+                        {/* Step number/icon - Larger */}
+                        <div className={cn(
+                          'flex h-14 w-14 items-center justify-center rounded-xl text-lg font-bold',
+                          isComplete && 'bg-primary/15 text-primary',
+                          isCurrent && 'bg-gradient-steel text-white shadow-md',
+                          !isComplete && !isCurrent && 'bg-muted text-muted-foreground'
+                        )}>
+                          {isComplete ? (
+                            <CheckCircle2 className="h-7 w-7" />
+                          ) : isCurrent ? (
+                            <Icon className="h-7 w-7" />
+                          ) : (
+                            <span>{index + 1}</span>
+                          )}
+                        </div>
                         <div>
-                          <p className="font-medium">{step.label}</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-lg font-semibold text-foreground">
+                            {step.label}
+                          </p>
+                          <p className="text-base text-muted-foreground">
                             {step.description}
                           </p>
                         </div>
                       </div>
-                      {(isCurrent || isComplete) && (
+                      {canClick && (
                         <Button 
                           variant={isCurrent ? 'default' : 'outline'} 
-                          size="sm"
-                          className={cn(
-                            'transition-transform',
-                            isCurrent && 'hover:scale-105'
-                          )}
+                          size="default"
+                          className="shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleStepClick(step.id);
                           }}
                         >
                           {isComplete ? 'Edit' : 'Start'}
-                          <ArrowRight className="ml-2 h-4 w-4" />
+                          <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
                       )}
                     </CardContent>
                   </Card>
                 );
               })}
+
+              {/* Reassurance message */}
+              <p className="text-center text-base text-muted-foreground pt-4">
+                Trusted by builders across Ibiza
+              </p>
             </div>
           ) : currentStep === 'basic_info' ? (
             <BasicInfoStep onComplete={handleBasicInfoComplete} />

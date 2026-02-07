@@ -1,9 +1,7 @@
 /**
  * ServiceUnlockStep - Binary micro-service selection wizard
  * 
- * "This is not a form. This is a catalogue."
- * Progressive disclosure with category accordions.
- * Each micro is a simple toggle: IN or OUT.
+ * Builder-friendly: Larger tiles, clearer states, friendly copy.
  */
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
@@ -11,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, Unlock, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Briefcase, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { CategoryAccordion } from '../components/CategoryAccordion';
@@ -84,13 +82,11 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
   // Auto-expand first matching category when searching (respects manual override)
   useEffect(() => {
     if (!searchQuery) {
-      // Search cleared → collapse all + reset override
       setExpandedCategoryId(null);
       setUserExpandedDuringSearch(false);
       return;
     }
 
-    // Search active: only auto-expand if user hasn't manually toggled
     if (!userExpandedDuringSearch && firstMatchingCategoryId) {
       setExpandedCategoryId(firstMatchingCategoryId);
     }
@@ -102,7 +98,7 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     return (selectedCount / RECOMMENDED_MIN) * 100;
   }, [selectedCount]);
 
-  // Quiet "Saved" badge - no stacking, no leaks
+  // Quiet "Saved" badge
   const flashSaved = useCallback(() => {
     setShowSaved(true);
 
@@ -155,7 +151,7 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     }
   }, [categories, selectedMicroIds, bulkRemoveServices, flashSaved]);
 
-  // Memoize search results check for performance
+  // Memoize search results check
   const hasAnySearchResults = useMemo(() => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -179,18 +175,18 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
 
   return (
     <div className="space-y-6">
-      {/* Header - Reframed language */}
+      {/* Header - Friendly language */}
       <Card className="card-grounded">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-steel shadow-md">
-                <Unlock className="h-5 w-5 text-white" />
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-steel shadow-md">
+                <Briefcase className="h-7 w-7 text-white" />
               </div>
               <div>
-                <CardTitle className="font-display">Which jobs do you take on?</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Pick the work you're happy to receive. We'll only send you matches for these.
+                <CardTitle className="text-xl font-semibold">Which jobs do you want?</CardTitle>
+                <p className="text-base text-muted-foreground">
+                  Tap any job you're happy to do. We'll only send you these.
                 </p>
               </div>
             </div>
@@ -198,9 +194,9 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
             {showSaved && (
               <Badge 
                 variant="secondary" 
-                className="bg-success/10 text-success animate-fade-in text-xs"
+                className="bg-primary/15 text-primary animate-fade-in text-sm"
               >
-                <Check className="h-3 w-3 mr-1" />
+                <Check className="h-4 w-4 mr-1" />
                 Saved
               </Badge>
             )}
@@ -208,24 +204,26 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
         </CardHeader>
         <CardContent>
           {/* Progress with count */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium tabular-nums">
-                {selectedCount} service{selectedCount !== 1 ? 's' : ''} selected
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-base">
+              <span className="font-semibold tabular-nums">
+                {selectedCount === 0 
+                  ? "No jobs selected yet" 
+                  : `You've picked ${selectedCount} job${selectedCount !== 1 ? 's' : ''}`}
               </span>
               {selectedCount >= RECOMMENDED_MIN && (
-                <span className="text-success text-xs">Great selection!</span>
+                <span className="text-primary font-medium">Great selection!</span>
               )}
             </div>
-            <Progress value={progress} className="h-1.5" />
+            <Progress value={progress} className="h-3" />
           </div>
         </CardContent>
       </Card>
 
-      {/* Permission to stop - strategic messaging */}
-      <p className="text-center text-sm text-muted-foreground px-4">
-        Most professionals select {RECOMMENDED_MIN}–{RECOMMENDED_MAX} services.
-        <span className="block text-xs mt-0.5 opacity-75">You don't need to select everything.</span>
+      {/* Permission to stop */}
+      <p className="text-center text-base text-muted-foreground px-4">
+        Most professionals pick {RECOMMENDED_MIN}–{RECOMMENDED_MAX} jobs.
+        <span className="block text-sm mt-1 opacity-80">You don't need to select everything.</span>
       </p>
 
       {/* Search bar */}
@@ -237,17 +235,16 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
 
       {/* Loading state */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
         </div>
       ) : (
         /* Category accordions */
-        <div className="space-y-3">
-          {categories.map((category, index) => (
+        <div className="space-y-4">
+          {categories.map((category) => (
             <div
               key={category.id}
-              style={{ animationDelay: `${index * 50}ms` }}
-              className="animate-slide-up opacity-0 [animation-fill-mode:forwards]"
+              className="animate-fade-in"
             >
               <CategoryAccordion
                 category={category}
@@ -256,7 +253,6 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
                 onToggle={() => {
                   const next = expandedCategoryId === category.id ? null : category.id;
                   setExpandedCategoryId(next);
-                  // Mark that user manually overrode during search
                   if (searchQuery) setUserExpandedDuringSearch(true);
                 }}
                 onMicroToggle={handleMicroToggle}
@@ -270,12 +266,12 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
 
           {/* Empty search results */}
           {!hasAnySearchResults && (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No jobs found for "{searchQuery}"</p>
+            <div className="text-center py-10 text-muted-foreground">
+              <p className="text-lg">No jobs found for "{searchQuery}"</p>
               <Button
                 variant="link"
                 onClick={() => setSearchQuery('')}
-                className="mt-2"
+                className="mt-3 text-base"
               >
                 Clear search
               </Button>
@@ -286,8 +282,8 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
 
       {/* Permission to stop - bottom reminder */}
       {selectedCount > 0 && selectedCount < RECOMMENDED_MIN && (
-        <p className="text-center text-xs text-muted-foreground">
-          You can always add more services later from your dashboard.
+        <p className="text-center text-sm text-muted-foreground">
+          You can always add more jobs later from your dashboard.
         </p>
       )}
 
@@ -296,33 +292,31 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
         <Button
           type="button"
           variant="ghost"
+          size="lg"
           onClick={onBack}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          Go Back
         </Button>
 
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col items-end gap-2">
           <Button
             type="button"
+            size="lg"
             onClick={handleContinue}
             disabled={!canContinue || isUpdating}
-            className={cn(
-              'gap-2 transition-all',
-              canContinue && 'hover:scale-105'
-            )}
           >
             {isUpdating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
                 Continue
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-5 w-5 ml-2" />
               </>
             )}
           </Button>
           {!canContinue && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               Select at least 1 job to continue
             </span>
           )}
