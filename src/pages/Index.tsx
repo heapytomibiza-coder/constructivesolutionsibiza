@@ -55,10 +55,10 @@ const Index = () => {
         trustBadge={
           <div className="hero-trust-badge">
             <CheckCircle className="h-4 w-4" />
-            {t('trust.verified')}
+            {t('trust.guided')}
             <span className="text-white/50">•</span>
             <Clock className="h-4 w-4" />
-            {t('trust.sameDay')}
+            {t('trust.clarity')}
             <span className="text-white/50">•</span>
             <Shield className="h-4 w-4" />
             {t('trust.local')}

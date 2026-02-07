@@ -36,16 +36,18 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Find Trusted Construction Professionals",
-    "subtitle": "Construction & Trade Services in Ibiza",
-    "postJob": "Post a Job",
+    "title": "Bridging the gap between idea and build",
+    "subtitle": "We help you understand your project — then connect you with the right professionals",
+    "postJob": "Start Your Project",
     "browsePros": "Browse Professionals"
   },
   "trust": {
     "verified": "Verified trades",
     "sameDay": "Same-day response",
     "local": "Ibiza-based",
-    "realSpecs": "Real specs",
+    "guided": "Guided process",
+    "clarity": "Clear communication",
+    "realSpecs": "Clear specs",
     "lessBackForth": "Less back-and-forth",
     "ibizaOnly": "Ibiza only"
   },
@@ -57,7 +59,7 @@
   },
   "footer": {
     "rights": "All rights reserved.",
-    "tagline": "Connecting Ibiza with trusted construction professionals.",
+    "tagline": "Bridging clients and construction professionals in Ibiza.",
     "howItWorks": "How it works",
     "contact": "Contact",
     "privacy": "Privacy",
@@ -105,18 +107,18 @@
     "legalRegulatory": "Legal & Regulatory"
   },
   "home": {
-    "ourServices": "Our Services",
-    "ourServicesDesc": "Find trusted professionals across all construction and property services",
+    "ourServices": "What Do You Need?",
+    "ourServicesDesc": "Tell us about your project — we help clarify the scope and connect you with the right trade",
     "viewAllServices": "View All Services",
-    "verifiedTitle": "Verified Professionals",
-    "verifiedDesc": "All professionals are vetted and verified before joining",
-    "quickTitle": "Quick Response",
-    "quickDesc": "Get quotes from multiple professionals within hours",
-    "qualityTitle": "Quality Guaranteed",
-    "qualityDesc": "Rated and reviewed by real customers in Ibiza",
-    "ctaTitle": "Ready to start your project?",
-    "ctaDesc": "Post your job for free and receive quotes from trusted local professionals.",
-    "ctaButton": "Post a Job Now"
+    "verifiedTitle": "Clarity First",
+    "verifiedDesc": "Our guided questions translate your idea into a clear, build-ready brief",
+    "quickTitle": "Aligned Expectations",
+    "quickDesc": "Clients and professionals start on the same page from day one",
+    "qualityTitle": "Trusted Connections",
+    "qualityDesc": "Verified professionals who understand exactly what's required",
+    "ctaTitle": "Not sure where to start?",
+    "ctaDesc": "Answer a few quick questions and we'll help you define the scope.",
+    "ctaButton": "Get Started"
   },
   "services": {
     "title": "Our Services",
