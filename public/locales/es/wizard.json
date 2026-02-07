@@ -29,6 +29,39 @@
     "headline": "Selecciona las tareas específicas que necesitas",
     "hint": "Elige todas las que correspondan — esto ayuda a encontrar al profesional adecuado"
   },
+  "logistics": {
+    "where": "¿Dónde está el trabajo?",
+    "when": "¿Cuándo lo necesitas?",
+    "budget": "¿Cuál es tu presupuesto?",
+    "contact": "¿Cómo deben contactarte?",
+    "moreAreas": "Más zonas...",
+    "fewerAreas": "Menos zonas",
+    "otherAreaLabel": "Especificar ubicación",
+    "otherAreaPlaceholder": "Escribe dirección o zona...",
+    "accessNotes": "Notas de acceso (opcional)",
+    "accessPlaceholder": "Código de puerta, parking, acceso al edificio...",
+    "specificDate": "Seleccionar fecha",
+    "timing": {
+      "asap": "Lo antes posible",
+      "thisWeek": "Esta semana",
+      "thisMonth": "Este mes",
+      "flexible": "Flexible",
+      "specific": "Fecha específica"
+    },
+    "budget": {
+      "under500": "Menos de €500",
+      "500to1k": "€500 – €1k",
+      "1kto2_5k": "€1k – €2.5k",
+      "2_5kto5k": "€2.5k – €5k",
+      "over5k": "Más de €5k",
+      "needQuote": "Necesito presupuesto"
+    },
+    "contact": {
+      "siteVisit": "Visita en persona",
+      "phoneCall": "Llamada telefónica",
+      "message": "Mensaje primero"
+    }
+  },
   "buttons": {
     "back": "Atrás",
     "continue": "Continuar",

@@ -29,6 +29,39 @@
     "headline": "Select the specific tasks you need",
     "hint": "Choose all that apply — this helps match you with the right professionals"
   },
+  "logistics": {
+    "where": "Where is the work?",
+    "when": "When do you need this?",
+    "budget": "What's your budget range?",
+    "contact": "How should pros reach you?",
+    "moreAreas": "More areas...",
+    "fewerAreas": "Fewer areas",
+    "otherAreaLabel": "Specify location",
+    "otherAreaPlaceholder": "Enter address or area...",
+    "accessNotes": "Access notes (optional)",
+    "accessPlaceholder": "Gate code, parking, building access...",
+    "specificDate": "Select date",
+    "timing": {
+      "asap": "ASAP",
+      "thisWeek": "This week",
+      "thisMonth": "This month",
+      "flexible": "Flexible",
+      "specific": "Specific date"
+    },
+    "budget": {
+      "under500": "Under €500",
+      "500to1k": "€500 – €1k",
+      "1kto2_5k": "€1k – €2.5k",
+      "2_5kto5k": "€2.5k – €5k",
+      "over5k": "Over €5k",
+      "needQuote": "Need a quote"
+    },
+    "contact": {
+      "siteVisit": "Site visit",
+      "phoneCall": "Phone call",
+      "message": "Message first"
+    }
+  },
   "buttons": {
     "back": "Back",
     "continue": "Continue",
