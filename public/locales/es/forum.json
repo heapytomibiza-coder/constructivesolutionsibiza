@@ -1,30 +1,77 @@
- {
-   "title": "Comunidad",
-   "subtitle": "Conecta con locales y profesionales en Ibiza",
-   "newPost": "Nueva Publicación",
-   "categories": {
-     "recommendations": "Recomendaciones",
-     "whereCanIFind": "¿Dónde puedo encontrar...?",
-     "generalHelp": "Ayuda General",
-     "warnings": "Advertencias"
-   },
-   "post": {
-     "title": "Título",
-     "titlePlaceholder": "¿Cuál es tu pregunta o tema?",
-     "content": "Contenido",
-     "contentPlaceholder": "Comparte los detalles...",
-     "tags": "Etiquetas",
-     "tagsPlaceholder": "fontanero, cocina, urgente",
-     "tagsHelp": "Añade hasta 5 etiquetas para ayudar a otros a encontrar tu publicación.",
-     "photos": "Fotos",
-     "photosHelp": "Añade hasta 4 fotos para explicar mejor lo que necesitas.",
-     "publish": "Publicar",
-     "publishing": "Publicando..."
-   },
-   "replies": {
-     "title": "Respuestas",
-     "write": "Escribe una respuesta...",
-     "submit": "Responder",
-     "noReplies": "Aún no hay respuestas. ¡Sé el primero en responder!"
-   }
- }
+{
+  "title": "Foro de la Comunidad",
+  "subtitle": "Conecta con la comunidad de oficios de Ibiza. Comparte recomendaciones, haz preguntas y ayuda a otros.",
+  "newPost": "Nueva Publicación",
+  "backToForum": "Volver al Foro",
+  "categories": {
+    "recommendations": "Recomendaciones",
+    "whereCanIFind": "¿Dónde puedo encontrar...?",
+    "generalHelp": "Ayuda General",
+    "warnings": "Advertencias"
+  },
+  "categoryDescriptions": {
+    "recommendations": "Comparte y solicita recomendaciones de profesionales y servicios",
+    "where-can-i-find": "Ayuda para encontrar materiales, herramientas o servicios en Ibiza",
+    "general-help": "Preguntas y debates sobre temas de propiedad y construcción",
+    "warnings": "Alerta a la comunidad sobre problemas, estafas o malas experiencias"
+  },
+  "index": {
+    "loading": "Cargando categorías...",
+    "error": "No se pudieron cargar las categorías del foro.",
+    "empty": "Aún no hay categorías del foro disponibles."
+  },
+  "category": {
+    "notFound": "Categoría no encontrada",
+    "loading": "Cargando publicaciones...",
+    "empty": "Aún no hay publicaciones",
+    "emptyDesc": "Sé el primero en iniciar una discusión en esta categoría.",
+    "createFirst": "Crear Primera Publicación"
+  },
+  "post": {
+    "title": "Título",
+    "titlePlaceholder": "Un título claro y descriptivo para tu publicación",
+    "content": "Contenido",
+    "contentPlaceholder": "Comparte tu pregunta, recomendación o tema de discusión...",
+    "tags": "Etiquetas (opcional)",
+    "tagsPlaceholder": "fontanero, san-antonio, recomendación (separado por comas)",
+    "tagsHelp": "Añade hasta 5 etiquetas para ayudar a otros a encontrar tu publicación.",
+    "photos": "Fotos (opcional)",
+    "photosHelp": "Añade hasta 4 fotos para explicar mejor lo que necesitas.",
+    "publish": "Publicar",
+    "publishing": "Publicando...",
+    "notFound": "Publicación no encontrada",
+    "backTo": "Volver a {{category}}",
+    "newIn": "Nueva Publicación en {{category}}",
+    "photo": "foto",
+    "photos_plural": "fotos",
+    "addPhoto": "Añadir"
+  },
+  "replies": {
+    "title": "Respuestas",
+    "reply": "respuesta",
+    "replies": "respuestas",
+    "write": "Comparte tus pensamientos, consejos o experiencia...",
+    "addReply": "Añadir una Respuesta",
+    "submit": "Publicar Respuesta",
+    "submitting": "Publicando...",
+    "noReplies": "Aún no hay respuestas. ¡Sé el primero en responder!",
+    "success": "¡Respuesta publicada!",
+    "error": "Error al publicar la respuesta. Inténtalo de nuevo."
+  },
+  "auth": {
+    "signInToReply": "Iniciar sesión para responder",
+    "signInPrompt": "Inicia sesión para unirte a la discusión."
+  },
+  "toast": {
+    "postCreated": "¡Publicación creada!",
+    "postError": "Error al crear la publicación. Inténtalo de nuevo.",
+    "photoUploaded": "{{count}} foto(s) subida(s)",
+    "photoError": "Error al subir las fotos",
+    "maxPhotos": "Máximo 4 fotos permitidas",
+    "notImage": "{{name}} no es una imagen",
+    "tooLarge": "{{name}} es demasiado grande (máx. 5MB)"
+  },
+  "buttons": {
+    "cancel": "Cancelar"
+  }
+}

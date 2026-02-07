@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { PublicLayout } from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,7 +18,16 @@ const categoryIconMap: Record<string, React.ReactNode> = {
   warnings: <AlertTriangle className="h-6 w-6" />,
 };
 
+// Map database slugs to translation keys
+const categoryNameKeys: Record<string, string> = {
+  recommendations: "categories.recommendations",
+  "where-can-i-find": "categories.whereCanIFind",
+  "general-help": "categories.generalHelp",
+  warnings: "categories.warnings",
+};
+
 const ForumIndex = () => {
+  const { t } = useTranslation("forum");
   const { data: categories, isLoading, error } = useForumCategories();
 
   return (
@@ -26,10 +36,10 @@ const ForumIndex = () => {
         {/* Header */}
         <div className="mx-auto max-w-4xl text-center mb-12">
           <h1 className="font-display text-4xl font-bold text-foreground mb-4">
-            Community Forum
+            {t("title")}
           </h1>
           <p className="text-lg text-muted-foreground">
-            Connect with the Ibiza trade community. Share recommendations, ask questions, and help others.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -53,32 +63,41 @@ const ForumIndex = () => {
         {/* Error state */}
         {error && (
           <div className="text-center py-12">
-            <p className="text-destructive">Failed to load forum categories.</p>
+            <p className="text-destructive">{t("index.error")}</p>
           </div>
         )}
 
         {/* Categories grid */}
         {categories && categories.length > 0 && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((category) => (
-              <Link key={category.id} to={`/forum/${category.slug}`}>
-                <Card className="h-full transition-all hover:shadow-soft hover:border-primary/20 cursor-pointer group">
-                  <CardHeader>
-                    <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                      {category.icon ? (
-                        <span className="text-2xl">{category.icon}</span>
-                      ) : (
-                        categoryIconMap[category.slug] || <MessageCircle className="h-6 w-6" />
-                      )}
-                    </div>
-                    <CardTitle className="font-display text-lg">{category.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription>{category.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+            {categories.map((category) => {
+              const nameKey = categoryNameKeys[category.slug];
+              const descKey = `categoryDescriptions.${category.slug}`;
+              
+              return (
+                <Link key={category.id} to={`/forum/${category.slug}`}>
+                  <Card className="h-full transition-all hover:shadow-soft hover:border-primary/20 cursor-pointer group">
+                    <CardHeader>
+                      <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                        {category.icon ? (
+                          <span className="text-2xl">{category.icon}</span>
+                        ) : (
+                          categoryIconMap[category.slug] || <MessageCircle className="h-6 w-6" />
+                        )}
+                      </div>
+                      <CardTitle className="font-display text-lg">
+                        {nameKey ? t(nameKey) : category.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription>
+                        {t(descKey, { defaultValue: category.description })}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
 
@@ -86,7 +105,7 @@ const ForumIndex = () => {
         {categories && categories.length === 0 && (
           <div className="text-center py-12">
             <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No forum categories available yet.</p>
+            <p className="text-muted-foreground">{t("index.empty")}</p>
           </div>
         )}
       </div>
