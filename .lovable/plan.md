@@ -1,231 +1,236 @@
 
-# Homepage Branding + Universal Search
 
-## Overview
+# Landing Page Cleanup — Focused & Professional
 
-This plan adds two key features to the homepage:
-1. **Prominent brand display** — "Constructive Solutions Ibiza" shown prominently in the hero
-2. **Universal Search Bar** — A single search input that matches both services (→ wizard) AND community forum posts (→ forum)
+## The Problem
+
+The current homepage has four issues creating a "jumbled" feel:
+
+| Issue | Root Cause | Impact |
+|-------|------------|--------|
+| Brand name appears twice | `HeroBanner` renders `{children}` at line 61 AND line 85 | Looks sloppy, confusing |
+| Search placeholder shows raw key | Translation loads after render | Looks unfinished/broken |
+| Keyboard hint overlaps input | Positioned inside input without padding | Feels buggy |
+| Hero is doing too many jobs | Too many competing elements | Decision paralysis |
 
 ---
 
-## 1. Enhanced Branding in Hero
+## The Solution
 
-Currently the hero shows a tagline but not the full brand name. We'll add "Constructive Solutions Ibiza" as a featured brand header above the main headline.
+Four targeted fixes — no new features, just cleanup.
 
-### Changes to `src/pages/Index.tsx`
+---
 
-Add brand lockup above the title in the HeroBanner:
+## Change 1: Remove Duplicate Brand Name
+
+**File:** `src/components/layout/HeroBanner.tsx`
+
+The component renders `{children}` twice (line 61 and line 85). Remove the second one.
 
 ```text
-    ┌─────────────────────────────────────┐
-    │     CONSTRUCTIVE SOLUTIONS IBIZA    │  ← New brand header
-    │   "Bridging the gap between idea    │
-    │            and build"               │
-    │                                     │
-    │  We help you understand your...     │
-    │                                     │
-    │  [==== Universal Search Bar ====]   │  ← New search input
-    │                                     │
-    │   ✓ Guided process • ✓ Clear...     │
-    │                                     │
-    │  [ Start Your Project ] [ Browse ]  │
-    └─────────────────────────────────────┘
+BEFORE (line 85):
+          {action}
+        </div>
+      )}
+      
+      {children}   ← DELETE THIS LINE
+    </div>
+
+AFTER:
+          {action}
+        </div>
+      )}
+    </div>
 ```
 
-The brand will use the `PLATFORM.name` value from `src/domain/scope.ts`.
+**Result:** Brand name appears once, above the headline.
 
 ---
 
-## 2. Universal Search Component
+## Change 2: Fix Translation Fallback + Input Padding
 
-Create a new `UniversalSearchBar` component that searches **both**:
-- **Services** (existing `service_search_index`) → Opens wizard at appropriate step
-- **Forum posts** (`forum_posts` table) → Opens forum post directly
+**File:** `src/components/search/UniversalSearchBar.tsx`
 
-### New File: `src/components/search/UniversalSearchBar.tsx`
+Two small changes:
 
-Features:
-- Uses cmdk Command component for keyboard navigation
-- Debounced search (300ms)
-- Groups results by type ("Services" vs "Community")
-- Visual badges to distinguish result types
-- Service results show depth badge (Category/Service/Task)
-- Forum results show category name and reply count
+1. Add fallback text to the placeholder so it never shows a raw key:
 
-### Search Logic
+```tsx
+// Line 197 - Add fallback
+placeholder={t("universalSearch.placeholder", "What can we help you find?")}
+```
+
+2. Add right padding so the ⌘K hint doesn't overlap text:
+
+```tsx
+// Line 201 - Add pr-16
+className="h-14 text-base pr-16"
+```
+
+**Result:** Search bar always shows readable text and feels intentional.
+
+---
+
+## Change 3: Clean Hero Structure
+
+**File:** `src/pages/Index.tsx`
+
+Reorder elements for clear visual hierarchy:
 
 ```text
-User types: "pool leak"
-                 │
-    ┌────────────┴────────────┐
-    │                         │
-  Services                  Forum
-  (service_search_index)    (forum_posts)
-    │                         │
-┌───┴───┐               ┌─────┴─────┐
-│ Pool   │               │ "Pool     │
-│ leak   │               │  leak     │
-│ repair │               │  fix?"    │
-└───────┘               └───────────┘
+CURRENT (messy):
+┌──────────────────────────────────┐
+│  CONSTRUCTIVE SOLUTIONS IBIZA    │ ← children
+│  "Bridging the gap..."           │ ← title
+│  "We help you understand..."     │ ← subtitle
+│  [Trust badge row]               │ ← trustBadge
+│  [Search bar]                    │ ← action (search)
+│  [Start Project] [Browse]        │ ← action (buttons)
+│  CONSTRUCTIVE SOLUTIONS IBIZA    │ ← children AGAIN (bug)
+└──────────────────────────────────┘
 
-Results shown in grouped Command menu:
-┌────────────────────────────────────┐
-│ 🔧 Services                        │
-│   Pool Leak Repair   [Task]        │
-│   Pool Maintenance   [Service]     │
-├────────────────────────────────────┤
-│ 💬 Community                       │
-│   "Has anyone fixed a pool leak?"  │
-│   Recommendations • 4 replies      │
-└────────────────────────────────────┘
+AFTER (clean):
+┌──────────────────────────────────┐
+│  CONSTRUCTIVE SOLUTIONS IBIZA    │ ← Brand (once, quiet)
+│                                  │
+│  "What can we help you build?"   │ ← Action-led headline
+│  "We translate your idea..."     │ ← Subtitle
+│                                  │
+│  [======= Search bar =======]    │ ← PRIMARY ACTION
+│                                  │
+│  [Start Project]  [Browse Pros]  │ ← Secondary, quieter
+│                                  │
+│  ✓ Guided • ✓ Clear • ✓ Ibiza   │ ← Trust moved to bottom
+└──────────────────────────────────┘
 ```
 
-### Database Query Strategy
-
-**Services:** Use existing `service_search_index` view with `ILIKE` pattern matching
-
-**Forum posts:** Query `forum_posts` table:
-```sql
-SELECT id, title, category_id, reply_count, tags
-FROM forum_posts 
-WHERE title ILIKE '%query%' OR content ILIKE '%query%'
-LIMIT 5
-```
-
-Also join forum_categories to get category name for display.
+**Changes:**
+- Move trustBadge from above search to below buttons (less clutter at top)
+- Make search the clear primary action
+- Buttons become secondary (outline variant for "Start Project")
 
 ---
 
-## 3. Homepage Integration
+## Change 4: Update Hero Copy
 
-### Changes to `src/pages/Index.tsx`
+**File:** `public/locales/en/common.json`
 
-1. Import new `UniversalSearchBar` component
-2. Add brand lockup above title
-3. Replace buttons section with search bar as primary action, buttons as secondary
+Change the headline to be action-oriented:
 
-**Before:**
-```text
-"Bridging the gap..."
-[Start Your Project] [Browse Professionals]
+```json
+"hero": {
+  "title": "What can we help you build?",
+  "subtitle": "We translate your idea into a clear brief — then connect you with the right professionals",
+  "postJob": "Start Your Project",
+  "browsePros": "Browse Professionals"
+}
 ```
 
-**After:**
-```text
-CONSTRUCTIVE SOLUTIONS IBIZA
-"Bridging the gap..."
-[========== What can we help you find? ==========]
-[Start Your Project]  [Browse Professionals]
+**File:** `public/locales/es/common.json`
+
+Spanish equivalent:
+
+```json
+"hero": {
+  "title": "¿Qué podemos ayudarte a construir?",
+  "subtitle": "Traducimos tu idea en un briefing claro — luego te conectamos con los profesionales adecuados",
+  "postJob": "Empieza Tu Proyecto",
+  "browsePros": "Ver Profesionales"
+}
 ```
+
+**Result:** Headline immediately tells users what to do, not what the brand is.
 
 ---
 
-## 4. Navigation on Selection
+## File Changes Summary
 
-When user selects a result:
-
-| Result Type | Navigation Action |
-|-------------|-------------------|
-| Service (micro) | Navigate to `/post?micro={slug}` — wizard starts at questions step |
-| Service (subcategory) | Navigate to `/post?subcat={id}` — wizard starts at micro selection |
-| Service (category) | Navigate to `/post?cat={id}` — wizard starts at subcategory selection |
-| Forum post | Navigate to `/forum/{category-slug}/{post-id}` |
-
-The existing wizard already supports URL-based pre-population via `useWizardUrlStep` hook.
-
----
-
-## 5. Files to Create/Modify
-
-| File | Action |
+| File | Change |
 |------|--------|
-| `src/components/search/UniversalSearchBar.tsx` | **Create** — New component |
-| `src/components/search/index.ts` | **Create** — Barrel export |
-| `src/pages/Index.tsx` | **Modify** — Add branding + search bar |
-| `public/locales/en/common.json` | **Modify** — Add search translations |
-| `public/locales/es/common.json` | **Modify** — Add Spanish search translations |
+| `src/components/layout/HeroBanner.tsx` | Delete duplicate `{children}` at line 85 |
+| `src/components/search/UniversalSearchBar.tsx` | Add translation fallback + input padding |
+| `src/pages/Index.tsx` | Reorder hero elements (search first, trust last) |
+| `public/locales/en/common.json` | Update hero title/subtitle copy |
+| `public/locales/es/common.json` | Update Spanish hero copy |
 
 ---
 
-## 6. Translations
+## Visual Result
 
-### English (`public/locales/en/common.json`)
-```json
-"universalSearch": {
-  "placeholder": "What can we help you find?",
-  "noResults": "No results for \"{{query}}\"",
-  "services": "Services",
-  "community": "Community Posts",
-  "replies": "{{count}} replies",
-  "startProject": "Start a project for \"{{query}}\"",
-  "askCommunity": "Ask the community"
-}
-```
-
-### Spanish (`public/locales/es/common.json`)
-```json
-"universalSearch": {
-  "placeholder": "¿Qué podemos ayudarte a encontrar?",
-  "noResults": "Sin resultados para \"{{query}}\"",
-  "services": "Servicios",
-  "community": "Publicaciones de la Comunidad",
-  "replies": "{{count}} respuestas",
-  "startProject": "Iniciar un proyecto para \"{{query}}\"",
-  "askCommunity": "Preguntar a la comunidad"
-}
-```
+After these changes:
+- Brand shows once (at top, quiet)
+- Headline tells users what to do
+- Search bar is clearly the main action
+- Buttons are secondary paths
+- Trust signals anchor the bottom
+- No duplicate elements
+- No raw translation keys
+- Clean, professional, builder-friendly
 
 ---
 
 ## Technical Details
 
-### UniversalSearchBar Component Structure
-
+### HeroBanner.tsx (line 85)
 ```tsx
-interface UniversalSearchResult {
-  type: 'service' | 'forum';
-  id: string;
-  title: string;
-  subtitle: string;
-  // Service-specific
-  depth?: SearchDepth;
-  microSlug?: string;
-  categoryId?: string;
-  subcategoryId?: string;
-  // Forum-specific
-  categorySlug?: string;
-  replyCount?: number;
-}
+// REMOVE this line:
+{children}
 ```
 
-### Query Implementation
+### UniversalSearchBar.tsx (lines 196-202)
+```tsx
+<CommandInput
+  placeholder={t("universalSearch.placeholder", "What can we help you find?")}
+  value={query}
+  onValueChange={setQuery}
+  onFocus={() => setIsOpen(true)}
+  className="h-14 text-base pr-16"
+/>
+```
 
-Uses two parallel queries via `useQuery`:
-1. `['universal-search', 'services', query]` — queries service_search_index
-2. `['universal-search', 'forum', query]` — queries forum_posts + forum_categories
+### Index.tsx Hero Structure
+```tsx
+<HeroBanner
+  imageSrc={heroHome}
+  title={t('hero.title')}
+  subtitle={t('hero.subtitle')}
+  height="full"
+  action={
+    <div className="flex flex-col gap-6 items-center">
+      {/* Search bar - PRIMARY */}
+      <UniversalSearchBar className="w-full" />
+      
+      {/* Buttons - SECONDARY */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
+          <Link to="/post">
+            {t('hero.postJob')}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+        <Button size="lg" variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
+          <Link to="/professionals">{t('hero.browsePros')}</Link>
+        </Button>
+      </div>
+      
+      {/* Trust - LAST */}
+      <div className="hero-trust-badge mt-2">
+        <CheckCircle className="h-4 w-4" />
+        {t('trust.guided')}
+        <span className="text-white/50">•</span>
+        <Clock className="h-4 w-4" />
+        {t('trust.clarity')}
+        <span className="text-white/50">•</span>
+        <Shield className="h-4 w-4" />
+        {t('trust.local')}
+      </div>
+    </div>
+  }
+>
+  {/* Brand lockup - renders once above title */}
+  <p className="mb-4 text-sm sm:text-base font-semibold tracking-widest uppercase text-white/90">
+    {PLATFORM.name}
+  </p>
+</HeroBanner>
+```
 
-Results are merged and displayed in grouped sections.
-
----
-
-## Visual Design
-
-The search bar will:
-- Have a white/card background with subtle shadow
-- Use a search icon on the left
-- Show a keyboard hint (⌘K or Ctrl+K) on desktop
-- Expand into a dropdown command palette on focus
-- Group results with section headers
-- Use existing color palette (primary for services, muted for forum)
-
----
-
-## Summary
-
-| Feature | Implementation |
-|---------|---------------|
-| Brand visibility | Add "Constructive Solutions Ibiza" above hero title |
-| Universal search | New component querying services + forum |
-| Smart routing | Service → wizard, Forum → post page |
-| Translations | EN + ES for all new UI strings |
