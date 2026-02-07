@@ -1,30 +1,77 @@
- {
-   "title": "Community",
-   "subtitle": "Connect with locals and professionals in Ibiza",
-   "newPost": "New Post",
-   "categories": {
-     "recommendations": "Recommendations",
-     "whereCanIFind": "Where can I find...",
-     "generalHelp": "General Help",
-     "warnings": "Warnings"
-   },
-   "post": {
-     "title": "Title",
-     "titlePlaceholder": "What's your question or topic?",
-     "content": "Content",
-     "contentPlaceholder": "Share the details...",
-     "tags": "Tags",
-     "tagsPlaceholder": "plumber, kitchen, urgent",
-     "tagsHelp": "Add up to 5 tags to help others find your post.",
-     "photos": "Photos",
-     "photosHelp": "Add up to 4 photos to help explain what you need.",
-     "publish": "Publish Post",
-     "publishing": "Posting..."
-   },
-   "replies": {
-     "title": "Replies",
-     "write": "Write a reply...",
-     "submit": "Reply",
-     "noReplies": "No replies yet. Be the first to respond!"
-   }
- }
+{
+  "title": "Community Forum",
+  "subtitle": "Connect with the Ibiza trade community. Share recommendations, ask questions, and help others.",
+  "newPost": "New Post",
+  "backToForum": "Back to Forum",
+  "categories": {
+    "recommendations": "Recommendations",
+    "whereCanIFind": "Where can I find...",
+    "generalHelp": "General Help",
+    "warnings": "Warnings"
+  },
+  "categoryDescriptions": {
+    "recommendations": "Share and request recommendations for tradespeople and services",
+    "where-can-i-find": "Help finding specific materials, tools, or services in Ibiza",
+    "general-help": "Questions and discussions about property and construction topics",
+    "warnings": "Alert the community about issues, scams, or poor experiences"
+  },
+  "index": {
+    "loading": "Loading categories...",
+    "error": "Failed to load forum categories.",
+    "empty": "No forum categories available yet."
+  },
+  "category": {
+    "notFound": "Category Not Found",
+    "loading": "Loading posts...",
+    "empty": "No posts yet",
+    "emptyDesc": "Be the first to start a discussion in this category.",
+    "createFirst": "Create First Post"
+  },
+  "post": {
+    "title": "Title",
+    "titlePlaceholder": "A clear, descriptive title for your post",
+    "content": "Content",
+    "contentPlaceholder": "Share your question, recommendation, or discussion topic...",
+    "tags": "Tags (optional)",
+    "tagsPlaceholder": "plumber, san-antonio, recommendation (comma-separated)",
+    "tagsHelp": "Add up to 5 tags to help others find your post.",
+    "photos": "Photos (optional)",
+    "photosHelp": "Add up to 4 photos to help explain what you need.",
+    "publish": "Publish Post",
+    "publishing": "Posting...",
+    "notFound": "Post Not Found",
+    "backTo": "Back to {{category}}",
+    "newIn": "New Post in {{category}}",
+    "photo": "photo",
+    "photos_plural": "photos",
+    "addPhoto": "Add"
+  },
+  "replies": {
+    "title": "Replies",
+    "reply": "reply",
+    "replies": "replies",
+    "write": "Share your thoughts, advice, or experience...",
+    "addReply": "Add a Reply",
+    "submit": "Post Reply",
+    "submitting": "Posting...",
+    "noReplies": "No replies yet. Be the first to respond!",
+    "success": "Reply posted!",
+    "error": "Failed to post reply. Please try again."
+  },
+  "auth": {
+    "signInToReply": "Sign In to Reply",
+    "signInPrompt": "Sign in to join the discussion."
+  },
+  "toast": {
+    "postCreated": "Post created!",
+    "postError": "Failed to create post. Please try again.",
+    "photoUploaded": "{{count}} photo(s) uploaded",
+    "photoError": "Failed to upload photos",
+    "maxPhotos": "Maximum 4 photos allowed",
+    "notImage": "{{name}} is not an image",
+    "tooLarge": "{{name}} is too large (max 5MB)"
+  },
+  "buttons": {
+    "cancel": "Cancel"
+  }
+}

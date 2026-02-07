@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { PublicLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,16 @@ import { supabase } from "@/integrations/supabase/client";
  * Create a new post in a category
  */
 
+// Map database slugs to translation keys
+const categoryNameKeys: Record<string, string> = {
+  recommendations: "categories.recommendations",
+  "where-can-i-find": "categories.whereCanIFind",
+  "general-help": "categories.generalHelp",
+  warnings: "categories.warnings",
+};
+
 const ForumNewPost = () => {
+  const { t } = useTranslation("forum");
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const navigate = useNavigate();
   const { session } = useSession();
@@ -39,13 +49,20 @@ const ForumNewPost = () => {
     return null;
   }
 
+  // Get translated category name
+  const getCategoryName = () => {
+    if (!category) return "";
+    const key = categoryNameKeys[category.slug];
+    return key ? t(key) : category.name;
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     const remaining = 4 - photos.length;
     if (remaining <= 0) {
-      toast.error("Maximum 4 photos allowed");
+      toast.error(t("toast.maxPhotos"));
       return;
     }
 
@@ -57,12 +74,12 @@ const ForumNewPost = () => {
 
       for (const file of filesToUpload) {
         if (!file.type.startsWith("image/")) {
-          toast.error(`${file.name} is not an image`);
+          toast.error(t("toast.notImage", { name: file.name }));
           continue;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-          toast.error(`${file.name} is too large (max 5MB)`);
+          toast.error(t("toast.tooLarge", { name: file.name }));
           continue;
         }
 
@@ -75,7 +92,7 @@ const ForumNewPost = () => {
 
         if (uploadError) {
           console.error("Upload error:", uploadError);
-          toast.error(`Failed to upload ${file.name}`);
+          toast.error(t("toast.photoError"));
           continue;
         }
 
@@ -88,11 +105,11 @@ const ForumNewPost = () => {
 
       if (uploadedUrls.length > 0) {
         setPhotos((prev) => [...prev, ...uploadedUrls]);
-        toast.success(`${uploadedUrls.length} photo(s) uploaded`);
+        toast.success(t("toast.photoUploaded", { count: uploadedUrls.length }));
       }
     } catch (err) {
       console.error("Upload error:", err);
-      toast.error("Failed to upload photos");
+      toast.error(t("toast.photoError"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -123,10 +140,10 @@ const ForumNewPost = () => {
         tags,
         photos,
       });
-      toast.success("Post created!");
+      toast.success(t("toast.postCreated"));
       navigate(`/forum/post/${newPost.id}`);
     } catch (err) {
-      toast.error("Failed to create post. Please try again.");
+      toast.error(t("toast.postError"));
     }
   };
 
@@ -134,9 +151,9 @@ const ForumNewPost = () => {
     return (
       <PublicLayout>
         <div className="container py-12 text-center">
-          <h1 className="text-2xl font-bold mb-4">Category Not Found</h1>
+          <h1 className="text-2xl font-bold mb-4">{t("category.notFound")}</h1>
           <Button asChild>
-            <Link to="/forum">Back to Forum</Link>
+            <Link to="/forum">{t("backToForum")}</Link>
           </Button>
         </div>
       </PublicLayout>
@@ -152,7 +169,7 @@ const ForumNewPost = () => {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to {category?.name ?? "Category"}
+          {t("post.backTo", { category: getCategoryName() })}
         </Link>
 
         <Card>
@@ -161,7 +178,7 @@ const ForumNewPost = () => {
               <Skeleton className="h-8 w-48" />
             ) : (
               <CardTitle className="font-display text-2xl">
-                New Post in {category?.name}
+                {t("post.newIn", { category: getCategoryName() })}
               </CardTitle>
             )}
           </CardHeader>
@@ -169,10 +186,10 @@ const ForumNewPost = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">{t("post.title")}</Label>
                 <Input
                   id="title"
-                  placeholder="A clear, descriptive title for your post"
+                  placeholder={t("post.titlePlaceholder")}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   maxLength={150}
@@ -182,10 +199,10 @@ const ForumNewPost = () => {
 
               {/* Content */}
               <div className="space-y-2">
-                <Label htmlFor="content">Content</Label>
+                <Label htmlFor="content">{t("post.content")}</Label>
                 <Textarea
                   id="content"
-                  placeholder="Share your question, recommendation, or discussion topic..."
+                  placeholder={t("post.contentPlaceholder")}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={8}
@@ -195,23 +212,23 @@ const ForumNewPost = () => {
 
               {/* Tags */}
               <div className="space-y-2">
-                <Label htmlFor="tags">Tags (optional)</Label>
+                <Label htmlFor="tags">{t("post.tags")}</Label>
                 <Input
                   id="tags"
-                  placeholder="plumber, san-antonio, recommendation (comma-separated)"
+                  placeholder={t("post.tagsPlaceholder")}
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Add up to 5 tags to help others find your post.
+                  {t("post.tagsHelp")}
                 </p>
               </div>
 
               {/* Photos */}
               <div className="space-y-2">
-                <Label>Photos (optional)</Label>
+                <Label>{t("post.photos")}</Label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Add up to 4 photos to help explain what you need.
+                  {t("post.photosHelp")}
                 </p>
                 
                 {/* Photo grid */}
@@ -245,7 +262,7 @@ const ForumNewPost = () => {
                       ) : (
                         <>
                           <ImagePlus className="h-6 w-6" />
-                          <span className="text-xs">Add</span>
+                          <span className="text-xs">{t("post.addPhoto")}</span>
                         </>
                       )}
                     </button>
@@ -269,14 +286,14 @@ const ForumNewPost = () => {
                   disabled={!title.trim() || !content.trim() || createPost.isPending || uploading}
                 >
                   <Send className="h-4 w-4 mr-2" />
-                  {createPost.isPending ? "Posting..." : "Publish Post"}
+                  {createPost.isPending ? t("post.publishing") : t("post.publish")}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate(`/forum/${categorySlug}`)}
                 >
-                  Cancel
+                  {t("buttons.cancel")}
                 </Button>
               </div>
             </form>

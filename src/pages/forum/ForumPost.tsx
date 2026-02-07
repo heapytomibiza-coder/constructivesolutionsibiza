@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { PublicLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -12,7 +13,9 @@ import { useSession } from "@/contexts/SessionContext";
 import { incrementPostViewCount } from "./queries/forumQueries";
 import { ArrowLeft, MessageCircle, Clock, User, Send, Image } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { es, enGB } from "date-fns/locale";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
 /**
  * FORUM POST PAGE
@@ -20,6 +23,7 @@ import { toast } from "sonner";
  */
 
 const ForumPost = () => {
+  const { t } = useTranslation("forum");
   const { postId } = useParams<{ postId: string }>();
   const { session } = useSession();
   const [replyContent, setReplyContent] = useState("");
@@ -30,6 +34,7 @@ const ForumPost = () => {
   
   // Fetch category for breadcrumb
   const categoryId = post?.category_id ?? "";
+  const dateLocale = i18n.language?.startsWith("es") ? es : enGB;
   
   const createReply = useCreateReply();
 
@@ -50,9 +55,9 @@ const ForumPost = () => {
         content: replyContent.trim(),
       });
       setReplyContent("");
-      toast.success("Reply posted!");
+      toast.success(t("replies.success"));
     } catch (err) {
-      toast.error("Failed to post reply. Please try again.");
+      toast.error(t("replies.error"));
     }
   };
 
@@ -62,9 +67,9 @@ const ForumPost = () => {
     return (
       <PublicLayout>
         <div className="container py-12 text-center">
-          <h1 className="text-2xl font-bold mb-4">Post Not Found</h1>
+          <h1 className="text-2xl font-bold mb-4">{t("post.notFound")}</h1>
           <Button asChild>
-            <Link to="/forum">Back to Forum</Link>
+            <Link to="/forum">{t("backToForum")}</Link>
           </Button>
         </div>
       </PublicLayout>
@@ -80,7 +85,7 @@ const ForumPost = () => {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Forum
+          {t("backToForum")}
         </Link>
 
         {/* Post */}
@@ -105,11 +110,11 @@ const ForumPost = () => {
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: dateLocale })}
                 </span>
                 <span className="flex items-center gap-1">
                   <MessageCircle className="h-4 w-4" />
-                  {post.reply_count} {post.reply_count === 1 ? "reply" : "replies"}
+                  {post.reply_count} {post.reply_count === 1 ? t("replies.reply") : t("replies.replies")}
                 </span>
               </div>
               {post.tags.length > 0 && (
@@ -132,7 +137,7 @@ const ForumPost = () => {
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
                     <Image className="h-4 w-4" />
-                    {post.photos.length} {post.photos.length === 1 ? "photo" : "photos"}
+                    {post.photos.length} {post.photos.length === 1 ? t("post.photo") : t("post.photos_plural")}
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {post.photos.map((url, index) => (
@@ -158,7 +163,7 @@ const ForumPost = () => {
         {/* Replies section */}
         <div className="mb-8">
           <h2 className="font-display text-lg font-semibold mb-4">
-            {replies?.length ?? 0} {(replies?.length ?? 0) === 1 ? "Reply" : "Replies"}
+            {replies?.length ?? 0} {(replies?.length ?? 0) === 1 ? t("replies.reply") : t("replies.replies")}
           </h2>
 
           {repliesLoading && (
@@ -186,7 +191,7 @@ const ForumPost = () => {
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true, locale: dateLocale })}
                       </span>
                     </div>
                     <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
@@ -201,7 +206,7 @@ const ForumPost = () => {
           {!repliesLoading && replies && replies.length === 0 && (
             <div className="text-center py-8 bg-muted/30 rounded-lg">
               <MessageCircle className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">No replies yet. Be the first to respond!</p>
+              <p className="text-muted-foreground">{t("replies.noReplies")}</p>
             </div>
           )}
         </div>
@@ -211,9 +216,9 @@ const ForumPost = () => {
           <Card>
             <CardContent className="pt-6">
               <form onSubmit={handleSubmitReply}>
-                <h3 className="font-medium mb-3">Add a Reply</h3>
+                <h3 className="font-medium mb-3">{t("replies.addReply")}</h3>
                 <Textarea
-                  placeholder="Share your thoughts, advice, or experience..."
+                  placeholder={t("replies.write")}
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
                   rows={4}
@@ -224,7 +229,7 @@ const ForumPost = () => {
                   disabled={!replyContent.trim() || createReply.isPending}
                 >
                   <Send className="h-4 w-4 mr-2" />
-                  {createReply.isPending ? "Posting..." : "Post Reply"}
+                  {createReply.isPending ? t("replies.submitting") : t("replies.submit")}
                 </Button>
               </form>
             </CardContent>
@@ -233,10 +238,10 @@ const ForumPost = () => {
           <Card>
             <CardContent className="pt-6 text-center">
               <p className="text-muted-foreground mb-4">
-                Sign in to join the discussion.
+                {t("auth.signInPrompt")}
               </p>
               <Button asChild>
-                <Link to={`/auth?redirect=/forum/post/${postId}`}>Sign In to Reply</Link>
+                <Link to={`/auth?redirect=/forum/post/${postId}`}>{t("auth.signInToReply")}</Link>
               </Button>
             </CardContent>
           </Card>
