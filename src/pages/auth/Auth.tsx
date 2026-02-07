@@ -71,7 +71,18 @@ const Auth = () => {
       toast.success(t('toast.welcomeBack'));
       navigate(returnUrl);
     } catch (error: any) {
-      toast.error(error?.message || t('toast.signInFailed'));
+      const message = error?.message || t('toast.signInFailed');
+      const code = error?.code;
+
+      // If the user exists but hasn't confirmed their email yet,
+      // show the confirmation UI so they can resend the email.
+      if (code === 'email_not_confirmed' || /email.*not.*confirmed/i.test(message)) {
+        setConfirmationEmail(email);
+        setShowConfirmationSent(true);
+        setActiveTab('signup');
+      }
+
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
