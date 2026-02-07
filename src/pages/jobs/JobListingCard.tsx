@@ -55,13 +55,13 @@ function getSpecBadge(job: JobsBoardRow): { label: string; variant: "success" | 
 
 function formatBudget(j: JobsBoardRow): string {
   if (j.budget_type === "range" && j.budget_min != null && j.budget_max != null) {
-    return `€${j.budget_min}–€${j.budget_max}`;
+    return `€${j.budget_min.toLocaleString()}–€${j.budget_max.toLocaleString()}`;
   }
   if (j.budget_type === "fixed" && j.budget_value != null) {
-    return `€${j.budget_value}`;
+    return `€${j.budget_value.toLocaleString()}`;
   }
-  if (budgetProxy(j) > 0) return `~€${budgetProxy(j)}`;
-  return "Budget: TBD";
+  if (budgetProxy(j) > 0) return `~€${budgetProxy(j).toLocaleString()}`;
+  return "TBD";
 }
 
 function formatTiming(j: JobsBoardRow): string {
@@ -70,6 +70,28 @@ function formatTiming(j: JobsBoardRow): string {
   if (j.start_timing === "this_week") return "This week";
   if (j.start_timing === "this_month") return "This month";
   return "Flexible";
+}
+
+/**
+ * Format highlight strings - handles budget ranges like "1000_2500" → "€1,000–€2,500"
+ */
+function formatHighlight(highlight: string): string {
+  // Check if it's a budget range pattern like "1000_2500"
+  const budgetRangeMatch = highlight.match(/^(\d+)_(\d+)$/);
+  if (budgetRangeMatch) {
+    const min = parseInt(budgetRangeMatch[1], 10);
+    const max = parseInt(budgetRangeMatch[2], 10);
+    return `€${min.toLocaleString()}–€${max.toLocaleString()}`;
+  }
+  
+  // Convert snake_case to readable text
+  if (highlight.includes("_") && !highlight.includes(" ")) {
+    return highlight
+      .replace(/_/g, " ")
+      .replace(/^\w/, (c) => c.toUpperCase());
+  }
+  
+  return highlight;
 }
 
 export function JobListingCard({ job, isMatched }: JobListingCardProps) {
@@ -202,7 +224,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
               {job.highlights.slice(0, 3).map((h, idx) => (
                 <li key={`${job.id}-h-${idx}`} className="text-muted-foreground flex items-start gap-2">
                   <span className="text-primary/60 mt-0.5">•</span>
-                  <span>{h}</span>
+                  <span>{formatHighlight(h)}</span>
                 </li>
               ))}
             </ul>
