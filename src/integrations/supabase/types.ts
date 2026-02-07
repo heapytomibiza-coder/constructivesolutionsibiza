@@ -412,6 +412,48 @@ export type Database = {
           },
         ]
       }
+      professional_documents: {
+        Row: {
+          created_at: string | null
+          document_type: string
+          file_name: string | null
+          file_path: string
+          id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          document_type: string
+          file_name?: string | null
+          file_path: string
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          document_type?: string
+          file_name?: string | null
+          file_path?: string
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       professional_micro_preferences: {
         Row: {
           created_at: string
@@ -531,49 +573,109 @@ export type Database = {
       }
       professional_profiles: {
         Row: {
+          accepts_emergency: boolean | null
+          availability_status: string | null
           avatar_url: string | null
+          base_location: Json | null
           bio: string | null
+          business_name: string | null
           created_at: string
+          day_rate: number | null
           display_name: string | null
+          emergency_multiplier: number | null
+          hourly_rate_max: number | null
+          hourly_rate_min: number | null
           id: string
           is_publicly_listed: boolean
           location: Json | null
           metadata: Json | null
+          minimum_call_out: number | null
           onboarding_phase: string
+          pricing_model: string | null
+          profile_status: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          service_area_type: string | null
+          service_radius_km: number | null
+          service_zones: string[] | null
           services_count: number
+          submitted_at: string | null
+          tagline: string | null
+          typical_lead_time: string | null
           updated_at: string
           user_id: string
           verification_status: string
+          working_hours: Json | null
         }
         Insert: {
+          accepts_emergency?: boolean | null
+          availability_status?: string | null
           avatar_url?: string | null
+          base_location?: Json | null
           bio?: string | null
+          business_name?: string | null
           created_at?: string
+          day_rate?: number | null
           display_name?: string | null
+          emergency_multiplier?: number | null
+          hourly_rate_max?: number | null
+          hourly_rate_min?: number | null
           id?: string
           is_publicly_listed?: boolean
           location?: Json | null
           metadata?: Json | null
+          minimum_call_out?: number | null
           onboarding_phase?: string
+          pricing_model?: string | null
+          profile_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_area_type?: string | null
+          service_radius_km?: number | null
+          service_zones?: string[] | null
           services_count?: number
+          submitted_at?: string | null
+          tagline?: string | null
+          typical_lead_time?: string | null
           updated_at?: string
           user_id: string
           verification_status?: string
+          working_hours?: Json | null
         }
         Update: {
+          accepts_emergency?: boolean | null
+          availability_status?: string | null
           avatar_url?: string | null
+          base_location?: Json | null
           bio?: string | null
+          business_name?: string | null
           created_at?: string
+          day_rate?: number | null
           display_name?: string | null
+          emergency_multiplier?: number | null
+          hourly_rate_max?: number | null
+          hourly_rate_min?: number | null
           id?: string
           is_publicly_listed?: boolean
           location?: Json | null
           metadata?: Json | null
+          minimum_call_out?: number | null
           onboarding_phase?: string
+          pricing_model?: string | null
+          profile_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_area_type?: string | null
+          service_radius_km?: number | null
+          service_zones?: string[] | null
           services_count?: number
+          submitted_at?: string | null
+          tagline?: string | null
+          typical_lead_time?: string | null
           updated_at?: string
           user_id?: string
           verification_status?: string
+          working_hours?: Json | null
         }
         Relationships: []
       }
