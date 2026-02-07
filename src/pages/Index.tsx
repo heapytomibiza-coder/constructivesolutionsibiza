@@ -53,34 +53,34 @@ const Index = () => {
         title={t('hero.title')}
         subtitle={t('hero.subtitle')}
         height="full"
-        trustBadge={
-          <div className="hero-trust-badge">
-            <CheckCircle className="h-4 w-4" />
-            {t('trust.guided')}
-            <span className="text-white/50">•</span>
-            <Clock className="h-4 w-4" />
-            {t('trust.clarity')}
-            <span className="text-white/50">•</span>
-            <Shield className="h-4 w-4" />
-            {t('trust.local')}
-          </div>
-        }
         action={
           <div className="flex flex-col gap-6 items-center">
-            {/* Universal Search */}
+            {/* Universal Search - PRIMARY ACTION */}
             <UniversalSearchBar className="w-full" />
             
             {/* Secondary CTA buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
+              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
                 <Link to="/post">
                   {t('hero.postJob')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="secondary" asChild>
+              <Button size="lg" variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
                 <Link to="/professionals">{t('hero.browsePros')}</Link>
               </Button>
+            </div>
+            
+            {/* Trust badges - LAST, anchoring the bottom */}
+            <div className="hero-trust-badge mt-2">
+              <CheckCircle className="h-4 w-4" />
+              {t('trust.guided')}
+              <span className="text-white/50">•</span>
+              <Clock className="h-4 w-4" />
+              {t('trust.clarity')}
+              <span className="text-white/50">•</span>
+              <Shield className="h-4 w-4" />
+              {t('trust.local')}
             </div>
           </div>
         }

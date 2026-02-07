@@ -194,11 +194,11 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         shouldFilter={false}
       >
         <CommandInput
-          placeholder={t("universalSearch.placeholder")}
+          placeholder={t("universalSearch.placeholder", "What can we help you find?")}
           value={query}
           onValueChange={setQuery}
           onFocus={() => setIsOpen(true)}
-          className="h-14 text-base"
+          className="h-14 text-base pr-16"
         />
 
         {isOpen && (query.length >= 2 || hasResults) && (
