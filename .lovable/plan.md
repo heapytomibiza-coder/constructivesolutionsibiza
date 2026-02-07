@@ -1,58 +1,81 @@
 
 
-# Plan: Timer Leak Prevention for ServiceUnlockStep
+# Auto-Expand First Matching Category on Search
 
 ## Overview
 
-Apply the final "gold" version polish to prevent timer leaks and stacking in the `flashSaved` callback. The `MicroToggleTile.tsx` is already complete with all polish applied.
+Add "smart" auto-expand behavior that automatically opens the first category with matching results when the user starts typing in the search bar. This makes search feel intelligent and responsive without requiring manual clicks.
 
 ---
 
-## Current Issue
+## Current Behavior
 
-The current `flashSaved` implementation:
+When searching:
+1. User types in search bar
+2. Categories with no matches are hidden
+3. Matching categories stay collapsed until manually clicked
+4. User must guess which category to expand
+
+## New Behavior
+
+When searching:
+1. User types in search bar
+2. Categories with no matches are hidden
+3. **First matching category auto-expands**
+4. User immediately sees results without extra clicks
+5. Clearing search returns to previous state (all collapsed)
+
+---
+
+## Implementation Approach
+
+### Logic: Find First Matching Category ID
+
+Add a `useMemo` that finds the first category ID with search matches:
+
 ```tsx
-const flashSaved = useCallback(() => {
-  setShowSaved(true);
-  window.setTimeout(() => setShowSaved(false), 1200);
-}, []);
+const firstMatchingCategoryId = useMemo(() => {
+  if (!searchQuery) return null;
+  const q = searchQuery.toLowerCase();
+  
+  const match = categories.find((c) =>
+    c.subcategories.some((s) =>
+      s.micros.some((m) => 
+        m.name.toLowerCase().includes(q) || 
+        m.slug.toLowerCase().includes(q)
+      )
+    )
+  );
+  
+  return match?.id ?? null;
+}, [categories, searchQuery]);
 ```
 
-**Problems:**
-1. **Timer stacking**: Rapid clicks create multiple overlapping timers
-2. **Memory leak**: Timer continues running after component unmounts
-3. **Inconsistent UI**: Badge may flash erratically under rapid selection
+### Logic: Auto-Expand Effect
 
----
-
-## Solution
-
-Use `useRef` to track the timer and ensure proper cleanup:
+Add a `useEffect` that expands the first match when searching:
 
 ```tsx
-const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-// Cleanup on unmount
+// Auto-expand first matching category when searching
 useEffect(() => {
-  return () => {
-    if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current);
-  };
-}, []);
-
-// Prevent stacking + leaks
-const flashSaved = useCallback(() => {
-  setShowSaved(true);
-  
-  if (savedTimerRef.current) {
-    window.clearTimeout(savedTimerRef.current);
+  if (searchQuery && firstMatchingCategoryId) {
+    setExpandedCategoryId(firstMatchingCategoryId);
+  } else if (!searchQuery) {
+    // Collapse all when search is cleared
+    setExpandedCategoryId(null);
   }
-  
-  savedTimerRef.current = window.setTimeout(() => {
-    setShowSaved(false);
-    savedTimerRef.current = null;
-  }, 1200);
-}, []);
+}, [searchQuery, firstMatchingCategoryId]);
 ```
+
+### Edge Case Handling
+
+| Scenario | Behavior |
+|----------|----------|
+| No search query | No auto-expand, manual control |
+| Search with matches | First matching category expands |
+| Search with no matches | Nothing to expand, empty state shown |
+| User manually clicks different category | That category expands (override) |
+| Search cleared | All categories collapse |
 
 ---
 
@@ -60,56 +83,72 @@ const flashSaved = useCallback(() => {
 
 ### File: `src/pages/onboarding/steps/ServiceUnlockStep.tsx`
 
-| Line | Change |
-|------|--------|
-| 9 | Add `useRef` to imports |
-| 35-36 | Add `savedTimerRef` after state declarations |
-| 52-56 | Add cleanup effect after first selection effect |
-| 64-68 | Update `flashSaved` to use ref and prevent stacking |
+| Location | Change |
+|----------|--------|
+| After `hasAnySearchResults` memo (~line 137) | Add `firstMatchingCategoryId` memo |
+| After cleanup effect (~line 64) | Add auto-expand effect |
 
 ---
 
-## Specific Edits
+## Detailed Edits
 
-### 1. Update imports (line 9)
+### 1. Add `firstMatchingCategoryId` Memo (after line 137)
+
 ```tsx
-// Before
-import { useState, useMemo, useCallback, useEffect } from 'react';
-
-// After
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+// Find first category with search matches for auto-expand
+const firstMatchingCategoryId = useMemo(() => {
+  if (!searchQuery) return null;
+  const q = searchQuery.toLowerCase();
+  
+  const match = categories.find((c) =>
+    c.subcategories.some((s) =>
+      s.micros.some((m) => 
+        m.name.toLowerCase().includes(q) || 
+        m.slug.toLowerCase().includes(q)
+      )
+    )
+  );
+  
+  return match?.id ?? null;
+}, [categories, searchQuery]);
 ```
 
-### 2. Add timer ref (after line 35)
-```tsx
-const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-```
+### 2. Add Auto-Expand Effect (after line 64)
 
-### 3. Add cleanup effect (after line 56)
 ```tsx
-// Cleanup timer on unmount
+// Auto-expand first matching category when searching
 useEffect(() => {
-  return () => {
-    if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current);
-  };
-}, []);
+  if (searchQuery && firstMatchingCategoryId) {
+    setExpandedCategoryId(firstMatchingCategoryId);
+  } else if (!searchQuery) {
+    // Collapse all when search is cleared
+    setExpandedCategoryId(null);
+  }
+}, [searchQuery, firstMatchingCategoryId]);
 ```
 
-### 4. Update flashSaved (lines 64-68)
-```tsx
-// Quiet "Saved" badge - no stacking, no leaks
-const flashSaved = useCallback(() => {
-  setShowSaved(true);
+---
 
-  if (savedTimerRef.current) {
-    window.clearTimeout(savedTimerRef.current);
-  }
+## User Experience Flow
 
-  savedTimerRef.current = window.setTimeout(() => {
-    setShowSaved(false);
-    savedTimerRef.current = null;
-  }, 1200);
-}, []);
+```text
+1. User sees all categories collapsed
+   ┌─ Electrical ▸ ─────────────┐
+   ├─ Plumbing ▸ ───────────────┤
+   └─ HVAC ▸ ───────────────────┘
+
+2. User types "socket" in search
+   ┌─ Electrical ▾ ─────────────┐  ← Auto-expands!
+   │   ✓ Install sockets        │
+   │   ✓ Socket repair          │
+   └────────────────────────────┘
+   
+   (Other categories hidden or shown empty)
+
+3. User clears search
+   ┌─ Electrical ▸ ─────────────┐  ← All collapse
+   ├─ Plumbing ▸ ───────────────┤
+   └─ HVAC ▸ ───────────────────┘
 ```
 
 ---
@@ -117,10 +156,12 @@ const flashSaved = useCallback(() => {
 ## Verification Checklist
 
 After implementation:
-- [ ] Rapid clicking doesn't cause badge to flash erratically
-- [ ] Badge shows for exactly 1.2 seconds after last action
-- [ ] No console warnings about state updates on unmounted components
-- [ ] Timer is properly cleaned up when navigating away
+- [ ] Typing in search auto-expands first matching category
+- [ ] Other matching categories remain collapsed (user can manually expand)
+- [ ] Clearing search collapses all categories
+- [ ] Manual category toggle still works during search
+- [ ] No flickering or jarring transitions
+- [ ] Works correctly with the existing `hasAnySearchResults` empty state
 
 ---
 
@@ -130,12 +171,10 @@ After implementation:
 
 ---
 
-## MicroToggleTile Status
+## Technical Notes
 
-✅ **Already complete** - All polish from the "gold" version is applied:
-- `+` indicator on unselected tiles
-- `✓` checkmark on selected tiles  
-- Subtle ring effect on first selection
-- 48px touch targets
-- Staggered animations
+- Both memos use the same search logic for consistency
+- Effect dependency array includes `firstMatchingCategoryId` which is derived from `searchQuery`
+- No changes needed to `CategoryAccordion.tsx` - it already receives `isExpanded` as a prop
+- This enhancement aligns with the "search feels smart" UX principle from the design spec
 
