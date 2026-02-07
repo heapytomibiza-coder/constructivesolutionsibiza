@@ -19,7 +19,7 @@ import { IntentSelector, type UserIntent } from '@/components/auth/IntentSelecto
  * Includes intent selection for new signups.
  */
 const Auth = () => {
-  const { t } = useTranslation('auth');
+  const { t, ready } = useTranslation('auth');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -42,6 +42,15 @@ const Auth = () => {
   );
 
   const returnUrl = searchParams.get('returnUrl') || '/dashboard/client';
+
+  // Show loading state while translations load (fallback for slow connections)
+  if (!ready) {
+    return (
+      <div className="min-h-screen bg-gradient-concrete flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
