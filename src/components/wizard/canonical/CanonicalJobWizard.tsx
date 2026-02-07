@@ -1,12 +1,15 @@
 /**
  * Canonical Job Wizard
- * V2 clean architecture - 7-step flow with string enum steps
+ * V3 architecture - Single-point mode resolution eliminates state races
  * 
  * Flow: Category → Subcategory → Micro → Questions → Logistics → Extras → Review
  * 
- * Supports deep-linking:
- * - /post?category=<uuid> → Step 2 (Subcategory)
- * - /post?category=<uuid>&subcategory=<uuid> → Step 3 (Micro)
+ * Mode Resolution (priority order):
+ * 1. Search selection → direct to Questions (bypass draft)
+ * 2. Deep-link params → apply and navigate (bypass draft)
+ * 3. Resume flag → restore draft directly
+ * 4. Draft exists → prompt user
+ * 5. Fresh start
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -32,9 +35,16 @@ import {
   getPrevStep,
 } from './types';
 import { useWizardUrlStep } from './hooks/useWizardUrlStep';
-import { useWizardDraft } from './hooks/useWizardDraft';
 import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
 import { validateAllPacks, type ValidationErrorMap } from './lib/stepValidation';
+import {
+  resolveWizardMode,
+  applySearchResult,
+  markDraftChecked,
+  clearDraftChecked,
+  deriveStepFromState,
+  type ModeResolution,
+} from './lib/resolveWizardMode';
 
 // DB-powered selectors
 import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
@@ -47,6 +57,9 @@ import { LogisticsStep } from './steps/LogisticsStep';
 import { ExtrasStep } from './steps/ExtrasStep';
 import { ReviewStep } from './steps/ReviewStep';
 import { QuestionsStep } from './steps/QuestionsStep';
+
+// Constants
+const STORAGE_KEY = 'wizardState';
 
 // Step title key mapping
 const STEP_TITLE_KEYS: Record<WizardStep, string> = {
@@ -70,6 +83,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const { t } = useTranslation('wizard');
   const { user, isAuthenticated } = useSession();
   
+  // === INITIALIZATION STATE ===
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [modeResolution, setModeResolution] = useState<ModeResolution | null>(null);
+  
   // Core wizard state
   const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.Category);
   const [wizardState, setWizardState] = useState<WizardState>(EMPTY_WIZARD_STATE);
@@ -79,154 +96,153 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const [questionPacks, setQuestionPacks] = useState<{ micro_slug: string; questions: unknown[] }[]>([]);
   const [questionErrors, setQuestionErrors] = useState<Record<string, ValidationErrorMap>>({});
   
-  // Deep-link refs
-  const deepLinkAppliedRef = useRef(false);
-  const pendingDeepLinkRef = useRef<{ categoryId?: string; subcategoryId?: string; targetProfessionalId?: string } | null>(null);
-  
-  // URL sync
-  useWizardUrlStep(currentStep, setCurrentStep);
-  
-  // Draft management
-  const { isDirty, checkForDraft, getPendingDraft, clearDraft, resetSession } = useWizardDraft(wizardState);
-  
-  // Draft recovery modal state
+  // Draft modal
   const [showDraftModal, setShowDraftModal] = useState(false);
   
-  // Capture deep-link params on mount (before draft check)
+  // Deep-link processing ref
+  const deepLinkProcessedRef = useRef(false);
+  
+  // URL sync (only after initialization)
+  useWizardUrlStep(currentStep, setCurrentStep);
+  
+  // === SINGLE-POINT MODE RESOLUTION ===
   useEffect(() => {
-    const sp = new URLSearchParams(location.search);
-    const categoryId = sp.get('category') || undefined;
-    const subcategoryId = sp.get('subcategory') || undefined;
-    const targetProfessionalId = sp.get('pro') || undefined;
+    if (isInitialized) return;
     
-    if (categoryId || subcategoryId || targetProfessionalId) {
-      pendingDeepLinkRef.current = { categoryId, subcategoryId, targetProfessionalId };
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
-  // Check for draft on mount
-  useEffect(() => {
-    const result = checkForDraft();
-    if (result.status === 'found') {
+    const resolution = resolveWizardMode({ urlSearch: location.search });
+    setModeResolution(resolution);
+    
+    if (resolution.mode === 'prompt') {
+      // Show draft modal, don't initialize yet
       setShowDraftModal(true);
+      return;
     }
-  }, []);
+    
+    // Apply resolved state and step
+    setWizardState(resolution.initialState);
+    setCurrentStep(resolution.initialStep);
+    
+    // Mark draft as checked so we don't prompt again
+    markDraftChecked();
+    
+    // Handle deep-link lookups if needed
+    if (resolution.mode === 'deep-link' && resolution.pendingLookups) {
+      // Will be processed in separate effect
+    } else {
+      setIsInitialized(true);
+    }
+  }, [location.search, isInitialized]);
   
-  // Apply deep-link after draft decision (or if no draft)
-  const applyDeepLink = useCallback(async () => {
-    if (deepLinkAppliedRef.current) return;
-    if (showDraftModal) return; // Wait for user decision
-    if (!pendingDeepLinkRef.current) {
-      deepLinkAppliedRef.current = true;
-      return;
-    }
-
-    const { categoryId, subcategoryId, targetProfessionalId } = pendingDeepLinkRef.current;
-
-    // Handle target professional (direct mode)
-    if (targetProfessionalId) {
-      try {
-        const { data: pro } = await supabase
-          .from('professional_profiles')
-          .select('display_name')
-          .eq('user_id', targetProfessionalId)
-          .single();
-        
-        setWizardState(prev => ({
-          ...prev,
-          dispatchMode: 'direct',
-          targetProfessionalId,
-          targetProfessionalName: pro?.display_name || 'Professional',
-        }));
-      } catch (e) {
-        console.warn('Failed to fetch professional name:', e);
-        setWizardState(prev => ({
-          ...prev,
-          dispatchMode: 'direct',
-          targetProfessionalId,
-          targetProfessionalName: 'Professional',
-        }));
-      }
-    }
-
-    if (!categoryId) {
-      deepLinkAppliedRef.current = true;
-      pendingDeepLinkRef.current = null;
-      return;
-    }
-
-    try {
-      // Fetch category name
-      const { data: cat, error: catErr } = await supabase
-        .from('service_categories')
-        .select('id, name')
-        .eq('id', categoryId)
-        .eq('is_active', true)
-        .single();
-
-      if (catErr || !cat) {
-        console.warn('Deep-link: Category not found', categoryId);
-        deepLinkAppliedRef.current = true;
-        pendingDeepLinkRef.current = null;
-        return;
-      }
-
-      // Fetch subcategory if provided, validate it belongs to category
-      let sub: { id: string; name: string; category_id: string } | null = null;
-
-      if (subcategoryId) {
-        const { data: subData, error: subErr } = await supabase
-          .from('service_subcategories')
-          .select('id, name, category_id')
-          .eq('id', subcategoryId)
-          .eq('is_active', true)
-          .single();
-
-        if (!subErr && subData && subData.category_id === cat.id) {
-          sub = subData;
+  // === DEEP-LINK LOOKUP (async, after mode resolution) ===
+  useEffect(() => {
+    if (deepLinkProcessedRef.current) return;
+    if (!modeResolution || modeResolution.mode !== 'deep-link') return;
+    if (!modeResolution.pendingLookups) return;
+    
+    const { categoryId, subcategoryId, targetProfessionalId } = modeResolution.pendingLookups;
+    
+    const processDeepLink = async () => {
+      deepLinkProcessedRef.current = true;
+      let newState = { ...EMPTY_WIZARD_STATE };
+      let targetStep = WizardStep.Category;
+      
+      // Handle target professional (direct mode)
+      if (targetProfessionalId) {
+        try {
+          const { data: pro } = await supabase
+            .from('professional_profiles')
+            .select('display_name')
+            .eq('user_id', targetProfessionalId)
+            .single();
+          
+          newState = {
+            ...newState,
+            dispatchMode: 'direct',
+            targetProfessionalId,
+            targetProfessionalName: pro?.display_name || 'Professional',
+          };
+        } catch (e) {
+          console.warn('Failed to fetch professional name:', e);
+          newState = {
+            ...newState,
+            dispatchMode: 'direct',
+            targetProfessionalId,
+            targetProfessionalName: 'Professional',
+          };
         }
       }
-
-      // Populate wizard state
-      flushSync(() => {
-        setWizardState(prev => ({
-          ...prev,
-          mainCategory: cat.name,
-          mainCategoryId: cat.id,
-          subcategory: sub ? sub.name : '',
-          subcategoryId: sub ? sub.id : '',
-          // Reset downstream selections
-          microNames: [],
-          microIds: [],
-          microSlugs: [],
-          answers: {},
-        }));
-      });
-
-      // Jump to correct step
-      if (sub) {
-        setCurrentStep(WizardStep.Micro); // Step 3
-      } else {
-        setCurrentStep(WizardStep.Subcategory); // Step 2
+      
+      // Fetch category
+      if (categoryId) {
+        try {
+          const { data: cat, error: catErr } = await supabase
+            .from('service_categories')
+            .select('id, name')
+            .eq('id', categoryId)
+            .eq('is_active', true)
+            .single();
+          
+          if (!catErr && cat) {
+            newState = {
+              ...newState,
+              mainCategory: cat.name,
+              mainCategoryId: cat.id,
+            };
+            targetStep = WizardStep.Subcategory;
+            
+            // Fetch subcategory if provided
+            if (subcategoryId) {
+              const { data: sub, error: subErr } = await supabase
+                .from('service_subcategories')
+                .select('id, name, category_id')
+                .eq('id', subcategoryId)
+                .eq('is_active', true)
+                .single();
+              
+              if (!subErr && sub && sub.category_id === cat.id) {
+                newState = {
+                  ...newState,
+                  subcategory: sub.name,
+                  subcategoryId: sub.id,
+                };
+                targetStep = WizardStep.Micro;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Deep-link lookup failed:', e);
+        }
       }
-
-    } catch (e) {
-      console.warn('Deep-link init failed:', e);
-    } finally {
-      deepLinkAppliedRef.current = true;
-      pendingDeepLinkRef.current = null;
-    }
-  }, [showDraftModal]);
-
-  useEffect(() => {
-    applyDeepLink();
-  }, [applyDeepLink]);
+      
+      flushSync(() => {
+        setWizardState(newState);
+        setCurrentStep(targetStep);
+      });
+      setIsInitialized(true);
+    };
+    
+    processDeepLink();
+  }, [modeResolution]);
   
-  // Warn before leaving with unsaved changes
+  // === DRAFT SAVE (debounced) ===
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    const timer = setTimeout(() => {
+      try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(wizardState));
+      } catch (e) {
+        console.warn('Failed to save wizard draft:', e);
+      }
+    }, 600);
+    
+    return () => clearTimeout(timer);
+  }, [wizardState, isInitialized]);
+  
+  // === BEFOREUNLOAD WARNING ===
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
+      if (isInitialized && wizardState.mainCategoryId) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -234,7 +250,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
+  }, [isInitialized, wizardState.mainCategoryId]);
 
   // === STEP HANDLERS ===
   
@@ -272,42 +288,28 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     setCurrentStep(WizardStep.Micro);
   }, []);
 
-  // Deep-link handler for search results - uses depth to determine starting step
+  // === SEARCH HANDLER (critical fix: uses applySearchResult) ===
   const handleSearchSelect = useCallback((result: SearchResult) => {
-    flushSync(() => {
-      setWizardState(prev => ({
-        ...prev,
-        mainCategory: result.categoryName,
-        mainCategoryId: result.categoryId,
-        subcategory: result.subcategoryName,
-        subcategoryId: result.subcategoryId,
-        microNames: [result.microName],
-        microIds: [result.microId],
-        microSlugs: [result.microSlug],
-        answers: {},
-        // Pre-fill logistics from extracted signals if available
-        logistics: result.extracted?.urgency ? {
-          ...prev.logistics,
-          startDatePreset: result.extracted.urgency,
-        } : prev.logistics,
-      }));
+    // Use the centralized apply function - no draft interference
+    const applied = applySearchResult(wizardState, {
+      categoryId: result.categoryId,
+      categoryName: result.categoryName,
+      subcategoryId: result.subcategoryId,
+      subcategoryName: result.subcategoryName,
+      microId: result.microId,
+      microName: result.microName,
+      microSlug: result.microSlug,
+      extracted: result.extracted,
     });
     
-    // Navigate to appropriate step based on search depth
-    switch (result.depth) {
-      case 'category':
-        setCurrentStep(WizardStep.Subcategory);
-        break;
-      case 'subcategory':
-        setCurrentStep(WizardStep.Micro);
-        break;
-      case 'micro':
-      case 'questions':
-      default:
-        setCurrentStep(WizardStep.Questions);
-        break;
-    }
-  }, []);
+    flushSync(() => {
+      setWizardState(applied.state);
+      setCurrentStep(applied.step);
+    });
+    
+    // Mark draft checked so we don't prompt on future navigations
+    markDraftChecked();
+  }, [wizardState]);
 
   const handleMicroSelect = useCallback((microNames: string[], microIds: string[], microSlugs: string[]) => {
     setWizardState(prev => ({
@@ -441,36 +443,35 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // === DRAFT RECOVERY ===
   
   const handleResumeDraft = useCallback(() => {
-    // Mark deep-link as applied (ignore it) when resuming draft
-    deepLinkAppliedRef.current = true;
-    pendingDeepLinkRef.current = null;
-    
-    const draft = getPendingDraft();
-    if (draft) {
-      setWizardState(draft);
-      // Jump to the furthest completed step
-      if (draft.logistics.location) {
-        setCurrentStep(WizardStep.Review);
-      } else if (draft.microIds.length > 0) {
-        setCurrentStep(WizardStep.Logistics);
-      } else if (draft.subcategoryId) {
-        setCurrentStep(WizardStep.Micro);
-      } else if (draft.mainCategoryId) {
-        setCurrentStep(WizardStep.Subcategory);
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const draft = JSON.parse(stored) as WizardState;
+        setWizardState(draft);
+        setCurrentStep(deriveStepFromState(draft));
       }
+    } catch (e) {
+      console.warn('Failed to restore draft:', e);
     }
+    markDraftChecked();
     setShowDraftModal(false);
-  }, [getPendingDraft]);
+    setIsInitialized(true);
+  }, []);
 
   const handleStartFresh = useCallback(() => {
-    clearDraft();
+    sessionStorage.removeItem(STORAGE_KEY);
     setWizardState(EMPTY_WIZARD_STATE);
     setCurrentStep(WizardStep.Category);
+    markDraftChecked();
     setShowDraftModal(false);
-    
-    // Allow deep-link to apply after modal closes
-    deepLinkAppliedRef.current = false;
-  }, [clearDraft]);
+    setIsInitialized(true);
+  }, []);
+  
+  // === CLEAR SESSION (for post-submit) ===
+  const clearSession = useCallback(() => {
+    sessionStorage.removeItem(STORAGE_KEY);
+    clearDraftChecked();
+  }, []);
 
   // === SUBMISSION ===
   
@@ -478,7 +479,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     // Auth check
     if (!isAuthenticated || !user) {
       // Save current state and set redirect to resume wizard after auth
-      sessionStorage.setItem('wizardState', JSON.stringify(wizardState));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(wizardState));
       sessionStorage.setItem('authRedirect', '/post?resume=true');
       navigate('/auth');
       return;
@@ -538,24 +539,21 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         if (convoError) {
           console.error('Failed to create conversation:', convoError);
           // Job still created, just navigate to dashboard
-          clearDraft();
-          resetSession();
+          clearSession();
           toast.warning(t('toasts.convoFailed'));
           navigate('/dashboard');
           return;
         }
 
         // Success - navigate to conversation
-        clearDraft();
-        resetSession();
+        clearSession();
         toast.success(t('toasts.directSuccess'));
         navigate(`/messages/${convoId}`);
         return;
       }
 
       // Broadcast mode: standard flow
-      clearDraft();
-      resetSession();
+      clearSession();
       queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
       toast.success(t('toasts.broadcastSuccess'));
       navigate(`/jobs?highlight=${data.id}`);
@@ -566,12 +564,23 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     } finally {
       setIsSubmitting(false);
     }
-  }, [isAuthenticated, user, wizardState, navigate, clearDraft, resetSession, queryClient, t]);
+  }, [isAuthenticated, user, wizardState, navigate, clearSession, queryClient, t]);
 
   // === RENDER ===
   
   const stepIndex = getStepIndex(currentStep);
   const totalSteps = STEP_ORDER.length;
+  
+  // Show loading while initializing (except for draft modal)
+  if (!isInitialized && !showDraftModal) {
+    return (
+      <div className={className}>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={className}>

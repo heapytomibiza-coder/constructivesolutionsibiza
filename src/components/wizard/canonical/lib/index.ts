@@ -27,3 +27,14 @@ export {
   formatLocationDisplay,
   formatTiming,
 } from './formatDisplay';
+
+export {
+  resolveWizardMode,
+  applySearchResult,
+  deriveStepFromState,
+  markDraftChecked,
+  clearDraftChecked,
+  type WizardMode,
+  type ModeResolution,
+  type ResolverInput,
+} from './resolveWizardMode';
