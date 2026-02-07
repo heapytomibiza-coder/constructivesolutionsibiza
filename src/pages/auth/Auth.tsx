@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Shield, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Shield, ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react';
 import { IntentSelector, type UserIntent } from '@/components/auth/IntentSelector';
 
 /**
@@ -32,9 +32,16 @@ const Auth = () => {
   const [showIntentSelector, setShowIntentSelector] = useState(true);
   const [phone, setPhone] = useState('');
   const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(null);
+  
+  // Post-signup state for confirmation messaging
+  const [showConfirmationSent, setShowConfirmationSent] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState('');
+  const [isResending, setIsResending] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(
+    searchParams.get('mode') === 'signup' ? 'signup' : 'signin'
+  );
 
   const returnUrl = searchParams.get('returnUrl') || '/dashboard/client';
-  const defaultTab = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,11 +74,7 @@ const Auth = () => {
 
     try {
       // Determine roles based on intent
-      // - 'client' → only client role
-      // - 'professional' or 'both' → both roles
       const roles: string[] = selectedIntent === 'client' ? ['client'] : ['client', 'professional'];
-
-      // Active role: professional only if explicitly chosen, otherwise client
       const activeRole = selectedIntent === 'professional' ? 'professional' : 'client';
 
       const { error } = await supabase.auth.signUp({
@@ -90,15 +93,9 @@ const Auth = () => {
 
       if (error) throw error;
 
-      // Success messaging (with "both" description)
-      if (selectedIntent === 'both') {
-        toast.success(t('toast.confirmEmail.title'), {
-          description: t('toast.confirmEmail.bothDescription'),
-          duration: 6000,
-        });
-      } else {
-        toast.success(t('toast.confirmEmail.title'));
-      }
+      // Show confirmation UI (works for both new and repeated signups)
+      setConfirmationEmail(email);
+      setShowConfirmationSent(true);
 
       // Reset form
       setEmail('');
@@ -116,6 +113,42 @@ const Auth = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleResendConfirmation = async () => {
+    if (!confirmationEmail) return;
+    
+    setIsResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: confirmationEmail,
+        options: {
+          emailRedirectTo: window.location.origin + '/auth/callback',
+        },
+      });
+      
+      if (error) throw error;
+      
+      // Neutral message to prevent email enumeration
+      toast.success(t('toast.confirmationResent'));
+    } catch (error: unknown) {
+      // Still show success to prevent enumeration
+      toast.success(t('toast.confirmationResent'));
+    } finally {
+      setIsResending(false);
+    }
+  };
+  
+  const handleBackToSignup = () => {
+    setShowConfirmationSent(false);
+    setConfirmationEmail('');
+  };
+  
+  const handleSwitchToSignIn = () => {
+    setShowConfirmationSent(false);
+    setActiveTab('signin');
+    setEmail(confirmationEmail);
   };
 
   const handleIntentSelect = (intent: UserIntent) => setSelectedIntent(intent);
@@ -155,7 +188,7 @@ const Auth = () => {
             <CardDescription>{t('page.subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue={defaultTab}>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="signin">{t('tabs.signIn')}</TabsTrigger>
                 <TabsTrigger value="signup">{t('tabs.signUp')}</TabsTrigger>
@@ -226,7 +259,59 @@ const Auth = () => {
 
               {/* SIGN UP */}
               <TabsContent value="signup">
-                {showIntentSelector ? (
+                {showConfirmationSent ? (
+                  // Confirmation sent screen
+                  <div className="space-y-6 text-center">
+                    <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Mail className="h-8 w-8 text-primary" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-lg">{t('confirmation.title')}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {t('confirmation.description', { email: confirmationEmail })}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleResendConfirmation}
+                        disabled={isResending}
+                      >
+                        {isResending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t('confirmation.resending')}
+                          </>
+                        ) : (
+                          t('confirmation.resend')
+                        )}
+                      </Button>
+                      
+                      <div className="text-sm text-muted-foreground">
+                        {t('confirmation.alreadyConfirmed')}{' '}
+                        <button
+                          type="button"
+                          onClick={handleSwitchToSignIn}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          {t('confirmation.signInLink')}
+                        </button>
+                      </div>
+                      
+                      <button
+                        type="button"
+                        onClick={handleBackToSignup}
+                        className="text-sm text-muted-foreground hover:text-foreground underline"
+                      >
+                        {t('confirmation.tryDifferentEmail')}
+                      </button>
+                    </div>
+                  </div>
+                ) : showIntentSelector ? (
                   <div className="space-y-6">
                     <IntentSelector value={selectedIntent} onChange={handleIntentSelect} />
                     <Button
