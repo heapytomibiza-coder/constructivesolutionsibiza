@@ -1,15 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, ArrowRight, CheckCircle, Search, Shield, Users, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Shield, Users } from 'lucide-react';
 import heroServices from '@/assets/heroes/hero-services.jpg';
 import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
 
@@ -35,7 +32,7 @@ interface DbSubcategory {
 
 const ServiceCategory = () => {
   const { categorySlug } = useParams<{ categorySlug: string }>();
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string | null>(null);
+  const navigate = useNavigate();
   const { t } = useTranslation('common');
 
   // Fetch category by slug
@@ -79,12 +76,10 @@ const ServiceCategory = () => {
     },
   });
 
-  // Auto-select first subcategory for "idiot-proof" UX
-  useEffect(() => {
-    if (!selectedSubcategoryId && subcategories?.length) {
-      setSelectedSubcategoryId(subcategories[0].id);
-    }
-  }, [subcategories, selectedSubcategoryId]);
+  // Navigate to wizard with pre-filled category + subcategory
+  const handleSubcategoryClick = (subId: string) => {
+    navigate(`/post?category=${encodeURIComponent(category!.id)}&subcategory=${encodeURIComponent(subId)}`);
+  };
 
   // Loading state
   if (categoryLoading) {
@@ -120,15 +115,6 @@ const ServiceCategory = () => {
     );
   }
 
-  // Build deep-link URLs with category and optionally subcategory
-  const postHref = selectedSubcategoryId
-    ? `/post?category=${encodeURIComponent(category.id)}&subcategory=${encodeURIComponent(selectedSubcategoryId)}`
-    : `/post?category=${encodeURIComponent(category.id)}`;
-
-  const prosHref = selectedSubcategoryId
-    ? `/professionals?category=${encodeURIComponent(category.id)}&subcategory=${encodeURIComponent(selectedSubcategoryId)}`
-    : `/professionals?category=${encodeURIComponent(category.id)}`;
-
   // Translate category name
   const categoryLabel = t(CATEGORY_KEYS[category.name] || category.name);
 
@@ -160,12 +146,12 @@ const ServiceCategory = () => {
       </div>
 
       <div className="container py-8">
-        {/* Subcategory Selection */}
-        <Card className="mb-8 card-grounded">
+        {/* Subcategory Selection - Auto-advance cards */}
+        <Card className="card-grounded">
           <CardHeader>
-            <CardTitle className="font-display">{t('serviceCategory.selectSubcategory')}</CardTitle>
+            <CardTitle className="font-display">{t('serviceCategory.whatKindOfWork')}</CardTitle>
             <CardDescription>
-              {t('serviceCategory.selectSubcategoryDesc')}
+              {t('serviceCategory.tapToContinue')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -176,41 +162,29 @@ const ServiceCategory = () => {
                 ))}
               </div>
             ) : subcategories && subcategories.length > 0 ? (
-              <RadioGroup 
-                value={selectedSubcategoryId || ''} 
-                onValueChange={setSelectedSubcategoryId}
-                className="space-y-3"
-              >
+              <div className="space-y-3">
                 {subcategories.map((sub) => (
-                  <div
+                  <button
                     key={sub.id}
-                    className={`
-                      flex items-center space-x-3 p-4 rounded-md border cursor-pointer transition-colors
-                      min-h-[56px] touch-target-min
-                      ${selectedSubcategoryId === sub.id 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                      }
-                    `}
-                    onClick={() => setSelectedSubcategoryId(sub.id)}
+                    onClick={() => handleSubcategoryClick(sub.id)}
+                    className="w-full text-left p-4 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-all group min-h-[56px] touch-target-min"
                   >
-                    <RadioGroupItem value={sub.id} id={sub.id} />
-                    <Label 
-                      htmlFor={sub.id} 
-                      className="flex-1 cursor-pointer"
-                    >
-                      <span className="font-medium">
-                        {t(`subcategories.${sub.slug}`, { defaultValue: sub.name })}
-                      </span>
-                      {sub.description && (
-                        <span className="block text-sm text-muted-foreground mt-0.5">
-                          {sub.description}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1">
+                        <span className="font-medium">
+                          {t(`subcategories.${sub.slug}`, { defaultValue: sub.name })}
                         </span>
-                      )}
-                    </Label>
-                  </div>
+                        {sub.description && (
+                          <span className="block text-sm text-muted-foreground mt-0.5">
+                            {sub.description}
+                          </span>
+                        )}
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                    </div>
+                  </button>
                 ))}
-              </RadioGroup>
+              </div>
             ) : (
               <div className="text-center py-8">
                 <div className="mx-auto h-12 w-12 rounded-sm bg-muted flex items-center justify-center mb-4">
@@ -224,93 +198,16 @@ const ServiceCategory = () => {
           </CardContent>
         </Card>
 
-        {/* How to Find Help - Clear Choice */}
-        <div className="space-y-4">
-          <h3 className="font-display text-lg font-semibold text-center">
-            {t('serviceCategory.howToFindHelp')}
-          </h3>
-          
-          <div className="grid gap-4 sm:grid-cols-2">
-            {/* Option 1: Post Job (Broadcast) */}
-            <Card className="relative overflow-hidden border-primary/20 hover:border-primary/50 transition-colors">
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
-                    <Zap className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">{t('serviceCategory.postJob')}</h4>
-                    <p className="text-sm text-muted-foreground">{t('serviceCategory.getQuotesFast')}</p>
-                  </div>
-                </div>
-                
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                    {t('serviceCategory.sendToMatching')}
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                    {t('serviceCategory.receiveMultipleQuotes')}
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                    {t('serviceCategory.fastestResponse')}
-                  </li>
-                </ul>
-                
-                <Button asChild className="w-full">
-                  <Link to={postHref}>
-                    {t('serviceCategory.postJob')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Option 2: Browse Pros (Direct) */}
-            <Card className="relative overflow-hidden hover:border-primary/30 transition-colors">
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
-                    <Search className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">{t('serviceCategory.browseProfessionals')}</h4>
-                    <p className="text-sm text-muted-foreground">{t('serviceCategory.chooseWhoYouWork')}</p>
-                  </div>
-                </div>
-                
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    {t('serviceCategory.viewProfiles')}
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    {t('serviceCategory.pickRightPerson')}
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    {t('serviceCategory.startConversation')}
-                  </li>
-                </ul>
-                
-                <Button variant="outline" asChild className="w-full">
-                  <Link to={prosHref}>
-                    {t('serviceCategory.browsePros')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Bottom helper text */}
-          <p className="text-xs text-muted-foreground text-center">
-            {t('serviceCategory.bottomHelper')}
-          </p>
-        </div>
+        {/* Alternative path - subtle, not blocking */}
+        <p className="text-sm text-muted-foreground text-center mt-6">
+          {t('serviceCategory.orBrowse')}{' '}
+          <Link 
+            to={`/professionals?category=${encodeURIComponent(category.id)}`} 
+            className="underline hover:text-foreground transition-colors"
+          >
+            {t('serviceCategory.browseProsLink')}
+          </Link>
+        </p>
       </div>
     </PublicLayout>
   );
