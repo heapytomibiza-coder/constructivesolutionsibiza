@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
  * AUTH CALLBACK PAGE
  * 
  * Handles OAuth and email confirmation callbacks.
+ * Routes users to the correct destination based on their role and onboarding status.
  */
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -21,19 +22,56 @@ const AuthCallback = () => {
         return;
       }
 
-      if (session) {
-        // Check for pending redirect (e.g., from wizard auth checkpoint)
-        const pendingRedirect = sessionStorage.getItem('authRedirect');
-        sessionStorage.removeItem('authRedirect');
-        
-        if (pendingRedirect) {
-          navigate(pendingRedirect);
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+
+      // Check for pending redirect (e.g., from wizard auth checkpoint)
+      const pendingRedirect = sessionStorage.getItem('authRedirect');
+      sessionStorage.removeItem('authRedirect');
+      
+      if (pendingRedirect) {
+        navigate(pendingRedirect);
+        return;
+      }
+
+      // Query user's active role from user_roles table
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('active_role')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (rolesError && rolesError.code !== 'PGRST116') {
+        console.error('Error fetching user roles:', rolesError);
+      }
+
+      const activeRole = rolesData?.active_role || 'client';
+
+      if (activeRole === 'professional') {
+        // Check onboarding status for professionals
+        const { data: profileData, error: profileError } = await supabase
+          .from('professional_profiles')
+          .select('onboarding_phase')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Error fetching professional profile:', profileError);
+        }
+
+        const onboardingPhase = profileData?.onboarding_phase || 'not_started';
+
+        // Established professionals go to dashboard, new ones to onboarding
+        if (onboardingPhase === 'complete' || onboardingPhase === 'service_setup') {
+          navigate('/dashboard/pro');
         } else {
-          // Default redirect
-          navigate('/dashboard/client');
+          navigate('/onboarding/professional');
         }
       } else {
-        navigate('/auth');
+        // Clients go to client dashboard
+        navigate('/dashboard/client');
       }
     };
 
