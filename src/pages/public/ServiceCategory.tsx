@@ -149,9 +149,9 @@ const ServiceCategory = () => {
         {/* Subcategory Selection - Auto-advance cards */}
         <Card className="card-grounded">
           <CardHeader>
-            <CardTitle className="font-display">{t('serviceCategory.whatKindOfWork')}</CardTitle>
+            <CardTitle className="font-display">{t('serviceCategory.whatKindOfWork', 'What kind of work do you need?')}</CardTitle>
             <CardDescription>
-              {t('serviceCategory.tapToContinue')}
+              {t('serviceCategory.tapToContinue', 'Tap to continue — we\'ll ask a few quick questions')}
             </CardDescription>
           </CardHeader>
           <CardContent>
