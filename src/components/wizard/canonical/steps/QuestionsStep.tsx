@@ -92,8 +92,14 @@ const normalizeType = (type: string): QuestionDef['type'] => {
   }
 };
 
-// Question IDs handled by Logistics step
-const LOGISTICS_HANDLED = new Set(['timeline', 'timing', 'urgency', 'preferred_timing', 'start_timeline']);
+// Question IDs handled by Logistics step - exact matches or suffix patterns
+const LOGISTICS_EXACT_IDS = new Set(['timeline', 'timing', 'urgency', 'preferred_timing', 'start_timeline']);
+const LOGISTICS_SUFFIXES = ['_urgency', '_timing', '_timeline'];
+
+const isLogisticsHandled = (questionId: string): boolean => {
+  if (LOGISTICS_EXACT_IDS.has(questionId)) return true;
+  return LOGISTICS_SUFFIXES.some(suffix => questionId.endsWith(suffix));
+};
 
 // Types that show as tappable tiles
 const TILE_TYPES = new Set(['radio', 'select', 'checkbox', 'single_select', 'multi_select']);
@@ -237,7 +243,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
       packQuestions.forEach(q => {
         const key = q.id?.trim();
         if (!key || seen.has(key)) return;
-        if (LOGISTICS_HANDLED.has(q.id)) return;
+        if (isLogisticsHandled(q.id)) return;
         
         // Skip text/textarea types (we want tile-only flow)
         const normalizedType = normalizeType(q.type);
