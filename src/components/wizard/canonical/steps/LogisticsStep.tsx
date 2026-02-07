@@ -1,16 +1,26 @@
 /**
  * Logistics Step
- * Tile-based UI for location, timing, budget, and contact preference
+ * Tile-based UI for timing, budget, and contact preference
+ * Location uses a grouped dropdown for the full Ibiza taxonomy
  */
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { WizardState, ConsultationType } from '../types';
@@ -31,12 +41,7 @@ interface LogisticsStepProps {
 
 export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
   const { t } = useTranslation('wizard');
-  const [showMoreLocations, setShowMoreLocations] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
-
-  // Check if selected location is in the "more" section
-  const selectedInMore = POPULAR_LOCATIONS.some(loc => loc.value === logistics.location);
-  const shouldShowMore = showMoreLocations || selectedInMore;
 
   const handleLocationSelect = (value: string) => {
     onChange({ location: value });
@@ -63,65 +68,40 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
 
   return (
     <div className="space-y-8">
-      {/* Section 1: WHERE */}
+      {/* Section 1: WHERE - Dropdown */}
       <LogisticsSection title={t('logistics.where')}>
-        <div className="grid grid-cols-2 gap-3">
-          {MAIN_LOCATIONS.map((loc) => (
-            <TileOption
-              key={loc.value}
-              selected={logistics.location === loc.value}
-              onClick={() => handleLocationSelect(loc.value)}
-            >
-              {loc.label}
-            </TileOption>
-          ))}
-        </div>
-
-        {/* Expandable popular areas */}
-        {shouldShowMore && (
-          <div className="grid grid-cols-2 gap-3 mt-3">
-            {POPULAR_LOCATIONS.map((loc) => (
-              <TileOption
-                key={loc.value}
-                selected={logistics.location === loc.value}
-                onClick={() => handleLocationSelect(loc.value)}
-              >
-                {loc.label}
-              </TileOption>
-            ))}
-          </div>
-        )}
-
-        {/* Other option */}
-        <div className="mt-3">
-          <TileOption
-            selected={logistics.location === 'other'}
-            onClick={() => handleLocationSelect('other')}
-          >
-            {OTHER_LOCATION.label}
-          </TileOption>
-        </div>
-
-        {/* Toggle more areas */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="mt-2 text-muted-foreground"
-          onClick={() => setShowMoreLocations(!shouldShowMore)}
+        <Select
+          value={logistics.location}
+          onValueChange={handleLocationSelect}
         >
-          {shouldShowMore ? (
-            <>
-              <ChevronUp className="h-4 w-4 mr-1" />
-              {t('logistics.fewerAreas')}
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-4 w-4 mr-1" />
-              {t('logistics.moreAreas')}
-            </>
-          )}
-        </Button>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={t('logistics.where')} />
+          </SelectTrigger>
+          <SelectContent className="bg-popover z-50">
+            <SelectGroup>
+              <SelectLabel>Main Towns</SelectLabel>
+              {MAIN_LOCATIONS.map((loc) => (
+                <SelectItem key={loc.value} value={loc.value}>
+                  {loc.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+            <SelectGroup>
+              <SelectLabel>Popular Areas</SelectLabel>
+              {POPULAR_LOCATIONS.map((loc) => (
+                <SelectItem key={loc.value} value={loc.value}>
+                  {loc.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+            <SelectGroup>
+              <SelectLabel>Other</SelectLabel>
+              <SelectItem value={OTHER_LOCATION.value}>
+                {OTHER_LOCATION.label}
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
 
         {/* Custom location input */}
         {logistics.location === 'other' && (
@@ -169,7 +149,7 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
                   }
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0 bg-popover z-50" align="start">
                 <CalendarComponent
                   mode="single"
                   selected={logistics.startDate}
