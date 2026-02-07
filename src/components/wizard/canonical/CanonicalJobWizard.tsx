@@ -705,6 +705,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               answers={wizardState.answers}
               onChange={handleAnswersChange}
               onPacksLoaded={handlePacksLoaded}
+              onComplete={handleNext}
               errors={questionErrors}
             />
           )}
