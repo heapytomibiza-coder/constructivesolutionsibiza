@@ -21,10 +21,30 @@ export interface QuestionPack {
 
 // Location preset labels for human-readable display
 export const LOCATION_LABELS: Record<string, string> = {
+  // Main Towns
   ibiza_town: "Ibiza Town",
   san_antonio: "San Antonio",
   santa_eulalia: "Santa Eulalia",
   san_jose: "San José",
+  
+  // Popular Areas
+  playa_den_bossa: "Playa d'en Bossa",
+  talamanca: "Talamanca",
+  figueretas: "Figueretas",
+  jesus: "Jesús",
+  cala_llonga: "Cala Llonga",
+  es_cana: "Es Caná",
+  san_carlos: "San Carlos",
+  portinatx: "Portinatx",
+  san_juan: "San Juan",
+  cala_tarida: "Cala Tarida",
+  cala_vadella: "Cala Vadella",
+  es_cubells: "Es Cubells",
+  san_rafael: "San Rafael",
+  san_miguel: "San Miguel",
+  port_des_torrent: "Port des Torrent",
+  
+  // Other
   formentera: "Formentera",
   other: "Other",
 };
