@@ -1,236 +1,257 @@
 
+# Wizard Translation Audit & Fix Plan
 
-# Landing Page Cleanup — Focused & Professional
+## Issues Found
 
-## The Problem
+The screenshot shows the wizard step 3 (Micro) in Spanish, but with **four critical translation gaps**:
 
-The current homepage has four issues creating a "jumbled" feel:
-
-| Issue | Root Cause | Impact |
-|-------|------------|--------|
-| Brand name appears twice | `HeroBanner` renders `{children}` at line 61 AND line 85 | Looks sloppy, confusing |
-| Search placeholder shows raw key | Translation loads after render | Looks unfinished/broken |
-| Keyboard hint overlaps input | Positioned inside input without padding | Feels buggy |
-| Hero is doing too many jobs | Too many competing elements | Decision paralysis |
-
----
-
-## The Solution
-
-Four targeted fixes — no new features, just cleanup.
+| Component | Issue | Example |
+|-----------|-------|---------|
+| **MicroStep** | Hardcoded English UI strings | "Select tasks (multiple allowed)", "Loading…", "No services available" |
+| **MicroStep** | Database names not translated | "Facade Painting", "Fence Painting", "Deck Staining" |
+| **CategorySelector** | Hardcoded English | "Loading categories…" |
+| **SubcategorySelector** | Hardcoded English | "Loading subcategories…", "No subcategories available" |
+| **QuestionsStep** | Hardcoded English | "Loading questions...", "All set!", "Question X of Y", "Back", "Select all that apply", "Continue to next step" |
+| **QuestionPackRenderer** | Hardcoded English | "(uploads after job is posted)", "Selected:" |
 
 ---
 
-## Change 1: Remove Duplicate Brand Name
+## Solution Overview
 
-**File:** `src/components/layout/HeroBanner.tsx`
+### Part 1: Add missing translation keys to wizard.json
 
-The component renders `{children}` twice (line 61 and line 85). Remove the second one.
+Add keys for all the hardcoded UI strings in both EN and ES.
 
-```text
-BEFORE (line 85):
-          {action}
-        </div>
-      )}
-      
-      {children}   ← DELETE THIS LINE
-    </div>
+### Part 2: Update components to use useTranslation
 
-AFTER:
-          {action}
-        </div>
-      )}
-    </div>
-```
+Each of the four affected components needs to:
+1. Import `useTranslation` from `react-i18next`
+2. Replace hardcoded strings with `t()` calls
 
-**Result:** Brand name appears once, above the headline.
+### Part 3: Category/Subcategory/Micro name translation
+
+The database stores English names. Two options:
+
+**Option A (Simple):** Use the existing `CATEGORY_KEYS` mapping and extend it to subcategories/micros  
+**Option B (Scalable):** Add `name_es` column to database tables and fetch based on locale
+
+For this plan, we'll use **Option A** with a fallback — display the translated key if available, otherwise show the database name.
 
 ---
 
-## Change 2: Fix Translation Fallback + Input Padding
+## File Changes
 
-**File:** `src/components/search/UniversalSearchBar.tsx`
-
-Two small changes:
-
-1. Add fallback text to the placeholder so it never shows a raw key:
-
-```tsx
-// Line 197 - Add fallback
-placeholder={t("universalSearch.placeholder", "What can we help you find?")}
-```
-
-2. Add right padding so the ⌘K hint doesn't overlap text:
-
-```tsx
-// Line 201 - Add pr-16
-className="h-14 text-base pr-16"
-```
-
-**Result:** Search bar always shows readable text and feels intentional.
-
----
-
-## Change 3: Clean Hero Structure
-
-**File:** `src/pages/Index.tsx`
-
-Reorder elements for clear visual hierarchy:
-
-```text
-CURRENT (messy):
-┌──────────────────────────────────┐
-│  CONSTRUCTIVE SOLUTIONS IBIZA    │ ← children
-│  "Bridging the gap..."           │ ← title
-│  "We help you understand..."     │ ← subtitle
-│  [Trust badge row]               │ ← trustBadge
-│  [Search bar]                    │ ← action (search)
-│  [Start Project] [Browse]        │ ← action (buttons)
-│  CONSTRUCTIVE SOLUTIONS IBIZA    │ ← children AGAIN (bug)
-└──────────────────────────────────┘
-
-AFTER (clean):
-┌──────────────────────────────────┐
-│  CONSTRUCTIVE SOLUTIONS IBIZA    │ ← Brand (once, quiet)
-│                                  │
-│  "What can we help you build?"   │ ← Action-led headline
-│  "We translate your idea..."     │ ← Subtitle
-│                                  │
-│  [======= Search bar =======]    │ ← PRIMARY ACTION
-│                                  │
-│  [Start Project]  [Browse Pros]  │ ← Secondary, quieter
-│                                  │
-│  ✓ Guided • ✓ Clear • ✓ Ibiza   │ ← Trust moved to bottom
-└──────────────────────────────────┘
-```
-
-**Changes:**
-- Move trustBadge from above search to below buttons (less clutter at top)
-- Make search the clear primary action
-- Buttons become secondary (outline variant for "Start Project")
-
----
-
-## Change 4: Update Hero Copy
-
-**File:** `public/locales/en/common.json`
-
-Change the headline to be action-oriented:
+### 1. `public/locales/en/wizard.json` — Add missing keys
 
 ```json
-"hero": {
-  "title": "What can we help you build?",
-  "subtitle": "We translate your idea into a clear brief — then connect you with the right professionals",
-  "postJob": "Start Your Project",
-  "browsePros": "Browse Professionals"
+{
+  "micro": {
+    "headline": "Select the specific tasks you need",
+    "hint": "Choose all that apply — this helps match you with the right professionals",
+    "selectMultiple": "Select tasks (multiple allowed)",
+    "selectSingle": "Select a service",
+    "loading": "Loading…",
+    "noServices": "No services available",
+    "tasksSelected": "{{count}} task selected",
+    "tasksSelected_plural": "{{count}} tasks selected"
+  },
+  "category": {
+    "headline": "What type of service do you need?",
+    "orBrowse": "or browse categories",
+    "loading": "Loading categories…"
+  },
+  "subcategory": {
+    "headline": "What kind of {{category}} work?",
+    "loading": "Loading subcategories…",
+    "noSubcategories": "No subcategories available"
+  },
+  "questions": {
+    "loading": "Loading questions...",
+    "allSet": "All set!",
+    "noQuestionsNeeded": "No additional questions needed. Continue to the next step.",
+    "questionOf": "Question {{current}} of {{total}}",
+    "back": "Back",
+    "selectAll": "Select all that apply",
+    "continueToNext": "Continue to next step",
+    "uploadsAfterPost": "(uploads after job is posted)",
+    "selectedFiles": "Selected: {{files}}"
+  }
 }
 ```
 
-**File:** `public/locales/es/common.json`
-
-Spanish equivalent:
+### 2. `public/locales/es/wizard.json` — Spanish equivalents
 
 ```json
-"hero": {
-  "title": "¿Qué podemos ayudarte a construir?",
-  "subtitle": "Traducimos tu idea en un briefing claro — luego te conectamos con los profesionales adecuados",
-  "postJob": "Empieza Tu Proyecto",
-  "browsePros": "Ver Profesionales"
+{
+  "micro": {
+    "headline": "Selecciona las tareas específicas que necesitas",
+    "hint": "Elige todas las que correspondan — esto ayuda a encontrar al profesional adecuado",
+    "selectMultiple": "Selecciona tareas (se permiten varias)",
+    "selectSingle": "Selecciona un servicio",
+    "loading": "Cargando…",
+    "noServices": "No hay servicios disponibles",
+    "tasksSelected": "{{count}} tarea seleccionada",
+    "tasksSelected_plural": "{{count}} tareas seleccionadas"
+  },
+  "category": {
+    "headline": "¿Qué tipo de servicio necesitas?",
+    "orBrowse": "o explorar categorías",
+    "loading": "Cargando categorías…"
+  },
+  "subcategory": {
+    "headline": "¿Qué tipo de trabajo de {{category}}?",
+    "loading": "Cargando subcategorías…",
+    "noSubcategories": "No hay subcategorías disponibles"
+  },
+  "questions": {
+    "loading": "Cargando preguntas...",
+    "allSet": "¡Todo listo!",
+    "noQuestionsNeeded": "No se necesitan más preguntas. Continúa al siguiente paso.",
+    "questionOf": "Pregunta {{current}} de {{total}}",
+    "back": "Atrás",
+    "selectAll": "Selecciona todas las que correspondan",
+    "continueToNext": "Continuar al siguiente paso",
+    "uploadsAfterPost": "(se subirán después de publicar)",
+    "selectedFiles": "Seleccionados: {{files}}"
+  }
 }
 ```
 
-**Result:** Headline immediately tells users what to do, not what the brand is.
+### 3. `src/components/wizard/db-powered/MicroStep.tsx`
+
+Add `useTranslation` and replace hardcoded strings:
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+export default function MicroStep({ ... }: Props) {
+  const { t } = useTranslation('wizard');
+  
+  // Line 82-84: Replace label
+  <label className="block text-sm font-medium mb-2">
+    {multiSelect ? t('micro.selectMultiple') : t('micro.selectSingle')}
+  </label>
+  
+  // Line 87: Replace loading
+  <p className="text-muted-foreground">{t('micro.loading')}</p>
+  
+  // Line 89: Replace no services
+  <p className="text-muted-foreground">{t('micro.noServices')}</p>
+  
+  // Line 128: Replace tasks selected
+  <p className="mt-3 text-sm text-muted-foreground">
+    {t('micro.tasksSelected', { count: selectedMicroIds.length })}
+  </p>
+}
+```
+
+### 4. `src/components/wizard/db-powered/CategorySelector.tsx`
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+export default function CategorySelector({ ... }: Props) {
+  const { t } = useTranslation('wizard');
+  
+  // Line 38: Replace loading
+  return <p className="text-muted-foreground">{t('category.loading')}</p>;
+}
+```
+
+### 5. `src/components/wizard/db-powered/SubcategorySelector.tsx`
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+export default function SubcategorySelector({ ... }: Props) {
+  const { t } = useTranslation('wizard');
+  
+  // Line 57: Replace loading
+  return <p className="text-muted-foreground">{t('subcategory.loading')}</p>;
+  
+  // Line 63: Replace no subcategories
+  <p className="text-muted-foreground">{t('subcategory.noSubcategories')}</p>
+}
+```
+
+### 6. `src/components/wizard/canonical/steps/QuestionsStep.tsx`
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+export function QuestionsStep({ ... }: Props) {
+  const { t } = useTranslation('wizard');
+  
+  // Line 343-344: Replace loading
+  <p className="text-muted-foreground">{t('questions.loading')}</p>
+  
+  // Lines 354-358: Replace "All set!" section
+  <h3>{t('questions.allSet')}</h3>
+  <p>{t('questions.noQuestionsNeeded')}</p>
+  
+  // Line 378: Replace "Question X of Y"
+  {t('questions.questionOf', { current: currentIndex + 1, total: visibleQuestions.length })}
+  
+  // Line 386: Replace "Back"
+  {t('questions.back')}
+  
+  // Lines 410-412: Replace "Select all that apply"
+  <p>{t('questions.selectAll')}</p>
+  
+  // Line 484: Replace "Continue to next step"
+  {currentIndex === visibleQuestions.length - 1 ? `✓ ${t('questions.continueToNext')}` : t('buttons.continue')}
+}
+```
+
+### 7. `src/components/wizard/canonical/steps/QuestionPackRenderer.tsx`
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+export function QuestionPackRenderer({ ... }: Props) {
+  const { t } = useTranslation('wizard');
+  
+  // Line 296-297: Replace file upload messages
+  <p className="text-sm text-muted-foreground">
+    {t('questions.selectedFiles', { files: fileNames.join(', ') })}{' '}
+    <span className="italic">{t('questions.uploadsAfterPost')}</span>
+  </p>
+}
+```
 
 ---
 
-## File Changes Summary
+## About Database Names (Category/Subcategory/Micro)
 
-| File | Change |
+The category and subcategory names come from the database in English. For now, they will display as-is (English) because:
+
+1. Creating a full translation mapping for all ~200 micro-services is a large effort
+2. The existing `CATEGORY_KEYS` covers main categories but not subcategories or micros
+3. Adding `name_es` columns to the database would be the cleanest long-term solution
+
+**Recommendation:** After this fix, the UI chrome will be fully translated. A follow-up task can address database name localization by either:
+- Adding Spanish translations to `CATEGORY_KEYS` style mapping
+- Adding `name_es` columns to `service_categories`, `service_subcategories`, and `service_micro_categories` tables
+
+---
+
+## Files Summary
+
+| File | Action |
 |------|--------|
-| `src/components/layout/HeroBanner.tsx` | Delete duplicate `{children}` at line 85 |
-| `src/components/search/UniversalSearchBar.tsx` | Add translation fallback + input padding |
-| `src/pages/Index.tsx` | Reorder hero elements (search first, trust last) |
-| `public/locales/en/common.json` | Update hero title/subtitle copy |
-| `public/locales/es/common.json` | Update Spanish hero copy |
+| `public/locales/en/wizard.json` | Add missing keys for micro, category, subcategory, questions |
+| `public/locales/es/wizard.json` | Add Spanish translations for same keys |
+| `src/components/wizard/db-powered/MicroStep.tsx` | Add useTranslation, replace 4 hardcoded strings |
+| `src/components/wizard/db-powered/CategorySelector.tsx` | Add useTranslation, replace 1 hardcoded string |
+| `src/components/wizard/db-powered/SubcategorySelector.tsx` | Add useTranslation, replace 2 hardcoded strings |
+| `src/components/wizard/canonical/steps/QuestionsStep.tsx` | Add useTranslation, replace 7 hardcoded strings |
+| `src/components/wizard/canonical/steps/QuestionPackRenderer.tsx` | Add useTranslation, replace 2 hardcoded strings |
 
 ---
 
-## Visual Result
+## Result
 
 After these changes:
-- Brand shows once (at top, quiet)
-- Headline tells users what to do
-- Search bar is clearly the main action
-- Buttons are secondary paths
-- Trust signals anchor the bottom
-- No duplicate elements
-- No raw translation keys
-- Clean, professional, builder-friendly
-
----
-
-## Technical Details
-
-### HeroBanner.tsx (line 85)
-```tsx
-// REMOVE this line:
-{children}
-```
-
-### UniversalSearchBar.tsx (lines 196-202)
-```tsx
-<CommandInput
-  placeholder={t("universalSearch.placeholder", "What can we help you find?")}
-  value={query}
-  onValueChange={setQuery}
-  onFocus={() => setIsOpen(true)}
-  className="h-14 text-base pr-16"
-/>
-```
-
-### Index.tsx Hero Structure
-```tsx
-<HeroBanner
-  imageSrc={heroHome}
-  title={t('hero.title')}
-  subtitle={t('hero.subtitle')}
-  height="full"
-  action={
-    <div className="flex flex-col gap-6 items-center">
-      {/* Search bar - PRIMARY */}
-      <UniversalSearchBar className="w-full" />
-      
-      {/* Buttons - SECONDARY */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
-          <Link to="/post">
-            {t('hero.postJob')}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-        <Button size="lg" variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
-          <Link to="/professionals">{t('hero.browsePros')}</Link>
-        </Button>
-      </div>
-      
-      {/* Trust - LAST */}
-      <div className="hero-trust-badge mt-2">
-        <CheckCircle className="h-4 w-4" />
-        {t('trust.guided')}
-        <span className="text-white/50">•</span>
-        <Clock className="h-4 w-4" />
-        {t('trust.clarity')}
-        <span className="text-white/50">•</span>
-        <Shield className="h-4 w-4" />
-        {t('trust.local')}
-      </div>
-    </div>
-  }
->
-  {/* Brand lockup - renders once above title */}
-  <p className="mb-4 text-sm sm:text-base font-semibold tracking-widest uppercase text-white/90">
-    {PLATFORM.name}
-  </p>
-</HeroBanner>
-```
-
+- All wizard UI text will display in the user's selected language
+- Loading states, empty states, and helper text will be properly localized
+- Database names (task names like "Facade Painting") will remain in English until a follow-up localization task
