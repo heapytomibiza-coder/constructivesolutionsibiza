@@ -29,6 +29,8 @@ import Contact from "./pages/public/Contact";
 // Auth Pages
 import Auth from "./pages/auth/Auth";
 import AuthCallback from "./pages/auth/AuthCallback";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 // Job Wizard & Board
 import PostJob from "./pages/jobs/PostJob";
@@ -99,8 +101,10 @@ const App = () => {
                 ============================================ */}
             <Route element={<PublicOnlyGuard />}>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             </Route>
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
 
             {/* ============================================
                 PROTECTED ROUTES - Wrapped in RouteGuard
