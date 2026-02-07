@@ -109,13 +109,20 @@ interface Props {
 }
 
 // Question IDs that are handled by Step 5 (Logistics) and should not appear in Step 4
-const LOGISTICS_HANDLED_QUESTION_IDS = new Set([
+// Matches exact IDs or suffix patterns like "ac_installation_06_urgency"
+const LOGISTICS_EXACT_IDS = new Set([
   'timeline',
   'timing',
   'urgency',
   'preferred_timing',
   'start_timeline',
 ]);
+const LOGISTICS_SUFFIXES = ['_urgency', '_timing', '_timeline'];
+
+const isLogisticsHandled = (questionId: string): boolean => {
+  if (LOGISTICS_EXACT_IDS.has(questionId)) return true;
+  return LOGISTICS_SUFFIXES.some(suffix => questionId.endsWith(suffix));
+};
 
 /**
  * OptionCard - Large touch-friendly selectable card for radio/checkbox options
@@ -347,7 +354,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
 
   // Filter out logistics-handled questions AND apply conditional visibility
   const visibleQuestions = uniqueQuestions
-    .filter((q) => !LOGISTICS_HANDLED_QUESTION_IDS.has(q.id))
+    .filter((q) => !isLogisticsHandled(q.id))
     .filter(shouldShowQuestion);
 
   return (
