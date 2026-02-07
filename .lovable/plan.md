@@ -1,177 +1,158 @@
 
 
-# Redesign Logistics Step for Quick, Easy, Informative Flow
+# Plan: Fix Professional Signup → Correct Dashboard Redirect
 
-## Current Problems
+## Problem Summary
 
-Looking at the screenshot, the Logistics step has **7 different inputs** all visible at once:
-1. Location (select)
-2. When to start (select) 
-3. Completion date (date picker)
-4. Contact preference (3 radio options)
-5. Budget range (6 radio options)
-6. Access details (textarea)
+When users sign up as a **professional**, the system correctly:
+- ✅ Stores `intent: professional` in user metadata
+- ✅ Creates `user_roles` with `active_role: professional` 
+- ✅ Creates `professional_profiles` stub with `onboarding_phase: not_started`
 
-This creates:
-- **Visual overwhelm** — too much to process at once
-- **Decision fatigue** — budget has 6 choices stacked vertically  
-- **Inconsistent UX** — Step 4 uses beautiful one-at-a-time tiles, Step 5 reverts to a dense form
-- **Mobile scroll pain** — requires significant scrolling to complete
+But then **fails** to redirect them correctly because:
+- ❌ `AuthCallback.tsx` hardcodes redirect to `/dashboard/client` (line 33)
+- ❌ `Auth.tsx` defaults `returnUrl` to `/dashboard/client` (line 44)
+- ❌ The session data isn't checked to determine the correct landing page
 
-## Proposed Solution: Focused Card Flow
-
-Restructure Logistics into **4 focused sections** with a logical conversational flow:
+## Root Cause Analysis
 
 ```text
-┌─────────────────────────────────────────┐
-│  Section 1: WHERE                       │
-│  ┌───────────────────────────────────┐  │
-│  │ 📍 Where is the work needed?      │  │
-│  │     [Location Tiles - Top 5]      │  │
-│  │     + "Other area" option         │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
-          ↓
-┌─────────────────────────────────────────┐
-│  Section 2: WHEN                        │
-│  ┌───────────────────────────────────┐  │
-│  │ 🗓️ When do you need this?         │  │
-│  │     [ASAP] [This week]            │  │
-│  │     [This month] [Flexible]       │  │
-│  │     [Specific date →]             │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
-          ↓
-┌─────────────────────────────────────────┐
-│  Section 3: BUDGET                      │
-│  ┌───────────────────────────────────┐  │
-│  │ 💰 What's your budget range?      │  │
-│  │     [Under €500] [€500-1k]        │  │
-│  │     [€1k-2.5k]  [€2.5k-5k]        │  │
-│  │     [Over €5k]  [Need quote]      │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
-          ↓
-┌─────────────────────────────────────────┐
-│  Section 4: CONTACT (Collapsible)       │
-│  ┌───────────────────────────────────┐  │
-│  │ 📞 How should pros reach you?     │  │
-│  │     [Site visit] [Call] [Message] │  │
-│  │                                   │  │
-│  │ + Any access notes? (optional)    │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  User signs up as "Professional"                                 │
+│  → email sent with callback to /auth/callback                    │
+└──────────────────────┬──────────────────────────────────────────┘
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  User clicks email confirmation link                             │
+│  → Lands on /auth/callback                                       │
+└──────────────────────┬──────────────────────────────────────────┘
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  AuthCallback.tsx executes:                                      │
+│  • Gets session ✓                                                │
+│  • IGNORES user's active_role ✗                                  │
+│  • Redirects to hardcoded /dashboard/client ✗                    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-## Key UX Improvements
+## Solution
 
-### 1. Use Tile Cards (Consistent with Step 4)
-Replace radio buttons + selects with tappable tile cards:
-- 48px minimum touch target
-- Visual selection state (checkmark + primary border)
-- Auto-advance on single selection
+### 1. Update AuthCallback to respect user role
 
-### 2. Group Logically with Visual Sections
-Instead of one long form, use collapsible/progressive sections:
-- **WHERE** — Location tiles (show top 5 + "More areas" expandable)
-- **WHEN** — Timing tiles in 2x2 grid + optional date picker
-- **BUDGET** — Compact 2x3 tile grid 
-- **CONTACT** — Simple 3-option tiles + optional notes
+Modify `src/pages/auth/AuthCallback.tsx` to:
+- Query the user's `active_role` from `user_roles` table
+- Redirect professionals to `/onboarding/professional` (since they're new)
+- Redirect clients to `/dashboard/client`
 
-### 3. Remove Completion Date
-Currently asks for both "When to start" AND "When to complete" — this is redundant for 80% of jobs. 
-- **Remove completion date** (or move to optional "More details" section)
-- Most users just want to say "ASAP" or "This month"
+### 2. Update Auth.tsx default returnUrl
 
-### 4. Smart Defaults
-- Pre-select "Message" for contact (lowest friction)
-- Show location search/autocomplete for faster selection
+Modify `src/pages/auth/Auth.tsx` to:
+- When signing in, query user's role to determine correct dashboard
+- Remove hardcoded `/dashboard/client` default
 
-## Technical Changes
+### 3. Add role-based dashboard helper function
 
-### File: `src/components/wizard/canonical/steps/LogisticsStep.tsx`
+Create a utility function `getDashboardForRole(role)` that returns the correct path:
+- `professional` → `/onboarding/professional` (for new pros) or `/dashboard/pro` (for existing)
+- `client` → `/dashboard/client`
 
-**Complete rewrite with:**
+---
 
-1. **TileOption component** — Reusable tappable card matching Questions step style
-2. **Section groups** — Visual separation with subtle headers  
-3. **2-column grid** — Better use of space for tiles
-4. **Progressive disclosure** — Location "Show more areas" expander
-5. **Remove completion date field** — Simplify to start timing only
-6. **i18n ready** — Move all labels to translation files
+## Technical Implementation
 
-### Estimated Structure:
+### File 1: `src/pages/auth/AuthCallback.tsx`
 
-```tsx
-function LogisticsStep({ logistics, onChange }) {
-  return (
-    <div className="space-y-8">
-      {/* Section: Location */}
-      <LogisticsSection title="Where is the work?">
-        <div className="grid grid-cols-2 gap-3">
-          {TOP_LOCATIONS.map(loc => (
-            <TileOption 
-              selected={logistics.location === loc.value}
-              onClick={() => onChange({ location: loc.value })}
-            >
-              {loc.label}
-            </TileOption>
-          ))}
-        </div>
-        <button>More areas...</button>
-      </LogisticsSection>
+**Changes:**
+- After getting session, query `user_roles` table to get `active_role`
+- Check `professional_profiles.onboarding_phase` for professionals
+- Route to correct destination:
+  - New professionals → `/onboarding/professional`
+  - Established professionals → `/dashboard/pro`  
+  - Clients → `/dashboard/client`
 
-      {/* Section: Timing */}
-      <LogisticsSection title="When do you need this?">
-        <div className="grid grid-cols-2 gap-3">
-          {TIMING_OPTIONS.map(...)}
-        </div>
-      </LogisticsSection>
-
-      {/* Section: Budget */}
-      <LogisticsSection title="What's your budget?">
-        <div className="grid grid-cols-2 gap-3">
-          {BUDGET_OPTIONS.map(...)}
-        </div>
-      </LogisticsSection>
-
-      {/* Section: Contact */}
-      <LogisticsSection title="How should pros reach you?">
-        {CONTACT_OPTIONS.map(...)}
-        <Textarea placeholder="Access notes (optional)" />
-      </LogisticsSection>
-    </div>
-  );
-}
-```
-
-### Translation Updates
-
-Add new keys to `public/locales/en/wizard.json` and `es/wizard.json`:
-
-```json
-{
-  "logistics": {
-    "where": "Where is the work?",
-    "when": "When do you need this?",
-    "budget": "What's your budget?",
-    "contact": "How should pros reach you?",
-    "moreAreas": "More areas...",
-    "accessNotes": "Access notes (optional)",
-    "accessPlaceholder": "Gate code, parking, building access..."
+```typescript
+// Pseudocode logic
+if (session) {
+  const { data: roles } = await supabase
+    .from('user_roles')
+    .select('active_role')
+    .eq('user_id', session.user.id)
+    .single();
+  
+  const activeRole = roles?.active_role || 'client';
+  
+  if (activeRole === 'professional') {
+    // Check onboarding status
+    const { data: profile } = await supabase
+      .from('professional_profiles')
+      .select('onboarding_phase')
+      .eq('user_id', session.user.id)
+      .single();
+    
+    if (profile?.onboarding_phase === 'complete' || profile?.onboarding_phase === 'service_setup') {
+      navigate('/dashboard/pro');
+    } else {
+      navigate('/onboarding/professional');
+    }
+  } else {
+    navigate('/dashboard/client');
   }
 }
 ```
 
-## Summary
+### File 2: `src/pages/auth/Auth.tsx`
 
-| Before | After |
-|--------|-------|
-| 7 inputs in one long form | 4 focused sections |
-| Radio buttons + selects | Touch-friendly tiles |
-| Lots of scrolling | Fits on one screen |
-| Inconsistent with Step 4 | Matches tile-based UX |
-| Completion date (redundant) | Removed |
+**Changes:**
+- Remove hardcoded `/dashboard/client` from line 44
+- The returnUrl should only be used when explicitly provided via query params
+- Default navigation after sign-in should also check active_role
 
-**Result:** A quick, tap-friendly flow that feels consistent with the rest of the wizard and respects the user's time.
+```typescript
+// Line 44 change
+const returnUrl = searchParams.get('returnUrl');  // No default
+
+// In handleSignIn, after successful auth:
+if (returnUrl) {
+  navigate(returnUrl);
+} else {
+  // Query role and navigate to correct dashboard
+  navigate('/auth/callback'); // Let callback handle it
+}
+```
+
+Alternatively, add the same role-checking logic to `handleSignIn`.
+
+### File 3: `src/guard/RouteGuard.tsx` (PublicOnlyGuard)
+
+The `PublicOnlyGuard` already has correct logic:
+```typescript
+const dashboardPath = activeRole === 'professional' 
+  ? '/dashboard/pro' 
+  : '/dashboard/client';
+```
+
+But this only triggers when an authenticated user visits `/auth`. The issue is the **callback** page.
+
+---
+
+## Testing Checklist
+
+After implementation:
+1. Sign up as professional → confirm email → should land on `/onboarding/professional`
+2. Sign up as client → confirm email → should land on `/dashboard/client`
+3. Sign in as existing professional → should go to `/dashboard/pro`
+4. Sign in as existing client → should go to `/dashboard/client`
+5. Visit `/auth` while logged in as professional → redirects to `/dashboard/pro`
+
+---
+
+## Edge Cases Handled
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| New professional signup | → `/onboarding/professional` |
+| Established professional (onboarding complete) | → `/dashboard/pro` |
+| Client signup | → `/dashboard/client` |
+| User with `returnUrl` param | → Respect that URL |
+| Professional accessing `/auth` | → Redirect to `/dashboard/pro` |
 
