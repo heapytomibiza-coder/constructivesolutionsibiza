@@ -464,15 +464,17 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
         )}
       </div>
 
-      {/* Multi-select continue button */}
-      {isMulti && selectedValues.length > 0 && currentIndex < visibleQuestions.length - 1 && (
+      {/* Continue button for multi-select, or when on last question with answer */}
+      {((isMulti && selectedValues.length > 0 && currentIndex < visibleQuestions.length - 1) || 
+        (currentIndex === visibleQuestions.length - 1 && (isMulti ? selectedValues.length > 0 : !!selectedValues))) && (
         <div className="mt-6 pt-4 border-t">
           <Button
-            onClick={goNext}
+            onClick={currentIndex < visibleQuestions.length - 1 ? goNext : undefined}
             className="w-full"
             size="lg"
+            data-wizard-questions-complete={currentIndex === visibleQuestions.length - 1}
           >
-            Continue
+            {currentIndex === visibleQuestions.length - 1 ? '✓ Questions complete — tap Continue below' : 'Continue'}
           </Button>
         </div>
       )}
