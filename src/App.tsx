@@ -5,7 +5,7 @@
  * 15 routes total. No admin, payments, disputes, or AI dashboards.
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +15,7 @@ import { SessionProvider } from "@/contexts/SessionContext";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { RouteGuard, PublicOnlyGuard } from "@/guard";
 import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
+import { Loader2 } from "lucide-react";
 
 // Public Pages
 import Index from "./pages/Index";
@@ -59,12 +60,23 @@ import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/foru
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Preload current language namespaces immediately, alternate after delay
+  const [i18nReady, setI18nReady] = useState(false);
+
+  // Block rendering until i18n namespaces are loaded
   useEffect(() => {
-    preloadCoreNamespaces();
+    preloadCoreNamespaces().then(() => setI18nReady(true));
     const id = window.setTimeout(preloadAlternateLanguage, 400);
     return () => window.clearTimeout(id);
   }, []);
+
+  // Show minimal loader until translations are ready
+  if (!i18nReady) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
   <QueryClientProvider client={queryClient}>

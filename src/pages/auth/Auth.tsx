@@ -43,8 +43,12 @@ const Auth = () => {
 
   const returnUrl = searchParams.get('returnUrl') || '/dashboard/client';
 
+  // Double-check: ready can be true before HTTP fetch completes with useSuspense: false
+  // Verify that a known key actually resolves (not to itself)
+  const translationsLoaded = ready && t('page.title') !== 'page.title';
+
   // Show loading state while translations load (fallback for slow connections)
-  if (!ready) {
+  if (!translationsLoaded) {
     return (
       <div className="min-h-screen bg-gradient-concrete flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
