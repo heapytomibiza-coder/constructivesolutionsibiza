@@ -1,7 +1,4 @@
 {
-  "debug": {
-    "hello": "Hola (ES)"
-  },
   "nav": {
     "home": "Inicio",
     "services": "Servicios",
