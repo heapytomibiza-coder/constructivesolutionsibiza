@@ -1,351 +1,259 @@
 
 
-# Transform Builder Onboarding: "Select Services" → "Unlock Jobs"
+# Seamless Service Category → Wizard Journey
 
-## The Core Problem
+## The Problem
 
-Current builder service setup feels like **admin** - filling out a form so the platform works. The language ("Select Category", "Check all services you offer") reinforces this.
+Right now, the `/services/hvac` page breaks momentum:
 
-**Current flow:**
-```
-Category → Subcategory → Micro → Preferences → Done
-"Please configure your profile"
-```
-
-**Target flow:**
-```
-Job Types → Unlock → Preferences → See Matches
-"Here's what you can earn - claim it"
-```
-
-The goal: **Every tap should feel like unlocking money, not filling forms.**
-
----
-
-## Implementation Strategy
-
-### Phase 1: Language & Framing Overhaul
-
-| Current Copy | New Copy |
-|-------------|----------|
-| "Set Up Your Services" | "Unlock Your Job Types" |
-| "Select services you offer" | "Choose which jobs you want to receive" |
-| "Check all services you offer" | "Unlock job types that match your skills" |
-| "Select Category" | "Browse by trade" |
-| "Add Services" | "Unlock More" |
-| "Continue to Preferences" | "Set Your Priorities" |
-| "Add X Service(s)" | "Unlock X Job Type(s)" |
-| "Complete Setup" | "Start Receiving Matches" |
-
-### Phase 2: Show Job Intelligence Per Micro
-
-For each micro in the selection list, show **what the builder is actually unlocking**:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ ☐  Tap Replacement                                      │
-│     ─────────────────────────────────────────────────── │
-│     Client provides: photos, location, access, urgency  │
-│     💼 3 open jobs  •  ⚡ Usually ASAP                   │
-└─────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────┐
-│ ☐  Bathroom Fitting                                     │
-│     ─────────────────────────────────────────────────── │
-│     Client provides: room size, fixtures, style prefs   │
-│     💼 7 open jobs  •  📅 Usually flexible timeline     │
-└─────────────────────────────────────────────────────────┘
+```text
+User lands on /services/hvac
+    ↓
+Sees subcategory options (Air Conditioning, Heating, etc.)
+    ↓
+Selects one (good!)
+    ↓
+... still on the same page
+    ↓
+Must scroll down and click "Post a Job"
+    ↓
+Then navigates to /post (starts wizard)
 ```
 
-**Data sources:**
-- **Open jobs count**: Live query from `jobs` table filtered by micro_slug
-- **Client provides**: From question pack metadata (already exists)
-- **Timing pattern**: Aggregated from jobs `start_timing` column
+This is two decisions when it should be **one flowing motion**.
 
-### Phase 3: Recommended Job Types
+## The Solution: Auto-Advance on Selection
 
-Add a "Recommended for you" section at the top of the micro selection:
+When a user selects a subcategory on the Service Category page, **immediately continue to the next logical step** - navigating them into the wizard flow with their selection pre-filled.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  ⭐ RECOMMENDED FOR PLUMBERS                            │
-│                                                         │
-│  Based on active demand in Ibiza:                       │
-│  • Tap Replacement (8 jobs waiting)                     │
-│  • Leak Detection & Repair (5 jobs waiting)             │
-│  • Emergency Call-Out (4 jobs waiting)                  │
-└─────────────────────────────────────────────────────────┘
+```text
+User lands on /services/hvac
+    ↓
+Taps "Air Conditioning"
+    ↓
+Instant transition: "What type of AC work?"
+    ↓
+Shows micro-services (Repair, Install, Servicing, etc.)
+    ↓
+Journey continues...
 ```
 
-**Logic:**
-1. Query jobs by subcategory for the last 30 days
-2. Count per micro_slug
-3. Show top 3-5 with highest demand
+The flow becomes a natural conversation rather than forms + buttons.
 
-### Phase 4: Unlock Progress Indicator
+## Implementation Approach
 
-Replace generic progress bar with job-focused messaging:
+### Option A: Navigate to Wizard (Recommended)
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  🔓 2 of 5 job types unlocked                           │
-│  ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
-│                                                         │
-│  Unlock at least 5 to start receiving matched leads     │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## Files to Create/Modify
-
-| File | Action | Purpose |
-|------|--------|---------|
-| `public/locales/en/onboarding.json` | **Create** | New namespace for onboarding copy |
-| `public/locales/es/onboarding.json` | **Create** | Spanish translations |
-| `src/i18n/namespaces.ts` | **Modify** | Add 'onboarding' namespace |
-| `src/pages/professional/ProfessionalServiceSetup.tsx` | **Modify** | Core UI transformation |
-| `src/pages/professional/hooks/useJobTypeStats.ts` | **Create** | Query for open jobs per micro |
-| `src/pages/professional/hooks/useRecommendedJobTypes.ts` | **Create** | Query for demand-based recommendations |
-| `src/pages/professional/components/JobTypeCard.tsx` | **Create** | New card component showing micro + job intelligence |
-| `src/pages/professional/components/UnlockProgress.tsx` | **Create** | Progress indicator focused on job unlocking |
-| `src/pages/professional/components/RecommendedJobTypes.tsx` | **Create** | Recommended section component |
-
----
-
-## Technical Implementation
-
-### 1. Job Type Stats Query
+When subcategory is selected, navigate to `/post` with deep-link params:
 
 ```typescript
-// src/pages/professional/hooks/useJobTypeStats.ts
-export function useJobTypeStats(microSlugs: string[]) {
-  return useQuery({
-    queryKey: ['job_type_stats', microSlugs],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('jobs')
-        .select('micro_slug, start_timing')
-        .in('micro_slug', microSlugs)
-        .eq('status', 'open')
-        .gte('created_at', thirtyDaysAgo());
-      
-      // Aggregate: count per micro, most common timing
-      return aggregateStats(data);
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
+// ServiceCategory.tsx
+const handleSubcategoryClick = (subId: string) => {
+  navigate(`/post?category=${category.id}&subcategory=${subId}`);
+};
 ```
 
-### 2. Question Pack Metadata
+The wizard already handles these params perfectly (lines 117-219 in CanonicalJobWizard.tsx):
+- Fetches category/subcategory names
+- Pre-populates wizard state
+- Jumps to Step 3 (Micro selection)
 
-The existing `question_packs` table already contains metadata we can use:
+**Benefits:**
+- Uses existing deep-link logic (proven)
+- Single canonical wizard flow
+- URL reflects progress (bookmarkable, shareable)
 
-```typescript
-// Extract "client provides" from pack questions
-function getClientProvides(pack: QuestionPack): string[] {
-  return pack.questions
-    .filter(q => q.required)
-    .map(q => q.label)
-    .slice(0, 4); // Top 4 required fields
-}
-```
+### Option B: Inline Wizard Steps (More Complex)
 
-### 3. Job Type Card Component
+Embed the wizard steps directly in the ServiceCategory page for a seamless experience. This would require:
+- Managing wizard state outside the wizard
+- Deciding when to "hand off" to the full wizard
+- More code to maintain
+
+**Not recommended** - adds complexity without clear benefit.
+
+---
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/pages/public/ServiceCategory.tsx` | Remove radio buttons; use click-to-navigate cards |
+| `public/locales/en/common.json` | Add momentum-focused copy |
+| `public/locales/es/common.json` | Spanish translations |
+
+---
+
+## Detailed Changes
+
+### 1. Transform Subcategory Selection to Auto-Advance Cards
+
+Replace the RadioGroup pattern with clickable cards that navigate on tap:
 
 ```tsx
-// src/pages/professional/components/JobTypeCard.tsx
-interface JobTypeCardProps {
-  micro: MicroCategory;
-  stats?: { openJobs: number; commonTiming: string };
-  clientProvides?: string[];
-  isSelected: boolean;
-  isExisting: boolean;
-  onToggle: (checked: boolean) => void;
-}
+// ServiceCategory.tsx
 
-export function JobTypeCard({ micro, stats, clientProvides, isSelected, isExisting, onToggle }: JobTypeCardProps) {
-  return (
-    <label className="...">
-      <Checkbox checked={isSelected || isExisting} disabled={isExisting} onCheckedChange={onToggle} />
-      
-      <div className="flex-1">
-        <span className="font-medium">{micro.name}</span>
-        
-        {/* Client provides preview */}
-        {clientProvides && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Client provides: {clientProvides.join(', ')}
-          </p>
-        )}
-        
-        {/* Job stats */}
-        {stats && (
-          <div className="flex items-center gap-3 mt-1 text-xs">
-            <span className="text-primary">
-              <Briefcase className="h-3 w-3 inline mr-1" />
-              {stats.openJobs} open jobs
-            </span>
-            <span className="text-muted-foreground">
-              {formatTiming(stats.commonTiming)}
-            </span>
-          </div>
-        )}
-      </div>
-      
-      {isExisting && (
-        <Badge variant="secondary">
-          <CheckCircle2 className="h-3 w-3 mr-1" />
-          Unlocked
-        </Badge>
-      )}
-    </label>
-  );
+// BEFORE: Radio buttons that just select
+<RadioGroup onValueChange={setSelectedSubcategoryId}>
+  {subcategories.map((sub) => (
+    <div onClick={() => setSelectedSubcategoryId(sub.id)}>
+      <RadioGroupItem value={sub.id} />
+      <Label>{sub.name}</Label>
+    </div>
+  ))}
+</RadioGroup>
+
+// AFTER: Cards that navigate immediately
+{subcategories.map((sub) => (
+  <button
+    key={sub.id}
+    onClick={() => navigate(`/post?category=${category.id}&subcategory=${sub.id}`)}
+    className="w-full text-left p-4 rounded-lg border hover:border-primary transition-all group"
+  >
+    <div className="flex items-center justify-between">
+      <span className="font-medium">{sub.name}</span>
+      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+    </div>
+    {sub.description && (
+      <span className="text-sm text-muted-foreground">{sub.description}</span>
+    )}
+  </button>
+))}
+```
+
+### 2. Update Page Header Copy for Momentum
+
+Change the framing from "Select a Subcategory" to something action-oriented:
+
+**Current copy:**
+- "Select a Subcategory"
+- "Choose a specific service type to get started"
+
+**New copy:**
+- "What kind of work do you need?"
+- "Tap to continue — we'll ask a few quick questions"
+
+### 3. Remove Two-Card Choice Section
+
+The current page shows two cards after subcategory selection:
+1. "Post a Job" (broadcast)
+2. "Browse Professionals" (search)
+
+**For the momentum flow**, we should:
+- Keep "Post a Job" as the default action (clicking subcategory = Post Job flow)
+- Add a subtle link for "Browse Professionals" as an alternative
+
+```tsx
+{/* Alternative path - subtle, not blocking */}
+<p className="text-xs text-muted-foreground text-center mt-6">
+  {t('serviceCategory.orBrowse')}{' '}
+  <Link to={`/professionals?category=${category.id}`} className="underline hover:text-foreground">
+    {t('serviceCategory.browseProsLink')}
+  </Link>
+</p>
+```
+
+### 4. Add Visual Momentum Cue
+
+Add an arrow or chevron to each subcategory card to signal "tap to continue":
+
+```tsx
+<button className="... group">
+  <div className="flex items-center justify-between">
+    <span>{sub.name}</span>
+    <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+  </div>
+</button>
+```
+
+---
+
+## Translation Keys to Add
+
+**English (`en/common.json`):**
+```json
+{
+  "serviceCategory": {
+    "whatKindOfWork": "What kind of work do you need?",
+    "tapToContinue": "Tap to continue — we'll ask a few quick questions",
+    "orBrowse": "Or",
+    "browseProsLink": "browse professionals directly"
+  }
 }
 ```
 
-### 4. I18n Keys Structure
-
+**Spanish (`es/common.json`):**
 ```json
-// public/locales/en/onboarding.json
 {
-  "title": "Unlock Your Job Types",
-  "subtitle": "Choose which jobs you want to receive. The more specific, the better your matches.",
-  "trustLine": "Better matching = more quality leads you actually want",
-  
-  "progress": {
-    "unlocked": "{{count}} of {{min}} job types unlocked",
-    "hint": "Unlock at least {{min}} to start receiving matched leads",
-    "ready": "You're ready to receive matches!"
-  },
-  
-  "browse": {
-    "yourTypes": "Your Job Types",
-    "empty": "No job types unlocked yet",
-    "emptyHint": "Unlock your first job type to get started",
-    "unlockMore": "Unlock More"
-  },
-  
-  "steps": {
-    "browseByTrade": "Browse by trade",
-    "selectType": "Select service type",
-    "unlockTypes": "Unlock job types",
-    "setPriorities": "Set your priorities"
-  },
-  
-  "micro": {
-    "clientProvides": "Client provides:",
-    "openJobs": "{{count}} open jobs",
-    "timingAsap": "Usually ASAP",
-    "timingFlexible": "Usually flexible",
-    "timingScheduled": "Usually scheduled"
-  },
-  
-  "recommended": {
-    "title": "Recommended for {{trade}}",
-    "subtitle": "Based on active demand in Ibiza",
-    "jobsWaiting": "{{count}} jobs waiting"
-  },
-  
-  "actions": {
-    "selectAll": "Select All",
-    "clear": "Clear",
-    "continue": "Set Priorities",
-    "unlock": "Unlock {{count}} Job Type",
-    "unlock_plural": "Unlock {{count}} Job Types",
-    "complete": "Start Receiving Matches"
-  },
-  
-  "preferences": {
-    "title": "Set Your Priorities",
-    "subtitle": "Tell us which jobs you love vs prefer to avoid",
-    "setAllTo": "Set all to:",
-    "love": "Love it",
-    "like": "Like",
-    "neutral": "Neutral",
-    "avoid": "Avoid"
+  "serviceCategory": {
+    "whatKindOfWork": "¿Qué tipo de trabajo necesitas?",
+    "tapToContinue": "Toca para continuar — te haremos unas preguntas rápidas",
+    "orBrowse": "O",
+    "browseProsLink": "ver profesionales directamente"
   }
 }
 ```
 
 ---
 
-## Visual Flow Comparison
+## Flow Comparison
 
-**Before:**
-```
-┌─────────────────────────────────────────────┐
-│ Set Up Your Services                         │
-│ Select services you offer                    │
-│                                              │
-│ ☐ Tap Replacement                           │
-│ ☐ Bathroom Fitting                          │
-│ ☐ Emergency Plumbing                        │
-│                                              │
-│              [Continue to Preferences]       │
-└─────────────────────────────────────────────┘
+### Before (Broken Momentum)
+```text
+┌────────────────────────────────────────┐
+│ HVAC Services                          │
+│                                        │
+│ ○ Air Conditioning     [selected]      │
+│ ○ Heating Systems                      │
+│ ○ Ventilation                          │
+│ ○ Maintenance                          │
+│                                        │
+│ ─────────────────────────────────────  │
+│                                        │
+│ ┌──────────────┐  ┌──────────────┐    │
+│ │  Post Job    │  │ Browse Pros  │    │
+│ │   [Button]   │  │   [Button]   │    │
+│ └──────────────┘  └──────────────┘    │
+└────────────────────────────────────────┘
 ```
 
-**After:**
-```
-┌─────────────────────────────────────────────┐
-│ 🔓 Unlock Your Job Types                     │
-│ Choose which jobs you want to receive        │
-│                                              │
-│ ┌─────────────────────────────────────────┐ │
-│ │ ⭐ RECOMMENDED FOR PLUMBERS             │ │
-│ │ • Tap Replacement (8 jobs waiting)      │ │
-│ │ • Leak Detection (5 jobs waiting)       │ │
-│ └─────────────────────────────────────────┘ │
-│                                              │
-│ ┌─────────────────────────────────────────┐ │
-│ │ ☐  Tap Replacement                      │ │
-│ │     Client provides: photos, location   │ │
-│ │     💼 8 open  •  ⚡ Usually ASAP        │ │
-│ └─────────────────────────────────────────┘ │
-│                                              │
-│ ┌─────────────────────────────────────────┐ │
-│ │ ☐  Bathroom Fitting                     │ │
-│ │     Client provides: room size, style   │ │
-│ │     💼 7 open  •  📅 Usually flexible   │ │
-│ └─────────────────────────────────────────┘ │
-│                                              │
-│ 🔓 0 of 5 unlocked                           │
-│ ████████████████████████████████████░░░░░░░ │
-│                                              │
-│              [Set Priorities →]              │
-└─────────────────────────────────────────────┘
+### After (Flowing Journey)
+```text
+┌────────────────────────────────────────┐
+│ HVAC Services                          │
+│                                        │
+│ What kind of work do you need?         │
+│ Tap to continue                        │
+│                                        │
+│ ┌──────────────────────────────────┐  │
+│ │ Air Conditioning              →  │  │ ← Tap = navigate to wizard
+│ └──────────────────────────────────┘  │
+│ ┌──────────────────────────────────┐  │
+│ │ Heating Systems               →  │  │
+│ └──────────────────────────────────┘  │
+│ ┌──────────────────────────────────┐  │
+│ │ Ventilation                   →  │  │
+│ └──────────────────────────────────┘  │
+│                                        │
+│ Or browse professionals directly       │
+└────────────────────────────────────────┘
 ```
 
 ---
 
-## Alignment Payoff
+## Summary
 
-| Before | After |
-|--------|-------|
-| "Fill in your services" | "Unlock jobs waiting for you" |
-| Abstract categories | Concrete job opportunities |
-| No feedback until later | Immediate value visibility |
-| Setup feels like admin | Setup feels like claiming money |
-| Builders skip preferences | Preferences = priority control |
+The core change is simple: **clicking a subcategory immediately navigates to the wizard** with category + subcategory pre-filled.
 
-**The Rule Applied:**
-> "The system never asks for effort without immediately giving value back."
+This removes:
+- The "select then click button" friction
+- The two-card decision point (post vs browse)
+- The feeling of "filling out forms"
 
-Every micro now shows:
-1. What the builder unlocks (job type)
-2. What they'll receive (client provides)
-3. How much is waiting (open jobs count)
-4. When it typically happens (timing pattern)
+And adds:
+- Natural conversational flow
+- Clear momentum ("tap to continue")
+- Deep-link integration with existing wizard logic
 
----
-
-## Implementation Order
-
-1. **Create i18n namespace** - `onboarding.json` files
-2. **Create query hooks** - `useJobTypeStats.ts`, `useRecommendedJobTypes.ts`
-3. **Create components** - `JobTypeCard`, `UnlockProgress`, `RecommendedJobTypes`
-4. **Update main page** - Transform `ProfessionalServiceSetup.tsx`
-5. **Test with real data** - Verify stats show correctly for active micros
+The wizard's existing deep-link handler (lines 117-219) already does all the heavy lifting — we just need to send users there on subcategory tap.
 
