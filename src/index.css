@@ -136,10 +136,20 @@
 @layer base {
   * {
     @apply border-border;
+    transition-duration: 300ms;
   }
 
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   body {
