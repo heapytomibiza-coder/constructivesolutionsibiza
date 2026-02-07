@@ -6,7 +6,7 @@
  * Each micro is a simple toggle: IN or OUT.
  */
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -33,6 +33,7 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [showSaved, setShowSaved] = useState(false);
   const [isFirstSelection, setIsFirstSelection] = useState(true);
+  const savedTimerRef = useRef<number | null>(null);
 
   // Data hooks
   const { data: categories = [], isLoading: isLoadingTaxonomy } = useServiceTaxonomy();
@@ -55,16 +56,31 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     }
   }, [selectedCount, isFirstSelection]);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current);
+    };
+  }, []);
+
   // Calculate progress percentage
   const progress = useMemo(() => {
     if (selectedCount >= RECOMMENDED_MIN) return 100;
     return (selectedCount / RECOMMENDED_MIN) * 100;
   }, [selectedCount]);
 
-  // Helper to show quiet saved badge
+  // Quiet "Saved" badge - no stacking, no leaks
   const flashSaved = useCallback(() => {
     setShowSaved(true);
-    window.setTimeout(() => setShowSaved(false), 1200);
+
+    if (savedTimerRef.current) {
+      window.clearTimeout(savedTimerRef.current);
+    }
+
+    savedTimerRef.current = window.setTimeout(() => {
+      setShowSaved(false);
+      savedTimerRef.current = null;
+    }, 1200);
   }, []);
 
   // Handle micro toggle with quiet autosave feedback
