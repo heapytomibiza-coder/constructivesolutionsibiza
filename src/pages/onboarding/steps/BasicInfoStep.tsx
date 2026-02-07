@@ -9,6 +9,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, User, Phone, FileText, ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BasicInfoStepProps {
   onComplete: () => void;
@@ -121,6 +122,10 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
     saveMutation.mutate(formData);
   };
 
+  // Character count helpers
+  const bioNearLimit = formData.bio.length > 400;
+  const taglineNearLimit = formData.tagline.length > 80;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -130,20 +135,28 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
   }
 
   return (
-    <Card className="card-grounded">
+    <Card className="card-grounded animate-fade-in">
       <CardHeader>
-        <CardTitle className="font-display flex items-center gap-2">
-          <User className="h-5 w-5 text-primary" />
-          Tell us about yourself
-        </CardTitle>
-        <CardDescription>
-          This information will be visible to clients when they view your profile.
-        </CardDescription>
+        <div className="flex items-center gap-3">
+          {/* Gradient icon container - matches IntentSelector pattern */}
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-steel shadow-md">
+            <User className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <CardTitle className="font-display">Tell us about yourself</CardTitle>
+            <CardDescription>
+              This information will be visible to clients when they view your profile.
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name - Required */}
-          <div className="space-y-2">
+          <div 
+            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
+            style={{ animationDelay: '50ms' }}
+          >
             <Label htmlFor="display_name">
               Your Name <span className="text-destructive">*</span>
             </Label>
@@ -153,13 +166,17 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               value={formData.display_name}
               onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
               required
+              className="rounded-sm"
             />
           </div>
 
           {/* Phone */}
-          <div className="space-y-2">
+          <div 
+            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
+            style={{ animationDelay: '100ms' }}
+          >
             <Label htmlFor="phone" className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
+              <Phone className="h-4 w-4 text-muted-foreground" />
               Phone Number
             </Label>
             <Input
@@ -168,6 +185,7 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               placeholder="+34 600 000 000"
               value={formData.phone}
               onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+              className="rounded-sm"
             />
             <p className="text-xs text-muted-foreground">
               Used for WhatsApp notifications about new jobs
@@ -175,7 +193,10 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
           </div>
 
           {/* Business Name - Optional */}
-          <div className="space-y-2">
+          <div 
+            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
+            style={{ animationDelay: '150ms' }}
+          >
             <Label htmlFor="business_name">
               Business Name <span className="text-muted-foreground text-xs">(optional)</span>
             </Label>
@@ -184,13 +205,17 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               placeholder="e.g. García Electricidad S.L."
               value={formData.business_name}
               onChange={(e) => setFormData(prev => ({ ...prev, business_name: e.target.value }))}
+              className="rounded-sm"
             />
           </div>
 
           {/* Tagline */}
-          <div className="space-y-2">
+          <div 
+            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
+            style={{ animationDelay: '200ms' }}
+          >
             <Label htmlFor="tagline" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
+              <FileText className="h-4 w-4 text-muted-foreground" />
               Tagline
             </Label>
             <Input
@@ -199,14 +224,21 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               value={formData.tagline}
               onChange={(e) => setFormData(prev => ({ ...prev, tagline: e.target.value }))}
               maxLength={100}
+              className="rounded-sm"
             />
-            <p className="text-xs text-muted-foreground">
-              A short headline that appears with your name
+            <p className={cn(
+              'text-xs transition-colors',
+              taglineNearLimit ? 'text-accent' : 'text-muted-foreground'
+            )}>
+              A short headline that appears with your name • {formData.tagline.length}/100
             </p>
           </div>
 
           {/* Bio */}
-          <div className="space-y-2">
+          <div 
+            className="space-y-2 animate-slide-up opacity-0 [animation-fill-mode:forwards]"
+            style={{ animationDelay: '250ms' }}
+          >
             <Label htmlFor="bio">About You</Label>
             <Textarea
               id="bio"
@@ -215,15 +247,20 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
               rows={4}
               maxLength={500}
+              className="rounded-sm resize-none"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className={cn(
+              'text-xs transition-colors',
+              bioNearLimit ? 'text-accent' : 'text-muted-foreground'
+            )}>
               {formData.bio.length}/500 characters
             </p>
           </div>
 
           <Button 
             type="submit" 
-            className="w-full"
+            className="w-full hover:scale-[1.02] transition-transform animate-slide-up opacity-0 [animation-fill-mode:forwards]"
+            style={{ animationDelay: '300ms' }}
             disabled={saveMutation.isPending}
           >
             {saveMutation.isPending ? (

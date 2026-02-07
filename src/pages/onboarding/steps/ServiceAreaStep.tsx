@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, MapPin, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Loader2, MapPin, ArrowRight, ArrowLeft, Check, Globe } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ServiceAreaStepProps {
   onComplete: () => void;
@@ -49,6 +48,48 @@ const IBIZA_ZONES = [
     { id: 'es-cubells', label: 'Es Cubells' },
   ]},
 ];
+
+/**
+ * ZoneTile - Touch-friendly zone selection tile
+ * Matches the TileOption pattern from LogisticsStep
+ */
+function ZoneTile({ 
+  selected, 
+  onClick, 
+  label,
+  animationDelay = 0,
+}: { 
+  selected: boolean; 
+  onClick: () => void; 
+  label: string;
+  animationDelay?: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{ animationDelay: `${animationDelay}ms` }}
+      className={cn(
+        // Base styles - 48px min touch target
+        'relative flex items-center justify-between',
+        'min-h-[48px] px-4 py-3 rounded-lg',
+        'text-left text-sm font-medium',
+        'border-2 transition-all duration-150',
+        'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+        'animate-slide-up opacity-0 [animation-fill-mode:forwards]',
+        // Unselected state
+        !selected && 'border-border bg-muted/30 hover:border-primary/50 hover:bg-accent/50',
+        // Selected state with glow
+        selected && 'border-primary bg-primary/5 shadow-glow scale-[1.02]',
+      )}
+    >
+      <span className="flex-1">{label}</span>
+      {selected && (
+        <Check className="h-4 w-4 text-primary shrink-0 ml-2" />
+      )}
+    </button>
+  );
+}
 
 export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
   const { user, refresh } = useSession();
@@ -164,35 +205,62 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
     );
   }
 
+  // Calculate stagger delay for animations
+  let globalZoneIndex = 0;
+
   return (
-    <Card className="card-grounded">
+    <Card className="card-grounded animate-fade-in">
       <CardHeader>
-        <CardTitle className="font-display flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-primary" />
-          Where do you work?
-        </CardTitle>
-        <CardDescription>
-          Select the areas of Ibiza where you're available for jobs. You can update this anytime.
-        </CardDescription>
+        <div className="flex items-center gap-3">
+          {/* Gradient icon container */}
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-steel shadow-md">
+            <MapPin className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <CardTitle className="font-display">Where do you work?</CardTitle>
+            <CardDescription>
+              Select the areas of Ibiza where you're available for jobs.
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Island-wide toggle */}
-          <div className="flex items-center space-x-3 p-4 rounded-md bg-primary/5 border border-primary/20">
-            <Checkbox
-              id="island-wide"
-              checked={islandWide}
-              onCheckedChange={handleIslandWide}
-            />
-            <Label htmlFor="island-wide" className="font-medium cursor-pointer">
-              I cover the entire island
-            </Label>
-          </div>
+          {/* Island-wide toggle - Featured tile with accent */}
+          <button
+            type="button"
+            onClick={handleIslandWide}
+            className={cn(
+              'w-full flex items-center justify-between',
+              'min-h-[56px] px-4 py-3 rounded-lg',
+              'text-left font-medium',
+              'border-2 transition-all duration-150',
+              'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+              'animate-slide-up',
+              !islandWide && 'border-accent/50 bg-accent/10 hover:border-accent hover:bg-accent/20',
+              islandWide && 'border-accent bg-accent/20 shadow-glow scale-[1.01]',
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <Globe className={cn(
+                'h-5 w-5 transition-colors',
+                islandWide ? 'text-accent' : 'text-accent/70'
+              )} />
+              <span>I cover the entire island</span>
+            </div>
+            {islandWide && (
+              <Check className="h-5 w-5 text-accent shrink-0" />
+            )}
+          </button>
 
           {/* Zone groups */}
           <div className="space-y-6">
-            {IBIZA_ZONES.map((group) => (
-              <div key={group.group} className="space-y-3">
+            {IBIZA_ZONES.map((group, groupIndex) => (
+              <div 
+                key={group.group} 
+                className="space-y-3"
+                style={{ animationDelay: `${groupIndex * 50}ms` }}
+              >
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium text-foreground">{group.group}</h4>
                   <Button
@@ -200,32 +268,25 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleSelectGroup(group.zones)}
-                    className="text-xs"
+                    className="text-xs text-primary hover:text-primary/80"
                   >
                     {group.zones.every(z => selectedZones.includes(z.id)) ? 'Deselect all' : 'Select all'}
                   </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {group.zones.map((zone) => (
-                    <div 
-                      key={zone.id} 
-                      className={`flex items-center space-x-3 p-3 rounded-md border cursor-pointer transition-colors ${
-                        selectedZones.includes(zone.id)
-                          ? 'bg-primary/10 border-primary/30'
-                          : 'bg-muted/30 border-border hover:bg-muted/50'
-                      }`}
-                      onClick={() => handleZoneToggle(zone.id)}
-                    >
-                      <Checkbox
-                        id={zone.id}
-                        checked={selectedZones.includes(zone.id)}
-                        onCheckedChange={() => handleZoneToggle(zone.id)}
+                  {group.zones.map((zone) => {
+                    const delay = globalZoneIndex * 30;
+                    globalZoneIndex++;
+                    return (
+                      <ZoneTile
+                        key={zone.id}
+                        selected={selectedZones.includes(zone.id)}
+                        onClick={() => handleZoneToggle(zone.id)}
+                        label={zone.label}
+                        animationDelay={delay}
                       />
-                      <Label htmlFor={zone.id} className="cursor-pointer text-sm">
-                        {zone.label}
-                      </Label>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -233,15 +294,18 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
 
           {/* Selection summary */}
           {selectedZones.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {islandWide 
-                ? '🏝️ You\'ll receive jobs from across Ibiza' 
-                : `📍 ${selectedZones.length} zone${selectedZones.length > 1 ? 's' : ''} selected`}
-            </p>
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground animate-fade-in">
+              <MapPin className="h-4 w-4 text-primary shrink-0" />
+              <span>
+                {islandWide 
+                  ? 'You\'ll receive jobs from across Ibiza' 
+                  : `${selectedZones.length} zone${selectedZones.length > 1 ? 's' : ''} selected`}
+              </span>
+            </div>
           )}
 
           {/* Navigation */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-2">
             <Button 
               type="button" 
               variant="outline"
@@ -253,7 +317,7 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
             </Button>
             <Button 
               type="submit" 
-              className="flex-1"
+              className="flex-1 hover:scale-[1.02] transition-transform"
               disabled={saveMutation.isPending || selectedZones.length === 0}
             >
               {saveMutation.isPending ? (
