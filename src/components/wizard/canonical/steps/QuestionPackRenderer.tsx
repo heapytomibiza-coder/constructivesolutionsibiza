@@ -1,15 +1,15 @@
 /**
- * QuestionPackRenderer - Renders a single question pack with dedupe protection
- * Upgraded for V2 compatibility: type aliases, question_order, validation-ready number handling,
- * accept array normalization, and honest file-selection stub UI.
+ * QuestionPackRenderer - Renders a single question pack with mobile-first UX
+ * Large touch-friendly cards, smooth animations, easy-on-the-eye design
  */
 
 import React, { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Option can be a string OR {value, label} object
 interface QuestionOption {
@@ -109,28 +109,79 @@ interface Props {
 }
 
 // Question IDs that are handled by Step 5 (Logistics) and should not appear in Step 4
-// This prevents duplicate timing/urgency questions across wizard steps
 const LOGISTICS_HANDLED_QUESTION_IDS = new Set([
-  'timeline',           // "When would you like X done?"
-  'timing',             // "When do you need X?"
-  'urgency',            // "How urgent is this job?"
-  'preferred_timing',   // "Preferred timing for servicing?"
-  'start_timeline',     // Variant timing question
+  'timeline',
+  'timing',
+  'urgency',
+  'preferred_timing',
+  'start_timeline',
 ]);
+
+/**
+ * OptionCard - Large touch-friendly selectable card for radio/checkbox options
+ */
+function OptionCard({
+  option,
+  isSelected,
+  isMulti,
+  onSelect,
+}: {
+  option: QuestionOption;
+  isSelected: boolean;
+  isMulti: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        'relative w-full text-left p-4 rounded-lg border-2 transition-all duration-200',
+        'min-h-[56px] flex items-center gap-3',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        'active:scale-[0.98]',
+        isSelected
+          ? 'border-primary bg-primary/5 shadow-sm'
+          : 'border-border bg-card hover:border-primary/40 hover:bg-muted/50'
+      )}
+    >
+      {/* Selection indicator */}
+      <div
+        className={cn(
+          'flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200',
+          isMulti && 'rounded-md',
+          isSelected
+            ? 'border-primary bg-primary text-primary-foreground'
+            : 'border-muted-foreground/30 bg-background'
+        )}
+      >
+        {isSelected && <Check className="w-4 h-4" strokeWidth={3} />}
+      </div>
+
+      {/* Label */}
+      <span
+        className={cn(
+          'flex-1 text-base font-medium transition-colors',
+          isSelected ? 'text-foreground' : 'text-muted-foreground'
+        )}
+      >
+        {option.label}
+      </span>
+    </button>
+  );
+}
 
 export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }: Props) {
   // Normalize + order questions once (V2 safe)
   const normalizedOrderedQuestions = useMemo(() => {
     const ordered = getOrderedQuestions(pack);
-
-    // Normalize type aliases per question
     return ordered.map((q) => ({
       ...q,
       type: normalizeQuestionType(q.type),
     }));
   }, [pack]);
 
-  // UI protection: dedupe questions by id or label (memoized for performance)
+  // UI protection: dedupe questions by id or label
   const uniqueQuestions = useMemo(() => {
     const seen = new Set<string>();
     return (normalizedOrderedQuestions || []).filter((q) => {
@@ -142,14 +193,13 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
     });
   }, [normalizedOrderedQuestions]);
 
-  // Conditional visibility check - handles both single and multi-select answers
+  // Conditional visibility check
   const shouldShowQuestion = (question: QuestionDef): boolean => {
     const dep = question.show_if || question.dependsOn;
     if (!dep?.questionId) return true;
 
     const depValue = getAnswer(pack.micro_slug, dep.questionId);
 
-    // Normalize both sides to arrays of strings for robust comparison
     const depValueArr = Array.isArray(depValue)
       ? depValue.map(String)
       : depValue != null
@@ -160,7 +210,6 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
       ? dep.value.map(String)
       : [String(dep.value)];
 
-    // Show if ANY required value is present in the answer
     return requiredArr.some((v) => depValueArr.includes(v));
   };
 
@@ -177,6 +226,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
             placeholder={question.placeholder}
             value={(value as string) ?? ''}
             onChange={(e) => onAnswerChange(pack.micro_slug, question.id, e.target.value)}
+            className="h-12 text-base"
           />
         );
 
@@ -191,7 +241,6 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
             max={question.max}
             step={question.step}
             onChange={(e) => {
-              // Safer than valueAsNumber for intermediate states and empty values
               const raw = e.target.value;
               if (raw === '') {
                 onAnswerChange(pack.micro_slug, question.id, null);
@@ -200,6 +249,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
               const parsed = Number(raw);
               onAnswerChange(pack.micro_slug, question.id, Number.isNaN(parsed) ? null : parsed);
             }}
+            className="h-12 text-base"
           />
         );
 
@@ -211,6 +261,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
             value={(value as string) ?? ''}
             onChange={(e) => onAnswerChange(pack.micro_slug, question.id, e.target.value)}
             rows={3}
+            className="text-base"
           />
         );
 
@@ -230,10 +281,10 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
                   files ? Array.from(files).map((f) => f.name) : [],
                 );
               }}
-              className="cursor-pointer"
+              className="cursor-pointer h-12"
             />
             {fileNames.length > 0 && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Selected: {fileNames.join(', ')}{' '}
                 <span className="italic">(uploads after job is posted)</span>
               </p>
@@ -243,50 +294,46 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
       }
 
       case 'radio':
-      case 'select':
+      case 'select': {
+        const selectedValue = (value as string) ?? '';
         return (
-          <RadioGroup
-            value={(value as string) ?? ''}
-            onValueChange={(val) => onAnswerChange(pack.micro_slug, question.id, val)}
-            className="space-y-3 md:space-y-2"
-          >
+          <div className="grid gap-2">
             {question.options?.map((opt) => {
               const option = normalizeOption(opt);
               return (
-                <div key={option.value} className="flex items-center space-x-3 min-h-[48px] md:min-h-0 py-1">
-                  <RadioGroupItem value={option.value} id={`${key}-${option.value}`} />
-                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer flex-1">
-                    {option.label}
-                  </Label>
-                </div>
+                <OptionCard
+                  key={option.value}
+                  option={option}
+                  isSelected={selectedValue === option.value}
+                  isMulti={false}
+                  onSelect={() => onAnswerChange(pack.micro_slug, question.id, option.value)}
+                />
               );
             })}
-          </RadioGroup>
+          </div>
         );
+      }
 
       case 'checkbox': {
         const selectedOptions = Array.isArray(value) ? (value as string[]) : [];
         return (
-          <div className="space-y-3 md:space-y-2">
+          <div className="grid gap-2">
             {question.options?.map((opt) => {
               const option = normalizeOption(opt);
+              const isChecked = selectedOptions.includes(option.value);
               return (
-                <div key={option.value} className="flex items-center space-x-3 min-h-[48px] md:min-h-0 py-1">
-                  <Checkbox
-                    id={`${key}-${option.value}`}
-                    checked={selectedOptions.includes(option.value)}
-                    onCheckedChange={(checked) => {
-                      const isChecked = checked === true;
-                      const newSelected = isChecked
-                        ? [...selectedOptions, option.value]
-                        : selectedOptions.filter((o) => o !== option.value);
-                      onAnswerChange(pack.micro_slug, question.id, newSelected);
-                    }}
-                  />
-                  <Label htmlFor={`${key}-${option.value}`} className="cursor-pointer flex-1">
-                    {option.label}
-                  </Label>
-                </div>
+                <OptionCard
+                  key={option.value}
+                  option={option}
+                  isSelected={isChecked}
+                  isMulti={true}
+                  onSelect={() => {
+                    const newSelected = isChecked
+                      ? selectedOptions.filter((o) => o !== option.value)
+                      : [...selectedOptions, option.value];
+                    onAnswerChange(pack.micro_slug, question.id, newSelected);
+                  }}
+                />
               );
             })}
           </div>
@@ -304,21 +351,40 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
     .filter(shouldShowQuestion);
 
   return (
-    <div className="space-y-4">
-      <h4 className="font-medium text-foreground border-b pb-2">{pack.title}</h4>
+    <div className="space-y-6">
+      {visibleQuestions.map((question, index) => (
+        <div
+          key={question.id}
+          className="animate-fade-in"
+          style={{ animationDelay: `${index * 50}ms` }}
+        >
+          {/* Question card container */}
+          <div className="space-y-3">
+            <div className="flex items-start gap-2">
+              <Label
+                htmlFor={`${pack.micro_slug}-${question.id}`}
+                className="text-base font-semibold text-foreground leading-snug"
+              >
+                {question.label}
+                {question.required && question.type !== 'file' && (
+                  <span className="text-destructive ml-1">*</span>
+                )}
+              </Label>
+            </div>
 
-      {visibleQuestions.map((question) => (
-        <div key={question.id} className="space-y-2">
-          <Label htmlFor={`${pack.micro_slug}-${question.id}`}>
-            {question.label}
-            {/* File inputs are optional (uploads after posting) - never show asterisk */}
-            {question.required && question.type !== 'file' && <span className="text-destructive ml-1">*</span>}
-          </Label>
-          {question.help && <p className="text-sm text-muted-foreground">{question.help}</p>}
-          {renderQuestion(question)}
-          {errors?.[question.id] && (
-            <p className="text-sm text-destructive">{errors[question.id]}</p>
-          )}
+            {question.help && (
+              <p className="text-sm text-muted-foreground -mt-1">{question.help}</p>
+            )}
+
+            {renderQuestion(question)}
+
+            {errors?.[question.id] && (
+              <p className="text-sm text-destructive flex items-center gap-1.5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-destructive" />
+                {errors[question.id]}
+              </p>
+            )}
+          </div>
         </div>
       ))}
     </div>

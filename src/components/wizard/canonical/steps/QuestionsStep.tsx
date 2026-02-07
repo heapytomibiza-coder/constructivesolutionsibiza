@@ -278,24 +278,25 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
   }
 
   return (
-    <div className="space-y-8">
-      <h3 className="font-display text-lg font-semibold">
-        Tell us more about your project
-      </h3>
+    <div className="space-y-6">
+      {/* Clean header */}
+      <div className="space-y-1">
+        <h3 className="font-display text-xl font-semibold text-foreground">
+          A few quick questions
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Tap to select — helps pros give accurate quotes
+        </p>
+      </div>
 
       {packs.map((pack) => {
         const tier = getPackQualityTier(pack);
         return (
-          <div key={pack.id}>
+          <div key={pack.id} className="space-y-4">
             {tier === 'fallback' && (
-              <p className="text-sm text-muted-foreground mb-3 bg-muted/50 px-3 py-2 rounded-md">
-                General briefing — we're upgrading this service with trade-specific questions
-              </p>
-            )}
-            {tier === 'generic' && (
-              <p className="text-xs text-muted-foreground mb-2">
-                General briefing
-              </p>
+              <div className="text-sm text-muted-foreground bg-muted/50 px-4 py-3 rounded-lg border border-border/50">
+                General briefing — we're adding trade-specific questions soon
+              </div>
             )}
             <QuestionPackRenderer
               pack={pack}
@@ -308,8 +309,8 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
       })}
 
       {missingPacks.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          {missingPacks.length} service{missingPacks.length !== 1 ? 's' : ''} without specific questions yet.
+        <p className="text-xs text-muted-foreground text-center pt-2">
+          {missingPacks.length} service{missingPacks.length !== 1 ? 's' : ''} without specific questions yet
         </p>
       )}
     </div>
