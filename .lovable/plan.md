@@ -1,82 +1,71 @@
 
 
-# Fix i18n Translation Keys Flash on Auth Page
+# Fix i18n Translation Keys Still Showing Raw
 
-## Problem
+## Problem Analysis
 
-The auth confirmation screen shows raw translation keys (e.g., `confirmation.title`) because:
+The screenshot shows raw translation keys (`confirmation.title`, `confirmation.description`, etc.) on the confirmation screen even though:
+1. The `ready` guard exists in Auth.tsx
+2. Translations exist in `public/locales/en/auth.json`
+3. Preloading is configured
 
-1. `preloadAlternateLanguage()` only preloads the **other** language (not current)
-2. The current language namespaces load lazily via `i18next-http-backend`
-3. `useSuspense: false` allows components to render before translations are ready
-4. Auth page renders immediately → namespace not loaded → raw keys visible
+**Root Cause**: The `ready` flag from `useTranslation('auth')` can return `true` before the actual translation content is loaded from the HTTP backend. This is a known edge case with `useSuspense: false` and lazy-loaded namespaces.
 
 ## Solution
 
-Two-part fix:
+Two-pronged fix to guarantee translations are loaded:
 
-1. **Add `preloadCoreNamespaces()`** - Preload all namespaces for the current language on app mount
-2. **Add `ready` guard on Auth page** - Fallback protection for slow connections
+### 1. Add explicit translation validation check
 
-## Changes
-
-### File 1: `src/i18n/preload.ts`
-
-Add new function to preload current language namespaces:
-
-```typescript
-/**
- * Preload core namespaces for current language
- * Call on app mount to prevent raw keys flash
- */
-export async function preloadCoreNamespaces(): Promise<void> {
-  await i18n.loadNamespaces(CORE_NAMESPACES);
-}
-```
-
-### File 2: `src/App.tsx`
-
-Update the useEffect to preload current language first, then alternate:
-
-```typescript
-import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
-
-useEffect(() => {
-  // Preload current language immediately
-  preloadCoreNamespaces();
-  // Preload alternate language after delay
-  const id = window.setTimeout(preloadAlternateLanguage, 400);
-  return () => window.clearTimeout(id);
-}, []);
-```
-
-### File 3: `src/pages/auth/Auth.tsx`
-
-Add `ready` guard as fallback protection:
+Instead of relying solely on `ready`, also verify that a known translation key actually resolves (not to itself):
 
 ```typescript
 const { t, ready } = useTranslation('auth');
 
-if (!ready) {
-  return (
-    <div className="min-h-screen bg-gradient-concrete flex items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-    </div>
-  );
+// Double-check: if t('page.title') returns the key itself, translations aren't loaded
+const translationsLoaded = ready && t('page.title') !== 'page.title';
+
+if (!translationsLoaded) {
+  return <LoadingSpinner />;
 }
 ```
 
-## Summary
+### 2. Move i18n initialization to block rendering
+
+Ensure `preloadCoreNamespaces()` completes before the app renders by using a loading state in App.tsx:
+
+```typescript
+const [i18nReady, setI18nReady] = useState(false);
+
+useEffect(() => {
+  preloadCoreNamespaces().then(() => setI18nReady(true));
+  // ...
+}, []);
+
+if (!i18nReady) return <GlobalLoader />;
+```
+
+## Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/i18n/preload.ts` | Add `preloadCoreNamespaces()` function |
-| `src/App.tsx` | Call `preloadCoreNamespaces()` on mount, import it |
-| `src/pages/auth/Auth.tsx` | Add `ready` guard with loading spinner |
+| `src/pages/auth/Auth.tsx` | Add explicit translation validation check (belt-and-suspenders) |
+| `src/App.tsx` | Block routing until namespaces are loaded |
+
+## Implementation Details
+
+### Auth.tsx Changes
+- Add a secondary check that `t('page.title')` doesn't return the raw key
+- This catches the edge case where `ready` is `true` but HTTP fetch hasn't completed
+
+### App.tsx Changes  
+- Add `i18nReady` state that starts as `false`
+- Only render `<Routes>` after `preloadCoreNamespaces()` promise resolves
+- Show a minimal loader during the ~100ms fetch time
 
 ## Expected Result
 
-- No raw translation keys ever visible
-- Auth page shows spinner until translations ready (only on very slow connections)
-- Works on first visit, refresh, and language switch
+- Zero possibility of raw translation keys showing
+- Consistent loading experience across all auth screens
+- Works on slow connections, cold cache, and first visits
 
