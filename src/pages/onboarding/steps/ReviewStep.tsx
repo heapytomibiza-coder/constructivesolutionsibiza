@@ -134,46 +134,49 @@ export function ReviewStep({ onBack }: ReviewStepProps) {
           />
           <ChecklistItem
             icon={Briefcase}
-            label="Services selected"
-            description={`${selectedMicroIds.size} service${selectedMicroIds.size !== 1 ? 's' : ''} unlocked`}
+            label="Jobs selected"
+            description={`${selectedMicroIds.size} job type${selectedMicroIds.size !== 1 ? 's' : ''} unlocked`}
             isComplete={hasServices}
           />
         </CardContent>
       </Card>
 
-      {/* Selected services preview */}
+      {/* Selected services preview - reassurance, not admin */}
       {hasServices && (
         <Card className="card-grounded">
-          <CardHeader>
-            <CardTitle className="text-lg">You'll receive job requests for:</CardTitle>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">We'll only send you jobs for:</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {selectedServicesByCategory.map(category => (
-                <div key={category.categoryName}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span>{category.categoryEmoji || '📦'}</span>
-                    <span className="font-medium text-sm">{category.categoryName}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {category.services.length}
-                    </Badge>
+                <div key={category.categoryName} className="group">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span>{category.categoryEmoji || '📦'}</span>
+                      <span className="font-medium text-sm">{category.categoryName}</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {category.services.length}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 ml-6">
+                  <div className="flex flex-wrap gap-1.5 ml-6">
                     {category.services.map(service => (
-                      <Badge 
+                      <span 
                         key={service.id} 
-                        variant="outline"
-                        className="bg-primary/5 text-foreground"
+                        className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded"
                       >
                         {service.name}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
-            <p className="text-sm text-muted-foreground mt-4">
-              You can edit this anytime in your dashboard.
+            <p className="text-xs text-muted-foreground mt-4 pt-4 border-t border-border">
+              You can edit this anytime from your dashboard.
             </p>
           </CardContent>
         </Card>
