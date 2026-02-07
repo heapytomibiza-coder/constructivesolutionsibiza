@@ -1,143 +1,367 @@
 
-# Plan: Apply Design System to Professional Onboarding Wizard
 
-## Current Issues
+# Simplified Professional Onboarding: Binary Micro-Category Selection
 
-The onboarding wizard components I created have basic functionality but don't fully match the platform's "construction-grade professional" visual identity. Key gaps:
+## Executive Summary
 
-1. **Missing expressive animations** - IntentSelector uses staggered `animate-slide-up`; onboarding steps don't
-2. **Basic checkboxes instead of TileOption cards** - ServiceAreaStep uses plain checkboxes; should use touch-friendly tile cards with 48px min height
-3. **No gradient icon containers** - IntentSelector uses gradient backgrounds for icons; onboarding steps have plain icons
-4. **Missing selection glow effects** - IntentSelector has `shadow-glow` on selected; zone tiles don't
-5. **Form inputs lack warmth** - Plain inputs without the rounded-sm "industrial" styling
-6. **Progress bar lacks accent treatment**
+Transform the professional onboarding from a complex multi-step preference system (love/like/neutral/avoid) into a streamlined **binary IN/OUT toggle selection** that feels engaging, is idiot-proof, and directly feeds the matching algorithm.
+
+The goal: **Make selecting 296 micro-services feel like scrolling through a catalog, not filling out a form.**
 
 ---
 
-## Design Patterns to Apply
+## Current State Analysis
 
-Based on existing components:
+### What Exists
+- **16 categories** → **88 subcategories** → **296 micro-services**
+- Current flow: Category → Subcategory → Micros → Preferences (love/like/neutral/avoid)
+- `professional_services` table stores selections
+- `professional_micro_preferences` table stores preference levels
+- Matching view already uses `professional_services.micro_id` to match jobs
 
-| Pattern | Source | Apply To |
-|---------|--------|----------|
-| Staggered entrance animations | IntentSelector | Step tracker cards, zone tiles |
-| Gradient icon containers | IntentSelector | Card headers, step icons |
-| TileOption selection cards | LogisticsStep | Zone selection in ServiceAreaStep |
-| shadow-glow on selection | IntentSelector | Selected zones, current step |
-| 48px min touch targets | TileOption | All interactive elements |
-| card-grounded with inset shadow | Platform standard | Already using - keep |
-| font-display for headings | Platform standard | Already using - keep |
-
----
-
-## File-by-File Changes
-
-### 1. BasicInfoStep.tsx
-
-**Header Enhancement:**
-- Add gradient icon container (like IntentSelector) for the User icon
-- Use `bg-gradient-steel` background with white icon
-
-**Form Field Styling:**
-- Keep current structure but add subtle focus states
-- Add character count with accent color when near limit
-
-**Button Enhancement:**
-- Primary button already uses gradient - keep
-- Add subtle hover scale effect
-
-### 2. ServiceAreaStep.tsx
-
-**Major Refactor: Replace Checkboxes with TileOption Pattern**
-
-Replace the checkbox-based zone selection with proper tile cards that:
-- Have 48px minimum height
-- Show checkmark icon on selection (like TileOption)
-- Use `border-2 border-primary` when selected
-- Apply `shadow-glow` when selected
-- Animate on entry with staggered delays
-
-**Island-wide Toggle:**
-- Convert to a featured TileOption with accent gradient
-- Make it visually distinct as the "quick select all" option
-
-**Zone Group Headers:**
-- Add subtle divider styling
-- Make "Select all" button more visible
-
-### 3. ProfessionalOnboarding.tsx (Tracker View)
-
-**Step Cards Enhancement:**
-- Add staggered animation delays (like IntentSelector)
-- Use gradient icon containers for step icons
-- Enhanced selection state with scale transform and glow
-
-**Progress Card:**
-- Add steel gradient accent to progress bar fill
-- Animate progress changes smoothly
+### Problems with Current Approach
+1. **Too many steps**: Category → Subcategory → Micro → Preferences → Save
+2. **Preference complexity**: Love/Like/Neutral/Avoid adds cognitive load without clear value
+3. **No visual momentum**: Plain checkboxes, no satisfaction
+4. **Hidden progress**: User doesn't know what "done" looks like
+5. **Fragmented UI**: Separate pages, lose context
 
 ---
 
-## Visual Specifications
+## The New Approach: "Toggle to Unlock"
 
-### Tile Selection States
+### Core Principle
+**Every micro-service is a simple toggle: IN or OUT.**
+
+- **IN** = "I take on this type of job" (row in `professional_services`)
+- **OUT** = "I don't do this" (no row)
+
+No percentages. No love/like scores. Just binary.
+
+### Why This Works for Matching
+The matching algorithm only needs:
+1. Does this pro offer this micro-service? (binary filter)
+2. Is the pro in a matching zone? (location filter)
+3. Is the pro live? (status filter)
+
+Love/like preferences can become V2 **scoring signals** later—but for matching, IN/OUT is sufficient.
+
+---
+
+## UI Architecture: Progressive Reveal with Dopamine Hits
+
+### Layout: Three-Panel Collapsed Flow
 
 ```text
-UNSELECTED:
-┌─────────────────────────────┐
-│ ○ Zone Name                 │  bg-muted/30, border-border
-└─────────────────────────────┘
-
-SELECTED:
-┌─────────────────────────────┐
-│ ✓ Zone Name                 │  bg-primary/5, border-primary, shadow-glow
-└─────────────────────────────┘  + slight scale(1.02)
+┌────────────────────────────────────────────────────────────────────┐
+│  HEADER: Progress bar + "Selected: 7 services"                    │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │ 📦 ELECTRICAL                                    ▸ 24 items │  │
+│  │    ✓ 3 selected                                             │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+│                                                                    │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │ 🔧 PLUMBING                                      ▸ 18 items │  │
+│  │                                                             │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+│                                                                    │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │ ⚡ HVAC                                          ▸ 12 items │  │
+│  │                                                             │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+│                                                                    │
+│  [ ... more categories as accordion cards ... ]                   │
+│                                                                    │
+├────────────────────────────────────────────────────────────────────┤
+│  FOOTER: [Continue] - Disabled until ≥1 selected                  │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
-### Step Card States (Tracker)
+### When Category is Expanded
 
 ```text
-PENDING:
-┌──────────────────────────────────────────────┐
-│ [○] Step Name                                │  opacity-60, no interaction
-│     Description                              │
-└──────────────────────────────────────────────┘
-
-CURRENT:
-┌──────────────────────────────────────────────┐
-│ [gradient icon] Step Name      [Start ▶]    │  border-primary, ring-1, shadow-glow
-│                 Description                  │
-└──────────────────────────────────────────────┘
-
-COMPLETE:
-┌──────────────────────────────────────────────┐
-│ [✓] Step Name                  [Edit ▶]     │  success checkmark
-│     Description                              │
-└──────────────────────────────────────────────┘
-```
-
-### Header Icons (Gradient Containers)
-
-```tsx
-<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-steel shadow-md">
-  <User className="h-5 w-5 text-white" />
-</div>
+┌─────────────────────────────────────────────────────────────────────┐
+│ 📦 ELECTRICAL                                        [Collapse ▾]  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Installations (tap to expand)                                      │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │
+│  │ ✓ Install       │  │   Install       │  │   Consumer      │     │
+│  │   sockets       │  │   light         │  │   unit          │     │
+│  │                 │  │   fittings      │  │   replacement   │     │
+│  │   [SELECTED]    │  │                 │  │                 │     │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘     │
+│                                                                     │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │
+│  │ ✓ Full         │  │   EV charger    │  │   Smart home    │     │
+│  │   rewire        │  │   install       │  │   systems       │     │
+│  │                 │  │                 │  │                 │     │
+│  │   [SELECTED]    │  │                 │  │                 │     │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘     │
+│                                                                     │
+│  ─────────────────────────────────────────────────────────────────  │
+│                                                                     │
+│  Repairs & Fault Finding                                            │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │
+│  │   Fault         │  │   Emergency     │  │   Socket        │     │
+│  │   finding       │  │   callout       │  │   repair        │     │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘     │
+│                                                                     │
+│  [Select all Electrical]  [Clear Electrical]                        │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Implementation Order
+## Interaction Design: Making 296 Items Feel Light
 
-1. **ServiceAreaStep.tsx** - Replace checkbox tiles with proper TileOption-style cards
-2. **BasicInfoStep.tsx** - Add gradient icon container and refined styling  
-3. **ProfessionalOnboarding.tsx** - Add animations and enhanced step cards
+### 1. Accordion Categories (Progressive Disclosure)
+- Show 16 category cards initially (collapsed)
+- Click to expand → reveals subcategory groups inside
+- Each subcategory group shows its micro-services as tiles
+- **Never show all 296 at once**
+
+### 2. Tile Toggle Behavior
+- **Unselected**: Light grey, subtle border
+- **Tap/Click**: Instant toggle with micro-animation (tick appears, subtle glow)
+- **Selected**: Primary color border, checkmark, subtle pulse on first select
+
+### 3. Smart Progress Indicators
+- **Header**: "Selected: 7 services" (updates live)
+- **Category cards**: Show "✓ 3 selected" badge when collapsed
+- **Minimum gate**: "Select at least 1 to continue"
+
+### 4. Bulk Actions (Scoped)
+Within each expanded category:
+- "Select all [Category]" → selects all micros in that category
+- "Clear [Category]" → deselects all in that category
+- **No global "Select all 296"** (too risky, defeats personalization)
+
+### 5. Search (Quick Filter)
+- Sticky search bar: "Search services..."
+- Typing filters across all categories inline
+- Results show with category context preserved
 
 ---
 
-## Technical Notes
+## Database Simplification
 
-- Reuse the existing `TileOption` component from `src/components/wizard/canonical/steps/logistics/TileOption.tsx` where possible
-- Apply `animate-slide-up` with `animationDelay` like IntentSelector does
-- Use `shadow-glow` CSS variable (already defined in index.css)
-- Maintain 48px minimum touch targets for mobile accessibility
-- Keep existing form validation logic unchanged
+### Current Tables (Keep)
+- `professional_services` (user_id, micro_id) — **This is the binary truth**
+
+### Table to Deprecate (Later)
+- `professional_micro_preferences` — Love/like/neutral/avoid becomes optional V2 scoring
+
+### Logic Change
+Instead of checking preferences, matching uses only:
+```sql
+WHERE EXISTS (
+  SELECT 1 FROM professional_services ps 
+  WHERE ps.micro_id = m.id 
+  AND ps.user_id = pro.user_id
+)
+```
+
+This is **already how the current view works**, so no matching logic changes needed!
+
+---
+
+## New Component Architecture
+
+### 1. ServiceUnlockWizard (Main Container)
+```text
+/src/pages/onboarding/steps/ServiceUnlockStep.tsx
+
+State:
+- selectedMicroIds: Set<string>
+- expandedCategoryId: string | null
+- searchQuery: string
+
+Features:
+- Fetches all categories/subcategories/micros in one query (denormalized)
+- Groups by category → subcategory → micro
+- Renders accordion with tile grid
+- Handles bulk actions per category
+- Shows live selection count
+```
+
+### 2. CategoryAccordion
+```text
+/src/pages/onboarding/components/CategoryAccordion.tsx
+
+Props:
+- category: { id, name, subcategories: [...] }
+- selectedMicroIds: Set<string>
+- isExpanded: boolean
+- onToggle: () => void
+- onMicroToggle: (microId: string) => void
+- onSelectAll: () => void
+- onClearAll: () => void
+
+Features:
+- Collapsible header with selection count badge
+- Grid of subcategory groups when expanded
+- Staggered animation on expand
+```
+
+### 3. MicroToggleTile
+```text
+/src/pages/onboarding/components/MicroToggleTile.tsx
+
+Props:
+- micro: { id, name, slug }
+- isSelected: boolean
+- onToggle: () => void
+- animationDelay?: number
+
+Features:
+- 48px min touch target
+- Checkmark appears on selection
+- Subtle glow/scale on selected
+- Click anywhere to toggle
+```
+
+### 4. ServiceSearchBar
+```text
+/src/pages/onboarding/components/ServiceSearchBar.tsx
+
+Props:
+- value: string
+- onChange: (value: string) => void
+
+Features:
+- Instant filter as you type
+- Clear button
+- Debounced for performance
+```
+
+---
+
+## Onboarding Flow Integration
+
+### Updated Step Order
+1. **Basic Info** (name, phone, business name) — ✅ exists
+2. **Service Area** (zone selection) — ✅ exists
+3. **Services** (new binary tile selector) — **THIS IS THE CHANGE**
+4. **Review & Go Live** (new confirmation screen)
+
+### Go Live Requirements (Minimum Viable)
+```typescript
+const canGoLive = 
+  displayName.trim() !== '' &&
+  phone.trim() !== '' &&
+  serviceZones.length > 0 &&
+  selectedMicroIds.size >= 1;
+```
+
+### Profile Status After Go Live
+```sql
+UPDATE professional_profiles 
+SET 
+  profile_status = 'live',
+  onboarding_phase = 'complete',
+  submitted_at = NOW()
+WHERE user_id = auth.uid();
+```
+
+---
+
+## Copy & Messaging (Making It Informative)
+
+### Page Header
+**"What work do you want?"**
+*"Pick the jobs you're happy to take. We'll only send you matches for these."*
+
+### Category Card (Collapsed)
+**"Electrical"** — 24 services available
+*"✓ 3 selected"*
+
+### Category Card (Expanded Header)
+**"Electrical"**
+*"Toggle the jobs you take on. You can change these anytime."*
+
+### Micro Tile
+**"Install sockets & switches"**
+*(No extra text — clean and scannable)*
+
+### Selected Summary
+**"7 services selected"**
+*"Most professionals select 5-15"*
+
+### Continue Button States
+- Disabled: "Select at least 1 service"
+- Enabled: "Continue →"
+
+### Review Screen
+**"You'll receive job requests for:"**
+- Install sockets & switches
+- Light fittings
+- Consumer unit replacement
+- ...
+
+*"You can edit this anytime in your dashboard."*
+
+**[Go Live]**
+
+---
+
+## Technical Implementation
+
+### Phase 1: Service Selection Component
+1. Create `ServiceUnlockStep.tsx` with accordion layout
+2. Create `CategoryAccordion.tsx` with collapsible groups
+3. Create `MicroToggleTile.tsx` with binary toggle
+4. Integrate search filter
+5. Connect to `professional_services` table (insert on toggle, delete on untoggle)
+6. Add autosave with debounce (300ms)
+
+### Phase 2: Review & Go Live Step
+1. Create `ReviewStep.tsx` showing selected services
+2. Add Go Live button with requirements check
+3. Update `profile_status` and `onboarding_phase` on submit
+4. Redirect to `/dashboard/pro` on success
+
+### Phase 3: Cleanup
+1. Hide/remove preference step from flow
+2. Keep `professional_micro_preferences` table for future scoring
+3. Update matching view to only use `professional_services` (already does)
+
+---
+
+## Animations & Polish
+
+### Tile Selection Animation
+- On select: `scale(1.02)` + `shadow-glow` + checkmark fade-in (150ms)
+- On deselect: Smooth return to base state (100ms)
+
+### Category Expand Animation
+- Accordion opens with `max-height` transition
+- Tiles stagger in with 30ms delays
+- Smooth, not jarring
+
+### Progress Updates
+- Selection count updates with number animation (120 → 121)
+- "Saved ✓" toast appears briefly on each save
+
+### Continue Button
+- Disabled: Grey, no hover effect
+- Enabled: Primary gradient, subtle pulse to draw attention
+
+---
+
+## Summary
+
+| Before | After |
+|--------|-------|
+| Category → Subcategory → Micro → Preferences | Single page with accordion |
+| Love/Like/Neutral/Avoid | Binary toggle (IN/OUT) |
+| Checkboxes in lists | Touch-friendly tile cards |
+| No visible progress | Live counter + category badges |
+| Multi-step save | Autosave on every toggle |
+| Complex mental model | "Toggle = I do this job" |
+
+The result: **An idiot-proof, satisfying service selection experience that feeds clean binary data into your matching algorithm.**
+
