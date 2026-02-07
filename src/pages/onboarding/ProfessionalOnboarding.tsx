@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useSession } from '@/contexts/SessionContext';
-import { CheckCircle2, Circle, ArrowRight, Shield, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Shield, ArrowLeft, User, MapPin, Briefcase } from 'lucide-react';
 import { PLATFORM } from '@/domain/scope';
 import { BasicInfoStep, ServiceAreaStep } from './steps';
+import { cn } from '@/lib/utils';
 
 type WizardStep = 'tracker' | 'basic_info' | 'service_area' | 'job_types';
 
@@ -14,12 +15,13 @@ interface StepConfig {
   id: string;
   label: string;
   description: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const STEPS: StepConfig[] = [
-  { id: 'basic_info', label: 'Basic Information', description: 'Name, contact, and bio' },
-  { id: 'service_area', label: 'Service Area', description: 'Where you work in Ibiza' },
-  { id: 'job_types', label: 'Job Types', description: 'What services you offer' },
+  { id: 'basic_info', label: 'Basic Information', description: 'Name, contact, and bio', icon: User },
+  { id: 'service_area', label: 'Service Area', description: 'Where you work in Ibiza', icon: MapPin },
+  { id: 'job_types', label: 'Job Types', description: 'What services you offer', icon: Briefcase },
 ];
 
 /**
@@ -116,7 +118,7 @@ const ProfessionalOnboarding = () => {
       <div className="container py-12">
         <div className="mx-auto max-w-2xl">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 animate-fade-in">
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">
               {currentStep === 'tracker' ? 'Complete Your Profile' : 
                currentStep === 'basic_info' ? 'Step 1: About You' :
@@ -135,15 +137,22 @@ const ProfessionalOnboarding = () => {
           </div>
 
           {/* Progress Card */}
-          <Card className="mb-6 card-grounded">
+          <Card className="mb-6 card-grounded animate-fade-in">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="font-display">Progress</CardTitle>
-                <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
+                <span className="text-sm font-medium text-primary">{Math.round(progress)}%</span>
               </div>
             </CardHeader>
             <CardContent>
-              <Progress value={progress} className="h-3" />
+              <div className="relative">
+                <Progress value={progress} className="h-3" />
+                {/* Gradient overlay for progress bar */}
+                <div 
+                  className="absolute inset-0 h-3 rounded-full bg-gradient-steel opacity-20"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -155,21 +164,36 @@ const ProfessionalOnboarding = () => {
                 const isComplete = status === 'complete';
                 const isCurrent = status === 'current';
                 const canClick = isComplete || isCurrent;
+                const Icon = step.icon;
 
                 return (
                   <Card 
                     key={step.id}
-                    className={`card-grounded transition-all ${
-                      isCurrent ? 'border-primary ring-1 ring-primary/20' : ''
-                    } ${canClick ? 'cursor-pointer hover:border-primary/50' : 'opacity-60'}`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    className={cn(
+                      'card-grounded transition-all duration-200',
+                      'animate-slide-up opacity-0 [animation-fill-mode:forwards]',
+                      isCurrent && 'border-primary ring-1 ring-primary/20 shadow-glow',
+                      canClick && 'cursor-pointer hover:border-primary/50 hover:scale-[1.01]',
+                      !canClick && 'opacity-60'
+                    )}
                     onClick={() => canClick && handleStepClick(step.id)}
                   >
                     <CardContent className="flex items-center justify-between py-4">
                       <div className="flex items-center gap-4">
+                        {/* Step icon with gradient container for current/complete */}
                         {isComplete ? (
-                          <CheckCircle2 className="h-6 w-6 text-success" />
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
+                            <CheckCircle2 className="h-6 w-6 text-success" />
+                          </div>
+                        ) : isCurrent ? (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-steel shadow-md">
+                            <Icon className="h-5 w-5 text-white" />
+                          </div>
                         ) : (
-                          <Circle className={`h-6 w-6 ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
+                            <Icon className="h-5 w-5 text-muted-foreground" />
+                          </div>
                         )}
                         <div>
                           <p className="font-medium">{step.label}</p>
@@ -182,6 +206,10 @@ const ProfessionalOnboarding = () => {
                         <Button 
                           variant={isCurrent ? 'default' : 'outline'} 
                           size="sm"
+                          className={cn(
+                            'transition-transform',
+                            isCurrent && 'hover:scale-105'
+                          )}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleStepClick(step.id);
