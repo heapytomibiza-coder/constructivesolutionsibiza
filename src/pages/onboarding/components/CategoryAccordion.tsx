@@ -1,6 +1,6 @@
 /**
  * CategoryAccordion - Collapsible category card with micro-service tiles
- * Shows selection count badge when collapsed
+ * Shows selection count badge and completion bar when collapsed
  */
 
 import { useMemo } from 'react';
@@ -38,6 +38,7 @@ interface CategoryAccordionProps {
   onSelectAll: () => void;
   onClearAll: () => void;
   searchQuery?: string;
+  isFirstSelection?: boolean;
 }
 
 export function CategoryAccordion({
@@ -49,6 +50,7 @@ export function CategoryAccordion({
   onSelectAll,
   onClearAll,
   searchQuery = '',
+  isFirstSelection = false,
 }: CategoryAccordionProps) {
   // Filter micros by search query
   const filteredSubcategories = useMemo(() => {
@@ -71,6 +73,7 @@ export function CategoryAccordion({
   const allMicroIds = category.subcategories.flatMap(sub => sub.micros.map(m => m.id));
   const selectedCount = allMicroIds.filter(id => selectedMicroIds.has(id)).length;
   const hasFiltered = filteredSubcategories.length > 0;
+  const completionPercent = totalMicros > 0 ? (selectedCount / totalMicros) * 100 : 0;
 
   // Don't render if search has no results
   if (searchQuery && !hasFiltered) {
@@ -82,37 +85,48 @@ export function CategoryAccordion({
       'border border-border rounded-lg bg-card overflow-hidden transition-all duration-200',
       isExpanded && 'border-primary/50 shadow-md'
     )}>
-      {/* Header */}
+      {/* Header with completion bar */}
       <button
         type="button"
         onClick={onToggle}
         className={cn(
-          'w-full flex items-center justify-between p-4',
+          'w-full flex flex-col gap-2 p-4',
           'hover:bg-muted/50 transition-colors',
           'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset'
         )}
       >
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{category.icon_emoji || '📦'}</span>
-          <div className="text-left">
-            <h3 className="font-semibold text-foreground">{category.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              {totalMicros} services available
-            </p>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{category.icon_emoji || '📦'}</span>
+            <div className="text-left">
+              <h3 className="font-semibold text-foreground">{category.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {totalMicros} jobs available
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {selectedCount > 0 && (
+              <Badge variant="secondary" className="bg-primary/10 text-primary">
+                <Check className="h-3 w-3 mr-1" />
+                {selectedCount}
+              </Badge>
+            )}
+            <ChevronRight className={cn(
+              'h-5 w-5 text-muted-foreground transition-transform duration-200',
+              isExpanded && 'rotate-90'
+            )} />
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {selectedCount > 0 && (
-            <Badge variant="secondary" className="bg-primary/10 text-primary">
-              <Check className="h-3 w-3 mr-1" />
-              {selectedCount} selected
-            </Badge>
-          )}
-          <ChevronRight className={cn(
-            'h-5 w-5 text-muted-foreground transition-transform duration-200',
-            isExpanded && 'rotate-90'
-          )} />
-        </div>
+        {/* Completion bar - visual progress indicator */}
+        {selectedCount > 0 && (
+          <div className="w-full h-1 bg-muted rounded-full overflow-hidden ml-9">
+            <div 
+              className="h-full bg-primary/60 transition-all duration-300"
+              style={{ width: `${completionPercent}%` }}
+            />
+          </div>
+        )}
       </button>
 
       {/* Content */}
@@ -124,7 +138,10 @@ export function CategoryAccordion({
               type="button"
               variant="outline"
               size="sm"
-              onClick={onSelectAll}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectAll();
+              }}
               className="text-xs"
             >
               Select all
@@ -133,7 +150,10 @@ export function CategoryAccordion({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={onClearAll}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClearAll();
+              }}
               className="text-xs text-muted-foreground"
             >
               Clear
@@ -147,8 +167,8 @@ export function CategoryAccordion({
           <div className="p-4 space-y-6">
             {filteredSubcategories.map((subcategory, subIndex) => (
               <div key={subcategory.id}>
-                {/* Subcategory header */}
-                <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                {/* Subcategory header - soft section label */}
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
                   {subcategory.name}
                 </h4>
                 
@@ -161,6 +181,7 @@ export function CategoryAccordion({
                       isSelected={selectedMicroIds.has(micro.id)}
                       onToggle={() => onMicroToggle(micro.id)}
                       animationDelay={(subIndex * 50) + (microIndex * 30)}
+                      isFirstSelection={isFirstSelection}
                     />
                   ))}
                 </div>
