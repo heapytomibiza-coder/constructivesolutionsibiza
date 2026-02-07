@@ -30,10 +30,10 @@
     "hint": "Elige todas las que correspondan — esto ayuda a encontrar al profesional adecuado"
   },
   "logistics": {
-    "where": "¿Dónde está el trabajo?",
-    "when": "¿Cuándo lo necesitas?",
-    "budget": "¿Cuál es tu presupuesto?",
-    "contact": "¿Cómo deben contactarte?",
+    "whereTitle": "¿Dónde está el trabajo?",
+    "whenTitle": "¿Cuándo lo necesitas?",
+    "budgetTitle": "¿Cuál es tu presupuesto?",
+    "contactTitle": "¿Cómo deben contactarte?",
     "moreAreas": "Más zonas...",
     "fewerAreas": "Menos zonas",
     "otherAreaLabel": "Especificar ubicación",
@@ -43,22 +43,28 @@
     "specificDate": "Seleccionar fecha",
     "timing": {
       "asap": "Lo antes posible",
-      "thisWeek": "Esta semana",
-      "thisMonth": "Este mes",
-      "flexible": "Flexible",
-      "specific": "Fecha específica"
+      "thisWeek": "Dentro de una semana",
+      "thisMonth": "Dentro de un mes",
+      "flexible": "Soy flexible",
+      "specific": "Elegir fecha"
     },
     "budget": {
       "under500": "Menos de €500",
-      "500to1k": "€500 – €1k",
-      "1kto2_5k": "€1k – €2.5k",
-      "2_5kto5k": "€2.5k – €5k",
-      "over5k": "Más de €5k",
-      "needQuote": "Necesito presupuesto"
+      "under500Hint": "Pequeñas reparaciones",
+      "500to1k": "€500 – €1,000",
+      "500to1kHint": "Trabajos medianos",
+      "1kto2_5k": "€1,000 – €2,500",
+      "1kto2_5kHint": "Proyectos mayores",
+      "2_5kto5k": "€2,500 – €5,000",
+      "2_5kto5kHint": "Renovaciones importantes",
+      "over5k": "Más de €5,000",
+      "over5kHint": "Proyectos a gran escala",
+      "needQuote": "Necesito presupuesto",
+      "needQuoteHint": "No tengo claro el presupuesto"
     },
     "contact": {
       "siteVisit": "Visita en persona",
-      "phoneCall": "Llamada telefónica",
+      "phoneCall": "Llamada",
       "message": "Mensaje primero"
     }
   },

@@ -30,10 +30,10 @@
     "hint": "Choose all that apply — this helps match you with the right professionals"
   },
   "logistics": {
-    "where": "Where is the work?",
-    "when": "When do you need this?",
-    "budget": "What's your budget range?",
-    "contact": "How should pros reach you?",
+    "whereTitle": "Where is the work?",
+    "whenTitle": "When do you need this?",
+    "budgetTitle": "What's your budget range?",
+    "contactTitle": "How should pros reach you?",
     "moreAreas": "More areas...",
     "fewerAreas": "Fewer areas",
     "otherAreaLabel": "Specify location",
@@ -42,19 +42,25 @@
     "accessPlaceholder": "Gate code, parking, building access...",
     "specificDate": "Select date",
     "timing": {
-      "asap": "ASAP",
-      "thisWeek": "This week",
-      "thisMonth": "This month",
-      "flexible": "Flexible",
-      "specific": "Specific date"
+      "asap": "As soon as possible",
+      "thisWeek": "Within a week",
+      "thisMonth": "Within a month",
+      "flexible": "I'm flexible",
+      "specific": "Pick a date"
     },
     "budget": {
       "under500": "Under €500",
-      "500to1k": "€500 – €1k",
-      "1kto2_5k": "€1k – €2.5k",
-      "2_5kto5k": "€2.5k – €5k",
-      "over5k": "Over €5k",
-      "needQuote": "Need a quote"
+      "under500Hint": "Small repairs, quick fixes",
+      "500to1k": "€500 – €1,000",
+      "500to1kHint": "Medium-sized jobs",
+      "1kto2_5k": "€1,000 – €2,500",
+      "1kto2_5kHint": "Larger home projects",
+      "2_5kto5k": "€2,500 – €5,000",
+      "2_5kto5kHint": "Major renovations",
+      "over5k": "Over €5,000",
+      "over5kHint": "Full-scale projects",
+      "needQuote": "I need a quote first",
+      "needQuoteHint": "Not sure about budget yet"
     },
     "contact": {
       "siteVisit": "Site visit",

@@ -43,14 +43,14 @@ interface LogisticsStepProps {
   onChange: (logistics: Partial<WizardState['logistics']>) => void;
 }
 
-// Budget options with descriptions for radio layout
-const BUDGET_OPTIONS = [
-  { value: 'under_500', label: 'Under €500', hint: 'Small repairs, quick fixes' },
-  { value: '500_1000', label: '€500 – €1,000', hint: 'Medium jobs' },
-  { value: '1000_2500', label: '€1,000 – €2,500', hint: 'Larger projects' },
-  { value: '2500_5000', label: '€2,500 – €5,000', hint: 'Major work' },
-  { value: 'over_5000', label: 'Over €5,000', hint: 'Large-scale projects' },
-  { value: 'need_quote', label: 'I need a quote first', hint: 'Not sure yet' },
+// Budget option keys for i18n lookup
+const BUDGET_KEYS = [
+  { value: 'under_500', labelKey: 'logistics.budget.under500', hintKey: 'logistics.budget.under500Hint' },
+  { value: '500_1000', labelKey: 'logistics.budget.500to1k', hintKey: 'logistics.budget.500to1kHint' },
+  { value: '1000_2500', labelKey: 'logistics.budget.1kto2_5k', hintKey: 'logistics.budget.1kto2_5kHint' },
+  { value: '2500_5000', labelKey: 'logistics.budget.2_5kto5k', hintKey: 'logistics.budget.2_5kto5kHint' },
+  { value: 'over_5000', labelKey: 'logistics.budget.over5k', hintKey: 'logistics.budget.over5kHint' },
+  { value: 'need_quote', labelKey: 'logistics.budget.needQuote', hintKey: 'logistics.budget.needQuoteHint' },
 ] as const;
 
 export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
@@ -84,7 +84,7 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-primary" />
-          <Label className="text-sm font-semibold">{t('logistics.where')}</Label>
+          <Label className="text-sm font-semibold">{t('logistics.whereTitle')}</Label>
         </div>
         <Select
           value={logistics.location}
@@ -133,7 +133,7 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-primary" />
-          <Label className="text-sm font-semibold">{t('logistics.when')}</Label>
+          <Label className="text-sm font-semibold">{t('logistics.whenTitle')}</Label>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {TIMING_OPTIONS.map((opt) => (
@@ -182,14 +182,14 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Wallet className="h-4 w-4 text-primary" />
-          <Label className="text-sm font-semibold">{t('logistics.budget')}</Label>
+          <Label className="text-sm font-semibold">{t('logistics.budgetTitle')}</Label>
         </div>
         <RadioGroup
           value={logistics.budgetRange || ''}
           onValueChange={(val) => onChange({ budgetRange: val })}
           className="grid gap-2"
         >
-          {BUDGET_OPTIONS.map((opt) => (
+          {BUDGET_KEYS.map((opt) => (
             <label
               key={opt.value}
               htmlFor={`budget-${opt.value}`}
@@ -207,8 +207,8 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
                 className="shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <span className="font-medium text-sm">{opt.label}</span>
-                <span className="text-xs text-muted-foreground ml-2">{opt.hint}</span>
+                <span className="font-medium text-sm">{t(opt.labelKey)}</span>
+                <span className="text-xs text-muted-foreground ml-2">{t(opt.hintKey)}</span>
               </div>
             </label>
           ))}
@@ -219,7 +219,7 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-primary" />
-          <Label className="text-sm font-semibold">{t('logistics.contact')}</Label>
+          <Label className="text-sm font-semibold">{t('logistics.contactTitle')}</Label>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {CONTACT_OPTIONS.map((opt) => (
