@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, Check, ChevronLeft } from 'lucide-react';
@@ -114,6 +115,7 @@ interface Props {
 }
 
 export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, onComplete, errors }: Props) {
+  const { t } = useTranslation('wizard');
   const [packs, setPacks] = useState<QuestionPack[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -340,7 +342,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
         <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-        <p className="text-muted-foreground">Loading questions...</p>
+        <p className="text-muted-foreground">{t('questions.loading')}</p>
       </div>
     );
   }
@@ -352,9 +354,9 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
           <Check className="w-8 h-8 text-primary" />
         </div>
         <div>
-          <h3 className="font-display text-lg font-semibold mb-1">All set!</h3>
+          <h3 className="font-display text-lg font-semibold mb-1">{t('questions.allSet')}</h3>
           <p className="text-sm text-muted-foreground">
-            No additional questions needed. Continue to the next step.
+            {t('questions.noQuestionsNeeded')}
           </p>
         </div>
       </div>
@@ -375,7 +377,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-muted-foreground">
-            Question {currentIndex + 1} of {visibleQuestions.length}
+            {t('questions.questionOf', { current: currentIndex + 1, total: visibleQuestions.length })}
           </span>
           {currentIndex > 0 && (
             <button
@@ -383,7 +385,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
               className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
-              Back
+              {t('questions.back')}
             </button>
           )}
         </div>
@@ -408,7 +410,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
         
         {isMulti && (
           <p className="text-sm text-muted-foreground mb-4">
-            Select all that apply
+            {t('questions.selectAll')}
           </p>
         )}
 
@@ -481,7 +483,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
             size="lg"
             data-wizard-questions-complete={currentIndex === visibleQuestions.length - 1}
           >
-            {currentIndex === visibleQuestions.length - 1 ? '✓ Continue to next step' : 'Continue'}
+            {currentIndex === visibleQuestions.length - 1 ? `✓ ${t('questions.continueToNext')}` : t('buttons.continue')}
           </Button>
         </div>
       )}

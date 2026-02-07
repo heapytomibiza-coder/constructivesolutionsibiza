@@ -20,14 +20,34 @@
   },
   "category": {
     "headline": "What type of service do you need?",
-    "orBrowse": "or browse categories"
+    "orBrowse": "or browse categories",
+    "loading": "Loading categories…"
   },
   "subcategory": {
-    "headline": "What kind of {{category}} work?"
+    "headline": "What kind of {{category}} work?",
+    "loading": "Loading subcategories…",
+    "noSubcategories": "No subcategories available"
   },
   "micro": {
     "headline": "Select the specific tasks you need",
-    "hint": "Choose all that apply — this helps match you with the right professionals"
+    "hint": "Choose all that apply — this helps match you with the right professionals",
+    "selectMultiple": "Select tasks (multiple allowed)",
+    "selectSingle": "Select a service",
+    "loading": "Loading…",
+    "noServices": "No services available",
+    "tasksSelected": "{{count}} task selected",
+    "tasksSelected_plural": "{{count}} tasks selected"
+  },
+  "questions": {
+    "loading": "Loading questions...",
+    "allSet": "All set!",
+    "noQuestionsNeeded": "No additional questions needed. Continue to the next step.",
+    "questionOf": "Question {{current}} of {{total}}",
+    "back": "Back",
+    "selectAll": "Select all that apply",
+    "continueToNext": "Continue to next step",
+    "uploadsAfterPost": "(uploads after job is posted)",
+    "selectedFiles": "Selected: {{files}}"
   },
   "logistics": {
     "whereTitle": "Where is the work?",

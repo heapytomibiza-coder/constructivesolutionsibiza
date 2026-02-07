@@ -4,6 +4,7 @@
  */
 
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -179,6 +180,8 @@ function OptionCard({
 }
 
 export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }: Props) {
+  const { t } = useTranslation('wizard');
+  
   // Normalize + order questions once (V2 safe)
   const normalizedOrderedQuestions = useMemo(() => {
     const ordered = getOrderedQuestions(pack);
@@ -292,8 +295,8 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
             />
             {fileNames.length > 0 && (
               <p className="text-sm text-muted-foreground">
-                Selected: {fileNames.join(', ')}{' '}
-                <span className="italic">(uploads after job is posted)</span>
+                {t('questions.selectedFiles', { files: fileNames.join(', ') })}{' '}
+                <span className="italic">{t('questions.uploadsAfterPost')}</span>
               </p>
             )}
           </div>

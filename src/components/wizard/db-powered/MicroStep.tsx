@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Check } from "lucide-react";
 
@@ -22,6 +23,7 @@ export default function MicroStep({
   onSelect,
   multiSelect = true,
 }: Props) {
+  const { t } = useTranslation('wizard');
   const [microCategories, setMicroCategories] = useState<MicroCategory[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -80,13 +82,13 @@ export default function MicroStep({
   return (
     <div>
       <label className="block text-sm font-medium mb-2">
-        {multiSelect ? 'Select tasks (multiple allowed)' : 'Select a service'}
+        {multiSelect ? t('micro.selectMultiple') : t('micro.selectSingle')}
       </label>
       
       {loading ? (
-        <p className="text-muted-foreground">Loading…</p>
+        <p className="text-muted-foreground">{t('micro.loading')}</p>
       ) : microCategories.length === 0 ? (
-        <p className="text-muted-foreground">No services available</p>
+        <p className="text-muted-foreground">{t('micro.noServices')}</p>
       ) : (
         <div className="space-y-2">
           {microCategories.map((micro) => {
@@ -125,7 +127,7 @@ export default function MicroStep({
       
       {multiSelect && selectedMicroIds.length > 0 && (
         <p className="mt-3 text-sm text-muted-foreground">
-          {selectedMicroIds.length} task{selectedMicroIds.length !== 1 ? 's' : ''} selected
+          {t('micro.tasksSelected', { count: selectedMicroIds.length })}
         </p>
       )}
     </div>

@@ -20,14 +20,34 @@
   },
   "category": {
     "headline": "¿Qué tipo de servicio necesitas?",
-    "orBrowse": "o explorar categorías"
+    "orBrowse": "o explorar categorías",
+    "loading": "Cargando categorías…"
   },
   "subcategory": {
-    "headline": "¿Qué tipo de trabajo de {{category}}?"
+    "headline": "¿Qué tipo de trabajo de {{category}}?",
+    "loading": "Cargando subcategorías…",
+    "noSubcategories": "No hay subcategorías disponibles"
   },
   "micro": {
     "headline": "Selecciona las tareas específicas que necesitas",
-    "hint": "Elige todas las que correspondan — esto ayuda a encontrar al profesional adecuado"
+    "hint": "Elige todas las que correspondan — esto ayuda a encontrar al profesional adecuado",
+    "selectMultiple": "Selecciona tareas (se permiten varias)",
+    "selectSingle": "Selecciona un servicio",
+    "loading": "Cargando…",
+    "noServices": "No hay servicios disponibles",
+    "tasksSelected": "{{count}} tarea seleccionada",
+    "tasksSelected_plural": "{{count}} tareas seleccionadas"
+  },
+  "questions": {
+    "loading": "Cargando preguntas...",
+    "allSet": "¡Todo listo!",
+    "noQuestionsNeeded": "No se necesitan más preguntas. Continúa al siguiente paso.",
+    "questionOf": "Pregunta {{current}} de {{total}}",
+    "back": "Atrás",
+    "selectAll": "Selecciona todas las que correspondan",
+    "continueToNext": "Continuar al siguiente paso",
+    "uploadsAfterPost": "(se subirán después de publicar)",
+    "selectedFiles": "Seleccionados: {{files}}"
   },
   "logistics": {
     "whereTitle": "¿Dónde está el trabajo?",

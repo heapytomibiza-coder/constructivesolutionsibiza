@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Subcategory {
@@ -20,6 +21,7 @@ export default function SubcategorySelector({
   selectedSubcategoryId,
   onSelect,
 }: Props) {
+  const { t } = useTranslation('wizard');
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -54,13 +56,13 @@ export default function SubcategorySelector({
   }
 
   if (loading) {
-    return <p className="text-muted-foreground">Loading subcategories…</p>;
+    return <p className="text-muted-foreground">{t('subcategory.loading')}</p>;
   }
 
   return (
     <div className="space-y-2">
       {subcategories.length === 0 ? (
-        <p className="text-muted-foreground">No subcategories available</p>
+        <p className="text-muted-foreground">{t('subcategory.noSubcategories')}</p>
       ) : (
         subcategories.map((subcategory) => {
           const isSelected = selectedSubcategoryId === subcategory.id;
