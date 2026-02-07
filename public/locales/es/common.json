@@ -36,10 +36,10 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "El puente entre tu idea y la obra",
-    "subtitle": "Te ayudamos a entender tu proyecto y te conectamos con los profesionales adecuados",
-    "postJob": "Iniciar proyecto",
-    "browsePros": "Ver profesionales"
+    "title": "¿Qué podemos ayudarte a construir?",
+    "subtitle": "Traducimos tu idea en un briefing claro — luego te conectamos con los profesionales adecuados",
+    "postJob": "Empieza Tu Proyecto",
+    "browsePros": "Ver Profesionales"
   },
   "trust": {
     "verified": "Oficios verificados",

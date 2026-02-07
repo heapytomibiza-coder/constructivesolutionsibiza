@@ -78,13 +78,11 @@ export function HeroBanner({
           
           {action && (
             <div className="mt-8">
-              {action}
-            </div>
-          )}
-          
-          {children}
+          {action}
         </div>
-      </div>
-    </section>
+      )}
+    </div>
+  </div>
+</section>
   );
 }
