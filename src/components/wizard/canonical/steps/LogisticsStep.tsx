@@ -1,15 +1,20 @@
 /**
  * Logistics Step
- * Tile-based UI for timing, budget, and contact preference
- * Location uses a grouped dropdown for the full Ibiza taxonomy
+ * Optimized layout with clear visual hierarchy
+ * - Location: Grouped dropdown
+ * - Timing: Compact tile grid
+ * - Budget: Radio options with context
+ * - Contact: Horizontal selection
  */
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar } from 'lucide-react';
+import { Calendar, MapPin, Clock, Wallet, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import {
@@ -24,13 +29,12 @@ import {
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { WizardState, ConsultationType } from '../types';
-import { TileOption, LogisticsSection } from './logistics';
+import { TileOption } from './logistics';
 import {
   MAIN_LOCATIONS,
   POPULAR_LOCATIONS,
   OTHER_LOCATION,
   TIMING_OPTIONS,
-  BUDGET_OPTIONS,
   CONTACT_OPTIONS,
 } from './logistics/constants';
 
@@ -39,13 +43,22 @@ interface LogisticsStepProps {
   onChange: (logistics: Partial<WizardState['logistics']>) => void;
 }
 
+// Budget options with descriptions for radio layout
+const BUDGET_OPTIONS = [
+  { value: 'under_500', label: 'Under €500', hint: 'Small repairs, quick fixes' },
+  { value: '500_1000', label: '€500 – €1,000', hint: 'Medium jobs' },
+  { value: '1000_2500', label: '€1,000 – €2,500', hint: 'Larger projects' },
+  { value: '2500_5000', label: '€2,500 – €5,000', hint: 'Major work' },
+  { value: 'over_5000', label: 'Over €5,000', hint: 'Large-scale projects' },
+  { value: 'need_quote', label: 'I need a quote first', hint: 'Not sure yet' },
+] as const;
+
 export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
   const { t } = useTranslation('wizard');
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const handleLocationSelect = (value: string) => {
     onChange({ location: value });
-    // Clear custom location if not "other"
     if (value !== 'other') {
       onChange({ location: value, customLocation: undefined });
     }
@@ -53,7 +66,6 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
 
   const handleTimingSelect = (value: string) => {
     onChange({ startDatePreset: value });
-    // Open calendar if "specific" is selected
     if (value === 'specific') {
       setCalendarOpen(true);
     } else {
@@ -67,136 +79,163 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Section 1: WHERE - Dropdown */}
-      <LogisticsSection title={t('logistics.where')}>
+    <div className="space-y-6">
+      {/* Section 1: LOCATION */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <MapPin className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-semibold">{t('logistics.where')}</Label>
+        </div>
         <Select
           value={logistics.location}
           onValueChange={handleLocationSelect}
         >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={t('logistics.where')} />
+          <SelectTrigger className="w-full h-12 text-base">
+            <SelectValue placeholder="Select area..." />
           </SelectTrigger>
-          <SelectContent className="bg-popover z-50">
+          <SelectContent className="bg-popover z-50 max-h-[300px]">
             <SelectGroup>
-              <SelectLabel>Main Towns</SelectLabel>
+              <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wide">Main Towns</SelectLabel>
               {MAIN_LOCATIONS.map((loc) => (
-                <SelectItem key={loc.value} value={loc.value}>
+                <SelectItem key={loc.value} value={loc.value} className="py-2.5">
                   {loc.label}
                 </SelectItem>
               ))}
             </SelectGroup>
             <SelectGroup>
-              <SelectLabel>Popular Areas</SelectLabel>
+              <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wide">Popular Areas</SelectLabel>
               {POPULAR_LOCATIONS.map((loc) => (
-                <SelectItem key={loc.value} value={loc.value}>
+                <SelectItem key={loc.value} value={loc.value} className="py-2.5">
                   {loc.label}
                 </SelectItem>
               ))}
             </SelectGroup>
             <SelectGroup>
-              <SelectLabel>Other</SelectLabel>
-              <SelectItem value={OTHER_LOCATION.value}>
+              <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wide">Other</SelectLabel>
+              <SelectItem value={OTHER_LOCATION.value} className="py-2.5">
                 {OTHER_LOCATION.label}
               </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
 
-        {/* Custom location input */}
         {logistics.location === 'other' && (
-          <div className="mt-3 space-y-2">
-            <label className="text-sm font-medium">{t('logistics.otherAreaLabel')}</label>
-            <Input
-              value={logistics.customLocation || ''}
-              onChange={(e) => onChange({ customLocation: e.target.value })}
-              placeholder={t('logistics.otherAreaPlaceholder')}
-            />
-          </div>
+          <Input
+            value={logistics.customLocation || ''}
+            onChange={(e) => onChange({ customLocation: e.target.value })}
+            placeholder={t('logistics.otherAreaPlaceholder')}
+            className="h-12"
+          />
         )}
-      </LogisticsSection>
+      </section>
 
-      {/* Section 2: WHEN */}
-      <LogisticsSection title={t('logistics.when')}>
-        <div className="grid grid-cols-2 gap-3">
+      {/* Section 2: TIMING */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-semibold">{t('logistics.when')}</Label>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {TIMING_OPTIONS.map((opt) => (
             <TileOption
               key={opt.value}
               selected={logistics.startDatePreset === opt.value}
               onClick={() => handleTimingSelect(opt.value)}
+              className="text-sm py-3"
             >
               {t(opt.labelKey)}
             </TileOption>
           ))}
         </div>
 
-        {/* Date picker for specific date */}
         {logistics.startDatePreset === 'specific' && (
-          <div className="mt-3">
-            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !logistics.startDate && 'text-muted-foreground'
-                  )}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {logistics.startDate 
-                    ? format(logistics.startDate, 'PPP')
-                    : t('logistics.specificDate')
-                  }
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-popover z-50" align="start">
-                <CalendarComponent
-                  mode="single"
-                  selected={logistics.startDate}
-                  onSelect={handleDateSelect}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  'w-full h-12 justify-start text-left font-normal',
+                  !logistics.startDate && 'text-muted-foreground'
+                )}
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                {logistics.startDate 
+                  ? format(logistics.startDate, 'PPP')
+                  : t('logistics.specificDate')
+                }
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-popover z-50" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={logistics.startDate}
+                onSelect={handleDateSelect}
+                disabled={(date) => date < new Date()}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         )}
-      </LogisticsSection>
+      </section>
 
-      {/* Section 3: BUDGET */}
-      <LogisticsSection title={t('logistics.budget')}>
-        <div className="grid grid-cols-2 gap-3">
-          {BUDGET_OPTIONS.map((opt) => (
-            <TileOption
-              key={opt.value}
-              selected={logistics.budgetRange === opt.value}
-              onClick={() => onChange({ budgetRange: opt.value })}
-            >
-              {t(opt.labelKey)}
-            </TileOption>
-          ))}
+      {/* Section 3: BUDGET - Radio Options */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Wallet className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-semibold">{t('logistics.budget')}</Label>
         </div>
-      </LogisticsSection>
+        <RadioGroup
+          value={logistics.budgetRange || ''}
+          onValueChange={(val) => onChange({ budgetRange: val })}
+          className="grid gap-2"
+        >
+          {BUDGET_OPTIONS.map((opt) => (
+            <label
+              key={opt.value}
+              htmlFor={`budget-${opt.value}`}
+              className={cn(
+                'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all',
+                'hover:border-primary/50 hover:bg-accent/30',
+                logistics.budgetRange === opt.value
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border bg-card'
+              )}
+            >
+              <RadioGroupItem 
+                value={opt.value} 
+                id={`budget-${opt.value}`}
+                className="shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <span className="font-medium text-sm">{opt.label}</span>
+                <span className="text-xs text-muted-foreground ml-2">{opt.hint}</span>
+              </div>
+            </label>
+          ))}
+        </RadioGroup>
+      </section>
 
-      {/* Section 4: CONTACT */}
-      <LogisticsSection title={t('logistics.contact')}>
-        <div className="grid grid-cols-3 gap-3">
+      {/* Section 4: CONTACT PREFERENCE */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-semibold">{t('logistics.contact')}</Label>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
           {CONTACT_OPTIONS.map((opt) => (
             <TileOption
               key={opt.value}
               selected={logistics.consultationType === opt.value}
               onClick={() => onChange({ consultationType: opt.value })}
+              className="text-xs sm:text-sm py-3 text-center"
             >
               {t(opt.labelKey)}
             </TileOption>
           ))}
         </div>
 
-        {/* Optional access notes */}
-        <div className="mt-4 space-y-2">
-          <label className="text-sm text-muted-foreground">
-            {t('logistics.accessNotes')}
-          </label>
+        {/* Access notes - collapsible feel */}
+        <div className="pt-2">
           <Textarea
             value={logistics.accessDetails?.join('\n') || ''}
             onChange={(e) => onChange({
@@ -204,10 +243,13 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
             })}
             placeholder={t('logistics.accessPlaceholder')}
             rows={2}
-            className="resize-none"
+            className="resize-none text-sm"
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            {t('logistics.accessNotes')}
+          </p>
         </div>
-      </LogisticsSection>
+      </section>
     </div>
   );
 }
