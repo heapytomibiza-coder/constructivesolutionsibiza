@@ -89,26 +89,38 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
 
   return (
     <>
-      <div className="flex items-center justify-between p-4 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium truncate group-hover:text-primary transition-colors">
-              {job.title}
-            </h3>
-            <Badge variant={getStatusBadgeVariant(job.status)}>
-              {job.status === 'in_progress' ? 'In Progress' : job.status}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {job.category && job.subcategory 
-              ? `${job.category} → ${job.subcategory}` 
-              : 'Uncategorized'}
-            {' · '}
+      <div className="p-4 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group">
+        {/* Header row: Badge + timestamp */}
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <Badge variant={getStatusBadgeVariant(job.status)}>
+            {job.status === 'in_progress' ? 'In Progress' : job.status}
+          </Badge>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
             {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
-          </p>
+          </span>
         </div>
+        
+        {/* Title */}
+        <h3 className="font-medium text-foreground group-hover:text-primary transition-colors mb-1">
+          {job.title}
+        </h3>
+        
+        {/* Category */}
+        <p className="text-sm text-muted-foreground mb-3">
+          {job.category && job.subcategory 
+            ? `${job.category} → ${job.subcategory}` 
+            : 'Uncategorized'}
+        </p>
+        
+        {/* Status message for open jobs */}
+        {job.status === 'open' && !job.assigned_professional_id && (
+          <p className="text-xs text-muted-foreground mb-3">
+            No professionals have messaged yet
+          </p>
+        )}
+        
+        {/* Actions row */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Show assignment selector for open jobs without assigned pro */}
           {job.status === 'open' && !job.assigned_professional_id && (
             <AssignProSelector jobId={job.id} onAssigned={onJobUpdated} />
           )}
