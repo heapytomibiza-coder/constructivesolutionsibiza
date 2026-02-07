@@ -1,81 +1,27 @@
 
 
-# Auto-Expand First Matching Category on Search
+# Gold+ Auto-Expand: Respect User's Manual Override
 
-## Overview
+## The Problem
 
-Add "smart" auto-expand behavior that automatically opens the first category with matching results when the user starts typing in the search bar. This makes search feel intelligent and responsive without requiring manual clicks.
+Current behavior is frustrating:
 
----
+| User Action | Current Result | Expected Result |
+|-------------|---------------|-----------------|
+| Type "socket" | Electrical expands | Electrical expands |
+| Click Plumbing | **Electrical re-expands!** | Plumbing stays open |
+| Continue typing | **Keeps jumping back** | User's choice respected |
 
-## Current Behavior
-
-When searching:
-1. User types in search bar
-2. Categories with no matches are hidden
-3. Matching categories stay collapsed until manually clicked
-4. User must guess which category to expand
-
-## New Behavior
-
-When searching:
-1. User types in search bar
-2. Categories with no matches are hidden
-3. **First matching category auto-expands**
-4. User immediately sees results without extra clicks
-5. Clearing search returns to previous state (all collapsed)
+The effect fires on every `searchQuery` change, forcing the first match to expand even when the user explicitly chose another category.
 
 ---
 
-## Implementation Approach
+## Solution: Track Manual Override
 
-### Logic: Find First Matching Category ID
-
-Add a `useMemo` that finds the first category ID with search matches:
-
-```tsx
-const firstMatchingCategoryId = useMemo(() => {
-  if (!searchQuery) return null;
-  const q = searchQuery.toLowerCase();
-  
-  const match = categories.find((c) =>
-    c.subcategories.some((s) =>
-      s.micros.some((m) => 
-        m.name.toLowerCase().includes(q) || 
-        m.slug.toLowerCase().includes(q)
-      )
-    )
-  );
-  
-  return match?.id ?? null;
-}, [categories, searchQuery]);
-```
-
-### Logic: Auto-Expand Effect
-
-Add a `useEffect` that expands the first match when searching:
-
-```tsx
-// Auto-expand first matching category when searching
-useEffect(() => {
-  if (searchQuery && firstMatchingCategoryId) {
-    setExpandedCategoryId(firstMatchingCategoryId);
-  } else if (!searchQuery) {
-    // Collapse all when search is cleared
-    setExpandedCategoryId(null);
-  }
-}, [searchQuery, firstMatchingCategoryId]);
-```
-
-### Edge Case Handling
-
-| Scenario | Behavior |
-|----------|----------|
-| No search query | No auto-expand, manual control |
-| Search with matches | First matching category expands |
-| Search with no matches | Nothing to expand, empty state shown |
-| User manually clicks different category | That category expands (override) |
-| Search cleared | All categories collapse |
+Add a `userExpandedDuringSearch` flag that:
+- Sets `true` when user manually clicks a category while searching
+- Prevents auto-expand while set
+- Resets when search is cleared
 
 ---
 
@@ -85,46 +31,58 @@ useEffect(() => {
 
 | Location | Change |
 |----------|--------|
-| After `hasAnySearchResults` memo (~line 137) | Add `firstMatchingCategoryId` memo |
-| After cleanup effect (~line 64) | Add auto-expand effect |
+| Line 35 | Add `userExpandedDuringSearch` state |
+| Lines 83-90 | Update auto-expand effect to respect manual override |
+| Lines 249-251 | Update `onToggle` handler to set override flag |
 
 ---
 
 ## Detailed Edits
 
-### 1. Add `firstMatchingCategoryId` Memo (after line 137)
+### 1. Add Override State (after line 35)
 
 ```tsx
-// Find first category with search matches for auto-expand
-const firstMatchingCategoryId = useMemo(() => {
-  if (!searchQuery) return null;
-  const q = searchQuery.toLowerCase();
-  
-  const match = categories.find((c) =>
-    c.subcategories.some((s) =>
-      s.micros.some((m) => 
-        m.name.toLowerCase().includes(q) || 
-        m.slug.toLowerCase().includes(q)
-      )
-    )
-  );
-  
-  return match?.id ?? null;
-}, [categories, searchQuery]);
+const [userExpandedDuringSearch, setUserExpandedDuringSearch] = useState(false);
 ```
 
-### 2. Add Auto-Expand Effect (after line 64)
+### 2. Update Auto-Expand Effect (lines 83-90)
+
+Replace the current effect with:
 
 ```tsx
-// Auto-expand first matching category when searching
+// Auto-expand first matching category when searching (respects manual override)
 useEffect(() => {
-  if (searchQuery && firstMatchingCategoryId) {
-    setExpandedCategoryId(firstMatchingCategoryId);
-  } else if (!searchQuery) {
-    // Collapse all when search is cleared
+  if (!searchQuery) {
+    // Search cleared → collapse all + reset override
     setExpandedCategoryId(null);
+    setUserExpandedDuringSearch(false);
+    return;
   }
-}, [searchQuery, firstMatchingCategoryId]);
+
+  // Search active: only auto-expand if user hasn't manually toggled
+  if (!userExpandedDuringSearch && firstMatchingCategoryId) {
+    setExpandedCategoryId(firstMatchingCategoryId);
+  }
+}, [searchQuery, firstMatchingCategoryId, userExpandedDuringSearch]);
+```
+
+### 3. Update onToggle Handler (lines 249-251)
+
+Replace:
+```tsx
+onToggle={() => setExpandedCategoryId(
+  expandedCategoryId === category.id ? null : category.id
+)}
+```
+
+With:
+```tsx
+onToggle={() => {
+  const next = expandedCategoryId === category.id ? null : category.id;
+  setExpandedCategoryId(next);
+  // Mark that user manually overrode during search
+  if (searchQuery) setUserExpandedDuringSearch(true);
+}}
 ```
 
 ---
@@ -132,36 +90,54 @@ useEffect(() => {
 ## User Experience Flow
 
 ```text
-1. User sees all categories collapsed
-   ┌─ Electrical ▸ ─────────────┐
-   ├─ Plumbing ▸ ───────────────┤
-   └─ HVAC ▸ ───────────────────┘
-
-2. User types "socket" in search
-   ┌─ Electrical ▾ ─────────────┐  ← Auto-expands!
+1. User types "socket"
+   ┌─ Electrical ▾ ─────────────┐  ← Auto-expands (first match)
    │   ✓ Install sockets        │
-   │   ✓ Socket repair          │
    └────────────────────────────┘
-   
-   (Other categories hidden or shown empty)
 
-3. User clears search
-   ┌─ Electrical ▸ ─────────────┐  ← All collapse
-   ├─ Plumbing ▸ ───────────────┤
-   └─ HVAC ▸ ───────────────────┘
+2. User clicks HVAC (different category)
+   ┌─ Electrical ▸ ─────────────┐
+   ├─ HVAC ▾ ───────────────────┤  ← User's choice respected!
+   │   (HVAC services)          │
+   └────────────────────────────┘
+
+3. User continues typing "socket repair"
+   ┌─ HVAC ▾ ───────────────────┤  ← Stays on HVAC, no jump!
+   └────────────────────────────┘
+
+4. User clears search
+   ┌─ Electrical ▸ ─────────────┐  ← All collapse, override resets
+   ├─ HVAC ▸ ───────────────────┤
+   └────────────────────────────┘
+
+5. User types again
+   ┌─ First match ▾ ────────────┐  ← Auto-expand works again
+   └────────────────────────────┘
 ```
+
+---
+
+## Why This Works
+
+| Scenario | `userExpandedDuringSearch` | Behavior |
+|----------|---------------------------|----------|
+| Start typing | `false` | Auto-expands first match |
+| User clicks category | `true` | Auto-expand disabled |
+| Keep typing | `true` (persists) | No fighting |
+| Clear search | `false` (reset) | Ready for next search |
+| Type again | `false` | Auto-expand works again |
 
 ---
 
 ## Verification Checklist
 
 After implementation:
-- [ ] Typing in search auto-expands first matching category
-- [ ] Other matching categories remain collapsed (user can manually expand)
-- [ ] Clearing search collapses all categories
-- [ ] Manual category toggle still works during search
+- [ ] Type "plumb" → first matching category auto-expands
+- [ ] Click a different category → it stays open (no jump back)
+- [ ] Continue typing → user's category choice persisted
+- [ ] Clear search → all collapse, override resets
+- [ ] Type new query → auto-expand works again
 - [ ] No flickering or jarring transitions
-- [ ] Works correctly with the existing `hasAnySearchResults` empty state
 
 ---
 
@@ -173,8 +149,8 @@ After implementation:
 
 ## Technical Notes
 
-- Both memos use the same search logic for consistency
-- Effect dependency array includes `firstMatchingCategoryId` which is derived from `searchQuery`
-- No changes needed to `CategoryAccordion.tsx` - it already receives `isExpanded` as a prop
-- This enhancement aligns with the "search feels smart" UX principle from the design spec
+- Simple boolean state is sufficient (no need for ref tracking previous search)
+- Override resets when search is cleared, allowing auto-expand on next search session
+- Minimal code change, maximum UX improvement
+- No changes needed to `CategoryAccordion.tsx`
 
