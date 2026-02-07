@@ -33,6 +33,7 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [showSaved, setShowSaved] = useState(false);
   const [isFirstSelection, setIsFirstSelection] = useState(true);
+  const [userExpandedDuringSearch, setUserExpandedDuringSearch] = useState(false);
   const savedTimerRef = useRef<number | null>(null);
 
   // Data hooks
@@ -80,14 +81,20 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     return match?.id ?? null;
   }, [categories, searchQuery]);
 
-  // Auto-expand first matching category when searching
+  // Auto-expand first matching category when searching (respects manual override)
   useEffect(() => {
-    if (searchQuery && firstMatchingCategoryId) {
-      setExpandedCategoryId(firstMatchingCategoryId);
-    } else if (!searchQuery) {
+    if (!searchQuery) {
+      // Search cleared → collapse all + reset override
       setExpandedCategoryId(null);
+      setUserExpandedDuringSearch(false);
+      return;
     }
-  }, [searchQuery, firstMatchingCategoryId]);
+
+    // Search active: only auto-expand if user hasn't manually toggled
+    if (!userExpandedDuringSearch && firstMatchingCategoryId) {
+      setExpandedCategoryId(firstMatchingCategoryId);
+    }
+  }, [searchQuery, firstMatchingCategoryId, userExpandedDuringSearch]);
 
   // Calculate progress percentage
   const progress = useMemo(() => {
@@ -246,9 +253,12 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
                 category={category}
                 selectedMicroIds={selectedMicroIds}
                 isExpanded={expandedCategoryId === category.id}
-                onToggle={() => setExpandedCategoryId(
-                  expandedCategoryId === category.id ? null : category.id
-                )}
+                onToggle={() => {
+                  const next = expandedCategoryId === category.id ? null : category.id;
+                  setExpandedCategoryId(next);
+                  // Mark that user manually overrode during search
+                  if (searchQuery) setUserExpandedDuringSearch(true);
+                }}
                 onMicroToggle={handleMicroToggle}
                 onSelectAll={() => handleSelectAllCategory(category.id)}
                 onClearAll={() => handleClearCategory(category.id)}
