@@ -13,7 +13,7 @@
  */
 
 import type { WizardState } from '../types';
-import { WizardStep, EMPTY_WIZARD_STATE } from '../types';
+import { WizardStep, EMPTY_WIZARD_STATE, isValidStep, getStepIndex } from '../types';
 
 // === MODE TYPES ===
 
@@ -235,6 +235,31 @@ export function resolveWizardMode(input: ResolverInput): ModeResolution {
         targetProfessionalId: params.pro,
       },
     };
+  }
+  
+  // === PRIORITY 3.5: Step-only navigation (restore draft to reach step) ===
+  if (params.step && isValidStep(params.step)) {
+    const draft = getDraft();
+    if (draft) {
+      // Draft exists - restore it and navigate to requested step
+      // But only if the step is reachable given the draft's state
+      const maxReachableStep = deriveStepFromState(draft);
+      const requestedStepIndex = getStepIndex(params.step as WizardStep);
+      const maxStepIndex = getStepIndex(maxReachableStep);
+      
+      // Allow navigation to any step up to the max reachable
+      const targetStep = requestedStepIndex <= maxStepIndex 
+        ? params.step as WizardStep 
+        : maxReachableStep;
+      
+      return {
+        mode: 'resume',
+        initialState: draft,
+        initialStep: targetStep,
+        shouldPromptDraft: false,
+      };
+    }
+    // No draft - can't navigate to step, fall through to fresh
   }
   
   // === PRIORITY 4: Check for existing draft (only if not already checked) ===
