@@ -109,10 +109,11 @@ interface Props {
   answers: Record<string, unknown>;
   onChange: (answers: Record<string, unknown>) => void;
   onPacksLoaded?: (packs: QuestionPack[]) => void;
+  onComplete?: () => void; // Called when user finishes all questions
   errors?: Record<string, Record<string, string>>;
 }
 
-export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, errors }: Props) {
+export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, onComplete, errors }: Props) {
   const [packs, setPacks] = useState<QuestionPack[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -475,12 +476,12 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
         (currentIndex === visibleQuestions.length - 1 && (isMulti ? selectedValues.length > 0 : !!selectedValues))) && (
         <div className="mt-6 pt-4 border-t">
           <Button
-            onClick={currentIndex < visibleQuestions.length - 1 ? goNext : undefined}
+            onClick={currentIndex < visibleQuestions.length - 1 ? goNext : onComplete}
             className="w-full"
             size="lg"
             data-wizard-questions-complete={currentIndex === visibleQuestions.length - 1}
           >
-            {currentIndex === visibleQuestions.length - 1 ? '✓ Questions complete — tap Continue below' : 'Continue'}
+            {currentIndex === visibleQuestions.length - 1 ? '✓ Continue to next step' : 'Continue'}
           </Button>
         </div>
       )}
