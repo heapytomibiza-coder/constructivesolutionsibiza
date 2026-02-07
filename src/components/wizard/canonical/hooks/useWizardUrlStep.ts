@@ -5,25 +5,19 @@
 
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { WizardStep, isValidStep } from '../types';
+import { WizardStep } from '../types';
 
 export function useWizardUrlStep(
   currentStep: WizardStep,
-  setCurrentStep: (step: WizardStep) => void
+  _setCurrentStep: (step: WizardStep) => void
 ) {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read step from URL on mount
-  useEffect(() => {
-    const stepFromUrl = searchParams.get('step');
-    if (stepFromUrl && isValidStep(stepFromUrl)) {
-      setCurrentStep(stepFromUrl);
-    }
-    // Only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // NOTE: We intentionally do NOT read step from URL on mount.
+  // Mode resolution (resolveWizardMode) handles initial step determination
+  // to prevent race conditions between URL parsing and draft restoration.
 
-  // Write step to URL on change
+  // Write step to URL on change (keeps URL in sync as user progresses)
   useEffect(() => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set('step', currentStep);
