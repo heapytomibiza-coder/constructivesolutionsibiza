@@ -63,6 +63,32 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     };
   }, []);
 
+  // Find first category with search matches for auto-expand
+  const firstMatchingCategoryId = useMemo(() => {
+    if (!searchQuery) return null;
+    const q = searchQuery.toLowerCase();
+    
+    const match = categories.find((c) =>
+      c.subcategories.some((s) =>
+        s.micros.some((m) => 
+          m.name.toLowerCase().includes(q) || 
+          m.slug.toLowerCase().includes(q)
+        )
+      )
+    );
+    
+    return match?.id ?? null;
+  }, [categories, searchQuery]);
+
+  // Auto-expand first matching category when searching
+  useEffect(() => {
+    if (searchQuery && firstMatchingCategoryId) {
+      setExpandedCategoryId(firstMatchingCategoryId);
+    } else if (!searchQuery) {
+      setExpandedCategoryId(null);
+    }
+  }, [searchQuery, firstMatchingCategoryId]);
+
   // Calculate progress percentage
   const progress = useMemo(() => {
     if (selectedCount >= RECOMMENDED_MIN) return 100;
