@@ -6,7 +6,6 @@ import { PLATFORM } from '@/domain/scope';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
-import { I18nSmokeTest } from '@/components/layout/I18nSmokeTest';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -74,19 +73,18 @@ export function PublicNav() {
     <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between">
         {/* Mobile burger menu + Logo */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <MobileNav />
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
             <div className="h-9 w-9 rounded-sm bg-gradient-steel flex items-center justify-center shadow-sm">
               <span className="text-primary-foreground font-display font-bold text-sm">
                 {PLATFORM.mark}
               </span>
             </div>
-            <span className="font-display text-xl font-semibold text-foreground">
+            <span className="font-display text-xl font-semibold text-foreground hidden xs:inline">
               {PLATFORM.shortName}
             </span>
           </Link>
-          <I18nSmokeTest />
         </div>
 
         {/* Desktop nav links - derived from registry */}
