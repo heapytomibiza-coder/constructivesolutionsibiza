@@ -66,7 +66,6 @@ export const publicRoutes: RouteConfig[] = [
     path: '/contact', 
     access: 'public', 
     lane: 'public', 
-    nav: { section: 'public', labelKey: 'nav.contact', order: 6 },
     titleKey: 'nav.contact',
   },
   // Forum - public read, appears in shared section for authenticated users
@@ -116,7 +115,6 @@ export const clientRoutes: RouteConfig[] = [
     access: 'auth', 
     redirectTo: '/auth', 
     lane: 'shared', 
-    nav: { section: 'shared', labelKey: 'nav.messages', order: 1, hideWhenPublic: true },
     titleKey: 'nav.messages',
   },
   { path: '/messages/:id', access: 'auth', redirectTo: '/auth', lane: 'shared' },
