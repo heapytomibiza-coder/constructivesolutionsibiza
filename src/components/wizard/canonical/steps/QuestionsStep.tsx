@@ -1,24 +1,29 @@
 /**
- * QuestionsStep - Dynamic question rendering based on selected micro-services
- * Fetches question packs from DB by micro_slug and renders them
+ * QuestionsStep - One question at a time, tile-based selection
+ * Mobile-first: no scrolling, quick taps, animated transitions
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle } from 'lucide-react';
-import { QuestionPackRenderer } from './QuestionPackRenderer';
+import { AlertCircle, Check, ChevronLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 // Question definition from the pack
 interface QuestionDef {
   id: string;
   label: string;
-  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number' | 'file';
+  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number' | 'file' | 'single_select' | 'multi_select';
   options?: (string | { value: string; label: string })[];
   required?: boolean;
   placeholder?: string;
   help?: string;
   show_if?: {
+    questionId: string;
+    value: string | string[];
+  };
+  dependsOn?: {
     questionId: string;
     value: string | string[];
   };
@@ -29,11 +34,11 @@ interface QuestionPack {
   micro_slug: string;
   title: string;
   questions: QuestionDef[];
+  question_order?: string[];
 }
 
 type QualityTier = 'strong' | 'generic' | 'fallback';
 
-// Banned phrases that indicate generic pack content
 const GENERIC_PHRASES = [
   'briefly describe',
   'describe your project',
@@ -44,78 +49,82 @@ const GENERIC_PHRASES = [
 
 function getPackQualityTier(pack: QuestionPack): QualityTier {
   if (pack.micro_slug === 'general-project') return 'fallback';
-  
-  // Check for generic openers in first question
   const firstQ = pack.questions[0];
   const label = (firstQ?.label || '').toLowerCase();
-  
   if (GENERIC_PHRASES.some(phrase => label.includes(phrase))) {
     return 'generic';
   }
-  
-  // Strong = 5+ questions and no generic opener
   return pack.questions.length >= 5 ? 'strong' : 'generic';
 }
 
-/**
- * Determine pack tracking metadata for analytics
- * Only marks 'fallback' when general-project pack was actually used
- */
 function determinePackTracking(
   primarySlug: string | null,
   packs: QuestionPack[]
 ): { source: 'strong' | 'generic' | 'fallback'; missing: boolean } {
   const usedFallback = packs.some(p => p.micro_slug === 'general-project');
-
-  // Fallback: explicitly used general-project or no packs at all
   if (usedFallback || packs.length === 0) {
     return { source: 'fallback', missing: true };
   }
-
-  // Find the pack for primary slug
   const primaryPack = packs.find(p => p.micro_slug === primarySlug);
   if (!primaryPack) {
     return { source: 'fallback', missing: true };
   }
-
-  // Check quality tier
   const tier = getPackQualityTier(primaryPack);
   if (tier === 'fallback') {
     return { source: 'fallback', missing: true };
   }
-
   return { source: tier, missing: false };
 }
+
+// Normalize option to {value, label}
+const normalizeOption = (opt: string | { value: string; label: string }) => {
+  if (typeof opt === 'string') return { value: opt, label: opt };
+  return opt;
+};
+
+// Normalize type aliases
+const normalizeType = (type: string): QuestionDef['type'] => {
+  switch (type) {
+    case 'single_select': return 'radio';
+    case 'multi_select': return 'checkbox';
+    case 'long_text': return 'textarea';
+    default: return type as QuestionDef['type'];
+  }
+};
+
+// Question IDs handled by Logistics step
+const LOGISTICS_HANDLED = new Set(['timeline', 'timing', 'urgency', 'preferred_timing', 'start_timeline']);
+
+// Types that show as tappable tiles
+const TILE_TYPES = new Set(['radio', 'select', 'checkbox', 'single_select', 'multi_select']);
 
 interface Props {
   microSlugs: string[];
   answers: Record<string, unknown>;
   onChange: (answers: Record<string, unknown>) => void;
   onPacksLoaded?: (packs: QuestionPack[]) => void;
-  errors?: Record<string, Record<string, string>>; // micro_slug -> question_id -> error
+  errors?: Record<string, Record<string, string>>;
 }
 
 export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, errors }: Props) {
   const [packs, setPacks] = useState<QuestionPack[]>([]);
   const [loading, setLoading] = useState(true);
-  const [missingPacks, setMissingPacks] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   
-  // Use refs to avoid stale closures and prevent infinite loops
   const answersRef = useRef(answers);
   const onChangeRef = useRef(onChange);
   const trackingInjectedRef = useRef(false);
   
-  // Keep refs updated
   useEffect(() => {
     answersRef.current = answers;
     onChangeRef.current = onChange;
   }, [answers, onChange]);
   
-  // Reset tracking flag when microSlugs change
   useEffect(() => {
     trackingInjectedRef.current = false;
   }, [microSlugs]);
 
+  // Fetch packs
   useEffect(() => {
     if (!microSlugs.length) {
       setLoading(false);
@@ -141,7 +150,6 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
       const foundSlugs = new Set((data || []).map(p => p.micro_slug));
       const missing = microSlugs.filter(slug => !foundSlugs.has(slug));
       
-      // Parse questions from JSONB - cast through unknown for type safety
       let parsedPacks: QuestionPack[] = (data || []).map(p => ({
         id: p.id,
         micro_slug: p.micro_slug,
@@ -149,7 +157,6 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
         questions: (p.questions as unknown as QuestionDef[]) || [],
       }));
 
-      // If no packs found at all, load fallback pack
       if (parsedPacks.length === 0) {
         const { data: fallback } = await supabase
           .from('question_packs')
@@ -168,12 +175,10 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
         }
       }
       
-      // Inject pack tracking metadata for analytics (only once per microSlugs change)
       if (!trackingInjectedRef.current) {
         const primarySlug = microSlugs[0] || null;
         const { source, missing: isMissing } = determinePackTracking(primarySlug, parsedPacks);
         
-        // Only update if values actually changed (prevents unnecessary renders)
         const shouldUpdate =
           answersRef.current._pack_source !== source ||
           answersRef.current._pack_slug !== primarySlug ||
@@ -191,10 +196,8 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
       }
       
       setPacks(parsedPacks);
-      setMissingPacks(missing);
       setLoading(false);
       
-      // Notify parent of loaded packs for validation
       if (onPacksLoaded) {
         onPacksLoaded(parsedPacks);
       }
@@ -203,7 +206,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
     fetchPacks();
   }, [microSlugs, onPacksLoaded]);
 
-  // Initialize answers structure for new packs
+  // Initialize answers structure
   useEffect(() => {
     if (!packs.length) return;
 
@@ -221,6 +224,50 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
       onChange({ ...answers, microAnswers });
     }
   }, [packs, answers, onChange]);
+
+  // Get flattened list of visible questions
+  const visibleQuestions = useMemo(() => {
+    const questions: { pack: QuestionPack; question: QuestionDef }[] = [];
+    
+    packs.forEach(pack => {
+      const packQuestions = pack.questions || [];
+      
+      // Dedupe and normalize
+      const seen = new Set<string>();
+      packQuestions.forEach(q => {
+        const key = q.id?.trim();
+        if (!key || seen.has(key)) return;
+        if (LOGISTICS_HANDLED.has(q.id)) return;
+        
+        // Skip text/textarea types (we want tile-only flow)
+        const normalizedType = normalizeType(q.type);
+        if (!TILE_TYPES.has(normalizedType) && !TILE_TYPES.has(q.type)) return;
+        
+        // Check conditional visibility
+        const dep = q.show_if || q.dependsOn;
+        if (dep?.questionId) {
+          const microAnswers = answers.microAnswers as Record<string, Record<string, unknown>>;
+          const depValue = microAnswers?.[pack.micro_slug]?.[dep.questionId];
+          
+          const depValueArr = Array.isArray(depValue)
+            ? depValue.map(String)
+            : depValue != null ? [String(depValue)] : [];
+          
+          const requiredArr = Array.isArray(dep.value)
+            ? dep.value.map(String)
+            : [String(dep.value)];
+          
+          const shouldShow = requiredArr.some(v => depValueArr.includes(v));
+          if (!shouldShow) return;
+        }
+        
+        seen.add(key);
+        questions.push({ pack, question: { ...q, type: normalizeType(q.type) } });
+      });
+    });
+    
+    return questions;
+  }, [packs, answers]);
 
   const handleAnswerChange = useCallback((microSlug: string, questionId: string, value: unknown) => {
     const microAnswers = (answers.microAnswers as Record<string, Record<string, unknown>>) || {};
@@ -242,76 +289,192 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, er
     return microAnswers?.[microSlug]?.[questionId];
   }, [answers]);
 
+  // Auto-advance for single-select
+  const handleTileSelect = useCallback((
+    pack: QuestionPack,
+    question: QuestionDef,
+    optionValue: string,
+    isMulti: boolean
+  ) => {
+    if (isMulti) {
+      // Toggle checkbox
+      const current = (getAnswer(pack.micro_slug, question.id) as string[]) || [];
+      const isChecked = current.includes(optionValue);
+      const newValue = isChecked
+        ? current.filter(v => v !== optionValue)
+        : [...current, optionValue];
+      handleAnswerChange(pack.micro_slug, question.id, newValue);
+    } else {
+      // Single select - set and auto-advance
+      handleAnswerChange(pack.micro_slug, question.id, optionValue);
+      
+      // Auto-advance after short delay
+      setTimeout(() => {
+        if (currentIndex < visibleQuestions.length - 1) {
+          setCurrentIndex(prev => prev + 1);
+        }
+      }, 250);
+    }
+  }, [getAnswer, handleAnswerChange, currentIndex, visibleQuestions.length]);
+
+  const goBack = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  }, [currentIndex]);
+
+  const goNext = useCallback(() => {
+    if (currentIndex < visibleQuestions.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    }
+  }, [currentIndex, visibleQuestions.length]);
+
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h3 className="font-display text-lg font-semibold">
-          Loading questions...
-        </h3>
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-3/4" />
+      <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
+        <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+        <p className="text-muted-foreground">Loading questions...</p>
+      </div>
+    );
+  }
+
+  if (!visibleQuestions.length) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[300px] gap-4 text-center px-4">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+          <Check className="w-8 h-8 text-primary" />
+        </div>
+        <div>
+          <h3 className="font-display text-lg font-semibold mb-1">All set!</h3>
+          <p className="text-sm text-muted-foreground">
+            No additional questions needed. Continue to the next step.
+          </p>
         </div>
       </div>
     );
   }
 
-  // No packs found for any selected micro
-  if (!packs.length) {
-    return (
-      <div className="space-y-4">
-        <h3 className="font-display text-lg font-semibold">
-          Additional Details
-        </h3>
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-border">
-          <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
-          <div>
-            <p className="text-sm text-muted-foreground">
-              No specific questions for your selected services yet. 
-              You can add more details in the next step.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const current = visibleQuestions[currentIndex];
+  const { pack, question } = current;
+  const isMulti = question.type === 'checkbox' || question.type === 'multi_select';
+  const currentValue = getAnswer(pack.micro_slug, question.id);
+  const selectedValues = isMulti 
+    ? (Array.isArray(currentValue) ? currentValue as string[] : [])
+    : (currentValue as string) || '';
 
   return (
-    <div className="space-y-6">
-      {/* Clean header */}
-      <div className="space-y-1">
-        <h3 className="font-display text-xl font-semibold text-foreground">
-          A few quick questions
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Tap to select — helps pros give accurate quotes
-        </p>
+    <div className="flex flex-col min-h-[400px]">
+      {/* Progress bar */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-muted-foreground">
+            Question {currentIndex + 1} of {visibleQuestions.length}
+          </span>
+          {currentIndex > 0 && (
+            <button
+              onClick={goBack}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back
+            </button>
+          )}
+        </div>
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-primary transition-all duration-300 ease-out rounded-full"
+            style={{ width: `${((currentIndex + 1) / visibleQuestions.length) * 100}%` }}
+          />
+        </div>
       </div>
 
-      {packs.map((pack) => {
-        const tier = getPackQualityTier(pack);
-        return (
-          <div key={pack.id} className="space-y-4">
-            {tier === 'fallback' && (
-              <div className="text-sm text-muted-foreground bg-muted/50 px-4 py-3 rounded-lg border border-border/50">
-                General briefing — we're adding trade-specific questions soon
-              </div>
-            )}
-            <QuestionPackRenderer
-              pack={pack}
-              getAnswer={getAnswer}
-              onAnswerChange={handleAnswerChange}
-              errors={errors?.[pack.micro_slug]}
-            />
-          </div>
-        );
-      })}
+      {/* Question */}
+      <div className="flex-1 animate-fade-in" key={question.id}>
+        <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+          {question.label}
+          {question.required && <span className="text-destructive ml-1">*</span>}
+        </h3>
+        
+        {question.help && (
+          <p className="text-sm text-muted-foreground mb-4">{question.help}</p>
+        )}
+        
+        {isMulti && (
+          <p className="text-sm text-muted-foreground mb-4">
+            Select all that apply
+          </p>
+        )}
 
-      {missingPacks.length > 0 && (
-        <p className="text-xs text-muted-foreground text-center pt-2">
-          {missingPacks.length} service{missingPacks.length !== 1 ? 's' : ''} without specific questions yet
-        </p>
+        {/* Tile options */}
+        <div className="grid gap-3 mt-4">
+          {question.options?.map((opt) => {
+            const option = normalizeOption(opt);
+            const isSelected = isMulti
+              ? selectedValues.includes(option.value)
+              : selectedValues === option.value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleTileSelect(pack, question, option.value, isMulti)}
+                className={cn(
+                  'relative w-full text-left p-4 rounded-xl border-2 transition-all duration-200',
+                  'min-h-[60px] flex items-center gap-4',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                  'active:scale-[0.98]',
+                  isSelected
+                    ? 'border-primary bg-primary/5 shadow-md'
+                    : 'border-border bg-card hover:border-primary/40 hover:shadow-sm'
+                )}
+              >
+                {/* Selection indicator */}
+                <div
+                  className={cn(
+                    'flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-200',
+                    isMulti && 'rounded-lg',
+                    isSelected
+                      ? 'border-primary bg-primary text-primary-foreground scale-110'
+                      : 'border-muted-foreground/30 bg-background'
+                  )}
+                >
+                  {isSelected && <Check className="w-4 h-4" strokeWidth={3} />}
+                </div>
+
+                {/* Label */}
+                <span
+                  className={cn(
+                    'flex-1 text-base font-medium transition-colors',
+                    isSelected ? 'text-foreground' : 'text-muted-foreground'
+                  )}
+                >
+                  {option.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Error display */}
+        {errors?.[pack.micro_slug]?.[question.id] && (
+          <p className="text-sm text-destructive mt-3 flex items-center gap-1.5">
+            <AlertCircle className="w-4 h-4" />
+            {errors[pack.micro_slug][question.id]}
+          </p>
+        )}
+      </div>
+
+      {/* Multi-select continue button */}
+      {isMulti && selectedValues.length > 0 && currentIndex < visibleQuestions.length - 1 && (
+        <div className="mt-6 pt-4 border-t">
+          <Button
+            onClick={goNext}
+            className="w-full"
+            size="lg"
+          >
+            Continue
+          </Button>
+        </div>
       )}
     </div>
   );
