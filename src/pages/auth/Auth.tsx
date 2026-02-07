@@ -41,7 +41,7 @@ const Auth = () => {
     searchParams.get('mode') === 'signup' ? 'signup' : 'signin'
   );
 
-  const returnUrl = searchParams.get('returnUrl') || '/dashboard/client';
+  const returnUrl = searchParams.get('returnUrl'); // No default - let callback handle role-based routing
 
   // Double-check: ready can be true before HTTP fetch completes with useSuspense: false
   // Verify that a known key actually resolves (not to itself)
@@ -69,7 +69,8 @@ const Auth = () => {
       if (error) throw error;
 
       toast.success(t('toast.welcomeBack'));
-      navigate(returnUrl);
+      // Let AuthCallback handle role-based routing if no explicit returnUrl
+      navigate(returnUrl || '/auth/callback');
     } catch (error: any) {
       const message = error?.message || t('toast.signInFailed');
       const code = error?.code;
