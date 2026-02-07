@@ -14,6 +14,8 @@ i18n
     defaultNS: "common",
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.json",
+      // Cache bust to ensure fresh translations after deployments
+      queryStringParams: { v: '2026020701' },
     },
     detection: {
       order: ["localStorage", "navigator"],
