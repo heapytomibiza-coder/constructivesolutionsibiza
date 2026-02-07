@@ -40,19 +40,26 @@ const ProfessionalOnboarding = () => {
   const phase = professionalProfile?.onboardingPhase || 'not_started';
   
   const getStepStatus = (stepId: string) => {
-    const phaseOrder = ['not_started', 'basic_info', 'verification', 'service_setup', 'complete'];
-    const stepToPhase: Record<string, string> = {
-      'basic_info': 'basic_info',
-      'service_area': 'verification',
-      'services': 'service_setup',
-      'review': 'complete',
+    // Map phases to their corresponding step
+    // 'not_started' means basic_info is the current step
+    const phaseToCurrentStep: Record<string, string> = {
+      'not_started': 'basic_info',
+      'basic_info': 'service_area',    // basic_info done → service_area current
+      'verification': 'services',       // service_area done → services current
+      'service_setup': 'review',        // services done → review current
+      'complete': 'done',               // all done
     };
     
-    const currentPhaseIndex = phaseOrder.indexOf(phase);
-    const stepPhaseIndex = phaseOrder.indexOf(stepToPhase[stepId]);
+    const stepOrder = ['basic_info', 'service_area', 'services', 'review'];
+    const currentStepId = phaseToCurrentStep[phase] || 'basic_info';
     
-    return currentPhaseIndex > stepPhaseIndex ? 'complete' : 
-           currentPhaseIndex === stepPhaseIndex ? 'current' : 'pending';
+    const stepIndex = stepOrder.indexOf(stepId);
+    const currentIndex = stepOrder.indexOf(currentStepId);
+    
+    if (currentStepId === 'done') return 'complete'; // All steps complete
+    if (stepIndex < currentIndex) return 'complete';
+    if (stepIndex === currentIndex) return 'current';
+    return 'pending';
   };
 
   const completedSteps = STEPS.filter(s => getStepStatus(s.id) === 'complete').length;
