@@ -65,7 +65,7 @@ export default function ProfileEdit() {
           .from("professional_profiles")
           .select("display_name, business_name, bio, tagline, is_publicly_listed")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (proError && proError.code !== "PGRST116") {
           console.error("Error fetching pro profile:", proError);
@@ -76,7 +76,7 @@ export default function ProfileEdit() {
           .from("profiles")
           .select("phone")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (userError && userError.code !== "PGRST116") {
           console.error("Error fetching user profile:", userError);
@@ -111,32 +111,32 @@ export default function ProfileEdit() {
     setIsLoading(true);
     
     try {
-      // Update professional_profiles
+      // Upsert professional_profiles (handles first-time saves)
       const { error: proError } = await supabase
         .from("professional_profiles")
-        .update({
+        .upsert({
+          user_id: user.id,
           display_name: values.displayName,
           business_name: values.businessName || null,
           bio: values.bio || null,
           tagline: values.tagline || null,
           is_publicly_listed: values.isPubliclyListed,
           updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
+        }, { onConflict: 'user_id' });
 
       if (proError) {
         console.error("Pro profile update error:", proError);
         throw proError;
       }
 
-      // Update profiles table for phone
+      // Upsert profiles table for phone
       const { error: userError } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          user_id: user.id,
           phone: values.phone || null,
           updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
+        }, { onConflict: 'user_id' });
 
       if (userError) {
         console.error("User profile update error:", userError);
