@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { JobListingCard } from "@/pages/jobs/JobListingCard";
 import { Loader2, Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/shared/components/EmptyState";
 import { useSession } from "@/contexts/SessionContext";
 import { useJobsBoard, useMatchedJobs } from "./queries";
 import type { JobsBoardRow } from "@/pages/jobs/types";

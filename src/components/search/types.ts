@@ -7,7 +7,7 @@
  * SAFETY RULE: Never navigate to a step that lacks required context.
  */
 
-import { buildWizardLink } from "@/lib/wizardLink";
+import { buildWizardLink } from "@/features/wizard/lib/wizardLink";
 
 // === SEARCH HIT TYPES ===
 

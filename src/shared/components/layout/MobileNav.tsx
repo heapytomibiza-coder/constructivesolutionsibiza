@@ -10,7 +10,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useSession } from '@/contexts/SessionContext';
-import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
+import { RoleSwitcher } from './RoleSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Menu, LogOut } from 'lucide-react';

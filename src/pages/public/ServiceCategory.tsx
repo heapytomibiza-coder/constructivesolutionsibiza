@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowRight, Shield, Users } from 'lucide-react';
 import heroServices from '@/assets/heroes/hero-services.jpg';
 import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
-import { buildWizardLink } from '@/lib/wizardLink';
+import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 
 /**
  * SERVICE CATEGORY PAGE - View subcategories and professionals

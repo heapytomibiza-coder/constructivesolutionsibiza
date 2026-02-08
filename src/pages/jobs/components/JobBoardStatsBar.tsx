@@ -1,4 +1,4 @@
-import { StatTile } from "@/components/ui/stat-tile";
+import { StatTile } from "@/shared/components/StatTile";
 import { Briefcase, Clock, Euro } from "lucide-react";
 
 interface JobBoardStatsBarProps {

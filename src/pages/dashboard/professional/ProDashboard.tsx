@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useSession } from '@/contexts/SessionContext';
 import { useProStats } from './hooks/useProStats';
-import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
+import { RoleSwitcher } from '@/shared/components/layout/RoleSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +21,7 @@ import {
   User
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { PendingReviewsCard } from './components/PendingReviewsCard';
+import { PendingReviewsCard } from '@/pages/dashboard/shared/components/PendingReviewsCard';
 
 /**
  * PROFESSIONAL DASHBOARD

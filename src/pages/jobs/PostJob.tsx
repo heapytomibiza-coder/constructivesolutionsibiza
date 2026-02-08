@@ -10,7 +10,7 @@
 
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CanonicalJobWizard } from '@/components/wizard/canonical/CanonicalJobWizard';
+import { CanonicalJobWizard } from '@/features/wizard/canonical/CanonicalJobWizard';
 import { PLATFORM } from '@/domain/scope';
 import heroPost from '@/assets/heroes/hero-post.jpg';
 

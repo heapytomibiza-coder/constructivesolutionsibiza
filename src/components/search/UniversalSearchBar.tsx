@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { buildSearchOrClause } from "@/lib/searchSynonyms";
+import { buildSearchOrClause } from "@/features/search/lib/searchSynonyms";
 import { useGlobalSearchShortcut } from "@/hooks/useGlobalSearchShortcut";
 import {
   type SearchHit,

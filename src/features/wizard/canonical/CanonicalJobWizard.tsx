@@ -47,10 +47,10 @@ import {
 } from './lib/resolveWizardMode';
 
 // DB-powered selectors
-import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
-import SubcategorySelector from '@/components/wizard/db-powered/SubcategorySelector';
-import MicroStep from '@/components/wizard/db-powered/MicroStep';
-import { ServiceSearchBar, type SearchResult } from '@/components/wizard/db-powered/ServiceSearchBar';
+import CategorySelector from '@/features/wizard/db-powered/CategorySelector';
+import SubcategorySelector from '@/features/wizard/db-powered/SubcategorySelector';
+import MicroStep from '@/features/wizard/db-powered/MicroStep';
+import { ServiceSearchBar, type SearchResult } from '@/features/wizard/db-powered/ServiceSearchBar';
 
 // Step components
 import { LogisticsStep } from './steps/LogisticsStep';

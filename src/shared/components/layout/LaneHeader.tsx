@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useSession } from '@/contexts/SessionContext';
-import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
+import { RoleSwitcher } from './RoleSwitcher';
 
 /**
  * LaneHeader - Mode indicator showing which pathway the user is in

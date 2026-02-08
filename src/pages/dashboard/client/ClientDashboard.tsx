@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSession } from '@/contexts/SessionContext';
 import { useClientStats } from './hooks/useClientStats';
-import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
+import { RoleSwitcher } from '@/shared/components/layout/RoleSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';

@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Search, Shield, Users, X, CheckCircle2, ArrowLeft } from 'lucide-react';
 import heroProfessionals from '@/assets/heroes/hero-professionals.jpg';
 import { getRankedProfessionals, getMicroIdsForFilter, type RankedProfessional } from './queries/rankedProfessionals.query';
-import { buildWizardLink } from '@/lib/wizardLink';
+import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 
 /**
  * PROFESSIONALS DIRECTORY PAGE

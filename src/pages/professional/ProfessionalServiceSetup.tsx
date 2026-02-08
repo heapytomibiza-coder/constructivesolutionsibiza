@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import CategorySelector from '@/components/wizard/db-powered/CategorySelector';
-import SubcategorySelector from '@/components/wizard/db-powered/SubcategorySelector';
+import CategorySelector from '@/features/wizard/db-powered/CategorySelector';
+import SubcategorySelector from '@/features/wizard/db-powered/SubcategorySelector';
 import { 
   ArrowLeft, Check, Plus, X, Loader2, Shield, Heart, 
   ThumbsUp, Minus, Ban, Unlock
