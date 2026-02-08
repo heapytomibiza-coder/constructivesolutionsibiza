@@ -279,7 +279,7 @@ const ProDashboard = () => {
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2" asChild>
-                  <Link to="/professional/portfolio">
+                  <Link to="/settings">
                     <User className="h-4 w-4" />
                     {t('pro.editProfile')}
                   </Link>
