@@ -3,7 +3,11 @@
  * 
  * SINGLE SOURCE OF TRUTH for search result typing and wizard deep-linking.
  * All search entry points (homepage, service pages, dashboard) use these types.
+ * 
+ * SAFETY RULE: Never navigate to a step that lacks required context.
  */
+
+import { buildWizardLink } from "@/lib/wizardLink";
 
 // === SEARCH HIT TYPES ===
 
@@ -13,14 +17,12 @@ export interface SearchHit {
   type: SearchHitType;
   id: string;                 // the entity id (UUID)
   label: string;              // display label
-  sublabel?: string;          // breadcrumb context (e.g., "Plumbing → Repairs")
   categoryId?: string;        // required for subcategory/micro
-  categoryName?: string;      // for display
+  categoryName?: string;      // for display breadcrumb
   subcategoryId?: string;     // required for micro
-  subcategoryName?: string;   // for display
+  subcategoryName?: string;   // for display breadcrumb
   microSlug?: string;         // wizard keys by slug
   score: number;              // ranking score (higher = better match)
-  reason?: string;            // optional match context
 }
 
 export interface ForumHit {
@@ -36,33 +38,36 @@ export type UniversalSearchResult = SearchHit | ForumHit;
 
 // === URL BUILDER (THE LOCK-IN) ===
 
-import { buildWizardLink } from "@/lib/wizardLink";
-
 /**
  * Converts a SearchHit into a wizard URL.
  * 
- * KEY PRINCIPLE: Search never sets wizard state directly.
- * It only navigates to a URL, and the wizard loads state from URL.
- * This delegates to the centralized buildWizardLink for consistency.
+ * KEY PRINCIPLES:
+ * 1. Search never sets wizard state directly - only navigates to URL
+ * 2. Never generate a URL that would land users in an inconsistent state
+ * 3. If parents are missing, fallback to the nearest safe step
  */
 export function buildWizardUrlFromHit(hit: SearchHit): string {
   switch (hit.type) {
-    case "category":
+    case "category": {
+      // Category → go to subcategory selection with category pre-filled
       return buildWizardLink({ mode: "category", categoryId: hit.id });
-      
-    case "subcategory":
+    }
+
+    case "subcategory": {
+      // Subcategory → requires categoryId to be a true deep-link
       if (!hit.categoryId) {
-        console.warn("SearchHit subcategory missing categoryId, using category mode");
-        return buildWizardLink({ mode: "category", categoryId: hit.id });
+        console.warn("SearchHit subcategory missing categoryId, falling back to safe step");
+        return buildWizardLink({ mode: "subcategoryFallback" });
       }
       return buildWizardLink({ 
         mode: "subcategory", 
         categoryId: hit.categoryId, 
         subcategoryId: hit.id 
       });
-      
-    case "micro":
-      // Best case: full hierarchy available
+    }
+
+    case "micro": {
+      // Best case: full hierarchy available (preferred path)
       if (hit.categoryId && hit.subcategoryId && hit.microSlug) {
         return buildWizardLink({
           mode: "micro",
@@ -71,15 +76,20 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
           microSlug: hit.microSlug,
         });
       }
-      // Fallback: have micro slug but missing parents - wizard will lookup
+
+      // SAFE FALLBACK: We have micro slug but missing parent IDs
+      // Since wizard cannot hydrate parents from micro alone,
+      // go to micro step (not questions) so user can confirm selection
       if (hit.microSlug) {
-        console.warn("SearchHit micro missing parent IDs, using microOnly mode");
-        return buildWizardLink({ mode: "microOnly", microSlug: hit.microSlug });
+        console.warn("SearchHit micro missing parent IDs, falling back to safe micro step");
+        return buildWizardLink({ mode: "microFallback", microSlug: hit.microSlug });
       }
-      // Last resort: use ID as slug
-      console.warn("SearchHit micro missing microSlug, using ID as fallback");
-      return buildWizardLink({ mode: "microOnly", microSlug: hit.id });
-      
+
+      // Last resort: micro id only → still safe micro step
+      console.warn("SearchHit micro missing microSlug, falling back to safe micro step");
+      return buildWizardLink({ mode: "microFallback", microSlug: hit.id });
+    }
+
     default:
       return buildWizardLink({ mode: "fresh" });
   }
@@ -89,7 +99,7 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
  * Build forum post URL
  */
 export function buildForumUrl(hit: ForumHit): string {
-  return `/forum/${hit.categorySlug}/${hit.id}`;
+  return `/forum/${encodeURIComponent(hit.categorySlug)}/${encodeURIComponent(hit.id)}`;
 }
 
 // === RESULT TYPE GUARDS ===
@@ -102,8 +112,24 @@ export function isForumHit(result: UniversalSearchResult): result is ForumHit {
   return result.type === "forum";
 }
 
-// === DISPLAY HELPERS ===
+// === DISPLAY HELPERS (i18n-ready) ===
 
+/**
+ * Returns i18n key for hit type label.
+ * Usage: t(getHitTypeLabelKey(hit.type))
+ */
+export function getHitTypeLabelKey(type: SearchHitType): string {
+  switch (type) {
+    case "category": return "universalSearch.type.category";
+    case "subcategory": return "universalSearch.type.service";
+    case "micro": return "universalSearch.type.task";
+  }
+}
+
+/**
+ * Legacy helper for non-i18n contexts.
+ * Prefer getHitTypeLabelKey for UI components.
+ */
 export function getHitTypeLabel(type: SearchHitType): string {
   switch (type) {
     case "category": return "Category";
@@ -112,6 +138,10 @@ export function getHitTypeLabel(type: SearchHitType): string {
   }
 }
 
+/**
+ * Build breadcrumb string from hit hierarchy.
+ * Returns empty string for categories (no parent context).
+ */
 export function getHitBreadcrumb(hit: SearchHit): string {
   switch (hit.type) {
     case "category":
