@@ -76,18 +76,50 @@ function hasExplicitIntent(params: UrlParams): boolean {
 
 /**
  * Determine the target step based on what params are provided.
+ * 
+ * ENFORCEMENT RULES (prevents wrong-step issues):
+ * - step=questions requires micro param
+ * - step=micro requires subcategory param
+ * - step=subcategory requires category param
+ * Falls back to the highest valid step if params are missing.
+ * 
  * This follows the contract from search types:
  * - category only → subcategory step
  * - category + subcategory → micro step
  * - category + subcategory + micro → questions step
  */
 function deriveTargetStepFromParams(params: UrlParams): WizardStep {
-  // If step is explicitly provided and valid, use it
+  // If step is explicitly provided, validate param requirements
   if (params.step && isValidStep(params.step)) {
-    return params.step as WizardStep;
+    const requestedStep = params.step as WizardStep;
+    
+    // ENFORCEMENT: step=questions requires micro
+    if (requestedStep === WizardStep.Questions && !params.micro) {
+      console.warn('[WizardResolver] step=questions requested but micro missing, falling back');
+      return params.subcategory 
+        ? WizardStep.Micro 
+        : params.category 
+          ? WizardStep.Subcategory 
+          : WizardStep.Category;
+    }
+    
+    // ENFORCEMENT: step=micro requires subcategory
+    if (requestedStep === WizardStep.Micro && !params.subcategory) {
+      console.warn('[WizardResolver] step=micro requested but subcategory missing, falling back');
+      return params.category ? WizardStep.Subcategory : WizardStep.Category;
+    }
+    
+    // ENFORCEMENT: step=subcategory requires category
+    if (requestedStep === WizardStep.Subcategory && !params.category) {
+      console.warn('[WizardResolver] step=subcategory requested but category missing, falling back');
+      return WizardStep.Category;
+    }
+    
+    // Validation passed - use requested step
+    return requestedStep;
   }
   
-  // Otherwise derive from param completeness
+  // No explicit step - derive from param completeness (existing logic)
   if (params.micro) {
     return WizardStep.Questions;
   }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -15,6 +15,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { expandQuery } from "@/lib/searchSynonyms";
+import { useGlobalSearchShortcut } from "@/hooks/useGlobalSearchShortcut";
 import {
   type SearchHit,
   type ForumHit,
@@ -126,19 +128,31 @@ export function UniversalSearchBar({ className }: { className?: string }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const debouncedQuery = useDebounce(query, 300);
 
-  // Query services - returns typed SearchHits
+  // Global ⌘K / Ctrl+K shortcut
+  useGlobalSearchShortcut(() => {
+    setIsOpen(true);
+    // Focus input after dialog opens
+    setTimeout(() => inputRef.current?.focus(), 50);
+  });
+
+  // Query services - returns typed SearchHits with synonym expansion
   const { data: serviceResults = [] } = useQuery({
     queryKey: ["universal-search", "services", debouncedQuery],
     queryFn: async (): Promise<SearchHit[]> => {
       if (!debouncedQuery || debouncedQuery.length < 2) return [];
 
+      // Expand query with synonyms (e.g., "sparky" → ["sparky", "electrician", ...])
+      const expandedTerms = expandQuery(debouncedQuery);
+      const orClauses = expandedTerms.map(t => `search_text.ilike.%${t}%`).join(",");
+
       const { data, error } = await supabase
         .from("service_search_index")
         .select("*")
-        .ilike("search_text", `%${debouncedQuery}%`)
-        .limit(15); // Fetch more to ensure variety across types
+        .or(orClauses)
+        .limit(20); // Fetch more to ensure variety across types
 
       if (error) throw error;
       return transformServiceResults(data || []);
@@ -216,6 +230,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         shouldFilter={false}
       >
         <CommandInput
+          ref={inputRef}
           placeholder={t("universalSearch.placeholder", "What can we help you find?")}
           value={query}
           onValueChange={setQuery}

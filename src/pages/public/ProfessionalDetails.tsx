@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, BadgeCheck, MessageSquare, Shield, Briefcase } from 'lucide-react';
 import { PublicLayout } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
+import { buildWizardLink } from '@/lib/wizardLink';
 
 /**
  * PROFESSIONAL DETAILS PAGE
@@ -158,9 +159,9 @@ const ProfessionalDetails = () => {
                   <CardTitle className="font-display text-lg">Get in Touch</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {/* Start Job - Direct messaging flow */}
+                  {/* Start Job - Direct messaging flow using centralized link builder */}
                   <Button className="w-full gap-2" asChild>
-                    <Link to={`/post?pro=${professional.user_id}`}>
+                    <Link to={buildWizardLink({ mode: 'direct', professionalId: professional.user_id })}>
                       <Briefcase className="h-4 w-4" />
                       Start a Job with {professional.display_name?.split(' ')[0] || 'them'}
                     </Link>

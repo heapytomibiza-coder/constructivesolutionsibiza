@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Search, Shield, Users, X, CheckCircle2, ArrowLeft } from 'lucide-react';
 import heroProfessionals from '@/assets/heroes/hero-professionals.jpg';
 import { getRankedProfessionals, getMicroIdsForFilter, type RankedProfessional } from './queries/rankedProfessionals.query';
+import { buildWizardLink } from '@/lib/wizardLink';
 
 /**
  * PROFESSIONALS DIRECTORY PAGE
@@ -119,11 +120,11 @@ const Professionals = () => {
 
   const hasFilters = !!(categoryId || subcategoryId);
 
-  // Handle professional selection in select mode
+  // Handle professional selection in select mode - use centralized link builder
   const handleSelectProfessional = (pro: Professional) => {
     if (pro.user_id) {
-      // Navigate back to wizard with the professional selected
-      navigate(`/post?pro=${pro.user_id}`);
+      const url = buildWizardLink({ mode: 'direct', professionalId: pro.user_id });
+      navigate(url);
     }
   };
 

@@ -36,45 +36,52 @@ export type UniversalSearchResult = SearchHit | ForumHit;
 
 // === URL BUILDER (THE LOCK-IN) ===
 
+import { buildWizardLink } from "@/lib/wizardLink";
+
 /**
  * Converts a SearchHit into a wizard URL.
  * 
  * KEY PRINCIPLE: Search never sets wizard state directly.
  * It only navigates to a URL, and the wizard loads state from URL.
- * This is how we avoid "works sometimes" bugs.
+ * This delegates to the centralized buildWizardLink for consistency.
  */
 export function buildWizardUrlFromHit(hit: SearchHit): string {
-  const base = "/post";
-  
   switch (hit.type) {
     case "category":
-      // Category → go to subcategory selection with category pre-filled
-      return `${base}?category=${hit.id}&step=subcategory`;
+      return buildWizardLink({ mode: "category", categoryId: hit.id });
       
     case "subcategory":
-      // Subcategory → go to micro selection with cat+sub pre-filled
       if (!hit.categoryId) {
-        console.warn("SearchHit subcategory missing categoryId, falling back");
-        return `${base}?subcategory=${hit.id}&step=micro`;
+        console.warn("SearchHit subcategory missing categoryId, using category mode");
+        return buildWizardLink({ mode: "category", categoryId: hit.id });
       }
-      return `${base}?category=${hit.categoryId}&subcategory=${hit.id}&step=micro`;
+      return buildWizardLink({ 
+        mode: "subcategory", 
+        categoryId: hit.categoryId, 
+        subcategoryId: hit.id 
+      });
       
     case "micro":
       // Best case: full hierarchy available
       if (hit.categoryId && hit.subcategoryId && hit.microSlug) {
-        return `${base}?category=${hit.categoryId}&subcategory=${hit.subcategoryId}&micro=${hit.microSlug}&step=questions`;
+        return buildWizardLink({
+          mode: "micro",
+          categoryId: hit.categoryId,
+          subcategoryId: hit.subcategoryId,
+          microSlug: hit.microSlug,
+        });
       }
-      // Fallback 1: have micro slug but missing parents
+      // Fallback: have micro slug but missing parents - wizard will lookup
       if (hit.microSlug) {
-        console.warn("SearchHit micro missing parent IDs, using micro slug only");
-        return `${base}?micro=${hit.microSlug}&step=questions`;
+        console.warn("SearchHit micro missing parent IDs, using microOnly mode");
+        return buildWizardLink({ mode: "microOnly", microSlug: hit.microSlug });
       }
-      // Fallback 2: have micro ID only
-      console.warn("SearchHit micro missing microSlug, falling back to ID");
-      return `${base}?micro=${hit.id}&step=questions`;
+      // Last resort: use ID as slug
+      console.warn("SearchHit micro missing microSlug, using ID as fallback");
+      return buildWizardLink({ mode: "microOnly", microSlug: hit.id });
       
     default:
-      return base;
+      return buildWizardLink({ mode: "fresh" });
   }
 }
 

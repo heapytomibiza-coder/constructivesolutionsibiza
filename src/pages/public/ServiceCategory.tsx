@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowRight, Shield, Users } from 'lucide-react';
 import heroServices from '@/assets/heroes/hero-services.jpg';
 import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
+import { buildWizardLink } from '@/lib/wizardLink';
 
 /**
  * SERVICE CATEGORY PAGE - View subcategories and professionals
@@ -76,9 +77,14 @@ const ServiceCategory = () => {
     },
   });
 
-  // Navigate to wizard with pre-filled category + subcategory
+  // Navigate to wizard with pre-filled category + subcategory using centralized builder
   const handleSubcategoryClick = (subId: string) => {
-    navigate(`/post?category=${encodeURIComponent(category!.id)}&subcategory=${encodeURIComponent(subId)}`);
+    const url = buildWizardLink({ 
+      mode: 'subcategory', 
+      categoryId: category!.id, 
+      subcategoryId: subId 
+    });
+    navigate(url);
   };
 
   // Loading state
