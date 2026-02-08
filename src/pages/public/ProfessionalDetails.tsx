@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, BadgeCheck, MessageSquare, Shield, Briefcase } from 'lucide-react';
 import { PublicLayout } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
-import { buildWizardLink } from '@/lib/wizardLink';
+import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 
 /**
  * PROFESSIONAL DETAILS PAGE

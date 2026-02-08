@@ -12,7 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
-import { ScrollToTop } from "@/components/layout/ScrollToTop";
+import { ScrollToTop } from "@/shared/components/layout/ScrollToTop";
 import { RouteGuard, PublicOnlyGuard } from "@/guard";
 import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
 import { Loader2 } from "lucide-react";
@@ -39,8 +39,8 @@ import JobBoardPage from "./pages/jobs/JobBoardPage";
 import JobDetailsPage from "./pages/jobs/JobDetailsPage";
 
 // Dashboards
-import ClientDashboard from "./pages/dashboard/ClientDashboard";
-import ProDashboard from "./pages/dashboard/ProDashboard";
+import ClientDashboard from "./pages/dashboard/client/ClientDashboard";
+import ProDashboard from "./pages/dashboard/professional/ProDashboard";
 
 // Messages
 import Messages from "./pages/messages/Messages";
