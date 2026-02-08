@@ -301,13 +301,17 @@
   "universalSearch": {
     "placeholder": "¿Qué podemos ayudarte a encontrar?",
     "noResults": "Sin resultados para \"{{query}}\"",
-    "services": "Servicios",
     "tasks": "Tareas",
     "subcategories": "Servicios",
     "categories": "Categorías",
     "community": "Publicaciones de la Comunidad",
     "replies": "{{count}} respuestas",
     "startProject": "Iniciar un proyecto para \"{{query}}\"",
-    "askCommunity": "Preguntar a la comunidad"
+    "askCommunity": "Preguntar a la comunidad",
+    "type": {
+      "category": "Categoría",
+      "service": "Servicio",
+      "task": "Tarea"
+    }
   }
 }
