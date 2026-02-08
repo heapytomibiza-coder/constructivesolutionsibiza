@@ -7,13 +7,18 @@
  * If parents are missing, fallback to the nearest safe step.
  */
 
+/**
+ * Wizard Link Params
+ * 
+ * SMART LADDER: Search hits use the most specific mode available.
+ * No fallback modes - the ladder is built into buildWizardUrlFromHit.
+ */
 export type WizardLinkParams =
   | { mode: "fresh" }
   | { mode: "category"; categoryId: string }
   | { mode: "subcategory"; categoryId: string; subcategoryId: string }
   | { mode: "micro"; categoryId: string; subcategoryId: string; microSlug: string }
-  | { mode: "microOnly"; microSlug: string }      // SAFE: lands on micro step for confirmation
-  | { mode: "subcategoryOnly" }                   // SAFE: no category context, fresh subcategory selection
+  | { mode: "microOnly"; microSlug: string }  // Micro-only: deep-link processor will hydrate parents
   | { mode: "direct"; professionalId: string }
   | { mode: "resume" };
 
@@ -46,13 +51,9 @@ export function buildWizardLink(params: WizardLinkParams): string {
       return `${base}?${qp("category", params.categoryId)}&${qp("subcategory", params.subcategoryId)}&${qp("micro", params.microSlug)}&step=questions`;
       
     case "microOnly":
-      // SAFE: We know micro slug but cannot hydrate parents
-      // Go to micro step (not questions) so user can confirm selection
-      return `${base}?${qp("micro", params.microSlug)}&step=micro`;
-      
-    case "subcategoryOnly":
-      // SAFE: No category context - start fresh at subcategory selection
-      return `${base}?step=subcategory`;
+      // Micro slug only - deep-link processor will hydrate parents from DB
+      // Goes to step=micro initially, processor may upgrade to Questions if lookup succeeds
+      return `${base}?${qp("micro", params.microSlug)}`;
       
     case "direct":
       // Direct professional targeting (for "Request Quote" flows)
@@ -61,8 +62,5 @@ export function buildWizardLink(params: WizardLinkParams): string {
     case "resume":
       // Resume from saved draft
       return `${base}?resume=true`;
-      
-    default:
-      return base;
   }
 }

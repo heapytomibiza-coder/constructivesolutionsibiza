@@ -36,15 +36,22 @@ export interface ForumHit {
 
 export type UniversalSearchResult = SearchHit | ForumHit;
 
-// === URL BUILDER (THE LOCK-IN) ===
+// === URL BUILDER (SMART LADDER) ===
 
 /**
- * Converts a SearchHit into a wizard URL.
+ * Converts a SearchHit into a wizard URL using the SMART LADDER.
+ * 
+ * SMART LADDER (preserves maximum context on fallback):
+ * - Full hierarchy → Questions step
+ * - Cat + Sub only → Micro step  
+ * - Category only → Subcategory step
+ * - Micro slug only → Deep-link with hydration
+ * - Nothing → Fresh start
  * 
  * KEY PRINCIPLES:
  * 1. Search never sets wizard state directly - only navigates to URL
- * 2. Never generate a URL that would land users in an inconsistent state
- * 3. If parents are missing, fallback to the nearest safe step
+ * 2. Never throw away valid parent context when child is missing
+ * 3. Micro-only links let deep-link processor hydrate parents from DB
  */
 export function buildWizardUrlFromHit(hit: SearchHit): string {
   switch (hit.type) {
@@ -54,20 +61,21 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
     }
 
     case "subcategory": {
-      // Subcategory → requires categoryId to be a true deep-link
-      if (!hit.categoryId) {
-        console.warn("SearchHit subcategory missing categoryId");
-        return buildWizardLink({ mode: "subcategoryOnly" });
+      // SMART LADDER: subcategory requires categoryId
+      if (hit.categoryId) {
+        return buildWizardLink({ 
+          mode: "subcategory", 
+          categoryId: hit.categoryId, 
+          subcategoryId: hit.id 
+        });
       }
-      return buildWizardLink({ 
-        mode: "subcategory", 
-        categoryId: hit.categoryId, 
-        subcategoryId: hit.id 
-      });
+      // Missing category → fresh start (can't create valid subcategory link)
+      console.warn("SearchHit subcategory missing categoryId, falling back to fresh");
+      return buildWizardLink({ mode: "fresh" });
     }
 
     case "micro": {
-      // Best case: full hierarchy available (preferred path)
+      // Best case: full hierarchy available
       if (hit.categoryId && hit.subcategoryId && hit.microSlug) {
         return buildWizardLink({
           mode: "micro",
@@ -77,14 +85,30 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
         });
       }
 
-      // Safe case: micro slug only → micro step for confirmation
+      // SMART LADDER: have cat+sub but missing slug → go to micro step
+      if (hit.categoryId && hit.subcategoryId) {
+        console.warn("Micro hit missing microSlug, falling back to subcategory mode");
+        return buildWizardLink({
+          mode: "subcategory",
+          categoryId: hit.categoryId,
+          subcategoryId: hit.subcategoryId,
+        });
+      }
+
+      // SMART LADDER: have category only → go to subcategory step
+      if (hit.categoryId) {
+        console.warn("Micro hit missing subcategory, falling back to category mode");
+        return buildWizardLink({ mode: "category", categoryId: hit.categoryId });
+      }
+
+      // Micro slug only (no parents) → use microOnly, let deep-link processor hydrate
       if (hit.microSlug) {
-        console.warn("SearchHit micro missing parent IDs, using microOnly");
+        console.warn("Micro hit missing all parents, using microOnly mode (will hydrate)");
         return buildWizardLink({ mode: "microOnly", microSlug: hit.microSlug });
       }
 
-      // No slug = no safe navigation → fresh start
-      console.warn("SearchHit micro missing microSlug, falling back to fresh");
+      // No useful data → fresh start
+      console.warn("Micro hit missing all context, falling back to fresh");
       return buildWizardLink({ mode: "fresh" });
     }
 

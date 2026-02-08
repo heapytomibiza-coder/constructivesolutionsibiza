@@ -139,12 +139,12 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     if (!modeResolution || modeResolution.mode !== 'deep-link') return;
     if (!modeResolution.pendingLookups) return;
     
-    const { categoryId, subcategoryId, targetProfessionalId } = modeResolution.pendingLookups;
+    const { categoryId, subcategoryId, microSlug, targetProfessionalId } = modeResolution.pendingLookups;
     
     const processDeepLink = async () => {
       deepLinkProcessedRef.current = true;
       let newState = { ...EMPTY_WIZARD_STATE };
-      let targetStep = WizardStep.Category;
+      let targetStep = modeResolution.initialStep;
       
       // Handle target professional (direct mode)
       if (targetProfessionalId) {
@@ -172,8 +172,90 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         }
       }
       
-      // Fetch category
-      if (categoryId) {
+      // NEW: Micro hydration - lookup micro slug and hydrate parents
+      // This enables deep-linking with just /post?micro=sink-leak
+      if (microSlug && !categoryId && !subcategoryId) {
+        try {
+          const { data: micro, error } = await supabase
+            .from('service_micro_categories')
+            .select(`
+              id, name, slug,
+              service_subcategories!inner(
+                id, name,
+                service_categories!inner(id, name)
+              )
+            `)
+            .eq('slug', microSlug)
+            .eq('is_active', true)
+            .single();
+
+          if (!error && micro) {
+            // Type assertion for nested join
+            const sub = micro.service_subcategories as unknown as { id: string; name: string; service_categories: { id: string; name: string } };
+            const cat = sub.service_categories;
+            
+            newState = {
+              ...newState,
+              mainCategory: cat.name,
+              mainCategoryId: cat.id,
+              subcategory: sub.name,
+              subcategoryId: sub.id,
+              microNames: [micro.name],
+              microIds: [micro.id],
+              microSlugs: [micro.slug],
+            };
+            targetStep = WizardStep.Questions;
+            console.log('[Wizard] Hydrated micro:', microSlug, '→ Questions step');
+          } else {
+            console.warn('[Wizard] Micro lookup failed for:', microSlug, error);
+            // Fall back to Category step (resolver already set a safe initial)
+            targetStep = WizardStep.Category;
+          }
+        } catch (e) {
+          console.warn('[Wizard] Micro hydration error:', e);
+          targetStep = WizardStep.Category;
+        }
+      }
+      // Micro with partial hierarchy - use it
+      else if (microSlug && categoryId && subcategoryId) {
+        // Full hierarchy provided, lookup and hydrate
+        try {
+          const { data: micro, error } = await supabase
+            .from('service_micro_categories')
+            .select('id, name, slug, subcategory_id')
+            .eq('slug', microSlug)
+            .eq('is_active', true)
+            .single();
+          
+          if (!error && micro && micro.subcategory_id === subcategoryId) {
+            // Also fetch category and subcategory names
+            const { data: sub } = await supabase
+              .from('service_subcategories')
+              .select('id, name, category_id, service_categories!inner(id, name)')
+              .eq('id', subcategoryId)
+              .single();
+            
+            if (sub && sub.category_id === categoryId) {
+              const cat = sub.service_categories as unknown as { id: string; name: string };
+              newState = {
+                ...newState,
+                mainCategory: cat.name,
+                mainCategoryId: cat.id,
+                subcategory: sub.name,
+                subcategoryId: sub.id,
+                microNames: [micro.name],
+                microIds: [micro.id],
+                microSlugs: [micro.slug],
+              };
+              targetStep = WizardStep.Questions;
+            }
+          }
+        } catch (e) {
+          console.warn('[Wizard] Full hierarchy lookup failed:', e);
+        }
+      }
+      // Category/subcategory only (no micro)
+      else if (categoryId) {
         try {
           const { data: cat, error: catErr } = await supabase
             .from('service_categories')
@@ -210,7 +292,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             }
           }
         } catch (e) {
-          console.warn('Deep-link lookup failed:', e);
+          console.warn('[Wizard] Category lookup failed:', e);
         }
       }
       
