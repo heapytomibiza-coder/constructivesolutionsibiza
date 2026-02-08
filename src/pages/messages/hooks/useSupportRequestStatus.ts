@@ -9,7 +9,7 @@ async function checkOpenRequest(conversationId: string): Promise<boolean> {
     .from("support_requests")
     .select("id")
     .eq("conversation_id", conversationId)
-    .not("status", "in", "(resolved,closed)")
+    .in("status", ["open", "triage", "joined"])
     .limit(1);
 
   if (error) {
