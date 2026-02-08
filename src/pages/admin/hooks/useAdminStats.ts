@@ -14,6 +14,8 @@ export interface AdminPlatformStats {
   completed_jobs: number;
   total_posts: number;
   total_conversations: number;
+  open_support_tickets: number;
+  new_support_tickets: number;
 }
 
 /**

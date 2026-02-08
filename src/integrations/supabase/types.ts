@@ -44,6 +44,41 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          joined_at: string
+          left_at: string | null
+          role_in_conversation: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          role_in_conversation: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          role_in_conversation?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           client_id: string
@@ -416,6 +451,8 @@ export type Database = {
           conversation_id: string
           created_at: string
           id: string
+          message_type: string
+          metadata: Json | null
           sender_id: string
         }
         Insert: {
@@ -423,6 +460,8 @@ export type Database = {
           conversation_id: string
           created_at?: string
           id?: string
+          message_type?: string
+          metadata?: Json | null
           sender_id: string
         }
         Update: {
@@ -430,6 +469,8 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           id?: string
+          message_type?: string
+          metadata?: Json | null
           sender_id?: string
         }
         Relationships: [
@@ -973,6 +1014,138 @@ export type Database = {
           },
         ]
       }
+      support_request_events: {
+        Row: {
+          actor_role: string
+          actor_user_id: string
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          support_request_id: string
+        }
+        Insert: {
+          actor_role: string
+          actor_user_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          support_request_id: string
+        }
+        Update: {
+          actor_role?: string
+          actor_user_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          support_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_request_events_support_request_id_fkey"
+            columns: ["support_request_id"]
+            isOneToOne: false
+            referencedRelation: "admin_support_inbox"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_request_events_support_request_id_fkey"
+            columns: ["support_request_id"]
+            isOneToOne: false
+            referencedRelation: "support_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_requests: {
+        Row: {
+          assigned_to: string | null
+          conversation_id: string | null
+          created_at: string
+          created_by_role: string
+          created_by_user_id: string
+          id: string
+          issue_type: string
+          job_id: string | null
+          priority: string
+          resolved_at: string | null
+          status: string
+          summary: string | null
+          ticket_number: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          created_by_role: string
+          created_by_user_id: string
+          id?: string
+          issue_type: string
+          job_id?: string | null
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          summary?: string | null
+          ticket_number?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          created_by_role?: string
+          created_by_user_id?: string
+          id?: string
+          issue_type?: string
+          job_id?: string | null
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          summary?: string | null
+          ticket_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_requests_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           active_role: string
@@ -1016,7 +1189,9 @@ export type Database = {
           active_jobs: number | null
           active_professionals: number | null
           completed_jobs: number | null
+          new_support_tickets: number | null
           open_jobs: number | null
+          open_support_tickets: number | null
           total_conversations: number | null
           total_jobs: number | null
           total_posts: number | null
@@ -1024,6 +1199,68 @@ export type Database = {
           total_users: number | null
         }
         Relationships: []
+      }
+      admin_support_inbox: {
+        Row: {
+          age_hours: number | null
+          assigned_to: string | null
+          client_id: string | null
+          conversation_id: string | null
+          created_at: string | null
+          created_by_role: string | null
+          created_by_user_id: string | null
+          id: string | null
+          issue_type: string | null
+          job_category: string | null
+          job_id: string | null
+          job_title: string | null
+          last_message_at: string | null
+          last_message_preview: string | null
+          priority: string | null
+          pro_id: string | null
+          resolved_at: string | null
+          status: string | null
+          summary: string | null
+          ticket_number: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_requests_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       admin_users_list: {
         Row: {
