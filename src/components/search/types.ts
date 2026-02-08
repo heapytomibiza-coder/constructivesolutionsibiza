@@ -60,12 +60,18 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
       return `${base}?category=${hit.categoryId}&subcategory=${hit.id}&step=micro`;
       
     case "micro":
-      // Micro → go to questions with full hierarchy pre-filled
-      if (!hit.categoryId || !hit.subcategoryId) {
-        console.warn("SearchHit micro missing parent IDs, falling back");
-        return `${base}?micro=${hit.microSlug || hit.id}&step=questions`;
+      // Best case: full hierarchy available
+      if (hit.categoryId && hit.subcategoryId && hit.microSlug) {
+        return `${base}?category=${hit.categoryId}&subcategory=${hit.subcategoryId}&micro=${hit.microSlug}&step=questions`;
       }
-      return `${base}?category=${hit.categoryId}&subcategory=${hit.subcategoryId}&micro=${hit.microSlug || hit.id}&step=questions`;
+      // Fallback 1: have micro slug but missing parents
+      if (hit.microSlug) {
+        console.warn("SearchHit micro missing parent IDs, using micro slug only");
+        return `${base}?micro=${hit.microSlug}&step=questions`;
+      }
+      // Fallback 2: have micro ID only
+      console.warn("SearchHit micro missing microSlug, falling back to ID");
+      return `${base}?micro=${hit.id}&step=questions`;
       
     default:
       return base;
