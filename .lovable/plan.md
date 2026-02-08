@@ -1,166 +1,155 @@
 
 
-# Plan: Living Profile — Bringing Onboarding Energy to the Edit Experience
+# Plan: Align Phase 1 & 2 with Your Exact Specifications
 
-## The Core Insight (Product Principle)
+## Summary
 
-You identified something foundational: **the onboarding isn't just good UI — it's setting an emotional standard the rest of the app doesn't match.**
-
-| Onboarding Experience | Edit Experience |
-|----------------------|-----------------|
-| Feels guided, supportive | Feels administrative |
-| "You're doing great!" | "Update your data" |
-| Touch-friendly 56px tiles | Standard form inputs |
-| Gradient icons, progress bars | Plain cards, small icons |
-| **Inspires confidence** | **Triggers maintenance mode** |
-
-This is now documented as a design principle:
-
-> *"The onboarding experience sets the emotional tone of the platform. Future editing should feel like continuing the journey, not fixing a form."*
+You've provided drop-in replacements for the professional component library. This plan aligns the existing implementation with your exact specifications, including the flexible `ReactNode` icon prop and the separated `zones.ts` file.
 
 ---
 
-## What Makes Onboarding Special (The Design DNA)
+## Current State vs Your Specifications
 
-### 1. Visual Components
-- **56px touch-friendly tiles** (`ZoneTile`, `MicroToggleTile`)
-- **Gradient icon containers** (`bg-gradient-steel`, 14×14 rounded-xl)
-- **Progress indicators** with encouraging copy ("You're doing great!")
-- **Quiet autosave** with "Saved" badge flash (no modal interruption)
+| Component | Current | Your Specification | Action |
+|-----------|---------|-------------------|--------|
+| **GradientIconHeader** | Takes `LucideIcon` type | Takes `ReactNode` (flexible) | Update signature |
+| **zones.ts** | Doesn't exist | Separate file with types + `allZoneIds()` | Create new file |
+| **ZoneTile** | Has `id` prop + embedded `IBIZA_ZONES` | No `id` prop, zones moved out | Simplify component |
+| **IslandWideTile** | Missing description | Add "We'll match you with jobs anywhere" | Add text |
+| **ProfileEdit** | Partial upgrade | Full debounced autosave + ref pattern | Complete upgrade |
 
-### 2. Emotional Architecture
-- **Permission to stop**: "You don't need to select everything"
-- **Progress celebration**: "Great selection!" when threshold met
-- **Clear checklist**: Visual ✓ states that feel rewarding
-- **Forward momentum**: "Next Step" vs just "Save"
+---
 
-### 3. Reusable Components (Already Built)
-```text
-src/pages/onboarding/components/
-├── CategoryAccordion.tsx   ← Service selection UI
-├── MicroToggleTile.tsx     ← 56px toggle tiles
-├── ServiceSearchBar.tsx    ← Search with clear
-└── index.ts
+## File Changes
 
-src/pages/onboarding/steps/
-├── BasicInfoStep.tsx       ← Profile form with gradient header
-├── ServiceAreaStep.tsx     ← Zone selection with ZoneTile
-├── ServiceUnlockStep.tsx   ← Binary service picker
-└── ReviewStep.tsx          ← Checklist + Go Live
+### 1. Create `src/shared/components/professional/zones.ts` (NEW)
+
+Centralized zone data with types and helper:
+
+```typescript
+export type IbizaZone = { id: string; label: string };
+export type IbizaZoneGroup = { group: string; zones: IbizaZone[] };
+
+export const IBIZA_ZONES: IbizaZoneGroup[] = [
+  { group: "Central", zones: [...] },
+  { group: "West", zones: [...] },
+  // ... all 5 groups
+];
+
+export const allZoneIds = () => IBIZA_ZONES.flatMap(g => g.zones.map(z => z.id));
 ```
 
----
+### 2. Update `GradientIconHeader.tsx`
 
-## What's Missing in Edit Sections
+Change from `LucideIcon` type to `ReactNode` for flexibility:
 
-### ProfileEdit.tsx (Currently)
-- Standard `h-4 w-4` icons
-- Plain Card headers
-- Technical language ("Display Name *")
-- No character counters with encouraging copy
-- No gradient visual anchors
-- Missing: Zone editing, service editing
+```typescript
+// Before
+icon: LucideIcon;
 
-### ProfessionalServices.tsx (Currently)
-- Placeholder stub only
-- "Add Service" button does nothing
-- No actual service management
-
----
-
-## Implementation Plan
-
-### Phase 1: Shared Component Library
-Extract onboarding components to a shared location so both onboarding and edit can use them:
-
-```text
-src/shared/components/professional/
-├── GradientIconHeader.tsx     ← Reusable 14×14 gradient icon with title/desc
-├── ZoneTile.tsx               ← Move from ServiceAreaStep
-├── MicroToggleTile.tsx        ← Already in onboarding/components
-├── CategoryAccordion.tsx      ← Already in onboarding/components
-├── QuietSaveIndicator.tsx     ← "Saved" badge flash pattern
-└── index.ts
+// After
+icon: ReactNode;
 ```
 
-### Phase 2: Upgrade ProfileEdit
-Transform the current form-based ProfileEdit to match onboarding energy:
+This allows usage like `icon={<User className="h-5 w-5" />}` for custom sizing.
 
-1. Add `GradientIconHeader` to each card section
-2. Increase touch targets (larger inputs)
-3. Add character counters with encouraging copy
-4. Replace "Save" with "Update Profile ✓" 
-5. Add quiet autosave with "Saved" flash
+### 3. Update `ZoneTile.tsx`
 
-### Phase 3: Complete ProfessionalServices
-Build out the stub with onboarding-style components:
+- Remove `IBIZA_ZONES` constant (moved to `zones.ts`)
+- Remove unused `id` prop from interface
+- Keep the 56px min-height and accessibility features
 
-1. Reuse `CategoryAccordion` and `MicroToggleTile`
-2. Add same search bar from onboarding
-3. Include "X jobs selected" progress indicator
-4. Quiet autosave pattern
+### 4. Update `IslandWideTile.tsx`
 
-### Phase 4: Add Zone Editing
-Create a ServiceArea section in profile management:
+Add the description text:
+```tsx
+<span className="block text-base font-medium">I cover the entire island</span>
+<p className="text-sm text-muted-foreground">
+  We'll match you with jobs anywhere in Ibiza.
+</p>
+```
 
-1. Reuse `ZoneTile` component
-2. Same "Island-wide" toggle
-3. Same group selection logic
+### 5. Update `index.ts`
 
-### Phase 5: Optional — "Re-run Onboarding" (Dev/Demo)
-Add ability to re-experience onboarding for demos:
+Export the new `zones.ts`:
+```typescript
+export * from './zones';
+```
 
-- Button in Settings (dev mode only) or
-- URL parameter: `/onboarding/professional?preview=true`
+### 6. Update `ProfileEdit.tsx`
 
----
-
-## File Changes Summary
-
-| Action | File | Description |
-|--------|------|-------------|
-| Create | `src/shared/components/professional/GradientIconHeader.tsx` | Reusable gradient icon + title pattern |
-| Create | `src/shared/components/professional/QuietSaveIndicator.tsx` | "Saved" badge flash component |
-| Move | `ZoneTile` → `src/shared/components/professional/` | Shared zone selection tile |
-| Refactor | `src/pages/professional/ProfileEdit.tsx` | Upgrade to onboarding-style design |
-| Implement | `src/pages/professional/ProfessionalServices.tsx` | Full service management UI |
-| Create | Service area editing section in profile | Zone management for established pros |
+Complete the upgrade with:
+- Debounced autosave using `useRef<ReturnType<typeof setTimeout>>`
+- `mode: "onChange"` for form validation
+- Skip autosave if `isDirty === false` or required field invalid
+- `QuietSaveIndicator` also shown in mobile footer
+- `rounded-xl` on action buttons
 
 ---
 
 ## Technical Notes
 
-### Component Reuse Strategy
-The onboarding components are already well-architected. The main work is:
-1. Moving them to a shared location
-2. Ensuring hooks work outside onboarding context
-3. Adding "edit mode" props where needed (e.g., no "onComplete" callback)
+### ReactNode vs LucideIcon Trade-off
 
-### Database Considerations
-No schema changes needed — all the same tables and fields are used:
-- `professional_profiles.service_zones` (zone array)
-- `professional_services` (micro selections)
-- `profiles.phone`, `professional_profiles.display_name`, etc.
+**LucideIcon (current)**:
+- Better autocomplete
+- Component controls icon size automatically
+- Slightly more restrictive
 
-### Estimated Scope
-- Phase 1 (Shared Library): 2-3 components
-- Phase 2 (ProfileEdit Upgrade): 1 file refactor
-- Phase 3 (Services Page): 1 file implementation
-- Phase 4 (Zone Editing): 1 section addition
-- Phase 5 (Demo Access): Optional, 1 small addition
+**ReactNode (your spec)**:
+- More flexible (custom SVGs, styled icons)
+- Caller controls icon size
+- Matches your drop-in code exactly
+
+Your specification uses ReactNode, which is the right call for maximum flexibility.
+
+### Autosave Pattern
+
+Your provided code includes a robust debounce pattern:
+```typescript
+const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+useEffect(() => {
+  const subscription = form.watch((values) => {
+    if (!form.formState.isDirty) return;
+    
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => autoSave(values), 700);
+  });
+  
+  return () => {
+    subscription.unsubscribe();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  };
+}, [form, autoSave, user, isFetching]);
+```
+
+This is cleaner than the current implementation and prevents autosave during initial fetch.
 
 ---
 
-## Expected Outcome
+## Files Modified
 
-After implementation, the professional journey will feel like:
+| Action | File | Description |
+|--------|------|-------------|
+| Create | `src/shared/components/professional/zones.ts` | Types + data + `allZoneIds()` |
+| Update | `src/shared/components/professional/GradientIconHeader.tsx` | ReactNode icon prop |
+| Update | `src/shared/components/professional/ZoneTile.tsx` | Remove id prop + IBIZA_ZONES |
+| Update | `src/shared/components/professional/IslandWideTile.tsx` | Add description text |
+| Update | `src/shared/components/professional/index.ts` | Export zones.ts |
+| Update | `src/pages/professional/ProfileEdit.tsx` | Complete debounced autosave |
+| Update | `src/pages/onboarding/steps/ServiceAreaStep.tsx` | Use allZoneIds() helper |
 
-> "I finished onboarding, and now my dashboard and settings feel like a continuation of that same supportive experience — not like I've been handed a clipboard and told to maintain my own paperwork."
+---
 
-The entire Tasker lane becomes "ongoing onboarding" with the same:
-- Gradient visual anchors
-- 56px touch-friendly tiles
-- Encouraging copy
-- Progress celebration
-- Quiet autosave
+## Expected Result
+
+After implementation:
+- Clean separation of concerns with `zones.ts`
+- Flexible icon rendering in `GradientIconHeader`
+- ProfileEdit with proper debounced autosave that:
+  - Waits 700ms after typing stops
+  - Shows "Saved" indicator on success
+  - Skips autosave during initial load
+  - Validates required field before saving
 
