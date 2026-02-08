@@ -56,8 +56,8 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
     case "subcategory": {
       // Subcategory → requires categoryId to be a true deep-link
       if (!hit.categoryId) {
-        console.warn("SearchHit subcategory missing categoryId, falling back to safe step");
-        return buildWizardLink({ mode: "subcategoryFallback" });
+        console.warn("SearchHit subcategory missing categoryId");
+        return buildWizardLink({ mode: "subcategoryOnly" });
       }
       return buildWizardLink({ 
         mode: "subcategory", 
@@ -77,17 +77,15 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
         });
       }
 
-      // SAFE FALLBACK: We have micro slug but missing parent IDs
-      // Since wizard cannot hydrate parents from micro alone,
-      // go to micro step (not questions) so user can confirm selection
+      // Safe case: micro slug only → micro step for confirmation
       if (hit.microSlug) {
-        console.warn("SearchHit micro missing parent IDs, falling back to safe micro step");
-        return buildWizardLink({ mode: "microFallback", microSlug: hit.microSlug });
+        console.warn("SearchHit micro missing parent IDs, using microOnly");
+        return buildWizardLink({ mode: "microOnly", microSlug: hit.microSlug });
       }
 
-      // Last resort: micro id only → still safe micro step
-      console.warn("SearchHit micro missing microSlug, falling back to safe micro step");
-      return buildWizardLink({ mode: "microFallback", microSlug: hit.id });
+      // No slug = no safe navigation → fresh start
+      console.warn("SearchHit micro missing microSlug, falling back to fresh");
+      return buildWizardLink({ mode: "fresh" });
     }
 
     default:

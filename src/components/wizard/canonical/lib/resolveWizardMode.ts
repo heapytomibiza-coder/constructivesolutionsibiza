@@ -103,9 +103,9 @@ function deriveTargetStepFromParams(params: UrlParams): WizardStep {
           : WizardStep.Category;
     }
     
-    // ENFORCEMENT: step=micro requires subcategory
-    if (requestedStep === WizardStep.Micro && !params.subcategory) {
-      console.warn('[WizardResolver] step=micro requested but subcategory missing, falling back');
+    // ENFORCEMENT: step=micro requires subcategory OR micro param (microOnly pattern)
+    if (requestedStep === WizardStep.Micro && !params.subcategory && !params.micro) {
+      console.warn('[WizardResolver] step=micro requested but no context, falling back');
       return params.category ? WizardStep.Subcategory : WizardStep.Category;
     }
     
