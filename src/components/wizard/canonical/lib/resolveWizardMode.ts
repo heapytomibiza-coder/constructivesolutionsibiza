@@ -120,16 +120,16 @@ function deriveTargetStepFromParams(params: UrlParams): WizardStep {
   }
   
   // No explicit step - derive from param completeness
-  // ENFORCEMENT: Questions step requires FULL hierarchy
-  // NOTE: Micro-only deep links are intentionally unsupported until hydration is implemented.
+  // ENFORCEMENT: Only go to Questions if we have FULL hierarchy
+  // (the deep-link processor will hydrate parents from micro if needed)
   if (params.category && params.subcategory && params.micro) {
     return WizardStep.Questions;
   }
   
-  // Micro-only (missing parents) - preserve any partial context
+  // Micro-only: Start at Micro step as a safe interim
+  // Deep-link processor will attempt hydration and may upgrade to Questions
   if (params.micro) {
-    // If we have category, at least go to Subcategory step
-    return params.category ? WizardStep.Subcategory : WizardStep.Category;
+    return WizardStep.Micro;
   }
   
   if (params.subcategory) {
