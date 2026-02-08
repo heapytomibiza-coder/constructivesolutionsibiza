@@ -28,8 +28,8 @@ const profileSchema = z.object({
   displayName: z.string().min(2, "Name must be at least 2 characters"),
   businessName: z.string().optional(),
   phone: z.string().optional(),
-  bio: z.string().max(500, "Bio must be under 500 characters").optional(),
-  tagline: z.string().max(100, "Tagline must be under 100 characters").optional(),
+  bio: z.string().optional(),
+  tagline: z.string().optional(),
   isPubliclyListed: z.boolean(),
 });
 
@@ -103,7 +103,10 @@ export default function ProfileEdit() {
   }, [user, form, t]);
 
   async function onSubmit(values: ProfileFormValues) {
-    if (!user) return;
+    if (!user) {
+      toast.error("Not authenticated");
+      return;
+    }
     
     setIsLoading(true);
     
@@ -121,7 +124,10 @@ export default function ProfileEdit() {
         })
         .eq("user_id", user.id);
 
-      if (proError) throw proError;
+      if (proError) {
+        console.error("Pro profile update error:", proError);
+        throw proError;
+      }
 
       // Update profiles table for phone
       const { error: userError } = await supabase
@@ -132,7 +138,10 @@ export default function ProfileEdit() {
         })
         .eq("user_id", user.id);
 
-      if (userError) throw userError;
+      if (userError) {
+        console.error("User profile update error:", userError);
+        throw userError;
+      }
 
       // Refresh session to update context
       await refresh();
