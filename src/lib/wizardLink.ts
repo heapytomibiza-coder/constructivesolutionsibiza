@@ -12,8 +12,8 @@ export type WizardLinkParams =
   | { mode: "category"; categoryId: string }
   | { mode: "subcategory"; categoryId: string; subcategoryId: string }
   | { mode: "micro"; categoryId: string; subcategoryId: string; microSlug: string }
-  | { mode: "microFallback"; microSlug: string }  // Safe fallback: goes to micro step, not questions
-  | { mode: "subcategoryFallback" }               // Safe fallback: goes to subcategory step
+  | { mode: "microOnly"; microSlug: string }      // SAFE: lands on micro step for confirmation
+  | { mode: "subcategoryOnly" }                   // SAFE: no category context, fresh subcategory selection
   | { mode: "direct"; professionalId: string }
   | { mode: "resume" };
 
@@ -45,15 +45,13 @@ export function buildWizardLink(params: WizardLinkParams): string {
       // Full hierarchy → go straight to questions (best case)
       return `${base}?${qp("category", params.categoryId)}&${qp("subcategory", params.subcategoryId)}&${qp("micro", params.microSlug)}&step=questions`;
       
-    case "microFallback":
-      // SAFE FALLBACK: We have micro but missing parents
+    case "microOnly":
+      // SAFE: We know micro slug but cannot hydrate parents
       // Go to micro step (not questions) so user can confirm selection
-      // The wizard resolver will enforce this anyway, but we're explicit here
       return `${base}?${qp("micro", params.microSlug)}&step=micro`;
       
-    case "subcategoryFallback":
-      // SAFE FALLBACK: Missing category context entirely
-      // Start fresh at subcategory selection
+    case "subcategoryOnly":
+      // SAFE: No category context - start fresh at subcategory selection
       return `${base}?step=subcategory`;
       
     case "direct":
