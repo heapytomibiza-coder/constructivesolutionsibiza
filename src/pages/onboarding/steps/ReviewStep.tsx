@@ -68,6 +68,7 @@ export function ReviewStep({ onBack }: ReviewStepProps) {
         .update({
           profile_status: 'live',
           onboarding_phase: 'complete',
+          is_publicly_listed: true, // Make professional visible in directory
           submitted_at: new Date().toISOString(),
         })
         .eq('user_id', user.id);
