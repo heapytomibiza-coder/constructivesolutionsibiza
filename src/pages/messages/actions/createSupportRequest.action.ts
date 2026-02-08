@@ -31,7 +31,7 @@ export async function createSupportRequest(params: CreateParams): Promise<Create
       .from("support_requests")
       .select("id, ticket_number")
       .eq("conversation_id", params.conversationId)
-      .not("status", "in", "(resolved,closed)")
+      .in("status", ["open", "triage", "joined"])
       .limit(1);
 
     if (existing?.length) {
@@ -63,6 +63,13 @@ export async function createSupportRequest(params: CreateParams): Promise<Create
       .single();
 
     if (requestError) {
+      // Handle unique constraint violation (race condition protection)
+      if (requestError.code === '23505') {
+        return { 
+          success: false, 
+          error: "A support request is already open for this conversation" 
+        };
+      }
       console.error("Error creating support request:", requestError);
       throw requestError;
     }
@@ -91,6 +98,7 @@ export async function createSupportRequest(params: CreateParams): Promise<Create
         body: `Support has been notified. Ticket ${request.ticket_number}`,
         message_type: 'system',
         metadata: { 
+          system_sender: 'csi-support',
           support_request_id: request.id,
           ticket_number: request.ticket_number,
           issue_type: params.issueType,
