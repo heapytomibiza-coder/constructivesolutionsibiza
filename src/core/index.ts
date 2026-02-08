@@ -2,8 +2,12 @@
  * Core Module
  * 
  * Platform fundamentals - permissions, constants, and shared types.
- * Future-ready structure for when guard logic needs centralization.
+ * Currently implemented via:
+ * - src/guard/ (access control)
+ * - src/domain/scope.ts (platform identity)
+ * 
+ * This module will expand when platform-wide invariants are extracted.
  */
 
-// Re-export domain scope for now (keeps domain/scope.ts as single source)
+// Re-export domain scope (keeps domain/scope.ts as single source)
 export { PLATFORM, MAIN_CATEGORIES } from '@/domain/scope';
