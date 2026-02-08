@@ -221,11 +221,9 @@ export function UniversalSearchBar({ className }: { className?: string }) {
       setQuery("");
 
       if (isServiceHit(result)) {
-        // Use the single source of truth URL builder
         const url = buildWizardUrlFromHit(result);
         navigate(url);
       } else {
-        // Forum hit
         const url = buildForumUrl(result);
         navigate(url);
       }
