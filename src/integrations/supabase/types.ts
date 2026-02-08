@@ -979,6 +979,9 @@ export type Database = {
           created_at: string
           id: string
           roles: string[]
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
           updated_at: string
           user_id: string
         }
@@ -987,6 +990,9 @@ export type Database = {
           created_at?: string
           id?: string
           roles?: string[]
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           user_id: string
         }
@@ -995,6 +1001,9 @@ export type Database = {
           created_at?: string
           id?: string
           roles?: string[]
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1013,6 +1022,24 @@ export type Database = {
           total_posts: number | null
           total_professionals: number | null
           total_users: number | null
+        }
+        Relationships: []
+      }
+      admin_users_list: {
+        Row: {
+          active_role: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          phone: string | null
+          pro_is_listed: boolean | null
+          pro_onboarding_phase: string | null
+          pro_services_count: number | null
+          pro_verification_status: string | null
+          roles: string[] | null
+          status: string | null
+          suspended_at: string | null
+          suspension_reason: string | null
         }
         Relationships: []
       }

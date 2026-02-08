@@ -3,3 +3,4 @@
  */
 
 export * from "./useAdminStats";
+export * from "./useAdminUsers";
