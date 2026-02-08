@@ -34,6 +34,7 @@ export {
   deriveStepFromState,
   markDraftChecked,
   clearDraftChecked,
+  validateLookupResult,
   type WizardMode,
   type ModeResolution,
   type ResolverInput,
