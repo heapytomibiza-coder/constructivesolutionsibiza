@@ -114,6 +114,8 @@ const Auth = () => {
           body: JSON.stringify({
             type: 'signup',
             email,
+            password,
+            phone,
             intent: selectedIntent,
           }),
         }

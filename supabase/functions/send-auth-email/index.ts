@@ -4,6 +4,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+// Primary sender (your branded domain). This will only work once the domain is verified.
+const PRIMARY_FROM = "CS Ibiza <noreply@csibiza.com>";
+
+// Fallback sender (works without verifying your own domain).
+const FALLBACK_FROM = "CS Ibiza <onboarding@resend.dev>";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -14,8 +20,41 @@ interface AuthEmailRequest {
   type: "signup" | "recovery" | "resend";
   email: string;
   intent?: string;
+  phone?: string;
+  password?: string;
   redirectUrl?: string;
 }
+
+type SendEmailArgs = { to: string; subject: string; html: string };
+
+const sendEmailWithSenderFallback = async ({ to, subject, html }: SendEmailArgs) => {
+  const primary = await resend.emails.send({
+    from: PRIMARY_FROM,
+    to: [to],
+    subject,
+    html,
+  });
+
+  if (!primary.error) {
+    return { usedFrom: PRIMARY_FROM, response: primary, primaryResponse: primary };
+  }
+
+  const msg = String(primary.error.message ?? "");
+  const isDomainNotVerified = msg.toLowerCase().includes("domain is not verified");
+
+  if (isDomainNotVerified) {
+    const fallback = await resend.emails.send({
+      from: FALLBACK_FROM,
+      to: [to],
+      subject,
+      html,
+    });
+
+    return { usedFrom: FALLBACK_FROM, response: fallback, primaryResponse: primary };
+  }
+
+  return { usedFrom: PRIMARY_FROM, response: primary, primaryResponse: primary };
+};
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight
@@ -24,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { type, email, intent, redirectUrl }: AuthEmailRequest = await req.json();
+    const { type, email, intent, phone, password, redirectUrl }: AuthEmailRequest = await req.json();
 
     if (!email || !type) {
       throw new Error("Missing required fields: email and type");
@@ -46,26 +85,54 @@ const handler = async (req: Request): Promise<Response> => {
     let htmlContent: string;
 
     if (type === "signup") {
-      // Generate signup confirmation link for NEW users
-      const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+      if (!password || password.length < 6) {
+        throw new Error("Missing required fields: password");
+      }
+
+      const meta: Record<string, string> = {};
+      if (intent) meta.intent = intent;
+      if (phone) meta.phone = phone;
+
+      // Generate signup confirmation link (creates user + sets password)
+      let linkData: any | null = null;
+
+      const signupLink = await supabaseAdmin.auth.admin.generateLink({
         type: "signup",
         email,
+        password,
         options: {
           redirectTo: `${siteUrl}/auth/callback`,
-          data: intent ? { intent } : undefined,
+          data: Object.keys(meta).length ? meta : undefined,
         },
       });
 
-      if (error) {
-        console.error("Generate link error:", error);
-        // Don't reveal if user exists - return success anyway
-        return new Response(
-          JSON.stringify({ success: true, message: "If an account exists, an email will be sent." }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
+      if (signupLink.error) {
+        console.error("Generate signup link error:", signupLink.error);
+
+        // If user already exists (or signup link can't be generated), fall back to a magic link.
+        const magicLink = await supabaseAdmin.auth.admin.generateLink({
+          type: "magiclink",
+          email,
+          options: {
+            redirectTo: `${siteUrl}/auth/callback`,
+          },
+        });
+
+        if (magicLink.error) {
+          console.error("Generate magiclink fallback error:", magicLink.error);
+          // Don't reveal if user exists - return success anyway
+          return new Response(
+            JSON.stringify({ success: true, message: "If an account exists, an email will be sent." }),
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+
+        linkData = magicLink.data;
+      } else {
+        linkData = signupLink.data;
       }
 
-      actionLink = data.properties?.action_link || "";
+      actionLink = linkData?.properties?.action_link || "";
       subject = "Confirm your CS Ibiza account";
       htmlContent = `
         <!DOCTYPE html>
@@ -220,15 +287,30 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invalid email type");
     }
 
-    // Send email via Resend
-    const emailResponse = await resend.emails.send({
-      from: "CS Ibiza <noreply@csibiza.com>",
-      to: [email],
-      subject,
-      html: htmlContent,
-    });
+    // Send email via provider (fallback to a default sender if your domain isn't verified yet)
+    const { usedFrom, response: emailResponse, primaryResponse } =
+      await sendEmailWithSenderFallback({
+        to: email,
+        subject,
+        html: htmlContent,
+      });
 
-    console.log("Email sent successfully:", emailResponse);
+    if (primaryResponse?.error) {
+      console.warn(
+        "Primary sender failed; attempting fallback sender:",
+        primaryResponse.error
+      );
+    }
+
+    if (emailResponse?.error) {
+      console.error("Email send failed:", emailResponse.error);
+      throw new Error("Email could not be sent");
+    }
+
+    console.log("Email accepted by provider:", {
+      usedFrom,
+      id: emailResponse.data?.id,
+    });
 
     return new Response(
       JSON.stringify({ success: true, message: "Email sent successfully" }),
