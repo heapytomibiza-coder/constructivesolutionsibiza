@@ -1,166 +1,384 @@
 
+# Codebase Restructuring Plan: Domain-First Architecture
 
-# Finalize Search → Wizard Lock-In: Naming Clarity + Rule Consistency
+## Overview
 
-## Summary
+Transform the current structure into a **domain-first architecture** that makes role separation, business logic ownership, and navigation instantly clear for any developer.
 
-Rename the fallback modes for clarity and fix one rule violation where we incorrectly use micro ID instead of slug.
-
----
-
-## Current State
-
-| Component | Status | Issue |
-|-----------|--------|-------|
-| `wizardLink.ts` | ⚠️ Naming | Uses `microFallback`/`subcategoryFallback` - confusing names |
-| `types.ts` | ⚠️ Rule violation | Line 90 uses `hit.id` as micro param - violates "micro= always slug" |
-| `resolveWizardMode.ts` | ✅ Correct | Already enforces full hierarchy for Questions |
-| i18n files | ✅ Correct | Already have `universalSearch.type.*` keys |
+**Target Score: 9/10** (up from current 6.5/10)
 
 ---
 
-## Changes
+## Current State Analysis
 
-### 1. Rename Fallback Modes for Clarity
-
-**File**: `src/lib/wizardLink.ts`
-
-Rename for intent clarity:
-- `microFallback` → `microOnly` (we only know micro, nothing else)
-- `subcategoryFallback` → `subcategoryOnly` (no category context)
-
-```typescript
-export type WizardLinkParams =
-  | { mode: "fresh" }
-  | { mode: "category"; categoryId: string }
-  | { mode: "subcategory"; categoryId: string; subcategoryId: string }
-  | { mode: "micro"; categoryId: string; subcategoryId: string; microSlug: string }
-  | { mode: "microOnly"; microSlug: string }    // SAFE: lands on micro step
-  | { mode: "subcategoryOnly" }                  // SAFE: lands on subcategory step
-  | { mode: "direct"; professionalId: string }
-  | { mode: "resume" };
+```text
+src/
+├── components/
+│   ├── layout/       ← 10 files, app-level blocks mixed with navigation
+│   ├── ui/           ← 50+ files, shadcn primitives + custom (empty-state, stat-tile)
+│   └── wizard/       ← DOMAIN (canonical + db-powered), wrong location
+├── pages/
+│   ├── dashboard/    ← client + pro MIXED in same folder
+│   ├── jobs/         ← GOLD STANDARD (actions/queries/lib/types)
+│   ├── professional/ ← Pro management pages
+│   └── ...
+├── lib/
+│   ├── services/     ← categoryMapping (orphaned)
+│   ├── wizardLink.ts ← wizard-owned, wrong location
+│   ├── evaluatePackRules.ts ← jobs-owned, wrong location
+│   └── searchSynonyms.ts    ← search-owned
+└── shared/
+    └── lib/userError.ts  ← underutilized
 ```
 
-Update switch cases with clearer comments:
+### Key Issues
 
-```typescript
-case "microOnly":
-  // SAFE: We know micro slug but cannot hydrate parents
-  // Go to micro step (not questions) so user can confirm selection
-  return `${base}?${qp("micro", params.microSlug)}&step=micro`;
-
-case "subcategoryOnly":
-  // SAFE: No category context - start fresh at subcategory selection
-  return `${base}?step=subcategory`;
-```
+1. **Wizard lives in `components/`** — It's a full domain with state, persistence, and rules
+2. **Dashboard roles mixed** — `ClientDashboard.tsx` and `ProDashboard.tsx` side-by-side
+3. **Domain logic scattered in `lib/`** — `wizardLink.ts`, `evaluatePackRules.ts` should live with their domains
+4. **Shared components unclear** — `PageHeader`, `StatTile`, `EmptyState` are app blocks, not UI primitives
+5. **No `features/` folder** — Domain modules have no dedicated home
 
 ---
 
-### 2. Fix Rule Violation in `buildWizardUrlFromHit`
+## Target State
 
-**File**: `src/components/search/types.ts`
-
-**Problem**: Line 90 uses `hit.id` as micro param when `microSlug` is missing:
-```typescript
-// WRONG - violates "micro= always slug" rule
-return buildWizardLink({ mode: "microFallback", microSlug: hit.id });
-```
-
-**Fix**: If we don't have the slug, we can't safely navigate to micro step - fall back to fresh:
-
-```typescript
-case "micro": {
-  // Best case: full hierarchy available
-  if (hit.categoryId && hit.subcategoryId && hit.microSlug) {
-    return buildWizardLink({
-      mode: "micro",
-      categoryId: hit.categoryId,
-      subcategoryId: hit.subcategoryId,
-      microSlug: hit.microSlug,
-    });
-  }
-
-  // Safe case: micro slug only → micro step
-  if (hit.microSlug) {
-    console.warn("SearchHit micro missing parent IDs, using microOnly");
-    return buildWizardLink({ mode: "microOnly", microSlug: hit.microSlug });
-  }
-
-  // No slug = no safe navigation → fresh start
-  console.warn("SearchHit micro missing microSlug, falling back to fresh");
-  return buildWizardLink({ mode: "fresh" });
-}
-```
-
-Also update subcategory case:
-
-```typescript
-case "subcategory": {
-  if (!hit.categoryId) {
-    console.warn("SearchHit subcategory missing categoryId");
-    return buildWizardLink({ mode: "subcategoryOnly" });
-  }
-  // ... rest unchanged
-}
+```text
+src/
+├── features/
+│   ├── wizard/           ← MOVED from components/wizard
+│   │   ├── canonical/
+│   │   ├── db-powered/
+│   │   ├── lib/
+│   │   │   ├── wizardLink.ts      ← MOVED from lib/
+│   │   │   ├── evaluatePackRules.ts ← MOVED from lib/
+│   │   │   └── ...
+│   │   └── index.ts
+│   └── search/           ← NEW, search domain
+│       └── lib/
+│           └── searchSynonyms.ts  ← MOVED from lib/
+│
+├── pages/
+│   ├── dashboard/
+│   │   ├── client/       ← NEW subfolder
+│   │   │   ├── ClientDashboard.tsx
+│   │   │   ├── components/
+│   │   │   └── hooks/
+│   │   ├── professional/ ← NEW subfolder
+│   │   │   ├── ProDashboard.tsx
+│   │   │   └── hooks/
+│   │   └── shared/       ← NEW subfolder
+│   │       └── components/
+│   └── jobs/             ← Already good, minor cleanup
+│
+├── shared/
+│   ├── components/
+│   │   ├── layout/       ← MOVED from components/layout
+│   │   ├── EmptyState.tsx ← MOVED from components/ui/empty-state.tsx
+│   │   └── StatTile.tsx   ← MOVED from components/ui/stat-tile.tsx
+│   └── lib/
+│       └── userError.ts
+│
+├── components/
+│   └── ui/               ← shadcn primitives ONLY
+│
+├── core/                 ← NEW, platform fundamentals
+│   ├── permissions/
+│   └── constants/
+│
+└── lib/
+    ├── utils.ts          ← Keep (cn, formatters)
+    ├── formatters.ts
+    └── i18n-utils.ts
 ```
 
 ---
 
-### 3. Update Resolver to Allow `microOnly` Pattern
+## Phase 1: Create Features Folder + Move Wizard (High Impact)
 
-**File**: `src/components/wizard/canonical/lib/resolveWizardMode.ts`
+### Step 1.1: Create `src/features/wizard/`
 
-The current enforcement (lines 107-109) rejects `step=micro` without `subcategory`:
+Create the new folder structure:
 
-```typescript
-if (requestedStep === WizardStep.Micro && !params.subcategory) {
-  return params.category ? WizardStep.Subcategory : WizardStep.Category;
-}
+```text
+src/features/
+└── wizard/
+    ├── canonical/
+    │   ├── hooks/
+    │   ├── lib/
+    │   ├── steps/
+    │   ├── CanonicalJobWizard.tsx
+    │   ├── index.ts
+    │   └── types.ts
+    ├── db-powered/
+    │   ├── CategorySelector.tsx
+    │   ├── SubcategorySelector.tsx
+    │   ├── MicroStep.tsx
+    │   ├── ServiceSearchBar.tsx
+    │   └── index.ts
+    ├── lib/
+    │   ├── wizardLink.ts         ← Move from src/lib/
+    │   └── evaluatePackRules.ts  ← Move from src/lib/
+    └── index.ts
 ```
 
-But we intentionally generate `/post?micro=<slug>&step=micro` for `microOnly` mode.
+### Step 1.2: File Moves for Wizard
 
-**Fix**: Allow `step=micro` when `params.micro` exists (the micro confirmation pattern):
+| From | To |
+|------|-----|
+| `src/components/wizard/canonical/*` | `src/features/wizard/canonical/*` |
+| `src/components/wizard/db-powered/*` | `src/features/wizard/db-powered/*` |
+| `src/lib/wizardLink.ts` | `src/features/wizard/lib/wizardLink.ts` |
+| `src/lib/evaluatePackRules.ts` | `src/features/wizard/lib/evaluatePackRules.ts` |
+
+### Step 1.3: Create Re-export Stub (Prevents Import Churn)
+
+Keep `src/components/wizard/index.ts` as a re-export:
 
 ```typescript
-// ENFORCEMENT: step=micro requires subcategory OR micro param (microOnly pattern)
-if (requestedStep === WizardStep.Micro && !params.subcategory && !params.micro) {
-  console.warn('[WizardResolver] step=micro requested but no context, falling back');
-  return params.category ? WizardStep.Subcategory : WizardStep.Category;
-}
+// DEPRECATED: Import from @/features/wizard instead
+export * from '@/features/wizard';
 ```
 
----
-
-## Files Modified
+### Step 1.4: Update Imports (4 files)
 
 | File | Change |
 |------|--------|
-| `src/lib/wizardLink.ts` | Rename modes: `microFallback`→`microOnly`, `subcategoryFallback`→`subcategoryOnly` |
-| `src/components/search/types.ts` | Use new mode names; fix ID→slug rule violation |
-| `src/components/wizard/canonical/lib/resolveWizardMode.ts` | Allow `microOnly` pattern in enforcement |
+| `src/pages/jobs/PostJob.tsx` | `@/components/wizard/canonical` → `@/features/wizard/canonical` |
+| `src/pages/professional/ProfessionalServiceSetup.tsx` | `@/components/wizard/db-powered` → `@/features/wizard/db-powered` |
+| `src/pages/public/ServiceCategory.tsx` | `@/lib/wizardLink` → `@/features/wizard/lib/wizardLink` |
+| `src/pages/public/Professionals.tsx` | `@/lib/wizardLink` → `@/features/wizard/lib/wizardLink` |
+| `src/pages/public/ProfessionalDetails.tsx` | `@/lib/wizardLink` → `@/features/wizard/lib/wizardLink` |
 
 ---
 
-## Testing Checklist
+## Phase 2: Split Dashboard by Role
 
-| Test | Expected |
-|------|----------|
-| `/post?micro=sink-leak&step=micro` | Lands on Micro step (microOnly pattern works) |
-| `/post?micro=sink-leak&step=questions` | Falls back to Category (can't go to questions without parents) |
-| `/post?category=X&subcategory=Y&micro=slug&step=questions` | Lands on Questions step |
-| Search hit with full hierarchy → click | Questions step |
-| Search hit with only microSlug → click | Micro step |
-| Search hit missing microSlug → click | Fresh start |
+### Step 2.1: Create Role Subfolders
+
+```text
+src/pages/dashboard/
+├── client/
+│   ├── ClientDashboard.tsx
+│   ├── components/
+│   │   └── ClientJobCard.tsx
+│   ├── hooks/
+│   │   ├── useClientStats.ts
+│   │   └── index.ts
+│   └── index.ts
+├── professional/
+│   ├── ProDashboard.tsx
+│   ├── hooks/
+│   │   ├── useProStats.ts
+│   │   └── index.ts
+│   └── index.ts
+└── shared/
+    ├── components/
+    │   ├── AssignProSelector.tsx
+    │   ├── PendingReviewsCard.tsx
+    │   └── index.ts
+    └── hooks/
+        ├── usePendingReviews.ts
+        └── index.ts
+```
+
+### Step 2.2: File Moves for Dashboard
+
+| From | To |
+|------|-----|
+| `src/pages/dashboard/ClientDashboard.tsx` | `src/pages/dashboard/client/ClientDashboard.tsx` |
+| `src/pages/dashboard/ProDashboard.tsx` | `src/pages/dashboard/professional/ProDashboard.tsx` |
+| `src/pages/dashboard/components/ClientJobCard.tsx` | `src/pages/dashboard/client/components/ClientJobCard.tsx` |
+| `src/pages/dashboard/hooks/useClientStats.ts` | `src/pages/dashboard/client/hooks/useClientStats.ts` |
+| `src/pages/dashboard/hooks/useProStats.ts` | `src/pages/dashboard/professional/hooks/useProStats.ts` |
+| `src/pages/dashboard/components/AssignProSelector.tsx` | `src/pages/dashboard/shared/components/AssignProSelector.tsx` |
+| `src/pages/dashboard/components/PendingReviewsCard.tsx` | `src/pages/dashboard/shared/components/PendingReviewsCard.tsx` |
+| `src/pages/dashboard/hooks/usePendingReviews.ts` | `src/pages/dashboard/shared/hooks/usePendingReviews.ts` |
+
+### Step 2.3: Update App.tsx Imports
+
+```typescript
+// Before
+import ClientDashboard from "./pages/dashboard/ClientDashboard";
+import ProDashboard from "./pages/dashboard/ProDashboard";
+
+// After
+import ClientDashboard from "./pages/dashboard/client/ClientDashboard";
+import ProDashboard from "./pages/dashboard/professional/ProDashboard";
+```
 
 ---
 
-## Non-Negotiable Rules (Final)
+## Phase 3: Organize Shared Components
 
-1. ✅ `micro=` param is **always slug** (never UUID)
-2. ✅ Mode names are explicit: `microOnly` = we only know micro
-3. ✅ Missing slug = cannot navigate to micro step → fresh
-4. ✅ `microOnly` goes to micro step for user confirmation
-5. ✅ Full hierarchy required for Questions step
-6. ✅ **Micro-only deep links are intentionally unsupported until hydration is implemented**
+### Step 3.1: Create `src/shared/components/`
 
+```text
+src/shared/
+├── components/
+│   ├── layout/
+│   │   ├── HeroBanner.tsx
+│   │   ├── LaneHeader.tsx
+│   │   ├── LanguageSwitcher.tsx
+│   │   ├── MobileNav.tsx
+│   │   ├── PageHeader.tsx
+│   │   ├── PublicFooter.tsx
+│   │   ├── PublicLayout.tsx
+│   │   ├── PublicNav.tsx
+│   │   ├── RoleSwitcher.tsx
+│   │   ├── ScrollToTop.tsx
+│   │   └── index.ts
+│   ├── EmptyState.tsx
+│   ├── StatTile.tsx
+│   └── index.ts
+└── lib/
+    └── userError.ts
+```
+
+### Step 3.2: File Moves for Shared
+
+| From | To |
+|------|-----|
+| `src/components/layout/*` | `src/shared/components/layout/*` |
+| `src/components/ui/empty-state.tsx` | `src/shared/components/EmptyState.tsx` |
+| `src/components/ui/stat-tile.tsx` | `src/shared/components/StatTile.tsx` |
+
+### Step 3.3: Update Imports (12+ files)
+
+All files importing from `@/components/layout` will change to `@/shared/components/layout`.
+
+| Pattern | New Path |
+|---------|----------|
+| `@/components/layout` | `@/shared/components/layout` |
+| `@/components/ui/empty-state` | `@/shared/components/EmptyState` |
+| `@/components/ui/stat-tile` | `@/shared/components/StatTile` |
+
+---
+
+## Phase 4: Create Search Feature + Clean lib/
+
+### Step 4.1: Create `src/features/search/`
+
+```text
+src/features/search/
+├── lib/
+│   └── searchSynonyms.ts  ← Move from src/lib/
+└── index.ts
+```
+
+### Step 4.2: Clean Up lib/
+
+After moves, `src/lib/` will contain only utilities:
+
+```text
+src/lib/
+├── utils.ts           ← Keep (cn function)
+├── formatters.ts      ← Keep
+├── formatMessageTime.ts ← Keep
+├── i18n-utils.ts      ← Keep
+└── services/          ← DELETE (empty after categoryMapping audit)
+```
+
+**Note:** `categoryMapping.ts` has no imports — verify if it's unused and can be deleted, or move to `features/wizard/lib/` if needed.
+
+---
+
+## Phase 5: Create Core Module
+
+### Step 5.1: Create `src/core/`
+
+```text
+src/core/
+├── permissions/
+│   └── roles.ts       ← Role types, can move from guard/access.ts later
+├── constants/
+│   └── platform.ts    ← Could move PLATFORM from domain/scope.ts
+└── index.ts
+```
+
+This is a **future-ready** structure. For now, keep `src/domain/scope.ts` and `src/guard/` in place — they work well.
+
+---
+
+## Phase 6: Documentation
+
+### Step 6.1: Create `docs/ARCHITECTURE.md`
+
+```markdown
+# Architecture Guide
+
+## Folder Map
+
+| Path | Purpose |
+|------|---------|
+| `src/features/` | Domain modules (wizard, search) |
+| `src/pages/` | Route pages, organized by domain |
+| `src/shared/` | Cross-domain components & utilities |
+| `src/components/ui/` | shadcn primitives only |
+| `src/guard/` | Route protection & access control |
+| `src/domain/` | Platform identity & scope |
+
+## Role Model
+
+| Role | Dashboard | Key Routes |
+|------|-----------|------------|
+| Client | `/dashboard/client` | `/post`, `/jobs`, `/messages` |
+| Professional | `/dashboard/pro` | `/professional/*`, `/jobs`, `/messages` |
+| Admin | (future) | `/admin/*` |
+
+## Data Flow
+
+Route → Page → hooks (queries/mutations) → Supabase
+                 ↓
+              actions/ (write operations)
+              queries/ (read operations)
+
+## Key Journeys
+
+1. Client posts job: `/post` → wizard → jobs table → `/dashboard/client`
+2. Pro matches job: `/dashboard/pro` → matched_jobs view → message → `/messages`
+```
+
+---
+
+## Implementation Sequence
+
+Execute in this order to minimize breakage:
+
+| Step | Risk | Files Affected | Est. Time |
+|------|------|----------------|-----------|
+| Phase 1: Wizard to features | Low | ~15 files | 30 min |
+| Phase 2: Dashboard split | Low | ~10 files | 20 min |
+| Phase 3: Shared components | Medium | ~15 files | 30 min |
+| Phase 4: Search + lib cleanup | Low | ~5 files | 15 min |
+| Phase 5: Core module | Low | New files only | 10 min |
+| Phase 6: Documentation | None | 2 new files | 15 min |
+
+**Total: ~2 hours**
+
+---
+
+## Verification Checklist
+
+After restructuring, verify:
+
+- [ ] `npm run build` passes
+- [ ] `/post` wizard loads and functions
+- [ ] `/dashboard/client` and `/dashboard/pro` load correctly
+- [ ] All layout components render (HeroBanner, PageHeader, etc.)
+- [ ] Import paths use new structure (no `../../../` chains)
+
+---
+
+## "New Dev Test" After Restructuring
+
+**Q: "Where do I edit the Client sign-up and role switch?"**
+A: `src/guard/` for logic, `src/shared/components/layout/RoleSwitcher.tsx` for UI
+
+**Q: "Where is the Worker onboarding flow?"**
+A: `src/pages/onboarding/` for pages, `src/features/wizard/db-powered/` for service selection
+
+**Q: "Where do I change an Admin action?"**
+A: `src/pages/admin/` (future) or `src/pages/jobs/actions/` for job-related admin actions
+
+All answers now take less than 60 seconds to find.
