@@ -102,6 +102,26 @@ interface QuestionDefForValidation {
   dependsOn?: { questionId: string; value: string | string[] };
 }
 
+// Question IDs handled by Logistics step - exact matches or suffix patterns
+const LOGISTICS_EXACT_IDS = new Set(['timeline', 'timing', 'urgency', 'preferred_timing', 'start_timeline']);
+const LOGISTICS_SUFFIXES = ['_urgency', '_timing', '_timeline'];
+
+// Types that show as tappable tiles in QuestionsStep
+const TILE_TYPES = new Set(['radio', 'select', 'checkbox', 'single_select', 'multi_select']);
+
+const isLogisticsHandled = (questionId: string): boolean => {
+  if (LOGISTICS_EXACT_IDS.has(questionId)) return true;
+  return LOGISTICS_SUFFIXES.some(suffix => questionId.endsWith(suffix));
+};
+
+const isDisplayedInQuestionsStep = (question: QuestionDefForValidation): boolean => {
+  // Skip logistics-handled questions
+  if (isLogisticsHandled(question.id)) return false;
+  
+  // Only tile types are displayed
+  return TILE_TYPES.has(question.type);
+};
+
 interface QuestionPackForValidation {
   micro_slug: string;
   questions: QuestionDefForValidation[];
@@ -145,7 +165,10 @@ export function validateQuestionPack(
   const getAnswer = (qid: string) => answers[qid];
   
   for (const q of pack.questions) {
-    // Skip hidden questions
+    // Skip questions not displayed in QuestionsStep UI
+    if (!isDisplayedInQuestionsStep(q)) continue;
+    
+    // Skip hidden questions (conditional show_if/dependsOn)
     if (!isQuestionVisible(q, getAnswer)) continue;
     
     // Skip file inputs - uploads happen after job is posted, so don't block progression
