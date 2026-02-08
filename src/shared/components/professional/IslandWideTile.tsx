@@ -24,7 +24,7 @@ export function IslandWideTile({
       className={cn(
         'w-full flex items-center justify-between',
         'min-h-[64px] px-5 py-4 rounded-xl',
-        'text-left text-lg font-semibold',
+        'text-left',
         'border-2 transition-colors duration-200',
         'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
         !selected &&
@@ -40,7 +40,12 @@ export function IslandWideTile({
             selected ? 'text-accent' : 'text-accent/70'
           )}
         />
-        <span>I cover the entire island</span>
+        <div>
+          <span className="block text-base font-medium">I cover the entire island</span>
+          <p className="text-sm text-muted-foreground">
+            We'll match you with jobs anywhere in Ibiza.
+          </p>
+        </div>
       </div>
       <span
         className={cn(
