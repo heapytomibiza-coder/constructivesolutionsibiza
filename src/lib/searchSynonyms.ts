@@ -93,14 +93,24 @@ export function expandQuery(query: string): string[] {
 }
 
 /**
- * Build Supabase OR clause for expanded terms
- * Sanitizes commas and % wildcards to prevent query errors
+ * Build Supabase OR clause from query with synonym expansion.
+ * Sanitizes commas/wildcards, caps at 8 terms and 500 chars.
  */
 export function buildSearchOrClause(query: string): string {
+  const MAX_OR_LEN = 500;
   const terms = expandQuery(query);
-  return terms
-    .map(t => t.replace(/[,%]/g, " ").trim())  // Escape commas AND wildcards
+  
+  const clause = terms
+    .map(t => t.replace(/[,%]/g, " ").trim())
     .filter(t => t.length >= MIN_TERM_LENGTH)
     .map(t => `search_text.ilike.%${t}%`)
     .join(",");
+  
+  // If clause is too long, fall back to simple normalized query
+  if (clause.length > MAX_OR_LEN) {
+    const normalized = query.trim().toLowerCase().replace(/[,%]/g, " ").trim();
+    return `search_text.ilike.%${normalized}%`;
+  }
+  
+  return clause;
 }
