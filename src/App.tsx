@@ -50,6 +50,7 @@ import ProfessionalOnboarding from "./pages/onboarding/ProfessionalOnboarding";
 import ProfessionalServices from "./pages/professional/ProfessionalServices";
 import ProfessionalServiceSetup from "./pages/professional/ProfessionalServiceSetup";
 import ProfessionalPortfolio from "./pages/professional/ProfessionalPortfolio";
+import ProfileEdit from "./pages/professional/ProfileEdit";
 
 // Settings
 import { Settings } from "./pages/settings";
@@ -136,6 +137,7 @@ const App = () => {
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
               <Route path="/professional/services" element={<ProfessionalServices />} />
               <Route path="/professional/service-setup" element={<ProfessionalServiceSetup />} />
+              <Route path="/professional/profile" element={<ProfileEdit />} />
               <Route path="/professional/portfolio" element={<ProfessionalPortfolio />} />
 
               {/* Forum - New Post (requires auth) */}
