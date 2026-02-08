@@ -3,63 +3,31 @@
  * Matches the onboarding visual language for consistent "inspiring" UI
  */
 
+import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import type { LucideIcon } from 'lucide-react';
 
 interface GradientIconHeaderProps {
-  icon: LucideIcon;
+  icon: ReactNode;
   title: string;
   description?: string;
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
 }
 
 export function GradientIconHeader({
-  icon: Icon,
+  icon,
   title,
   description,
   className,
-  size = 'md',
 }: GradientIconHeaderProps) {
-  const sizeClasses = {
-    sm: {
-      container: 'h-10 w-10 rounded-lg',
-      icon: 'h-5 w-5',
-      title: 'text-base font-semibold',
-      description: 'text-sm',
-    },
-    md: {
-      container: 'h-14 w-14 rounded-xl',
-      icon: 'h-7 w-7',
-      title: 'text-xl font-semibold',
-      description: 'text-base',
-    },
-    lg: {
-      container: 'h-16 w-16 rounded-xl',
-      icon: 'h-8 w-8',
-      title: 'text-2xl font-semibold',
-      description: 'text-base',
-    },
-  };
-
-  const sizes = sizeClasses[size];
-
   return (
     <div className={cn('flex items-center gap-4', className)}>
-      <div
-        className={cn(
-          'flex items-center justify-center bg-gradient-steel shadow-md shrink-0',
-          sizes.container
-        )}
-      >
-        <Icon className={cn('text-white', sizes.icon)} />
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-steel shadow-md shrink-0">
+        <span className="text-white">{icon}</span>
       </div>
       <div>
-        <h3 className={cn('text-foreground', sizes.title)}>{title}</h3>
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         {description && (
-          <p className={cn('text-muted-foreground', sizes.description)}>
-            {description}
-          </p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         )}
       </div>
     </div>

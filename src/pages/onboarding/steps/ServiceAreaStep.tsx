@@ -8,9 +8,10 @@ import { toast } from 'sonner';
 import { Loader2, MapPin, ArrowRight, ArrowLeft } from 'lucide-react';
 import { 
   ZoneTile, 
-  IBIZA_ZONES, 
   IslandWideTile, 
-  GradientIconHeader 
+  GradientIconHeader,
+  IBIZA_ZONES,
+  allZoneIds,
 } from '@/shared/components/professional';
 
 interface ServiceAreaStepProps {
@@ -46,9 +47,10 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
   useEffect(() => {
     if (existingData) {
       const zones = existingData.service_zones || [];
-      if (zones.includes('island-wide') || zones.length === IBIZA_ZONES.flatMap(g => g.zones).length) {
+      const allIds = allZoneIds();
+      if (zones.includes('island-wide') || zones.length === allIds.length) {
         setIslandWide(true);
-        setSelectedZones(IBIZA_ZONES.flatMap(g => g.zones.map(z => z.id)));
+        setSelectedZones(allIds);
       } else {
         setSelectedZones(zones);
       }
@@ -97,7 +99,7 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
       setSelectedZones([]);
     } else {
       setIslandWide(true);
-      setSelectedZones(IBIZA_ZONES.flatMap(g => g.zones.map(z => z.id)));
+      setSelectedZones(allZoneIds());
     }
   };
 
@@ -136,7 +138,7 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
     <Card className="card-grounded animate-fade-in">
       <CardHeader className="pb-4">
         <GradientIconHeader
-          icon={MapPin}
+          icon={<MapPin className="h-5 w-5" />}
           title="Where do you work?"
           description="Tap the areas of Ibiza where you're happy to take jobs."
         />
@@ -166,7 +168,6 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
                   {group.zones.map((zone) => (
                     <ZoneTile
                       key={zone.id}
-                      id={zone.id}
                       selected={selectedZones.includes(zone.id)}
                       onClick={() => handleZoneToggle(zone.id)}
                       label={zone.label}
