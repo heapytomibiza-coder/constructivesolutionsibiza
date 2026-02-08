@@ -2,6 +2,16 @@
 
 > Domain-first architecture for Constructive Solutions Ibiza
 
+## Golden Rules
+
+- **Domains own their business logic** — wizard collects, jobs evaluates
+- **Roles do not own business logic** — they consume domain services
+- **UI never talks directly to the database** — use domain queries/actions
+- **`lib/` must be domain-owned or deleted** — no global junk drawers
+- **If unsure where code goes, ask:** "Which domain breaks if this changes?"
+
+---
+
 ## Folder Map
 
 | Path | Purpose |
