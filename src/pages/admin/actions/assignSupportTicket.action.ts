@@ -33,7 +33,7 @@ export async function assignSupportTicket(ticketId: string): Promise<AssignResul
         support_request_id: ticketId,
         event_type: 'assigned',
         actor_user_id: user.id,
-        actor_role: 'admin',
+        actor_role: 'support',
         metadata: { assigned_to: user.id },
       });
 

@@ -48,7 +48,7 @@ export async function joinSupportThread(
         support_request_id: ticketId,
         event_type: 'support_joined',
         actor_user_id: user.id,
-        actor_role: 'admin',
+        actor_role: 'support',
         metadata: { conversation_id: conversationId },
       });
 

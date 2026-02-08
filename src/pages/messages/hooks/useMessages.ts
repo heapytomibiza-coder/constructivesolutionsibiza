@@ -9,6 +9,8 @@ export interface Message {
   sender_id: string;
   body: string;
   created_at: string;
+  message_type?: 'user' | 'system';
+  metadata?: Record<string, unknown>;
 }
 
 async function fetchMessages(conversationId: string): Promise<Message[]> {
@@ -19,7 +21,12 @@ async function fetchMessages(conversationId: string): Promise<Message[]> {
     .order("created_at", { ascending: true });
 
   if (error) throw error;
-  return data ?? [];
+  // Cast message_type from string to union type
+  return (data ?? []).map((msg) => ({
+    ...msg,
+    message_type: (msg.message_type as 'user' | 'system') || 'user',
+    metadata: msg.metadata as Record<string, unknown> | undefined,
+  }));
 }
 
 async function sendMessage(conversationId: string, senderId: string, body: string): Promise<Message> {
@@ -34,7 +41,11 @@ async function sendMessage(conversationId: string, senderId: string, body: strin
     .single();
 
   if (error) throw error;
-  return data;
+  return {
+    ...data,
+    message_type: (data.message_type as 'user' | 'system') || 'user',
+    metadata: data.metadata as Record<string, unknown> | undefined,
+  };
 }
 
 export function useMessages(conversationId: string | undefined) {
