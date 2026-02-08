@@ -1,32 +1,49 @@
 
 
-# Hardening the CS Ibiza System Architecture
+# System Architecture Hardening - COMPLETED
 
-## What I Found
+## What Was Done
 
-After exploring your codebase, I can see you've built a solid foundation with clear patterns. Here's what's working well and what needs hardening:
+### Layer 1: Vocabulary System (Language Lockdown) ✅
 
-### Already Strong
-1. **Route registry** - Single source of truth in `src/app/routes/registry.ts`
-2. **Session management** - `useSessionSnapshot` is the canonical hook
-3. **Domain-first structure** - Jobs domain has clean actions/queries/components split
-4. **Rules engine** - `evaluatePackRules.ts` for computed flags and safety levels
-5. **Wizard as compiler** - `buildJobPayload.ts` transforms messy input into structured schema
-6. **Matching algorithm** - `matched_jobs_for_professional` view joins micro_slug → professional_services
+1. **Created lexicon namespace files:**
+   - `public/locales/en/lexicon.json` - English canonical terms
+   - `public/locales/es/lexicon.json` - Spanish canonical terms
+   
+2. **Registered lexicon in i18n:**
+   - Added `lexicon: "lexicon"` to `src/i18n/namespaces.ts`
 
-### Gaps That Need Hardening
+3. **Added terminology constants:**
+   - Added `TERMINOLOGY` object to `src/domain/scope.ts`
+   - Maps internal terms (client/professional) to external terms (Asker/Tasker)
 
-| Gap | Current State | Risk |
-|-----|---------------|------|
-| **Terminology drift** | UI uses mixed terms (client/professional vs Asker/Tasker) | Brand confusion |
-| **ESLint guard scope** | Only covers `src/pages/jobs/components` | Supabase can leak into wizard, messages, etc. |
-| **Messages dashboard link** | Hardcoded `/dashboard/client` on line 98 | Pro users see wrong link |
-| **No vocabulary lockfile** | Terms scattered across 7 JSON namespaces | Drift over time |
-| **No domain model spec** | `JobAnswers` exists but "ProblemCard" abstraction not formalized | Harder to reason about system |
+### Layer 2: Architecture Guards (Logic Lockdown) ✅
+
+1. **Fixed Messages dashboard link:**
+   - `src/pages/messages/Messages.tsx` now uses `activeRole` to determine dashboard path
+   - Professionals see `/dashboard/pro`, Clients see `/dashboard/client`
+
+2. **Expanded ESLint guards:**
+   - Extended Supabase import restrictions to ALL UI component directories:
+     - `src/pages/*/components/**`
+     - `src/features/*/components/**`
+     - `src/shared/components/**`
+     - `src/components/auth/**`
+     - `src/components/search/**`
+     - `src/components/wizard/**`
+
+### Layer 3: Domain Model Formalization (System Lockdown) ✅
+
+1. **Created domain models:**
+   - `src/domain/models.ts` with:
+     - `ProblemCard` - What the wizard compiles
+     - `TaskerProfile` - Professional capability profile
+     - `Match` - Bridge between problem and solution
+     - `CoreLoopStage` - Journey stage mapping
 
 ---
 
-## The Plan: Three Layers of Hardening
+## The Core Loop
 
 ### Layer 1: Vocabulary System (Language Lockdown)
 

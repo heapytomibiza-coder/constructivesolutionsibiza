@@ -7,6 +7,7 @@ import { useConversations, useMarkConversationRead, type Conversation } from "./
 import { PLATFORM } from "@/domain/scope";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSessionSnapshot } from "@/hooks/useSessionSnapshot";
 
 /**
  * MESSAGES PAGE - Inbox + Thread View
@@ -19,8 +20,12 @@ const Messages = () => {
   const { conversationId } = useParams<{ conversationId?: string }>();
   const navigate = useNavigate();
   const { user, isLoading: sessionLoading } = useSession();
+  const { activeRole } = useSessionSnapshot();
   const isMobile = useIsMobile();
   const { markRead } = useMarkConversationRead();
+  
+  // Role-aware dashboard path
+  const dashboardPath = activeRole === 'professional' ? '/dashboard/pro' : '/dashboard/client';
 
   // Fetch conversations to derive selectedConversation
   const { data: conversations } = useConversations(user?.id);
@@ -95,7 +100,7 @@ const Messages = () => {
         <div className="container py-4 border-b border-border bg-gradient-concrete">
           <div className="flex items-center gap-2">
             <Link
-              to="/dashboard/client"
+              to={dashboardPath}
               className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
             >
               <ArrowLeft className="h-4 w-4" />

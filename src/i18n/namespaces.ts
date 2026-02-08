@@ -9,6 +9,7 @@ export const NS = {
   dashboard: "dashboard",
   wizard: "wizard",
   onboarding: "onboarding",
+  lexicon: "lexicon",
 } as const;
 
 export type Namespace = (typeof NS)[keyof typeof NS];

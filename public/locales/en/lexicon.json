@@ -1,0 +1,19 @@
+{
+  "asker": "Asker",
+  "tasker": "Tasker",
+  "problem": "Problem",
+  "solution": "Solution",
+  "askerLane": "Asker Lane",
+  "taskerLane": "Tasker Lane",
+  "problemBuilder": "Problem Builder",
+  "matching": "Finding the right Tasker",
+  "askerDashboard": "Asker Dashboard",
+  "taskerDashboard": "Tasker Dashboard",
+  "becomeTasker": "Become a Tasker",
+  "findTasker": "Find a Tasker",
+  "noTaskersYet": "No Taskers available yet — we'll notify you",
+  "noAskersNow": "No Askers need help right now",
+  "theProblemsYouSolve": "The problems you solve",
+  "describeYourProblem": "Describe your problem",
+  "wellFindTheRightTasker": "We'll find the right Tasker"
+}
