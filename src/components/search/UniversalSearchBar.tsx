@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Wrench, MessageSquare, ArrowRight, Layers, FolderOpen } from "lucide-react";
+import { Wrench, MessageSquare, ArrowRight, Layers, FolderOpen } from "lucide-react";
 import {
   Command,
   CommandInput,
@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { expandQuery } from "@/lib/searchSynonyms";
+import { buildSearchOrClause } from "@/lib/searchSynonyms";
 import { useGlobalSearchShortcut } from "@/hooks/useGlobalSearchShortcut";
 import {
   type SearchHit,
@@ -128,30 +128,40 @@ export function UniversalSearchBar({ className }: { className?: string }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 300);
 
   // Global ⌘K / Ctrl+K shortcut
   useGlobalSearchShortcut(() => {
     setIsOpen(true);
-    // Focus input after dialog opens
-    setTimeout(() => inputRef.current?.focus(), 50);
+    // Use requestAnimationFrame to ensure DOM is ready, then query for input
+    requestAnimationFrame(() => {
+      const input = rootRef.current?.querySelector("input");
+      input?.focus();
+    });
   });
 
-  // Query services - returns typed SearchHits with synonym expansion
+  // Escape key closes search
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  }, []);
+
+  // Query services - returns typed SearchHits with synonym expansion + sanitization
   const { data: serviceResults = [] } = useQuery({
     queryKey: ["universal-search", "services", debouncedQuery],
     queryFn: async (): Promise<SearchHit[]> => {
       if (!debouncedQuery || debouncedQuery.length < 2) return [];
 
-      // Expand query with synonyms (e.g., "sparky" → ["sparky", "electrician", ...])
-      const expandedTerms = expandQuery(debouncedQuery);
-      const orClauses = expandedTerms.map(t => `search_text.ilike.%${t}%`).join(",");
+      // Build sanitized OR clause with synonym expansion
+      const orClause = buildSearchOrClause(debouncedQuery);
+      if (!orClause) return [];
 
       const { data, error } = await supabase
         .from("service_search_index")
         .select("*")
-        .or(orClauses)
+        .or(orClause)
         .limit(20); // Fetch more to ensure variety across types
 
       if (error) throw error;
@@ -224,13 +234,13 @@ export function UniversalSearchBar({ className }: { className?: string }) {
   );
 
   return (
-    <div className={cn("relative w-full max-w-2xl mx-auto", className)}>
+    <div ref={rootRef} className={cn("relative w-full max-w-2xl mx-auto", className)}>
       <Command
         className="rounded-lg border bg-card shadow-lg"
         shouldFilter={false}
+        onKeyDown={handleKeyDown}
       >
         <CommandInput
-          ref={inputRef}
           placeholder={t("universalSearch.placeholder", "What can we help you find?")}
           value={query}
           onValueChange={setQuery}
