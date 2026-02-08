@@ -24,23 +24,56 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
-  // Architecture guard: No Supabase imports in jobs UI components
-  {
-    files: ["src/pages/jobs/components/**/*.{ts,tsx}"],
-    plugins: { import: importPlugin },
-    rules: {
-      "import/no-restricted-paths": [
-        "error",
-        {
-          zones: [
-            {
-              target: "./src/pages/jobs/components",
-              from: "./src/integrations/supabase",
-              message: "Do not import Supabase in UI components. Use pages/jobs/queries or pages/jobs/actions.",
-            },
-          ],
-        },
-      ],
-    },
+// Architecture guard: No Supabase imports in UI components
+// This prevents data layer leakage and keeps components testable
+{
+  files: [
+    "src/pages/*/components/**/*.{ts,tsx}",
+    "src/features/*/components/**/*.{ts,tsx}",
+    "src/shared/components/**/*.{ts,tsx}",
+    "src/components/auth/**/*.{ts,tsx}",
+    "src/components/search/**/*.{ts,tsx}",
+    "src/components/wizard/**/*.{ts,tsx}",
+  ],
+  plugins: { import: importPlugin },
+  rules: {
+    "import/no-restricted-paths": [
+      "error",
+      {
+        zones: [
+          {
+            target: "./src/pages/*/components",
+            from: "./src/integrations/supabase",
+            message: "Do not import Supabase in UI components. Use domain queries or actions instead.",
+          },
+          {
+            target: "./src/features/*/components",
+            from: "./src/integrations/supabase",
+            message: "Do not import Supabase in UI components. Use domain queries or actions instead.",
+          },
+          {
+            target: "./src/shared/components",
+            from: "./src/integrations/supabase",
+            message: "Do not import Supabase in UI components. Use domain queries or actions instead.",
+          },
+          {
+            target: "./src/components/auth",
+            from: "./src/integrations/supabase",
+            message: "Do not import Supabase in UI components. Use domain queries or actions instead.",
+          },
+          {
+            target: "./src/components/search",
+            from: "./src/integrations/supabase",
+            message: "Do not import Supabase in UI components. Use domain queries or actions instead.",
+          },
+          {
+            target: "./src/components/wizard",
+            from: "./src/integrations/supabase",
+            message: "Do not import Supabase in UI components. Use domain queries or actions instead.",
+          },
+        ],
+      },
+    ],
   },
+},
 );

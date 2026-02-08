@@ -13,6 +13,39 @@ export const PLATFORM = {
   scope: 'construction-only',
 } as const;
 
+/**
+ * LOCKED TERMINOLOGY
+ * 
+ * These are the canonical terms used throughout the platform.
+ * Internal code uses client/professional, but user-facing copy uses Asker/Tasker.
+ * 
+ * Core Narrative: Problem → Asker → Constructive Solutions → Tasker → Solution
+ */
+export const TERMINOLOGY = {
+  // User-facing terms (use these in UI copy via i18n lexicon)
+  asker: 'Asker',           // The person with a problem (internal: client)
+  tasker: 'Tasker',         // The professional who solves it (internal: professional)
+  problem: 'Problem',       // What the Asker needs help with (internal: job)
+  solution: 'Solution',     // The completed work
+  
+  // Lane names
+  askerLane: 'Asker Lane',  // Hiring journey
+  taskerLane: 'Tasker Lane', // Working journey
+  
+  // Product features
+  problemBuilder: 'Problem Builder', // The wizard
+  matching: 'Finding the right Tasker',
+  
+  // Internal to external mapping
+  internalToExternal: {
+    client: 'Asker',
+    professional: 'Tasker',
+    job: 'Problem',
+    hiring: 'Asker Lane',
+    working: 'Tasker Lane',
+  },
+} as const;
+
 // Domain guardrail: construction + property services ONLY
 // This platform is NOT a marketplace. Do not expand beyond these trades.
 export const DOMAIN_CONSTRAINT = {

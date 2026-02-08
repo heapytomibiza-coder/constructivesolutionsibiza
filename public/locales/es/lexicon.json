@@ -1,0 +1,19 @@
+{
+  "asker": "Solicitante",
+  "tasker": "Profesional",
+  "problem": "Problema",
+  "solution": "Solución",
+  "askerLane": "Modo Solicitante",
+  "taskerLane": "Modo Profesional",
+  "problemBuilder": "Creador de Encargos",
+  "matching": "Encontrando al profesional adecuado",
+  "askerDashboard": "Panel del Solicitante",
+  "taskerDashboard": "Panel del Profesional",
+  "becomeTasker": "Ser Profesional",
+  "findTasker": "Encontrar un Profesional",
+  "noTaskersYet": "No hay profesionales disponibles aún — te avisaremos",
+  "noAskersNow": "No hay solicitantes ahora",
+  "theProblemsYouSolve": "Los problemas que resuelves",
+  "describeYourProblem": "Describe tu problema",
+  "wellFindTheRightTasker": "Encontraremos al profesional adecuado"
+}
