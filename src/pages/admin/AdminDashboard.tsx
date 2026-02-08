@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Briefcase, MessageSquare, BarChart3, Shield } from "lucide-react";
 import { useAdminStats } from "./hooks/useAdminStats";
 import { StatTile } from "@/shared/components/StatTile";
-import { UsersSection } from "./sections";
+import { UsersSection, JobsSection } from "./sections";
 
 /**
  * ADMIN DASHBOARD
@@ -147,18 +147,9 @@ export default function AdminDashboard() {
             <UsersSection />
           </TabsContent>
 
-          {/* Jobs Tab - Placeholder */}
+          {/* Jobs Tab */}
           <TabsContent value="jobs">
-            <Card>
-              <CardHeader>
-                <CardTitle>Job Moderation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Phase 3: Flagged jobs, force complete, archive, reassign
-                </p>
-              </CardContent>
-            </Card>
+            <JobsSection />
           </TabsContent>
 
           {/* Content Tab - Placeholder */}
