@@ -338,6 +338,16 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
     }
   }, [currentIndex, visibleQuestions.length]);
 
+  // Auto-advance when no questions (placed at top level, not inside condition)
+  const noQuestionsRef = useRef(false);
+  useEffect(() => {
+    if (!loading && visibleQuestions.length === 0 && onComplete && !noQuestionsRef.current) {
+      noQuestionsRef.current = true;
+      const timer = setTimeout(onComplete, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, visibleQuestions.length, onComplete]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
@@ -359,6 +369,10 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
             {t('questions.noQuestionsNeeded')}
           </p>
         </div>
+        {/* Manual continue button as fallback */}
+        <Button onClick={onComplete} className="mt-4">
+          {t('buttons.continue')}
+        </Button>
       </div>
     );
   }
