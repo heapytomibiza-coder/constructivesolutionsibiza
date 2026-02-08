@@ -14,7 +14,7 @@ export const CATEGORY_KEYS: Record<string, string> = {
   'Cleaning': 'categories.cleaning',
   'Gardening & Landscaping': 'categories.gardeningLandscaping',
   'Pool & Spa': 'categories.poolSpa',
-  'Architects & Design': 'categories.architectsDesign',
+  'Architects, Design & Management': 'categories.architectsDesign',
   'Transport & Logistics': 'categories.transportLogistics',
   'Kitchen & Bathroom': 'categories.kitchenBathroom',
   'Floors, Doors & Windows': 'categories.floorsDoorsWindows',
