@@ -70,7 +70,7 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
         });
       }
       // Missing category → fresh start (can't create valid subcategory link)
-      console.warn("SearchHit subcategory missing categoryId, falling back to fresh");
+      console.warn("[Search→Wizard] Subcategory missing categoryId, falling back to fresh");
       return buildWizardLink({ mode: "fresh" });
     }
 
@@ -87,7 +87,7 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
 
       // SMART LADDER: have cat+sub but missing slug → go to micro step
       if (hit.categoryId && hit.subcategoryId) {
-        console.warn("Micro hit missing microSlug, falling back to subcategory mode");
+        console.warn("[Search→Wizard] Micro missing slug, falling back to subcategory mode");
         return buildWizardLink({
           mode: "subcategory",
           categoryId: hit.categoryId,
@@ -97,18 +97,18 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
 
       // SMART LADDER: have category only → go to subcategory step
       if (hit.categoryId) {
-        console.warn("Micro hit missing subcategory, falling back to category mode");
+        console.warn("[Search→Wizard] Micro missing subcategory, falling back to category mode");
         return buildWizardLink({ mode: "category", categoryId: hit.categoryId });
       }
 
       // Micro slug only (no parents) → use microOnly, let deep-link processor hydrate
       if (hit.microSlug) {
-        console.warn("Micro hit missing all parents, using microOnly mode (will hydrate)");
+        console.warn("[Search→Wizard] Micro missing parents, using microOnly (will hydrate)");
         return buildWizardLink({ mode: "microOnly", microSlug: hit.microSlug });
       }
 
       // No useful data → fresh start
-      console.warn("Micro hit missing all context, falling back to fresh");
+      console.warn("[Search→Wizard] Micro missing all context, falling back to fresh");
       return buildWizardLink({ mode: "fresh" });
     }
 

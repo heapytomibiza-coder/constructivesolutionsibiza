@@ -172,32 +172,72 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         }
       }
       
-      // NEW: Micro hydration - lookup micro slug and hydrate parents
+      // === MICRO HYDRATION ===
+      // Lookup micro slug and hydrate parents from FK relationships
       // This enables deep-linking with just /post?micro=sink-leak
       if (microSlug && !categoryId && !subcategoryId) {
-        try {
-          const { data: micro, error } = await supabase
-            .from('service_micro_categories')
-            .select(`
-              id, name, slug,
-              service_subcategories!inner(
-                id, name,
-                service_categories!inner(id, name)
-              )
-            `)
-            .eq('slug', microSlug)
-            .eq('is_active', true)
-            .single();
+        // Using maybeSingle() to avoid crashes on 0 or >1 rows
+        const { data, error } = await supabase
+          .from('service_micro_categories')
+          .select(`
+            id, name, slug,
+            service_subcategories:subcategory_id (
+              id, name,
+              service_categories:category_id ( id, name )
+            )
+          `)
+          .eq('slug', microSlug)
+          .eq('is_active', true)
+          .maybeSingle();
 
-          if (!error && micro) {
-            // Type assertion for nested join
-            const sub = micro.service_subcategories as unknown as { id: string; name: string; service_categories: { id: string; name: string } };
-            const cat = sub.service_categories;
-            
+        // Safely extract nested relations (may be null or array depending on config)
+        const sub = data?.service_subcategories;
+        const cat = sub && 'service_categories' in sub ? sub.service_categories : null;
+
+        if (!error && data && sub && cat && 'id' in sub && 'id' in cat) {
+          newState = {
+            ...newState,
+            mainCategory: (cat as { id: string; name: string }).name,
+            mainCategoryId: (cat as { id: string; name: string }).id,
+            subcategory: (sub as { id: string; name: string }).name,
+            subcategoryId: (sub as { id: string; name: string }).id,
+            microNames: [data.name],
+            microIds: [data.id],
+            microSlugs: [data.slug],
+          };
+          targetStep = WizardStep.Questions;
+          console.log('[DeepLink] Hydrated micro:', microSlug, '→ Questions');
+        } else {
+          console.warn('[DeepLink] Micro lookup failed:', microSlug, error?.message || 'not found');
+          // Stay at resolver's conservative step (Micro or Category)
+        }
+      }
+      // Micro WITH full hierarchy provided - validate and hydrate
+      else if (microSlug && categoryId && subcategoryId) {
+        const { data: micro, error } = await supabase
+          .from('service_micro_categories')
+          .select('id, name, slug, subcategory_id')
+          .eq('slug', microSlug)
+          .eq('is_active', true)
+          .maybeSingle();
+        
+        if (!error && micro && micro.subcategory_id === subcategoryId) {
+          // Validate subcategory belongs to category
+          const { data: sub } = await supabase
+            .from('service_subcategories')
+            .select(`
+              id, name, category_id,
+              service_categories:category_id ( id, name )
+            `)
+            .eq('id', subcategoryId)
+            .maybeSingle();
+          
+          const cat = sub?.service_categories;
+          if (sub && cat && sub.category_id === categoryId && 'id' in cat) {
             newState = {
               ...newState,
-              mainCategory: cat.name,
-              mainCategoryId: cat.id,
+              mainCategory: (cat as { id: string; name: string }).name,
+              mainCategoryId: (cat as { id: string; name: string }).id,
               subcategory: sub.name,
               subcategoryId: sub.id,
               microNames: [micro.name],
@@ -205,94 +245,45 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               microSlugs: [micro.slug],
             };
             targetStep = WizardStep.Questions;
-            console.log('[Wizard] Hydrated micro:', microSlug, '→ Questions step');
-          } else {
-            console.warn('[Wizard] Micro lookup failed for:', microSlug, error);
-            // Fall back to Category step (resolver already set a safe initial)
-            targetStep = WizardStep.Category;
+            console.log('[DeepLink] Full hierarchy validated:', microSlug, '→ Questions');
           }
-        } catch (e) {
-          console.warn('[Wizard] Micro hydration error:', e);
-          targetStep = WizardStep.Category;
-        }
-      }
-      // Micro with partial hierarchy - use it
-      else if (microSlug && categoryId && subcategoryId) {
-        // Full hierarchy provided, lookup and hydrate
-        try {
-          const { data: micro, error } = await supabase
-            .from('service_micro_categories')
-            .select('id, name, slug, subcategory_id')
-            .eq('slug', microSlug)
-            .eq('is_active', true)
-            .single();
-          
-          if (!error && micro && micro.subcategory_id === subcategoryId) {
-            // Also fetch category and subcategory names
-            const { data: sub } = await supabase
-              .from('service_subcategories')
-              .select('id, name, category_id, service_categories!inner(id, name)')
-              .eq('id', subcategoryId)
-              .single();
-            
-            if (sub && sub.category_id === categoryId) {
-              const cat = sub.service_categories as unknown as { id: string; name: string };
-              newState = {
-                ...newState,
-                mainCategory: cat.name,
-                mainCategoryId: cat.id,
-                subcategory: sub.name,
-                subcategoryId: sub.id,
-                microNames: [micro.name],
-                microIds: [micro.id],
-                microSlugs: [micro.slug],
-              };
-              targetStep = WizardStep.Questions;
-            }
-          }
-        } catch (e) {
-          console.warn('[Wizard] Full hierarchy lookup failed:', e);
         }
       }
       // Category/subcategory only (no micro)
       else if (categoryId) {
-        try {
-          const { data: cat, error: catErr } = await supabase
-            .from('service_categories')
-            .select('id, name')
-            .eq('id', categoryId)
-            .eq('is_active', true)
-            .single();
+        const { data: cat, error: catErr } = await supabase
+          .from('service_categories')
+          .select('id, name')
+          .eq('id', categoryId)
+          .eq('is_active', true)
+          .maybeSingle();
+        
+        if (!catErr && cat) {
+          newState = {
+            ...newState,
+            mainCategory: cat.name,
+            mainCategoryId: cat.id,
+          };
+          targetStep = WizardStep.Subcategory;
           
-          if (!catErr && cat) {
-            newState = {
-              ...newState,
-              mainCategory: cat.name,
-              mainCategoryId: cat.id,
-            };
-            targetStep = WizardStep.Subcategory;
+          // Fetch subcategory if provided
+          if (subcategoryId) {
+            const { data: sub, error: subErr } = await supabase
+              .from('service_subcategories')
+              .select('id, name, category_id')
+              .eq('id', subcategoryId)
+              .eq('is_active', true)
+              .maybeSingle();
             
-            // Fetch subcategory if provided
-            if (subcategoryId) {
-              const { data: sub, error: subErr } = await supabase
-                .from('service_subcategories')
-                .select('id, name, category_id')
-                .eq('id', subcategoryId)
-                .eq('is_active', true)
-                .single();
-              
-              if (!subErr && sub && sub.category_id === cat.id) {
-                newState = {
-                  ...newState,
-                  subcategory: sub.name,
-                  subcategoryId: sub.id,
-                };
-                targetStep = WizardStep.Micro;
-              }
+            if (!subErr && sub && sub.category_id === cat.id) {
+              newState = {
+                ...newState,
+                subcategory: sub.name,
+                subcategoryId: sub.id,
+              };
+              targetStep = WizardStep.Micro;
             }
           }
-        } catch (e) {
-          console.warn('[Wizard] Category lookup failed:', e);
         }
       }
       
