@@ -28,8 +28,9 @@ export type AccessRule =
  * - client: Hiring lane (post job, client dashboard)
  * - professional: Working lane (pro dashboard, onboarding)
  * - shared: Where both meet (messages, settings, forum posting)
+ * - admin: Platform management
  */
-export type RouteLane = 'public' | 'auth' | 'client' | 'professional' | 'shared';
+export type RouteLane = 'public' | 'auth' | 'client' | 'professional' | 'shared' | 'admin';
 
 /**
  * Nav sections = how you visually group links in navigation

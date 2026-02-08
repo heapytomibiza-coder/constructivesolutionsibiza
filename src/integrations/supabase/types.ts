@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions_log: {
+        Row: {
+          action_type: string
+          admin_user_id: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action_type: string
+          admin_user_id: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action_type?: string
+          admin_user_id?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           client_id: string
@@ -972,6 +1002,20 @@ export type Database = {
       }
     }
     Views: {
+      admin_platform_stats: {
+        Row: {
+          active_jobs: number | null
+          active_professionals: number | null
+          completed_jobs: number | null
+          open_jobs: number | null
+          total_conversations: number | null
+          total_jobs: number | null
+          total_posts: number | null
+          total_professionals: number | null
+          total_users: number | null
+        }
+        Relationships: []
+      }
       job_details: {
         Row: {
           answers: Json | null
@@ -1286,6 +1330,7 @@ export type Database = {
         Args: { p_job_id: string; p_pro_id: string }
         Returns: string
       }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_professional_micro_stats: {
         Args: { p_micro_id: string; p_rating?: number; p_user_id: string }
         Returns: undefined

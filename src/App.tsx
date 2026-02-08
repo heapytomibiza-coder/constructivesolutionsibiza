@@ -2,7 +2,7 @@
  * CS IBIZA - V2 APP SHELL
  * 
  * PLATFORM SCOPE: Construction & property services ONLY
- * 15 routes total. No admin, payments, disputes, or AI dashboards.
+ * Includes admin routes (protected by admin role).
  */
 
 import { useEffect, useState } from "react";
@@ -57,6 +57,9 @@ import { Settings } from "./pages/settings";
 
 // Forum
 import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/forum";
+
+// Admin
+import { AdminDashboard } from "./pages/admin";
 
 const queryClient = new QueryClient();
 
@@ -145,6 +148,9 @@ const App = () => {
 
               {/* Professional Dashboard */}
               <Route path="/dashboard/pro" element={<ProDashboard />} />
+
+              {/* Admin Dashboard */}
+              <Route path="/admin" element={<AdminDashboard />} />
             </Route>
 
             {/* ============================================

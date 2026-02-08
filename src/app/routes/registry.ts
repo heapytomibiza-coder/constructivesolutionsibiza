@@ -179,12 +179,23 @@ export const proDashboardRoutes: RouteConfig[] = [
 ];
 
 // ============================================
+// ADMIN ROUTES - Platform management
+// ============================================
+export const adminRoutes: RouteConfig[] = [
+  {
+    path: '/admin',
+    access: 'admin2FA',
+    redirectTo: '/auth',
+    lane: 'admin',
+    titleKey: 'nav.admin',
+  },
+];
+
+// ============================================
 // V2 EXCLUDED (do not add these yet):
-// - /admin/*
 // - /payments/*
 // - /disputes/*
 // - /contracts/*
-// - /analytics/*
 // ============================================
 
 // ============================================
@@ -196,4 +207,5 @@ export const allRoutes: RouteConfig[] = [
   ...clientRoutes,
   ...proOnboardingRoutes,
   ...proDashboardRoutes,
+  ...adminRoutes,
 ];

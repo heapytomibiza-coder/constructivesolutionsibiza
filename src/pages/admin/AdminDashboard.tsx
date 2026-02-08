@@ -1,0 +1,189 @@
+import { useTranslation } from "react-i18next";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Users, Briefcase, MessageSquare, BarChart3, Shield } from "lucide-react";
+import { useAdminStats } from "./hooks/useAdminStats";
+import { StatTile } from "@/shared/components/StatTile";
+
+/**
+ * ADMIN DASHBOARD
+ * 
+ * Phase 1: Tab navigation + platform stats overview
+ * Future phases will add Users, Jobs, Content, Analytics sections
+ */
+export default function AdminDashboard() {
+  const { t } = useTranslation("common");
+  const { data: stats, isLoading } = useAdminStats();
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b bg-card">
+        <div className="container py-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Shield className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                Platform management and oversight
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container py-8">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="overview" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Users</span>
+            </TabsTrigger>
+            <TabsTrigger value="jobs" className="gap-2">
+              <Briefcase className="h-4 w-4" />
+              <span className="hidden sm:inline">Jobs</span>
+            </TabsTrigger>
+            <TabsTrigger value="content" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              <span className="hidden sm:inline">Content</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Platform Stats */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {isLoading ? (
+              <>
+                {[...Array(4)].map((_, i) => (
+                  <Card key={i}>
+                    <CardHeader className="pb-2">
+                      <Skeleton className="h-4 w-24" />
+                    </CardHeader>
+                    <CardContent>
+                      <Skeleton className="h-8 w-16" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
+            ) : (
+              <>
+                <StatTile
+                  icon={<Users className="h-5 w-5 text-primary" />}
+                  label="Total Users"
+                  value={stats?.total_users ?? 0}
+                />
+                <StatTile
+                  icon={<Users className="h-5 w-5 text-primary" />}
+                  label="Active Professionals"
+                  value={`${stats?.active_professionals ?? 0} / ${stats?.total_professionals ?? 0}`}
+                />
+                <StatTile
+                  icon={<Briefcase className="h-5 w-5 text-primary" />}
+                  label="Open Jobs"
+                  value={`${stats?.open_jobs ?? 0} / ${stats?.total_jobs ?? 0}`}
+                />
+                <StatTile
+                  icon={<MessageSquare className="h-5 w-5 text-primary" />}
+                  label="Conversations"
+                  value={stats?.total_conversations ?? 0}
+                />
+              </>
+            )}
+            </div>
+
+            {/* Secondary Stats */}
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Jobs In Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {isLoading ? <Skeleton className="h-8 w-12" /> : stats?.active_jobs ?? 0}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Completed Jobs
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {isLoading ? <Skeleton className="h-8 w-12" /> : stats?.completed_jobs ?? 0}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Forum Posts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {isLoading ? <Skeleton className="h-8 w-12" /> : stats?.total_posts ?? 0}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Users Tab - Placeholder */}
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Phase 2: User list, search, suspend/unsuspend, professional verification
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Jobs Tab - Placeholder */}
+          <TabsContent value="jobs">
+            <Card>
+              <CardHeader>
+                <CardTitle>Job Moderation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Phase 3: Flagged jobs, force complete, archive, reassign
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Content Tab - Placeholder */}
+          <TabsContent value="content">
+            <Card>
+              <CardHeader>
+                <CardTitle>Content Moderation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Phase 4: Flagged posts, remove content, user warnings
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
