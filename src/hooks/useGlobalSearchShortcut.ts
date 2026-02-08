@@ -10,12 +10,9 @@ import { useEffect, useCallback } from "react";
  */
 export function useGlobalSearchShortcut(onOpen: () => void) {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Detect platform
-    const isMac = typeof navigator !== "undefined" && 
-      /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-    
     const isK = e.key.toLowerCase() === "k";
-    const isCombo = isMac ? e.metaKey && isK : e.ctrlKey && isK;
+    // Accept BOTH meta and ctrl - works on all platforms without guessing
+    const isCombo = (e.metaKey || e.ctrlKey) && isK;
 
     if (!isCombo) return;
 

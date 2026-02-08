@@ -53,13 +53,17 @@ export const SEARCH_SYNONYMS: Record<string, string[]> = {
   install: ["installation", "fit", "fitting", "mount"],
 };
 
+// === EXPANSION SAFEGUARDS ===
+const MAX_EXPANSIONS = 8;
+const MIN_TERM_LENGTH = 2;
+
 /**
  * Expand a query into multiple search terms
  * Bidirectional: "sparky" → ["sparky", "electrician", ...] AND "electrician" → ["electrician", "sparky", ...]
  */
 export function expandQuery(query: string): string[] {
   const normalized = query.trim().toLowerCase();
-  if (!normalized) return [];
+  if (!normalized || normalized.length < MIN_TERM_LENGTH) return [];
   
   const expansions = new Set<string>([normalized]);
 
@@ -67,26 +71,36 @@ export function expandQuery(query: string): string[] {
     // If query contains the key, add all synonyms
     if (normalized.includes(key)) {
       expansions.add(key);
-      values.forEach(v => expansions.add(v));
+      values.forEach(v => {
+        if (v.length >= MIN_TERM_LENGTH) expansions.add(v);
+      });
     }
     
     // If query matches any synonym, add the key and other synonyms
     for (const synonym of values) {
       if (normalized.includes(synonym)) {
         expansions.add(key);
-        values.forEach(v => expansions.add(v));
+        values.forEach(v => {
+          if (v.length >= MIN_TERM_LENGTH) expansions.add(v);
+        });
         break;
       }
     }
   }
 
-  return Array.from(expansions);
+  // Cap expansions to prevent slow queries
+  return Array.from(expansions).slice(0, MAX_EXPANSIONS);
 }
 
 /**
  * Build Supabase OR clause for expanded terms
+ * Sanitizes commas and % wildcards to prevent query errors
  */
 export function buildSearchOrClause(query: string): string {
   const terms = expandQuery(query);
-  return terms.map(t => `search_text.ilike.%${t}%`).join(",");
+  return terms
+    .map(t => t.replace(/[,%]/g, " ").trim())  // Escape commas AND wildcards
+    .filter(t => t.length >= MIN_TERM_LENGTH)
+    .map(t => `search_text.ilike.%${t}%`)
+    .join(",");
 }
