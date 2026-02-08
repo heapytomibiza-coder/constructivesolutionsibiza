@@ -187,10 +187,33 @@ export function useSessionSnapshot(): SessionSnapshot {
     }
   }, [user, roles]);
 
-  // Set up auth state listener BEFORE getting session
+  // Set up auth state listener - handles INITIAL_SESSION for page load
   useEffect(() => {
+    let mounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
+        if (!mounted) return;
+
+        // INITIAL_SESSION fires on page load with existing session (or null)
+        if (event === 'INITIAL_SESSION') {
+          if (newSession?.user) {
+            setSession(newSession);
+            setUser(newSession.user);
+            await loadUserData(newSession.user.id);
+          } else {
+            // No session - reset to defaults
+            setSession(null);
+            setUser(null);
+            setRoles([DEFAULT_ROLE]);
+            setActiveRole(DEFAULT_ROLE);
+            setProfessionalProfile(null);
+          }
+          setIsLoading(false);
+          setIsReady(true);
+          return;
+        }
+
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (newSession?.user) {
             setSession(newSession);
@@ -208,13 +231,11 @@ export function useSessionSnapshot(): SessionSnapshot {
       }
     );
 
-    // Initial session load
-    refresh();
-
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [refresh, loadUserData]);
+  }, [loadUserData]);
 
   const hasRole = useCallback((role: UserRole): boolean => {
     return roles.includes(role);

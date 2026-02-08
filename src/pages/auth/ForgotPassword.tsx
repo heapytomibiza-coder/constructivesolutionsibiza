@@ -34,12 +34,23 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      });
+      // Call our custom edge function to send password reset via Resend
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-auth-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            type: 'recovery',
+            email,
+          }),
+        }
+      );
 
-      if (error) throw error;
-
+      // Always show success to prevent email enumeration
       setIsEmailSent(true);
     } catch (error: unknown) {
       // Always show success to prevent email enumeration
