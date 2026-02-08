@@ -1,132 +1,264 @@
 
-# Fix Auth Email Delivery + Session Persistence
 
-## Summary
+# Hardening the CS Ibiza System Architecture
 
-**Alex's account is ✅ SORTED** — his email was confirmed on Feb 5th and he can sign in with his password now.
+## What I Found
 
-The bigger issue is **session persistence** ("have to resign back in a lot"). This plan addresses both the email reliability problem (for future users) and the session drops.
+After exploring your codebase, I can see you've built a solid foundation with clear patterns. Here's what's working well and what needs hardening:
 
----
+### Already Strong
+1. **Route registry** - Single source of truth in `src/app/routes/registry.ts`
+2. **Session management** - `useSessionSnapshot` is the canonical hook
+3. **Domain-first structure** - Jobs domain has clean actions/queries/components split
+4. **Rules engine** - `evaluatePackRules.ts` for computed flags and safety levels
+5. **Wizard as compiler** - `buildJobPayload.ts` transforms messy input into structured schema
+6. **Matching algorithm** - `matched_jobs_for_professional` view joins micro_slug → professional_services
 
-## What's Causing the Issues
+### Gaps That Need Hardening
 
-### 1. Email Delivery (Partial Blocker)
-- Currently using Supabase's built-in email sender (`noreply@mail.supabase.io`)
-- This sender has poor deliverability and often ends up in spam
-- Repeated signup attempts for existing users are suppressed by Supabase (security feature)
-
-### 2. Session Persistence (Main Pain Point)
-The session management looks correct, but there's a subtle race condition:
-- The `onAuthStateChange` listener is set up correctly
-- But `refresh()` is called immediately in the same effect
-- If `getSession()` completes before the subscription is fully registered, auth events can be missed
-- This can cause sessions to appear "lost" after page refresh on slow connections
-
----
-
-## The Fix
-
-### Phase 1: Session Persistence Fix
-
-Update `useSessionSnapshot.ts` to:
-1. Set up the auth listener FIRST and wait for initial state from it
-2. Remove the immediate `refresh()` call that races with the listener
-3. Add `INITIAL_SESSION` event handling (Supabase emits this on load)
-4. Add error boundary for token refresh failures
-
-This prevents the "race condition" logout issue.
-
-### Phase 2: Custom Email Delivery via Resend
-
-Create an edge function that sends confirmation and password reset emails through Resend (API key already added). This ensures:
-- Emails come from your verified domain (not `mail.supabase.io`)
-- Better deliverability, no spam folder issues
-- Custom branding in email templates
-
-The function will:
-1. Receive email type, recipient, and action link from the app
-2. Send via Resend with CS Ibiza branding
-3. Return success/failure status
-
-### Phase 3: Update Auth Flow
-
-Modify the signup and password reset flows to:
-1. Use `supabase.auth.admin.generateLink()` to get verification URLs
-2. Call the Resend edge function to deliver the email
-3. Show clear feedback to users
+| Gap | Current State | Risk |
+|-----|---------------|------|
+| **Terminology drift** | UI uses mixed terms (client/professional vs Asker/Tasker) | Brand confusion |
+| **ESLint guard scope** | Only covers `src/pages/jobs/components` | Supabase can leak into wizard, messages, etc. |
+| **Messages dashboard link** | Hardcoded `/dashboard/client` on line 98 | Pro users see wrong link |
+| **No vocabulary lockfile** | Terms scattered across 7 JSON namespaces | Drift over time |
+| **No domain model spec** | `JobAnswers` exists but "ProblemCard" abstraction not formalized | Harder to reason about system |
 
 ---
 
-## Files to Change
+## The Plan: Three Layers of Hardening
 
-| File | Change |
-|------|--------|
-| `src/hooks/useSessionSnapshot.ts` | Fix auth listener race condition |
-| `supabase/functions/send-auth-email/index.ts` | New edge function for Resend |
-| `supabase/config.toml` | Register new edge function |
-| `src/pages/auth/Auth.tsx` | Use custom email sending for signup |
-| `src/pages/auth/ForgotPassword.tsx` | Use custom email sending for reset |
+### Layer 1: Vocabulary System (Language Lockdown)
+
+**Create a canonical lexicon namespace**
+
+Add `public/locales/en/lexicon.json`:
+```json
+{
+  "asker": "Asker",
+  "tasker": "Tasker",
+  "problem": "Problem",
+  "solution": "Solution",
+  "askerLane": "Asker Lane",
+  "taskerLane": "Tasker Lane",
+  "problemBuilder": "Problem Builder",
+  "matching": "Finding the right Tasker"
+}
+```
+
+**Update translation keys to use lexicon**
+
+Replace hardcoded role labels in `common.json`:
+```json
+"roles": {
+  "client": "{{lexicon.asker}}",    // Will become: t('lexicon.asker')
+  "professional": "{{lexicon.tasker}}"
+}
+```
+
+**Files to modify:**
+- Create `public/locales/en/lexicon.json` and `public/locales/es/lexicon.json`
+- Update `src/i18n/namespaces.ts` to include `lexicon`
+- Update `public/locales/en/common.json` role labels
+- Update `public/locales/es/common.json` role labels
+- Update onboarding copy to use Tasker terminology
+
+---
+
+### Layer 2: Architecture Guards (Logic Lockdown)
+
+**Extend ESLint guard to all UI components**
+
+Current: Only `src/pages/jobs/components` is protected
+Target: All of these:
+
+```javascript
+// eslint.config.js - expanded zones
+{
+  files: [
+    "src/pages/*/components/**/*.{ts,tsx}",
+    "src/features/*/components/**/*.{ts,tsx}",
+    "src/shared/components/**/*.{ts,tsx}",
+    "src/components/**/*.{ts,tsx}"  // except ui/
+  ],
+  // ... same no-supabase rule
+}
+```
+
+**Fix Messages dashboard link**
+
+Line 98 of `Messages.tsx`:
+```typescript
+// Current (broken for pros)
+<Link to="/dashboard/client">
+
+// Fixed (role-aware)
+<Link to={activeRole === 'professional' ? '/dashboard/pro' : '/dashboard/client'}>
+```
+
+**Files to modify:**
+- `eslint.config.js` - Expand guard zones
+- `src/pages/messages/Messages.tsx` - Role-aware dashboard link
+
+---
+
+### Layer 3: Domain Model Formalization (System Lockdown)
+
+**Create explicit domain types in `src/domain/`**
+
+Add `src/domain/models.ts`:
+```typescript
+/**
+ * DOMAIN MODEL - The Core Loop
+ * 
+ * Problem → Asker → CS → Tasker → Solution
+ * 
+ * These types are the contracts that bind the system together.
+ */
+
+// A structured problem (what the wizard compiles into)
+export interface ProblemCard {
+  id: string;
+  asker_id: string;
+  
+  // What
+  micros: {
+    ids: string[];
+    slugs: string[];
+    names: string[];
+  };
+  answers: Record<string, unknown>;
+  
+  // Where/When
+  logistics: {
+    location: LocationSpec;
+    timing: TimingSpec;
+    budget?: BudgetSpec;
+  };
+  
+  // Computed
+  flags: string[];
+  inspection_bias?: 'low' | 'medium' | 'high' | 'mandatory';
+  safety?: 'green' | 'amber' | 'red';
+  
+  // State
+  status: 'draft' | 'open' | 'assigned' | 'completed' | 'cancelled';
+}
+
+// A tasker's capability profile
+export interface TaskerProfile {
+  user_id: string;
+  
+  // What they do
+  micros: string[];  // micro_ids they've unlocked
+  
+  // Where they work
+  zones: string[];
+  
+  // Capability signals
+  verification: VerificationStatus;
+  stats: Record<string, MicroStat>;
+  
+  // Ready state
+  is_live: boolean;
+}
+
+// A match between problem and tasker
+export interface Match {
+  problem_id: string;
+  tasker_id: string;
+  score: number;
+  reasons: string[];  // "Matched because: Plumbing → Sink Leak + near your area"
+}
+```
+
+**Update ARCHITECTURE.md with Core Loop section**
+
+Add a "Core Loop" section explaining:
+```
+Problem → Asker → CS → Tasker → Solution
+
+1. Asker describes a problem (wizard compiles it)
+2. CS produces a structured ProblemCard
+3. CS matches Taskers (score + reasons)
+4. Conversation happens in protected channel
+5. Assignment and completion
+6. Review updates reputation + stats
+7. System learns patterns (better matching, better packs)
+```
+
+**Files to create/modify:**
+- Create `src/domain/models.ts` - Domain type contracts
+- Update `docs/ARCHITECTURE.md` - Add Core Loop section
+- Update `src/domain/scope.ts` - Add terminology constants
+
+---
+
+## Implementation Priority
+
+### Immediate (This Session)
+1. **Fix Messages.tsx dashboard link** - 5 min, unblocks pro users
+2. **Expand ESLint guards** - 10 min, prevents future drift
+
+### Short-term (Next Session)
+3. **Create lexicon namespace** - 20 min, locks terminology
+4. **Update role labels to use lexicon** - 15 min
+
+### Medium-term (Architecture Polish)
+5. **Create domain models** - 30 min, formalizes the system
+6. **Update ARCHITECTURE.md** - 20 min, new dev onboarding
+
+---
+
+## What This Achieves
+
+| Layer | Before | After |
+|-------|--------|-------|
+| **Language** | Terms scattered, drift possible | Single lexicon, enforced via i18n |
+| **Logic** | Partial ESLint coverage | Full UI protection from Supabase |
+| **System** | Implicit domain model | Explicit ProblemCard/TaskerProfile contracts |
+
+This transforms CS Ibiza from "a website with pages" into "a modular system with contracts" - exactly what you described.
 
 ---
 
 ## Technical Details
 
-### Session Fix (useSessionSnapshot.ts)
+### Vocabulary Enforcement (How It Works)
 
 ```typescript
-useEffect(() => {
-  let mounted = true;
-  
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    async (event, newSession) => {
-      if (!mounted) return;
-      
-      // Handle INITIAL_SESSION - this fires on page load
-      if (event === 'INITIAL_SESSION') {
-        if (newSession?.user) {
-          setSession(newSession);
-          setUser(newSession.user);
-          await loadUserData(newSession.user.id);
-        }
-        setIsLoading(false);
-        setIsReady(true);
-        return;
-      }
-      
-      // Handle other events...
-    }
-  );
+// Instead of hardcoding "Professional" anywhere:
+const label = t('lexicon.tasker');  // Returns "Tasker"
 
-  return () => {
-    mounted = false;
-    subscription.unsubscribe();
-  };
-}, [loadUserData]);
+// i18n preload ensures lexicon is always available
+await preloadNamespaces(['common', 'lexicon']);
 ```
 
-### Edge Function (send-auth-email)
+### ESLint Guard (How It Works)
 
-```typescript
-// Receives: { type: 'signup' | 'recovery', email, actionLink }
-// Uses Resend to send branded email
-// Returns: { success: boolean }
+```javascript
+// When someone tries to import supabase in a component:
+import { supabase } from '@/integrations/supabase/client';
+//                    ↑ 
+// ESLint error: "Do not import Supabase in UI components. 
+//               Use pages/jobs/queries or pages/jobs/actions."
 ```
 
----
+### Matching Explainability (Future Enhancement)
 
-## Immediate Action for Alex
+The `matched_jobs_for_professional` view already joins correctly. To add explainability:
 
-Alex's account works right now. If he can't sign in:
-1. Have him try **Forgot Password** → he'll get a reset link
-2. Or clear his browser cache/localStorage and sign in fresh
+```sql
+-- Add a computed reasons column
+SELECT 
+  j.*,
+  ARRAY[
+    'Matched micro: ' || m.name,
+    'In your zone: ' || j.area
+  ] as match_reasons
+FROM jobs j
+JOIN professional_services ps ON ...
+```
 
----
+This gives Taskers transparency on *why* they see specific jobs.
 
-## Timeline
-
-- **Phase 1 (Session fix)**: ~15 min
-- **Phase 2 (Resend function)**: ~20 min  
-- **Phase 3 (Auth flow update)**: ~25 min
-
-Ready to implement?
