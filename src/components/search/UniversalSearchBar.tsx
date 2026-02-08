@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Wrench, MessageSquare, ArrowRight } from "lucide-react";
+import { Search, Wrench, MessageSquare, ArrowRight, Layers, FolderOpen } from "lucide-react";
 import {
   Command,
   CommandInput,
@@ -39,7 +39,8 @@ function useDebounce<T>(value: T, delay: number): T {
 
 /**
  * Transform raw DB rows into typed SearchHits
- * Handles deduplication and proper parent ID assignment
+ * INDEPENDENT collection: extracts all 3 entity types from each row (no else-if)
+ * This ensures categories + subcategories + micros all appear in results
  */
 function transformServiceResults(data: Array<{
   category_id: string | null;
@@ -51,50 +52,73 @@ function transformServiceResults(data: Array<{
   micro_slug: string | null;
 }>): SearchHit[] {
   const seen = new Set<string>();
-  const results: SearchHit[] = [];
-  let score = 100; // Decrement for ranking
+
+  const micros: SearchHit[] = [];
+  const subs: SearchHit[] = [];
+  const cats: SearchHit[] = [];
+
+  // Separate score buckets to maintain type grouping
+  let microScore = 300;
+  let subScore = 200;
+  let catScore = 100;
 
   for (const row of data) {
-    // Priority 1: Micro-level (most specific)
-    if (row.micro_id && row.micro_name && !seen.has(`micro-${row.micro_id}`)) {
-      seen.add(`micro-${row.micro_id}`);
-      results.push({
-        type: "micro",
-        id: row.micro_id,
-        label: row.micro_name,
-        categoryId: row.category_id || undefined,
-        categoryName: row.category_name || undefined,
-        subcategoryId: row.subcategory_id || undefined,
-        subcategoryName: row.subcategory_name || undefined,
-        microSlug: row.micro_slug || undefined,
-        score: score--,
-      });
+    // 1) Micros (Tasks) - most specific
+    if (row.micro_id && row.micro_name) {
+      const key = `micro-${row.micro_id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        micros.push({
+          type: "micro",
+          id: row.micro_id,
+          label: row.micro_name,
+          categoryId: row.category_id || undefined,
+          categoryName: row.category_name || undefined,
+          subcategoryId: row.subcategory_id || undefined,
+          subcategoryName: row.subcategory_name || undefined,
+          microSlug: row.micro_slug || undefined,
+          score: microScore--,
+        });
+      }
     }
-    // Priority 2: Subcategory
-    else if (row.subcategory_id && row.subcategory_name && !seen.has(`sub-${row.subcategory_id}`)) {
-      seen.add(`sub-${row.subcategory_id}`);
-      results.push({
-        type: "subcategory",
-        id: row.subcategory_id,
-        label: row.subcategory_name,
-        categoryId: row.category_id || undefined,
-        categoryName: row.category_name || undefined,
-        score: score--,
-      });
+
+    // 2) Subcategories (Services) - independently collected
+    if (row.subcategory_id && row.subcategory_name) {
+      const key = `sub-${row.subcategory_id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        subs.push({
+          type: "subcategory",
+          id: row.subcategory_id,
+          label: row.subcategory_name,
+          categoryId: row.category_id || undefined,
+          categoryName: row.category_name || undefined,
+          score: subScore--,
+        });
+      }
     }
-    // Priority 3: Category (broadest)
-    else if (row.category_id && row.category_name && !seen.has(`cat-${row.category_id}`)) {
-      seen.add(`cat-${row.category_id}`);
-      results.push({
-        type: "category",
-        id: row.category_id,
-        label: row.category_name,
-        score: score--,
-      });
+
+    // 3) Categories (broadest) - independently collected
+    if (row.category_id && row.category_name) {
+      const key = `cat-${row.category_id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        cats.push({
+          type: "category",
+          id: row.category_id,
+          label: row.category_name,
+          score: catScore--,
+        });
+      }
     }
   }
 
-  return results.slice(0, 5);
+  // Limit each type, then merge (order: tasks first, then services, then categories)
+  const topMicros = micros.slice(0, 5);
+  const topSubs = subs.slice(0, 3);
+  const topCats = cats.slice(0, 3);
+
+  return [...topMicros, ...topSubs, ...topCats];
 }
 
 export function UniversalSearchBar({ className }: { className?: string }) {
@@ -114,7 +138,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         .from("service_search_index")
         .select("*")
         .ilike("search_text", `%${debouncedQuery}%`)
-        .limit(8); // Fetch more, then dedupe
+        .limit(15); // Fetch more to ensure variety across types
 
       if (error) throw error;
       return transformServiceResults(data || []);
@@ -154,6 +178,11 @@ export function UniversalSearchBar({ className }: { className?: string }) {
     enabled: debouncedQuery.length >= 2,
     staleTime: 30000,
   });
+
+  // Filter results by type for grouped display
+  const taskHits = serviceResults.filter((h) => h.type === "micro");
+  const subHits = serviceResults.filter((h) => h.type === "subcategory");
+  const catHits = serviceResults.filter((h) => h.type === "category");
 
   const hasResults = serviceResults.length > 0 || forumResults.length > 0;
   const showEmpty = debouncedQuery.length >= 2 && !hasResults;
@@ -202,9 +231,10 @@ export function UniversalSearchBar({ className }: { className?: string }) {
               </CommandEmpty>
             )}
 
-            {serviceResults.length > 0 && (
-              <CommandGroup heading={t("universalSearch.services")}>
-                {serviceResults.map((hit) => (
+            {/* Tasks (Micros) - most specific */}
+            {taskHits.length > 0 && (
+              <CommandGroup heading={t("universalSearch.tasks", "Tasks")}>
+                {taskHits.map((hit) => (
                   <CommandItem
                     key={`${hit.type}-${hit.id}`}
                     value={hit.label}
@@ -231,33 +261,94 @@ export function UniversalSearchBar({ className }: { className?: string }) {
               </CommandGroup>
             )}
 
-            {serviceResults.length > 0 && forumResults.length > 0 && (
-              <CommandSeparator />
+            {/* Services (Subcategories) */}
+            {subHits.length > 0 && (
+              <>
+                {taskHits.length > 0 && <CommandSeparator />}
+                <CommandGroup heading={t("universalSearch.subcategories", "Services")}>
+                  {subHits.map((hit) => (
+                    <CommandItem
+                      key={`${hit.type}-${hit.id}`}
+                      value={hit.label}
+                      onSelect={() => handleSelect(hit)}
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent/50 text-accent-foreground">
+                        <Layers className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{hit.label}</p>
+                        {getHitBreadcrumb(hit) && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {getHitBreadcrumb(hit)}
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="text-xs shrink-0">
+                        {getHitTypeLabel(hit.type)}
+                      </Badge>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
             )}
 
+            {/* Categories (broadest) */}
+            {catHits.length > 0 && (
+              <>
+                {(taskHits.length > 0 || subHits.length > 0) && <CommandSeparator />}
+                <CommandGroup heading={t("universalSearch.categories", "Categories")}>
+                  {catHits.map((hit) => (
+                    <CommandItem
+                      key={`${hit.type}-${hit.id}`}
+                      value={hit.label}
+                      onSelect={() => handleSelect(hit)}
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                        <FolderOpen className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{hit.label}</p>
+                      </div>
+                      <Badge variant="secondary" className="text-xs shrink-0">
+                        {getHitTypeLabel(hit.type)}
+                      </Badge>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
+
+            {/* Forum results */}
             {forumResults.length > 0 && (
-              <CommandGroup heading={t("universalSearch.community")}>
-                {forumResults.map((hit) => (
-                  <CommandItem
-                    key={`forum-${hit.id}`}
-                    value={hit.title}
-                    onSelect={() => handleSelect(hit)}
-                    className="flex items-center gap-3 cursor-pointer"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                      <MessageSquare className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{hit.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {hit.categoryName} •{" "}
-                        {t("universalSearch.replies", { count: hit.replyCount })}
-                      </p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              <>
+                {(taskHits.length > 0 || subHits.length > 0 || catHits.length > 0) && <CommandSeparator />}
+                <CommandGroup heading={t("universalSearch.community", "Community Posts")}>
+                  {forumResults.map((hit) => (
+                    <CommandItem
+                      key={`forum-${hit.id}`}
+                      value={hit.title}
+                      onSelect={() => handleSelect(hit)}
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                        <MessageSquare className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{hit.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {hit.categoryName} •{" "}
+                          {t("universalSearch.replies", { count: hit.replyCount })}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
             )}
           </CommandList>
         )}
