@@ -41,6 +41,16 @@ export async function createSupportRequest(params: CreateParams): Promise<Create
       };
     }
 
+    // Issue type labels for display
+    const issueLabels: Record<IssueType, string> = {
+      no_response: 'No response',
+      no_show: 'No show',
+      dispute: 'Dispute',
+      payment: 'Payment',
+      safety_concern: 'Safety concern',
+      other: 'Other',
+    };
+
     // Auto-assign priority based on issue type
     const priority = params.issueType === 'safety_concern' ? 'high' 
       : params.issueType === 'no_show' ? 'high'
@@ -95,7 +105,7 @@ export async function createSupportRequest(params: CreateParams): Promise<Create
       .insert({
         conversation_id: params.conversationId,
         sender_id: user.id,
-        body: `Support has been notified. Ticket ${request.ticket_number}`,
+        body: `Support notified (${issueLabels[params.issueType]}). Ticket ${request.ticket_number}`,
         message_type: 'system',
         metadata: { 
           system_sender: 'csi-support',
