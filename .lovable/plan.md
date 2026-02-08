@@ -1,278 +1,345 @@
 
-# Admin Domain Design
 
-> Structure for platform administration — ready for implementation when needed.
+# Admin Domain Refactoring + Support Section
 
-## Overview
-
-The Admin domain enables platform operators to manage users, moderate content, review jobs, and monitor platform health. It **consumes** existing domain services rather than owning business logic.
+This plan refactors the existing Admin domain to match the proposed architecture and adds the Support section that integrates with the @csi-support feature.
 
 ---
 
-## Folder Structure
+## Current State Analysis
 
-```
+The Admin domain is already functional with 4 phases implemented:
+
+| Phase | Status | What Exists |
+|-------|--------|-------------|
+| 1. Overview | ✅ Complete | Stats dashboard with platform metrics |
+| 2. Users | ✅ Complete | User list, search, suspend/unsuspend, pro verification |
+| 3. Jobs | ✅ Complete | Job moderation, force-complete, archive |
+| 4. Content | ✅ Complete | Forum post/reply moderation |
+| 5. Support | ❌ Missing | Not yet built |
+
+**Current folder structure:**
+```text
 src/pages/admin/
-├── AdminDashboard.tsx        # Entry point with section navigation
-├── index.ts                  # Barrel exports
-│
-├── sections/
-│   ├── UsersSection.tsx      # User management
-│   ├── JobsSection.tsx       # Job moderation
-│   ├── ContentSection.tsx    # Forum/Help Desk moderation
-│   ├── AnalyticsSection.tsx  # Platform metrics
-│   └── index.ts
-│
-├── components/
-│   ├── AdminSidebar.tsx      # Section navigation
-│   ├── UserRow.tsx           # User list item
-│   ├── JobModerationCard.tsx # Flagged job card
-│   ├── ContentReviewCard.tsx # Flagged post/reply
-│   ├── StatCard.tsx          # Analytics metric
-│   └── index.ts
-│
-├── hooks/
-│   ├── useAdminUsers.ts      # User list + search
-│   ├── useAdminJobs.ts       # Flagged/pending jobs
-│   ├── useAdminContent.ts    # Flagged forum content
-│   ├── useAdminStats.ts      # Platform metrics
-│   └── index.ts
-│
-├── actions/
-│   ├── suspendUser.action.ts
-│   ├── verifyProfessional.action.ts
-│   ├── forceCompleteJob.action.ts
-│   ├── archiveJob.action.ts
-│   ├── removeContent.action.ts
-│   └── index.ts
-│
-├── queries/
-│   ├── adminUsers.query.ts
-│   ├── adminJobs.query.ts
-│   ├── adminContent.query.ts
-│   ├── adminStats.query.ts
-│   ├── keys.ts
-│   └── index.ts
-│
-└── types.ts                  # Admin-specific types
+  AdminDashboard.tsx
+  index.ts
+  types.ts
+  actions/
+    suspendUser.action.ts
+    verifyProfessional.action.ts
+    forceCompleteJob.action.ts
+    archiveJob.action.ts
+    removeContent.action.ts
+  hooks/
+    useAdminStats.ts
+    useAdminUsers.ts
+    useAdminJobs.ts
+    useAdminContent.ts
+  sections/
+    UsersSection.tsx     (250 lines - monolithic)
+    JobsSection.tsx      (337 lines - monolithic)
+    ContentSection.tsx   (305 lines - monolithic)
 ```
 
 ---
 
-## Route Configuration
+## Proposed Architecture
 
-Add to `src/app/routes/registry.ts`:
+### Target folder structure
+
+```text
+src/pages/admin/
+  AdminLayout.tsx              # Shared layout with sidebar nav (optional)
+  AdminDashboard.tsx           # Entry point
+  index.ts
+  types.ts                     # Shared admin types
+  
+  actions/                     # Admin-specific writes + audit
+    index.ts
+    suspendUser.action.ts
+    unsuspendUser.action.ts
+    verifyProfessional.action.ts
+    archiveJob.action.ts
+    forceCompleteJob.action.ts
+    removeContent.action.ts
+    assignSupportTicket.action.ts   # NEW
+    updateSupportStatus.action.ts   # NEW
+    joinSupportThread.action.ts     # NEW
+    
+  queries/                     # Admin read queries (NEW folder)
+    index.ts
+    keys.ts                    # Query key factory
+    adminStats.query.ts
+    adminUsers.query.ts
+    adminJobs.query.ts
+    adminContent.query.ts
+    supportRequests.query.ts   # NEW
+    
+  sections/
+    users/
+      UsersSection.tsx
+      components/
+        UserTable.tsx          # Extracted
+        UserStatusBadge.tsx    # Extracted
+        SuspendUserDialog.tsx  # Extracted
+      hooks/
+        useAdminUsers.ts       # Moved from parent hooks/
+      index.ts
+        
+    jobs/
+      JobsSection.tsx
+      components/
+        JobModerationTable.tsx
+        JobStatusBadge.tsx
+        ForceCompleteDialog.tsx
+        ArchiveJobDialog.tsx
+      hooks/
+        useAdminJobs.ts
+      index.ts
+        
+    content/
+      ContentSection.tsx
+      components/
+        ContentTable.tsx
+        ContentTypeBadge.tsx
+        RemoveContentDialog.tsx
+      hooks/
+        useAdminContent.ts
+      index.ts
+        
+    support/                   # NEW SECTION
+      SupportInbox.tsx         # Main view - ticket list
+      SupportThreadView.tsx    # View conversation + context
+      components/
+        SupportTicketRow.tsx
+        SupportStatusBadge.tsx
+        SupportPriorityBadge.tsx
+        JoinChatButton.tsx
+        AssignDialog.tsx
+      hooks/
+        useSupportRequests.ts
+        useSupportContext.ts   # Thread + job context
+      index.ts
+      
+  lib/
+    formatters.ts              # Admin-specific formatting
+    filters.ts                 # Filter logic utilities
+```
+
+---
+
+## Implementation Plan
+
+### Step 1: Create queries/ folder (extraction)
+
+Move query logic out of hooks into dedicated query files. This follows the pattern already established in `src/pages/jobs/queries/`.
+
+**Files to create:**
+- `queries/keys.ts` - Query key factory for cache invalidation
+- `queries/adminStats.query.ts` - Extract from useAdminStats
+- `queries/adminUsers.query.ts` - Extract from useAdminUsers
+- `queries/adminJobs.query.ts` - Extract from useAdminJobs
+- `queries/adminContent.query.ts` - Extract from useAdminContent
+
+**Benefits:**
+- Consistent with jobs domain pattern
+- Enables query reuse across different hooks
+- Cleaner separation of concerns
+
+### Step 2: Restructure sections into nested folders
+
+Migrate each section to its own subfolder with components, hooks, and index.
+
+**For Users section:**
+```text
+sections/users/
+  UsersSection.tsx        # Slimmed down, uses extracted components
+  components/
+    UserTable.tsx         # Table rendering logic
+    UserStatusBadge.tsx   # Status badge logic
+    SuspendUserDialog.tsx # Confirmation dialog
+  hooks/
+    useAdminUsers.ts      # Wrapper hook
+  index.ts
+```
+
+Apply same pattern to Jobs and Content sections.
+
+### Step 3: Add Support section (Phase 5)
+
+This section is the **trust engine** - where @csi-support tickets land.
+
+**Database requirements (already designed):**
+- `support_requests` table - Tickets with status, priority, assignment
+- `support_request_events` table - Audit trail
+- `conversation_participants` table - Support join tracking
+
+**New files:**
+
+| File | Purpose |
+|------|---------|
+| `sections/support/SupportInbox.tsx` | Ticket list with filters (Open, Triage, Assigned, Resolved) |
+| `sections/support/SupportThreadView.tsx` | Read conversation + job context, take actions |
+| `components/SupportTicketRow.tsx` | Table row with SLA age indicator |
+| `components/SupportStatusBadge.tsx` | Status badge component |
+| `components/SupportPriorityBadge.tsx` | Priority indicator |
+| `components/JoinChatButton.tsx` | "Join conversation" action |
+| `hooks/useSupportRequests.ts` | Fetch tickets with filters |
+| `hooks/useSupportContext.ts` | Fetch conversation + messages for review |
+
+**Actions:**
+- `assignSupportTicket.action.ts` - Self-assign or assign to team member
+- `updateSupportStatus.action.ts` - Triage → Joined → Resolved
+- `joinSupportThread.action.ts` - Add support to conversation participants
+
+### Step 4: Update AdminDashboard
+
+- Add Support tab (5th tab with Headset icon)
+- Add support stats to Overview:
+  - Open tickets count
+  - Avg response time (later)
+  - Tickets requiring attention
+
+### Step 5: Optional AdminLayout
+
+Consider adding `AdminLayout.tsx` for:
+- Persistent sidebar navigation (current tabs stay in header)
+- Breadcrumbs for nested views
+- Session info / quick actions
+
+---
+
+## Technical Details
+
+### Query Keys Pattern
 
 ```typescript
-{
-  path: '/admin',
-  access: 'admin2FA',  // Uses existing access rule
-  lane: 'admin',
-  label: 'Admin',
-  navSection: null,    // Not in public nav
-}
+// queries/keys.ts
+export const adminKeys = {
+  all: ['admin'] as const,
+  stats: () => [...adminKeys.all, 'stats'] as const,
+  users: (filter?: string) => [...adminKeys.all, 'users', { filter }] as const,
+  jobs: (filter?: string) => [...adminKeys.all, 'jobs', { filter }] as const,
+  content: (filter?: string) => [...adminKeys.all, 'content', { filter }] as const,
+  support: (filter?: string) => [...adminKeys.all, 'support', { filter }] as const,
+  supportDetail: (id: string) => [...adminKeys.all, 'support', id] as const,
+};
 ```
 
-**Sub-routes** (optional, can use tab-based navigation instead):
-- `/admin/users`
-- `/admin/jobs`
-- `/admin/content`
-- `/admin/analytics`
+### Support Ticket Workflow
 
----
-
-## Section Capabilities
-
-### 1. Users Section
-
-| Feature | Description |
-|---------|-------------|
-| User list | Paginated table with search/filter |
-| Role management | View roles, cannot self-elevate |
-| Suspend/unsuspend | Toggle user access |
-| Professional verification | Approve/reject pending pros |
-| View activity | Jobs posted, messages sent, reviews |
-
-**Reuses:**
-- `user_roles` table (existing)
-- `professional_profiles` table (existing)
-
-### 2. Jobs Section
-
-| Feature | Description |
-|---------|-------------|
-| Flagged jobs | Jobs with safety flags (red/amber) |
-| Force complete | Mark job done if stuck |
-| Archive | Remove from marketplace |
-| Reassign | Change assigned professional |
-| View full details | Including answers, photos |
-
-**Reuses:**
-- `src/pages/jobs/queries/` (existing)
-- `src/pages/jobs/actions/completeJob.action.ts` (existing)
-- `src/pages/jobs/lib/evaluatePackRules.ts` (existing)
-
-### 3. Content Section
-
-| Feature | Description |
-|---------|-------------|
-| Flagged posts | User-reported content |
-| Remove content | Delete posts/replies |
-| User warnings | Track moderation history |
-| Category management | Enable/disable forum categories |
-
-**Reuses:**
-- `forum_posts`, `forum_replies` tables (existing)
-- `src/pages/forum/queries/` (existing)
-
-### 4. Analytics Section
-
-| Feature | Description |
-|---------|-------------|
-| Platform stats | Total users, jobs, professionals |
-| Activity trends | Jobs/day, signups/week |
-| Category breakdown | Popular services |
-| Health indicators | Response times, completion rates |
-
-**New views needed:**
-- `admin_platform_stats` (aggregated counts)
-- `admin_activity_log` (audit trail, future)
-
----
-
-## Database Requirements
-
-### New Table: `admin_actions_log`
-
-Audit trail for admin actions:
-
-```sql
-CREATE TABLE public.admin_actions_log (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  admin_user_id UUID NOT NULL REFERENCES auth.users(id),
-  action_type TEXT NOT NULL,  -- 'suspend_user', 'verify_pro', 'archive_job', etc.
-  target_type TEXT NOT NULL,  -- 'user', 'job', 'post'
-  target_id UUID NOT NULL,
-  metadata JSONB,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- RLS: Only admins can read/write
-ALTER TABLE public.admin_actions_log ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Admins only" ON public.admin_actions_log
-  FOR ALL USING (public.has_role(auth.uid(), 'admin'));
+```text
+User triggers @csi-support → creates support_request (status: open)
+                                    ↓
+Support sees in Inbox ─────────────────────────────────────────────────
+                                    ↓
+        ┌───────────────────────────┼───────────────────────────┐
+        ↓                           ↓                           ↓
+  Assign to self              Change priority              Add note
+        ↓                           ↓                           ↓
+        └───────────────────────────┼───────────────────────────┘
+                                    ↓
+                         View conversation context
+                                    ↓
+                    ┌───────────────┴───────────────┐
+                    ↓                               ↓
+            "Join chat"                      Mark resolved
+                    ↓                               ↓
+          Messages in thread               Close ticket
 ```
 
-### New View: `admin_platform_stats`
+### RLS Policies for Support
 
-```sql
-CREATE VIEW public.admin_platform_stats AS
-SELECT
-  (SELECT COUNT(*) FROM auth.users) AS total_users,
-  (SELECT COUNT(*) FROM public.user_roles WHERE 'professional' = ANY(roles)) AS total_professionals,
-  (SELECT COUNT(*) FROM public.professional_profiles WHERE is_publicly_listed = true) AS active_professionals,
-  (SELECT COUNT(*) FROM public.jobs) AS total_jobs,
-  (SELECT COUNT(*) FROM public.jobs WHERE status = 'open') AS open_jobs,
-  (SELECT COUNT(*) FROM public.jobs WHERE status = 'completed') AS completed_jobs,
-  (SELECT COUNT(*) FROM public.forum_posts) AS total_posts;
-```
+**Support can read conversations when:**
+- A support_request exists for that conversation_id, OR
+- They are in conversation_participants for that conversation
 
----
-
-## Access Control
-
-### Guard Integration
-
-The existing `admin2FA` access rule in `src/guard/access.ts` handles admin routes:
-
-```typescript
-case 'admin2FA':
-  return ctx.isAuthenticated && ctx.hasRole('admin');
-```
-
-### Security Considerations
-
-1. **No self-elevation** — Admins cannot grant themselves higher roles
-2. **Audit logging** — All admin actions logged to `admin_actions_log`
-3. **Rate limiting** — Consider for bulk actions (future)
-4. **2FA** — Reserved in access rule name for future implementation
-
----
-
-## Integration Points
-
-| Admin Action | Existing Domain | Reuse |
-|--------------|-----------------|-------|
-| View job details | Jobs | `useJobDetails` hook |
-| Complete job | Jobs | `completeJob.action.ts` |
-| Archive job | Jobs | New action, same pattern |
-| View user roles | Guard | `user_roles` table |
-| Verify professional | Onboarding | `professional_profiles` table |
-| View forum posts | Forum | `forumQueries.ts` |
-
----
-
-## UI Layout
-
-```
-┌─────────────────────────────────────────────────────┐
-│  Admin Dashboard                        [User Menu] │
-├──────────────┬──────────────────────────────────────┤
-│              │                                      │
-│  👥 Users    │  [Section Content]                   │
-│  📋 Jobs     │                                      │
-│  💬 Content  │  - Stats cards at top                │
-│  📊 Analytics│  - Filterable table/list             │
-│              │  - Action buttons per row            │
-│              │                                      │
-└──────────────┴──────────────────────────────────────┘
-```
+**This protects privacy while enabling intervention.**
 
 ---
 
 ## Implementation Order
 
-When ready to build:
-
-1. **Phase 1: Foundation**
-   - AdminDashboard + tab navigation
-   - Admin route in registry
-   - Basic stats query
-
-2. **Phase 2: Users**
-   - User list with search
-   - Suspend/unsuspend action
-   - Professional verification
-
-3. **Phase 3: Jobs**
-   - Flagged jobs view
-   - Force complete action
-   - Archive action
-
-4. **Phase 4: Content**
-   - Flagged posts list
-   - Remove content action
-
-5. **Phase 5: Analytics**
-   - Platform stats view
-   - Activity trends charts
+| Order | Task | Effort |
+|-------|------|--------|
+| 1 | Create `queries/` folder + extract query functions | Small |
+| 2 | Create `queries/keys.ts` for consistent cache keys | Small |
+| 3 | Restructure Users section to nested folder | Medium |
+| 4 | Restructure Jobs section to nested folder | Medium |
+| 5 | Restructure Content section to nested folder | Medium |
+| 6 | Create Support section schema (migration) | Medium |
+| 7 | Build SupportInbox component | Medium |
+| 8 | Build support actions (assign, status, join) | Medium |
+| 9 | Build SupportThreadView with conversation context | Large |
+| 10 | Update AdminDashboard with Support tab | Small |
 
 ---
 
-## Open Questions
+## Key Decisions
 
-- [ ] Should Help Desk (formerly Forum) moderation be in Admin or separate?
-- [ ] Do we need admin notifications for new flagged content?
-- [ ] Should analytics include export functionality?
+1. **Keep actions in root `/actions/`** rather than per-section
+   - Consistent with current pattern
+   - All admin actions share audit logging pattern
+   - Easier to maintain
+
+2. **Extract components within sections** (not to root `/components/`)
+   - Each section owns its components
+   - Avoids premature abstraction
+   - If a component is needed across sections, promote it then
+
+3. **Support section starts read-only**
+   - Phase 1: View tickets + conversation context
+   - Phase 2: Add actions (assign, status change)
+   - Phase 3: Join chat capability
+
+4. **AdminLayout is optional**
+   - Current tab-based UI works well
+   - Add layout when/if we need persistent sidebar
 
 ---
 
-## Related Files
+## Files to Create/Modify
 
-| File | Purpose |
-|------|---------|
-| `src/guard/access.ts` | `admin2FA` rule already exists |
-| `src/app/routes/registry.ts` | Add admin route |
-| `src/pages/jobs/actions/` | Reuse job actions |
-| `src/pages/forum/queries/` | Reuse forum queries |
+### New Files (17)
+- `queries/index.ts`
+- `queries/keys.ts`
+- `queries/adminStats.query.ts`
+- `queries/adminUsers.query.ts`
+- `queries/adminJobs.query.ts`
+- `queries/adminContent.query.ts`
+- `queries/supportRequests.query.ts`
+- `sections/support/SupportInbox.tsx`
+- `sections/support/SupportThreadView.tsx`
+- `sections/support/components/SupportTicketRow.tsx`
+- `sections/support/components/SupportStatusBadge.tsx`
+- `sections/support/hooks/useSupportRequests.ts`
+- `sections/support/index.ts`
+- `actions/assignSupportTicket.action.ts`
+- `actions/updateSupportStatus.action.ts`
+- `actions/joinSupportThread.action.ts`
+- `lib/formatters.ts`
+
+### Modified Files (5)
+- `AdminDashboard.tsx` - Add Support tab
+- `index.ts` - Update exports
+- `types.ts` - Add support types
+- `actions/index.ts` - Export new actions
+- `hooks/index.ts` - Update after restructure
+
+### Database Migration (1)
+- Support tables schema (support_requests, support_request_events, conversation_participants)
+
+---
+
+## Summary
+
+This refactoring:
+
+1. **Aligns with domain-first architecture** - Admin consumes existing domains
+2. **Adds the Support section** - The operational heart of @csi-support
+3. **Improves maintainability** - Clearer separation, extracted components
+4. **Follows existing patterns** - Consistent with jobs domain structure
+5. **Enables future growth** - Analytics, escalation workflows, SLA tracking
+
+**Recommendation:** Implement in phases, starting with the Support section (highest business value) while restructuring incrementally as you touch each section.
+
