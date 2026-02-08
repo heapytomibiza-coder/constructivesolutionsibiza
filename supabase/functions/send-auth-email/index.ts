@@ -37,8 +37,9 @@ const handler = async (req: Request): Promise<Response> => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const baseUrl = redirectUrl || Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '') || "";
-    const siteUrl = "https://id-preview--c31efcb5-ae5c-4284-990c-e746238ecde8.lovable.app";
+    // Use SITE_URL env var, falling back to request origin or preview URL
+    const origin = req.headers.get("origin") || req.headers.get("referer")?.split("/").slice(0, 3).join("/");
+    const siteUrl = Deno.env.get("SITE_URL") || origin || "https://id-preview--c31efcb5-ae5c-4284-990c-e746238ecde8.lovable.app";
 
     let actionLink: string;
     let subject: string;

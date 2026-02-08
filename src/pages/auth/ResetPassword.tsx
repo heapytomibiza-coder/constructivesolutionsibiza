@@ -67,9 +67,9 @@ const ResetPassword = () => {
       setIsSuccess(true);
       toast.success(t('resetPasswordPage.success'));
       
-      // Redirect to dashboard after short delay
+      // Redirect via callback for role-based routing
       setTimeout(() => {
-        navigate('/dashboard/client');
+        navigate('/auth/callback');
       }, 2000);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('resetPasswordPage.error');
