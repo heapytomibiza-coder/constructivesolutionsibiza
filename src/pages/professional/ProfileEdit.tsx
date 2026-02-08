@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Loader2, User, Building2, Phone, FileText, Eye, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/form";
 import { useSession } from "@/contexts/SessionContext";
 import { supabase } from "@/integrations/supabase/client";
+import { GradientIconHeader, QuietSaveIndicator } from "@/shared/components/professional";
+import { cn } from "@/lib/utils";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "Name must be at least 2 characters"),
@@ -35,12 +37,20 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
+// Character limits for fields with encouraging copy
+const CHAR_LIMITS = {
+  tagline: 80,
+  bio: 500,
+};
+
 export default function ProfileEdit() {
   const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
-  const { user, professionalProfile, refresh } = useSession();
+  const { user, refresh } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -53,6 +63,10 @@ export default function ProfileEdit() {
       isPubliclyListed: false,
     },
   });
+
+  // Watch fields for character counters
+  const taglineValue = useWatch({ control: form.control, name: "tagline" }) || "";
+  const bioValue = useWatch({ control: form.control, name: "bio" }) || "";
 
   // Fetch full profile data on mount
   useEffect(() => {
@@ -102,6 +116,47 @@ export default function ProfileEdit() {
     fetchProfile();
   }, [user, form, t]);
 
+  // Autosave with debounce
+  const autoSave = useCallback(async (values: ProfileFormValues) => {
+    if (!user || isSaving) return;
+    
+    setIsSaving(true);
+    try {
+      // Upsert professional_profiles
+      const { error: proError } = await supabase
+        .from("professional_profiles")
+        .upsert({
+          user_id: user.id,
+          display_name: values.displayName,
+          business_name: values.businessName || null,
+          bio: values.bio || null,
+          tagline: values.tagline || null,
+          is_publicly_listed: values.isPubliclyListed,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+
+      if (proError) throw proError;
+
+      // Upsert profiles table for phone
+      const { error: userError } = await supabase
+        .from("profiles")
+        .upsert({
+          user_id: user.id,
+          phone: values.phone || null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+
+      if (userError) throw userError;
+
+      setLastSaved(new Date());
+      await refresh();
+    } catch (err) {
+      console.error("Autosave error:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [user, isSaving, refresh]);
+
   async function onSubmit(values: ProfileFormValues) {
     if (!user) {
       toast.error("Not authenticated");
@@ -146,7 +201,7 @@ export default function ProfileEdit() {
       // Refresh session to update context
       await refresh();
       
-      toast.success(t("pro.profile.saved", "Profile saved successfully"));
+      toast.success(t("pro.profile.saved", "Profile updated! Looking great."));
       navigate("/dashboard/pro");
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -156,71 +211,79 @@ export default function ProfileEdit() {
     }
   }
 
+  // Helper for character counter styling
+  const getCharCountStyle = (current: number, max: number) => {
+    const ratio = current / max;
+    if (ratio > 1) return "text-destructive font-medium";
+    if (ratio > 0.9) return "text-amber-600";
+    if (ratio > 0.7) return "text-muted-foreground";
+    return "text-muted-foreground/70";
+  };
+
   if (isFetching) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-hero bg-texture-concrete">
+      {/* Header - matches onboarding */}
       <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link to="/dashboard/pro">
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
               </Link>
             </Button>
-            <h1 className="font-display text-lg font-semibold">
-              {t("pro.profile.title", "Edit Profile")}
+            <h1 className="font-display text-xl font-semibold">
+              {t("pro.profile.title", "Your Profile")}
             </h1>
           </div>
+          <QuietSaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
         </div>
       </nav>
 
-      <div className="container max-w-2xl py-8">
+      <div className="container max-w-2xl py-8 space-y-6">
+        {/* Encouraging intro */}
+        <div className="text-center space-y-2 py-4">
+          <p className="text-lg text-muted-foreground">
+            Keep your profile fresh — clients love seeing who they're working with.
+          </p>
+        </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Basic Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">
-                  {t("pro.profile.basicInfo", "Basic Information")}
-                </CardTitle>
-                <CardDescription>
-                  {t("pro.profile.basicInfoDesc", "This information appears on your public profile")}
-                </CardDescription>
+            {/* Basic Info Card */}
+            <Card className="card-grounded">
+              <CardHeader className="pb-4">
+                <GradientIconHeader
+                  icon={User}
+                  title="About You"
+                  description="This is how clients will see you"
+                />
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-5">
                 <FormField
                   control={form.control}
                   name="displayName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("pro.profile.displayName", "Display Name")} *</FormLabel>
+                      <FormLabel className="text-base font-medium">
+                        Your name
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="John Smith" {...field} />
+                        <Input 
+                          placeholder="John Smith" 
+                          className="h-14 text-lg"
+                          {...field} 
+                        />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="businessName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("pro.profile.businessName", "Business Name")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Smith Plumbing Services" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        {t("pro.profile.businessNameDesc", "Optional. Leave blank to use your display name.")}
+                      <FormDescription className="text-sm">
+                        How you'd like clients to address you
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -232,12 +295,24 @@ export default function ProfileEdit() {
                   name="tagline"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("pro.profile.tagline", "Tagline")}</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="text-base font-medium">
+                          Tagline
+                        </FormLabel>
+                        <span className={cn("text-sm", getCharCountStyle(taglineValue.length, CHAR_LIMITS.tagline))}>
+                          {taglineValue.length}/{CHAR_LIMITS.tagline}
+                        </span>
+                      </div>
                       <FormControl>
-                        <Input placeholder="Professional plumber with 10+ years experience" {...field} />
+                        <Input 
+                          placeholder="Professional plumber with 10+ years experience" 
+                          className="h-14 text-lg"
+                          maxLength={CHAR_LIMITS.tagline + 20}
+                          {...field} 
+                        />
                       </FormControl>
-                      <FormDescription>
-                        {t("pro.profile.taglineDesc", "A short headline for your profile")}
+                      <FormDescription className="text-sm">
+                        A punchy one-liner that shows your strength
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -246,12 +321,49 @@ export default function ProfileEdit() {
               </CardContent>
             </Card>
 
-            {/* Contact */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">
-                  {t("pro.profile.contact", "Contact")}
-                </CardTitle>
+            {/* Business Card */}
+            <Card className="card-grounded">
+              <CardHeader className="pb-4">
+                <GradientIconHeader
+                  icon={Building2}
+                  title="Business Details"
+                  description="Optional — if you operate under a company name"
+                />
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="businessName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">
+                        Business name
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Smith Plumbing Services" 
+                          className="h-14 text-lg"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormDescription className="text-sm">
+                        Leave blank to use your personal name
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Contact Card */}
+            <Card className="card-grounded">
+              <CardHeader className="pb-4">
+                <GradientIconHeader
+                  icon={Phone}
+                  title="Contact"
+                  description="How clients can reach you"
+                />
               </CardHeader>
               <CardContent>
                 <FormField
@@ -259,12 +371,19 @@ export default function ProfileEdit() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("pro.profile.phone", "Phone / WhatsApp")}</FormLabel>
+                      <FormLabel className="text-base font-medium">
+                        Phone / WhatsApp
+                      </FormLabel>
                       <FormControl>
-                        <Input type="tel" placeholder="+34 600 000 000" {...field} />
+                        <Input 
+                          type="tel" 
+                          placeholder="+34 600 000 000" 
+                          className="h-14 text-lg"
+                          {...field} 
+                        />
                       </FormControl>
-                      <FormDescription>
-                        {t("pro.profile.phoneDesc", "Clients may contact you via WhatsApp")}
+                      <FormDescription className="text-sm">
+                        Clients may message you via WhatsApp
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -273,12 +392,14 @@ export default function ProfileEdit() {
               </CardContent>
             </Card>
 
-            {/* About */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">
-                  {t("pro.profile.about", "About You")}
-                </CardTitle>
+            {/* Bio Card */}
+            <Card className="card-grounded">
+              <CardHeader className="pb-4">
+                <GradientIconHeader
+                  icon={FileText}
+                  title="Tell Your Story"
+                  description="Help clients understand what makes you great"
+                />
               </CardHeader>
               <CardContent>
                 <FormField
@@ -286,14 +407,25 @@ export default function ProfileEdit() {
                   name="bio"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("pro.profile.bio", "Bio")}</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="text-base font-medium">
+                          Your bio
+                        </FormLabel>
+                        <span className={cn("text-sm", getCharCountStyle(bioValue.length, CHAR_LIMITS.bio))}>
+                          {bioValue.length}/{CHAR_LIMITS.bio}
+                        </span>
+                      </div>
                       <FormControl>
                         <Textarea 
-                          placeholder="Tell clients about your experience, specialties, and why they should choose you..."
-                          className="min-h-[120px] resize-none"
+                          placeholder="I've been working in construction for over 10 years. I take pride in quality work and clear communication..."
+                          className="min-h-[140px] resize-none text-base leading-relaxed"
+                          maxLength={CHAR_LIMITS.bio + 50}
                           {...field} 
                         />
                       </FormControl>
+                      <FormDescription className="text-sm">
+                        Share your experience, specialties, and what you enjoy about your work
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -301,31 +433,37 @@ export default function ProfileEdit() {
               </CardContent>
             </Card>
 
-            {/* Visibility */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">
-                  {t("pro.profile.visibility", "Visibility")}
-                </CardTitle>
+            {/* Visibility Card */}
+            <Card className="card-grounded">
+              <CardHeader className="pb-4">
+                <GradientIconHeader
+                  icon={Eye}
+                  title="Visibility"
+                  description="Control how you appear in search results"
+                />
               </CardHeader>
               <CardContent>
                 <FormField
                   control={form.control}
                   name="isPubliclyListed"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          {t("pro.profile.publicListing", "Public Listing")}
+                    <FormItem className={cn(
+                      "flex items-center justify-between rounded-xl border-2 p-5 transition-colors",
+                      field.value ? "border-primary bg-primary/5" : "border-border"
+                    )}>
+                      <div className="space-y-1">
+                        <FormLabel className="text-base font-medium cursor-pointer">
+                          Show in directory
                         </FormLabel>
-                        <FormDescription>
-                          {t("pro.profile.publicListingDesc", "Show your profile in the professionals directory")}
+                        <FormDescription className="text-sm">
+                          Let new clients find you in our professionals listing
                         </FormDescription>
                       </div>
                       <FormControl>
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          className="scale-125"
                         />
                       </FormControl>
                     </FormItem>
@@ -335,26 +473,28 @@ export default function ProfileEdit() {
             </Card>
 
             {/* Actions */}
-            <div className="flex gap-3">
+            <div className="flex gap-4 pt-4">
               <Button 
                 type="button" 
                 variant="outline" 
+                size="lg"
                 className="flex-1"
                 onClick={() => navigate("/dashboard/pro")}
               >
-                {t("common.cancel", "Cancel")}
+                Cancel
               </Button>
               <Button 
                 type="submit" 
+                size="lg"
                 className="flex-1 gap-2"
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  <Save className="h-4 w-4" />
+                  <Check className="h-5 w-5" />
                 )}
-                {t("common.save", "Save")}
+                Update Profile
               </Button>
             </div>
           </form>
