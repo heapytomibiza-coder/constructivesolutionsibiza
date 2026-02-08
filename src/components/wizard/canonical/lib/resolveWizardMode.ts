@@ -6,10 +6,15 @@
  * 
  * Priority Order:
  * 1. Explicit search selection → mode=search (never restore draft)
- * 2. Deep-link params (?category, ?pro) → mode=deep-link (never restore draft)
+ * 2. Deep-link params (?category, ?subcategory, ?micro) → mode=deep-link (never restore draft)
  * 3. Resume flag (?resume=true) → mode=resume (always restore draft)
  * 4. Saved draft exists → mode=prompt (ask user)
  * 5. Default → mode=fresh (clean wizard)
+ * 
+ * URL Param Contract (from search types):
+ * - ?category=UUID&step=subcategory → Category selected, go to subcategory step
+ * - ?category=UUID&subcategory=UUID&step=micro → Cat+Sub selected, go to micro step
+ * - ?category=UUID&subcategory=UUID&micro=SLUG&step=questions → Full hierarchy, go to questions
  */
 
 import type { WizardState } from '../types';
@@ -30,10 +35,11 @@ export interface ModeResolution {
   initialStep: WizardStep;
   shouldPromptDraft: boolean;
   
-  // For deep-link mode
+  // For deep-link mode - lookups needed to populate state
   pendingLookups?: {
     categoryId?: string;
     subcategoryId?: string;
+    microSlug?: string;
     targetProfessionalId?: string;
   };
 }
@@ -44,6 +50,7 @@ interface UrlParams {
   step?: string;
   category?: string;
   subcategory?: string;
+  micro?: string;        // Can be slug or ID
   pro?: string;
   resume?: boolean;
 }
@@ -54,13 +61,44 @@ function parseUrlParams(search: string): UrlParams {
     step: sp.get('step') || undefined,
     category: sp.get('category') || undefined,
     subcategory: sp.get('subcategory') || undefined,
+    micro: sp.get('micro') || undefined,
     pro: sp.get('pro') || undefined,
     resume: sp.get('resume') === 'true',
   };
 }
 
+/**
+ * Check if URL has explicit navigation intent (not just step param)
+ */
 function hasExplicitIntent(params: UrlParams): boolean {
-  return !!(params.category || params.subcategory || params.pro);
+  return !!(params.category || params.subcategory || params.micro || params.pro);
+}
+
+/**
+ * Determine the target step based on what params are provided.
+ * This follows the contract from search types:
+ * - category only → subcategory step
+ * - category + subcategory → micro step
+ * - category + subcategory + micro → questions step
+ */
+function deriveTargetStepFromParams(params: UrlParams): WizardStep {
+  // If step is explicitly provided and valid, use it
+  if (params.step && isValidStep(params.step)) {
+    return params.step as WizardStep;
+  }
+  
+  // Otherwise derive from param completeness
+  if (params.micro) {
+    return WizardStep.Questions;
+  }
+  if (params.subcategory) {
+    return WizardStep.Micro;
+  }
+  if (params.category) {
+    return WizardStep.Subcategory;
+  }
+  
+  return WizardStep.Category;
 }
 
 // === DRAFT DETECTION ===
@@ -147,6 +185,9 @@ export interface ResolverInput {
 /**
  * Resolve wizard mode from URL, search selection, and draft state.
  * Call this ONCE on wizard mount (or when search selects).
+ * 
+ * KEY PRINCIPLE: The wizard is the ONLY place that resolves URL → state.
+ * All entry points (search, category pages, dashboard) just navigate to URLs.
  */
 export function resolveWizardMode(input: ResolverInput): ModeResolution {
   const params = parseUrlParams(input.urlSearch);
@@ -188,15 +229,19 @@ export function resolveWizardMode(input: ResolverInput): ModeResolution {
   }
   
   // === PRIORITY 3: Deep-link with explicit params ===
+  // This handles search result navigation via URL
   if (hasExplicitIntent(params)) {
+    const targetStep = deriveTargetStepFromParams(params);
+    
     return {
       mode: 'deep-link',
       initialState: EMPTY_WIZARD_STATE,
-      initialStep: WizardStep.Category, // Will be updated after lookup
+      initialStep: targetStep,
       shouldPromptDraft: false,
       pendingLookups: {
         categoryId: params.category,
         subcategoryId: params.subcategory,
+        microSlug: params.micro,
         targetProfessionalId: params.pro,
       },
     };
@@ -288,4 +333,36 @@ export function applySearchResult(
     },
     step: WizardStep.Questions,
   };
+}
+
+// === VALIDATION HELPERS ===
+
+/**
+ * Validate that lookup results match expectations.
+ * If invalid, fall back to earlier step.
+ */
+export function validateLookupResult(
+  lookups: ModeResolution['pendingLookups'],
+  result: {
+    categoryId?: string;
+    subcategoryId?: string;
+    microId?: string;
+  }
+): { isValid: boolean; fallbackStep: WizardStep } {
+  // If micro was requested but not found, fall back to micro step
+  if (lookups?.microSlug && !result.microId) {
+    return { isValid: false, fallbackStep: WizardStep.Micro };
+  }
+  
+  // If subcategory was requested but not found, fall back to subcategory step
+  if (lookups?.subcategoryId && !result.subcategoryId) {
+    return { isValid: false, fallbackStep: WizardStep.Subcategory };
+  }
+  
+  // If category was requested but not found, fall back to category step
+  if (lookups?.categoryId && !result.categoryId) {
+    return { isValid: false, fallbackStep: WizardStep.Category };
+  }
+  
+  return { isValid: true, fallbackStep: WizardStep.Category };
 }
