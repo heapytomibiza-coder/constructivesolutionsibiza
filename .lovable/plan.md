@@ -1,92 +1,143 @@
 
-# Lock-In Search → Wizard Flow: Complete Implementation Plan
 
-## Executive Summary
+# Final Polish: Smart Fallbacks + Micro Hydration
 
-This plan delivers four high-impact improvements to make the search-to-wizard flow bulletproof:
+## Overview
 
-1. **Harden wizard resolver fallbacks** - Prevent wrong-step issues with defensive validation
-2. **Add search synonyms** - "leak", "aircon", "sparky" all resolve correctly
-3. **Add ⌘K / Ctrl+K global shortcut** - Premium keyboard experience
-4. **Unify all wizard entry points** - Single helper for URL generation, zero drift
+This plan implements the final 6 upgrades with the two key adjustments requested:
 
----
-
-## Current Architecture Analysis
-
-| Component | Purpose | Status |
-|-----------|---------|--------|
-| `resolveWizardMode.ts` | URL → wizard state resolution | ✅ Good foundation |
-| `buildWizardUrlFromHit` | Search hit → URL builder | ✅ Exists, needs fallback hardening |
-| `UniversalSearchBar` | Homepage search | ✅ Uses typed hits |
-| Entry points (ServiceCategory, Professionals, etc.) | Various navigation sources | ⚠️ Inconsistent URL building |
-| Keyboard shortcut | Global ⌘K access | ❌ Not implemented |
-| Synonyms | "leak" → "pipe leak" expansion | ❌ Not implemented |
+**Adjustment A**: "Micro without parents" should attempt hydration before falling back  
+**Adjustment B**: Search fallbacks should use a smart ladder (preserve context), not always go to "fresh"
 
 ---
 
-## Implementation Details
+## Current State Analysis
 
-### 1. Harden Wizard Resolver with Step/Param Validation
+| Component | Current Behavior | Issue |
+|-----------|-----------------|-------|
+| `resolveWizardMode.ts` | If `micro` exists but no parents → goes to `Questions` anyway | Risky - may land in broken state |
+| `CanonicalJobWizard.tsx` deep-link | Only handles `categoryId` + `subcategoryId` lookups | Missing micro hydration |
+| `buildWizardUrlFromHit` | Falls back to `microFallback` mode (sends `?micro=slug&step=micro`) | Works but throws away context |
+| `useGlobalSearchShortcut` | Uses `navigator.platform` for detection | Deprecated, unreliable |
+| `searchSynonyms.ts` | No sanitization, no cap | Can break Supabase `.or()` |
+| `UniversalSearchBar` | No Escape key handler | Can't close with keyboard |
 
-**Problem**: URL says `step=questions` but `micro` param is missing → user lands on wrong step.
+---
 
-**Solution**: Add validation in `deriveTargetStepFromParams` to enforce param requirements:
+## Implementation Plan
 
-**File**: `src/components/wizard/canonical/lib/resolveWizardMode.ts`
+### 1. Add Micro Hydration to Deep-Link Processor
+
+**File**: `src/components/wizard/canonical/CanonicalJobWizard.tsx`
+
+Add micro lookup in the `processDeepLink` function to hydrate category + subcategory from micro slug:
 
 ```typescript
-/**
- * Derive target step with ENFORCEMENT:
- * - step=questions requires micro
- * - step=micro requires subcategory
- * - step=subcategory requires category
- * Falls back to the highest valid step if params are missing.
- */
-function deriveTargetStepFromParams(params: UrlParams): WizardStep {
-  // If step is explicitly provided, validate requirements
-  if (params.step && isValidStep(params.step)) {
-    const requestedStep = params.step as WizardStep;
-    
-    // Enforce param requirements for each step
-    if (requestedStep === WizardStep.Questions && !params.micro) {
-      return params.subcategory ? WizardStep.Micro : 
-             params.category ? WizardStep.Subcategory : 
-             WizardStep.Category;
-    }
-    if (requestedStep === WizardStep.Micro && !params.subcategory) {
-      return params.category ? WizardStep.Subcategory : WizardStep.Category;
-    }
-    if (requestedStep === WizardStep.Subcategory && !params.category) {
-      return WizardStep.Category;
-    }
-    
-    return requestedStep;
+// NEW: Fetch micro and hydrate parents if only micro is provided
+const { microSlug } = modeResolution.pendingLookups;
+if (microSlug && !categoryId && !subcategoryId) {
+  const { data: micro } = await supabase
+    .from('service_micro_categories')
+    .select(`
+      id, name, slug,
+      service_subcategories!inner(
+        id, name,
+        service_categories!inner(id, name)
+      )
+    `)
+    .eq('slug', microSlug)
+    .eq('is_active', true)
+    .single();
+
+  if (micro) {
+    const sub = micro.service_subcategories;
+    const cat = sub.service_categories;
+    newState = {
+      ...newState,
+      mainCategory: cat.name,
+      mainCategoryId: cat.id,
+      subcategory: sub.name,
+      subcategoryId: sub.id,
+      microNames: [micro.name],
+      microIds: [micro.id],
+      microSlugs: [micro.slug],
+    };
+    targetStep = WizardStep.Questions;
   }
-  
-  // No explicit step - derive from param completeness (existing logic)
-  if (params.micro) return WizardStep.Questions;
-  if (params.subcategory) return WizardStep.Micro;
-  if (params.category) return WizardStep.Subcategory;
-  
-  return WizardStep.Category;
+  // If lookup fails, targetStep stays at Category (safe fallback)
+}
+```
+
+This gives us:
+- ✅ `/post?micro=sink-leak` works if DB knows it → lands on Questions
+- ✅ If micro not found → falls back to Category step
+
+---
+
+### 2. Smart Fallback Ladder in `buildWizardUrlFromHit`
+
+**File**: `src/components/search/types.ts`
+
+Replace the current `microFallback` approach with a smart ladder:
+
+```typescript
+case "micro": {
+  // Best case: full hierarchy available
+  if (hit.categoryId && hit.subcategoryId && hit.microSlug) {
+    return buildWizardLink({
+      mode: "micro",
+      categoryId: hit.categoryId,
+      subcategoryId: hit.subcategoryId,
+      microSlug: hit.microSlug,
+    });
+  }
+
+  // Fallback 1: have cat+sub but missing slug → micro step
+  if (hit.categoryId && hit.subcategoryId) {
+    console.warn("Micro hit missing microSlug, falling back to subcategory mode");
+    return buildWizardLink({
+      mode: "subcategory",
+      categoryId: hit.categoryId,
+      subcategoryId: hit.subcategoryId,
+    });
+  }
+
+  // Fallback 2: have category only → subcategory step
+  if (hit.categoryId) {
+    console.warn("Micro hit missing hierarchy, falling back to category mode");
+    return buildWizardLink({ mode: "category", categoryId: hit.categoryId });
+  }
+
+  // Last resort: fresh start
+  console.warn("Micro hit missing all parents, falling back to fresh");
+  return buildWizardLink({ mode: "fresh" });
+}
+
+case "subcategory": {
+  if (hit.categoryId) {
+    return buildWizardLink({
+      mode: "subcategory",
+      categoryId: hit.categoryId,
+      subcategoryId: hit.id,
+    });
+  }
+  console.warn("Subcategory hit missing categoryId, falling back to fresh");
+  return buildWizardLink({ mode: "fresh" });
 }
 ```
 
 ---
 
-### 2. Create Unified Wizard Link Builder
+### 3. Update Wizard Link Types
 
-**Purpose**: Single source of truth for all wizard navigation URLs.
+**File**: `src/lib/wizardLink.ts`
 
-**File**: `src/lib/wizardLink.ts` (NEW)
+Remove the unsafe fallback modes since we now use the smart ladder:
 
 ```typescript
-/**
- * Wizard Link Builder
- * SINGLE SOURCE OF TRUTH for all wizard navigation.
- * All entry points MUST use this - no inline URL strings.
- */
+// REMOVE these modes - replaced by smart ladder in buildWizardUrlFromHit:
+// | { mode: "microFallback"; microSlug: string }
+// | { mode: "subcategoryFallback" }
 
 export type WizardLinkParams =
   | { mode: "fresh" }
@@ -95,291 +146,228 @@ export type WizardLinkParams =
   | { mode: "micro"; categoryId: string; subcategoryId: string; microSlug: string }
   | { mode: "direct"; professionalId: string }
   | { mode: "resume" };
-
-export function buildWizardLink(params: WizardLinkParams): string {
-  const base = "/post";
-  
-  switch (params.mode) {
-    case "fresh":
-      return base;
-      
-    case "category":
-      return `${base}?category=${params.categoryId}&step=subcategory`;
-      
-    case "subcategory":
-      return `${base}?category=${params.categoryId}&subcategory=${params.subcategoryId}&step=micro`;
-      
-    case "micro":
-      return `${base}?category=${params.categoryId}&subcategory=${params.subcategoryId}&micro=${params.microSlug}&step=questions`;
-      
-    case "direct":
-      return `${base}?pro=${params.professionalId}`;
-      
-    case "resume":
-      return `${base}?resume=true`;
-      
-    default:
-      return base;
-  }
-}
 ```
 
-**Then update all entry points** to use this helper:
-
-| File | Current | After |
-|------|---------|-------|
-| `ServiceCategory.tsx` | Inline `/post?category=...` | `buildWizardLink({ mode: 'subcategory', ... })` |
-| `Professionals.tsx` | Inline `/post?pro=...` | `buildWizardLink({ mode: 'direct', ... })` |
-| `ProfessionalDetails.tsx` | Inline `/post?pro=...` | `buildWizardLink({ mode: 'direct', ... })` |
-| `search/types.ts` | `buildWizardUrlFromHit` | Delegate to `buildWizardLink` |
+Remove the `microFallback` and `subcategoryFallback` cases from the switch statement.
 
 ---
 
-### 3. Add Search Synonyms
+### 4. Harden Resolver: Require Full Hierarchy for Questions
 
-**File**: `src/lib/searchSynonyms.ts` (NEW)
+**File**: `src/components/wizard/canonical/lib/resolveWizardMode.ts`
+
+Update `deriveTargetStepFromParams` to be conservative about Questions step:
 
 ```typescript
-/**
- * Search Synonyms
- * Expand user queries to match more results.
- * Fast, controlled, no AI required.
- */
+// No explicit step - derive from param completeness
+// ENFORCEMENT: Only go to Questions if we have FULL hierarchy
+// (the deep-link processor may hydrate parents from micro, but resolver doesn't assume)
+if (params.category && params.subcategory && params.micro) {
+  return WizardStep.Questions;
+}
 
-export const SEARCH_SYNONYMS: Record<string, string[]> = {
-  // Common misspellings and alternatives
-  leak: ["water leak", "pipe leak", "sink leak", "leaking"],
-  drain: ["blocked drain", "drain blockage", "unblock drain", "clogged"],
-  toilet: ["wc", "loo", "toilet repair", "cistern"],
-  tap: ["faucet", "mixer tap", "tap repair"],
-  
-  // Trade slang
-  electrician: ["sparky", "electrical", "electrics"],
-  plumber: ["plumbing", "pipes"],
-  
-  // Climate/comfort
-  aircon: ["ac", "air conditioning", "a/c", "air con"],
-  hvac: ["heating", "ventilation", "cooling"],
-  
-  // Materials/finishes
-  plaster: ["plastering", "skim", "skim coat"],
-  paint: ["painting", "decorator", "decorating"],
-  tile: ["tiling", "tiles", "retile"],
-  
-  // Outdoor
-  pool: ["swimming pool", "pool maintenance", "pool cleaning"],
-  garden: ["gardening", "landscaping", "lawn"],
-};
+// Micro-only: don't assume Questions - let deep-link processor hydrate
+// Start at a safe interim step
+if (params.micro) {
+  return WizardStep.Micro; // Deep-link processor may upgrade this to Questions
+}
 
-/**
- * Expand a query into multiple search terms
- */
+if (params.subcategory) {
+  return WizardStep.Micro;
+}
+if (params.category) {
+  return WizardStep.Subcategory;
+}
+
+return WizardStep.Category;
+```
+
+---
+
+### 5. Robust ⌘K / Ctrl+K Detection
+
+**File**: `src/hooks/useGlobalSearchShortcut.ts`
+
+Accept both key combos for cross-platform support:
+
+```typescript
+const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const isK = e.key.toLowerCase() === "k";
+  // Accept BOTH meta and ctrl - works on all platforms without guessing
+  const isCombo = (e.metaKey || e.ctrlKey) && isK;
+
+  if (!isCombo) return;
+
+  // Don't trigger when typing in input fields
+  const target = e.target as HTMLElement | null;
+  const tagName = target?.tagName?.toLowerCase();
+  const isTypingField =
+    tagName === "input" ||
+    tagName === "textarea" ||
+    target?.isContentEditable === true;
+
+  if (isTypingField) return;
+
+  e.preventDefault();
+  onOpen();
+}, [onOpen]);
+```
+
+---
+
+### 6. Synonym Expansion Safeguards
+
+**File**: `src/lib/searchSynonyms.ts`
+
+Add sanitization and caps:
+
+```typescript
+const MAX_EXPANSIONS = 8;
+const MIN_TERM_LENGTH = 2;
+
 export function expandQuery(query: string): string[] {
   const normalized = query.trim().toLowerCase();
-  const expansions = new Set([normalized]);
+  if (!normalized || normalized.length < MIN_TERM_LENGTH) return [];
+  
+  const expansions = new Set<string>([normalized]);
 
   for (const [key, values] of Object.entries(SEARCH_SYNONYMS)) {
-    // If query contains the key, add all synonyms
     if (normalized.includes(key)) {
-      values.forEach(v => expansions.add(v));
+      expansions.add(key);
+      values.forEach(v => {
+        if (v.length >= MIN_TERM_LENGTH) expansions.add(v);
+      });
     }
-    // If query matches a synonym, add the key
+    
     for (const synonym of values) {
       if (normalized.includes(synonym)) {
         expansions.add(key);
+        values.forEach(v => {
+          if (v.length >= MIN_TERM_LENGTH) expansions.add(v);
+        });
         break;
       }
     }
   }
 
-  return Array.from(expansions);
+  return Array.from(expansions).slice(0, MAX_EXPANSIONS);
 }
-```
 
-**Update `UniversalSearchBar.tsx`** query function:
-
-```typescript
-import { expandQuery } from '@/lib/searchSynonyms';
-
-// In queryFn:
-const queries = expandQuery(debouncedQuery);
-
-// Build OR clause for multiple terms
-const orClauses = queries.map(q => `search_text.ilike.%${q}%`).join(",");
-
-const { data, error } = await supabase
-  .from("service_search_index")
-  .select("*")
-  .or(orClauses)
-  .limit(15);
-```
-
----
-
-### 4. Add ⌘K / Ctrl+K Global Shortcut
-
-**File**: `src/hooks/useGlobalSearchShortcut.ts` (NEW)
-
-```typescript
-import { useEffect } from "react";
-
-/**
- * Global keyboard shortcut for search (⌘K on Mac, Ctrl+K on Windows/Linux)
- */
-export function useGlobalSearchShortcut(onOpen: () => void) {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Detect platform
-      const isMac = navigator.platform.toLowerCase().includes("mac");
-      const isK = e.key.toLowerCase() === "k";
-      const isCombo = isMac ? e.metaKey && isK : e.ctrlKey && isK;
-
-      if (!isCombo) return;
-
-      // Don't trigger when typing in input fields
-      const target = e.target as HTMLElement | null;
-      const tagName = target?.tagName?.toLowerCase();
-      const isTypingField =
-        tagName === "input" ||
-        tagName === "textarea" ||
-        target?.isContentEditable;
-
-      if (isTypingField) return;
-
-      e.preventDefault();
-      onOpen();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onOpen]);
-}
-```
-
-**Update `UniversalSearchBar.tsx`**:
-
-```typescript
-import { useGlobalSearchShortcut } from '@/hooks/useGlobalSearchShortcut';
-
-export function UniversalSearchBar({ className }: { className?: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  
-  // Global ⌘K shortcut
-  useGlobalSearchShortcut(() => {
-    setIsOpen(true);
-    // Focus input after opening
-    setTimeout(() => inputRef.current?.focus(), 0);
-  });
-  
-  // Add ref to CommandInput
-  <CommandInput ref={inputRef} ... />
+export function buildSearchOrClause(query: string): string {
+  const terms = expandQuery(query);
+  return terms
+    .map(t => t.replace(/[,%]/g, " ").trim()) // Escape commas and wildcards
+    .filter(t => t.length >= MIN_TERM_LENGTH)
+    .map(t => `search_text.ilike.%${t}%`)
+    .join(",");
 }
 ```
 
 ---
 
-## Files Modified Summary
+### 7. Escape Key Closes Search
+
+**File**: `src/components/search/UniversalSearchBar.tsx`
+
+Add keyboard handler:
+
+```typescript
+const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+  if (e.key === "Escape") {
+    setIsOpen(false);
+    // Don't clear query - user might want to try again
+  }
+}, []);
+
+// Add to Command component:
+<Command
+  className="rounded-lg border bg-card shadow-lg"
+  shouldFilter={false}
+  onKeyDown={handleKeyDown}
+>
+```
+
+---
+
+## Files Modified
 
 | File | Change Type | Description |
 |------|-------------|-------------|
-| `src/components/wizard/canonical/lib/resolveWizardMode.ts` | MODIFY | Harden `deriveTargetStepFromParams` with step/param enforcement |
-| `src/lib/wizardLink.ts` | NEW | Unified wizard link builder |
-| `src/lib/searchSynonyms.ts` | NEW | Synonym expansion for search |
-| `src/hooks/useGlobalSearchShortcut.ts` | NEW | ⌘K keyboard hook |
-| `src/components/search/UniversalSearchBar.tsx` | MODIFY | Add synonym expansion + keyboard shortcut + input ref |
-| `src/components/search/types.ts` | MODIFY | Delegate `buildWizardUrlFromHit` to centralized builder |
-| `src/pages/public/ServiceCategory.tsx` | MODIFY | Use `buildWizardLink` |
-| `src/pages/public/Professionals.tsx` | MODIFY | Use `buildWizardLink` |
-| `src/pages/public/ProfessionalDetails.tsx` | MODIFY | Use `buildWizardLink` |
+| `src/components/wizard/canonical/CanonicalJobWizard.tsx` | MODIFY | Add micro hydration in deep-link processor |
+| `src/components/wizard/canonical/lib/resolveWizardMode.ts` | MODIFY | Conservative step derivation for micro-only |
+| `src/lib/wizardLink.ts` | MODIFY | Remove unsafe fallback modes |
+| `src/components/search/types.ts` | MODIFY | Smart fallback ladder in `buildWizardUrlFromHit` |
+| `src/hooks/useGlobalSearchShortcut.ts` | MODIFY | Accept both ⌘K and Ctrl+K |
+| `src/lib/searchSynonyms.ts` | MODIFY | Add sanitization + cap |
+| `src/components/search/UniversalSearchBar.tsx` | MODIFY | Add Escape key handler |
 
 ---
 
-## Testing Checklist (QA)
+## Testing Checklist
 
-### URL Validation Tests
-| Test URL | Expected Behavior |
-|----------|-------------------|
-| `/post?category=<id>&step=subcategory` | Land on subcategory step with category pre-filled |
-| `/post?category=<id>&subcategory=<id>&step=micro` | Land on micro step with cat+sub pre-filled |
-| `/post?category=<id>&subcategory=<id>&micro=<slug>&step=questions` | Land on questions step with full hierarchy |
-| `/post?step=questions` (missing micro) | Fallback to category step |
-| `/post?category=<id>&step=questions` (missing micro/sub) | Fallback to subcategory step |
-| `/post?micro=invalid-slug&step=questions` | Fallback to micro step with error handling |
-
-### Search Click Tests
-| Action | Expected Result |
-|--------|-----------------|
-| Click category result | `/post?category=<id>&step=subcategory` |
-| Click subcategory result | `/post?category=<id>&subcategory=<id>&step=micro` |
-| Click micro/task result | `/post?category=<id>&subcategory=<id>&micro=<slug>&step=questions` |
-
-### Synonym Tests
-| Query | Expected Matches |
-|-------|------------------|
-| "leak" | Pipe Leak, Sink Leak, Water Leak tasks |
-| "sparky" | Electrical category/subcategories |
-| "aircon" | HVAC, Air Conditioning results |
-| "blocked drain" | Drain Blockage micro |
-
-### Keyboard Shortcut Tests
-| Action | Expected |
-|--------|----------|
-| Press ⌘K (Mac) | Search opens, input focused |
-| Press Ctrl+K (Windows) | Search opens, input focused |
-| Press ⌘K while in input field | Does not open search |
-| Press Escape | Search closes |
+| Test | Expected Result |
+|------|-----------------|
+| `/post?micro=sink-leak` (valid slug) | Hydrates parents → lands on Questions step |
+| `/post?micro=invalid-slug` | Lookup fails → lands on Category step |
+| `/post?category=X&subcategory=Y&micro=Z` | Full hierarchy → lands on Questions |
+| `/post?category=X&step=questions` (missing micro) | Falls back to Subcategory step |
+| Search hit with full hierarchy → click | Lands on Questions |
+| Search hit missing only microSlug → click | Falls back to Micro step |
+| Search hit missing subcategory → click | Falls back to Subcategory step |
+| Press ⌘K (Mac) or Ctrl+K (Windows) | Search opens |
+| Press Escape while search open | Search closes |
+| Search "sparky" | Expands to electrician synonyms, capped at 8 terms |
 
 ---
 
 ## Architecture Diagram
 
 ```text
-┌──────────────────────────────────────────────────────────────────┐
-│                      Entry Points                                │
-├──────────────┬──────────────┬──────────────┬────────────────────┤
-│ Search Bar   │ Service Page │ Pro Profile  │ Dashboard          │
-│ (click)      │ (subcategory)│ (Request)    │ (Post Job)         │
-└──────┬───────┴──────┬───────┴──────┬───────┴────────┬───────────┘
-       │              │              │                │
-       ▼              ▼              ▼                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│              buildWizardLink() - SINGLE SOURCE                   │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │ mode: category   → /post?category=<id>&step=subcategory     │ │
-│  │ mode: subcategory→ /post?category=..&subcategory=..&step=.. │ │
-│  │ mode: micro      → /post?category=..&subcategory=..&micro=..│ │
-│  │ mode: direct     → /post?pro=<userId>                       │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────┬───────────────────────────────────┘
-                               │
-                               ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                  navigate(url) - URL ONLY                        │
-│              No state mutation outside wizard                    │
-└──────────────────────────────┬───────────────────────────────────┘
-                               │
-                               ▼
-┌──────────────────────────────────────────────────────────────────┐
-│          Wizard Mount → resolveWizardMode()                      │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │ 1. Parse URL params                                         │ │
-│  │ 2. Validate step/param requirements                         │ │
-│  │ 3. Fallback if params missing                               │ │
-│  │ 4. Async lookup for names                                   │ │
-│  │ 5. Set initial state + step                                 │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    Search Click                                  │
+│                         │                                        │
+│                         ▼                                        │
+│        buildWizardUrlFromHit() - SMART LADDER                   │
+│   ┌──────────────────────────────────────────────────────────┐  │
+│   │ Full hierarchy?     → mode:micro     → step=questions    │  │
+│   │ Cat+Sub only?       → mode:subcategory → step=micro      │  │
+│   │ Category only?      → mode:category   → step=subcategory │  │
+│   │ Nothing?            → mode:fresh      → step=category    │  │
+│   └──────────────────────────────────────────────────────────┘  │
+│                         │                                        │
+│                         ▼                                        │
+│                   navigate(url)                                  │
+└─────────────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  Wizard Mount                                    │
+│                         │                                        │
+│                         ▼                                        │
+│             resolveWizardMode()                                  │
+│   ┌──────────────────────────────────────────────────────────┐  │
+│   │ micro-only? → initialStep=Micro (pending hydration)      │  │
+│   │ full hierarchy? → initialStep=Questions                  │  │
+│   └──────────────────────────────────────────────────────────┘  │
+│                         │                                        │
+│                         ▼                                        │
+│             Deep-Link Processor (async)                          │
+│   ┌──────────────────────────────────────────────────────────┐  │
+│   │ microSlug exists?                                        │  │
+│   │   → Lookup micro → hydrate parents → Questions           │  │
+│   │   → Lookup fails → stay at Micro/Category                │  │
+│   └──────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Non-Negotiables (Locked-In Rules)
+## Non-Negotiable Rules (Enforced)
 
-These rules prevent regression:
+1. ✅ `micro=` param is always slug (never UUID)
+2. ✅ Incomplete hierarchy uses smart ladder (preserve max context)
+3. ✅ Resolver is conservative - deep-link processor does hydration
+4. ✅ Keyboard shortcuts work cross-platform
+5. ✅ Synonym expansion is sanitized and capped
+6. ✅ Escape closes search modal
 
-1. ✅ **Search results are typed** (category/subcategory/micro)
-2. ✅ **Click → navigate only** (no state mutation outside wizard)
-3. ✅ **Wizard is the only place that resolves URL → state**
-4. ✅ **Resolver validates params and falls back safely**
-5. ✅ **All entry points use `buildWizardLink()`** - no inline URL strings
