@@ -22,14 +22,22 @@ export type WizardLinkParams =
   | { mode: "direct"; professionalId: string }
   | { mode: "resume" };
 
-// Helper for URL query params with encoding
-const qp = (k: string, v: string) => `${k}=${encodeURIComponent(v)}`;
+// Helper for URL query params with encoding - drops empty values
+const qp = (k: string, v: string | undefined): string => {
+  const value = (v ?? "").toString().trim();
+  if (!value) return ""; // Drop empty params entirely
+  return `${k}=${encodeURIComponent(value)}`;
+};
+
+// Join non-empty query param strings
+const joinParams = (parts: string[]): string => parts.filter(Boolean).join("&");
 
 /**
  * Build a wizard URL from typed parameters.
  * This is the ONLY place that constructs /post URLs.
  * 
  * NEVER generates a URL that would land users in an inconsistent state.
+ * Empty params are automatically dropped.
  */
 export function buildWizardLink(params: WizardLinkParams): string {
   const base = "/post";
@@ -38,21 +46,32 @@ export function buildWizardLink(params: WizardLinkParams): string {
     case "fresh":
       return base;
       
-    case "category":
-      // Category → go to subcategory selection with category pre-filled
-      return `${base}?${qp("category", params.categoryId)}&step=subcategory`;
+    case "category": {
+      const qs = joinParams([qp("category", params.categoryId), "step=subcategory"]);
+      return qs ? `${base}?${qs}` : base;
+    }
       
-    case "subcategory":
-      // Subcategory → go to micro selection with cat+sub pre-filled
-      return `${base}?${qp("category", params.categoryId)}&${qp("subcategory", params.subcategoryId)}&step=micro`;
+    case "subcategory": {
+      const qs = joinParams([
+        qp("category", params.categoryId),
+        qp("subcategory", params.subcategoryId),
+        "step=micro",
+      ]);
+      return qs ? `${base}?${qs}` : base;
+    }
       
-    case "micro":
-      // Full hierarchy → go straight to questions (best case)
-      return `${base}?${qp("category", params.categoryId)}&${qp("subcategory", params.subcategoryId)}&${qp("micro", params.microSlug)}&step=questions`;
+    case "micro": {
+      const qs = joinParams([
+        qp("category", params.categoryId),
+        qp("subcategory", params.subcategoryId),
+        qp("micro", params.microSlug),
+        "step=questions",
+      ]);
+      return qs ? `${base}?${qs}` : base;
+    }
       
     case "microOnly":
       // Micro slug only - deep-link processor will hydrate parents from DB
-      // Goes to step=micro initially, processor may upgrade to Questions if lookup succeeds
       return `${base}?${qp("micro", params.microSlug)}`;
       
     case "direct":
