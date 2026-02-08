@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useRef, useEffect, useState } from "react";
 import { useMessages, useSendMessage, type Message } from "./hooks";
+import { RequestSupportButton, SystemMessage } from "./components";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send, ArrowLeft } from "lucide-react";
@@ -11,6 +12,7 @@ interface ConversationThreadProps {
   conversationId: string;
   currentUserId: string;
   clientId?: string;
+  jobId?: string | null;
   jobTitle?: string;
   onBack?: () => void;
   onNewMessage?: () => void;
@@ -20,10 +22,12 @@ export function ConversationThread({
   conversationId,
   currentUserId,
   clientId,
+  jobId,
   jobTitle,
   onBack,
   onNewMessage,
 }: ConversationThreadProps) {
+  const userRole = currentUserId === clientId ? 'client' : 'professional';
   const { data: messages, isLoading, isError, error } = useMessages(conversationId);
   const { send, isSending } = useSendMessage(conversationId, currentUserId);
   const [draft, setDraft] = useState("");
@@ -83,6 +87,11 @@ export function ConversationThread({
             {messages?.length ?? 0} messages
           </p>
         </div>
+        <RequestSupportButton
+          conversationId={conversationId}
+          jobId={jobId}
+          userRole={userRole}
+        />
       </div>
 
       {/* Messages */}
@@ -98,11 +107,15 @@ export function ConversationThread({
         ) : messages && messages.length > 0 ? (
           <>
             {messages.map((msg) => (
-              <MessageBubble
-                key={msg.id}
-                message={msg}
-                isOwn={msg.sender_id === currentUserId}
-              />
+              msg.message_type === 'system' ? (
+                <SystemMessage key={msg.id} message={msg} />
+              ) : (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  isOwn={msg.sender_id === currentUserId}
+                />
+              )
             ))}
             <div ref={messagesEndRef} />
           </>

@@ -49,7 +49,7 @@ export async function updateSupportStatus(
         support_request_id: ticketId,
         event_type: newStatus === 'resolved' ? 'resolved' : 'status_change',
         actor_user_id: user.id,
-        actor_role: 'admin',
+        actor_role: 'support',
         metadata: { old_status: oldStatus, new_status: newStatus },
       });
 

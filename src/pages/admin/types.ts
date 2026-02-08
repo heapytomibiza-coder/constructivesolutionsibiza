@@ -48,4 +48,4 @@ export interface SupportRequest {
   age_hours: number | null;
 }
 
-export type SupportStatusFilter = 'all' | 'active' | 'open' | 'triage' | 'assigned' | 'resolved';
+export type SupportStatusFilter = 'all' | 'active' | 'open' | 'triage' | 'assigned' | 'assigned_to_me' | 'resolved';

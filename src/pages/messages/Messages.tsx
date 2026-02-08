@@ -129,6 +129,7 @@ const Messages = () => {
                     conversationId={conversationId}
                     currentUserId={user.id}
                     clientId={selectedConversation?.client_id}
+                    jobId={selectedConversation?.job_id}
                     jobTitle={selectedConversation?.job_title}
                     onNewMessage={handleNewMessage}
                   />
@@ -160,6 +161,7 @@ const Messages = () => {
                   conversationId={conversationId!}
                   currentUserId={user.id}
                   clientId={selectedConversation?.client_id}
+                  jobId={selectedConversation?.job_id}
                   jobTitle={selectedConversation?.job_title}
                   onBack={handleBack}
                   onNewMessage={handleNewMessage}

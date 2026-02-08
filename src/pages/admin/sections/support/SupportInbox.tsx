@@ -79,8 +79,9 @@ export default function SupportInbox() {
       <CardContent className="space-y-4">
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={(v) => setFilter(v as SupportStatusFilter)}>
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="assigned_to_me">My Tickets</TabsTrigger>
             <TabsTrigger value="open">Open</TabsTrigger>
             <TabsTrigger value="triage">Triage</TabsTrigger>
             <TabsTrigger value="assigned">Assigned</TabsTrigger>

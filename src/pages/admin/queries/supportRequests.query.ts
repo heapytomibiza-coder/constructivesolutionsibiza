@@ -17,6 +17,13 @@ export async function fetchSupportRequests(filter: SupportStatusFilter = 'all'):
     query = query.eq('status', 'triage');
   } else if (filter === 'assigned') {
     query = query.not('assigned_to', 'is', null);
+  } else if (filter === 'assigned_to_me') {
+    // Need to get current user - this filter is handled client-side via the hook
+    // Pass through here, the hook will handle it
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      query = query.eq('assigned_to', user.id);
+    }
   } else if (filter === 'resolved') {
     query = query.in('status', ['resolved', 'closed']);
   } else if (filter === 'active') {
