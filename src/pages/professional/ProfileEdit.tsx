@@ -285,9 +285,6 @@ export default function ProfileEdit() {
                           {...field} 
                         />
                       </FormControl>
-                      <FormDescription>
-                        {t("pro.profile.bioDesc", "Up to 500 characters")}
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
