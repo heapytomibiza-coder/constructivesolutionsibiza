@@ -31,8 +31,8 @@
     "selectMode": "Seleccionar modo"
   },
   "roles": {
-    "client": "Contratando",
-    "professional": "Trabajando",
+    "client": "Asker",
+    "professional": "Tasker",
     "admin": "Admin"
   },
   "hero": {
