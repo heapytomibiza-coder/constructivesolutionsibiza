@@ -1,131 +1,78 @@
 
+## Launch Blockers: Quick Fix Batch
 
-## Consolidate Location Taxonomy: Single Source of Truth
-
-### The Problem
-
-Two separate files define Ibiza locations with **different ID formats**:
-
-| Source | Example ID | Used For |
-|--------|-----------|----------|
-| `zones.ts` | `playa-den-bossa` | Pro service areas |
-| `logistics/constants.ts` | `playa_den_bossa` | Client job location |
-
-This creates a matching gap: when a job is posted in `san_antonio`, it won't automatically match pros who selected `san-antonio`.
+Four targeted fixes to clear the launch checklist. No architectural changes.
 
 ---
 
-### The Solution
+### Fix 1: Remove DEBUG-123 label
 
-Make `zones.ts` the single source of truth and derive the logistics locations from it.
+**File:** `src/pages/professional/ProfileEdit.tsx` (line 278)
+
+Change:
+```
+{t("pro.profile.title", "Your Profile")} - DEBUG-123
+```
+To:
+```
+{t("pro.profile.title", "Your Profile")}
+```
 
 ---
 
-### Implementation Steps
+### Fix 2: Wire up contact form with toast feedback
 
-**Step 1: Add Main/Popular grouping to zones.ts**
+**File:** `src/pages/public/Contact.tsx`
 
-Extend the zone type to include a `tier` property:
+Replace the no-op `handleSubmit` with a simple toast confirmation. No backend needed for soft launch -- just acknowledge the submission and clear the form so it doesn't silently do nothing.
 
 ```typescript
-export type IbizaZone = { 
-  id: string; 
-  label: string; 
-  tier?: 'main' | 'popular';  // NEW: for wizard grouping
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  const form = e.target as HTMLFormElement;
+  toast.success(t('contact.successMessage', 'Message sent! We\'ll get back to you soon.'));
+  form.reset();
 };
 ```
 
-Mark the 5 main towns with `tier: 'main'`:
-- Ibiza Town, San Antonio, Santa Eulalia, San José, San Juan
-
-All others default to `tier: 'popular'`.
+Add `toast` import from `sonner`.
 
 ---
 
-**Step 2: Create helper functions**
+### Fix 3: Hide placeholder pages (Services + Portfolio)
 
-Add to `zones.ts`:
+These two pages are stubs with no functionality. They are not linked from any nav or dashboard -- only registered as routes. The cleanest approach: replace their route elements with a redirect back to the pro dashboard so any direct URL hit doesn't land on a broken page.
 
-```typescript
-/** Main towns for wizard dropdown (first tier) */
-export const getMainZones = () => 
-  IBIZA_ZONES.flatMap(g => g.zones.filter(z => z.tier === 'main'));
+**File:** `src/App.tsx`
 
-/** Popular areas for wizard expanded view */
-export const getPopularZones = () => 
-  IBIZA_ZONES.flatMap(g => g.zones.filter(z => z.tier !== 'main'));
-
-/** Get zone by ID (for display lookups) */
-export const getZoneById = (id: string) => 
-  IBIZA_ZONES.flatMap(g => g.zones).find(z => z.id === id);
+Replace the two route lines:
+```tsx
+<Route path="/professional/services" element={<ProfessionalServices />} />
+...
+<Route path="/professional/portfolio" element={<ProfessionalPortfolio />} />
 ```
+
+With redirects:
+```tsx
+<Route path="/professional/services" element={<Navigate to="/dashboard/pro" replace />} />
+<Route path="/professional/portfolio" element={<Navigate to="/dashboard/pro" replace />} />
+```
+
+Then remove the unused imports for `ProfessionalServices` and `ProfessionalPortfolio`.
 
 ---
 
-**Step 3: Update LogisticsStep to use zones.ts**
+### Fix 4: Enable leaked password protection
 
-Replace the hardcoded `MAIN_LOCATIONS` and `POPULAR_LOCATIONS` imports with:
-
-```typescript
-import { getMainZones, getPopularZones, OTHER_LOCATION } from '@/shared/components/professional/zones';
-```
-
-Map the zones to the Select format:
-```typescript
-const mainLocations = getMainZones().map(z => ({ value: z.id, label: z.label }));
-const popularLocations = getPopularZones().map(z => ({ value: z.id, label: z.label }));
-```
-
-Keep `OTHER_LOCATION` in constants.ts for the "Other area" option.
-
----
-
-**Step 4: Delete redundant constants**
-
-Remove from `logistics/constants.ts`:
-- `MAIN_LOCATIONS`
-- `POPULAR_LOCATIONS`
-- `ALL_LOCATIONS`
-- `LocationOption` type (use `IbizaZone` instead)
-
-Keep:
-- `TIMING_OPTIONS`
-- `BUDGET_OPTIONS`
-- `CONTACT_OPTIONS`
-- `OTHER_LOCATION`
+This is a backend auth configuration change. Will use the auth configuration tool to enable HaveIBeenPwned password checking so compromised passwords are rejected at signup.
 
 ---
 
 ### Files Changed
 
-| File | Action |
+| File | Change |
 |------|--------|
-| `src/shared/components/professional/zones.ts` | Add `tier` property + helper functions |
-| `src/features/wizard/canonical/steps/logistics/constants.ts` | Remove location arrays, keep OTHER_LOCATION |
-| `src/features/wizard/canonical/steps/LogisticsStep.tsx` | Import from zones.ts |
-
----
-
-### Result
-
-- **One taxonomy** for all location references
-- **Direct matching**: job location → pro zones (same IDs)
-- **Cleaner code**: ~40 lines removed from constants.ts
-- **No breaking changes**: just ID unification
-
----
-
-### Migration Note
-
-If existing jobs have `snake_case` location values in the database, you'll need a one-time migration to normalize them to `kebab-case`, or add a slug-alias map. That's a data cleanup task, not a code change.
-
----
-
-### Scope Labels
-
-**Missing from zones.ts (in constants.ts):**
-- `san_rafael` → add as `san-rafael`
-- `santa_gertrudis` → add as `santa-gertrudis`
-
-These two zones should be added to zones.ts under their appropriate groups.
-
+| `src/pages/professional/ProfileEdit.tsx` | Remove `- DEBUG-123` |
+| `src/pages/public/Contact.tsx` | Add toast feedback + form reset |
+| `src/App.tsx` | Redirect placeholder routes, remove unused imports |
+| Auth config | Enable leaked password protection |
