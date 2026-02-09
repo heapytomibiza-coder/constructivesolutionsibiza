@@ -28,7 +28,8 @@ const TIMING_DISPLAY: Record<string, string> = {
  */
 export function formatBudgetRange(raw: string | undefined): string {
   if (!raw) return 'To be discussed';
-  return BUDGET_DISPLAY[raw] || raw.replace(/_/g, ' ');
+  const fallback = raw.replace(/_/g, ' ').trim();
+  return BUDGET_DISPLAY[raw] || fallback.charAt(0).toUpperCase() + fallback.slice(1);
 }
 
 /**
