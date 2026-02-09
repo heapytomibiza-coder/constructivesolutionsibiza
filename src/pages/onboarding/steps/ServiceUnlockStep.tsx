@@ -16,17 +16,20 @@ import { CategoryAccordion } from '../components/CategoryAccordion';
 import { ServiceSearchBar } from '../components/ServiceSearchBar';
 import { useServiceTaxonomy } from '../hooks/useServiceTaxonomy';
 import { useProfessionalServices } from '../hooks/useProfessionalServices';
+import { useMicroPreferences } from '../hooks/useMicroPreferences';
+import type { Preference } from '../components/PreferencePill';
 
 interface ServiceUnlockStepProps {
   onComplete: () => void;
   onBack: () => void;
+  editMode?: boolean;
 }
 
 const MIN_SERVICES = 1;
 const RECOMMENDED_MIN = 5;
 const RECOMMENDED_MAX = 15;
 
-export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps) {
+export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: ServiceUnlockStepProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [showSaved, setShowSaved] = useState(false);
@@ -44,6 +47,13 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     bulkRemoveServices,
     isUpdating 
   } = useProfessionalServices();
+
+  // Preferences hook - only used in edit mode
+  const {
+    preferences,
+    updatePreference,
+    isUpdating: isUpdatingPreference,
+  } = useMicroPreferences();
 
   const selectedCount = selectedMicroIds.size;
   const canContinue = selectedCount >= MIN_SERVICES;
@@ -118,6 +128,12 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
     toggleService({ microId, isSelected: !isCurrentlySelected });
     flashSaved();
   }, [selectedMicroIds, toggleService, flashSaved]);
+
+  // Handle preference change (edit mode only)
+  const handlePreferenceChange = useCallback((microId: string, preference: Preference) => {
+    updatePreference(microId, preference);
+    flashSaved();
+  }, [updatePreference, flashSaved]);
 
   // Handle select all for a category
   const handleSelectAllCategory = useCallback((categoryId: string) => {
@@ -260,6 +276,9 @@ export function ServiceUnlockStep({ onComplete, onBack }: ServiceUnlockStepProps
                 onClearAll={() => handleClearCategory(category.id)}
                 searchQuery={searchQuery}
                 isFirstSelection={isFirstSelection}
+                showPreferences={editMode}
+                preferences={preferences}
+                onPreferenceChange={handlePreferenceChange}
               />
             </div>
           ))}

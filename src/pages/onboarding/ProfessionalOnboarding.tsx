@@ -323,6 +323,7 @@ const ProfessionalOnboarding = () => {
             <ServiceUnlockStep
               onComplete={handleServicesComplete}
               onBack={() => setCurrentStep('service_area')}
+              editMode={editMode}
             />
           ) : currentStep === 'review' ? (
             <ReviewStep
