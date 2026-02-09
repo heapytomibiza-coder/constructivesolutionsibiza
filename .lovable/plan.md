@@ -1,68 +1,131 @@
 
 
-## Refinements: Add `isPreferenceUpdating` Prop + Edit Mode Helper Text
+## Consolidate Location Taxonomy: Single Source of Truth
 
-Based on your feedback, there are two small fixes needed to fully complete the preference system implementation.
+### The Problem
 
----
+Two separate files define Ibiza locations with **different ID formats**:
 
-### Issue 1: Missing `isPreferenceUpdating` Prop
+| Source | Example ID | Used For |
+|--------|-----------|----------|
+| `zones.ts` | `playa-den-bossa` | Pro service areas |
+| `logistics/constants.ts` | `playa_den_bossa` | Client job location |
 
-**Current state:** `CategoryAccordion` doesn't accept or pass `isPreferenceUpdating` to the preference tile, so users can spam preference changes during a mutation.
-
-**Fix:** Add the prop to CategoryAccordion interface and wire it through to `MicroToggleTileWithPreference`.
-
----
-
-### Issue 2: Static Helper Text
-
-**Current state:** The bulk actions bar always shows "Tap any job you're happy to do" even in edit mode.
-
-**Fix:** Show contextual text based on mode:
-- **Normal mode:** "Tap any job you're happy to do"
-- **Edit mode:** "Tap a selected job to set priority"
+This creates a matching gap: when a job is posted in `san_antonio`, it won't automatically match pros who selected `san-antonio`.
 
 ---
 
-### Technical Changes
+### The Solution
 
-**File: `src/pages/onboarding/components/CategoryAccordion.tsx`**
+Make `zones.ts` the single source of truth and derive the logistics locations from it.
 
-1. Add `isPreferenceUpdating?: boolean` to `CategoryAccordionProps` interface
-2. Add it to the destructured props with default `false`
-3. Pass it to `MicroToggleTileWithPreference`
-4. Update helper text to be conditional on `showPreferences`
+---
+
+### Implementation Steps
+
+**Step 1: Add Main/Popular grouping to zones.ts**
+
+Extend the zone type to include a `tier` property:
 
 ```typescript
-// In interface
-isPreferenceUpdating?: boolean;
-
-// In destructured props
-isPreferenceUpdating = false,
-
-// In MicroToggleTileWithPreference
-isPreferenceUpdating={isPreferenceUpdating}
-
-// Helper text
-{showPreferences 
-  ? "Tap a selected job to set priority" 
-  : "Tap any job you're happy to do"}
+export type IbizaZone = { 
+  id: string; 
+  label: string; 
+  tier?: 'main' | 'popular';  // NEW: for wizard grouping
+};
 ```
+
+Mark the 5 main towns with `tier: 'main'`:
+- Ibiza Town, San Antonio, Santa Eulalia, San José, San Juan
+
+All others default to `tier: 'popular'`.
+
+---
+
+**Step 2: Create helper functions**
+
+Add to `zones.ts`:
+
+```typescript
+/** Main towns for wizard dropdown (first tier) */
+export const getMainZones = () => 
+  IBIZA_ZONES.flatMap(g => g.zones.filter(z => z.tier === 'main'));
+
+/** Popular areas for wizard expanded view */
+export const getPopularZones = () => 
+  IBIZA_ZONES.flatMap(g => g.zones.filter(z => z.tier !== 'main'));
+
+/** Get zone by ID (for display lookups) */
+export const getZoneById = (id: string) => 
+  IBIZA_ZONES.flatMap(g => g.zones).find(z => z.id === id);
+```
+
+---
+
+**Step 3: Update LogisticsStep to use zones.ts**
+
+Replace the hardcoded `MAIN_LOCATIONS` and `POPULAR_LOCATIONS` imports with:
+
+```typescript
+import { getMainZones, getPopularZones, OTHER_LOCATION } from '@/shared/components/professional/zones';
+```
+
+Map the zones to the Select format:
+```typescript
+const mainLocations = getMainZones().map(z => ({ value: z.id, label: z.label }));
+const popularLocations = getPopularZones().map(z => ({ value: z.id, label: z.label }));
+```
+
+Keep `OTHER_LOCATION` in constants.ts for the "Other area" option.
+
+---
+
+**Step 4: Delete redundant constants**
+
+Remove from `logistics/constants.ts`:
+- `MAIN_LOCATIONS`
+- `POPULAR_LOCATIONS`
+- `ALL_LOCATIONS`
+- `LocationOption` type (use `IbizaZone` instead)
+
+Keep:
+- `TIMING_OPTIONS`
+- `BUDGET_OPTIONS`
+- `CONTACT_OPTIONS`
+- `OTHER_LOCATION`
 
 ---
 
 ### Files Changed
 
-| File | Changes |
-|------|---------|
-| `src/pages/onboarding/components/CategoryAccordion.tsx` | Add `isPreferenceUpdating` prop + conditional helper text |
-| `src/pages/onboarding/steps/ServiceUnlockStep.tsx` | Pass `isUpdatingPreference` to CategoryAccordion |
+| File | Action |
+|------|--------|
+| `src/shared/components/professional/zones.ts` | Add `tier` property + helper functions |
+| `src/features/wizard/canonical/steps/logistics/constants.ts` | Remove location arrays, keep OTHER_LOCATION |
+| `src/features/wizard/canonical/steps/LogisticsStep.tsx` | Import from zones.ts |
 
 ---
 
-### Behaviour After Fix
+### Result
 
-- Preference pill becomes disabled while mutation is pending (prevents spam clicks)
-- Edit mode shows "Tap a selected job to set priority" for clearer UX
-- Normal onboarding shows "Tap any job you're happy to do" (unchanged)
+- **One taxonomy** for all location references
+- **Direct matching**: job location → pro zones (same IDs)
+- **Cleaner code**: ~40 lines removed from constants.ts
+- **No breaking changes**: just ID unification
+
+---
+
+### Migration Note
+
+If existing jobs have `snake_case` location values in the database, you'll need a one-time migration to normalize them to `kebab-case`, or add a slug-alias map. That's a data cleanup task, not a code change.
+
+---
+
+### Scope Labels
+
+**Missing from zones.ts (in constants.ts):**
+- `san_rafael` → add as `san-rafael`
+- `santa_gertrudis` → add as `santa-gertrudis`
+
+These two zones should be added to zones.ts under their appropriate groups.
 
