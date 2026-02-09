@@ -39,6 +39,7 @@ export function ReviewStep({
   onDispatchModeChange,
   isAuthenticated,
 }: ReviewStepProps) {
+  const { t } = useTranslation('jobs');
   const {
     mainCategory,
     subcategory,
