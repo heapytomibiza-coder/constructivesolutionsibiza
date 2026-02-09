@@ -279,6 +279,7 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
                 showPreferences={editMode}
                 preferences={preferences}
                 onPreferenceChange={handlePreferenceChange}
+                isPreferenceUpdating={isUpdatingPreference}
               />
             </div>
           ))}

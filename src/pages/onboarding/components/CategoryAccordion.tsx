@@ -46,6 +46,7 @@ interface CategoryAccordionProps {
   showPreferences?: boolean;
   preferences?: Map<string, Preference>;
   onPreferenceChange?: (microId: string, preference: Preference) => void;
+  isPreferenceUpdating?: boolean;
 }
 
 export function CategoryAccordion({
@@ -61,6 +62,7 @@ export function CategoryAccordion({
   showPreferences = false,
   preferences,
   onPreferenceChange,
+  isPreferenceUpdating = false,
 }: CategoryAccordionProps) {
   // Filter micros by search query
   const filteredSubcategories = useMemo(() => {
@@ -169,7 +171,7 @@ export function CategoryAccordion({
               Clear
             </Button>
             <span className="ml-auto text-sm text-muted-foreground">
-              Tap any job you're happy to do
+              {showPreferences ? "Tap a selected job to set priority" : "Tap any job you're happy to do"}
             </span>
           </div>
 
@@ -194,6 +196,7 @@ export function CategoryAccordion({
                         showPreference={showPreferences}
                         preference={preferences?.get(micro.id) ?? 'neutral'}
                         onPreferenceChange={(pref) => onPreferenceChange?.(micro.id, pref)}
+                        isPreferenceUpdating={isPreferenceUpdating}
                       />
                     ) : (
                       <MicroToggleTile
