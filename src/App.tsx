@@ -136,10 +136,10 @@ const App = () => {
 
               {/* Professional Onboarding */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
-              <Route path="/professional/services" element={<ProfessionalServices />} />
+              <Route path="/professional/services" element={<Navigate to="/dashboard/pro" replace />} />
               <Route path="/professional/service-setup" element={<ProfessionalServiceSetup />} />
               <Route path="/professional/profile" element={<ProfileEdit />} />
-              <Route path="/professional/portfolio" element={<ProfessionalPortfolio />} />
+              <Route path="/professional/portfolio" element={<Navigate to="/dashboard/pro" replace />} />
 
               {/* Forum - New Post (requires auth) */}
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />

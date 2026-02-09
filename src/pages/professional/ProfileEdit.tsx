@@ -275,7 +275,7 @@ export default function ProfileEdit() {
               </Link>
             </Button>
             <h1 className="font-display text-xl font-semibold">
-              {t("pro.profile.title", "Your Profile")} - DEBUG-123
+              {t("pro.profile.title", "Your Profile")}
             </h1>
           </div>
           <QuietSaveIndicator isSaving={isSaving} lastSaved={lastSaved} />

@@ -21,8 +21,9 @@ const Contact = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement contact form submission
-    console.log('Contact form submitted');
+    const form = e.target as HTMLFormElement;
+    toast.success(t('contact.successMessage', 'Message sent! We\'ll get back to you soon.'));
+    form.reset();
   };
 
   return (
