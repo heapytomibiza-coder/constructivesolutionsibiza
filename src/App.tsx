@@ -10,7 +10,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { ScrollToTop } from "@/shared/components/layout/ScrollToTop";
 import { RouteGuard, PublicOnlyGuard } from "@/guard";
@@ -47,9 +47,7 @@ import Messages from "./pages/messages/Messages";
 
 // Professional Onboarding & Management
 import ProfessionalOnboarding from "./pages/onboarding/ProfessionalOnboarding";
-import ProfessionalServices from "./pages/professional/ProfessionalServices";
 import ProfessionalServiceSetup from "./pages/professional/ProfessionalServiceSetup";
-import ProfessionalPortfolio from "./pages/professional/ProfessionalPortfolio";
 import ProfileEdit from "./pages/professional/ProfileEdit";
 
 // Settings
@@ -138,10 +136,10 @@ const App = () => {
 
               {/* Professional Onboarding */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
-              <Route path="/professional/services" element={<ProfessionalServices />} />
+              <Route path="/professional/services" element={<Navigate to="/dashboard/pro" replace />} />
               <Route path="/professional/service-setup" element={<ProfessionalServiceSetup />} />
               <Route path="/professional/profile" element={<ProfileEdit />} />
-              <Route path="/professional/portfolio" element={<ProfessionalPortfolio />} />
+              <Route path="/professional/portfolio" element={<Navigate to="/dashboard/pro" replace />} />
 
               {/* Forum - New Post (requires auth) */}
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
