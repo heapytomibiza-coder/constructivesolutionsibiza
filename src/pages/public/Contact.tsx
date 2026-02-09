@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { Mail, MapPin, Phone, Shield } from 'lucide-react';
+import { toast } from 'sonner';
 import heroContact from '@/assets/heroes/hero-contact.jpg';
 
 /**
