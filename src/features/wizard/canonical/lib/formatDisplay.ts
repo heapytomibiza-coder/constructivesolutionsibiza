@@ -3,7 +3,7 @@
  * Converts raw database values into human-readable text
  */
 
-import { LOCATION_LABELS } from '@/pages/jobs/lib/answerResolver';
+import { getZoneByIdSafe } from '@/shared/components/professional/zones';
 
 const BUDGET_DISPLAY: Record<string, string> = {
   'under_500': 'Under €500',
@@ -42,12 +42,11 @@ export function formatLocationDisplay(
 ): string {
   if (!location) return 'Not specified';
   if (location === 'other') return customLocation || 'Custom location';
-  return (
-    LOCATION_LABELS[location] ||
-    location
-      .replace(/_/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase())
-  );
+  const zone = getZoneByIdSafe(location);
+  if (zone) return zone.label;
+  return location
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**
