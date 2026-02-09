@@ -188,17 +188,17 @@ export function ReviewStep({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">
-                      {targetProfessionalName || 'Professional'}
+                      {targetProfessionalName || t('wizard.selectedPro', 'Professional')}
                     </p>
-                    <p className="text-xs text-muted-foreground">Selected professional</p>
+                    <p className="text-xs text-muted-foreground">{t('wizard.selectedPro', 'Selected professional')}</p>
                   </div>
                   <Button variant="outline" size="sm" asChild>
-                    <Link to="/professionals?select=true">Change</Link>
+                    <Link to="/professionals?select=true">{t('wizard.changePro', 'Change')}</Link>
                   </Button>
                 </div>
               ) : (
                 <Button variant="outline" asChild className="w-full">
-                  <Link to="/professionals?select=true">Choose a Professional</Link>
+                  <Link to="/professionals?select=true">{t('wizard.choosePro', 'Choose a Professional')}</Link>
                 </Button>
               )}
             </div>
