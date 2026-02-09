@@ -1,50 +1,76 @@
 
 
-## Polish Pass: Spanish Copy Fix + Budget Fallback Hardening
+## Fix: Location Display on Review Step
 
-Two small, surgical edits. No architectural changes.
+### Problem
+The Review step shows raw zone IDs like "San-Jose" instead of proper labels like "San José (Sant Josep)".
 
----
+**Root cause:** `formatLocationDisplay` in `formatDisplay.ts` looks up location IDs against `LOCATION_LABELS` from `answerResolver.ts`, which uses legacy **snake_case** keys (e.g., `ibiza_town`). But the wizard now stores **kebab-case** IDs (e.g., `san-jose`). The lookup misses, and the fallback just title-cases the raw ID, producing "San-Jose" with a visible hyphen.
 
-### 1. Fix Spanish dispatch copy (minor grammar)
+### Solution
+Replace the `LOCATION_LABELS` import with the `getZoneByIdSafe` helper from `zones.ts` -- the single source of truth that handles both kebab-case and legacy snake_case IDs.
 
-**File:** `public/locales/es/jobs.json`
-
-The `broadcastTitle` currently reads "Publicar en bolsa de trabajo" -- missing the article. Update to:
-
-```
-"broadcastTitle": "Publicar en la bolsa de trabajo"
-```
-
-This is the only string that needs touching. All accents and punctuation are already correct.
-
----
-
-### 2. Harden budget fallback formatting
+### Change
 
 **File:** `src/features/wizard/canonical/lib/formatDisplay.ts`
 
-Line 31 currently falls back to `raw.replace(/_/g, ' ')` which would show "under 500" for any unknown value. Add sentence-case normalization so unknown values display cleanly:
+Replace the import and `formatLocationDisplay` function:
 
-**Current (line 31):**
+**Current:**
 ```typescript
-return BUDGET_DISPLAY[raw] || raw.replace(/_/g, ' ');
+import { LOCATION_LABELS } from '@/pages/jobs/lib/answerResolver';
 ```
 
 **New:**
 ```typescript
-const fallback = raw.replace(/_/g, ' ').trim();
-return BUDGET_DISPLAY[raw] || fallback.charAt(0).toUpperCase() + fallback.slice(1);
+import { getZoneByIdSafe } from '@/shared/components/professional/zones';
 ```
 
-This ensures even unmapped budget values render as "Under 500" instead of "under 500".
+And update the function body:
 
----
+**Current:**
+```typescript
+export function formatLocationDisplay(
+  location: string | undefined,
+  customLocation?: string
+): string {
+  if (!location) return 'Not specified';
+  if (location === 'other') return customLocation || 'Custom location';
+  return (
+    LOCATION_LABELS[location] ||
+    location
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+}
+```
+
+**New:**
+```typescript
+export function formatLocationDisplay(
+  location: string | undefined,
+  customLocation?: string
+): string {
+  if (!location) return 'Not specified';
+  if (location === 'other') return customLocation || 'Custom location';
+  const zone = getZoneByIdSafe(location);
+  if (zone) return zone.label;
+  return location
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+```
+
+This gives us:
+- `san-jose` displays as "San José (Sant Josep)"
+- `ibiza_town` (legacy) displays as "Ibiza Town (Eivissa)"
+- Unknown values get a clean title-case fallback (replacing both hyphens and underscores)
 
 ### Files Changed
 
 | File | Change |
 |------|--------|
-| `public/locales/es/jobs.json` | Add missing article in `broadcastTitle` |
-| `src/features/wizard/canonical/lib/formatDisplay.ts` | Sentence-case fallback for unknown budget values |
+| `src/features/wizard/canonical/lib/formatDisplay.ts` | Switch from `LOCATION_LABELS` to `getZoneByIdSafe` for proper zone label resolution |
+
+One file, one import swap, zero risk.
 
