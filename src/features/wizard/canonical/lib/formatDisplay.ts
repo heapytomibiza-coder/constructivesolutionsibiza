@@ -3,7 +3,7 @@
  * Converts raw database values into human-readable text
  */
 
-import { LOCATION_LABELS } from '@/pages/jobs/lib/answerResolver';
+import { getZoneByIdSafe } from '@/shared/components/professional/zones';
 
 const BUDGET_DISPLAY: Record<string, string> = {
   'under_500': 'Under €500',
