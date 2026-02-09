@@ -1,70 +1,59 @@
 
-## Launch Blockers: Quick Fix Batch
 
-Four targeted fixes to clear the launch checklist. No architectural changes.
+## Launch Polish: Copy and Visual Fixes
 
----
-
-### Fix 1: Remove DEBUG-123 label
-
-**File:** `src/pages/professional/ProfileEdit.tsx` (line 278)
-
-Change:
-```
-{t("pro.profile.title", "Your Profile")} - DEBUG-123
-```
-To:
-```
-{t("pro.profile.title", "Your Profile")}
-```
+Three changes covering the dispatch mode copy update, budget display formatting, and the broader copy consistency pass.
 
 ---
 
-### Fix 2: Wire up contact form with toast feedback
+### 1. Update dispatch mode copy (ReviewStep)
 
-**File:** `src/pages/public/Contact.tsx`
+**File:** `src/features/wizard/canonical/steps/ReviewStep.tsx`
 
-Replace the no-op `handleSubmit` with a simple toast confirmation. No backend needed for soft launch -- just acknowledge the submission and clear the form so it doesn't silently do nothing.
+Replace the two radio option labels and descriptions:
 
-```typescript
-const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  const form = e.target as HTMLFormElement;
-  toast.success(t('contact.successMessage', 'Message sent! We\'ll get back to you soon.'));
-  form.reset();
-};
-```
+| Current | New |
+|---------|-----|
+| Send to available professionals | Post to job board |
+| Your job will be visible to matching professionals who can respond | All professionals in this category can see and respond |
+| Send to a specific professional | Send privately |
+| Start a private conversation — no public listing | Only professionals you select will receive this job |
 
-Add `toast` import from `sonner`.
+These strings are hardcoded in the component (not in i18n files), so the edit is directly in ReviewStep.tsx lines ~133-152.
 
 ---
 
-### Fix 3: Hide placeholder pages (Services + Portfolio)
+### 2. Fix budget display formatting (underscore in UI)
 
-These two pages are stubs with no functionality. They are not linked from any nav or dashboard -- only registered as routes. The cleanest approach: replace their route elements with a redirect back to the pro dashboard so any direct URL hit doesn't land on a broken page.
+**File:** `src/features/wizard/canonical/lib/formatDisplay.ts`
 
-**File:** `src/App.tsx`
-
-Replace the two route lines:
-```tsx
-<Route path="/professional/services" element={<ProfessionalServices />} />
-...
-<Route path="/professional/portfolio" element={<ProfessionalPortfolio />} />
-```
-
-With redirects:
-```tsx
-<Route path="/professional/services" element={<Navigate to="/dashboard/pro" replace />} />
-<Route path="/professional/portfolio" element={<Navigate to="/dashboard/pro" replace />} />
-```
-
-Then remove the unused imports for `ProfessionalServices` and `ProfessionalPortfolio`.
+The `formatBudgetRange` fallback currently does `raw.replace(/_/g, ' ')` which could show `under 500` instead of a proper label. The existing `BUDGET_DISPLAY` map handles known values, but ensure the fallback also applies proper formatting. This is already mostly handled -- just verify no raw underscore values leak through.
 
 ---
 
-### Fix 4: Enable leaked password protection
+### 3. Add dispatch copy to i18n files (optional but recommended)
 
-This is a backend auth configuration change. Will use the auth configuration tool to enable HaveIBeenPwned password checking so compromised passwords are rejected at signup.
+Move the hardcoded dispatch strings into the translation files so Spanish users see translated text:
+
+**File:** `public/locales/en/jobs.json` -- add under `wizard`:
+```
+"dispatchTitle": "How would you like to send this job?",
+"broadcastTitle": "Post to job board",
+"broadcastDesc": "All professionals in this category can see and respond",
+"directTitle": "Send privately",
+"directDesc": "Only professionals you select will receive this job"
+```
+
+**File:** `public/locales/es/jobs.json` -- add under `wizard`:
+```
+"dispatchTitle": "Como quieres enviar este trabajo?",
+"broadcastTitle": "Publicar en bolsa de trabajo",
+"broadcastDesc": "Todos los profesionales de esta categoria pueden ver y responder",
+"directTitle": "Enviar en privado",
+"directDesc": "Solo los profesionales que selecciones recibiran este trabajo"
+```
+
+Then update ReviewStep.tsx to use `t('jobs:wizard.broadcastTitle')` etc. instead of hardcoded strings.
 
 ---
 
@@ -72,7 +61,7 @@ This is a backend auth configuration change. Will use the auth configuration too
 
 | File | Change |
 |------|--------|
-| `src/pages/professional/ProfileEdit.tsx` | Remove `- DEBUG-123` |
-| `src/pages/public/Contact.tsx` | Add toast feedback + form reset |
-| `src/App.tsx` | Redirect placeholder routes, remove unused imports |
-| Auth config | Enable leaked password protection |
+| `src/features/wizard/canonical/steps/ReviewStep.tsx` | Update dispatch option copy, use i18n keys |
+| `public/locales/en/jobs.json` | Add dispatch mode translation keys |
+| `public/locales/es/jobs.json` | Add Spanish dispatch mode translations |
+
