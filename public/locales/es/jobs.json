@@ -21,8 +21,16 @@
      "stepReview": "Revisar y Publicar",
      "next": "Continuar",
      "back": "Atrás",
-     "submit": "Publicar Trabajo"
-   },
+    "submit": "Publicar Trabajo",
+    "dispatchTitle": "¿Cómo quieres enviar este trabajo?",
+    "broadcastTitle": "Publicar en bolsa de trabajo",
+    "broadcastDesc": "Todos los profesionales de esta categoría pueden ver y responder",
+    "directTitle": "Enviar en privado",
+    "directDesc": "Solo los profesionales que selecciones recibirán este trabajo",
+    "selectedPro": "Profesional seleccionado",
+    "changePro": "Cambiar",
+    "choosePro": "Elegir un Profesional"
+  },
    "completion": {
      "title": "¿Marcar trabajo como completado?",
      "description": "Confirma que el trabajo para \"{{jobTitle}}\" ha sido completado. Luego se te pedirá que califiques tu experiencia.",
