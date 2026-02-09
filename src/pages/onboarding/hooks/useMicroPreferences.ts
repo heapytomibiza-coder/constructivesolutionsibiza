@@ -6,23 +6,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
-import type { Preference } from '../components/PreferencePill';
+import type { Preference } from '../types/preferences';
 
-interface MicroPreference {
-  microId: string;
-  preference: Preference;
-}
+const KEY = (userId: string) => ['micro-preferences', userId] as const;
 
 export function useMicroPreferences() {
-  const { user } = useSession();
   const queryClient = useQueryClient();
+  const { user } = useSession();
   const userId = user?.id;
 
   // Fetch current preferences
   const preferencesQuery = useQuery({
-    queryKey: ['micro-preferences', userId],
-    queryFn: async () => {
-      if (!userId) return new Map<string, Preference>();
+    queryKey: userId ? KEY(userId) : ['micro-preferences', 'anon'],
+    queryFn: async (): Promise<Map<string, Preference>> => {
+      if (!userId) return new Map();
 
       const { data, error } = await supabase
         .from('professional_micro_preferences')
@@ -33,7 +30,7 @@ export function useMicroPreferences() {
 
       // Build a Map for fast lookup
       const preferencesMap = new Map<string, Preference>();
-      data?.forEach((row) => {
+      (data ?? []).forEach((row) => {
         // Normalize preference value to our 3-state model
         const pref = row.preference as string;
         if (pref === 'love' || pref === 'like' || pref === 'neutral') {
@@ -52,7 +49,7 @@ export function useMicroPreferences() {
 
   // Update preference mutation
   const updatePreferenceMutation = useMutation({
-    mutationFn: async ({ microId, preference }: MicroPreference) => {
+    mutationFn: async (vars: { microId: string; preference: Preference }) => {
       if (!userId) throw new Error('Not authenticated');
 
       const { error } = await supabase
@@ -60,52 +57,45 @@ export function useMicroPreferences() {
         .upsert(
           {
             user_id: userId,
-            micro_id: microId,
-            preference,
+            micro_id: vars.microId,
+            preference: vars.preference,
             updated_at: new Date().toISOString(),
           },
-          {
-            onConflict: 'user_id,micro_id',
-          }
+          { onConflict: 'user_id,micro_id' }
         );
 
       if (error) throw error;
-      return { microId, preference };
+      return vars;
     },
     onMutate: async ({ microId, preference }) => {
+      if (!userId) return;
+
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['micro-preferences', userId] });
+      await queryClient.cancelQueries({ queryKey: KEY(userId) });
 
       // Snapshot previous value
-      const previousPreferences = queryClient.getQueryData<Map<string, Preference>>([
-        'micro-preferences',
-        userId,
-      ]);
+      const prev = queryClient.getQueryData<Map<string, Preference>>(KEY(userId));
 
       // Optimistically update
-      queryClient.setQueryData<Map<string, Preference>>(
-        ['micro-preferences', userId],
-        (old) => {
-          const newMap = new Map(old || []);
-          newMap.set(microId, preference);
-          return newMap;
-        }
-      );
+      queryClient.setQueryData<Map<string, Preference>>(KEY(userId), (old) => {
+        const next = new Map(old ?? []);
+        next.set(microId, preference);
+        return next;
+      });
 
-      return { previousPreferences };
+      return { prev };
     },
     onError: (_err, _vars, context) => {
+      if (!userId) return;
       // Rollback on error
-      if (context?.previousPreferences) {
-        queryClient.setQueryData(
-          ['micro-preferences', userId],
-          context.previousPreferences
-        );
+      if (context?.prev) {
+        queryClient.setQueryData(KEY(userId), context.prev);
       }
     },
     onSettled: () => {
+      if (!userId) return;
       // Refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ['micro-preferences', userId] });
+      queryClient.invalidateQueries({ queryKey: KEY(userId) });
     },
   });
 
