@@ -47,9 +47,7 @@ import Messages from "./pages/messages/Messages";
 
 // Professional Onboarding & Management
 import ProfessionalOnboarding from "./pages/onboarding/ProfessionalOnboarding";
-import ProfessionalServices from "./pages/professional/ProfessionalServices";
 import ProfessionalServiceSetup from "./pages/professional/ProfessionalServiceSetup";
-import ProfessionalPortfolio from "./pages/professional/ProfessionalPortfolio";
 import ProfileEdit from "./pages/professional/ProfileEdit";
 
 // Settings
