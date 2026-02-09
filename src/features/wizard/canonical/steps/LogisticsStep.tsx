@@ -1,13 +1,13 @@
 /**
  * Logistics Step
  * Optimized layout with clear visual hierarchy
- * - Location: Grouped dropdown
+ * - Location: Grouped dropdown (from centralized zones.ts)
  * - Timing: Compact tile grid
  * - Budget: Radio options with context
  * - Contact: Horizontal selection
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, MapPin, Clock, Wallet, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -28,15 +28,10 @@ import {
 } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { WizardState, ConsultationType } from '../types';
+import type { WizardState } from '../types';
 import { TileOption } from './logistics';
-import {
-  MAIN_LOCATIONS,
-  POPULAR_LOCATIONS,
-  OTHER_LOCATION,
-  TIMING_OPTIONS,
-  CONTACT_OPTIONS,
-} from './logistics/constants';
+import { TIMING_OPTIONS, CONTACT_OPTIONS } from './logistics/constants';
+import { getMainZones, getPopularZones, OTHER_LOCATION } from '@/shared/components/professional/zones';
 
 interface LogisticsStepProps {
   logistics: WizardState['logistics'];
@@ -56,6 +51,16 @@ const BUDGET_KEYS = [
 export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
   const { t } = useTranslation('wizard');
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // Derive location options from centralized zones
+  const mainLocations = useMemo(() => 
+    getMainZones().map(z => ({ value: z.id, label: z.label })), 
+    []
+  );
+  const popularLocations = useMemo(() => 
+    getPopularZones().map(z => ({ value: z.id, label: z.label })), 
+    []
+  );
 
   const handleLocationSelect = (value: string) => {
     onChange({ location: value });
@@ -96,7 +101,7 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
           <SelectContent className="bg-popover z-50 max-h-[300px]">
             <SelectGroup>
               <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wide">Main Towns</SelectLabel>
-              {MAIN_LOCATIONS.map((loc) => (
+              {mainLocations.map((loc) => (
                 <SelectItem key={loc.value} value={loc.value} className="py-2.5">
                   {loc.label}
                 </SelectItem>
@@ -104,7 +109,7 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
             </SelectGroup>
             <SelectGroup>
               <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wide">Popular Areas</SelectLabel>
-              {POPULAR_LOCATIONS.map((loc) => (
+              {popularLocations.map((loc) => (
                 <SelectItem key={loc.value} value={loc.value} className="py-2.5">
                   {loc.label}
                 </SelectItem>
@@ -112,7 +117,7 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
             </SelectGroup>
             <SelectGroup>
               <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wide">Other</SelectLabel>
-              <SelectItem value={OTHER_LOCATION.value} className="py-2.5">
+              <SelectItem value={OTHER_LOCATION.id} className="py-2.5">
                 {OTHER_LOCATION.label}
               </SelectItem>
             </SelectGroup>
