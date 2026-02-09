@@ -3,10 +3,11 @@
  * Builder-friendly: Larger, higher contrast, clearer states
  */
 
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 
-interface MicroToggleTileProps {
+export interface MicroToggleTileProps {
   micro: {
     id: string;
     name: string;
@@ -16,6 +17,11 @@ interface MicroToggleTileProps {
   onToggle: () => void;
   animationDelay?: number;
   isFirstSelection?: boolean;
+  /**
+   * Optional element rendered on the right side (before the check/+)
+   * Used in edit mode to show preference pill without changing tile behaviour.
+   */
+  rightAccessory?: React.ReactNode;
 }
 
 export function MicroToggleTile({ 
@@ -23,6 +29,7 @@ export function MicroToggleTile({
   isSelected, 
   onToggle, 
   isFirstSelection = false,
+  rightAccessory,
 }: MicroToggleTileProps) {
   return (
     <button
@@ -42,6 +49,18 @@ export function MicroToggleTile({
       )}
     >
       <span className="flex-1 truncate pr-3">{micro.name}</span>
+      
+      {/* Slot for edit-mode preference pill etc */}
+      {rightAccessory ? (
+        <span
+          className="mr-2 shrink-0"
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          {rightAccessory}
+        </span>
+      ) : null}
+      
       <span className={cn(
         'ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full transition shrink-0',
         isSelected 

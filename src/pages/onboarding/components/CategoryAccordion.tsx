@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MicroToggleTile } from './MicroToggleTile';
 import { MicroToggleTileWithPreference } from './MicroToggleTileWithPreference';
-import type { Preference } from './PreferencePill';
+import type { Preference } from '../types/preferences';
 
 interface Micro {
   id: string;

@@ -17,7 +17,7 @@ import { ServiceSearchBar } from '../components/ServiceSearchBar';
 import { useServiceTaxonomy } from '../hooks/useServiceTaxonomy';
 import { useProfessionalServices } from '../hooks/useProfessionalServices';
 import { useMicroPreferences } from '../hooks/useMicroPreferences';
-import type { Preference } from '../components/PreferencePill';
+import type { Preference } from '../types/preferences';
 
 interface ServiceUnlockStepProps {
   onComplete: () => void;
