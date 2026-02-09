@@ -1,6 +1,7 @@
 /**
  * CategoryAccordion - Collapsible category card with micro-service tiles
  * Builder-friendly: Larger headers, clearer states, simpler layout
+ * Supports Edit Mode with preference selection via showPreferences prop
  */
 
 import { useMemo } from 'react';
@@ -9,6 +10,8 @@ import { ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MicroToggleTile } from './MicroToggleTile';
+import { MicroToggleTileWithPreference } from './MicroToggleTileWithPreference';
+import type { Preference } from './PreferencePill';
 
 interface Micro {
   id: string;
@@ -39,6 +42,10 @@ interface CategoryAccordionProps {
   onClearAll: () => void;
   searchQuery?: string;
   isFirstSelection?: boolean;
+  // Edit mode preference props
+  showPreferences?: boolean;
+  preferences?: Map<string, Preference>;
+  onPreferenceChange?: (microId: string, preference: Preference) => void;
 }
 
 export function CategoryAccordion({
@@ -51,6 +58,9 @@ export function CategoryAccordion({
   onClearAll,
   searchQuery = '',
   isFirstSelection = false,
+  showPreferences = false,
+  preferences,
+  onPreferenceChange,
 }: CategoryAccordionProps) {
   // Filter micros by search query
   const filteredSubcategories = useMemo(() => {
@@ -175,13 +185,25 @@ export function CategoryAccordion({
                 {/* Micro tiles grid - single column on mobile */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {subcategory.micros.map((micro) => (
-                    <MicroToggleTile
-                      key={micro.id}
-                      micro={micro}
-                      isSelected={selectedMicroIds.has(micro.id)}
-                      onToggle={() => onMicroToggle(micro.id)}
-                      isFirstSelection={isFirstSelection}
-                    />
+                    showPreferences ? (
+                      <MicroToggleTileWithPreference
+                        key={micro.id}
+                        micro={micro}
+                        isSelected={selectedMicroIds.has(micro.id)}
+                        onToggle={() => onMicroToggle(micro.id)}
+                        showPreference={showPreferences}
+                        preference={preferences?.get(micro.id) ?? 'neutral'}
+                        onPreferenceChange={(pref) => onPreferenceChange?.(micro.id, pref)}
+                      />
+                    ) : (
+                      <MicroToggleTile
+                        key={micro.id}
+                        micro={micro}
+                        isSelected={selectedMicroIds.has(micro.id)}
+                        onToggle={() => onMicroToggle(micro.id)}
+                        isFirstSelection={isFirstSelection}
+                      />
+                    )
                   ))}
                 </div>
               </div>
