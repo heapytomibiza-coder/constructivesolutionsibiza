@@ -4,6 +4,7 @@
  */
 
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,6 +39,7 @@ export function ReviewStep({
   onDispatchModeChange,
   isAuthenticated,
 }: ReviewStepProps) {
+  const { t } = useTranslation('jobs');
   const {
     mainCategory,
     subcategory,
@@ -144,7 +146,7 @@ export function ReviewStep({
       <Card>
         <CardContent className="p-5 space-y-4">
           <h4 className="text-sm font-medium text-muted-foreground">
-            How would you like to send this job?
+            {t('wizard.dispatchTitle', 'How would you like to send this job?')}
           </h4>
 
           <RadioGroup
@@ -157,10 +159,10 @@ export function ReviewStep({
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
-                  <p className="font-medium">Send to available professionals</p>
+                  <p className="font-medium">{t('wizard.broadcastTitle', 'Post to job board')}</p>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Your job will be visible to matching professionals who can respond
+                  {t('wizard.broadcastDesc', 'All professionals in this category can see and respond')}
                 </p>
               </div>
             </label>
@@ -170,10 +172,10 @@ export function ReviewStep({
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-primary" />
-                  <p className="font-medium">Send to a specific professional</p>
+                  <p className="font-medium">{t('wizard.directTitle', 'Send privately')}</p>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Start a private conversation — no public listing
+                  {t('wizard.directDesc', 'Only professionals you select will receive this job')}
                 </p>
               </div>
             </label>
@@ -186,17 +188,17 @@ export function ReviewStep({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">
-                      {targetProfessionalName || 'Professional'}
+                      {targetProfessionalName || t('wizard.selectedPro', 'Professional')}
                     </p>
-                    <p className="text-xs text-muted-foreground">Selected professional</p>
+                    <p className="text-xs text-muted-foreground">{t('wizard.selectedPro', 'Selected professional')}</p>
                   </div>
                   <Button variant="outline" size="sm" asChild>
-                    <Link to="/professionals?select=true">Change</Link>
+                    <Link to="/professionals?select=true">{t('wizard.changePro', 'Change')}</Link>
                   </Button>
                 </div>
               ) : (
                 <Button variant="outline" asChild className="w-full">
-                  <Link to="/professionals?select=true">Choose a Professional</Link>
+                  <Link to="/professionals?select=true">{t('wizard.choosePro', 'Choose a Professional')}</Link>
                 </Button>
               )}
             </div>

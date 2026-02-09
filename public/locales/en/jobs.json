@@ -21,8 +21,16 @@
      "stepReview": "Review & Post",
      "next": "Continue",
      "back": "Back",
-     "submit": "Post Job"
-   },
+    "submit": "Post Job",
+    "dispatchTitle": "How would you like to send this job?",
+    "broadcastTitle": "Post to job board",
+    "broadcastDesc": "All professionals in this category can see and respond",
+    "directTitle": "Send privately",
+    "directDesc": "Only professionals you select will receive this job",
+    "selectedPro": "Selected professional",
+    "changePro": "Change",
+    "choosePro": "Choose a Professional"
+  },
    "completion": {
      "title": "Mark job as completed?",
      "description": "Confirm that the work for \"{{jobTitle}}\" has been completed. You'll be asked to rate your experience next.",
