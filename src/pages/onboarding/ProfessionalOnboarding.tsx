@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -33,6 +33,11 @@ const STEPS: StepConfig[] = [
  */
 const ProfessionalOnboarding = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const editMode = params.get('edit') === '1';
+  const stepParam = params.get('step') as WizardStep | null;
+
   const { professionalProfile, isLoading } = useSession();
   const [currentStep, setCurrentStep] = useState<WizardStep>('tracker');
 
@@ -93,18 +98,31 @@ const ProfessionalOnboarding = () => {
     : ((completedSteps + 1) / STEPS.length) * 100;
 
   const handleStepClick = (stepId: string) => {
+    if (editMode) {
+      setCurrentStep(stepId as WizardStep);
+      return;
+    }
     const status = getStepStatus(stepId as StepId);
     if (status === 'complete' || status === 'current') {
       setCurrentStep(stepId as WizardStep);
     }
   };
 
-  // Redirect if already complete
+  // Only redirect completed users when NOT in edit mode
   useEffect(() => {
-    if (phase === 'complete') {
+    if (phase === 'complete' && !editMode) {
       navigate('/dashboard/pro');
     }
-  }, [phase, navigate]);
+  }, [phase, editMode, navigate]);
+
+  // Deep-link to a step (edit mode or first visit)
+  useEffect(() => {
+    if (!stepParam) return;
+    const allowed: WizardStep[] = ['basic_info', 'service_area', 'services', 'review', 'tracker'];
+    if (allowed.includes(stepParam)) {
+      setCurrentStep(stepParam);
+    }
+  }, [stepParam]);
 
   const handleBasicInfoComplete = () => {
     setCurrentStep('service_area');
@@ -144,6 +162,12 @@ const ProfessionalOnboarding = () => {
               </span>
             </div>
           </Link>
+          {editMode && (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/pro')}>
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Back to Dashboard
+            </Button>
+          )}
           {currentStep !== 'tracker' && (
             <Button variant="ghost" size="sm" onClick={() => setCurrentStep('tracker')}>
               <ArrowLeft className="h-5 w-5 mr-2" />
@@ -158,16 +182,20 @@ const ProfessionalOnboarding = () => {
           {/* Header - Warm, friendly */}
           <div className="text-center mb-10 animate-fade-in">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
-              {currentStep === 'tracker' ? "Let's get you started" : 
-               currentStep === 'basic_info' ? 'Step 1: About You' :
-               currentStep === 'service_area' ? 'Step 2: Where You Work' :
-               currentStep === 'services' ? 'Step 3: The Work You Do' :
-               'Step 4: All Done!'}
+              {editMode
+                ? 'Edit your professional profile'
+                : currentStep === 'tracker' ? "Let's get you started" : 
+                  currentStep === 'basic_info' ? 'Step 1: About You' :
+                  currentStep === 'service_area' ? 'Step 2: Where You Work' :
+                  currentStep === 'services' ? 'Step 3: The Work You Do' :
+                  'Step 4: All Done!'}
             </h1>
             <p className="text-lg text-muted-foreground">
-              {currentStep === 'tracker' 
-                ? "Just a few quick steps and you'll be ready to receive work."
-                : 'Complete this step to continue.'}
+              {editMode
+                ? 'Jump to any step and update your details.'
+                : currentStep === 'tracker' 
+                  ? "Just a few quick steps and you'll be ready to receive work."
+                  : 'Complete this step to continue.'}
             </p>
           </div>
 
@@ -218,7 +246,7 @@ const ProfessionalOnboarding = () => {
                 const status = getStepStatus(step.id as StepId);
                 const isComplete = status === 'complete';
                 const isCurrent = status === 'current';
-                const canClick = isComplete || isCurrent;
+                const canClick = editMode ? true : isComplete || isCurrent;
                 const Icon = step.icon;
 
                 return (
@@ -270,7 +298,7 @@ const ProfessionalOnboarding = () => {
                             handleStepClick(step.id);
                           }}
                         >
-                          {isComplete ? 'Edit' : 'Start'}
+                          {editMode ? 'Edit' : isComplete ? 'Edit' : 'Start'}
                           <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
                       )}

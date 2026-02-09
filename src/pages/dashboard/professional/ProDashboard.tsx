@@ -100,7 +100,7 @@ const ProDashboard = () => {
             </CardHeader>
             <CardContent>
               <Button variant="accent" asChild>
-                <Link to="/professional/service-setup" className="gap-2">
+                <Link to="/onboarding/professional?edit=1&step=services" className="gap-2">
                   <Wrench className="h-4 w-4" />
                   {t('pro.setUpServices')}
                 </Link>
@@ -127,7 +127,7 @@ const ProDashboard = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-bold text-foreground">{stats.servicesCount}</span>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to="/professional/service-setup">{t('common.edit')}</Link>
+                    <Link to="/onboarding/professional?edit=1&step=services">{t('common.edit')}</Link>
                   </Button>
                 </div>
               )}
@@ -208,7 +208,7 @@ const ProDashboard = () => {
                     {t('pro.setUpServicesToSee')}
                   </p>
                   <Button asChild>
-                    <Link to="/professional/service-setup">{t('pro.setUpServices')}</Link>
+                    <Link to="/onboarding/professional?edit=1&step=services">{t('pro.setUpServices')}</Link>
                   </Button>
                 </div>
               ) : matchedJobs.length === 0 ? (
@@ -273,13 +273,13 @@ const ProDashboard = () => {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button className="w-full justify-start gap-2" asChild>
-                  <Link to="/professional/service-setup">
+                  <Link to="/onboarding/professional?edit=1&step=services">
                     <Wrench className="h-4 w-4" />
                     {t('pro.updateServices')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2" asChild>
-                  <Link to="/professional/profile">
+                  <Link to="/onboarding/professional?edit=1&step=basic_info">
                     <User className="h-4 w-4" />
                     {t('pro.editProfile')}
                   </Link>
