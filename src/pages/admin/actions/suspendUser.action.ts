@@ -20,6 +20,16 @@ export async function suspendUser({ userId, reason }: SuspendUserParams): Promis
     return { success: false, error: 'Cannot suspend your own account' };
   }
 
+  // Verify admin role server-side
+  const { data: hasAdmin } = await supabase.rpc("has_role", {
+    _user_id: user.id,
+    _role: "admin",
+  });
+
+  if (!hasAdmin) {
+    return { success: false, error: 'Admin access required' };
+  }
+
   const { error } = await supabase
     .from('user_roles')
     .update({
@@ -31,7 +41,7 @@ export async function suspendUser({ userId, reason }: SuspendUserParams): Promis
 
   if (error) {
     console.error('Error suspending user:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: 'Failed to suspend user. Please try again.' };
   }
 
   // Log the action
