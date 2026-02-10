@@ -26,6 +26,8 @@ import Professionals from "./pages/public/Professionals";
 import ProfessionalDetails from "./pages/public/ProfessionalDetails";
 import HowItWorks from "./pages/public/HowItWorks";
 import Contact from "./pages/public/Contact";
+import Privacy from "./pages/public/Privacy";
+import Terms from "./pages/public/Terms";
 
 // Auth Pages
 import Auth from "./pages/auth/Auth";
@@ -101,6 +103,8 @@ const App = () => {
             <Route path="/professionals/:id" element={<ProfessionalDetails />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             
             {/* Forum - Public read, auth for new posts */}
             <Route path="/forum" element={<ForumIndex />} />
