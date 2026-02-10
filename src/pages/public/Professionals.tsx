@@ -289,39 +289,61 @@ const Professionals = () => {
             {professionals.map((pro) => (
               <Card key={pro.id} className="card-mobile-clean md:card-grounded hover:md:border-primary/50 transition-colors">
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={pro.avatar_url || undefined} alt={pro.display_name || 'Professional'} />
-                      <AvatarFallback>
-                        {(pro.display_name || 'P').charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium truncate">
-                          {pro.display_name || 'Professional'}
-                        </h3>
-                        {pro.verification_status === 'verified' && (
-                          <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                        )}
+                  <div className={selectMode ? 'space-y-3' : ''}>
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={pro.avatar_url || undefined} alt={pro.display_name || 'Professional'} />
+                        <AvatarFallback>
+                          {(pro.display_name || 'P').charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium truncate">
+                            {pro.display_name || 'Professional'}
+                          </h3>
+                          {pro.verification_status === 'verified' && (
+                            <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {t('professionals.servicesOffered', { count: pro.services_count || 0 })}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {t('professionals.servicesOffered', { count: pro.services_count || 0 })}
-                      </p>
+                      {/* Action button - Select in select mode, View otherwise */}
+                      {selectMode ? (
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleSelectProfessional(pro)}
+                          disabled={!pro.user_id}
+                        >
+                          {t('professionals.selectButton')}
+                        </Button>
+                      ) : (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to={`/professionals/${pro.id}`}>{t('professionals.viewButton')}</Link>
+                        </Button>
+                      )}
                     </div>
-                    {/* Action button - Select in select mode, View otherwise */}
-                    {selectMode ? (
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleSelectProfessional(pro)}
-                        disabled={!pro.user_id}
-                      >
-                        {t('professionals.selectButton')}
-                      </Button>
-                    ) : (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/professionals/${pro.id}`}>{t('professionals.viewButton')}</Link>
-                      </Button>
+                    
+                    {/* Expanded details in select mode */}
+                    {selectMode && (
+                      <>
+                        {(pro.bio || pro.tagline) && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {(pro.tagline || pro.bio || '').slice(0, 120)}
+                          </p>
+                        )}
+                        {pro.top_services && pro.top_services.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {pro.top_services.map((svc, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {svc}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </CardContent>
