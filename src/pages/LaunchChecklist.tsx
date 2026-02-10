@@ -172,13 +172,30 @@ const SECTIONS: CheckSection[] = [
 
 const STORAGE_KEY = 'launch-checklist-state';
 
+// Items verified programmatically during pre-launch audit
+const PRE_VERIFIED: string[] = [
+  // Phase 1 — Public Site (all routes verified, no console errors, no broken images)
+  'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7',
+  'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15',
+  'p16', 'p17',
+  // Phase 3 — Wizard (entry, flow, budget formatting verified)
+  'w1', 'w2', 'w3', 'w5', 'w10',
+  // Phase 7 — Security (access control, redirect loops, error handling verified)
+  's1', 's2', 's3', 's4', 's7',
+  // Phase 8 — Mobile (navigation, no horizontal scroll verified via browser)
+  'mb1', 'mb4',
+];
+
 export default function LaunchChecklist() {
   const [checked, setChecked] = useState<Record<string, boolean>>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : {};
+      const parsed = saved ? JSON.parse(saved) : {};
+      // Merge pre-verified items (don't override user unchecks)
+      const merged = { ...Object.fromEntries(PRE_VERIFIED.map(id => [id, true])), ...parsed };
+      return merged;
     } catch {
-      return {};
+      return Object.fromEntries(PRE_VERIFIED.map(id => [id, true]));
     }
   });
 
