@@ -114,7 +114,7 @@ const Professionals = () => {
             .from('professional_services')
             .select('user_id, micro_id')
             .in('user_id', userIds)
-            .eq('status', 'active');
+            .eq('status', 'offered');
           
           if (services?.length) {
             const microIds = [...new Set(services.map(s => s.micro_id))];

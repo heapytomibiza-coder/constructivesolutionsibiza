@@ -28,7 +28,7 @@ export function useProServiceScope(professionalUserId: string | undefined): ProS
         .from('professional_services')
         .select('micro_id')
         .eq('user_id', professionalUserId)
-        .eq('status', 'active');
+        .eq('status', 'offered');
 
       if (svcErr) throw svcErr;
       if (!services?.length) return { microIds: [], subcategoryIds: [], categoryIds: [], proName: null };
