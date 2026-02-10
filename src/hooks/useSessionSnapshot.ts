@@ -168,7 +168,7 @@ export function useSessionSnapshot(): SessionSnapshot {
 
   const switchRole = useCallback(async (newRole: UserRole) => {
     if (!user || !roles.includes(newRole)) {
-      console.warn('Cannot switch to role:', newRole);
+      // Role switch denied - user doesn't have this role
       return;
     }
 

@@ -95,7 +95,7 @@ function deriveTargetStepFromParams(params: UrlParams): WizardStep {
     
     // ENFORCEMENT: step=questions requires micro
     if (requestedStep === WizardStep.Questions && !params.micro) {
-      console.warn('[WizardResolver] step=questions requested but micro missing, falling back');
+      // step=questions requested but micro missing - falling back
       return params.subcategory 
         ? WizardStep.Micro 
         : params.category 
@@ -105,13 +105,13 @@ function deriveTargetStepFromParams(params: UrlParams): WizardStep {
     
     // ENFORCEMENT: step=micro requires subcategory OR micro param (microOnly pattern)
     if (requestedStep === WizardStep.Micro && !params.subcategory && !params.micro) {
-      console.warn('[WizardResolver] step=micro requested but no context, falling back');
+      // step=micro requested but no context - falling back
       return params.category ? WizardStep.Subcategory : WizardStep.Category;
     }
     
     // ENFORCEMENT: step=subcategory requires category
     if (requestedStep === WizardStep.Subcategory && !params.category) {
-      console.warn('[WizardResolver] step=subcategory requested but category missing, falling back');
+      // step=subcategory requested but category missing - falling back
       return WizardStep.Category;
     }
     

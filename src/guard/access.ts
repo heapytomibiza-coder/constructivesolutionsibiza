@@ -41,7 +41,7 @@ export function checkAccess(rule: AccessRule, ctx: AccessContext): boolean {
       return ctx.isAuthenticated && ctx.hasRole('admin');
 
     default:
-      console.warn('Unknown access rule:', rule);
+      // Unknown access rule - deny by default
       return false;
   }
 }

@@ -167,7 +167,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             targetProfessionalName: pro?.display_name || 'Professional',
           };
         } catch (e) {
-          console.warn('Failed to fetch professional name:', e);
+          // Failed to fetch professional name - use fallback
           newState = {
             ...newState,
             dispatchMode: 'direct',
@@ -211,9 +211,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             microSlugs: [data.slug],
           };
           targetStep = WizardStep.Questions;
-          console.log('[DeepLink] Hydrated micro:', microSlug, '→ Questions');
+          // Deep-link hydrated micro → Questions
         } else {
-          console.warn('[DeepLink] Micro lookup failed:', microSlug, error?.message || 'not found');
+          // Deep-link micro lookup failed - stay at conservative step
           // Stay at resolver's conservative step (Micro or Category)
         }
       }
@@ -250,7 +250,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               microSlugs: [micro.slug],
             };
             targetStep = WizardStep.Questions;
-            console.log('[DeepLink] Full hierarchy validated:', microSlug, '→ Questions');
+            // Deep-link full hierarchy validated → Questions
           }
         }
       }
@@ -310,7 +310,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       try {
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(wizardState));
       } catch (e) {
-        console.warn('Failed to save wizard draft:', e);
+        // Draft save failed silently
       }
     }, 600);
     
@@ -529,7 +529,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         setCurrentStep(deriveStepFromState(draft));
       }
     } catch (e) {
-      console.warn('Failed to restore draft:', e);
+      // Draft restore failed silently
     }
     markDraftChecked();
     setShowDraftModal(false);
