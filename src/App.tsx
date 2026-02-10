@@ -61,6 +61,9 @@ import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/foru
 // Admin
 import { AdminDashboard } from "./pages/admin";
 
+// Launch Checklist
+import LaunchChecklist from "./pages/LaunchChecklist";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -105,6 +108,7 @@ const App = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/launch-checklist" element={<LaunchChecklist />} />
             
             {/* Forum - Public read, auth for new posts */}
             <Route path="/forum" element={<ForumIndex />} />
