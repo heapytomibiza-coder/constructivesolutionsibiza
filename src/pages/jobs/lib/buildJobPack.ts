@@ -90,11 +90,11 @@ export interface JobPack {
 
 // Budget range display mapping
 const BUDGET_DISPLAY: Record<string, string> = {
-  'under_500': 'Under €500',
-  '500_1000': '€500 – €1,000',
-  '1000_2500': '€1,000 – €2,500',
-  '2500_5000': '€2,500 – €5,000',
-  'over_5000': 'Over €5,000',
+  'under_500': 'Under 500 €',
+  '500_1000': '500–1,000 €',
+  '1000_2500': '1,000–2,500 €',
+  '2500_5000': '2,500–5,000 €',
+  'over_5000': 'Over 5,000 €',
   'need_quote': 'Quote needed',
 };
 
