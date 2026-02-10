@@ -68,9 +68,13 @@ export default function SubcategorySelector({
     return translated || sub.name;
   };
 
+  const filtered = allowedSubcategoryIds
+    ? subcategories.filter(s => allowedSubcategoryIds.includes(s.id))
+    : subcategories;
+
   return (
     <div className="space-y-2">
-      {subcategories.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="text-muted-foreground">{t('wizard:subcategory.noSubcategories')}</p>
       ) : (
         subcategories.map((subcategory) => {
