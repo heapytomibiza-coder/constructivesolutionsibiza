@@ -97,7 +97,7 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
 
       // SMART LADDER: have category only → go to subcategory step
       if (hit.categoryId) {
-        console.warn("[Search→Wizard] Micro missing subcategory, falling back to category mode");
+        // Micro missing subcategory - falling back to category mode
         return buildWizardLink({ mode: "category", categoryId: hit.categoryId });
       }
 
