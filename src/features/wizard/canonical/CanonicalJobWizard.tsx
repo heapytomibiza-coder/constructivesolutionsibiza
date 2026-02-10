@@ -789,6 +789,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                 subcategoryId={wizardState.subcategoryId}
                 selectedMicroIds={wizardState.microIds}
                 onSelect={handleMicroSelect}
+                allowedMicroIds={isDirectMode ? proScope.microIds : undefined}
               />
             </div>
           )}
