@@ -12,6 +12,8 @@ interface Props {
   selectedCategory?: string;
   onSelect: (categoryName: string, categoryId: string) => void;
   onNext?: () => void;
+  /** When set, only show categories whose IDs are in this list (direct mode scoping) */
+  allowedCategoryIds?: string[];
 }
 
 export default function CategorySelector({ selectedCategory, onSelect, onNext }: Props) {
