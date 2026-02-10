@@ -95,7 +95,7 @@ function deriveTargetStepFromParams(params: UrlParams): WizardStep {
     
     // ENFORCEMENT: step=questions requires micro
     if (requestedStep === WizardStep.Questions && !params.micro) {
-      console.warn('[WizardResolver] step=questions requested but micro missing, falling back');
+      // step=questions requested but micro missing - falling back
       return params.subcategory 
         ? WizardStep.Micro 
         : params.category 
