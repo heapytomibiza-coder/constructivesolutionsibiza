@@ -167,7 +167,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             targetProfessionalName: pro?.display_name || 'Professional',
           };
         } catch (e) {
-          console.warn('Failed to fetch professional name:', e);
+          // Failed to fetch professional name - use fallback
           newState = {
             ...newState,
             dispatchMode: 'direct',
