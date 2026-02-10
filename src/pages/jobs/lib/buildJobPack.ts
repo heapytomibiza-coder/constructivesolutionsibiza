@@ -104,10 +104,10 @@ const BUDGET_DISPLAY: Record<string, string> = {
 function formatBudget(row: JobDetailsRow, answers: JobAnswers | null): string {
   // First check if we have structured budget data
   if (row.budget_type === "fixed" && row.budget_value != null) {
-    return `€${row.budget_value.toLocaleString()}`;
+    return `${row.budget_value.toLocaleString()} €`;
   }
   if (row.budget_type === "range" && row.budget_min != null && row.budget_max != null) {
-    return `€${row.budget_min.toLocaleString()} – €${row.budget_max.toLocaleString()}`;
+    return `${row.budget_min.toLocaleString()} – ${row.budget_max.toLocaleString()} €`;
   }
   
   // Check for budget range from wizard answers and humanize it

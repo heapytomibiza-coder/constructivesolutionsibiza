@@ -76,18 +76,30 @@ function formatTiming(j: JobsBoardRow): string {
  * Format highlight strings - handles budget ranges like "1000_2500" → "€1,000–€2,500"
  */
 function formatHighlight(highlight: string): string {
-  // Check if it's a budget range pattern like "1000_2500"
+  // Budget range patterns
+  const HIGHLIGHT_BUDGET: Record<string, string> = {
+    'under_500': 'Under 500 €',
+    '500_1000': '500–1,000 €',
+    '1000_2500': '1,000–2,500 €',
+    '2500_5000': '2,500–5,000 €',
+    'over_5000': 'Over 5,000 €',
+    'need_quote': 'Quote needed',
+  };
+
+  if (HIGHLIGHT_BUDGET[highlight]) return HIGHLIGHT_BUDGET[highlight];
+
+  // Numeric range pattern like "1000_2500"
   const budgetRangeMatch = highlight.match(/^(\d+)_(\d+)$/);
   if (budgetRangeMatch) {
     const min = parseInt(budgetRangeMatch[1], 10);
     const max = parseInt(budgetRangeMatch[2], 10);
-    return `€${min.toLocaleString()}–€${max.toLocaleString()}`;
+    return `${min.toLocaleString()}–${max.toLocaleString()} €`;
   }
   
-  // Convert snake_case to readable text
+  // Convert snake_case to sentence with dashes
   if (highlight.includes("_") && !highlight.includes(" ")) {
     return highlight
-      .replace(/_/g, " ")
+      .replace(/_/g, "-")
       .replace(/^\w/, (c) => c.toUpperCase());
   }
   
