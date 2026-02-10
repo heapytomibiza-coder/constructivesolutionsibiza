@@ -15,6 +15,8 @@ interface Props {
   onSelect: (subcategoryName: string, subcategoryId: string) => void;
   onNext?: () => void;
   onBack?: () => void;
+  /** When set, only show subcategories whose IDs are in this list (direct mode scoping) */
+  allowedSubcategoryIds?: string[];
 }
 
 export default function SubcategorySelector({
