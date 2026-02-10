@@ -1,100 +1,37 @@
 
+## Add "Change Password" to Settings Page
 
-## Pre-Launch Checklist Additions
+### Why
+The Settings page currently has no way for logged-in users to change their password. This is a gap flagged in the checklist (item 8): if a user wants to update their password, there's no in-app path. The forgot-password route is behind `PublicOnlyGuard` and will redirect them to their dashboard.
 
-Your checklist is solid. Based on a full codebase audit, here are the items you're missing or that need sharper attention.
+### What Changes
 
----
+**File: `src/pages/settings/Settings.tsx`**
 
-### 1. ✅ index.html Meta Tags (DONE)
+Add a "Security" card between the Account and Notifications sections:
 
-Updated all meta tags to CS Ibiza branding: title, OG tags, removed Lovable references and Twitter @handle.
+- "Change Password" section with:
+  - New password input (with show/hide toggle)
+  - Confirm password input
+  - Submit button
+  - Uses `supabase.auth.updateUser({ password })` (same API as ResetPassword page)
+  - Validation: min 6 chars, passwords must match
+  - Success: toast confirmation
+  - Error: toast with message
 
----
+### Technical Details
 
-### 2. ✅ robots.txt -- Sitemap Reference (DONE)
+- Uses the same `supabase.auth.updateUser()` call already proven in `ResetPassword.tsx`
+- No new dependencies needed
+- No database changes required
+- Follows existing Settings page card pattern (icon + title + description + content)
+- Uses `Shield` or `Lock` icon from lucide-react for the section header
 
-Added `Sitemap: https://csibiza.com/sitemap.xml` directive.
+### Remaining Non-Code Items (for you to action)
 
----
-
-### 3. ✅ 404 Page Styled (DONE)
-
-Wrapped in `PublicLayout` with branded heading, "Back to Home" and "Browse Services" CTAs.
-
----
-
-### 4. ✅ Console Warnings Stripped (DONE)
-
-Replaced all `console.log` and `console.warn` in production code paths with inline comments:
-- CanonicalJobWizard.tsx (5 instances)
-- types.ts (5 instances)
-- useWizardDraft.ts (1 instance)
-- resolveWizardMode.ts (3 instances)
-- useSessionSnapshot.ts (1 instance)
-- access.ts (1 instance)
-
----
-
-### 5. ✅ TODO Comments Cleaned (DONE)
-
-- Removed TODO from `zones.ts` (kept alias map, removed TODO comment)
-- Cleaned TODO block comments from `ProfessionalPortfolio.tsx` and `ProfessionalServices.tsx`
-- index.html TODO removed (replaced with actual title)
-
----
-
-### 6. Auth: Forgot Password Route Behind PublicOnlyGuard
-
-`/auth/forgot-password` is wrapped in `PublicOnlyGuard`, meaning a logged-in user who wants to change their password via the forgot-password flow will be redirected to their dashboard instead. This is technically correct (they should use Settings), but could confuse users who click a bookmarked link.
-
-**Status:** Settings page does NOT have a password change option yet. Needs implementation or guard adjustment.
-
----
-
-### 7. ✅ Reset Password Route Edge Cases (VERIFIED)
-
-`/auth/reset-password` correctly handles:
-- No valid session → shows "invalid/expired link" UI with "Request New Link" button
-- Valid session → shows password reset form
-- Success → redirects via `/auth/callback` for role-based routing
-
----
-
-### 8. Missing from Your Checklist: Rate Limiting
-
-No rate limiting visible on login attempts, password resets, job submissions, or messaging.
-
-**Status:** Not done. Low priority for soft launch but should be added before scaling.
-
----
-
-### 9. ✅ Redirect Loop Protection (VERIFIED)
-
-`AuthCallback` uses `sessionStorage.getItem('authRedirect')` for pending redirects (wizard auth checkpoint), then falls back to role-based routing. The `returnUrl` param is only appended to `/auth` routes (per `redirects.ts`). Loop risk is minimal.
-
----
-
-### 10. Edge Function Health
-
-`send-auth-email` function has proper error handling. Domain verification status with Resend determines email delivery.
-
-**Status:** Needs end-to-end test with production domain. SITE_URL env var should be set to production URL before go-live.
-
----
-
-### Summary
-
-| Priority | Item | Status |
-|----------|------|--------|
-| CRITICAL | Update index.html meta tags + OG image + favicon | ✅ Done |
-| CRITICAL | Confirm auth emails link to production domain | ⚠️ Set SITE_URL before go-live |
-| HIGH | Style 404 page with branding + navigation | ✅ Done |
-| HIGH | Strip console.log/warn from production paths | ✅ Done |
-| HIGH | Test reset password with expired/invalid tokens | ✅ Verified in code |
-| MEDIUM | Add Sitemap directive to robots.txt | ✅ Done |
-| MEDIUM | Remove/redirect stub pages (portfolio, services) | ✅ TODOs cleaned |
-| MEDIUM | Verify Settings has password change | ⚠️ Not implemented |
-| MEDIUM | Test auth redirect loop scenario | ✅ Verified in code |
-| LOW | Add rate limiting to auth + messaging | Not done |
-| LOW | Clean TODO comments from production code | ✅ Done |
+| Item | What to do |
+|------|-----------|
+| `og-image.png` | Provide a 1200x630 branded image, place in `public/` |
+| `favicon.ico` | Provide a branded favicon, replace `public/favicon.ico` |
+| `SITE_URL` | Set this secret to your production domain (e.g., `https://csibiza.com`) so auth emails link correctly |
+| Rate limiting | Deferred to post-soft-launch hardening pass |
