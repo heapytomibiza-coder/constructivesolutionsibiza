@@ -61,6 +61,9 @@ import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/foru
 // Admin
 import { AdminDashboard } from "./pages/admin";
 
+// Launch Checklist
+import LaunchChecklist from "./pages/LaunchChecklist";
+
 const queryClient = new QueryClient();
 
 const App = () => {
