@@ -727,22 +727,37 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                 {t('category.headline')}
               </h3>
               
-              {/* Universal Search Bar */}
-              <ServiceSearchBar onSelect={handleSearchSelect} />
+              {/* Direct mode scoping banner */}
+              {isDirectMode && proScope.proName && (
+                <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 text-sm text-foreground">
+                  {t('scope.showingServicesFor', { name: proScope.proName })}
+                </div>
+              )}
+              {isDirectMode && proScope.isEmpty && !proScope.isLoading && (
+                <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 text-sm text-muted-foreground">
+                  {t('scope.noServices')}
+                </div>
+              )}
               
-              {/* Divider */}
-              <div className="flex items-center gap-4">
-                <div className="flex-1 h-px bg-border" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                  {t('category.orBrowse')}
-                </span>
-                <div className="flex-1 h-px bg-border" />
-              </div>
+              {/* Universal Search Bar - hide in scoped direct mode */}
+              {!isDirectMode && <ServiceSearchBar onSelect={handleSearchSelect} />}
+              
+              {/* Divider - hide in scoped direct mode */}
+              {!isDirectMode && (
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                    {t('category.orBrowse')}
+                  </span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+              )}
               
               {/* Category Grid */}
               <CategorySelector
                 selectedCategory={wizardState.mainCategory}
                 onSelect={handleCategorySelect}
+                allowedCategoryIds={isDirectMode ? proScope.categoryIds : undefined}
               />
             </div>
           )}
@@ -757,6 +772,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                 categoryName={wizardState.mainCategory}
                 selectedSubcategoryId={wizardState.subcategoryId}
                 onSelect={handleSubcategorySelect}
+                allowedSubcategoryIds={isDirectMode ? proScope.subcategoryIds : undefined}
               />
             </div>
           )}
