@@ -15,6 +15,8 @@ interface Props {
   selectedMicroIds: string[];
   onSelect: (microNames: string[], microIds: string[], microSlugs: string[]) => void;
   multiSelect?: boolean;
+  /** When set, only show micros whose IDs are in this list (direct mode scoping) */
+  allowedMicroIds?: string[];
 }
 
 export default function MicroStep({
