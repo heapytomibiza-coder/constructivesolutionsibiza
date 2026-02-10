@@ -49,9 +49,13 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext, a
     return name;
   };
 
+  const filtered = allowedCategoryIds
+    ? categories.filter(c => allowedCategoryIds.includes(c.id))
+    : categories;
+
   return (
     <div className="space-y-2">
-      {categories.map((category) => {
+      {filtered.map((category) => {
         const isSelected = selectedCategory === category.name;
         return (
           <button

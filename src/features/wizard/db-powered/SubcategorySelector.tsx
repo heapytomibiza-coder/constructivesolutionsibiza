@@ -77,7 +77,7 @@ export default function SubcategorySelector({
       {filtered.length === 0 ? (
         <p className="text-muted-foreground">{t('wizard:subcategory.noSubcategories')}</p>
       ) : (
-        subcategories.map((subcategory) => {
+        filtered.map((subcategory) => {
           const isSelected = selectedSubcategoryId === subcategory.id;
           return (
             <button

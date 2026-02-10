@@ -47,7 +47,10 @@ export default function MicroStep({
         .order("display_order");
 
       if (!error && data) {
-        setMicroCategories(data);
+        const filtered = allowedMicroIds
+          ? data.filter(m => allowedMicroIds.includes(m.id))
+          : data;
+        setMicroCategories(filtered);
       }
 
       setLoading(false);
