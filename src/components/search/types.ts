@@ -103,7 +103,7 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
 
       // Micro slug only (no parents) → use microOnly, let deep-link processor hydrate
       if (hit.microSlug) {
-        console.warn("[Search→Wizard] Micro missing parents, using microOnly (will hydrate)");
+        // Micro missing parents - using microOnly (will hydrate)
         return buildWizardLink({ mode: "microOnly", microSlug: hit.microSlug });
       }
 
