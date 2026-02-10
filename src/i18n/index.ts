@@ -10,12 +10,12 @@ i18n
   .init({
     fallbackLng: "en",
     supportedLngs: ["en", "es"],
-    ns: ["common", "auth", "jobs", "forum", "dashboard", "wizard", "onboarding"],
+    ns: ["common", "auth", "jobs", "forum", "dashboard", "wizard", "onboarding", "micros", "questions"],
     defaultNS: "common",
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.json",
       // Cache bust to ensure fresh translations after deployments
-      queryStringParams: { v: '2026021001' },
+      queryStringParams: { v: '2026021002' },
     },
     detection: {
       order: ["localStorage", "navigator"],

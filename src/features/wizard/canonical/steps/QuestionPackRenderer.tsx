@@ -180,7 +180,28 @@ function OptionCard({
 }
 
 export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }: Props) {
-  const { t } = useTranslation('wizard');
+  const { t } = useTranslation(['wizard', 'questions']);
+
+  /** Translate a question label using the questions namespace */
+  const tLabel = (label: string): string => {
+    const translated = t(`questions:labels.${label}`, { defaultValue: '' });
+    return translated || label;
+  };
+
+  /** Translate an option label using the questions namespace */
+  const tOption = (label: string): string => {
+    const translated = t(`questions:options.${label}`, { defaultValue: '' });
+    return translated || label;
+  };
+
+  /** Localize an option - translate its label while preserving the value */
+  const localizeOption = (opt: OptionType): QuestionOption => {
+    const normalized = normalizeOption(opt);
+    return {
+      value: normalized.value,
+      label: tOption(normalized.label),
+    };
+  };
   
   // Normalize + order questions once (V2 safe)
   const normalizedOrderedQuestions = useMemo(() => {
@@ -295,8 +316,8 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
             />
             {fileNames.length > 0 && (
               <p className="text-sm text-muted-foreground">
-                {t('questions.selectedFiles', { files: fileNames.join(', ') })}{' '}
-                <span className="italic">{t('questions.uploadsAfterPost')}</span>
+                {t('wizard:questions.selectedFiles', { files: fileNames.join(', ') })}{' '}
+                <span className="italic">{t('wizard:questions.uploadsAfterPost')}</span>
               </p>
             )}
           </div>
@@ -309,14 +330,15 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
         return (
           <div className="grid gap-2">
             {question.options?.map((opt) => {
-              const option = normalizeOption(opt);
+              const option = localizeOption(opt);
+              const originalOption = normalizeOption(opt);
               return (
                 <OptionCard
-                  key={option.value}
+                  key={originalOption.value}
                   option={option}
-                  isSelected={selectedValue === option.value}
+                  isSelected={selectedValue === originalOption.value}
                   isMulti={false}
-                  onSelect={() => onAnswerChange(pack.micro_slug, question.id, option.value)}
+                  onSelect={() => onAnswerChange(pack.micro_slug, question.id, originalOption.value)}
                 />
               );
             })}
@@ -329,18 +351,19 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
         return (
           <div className="grid gap-2">
             {question.options?.map((opt) => {
-              const option = normalizeOption(opt);
-              const isChecked = selectedOptions.includes(option.value);
+              const option = localizeOption(opt);
+              const originalOption = normalizeOption(opt);
+              const isChecked = selectedOptions.includes(originalOption.value);
               return (
                 <OptionCard
-                  key={option.value}
+                  key={originalOption.value}
                   option={option}
                   isSelected={isChecked}
                   isMulti={true}
                   onSelect={() => {
                     const newSelected = isChecked
-                      ? selectedOptions.filter((o) => o !== option.value)
-                      : [...selectedOptions, option.value];
+                      ? selectedOptions.filter((o) => o !== originalOption.value)
+                      : [...selectedOptions, originalOption.value];
                     onAnswerChange(pack.micro_slug, question.id, newSelected);
                   }}
                 />
@@ -375,7 +398,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
                 htmlFor={`${pack.micro_slug}-${question.id}`}
                 className="text-base font-semibold text-foreground leading-snug"
               >
-                {question.label}
+                {tLabel(question.label)}
                 {question.required && question.type !== 'file' && (
                   <span className="text-destructive ml-1">*</span>
                 )}
