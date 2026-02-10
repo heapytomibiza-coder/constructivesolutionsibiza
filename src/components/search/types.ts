@@ -70,7 +70,7 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
         });
       }
       // Missing category → fresh start (can't create valid subcategory link)
-      console.warn("[Search→Wizard] Subcategory missing categoryId, falling back to fresh");
+      // Subcategory missing categoryId - falling back to fresh
       return buildWizardLink({ mode: "fresh" });
     }
 
