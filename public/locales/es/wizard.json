@@ -118,5 +118,9 @@
     "depthTask": "Tarea",
     "depthJobRequest": "Solicitud",
     "ready": "Listo"
+  },
+  "scope": {
+    "showingServicesFor": "Mostrando servicios ofrecidos por {{name}}",
+    "noServices": "Este profesional aún no ha configurado sus servicios"
   }
 }

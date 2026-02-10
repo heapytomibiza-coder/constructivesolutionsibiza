@@ -118,5 +118,9 @@
     "depthTask": "Task",
     "depthJobRequest": "Job Request",
     "ready": "Ready"
+  },
+  "scope": {
+    "showingServicesFor": "Showing services offered by {{name}}",
+    "noServices": "This professional hasn't set up their services yet"
   }
 }

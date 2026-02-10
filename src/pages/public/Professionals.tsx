@@ -24,13 +24,16 @@ import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 
 interface Professional {
   id: string;
-  user_id?: string; // For selection mode
+  user_id?: string;
   display_name: string | null;
   avatar_url: string | null;
   services_count: number | null;
   verification_status: string | null;
   match_score?: number;
   coverage?: number;
+  bio?: string | null;
+  tagline?: string | null;
+  top_services?: string[];
 }
 
 interface FilterNames {
@@ -96,11 +99,52 @@ const Professionals = () => {
       // No filters - just get all publicly listed professionals (no ranking needed)
       const { data, error } = await supabase
         .from('professional_profiles')
-        .select('id, user_id, display_name, avatar_url, services_count, verification_status')
+        .select('id, user_id, display_name, avatar_url, services_count, verification_status, bio, tagline')
         .eq('is_publicly_listed', true);
 
       if (error) throw error;
-      return (data || []).map(p => ({ ...p, match_score: 0, coverage: 0 }));
+      
+      const pros: Professional[] = (data || []).map(p => ({ ...p, match_score: 0, coverage: 0 }));
+      
+      // In select mode, fetch top services for richer cards
+      if (selectMode && pros.length > 0) {
+        const userIds = pros.map(p => p.user_id).filter(Boolean) as string[];
+        if (userIds.length > 0) {
+          const { data: services } = await supabase
+            .from('professional_services')
+            .select('user_id, micro_id')
+            .in('user_id', userIds)
+            .eq('status', 'active');
+          
+          if (services?.length) {
+            const microIds = [...new Set(services.map(s => s.micro_id))];
+            const { data: micros } = await supabase
+              .from('service_micro_categories')
+              .select('id, name')
+              .in('id', microIds);
+            
+            const microMap = new Map(micros?.map(m => [m.id, m.name]) || []);
+            const userServicesMap = new Map<string, string[]>();
+            
+            for (const s of services) {
+              const name = microMap.get(s.micro_id);
+              if (name) {
+                const existing = userServicesMap.get(s.user_id) || [];
+                if (existing.length < 3) existing.push(name);
+                userServicesMap.set(s.user_id, existing);
+              }
+            }
+            
+            for (const pro of pros) {
+              if (pro.user_id) {
+                pro.top_services = userServicesMap.get(pro.user_id) || [];
+              }
+            }
+          }
+        }
+      }
+      
+      return pros;
     },
   });
 
@@ -245,39 +289,61 @@ const Professionals = () => {
             {professionals.map((pro) => (
               <Card key={pro.id} className="card-mobile-clean md:card-grounded hover:md:border-primary/50 transition-colors">
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={pro.avatar_url || undefined} alt={pro.display_name || 'Professional'} />
-                      <AvatarFallback>
-                        {(pro.display_name || 'P').charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium truncate">
-                          {pro.display_name || 'Professional'}
-                        </h3>
-                        {pro.verification_status === 'verified' && (
-                          <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                        )}
+                  <div className={selectMode ? 'space-y-3' : ''}>
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={pro.avatar_url || undefined} alt={pro.display_name || 'Professional'} />
+                        <AvatarFallback>
+                          {(pro.display_name || 'P').charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium truncate">
+                            {pro.display_name || 'Professional'}
+                          </h3>
+                          {pro.verification_status === 'verified' && (
+                            <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {t('professionals.servicesOffered', { count: pro.services_count || 0 })}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {t('professionals.servicesOffered', { count: pro.services_count || 0 })}
-                      </p>
+                      {/* Action button - Select in select mode, View otherwise */}
+                      {selectMode ? (
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleSelectProfessional(pro)}
+                          disabled={!pro.user_id}
+                        >
+                          {t('professionals.selectButton')}
+                        </Button>
+                      ) : (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to={`/professionals/${pro.id}`}>{t('professionals.viewButton')}</Link>
+                        </Button>
+                      )}
                     </div>
-                    {/* Action button - Select in select mode, View otherwise */}
-                    {selectMode ? (
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleSelectProfessional(pro)}
-                        disabled={!pro.user_id}
-                      >
-                        {t('professionals.selectButton')}
-                      </Button>
-                    ) : (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/professionals/${pro.id}`}>{t('professionals.viewButton')}</Link>
-                      </Button>
+                    
+                    {/* Expanded details in select mode */}
+                    {selectMode && (
+                      <>
+                        {(pro.bio || pro.tagline) && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {(pro.tagline || pro.bio || '').slice(0, 120)}
+                          </p>
+                        )}
+                        {pro.top_services && pro.top_services.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {pro.top_services.map((svc, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {svc}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </CardContent>

@@ -15,12 +15,15 @@ interface Props {
   onSelect: (subcategoryName: string, subcategoryId: string) => void;
   onNext?: () => void;
   onBack?: () => void;
+  /** When set, only show subcategories whose IDs are in this list (direct mode scoping) */
+  allowedSubcategoryIds?: string[];
 }
 
 export default function SubcategorySelector({
   categoryId,
   selectedSubcategoryId,
   onSelect,
+  allowedSubcategoryIds,
 }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
@@ -65,12 +68,16 @@ export default function SubcategorySelector({
     return translated || sub.name;
   };
 
+  const filtered = allowedSubcategoryIds
+    ? subcategories.filter(s => allowedSubcategoryIds.includes(s.id))
+    : subcategories;
+
   return (
     <div className="space-y-2">
-      {subcategories.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="text-muted-foreground">{t('wizard:subcategory.noSubcategories')}</p>
       ) : (
-        subcategories.map((subcategory) => {
+        filtered.map((subcategory) => {
           const isSelected = selectedSubcategoryId === subcategory.id;
           return (
             <button

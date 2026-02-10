@@ -12,9 +12,11 @@ interface Props {
   selectedCategory?: string;
   onSelect: (categoryName: string, categoryId: string) => void;
   onNext?: () => void;
+  /** When set, only show categories whose IDs are in this list (direct mode scoping) */
+  allowedCategoryIds?: string[];
 }
 
-export default function CategorySelector({ selectedCategory, onSelect, onNext }: Props) {
+export default function CategorySelector({ selectedCategory, onSelect, onNext, allowedCategoryIds }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,9 +49,13 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext }:
     return name;
   };
 
+  const filtered = allowedCategoryIds
+    ? categories.filter(c => allowedCategoryIds.includes(c.id))
+    : categories;
+
   return (
     <div className="space-y-2">
-      {categories.map((category) => {
+      {filtered.map((category) => {
         const isSelected = selectedCategory === category.name;
         return (
           <button

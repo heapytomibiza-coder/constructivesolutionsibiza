@@ -15,6 +15,8 @@ interface Props {
   selectedMicroIds: string[];
   onSelect: (microNames: string[], microIds: string[], microSlugs: string[]) => void;
   multiSelect?: boolean;
+  /** When set, only show micros whose IDs are in this list (direct mode scoping) */
+  allowedMicroIds?: string[];
 }
 
 export default function MicroStep({
@@ -22,6 +24,7 @@ export default function MicroStep({
   selectedMicroIds,
   onSelect,
   multiSelect = true,
+  allowedMicroIds,
 }: Props) {
   const { t } = useTranslation(['wizard', 'micros']);
   const [microCategories, setMicroCategories] = useState<MicroCategory[]>([]);
@@ -44,7 +47,10 @@ export default function MicroStep({
         .order("display_order");
 
       if (!error && data) {
-        setMicroCategories(data);
+        const filtered = allowedMicroIds
+          ? data.filter(m => allowedMicroIds.includes(m.id))
+          : data;
+        setMicroCategories(filtered);
       }
 
       setLoading(false);
