@@ -177,7 +177,9 @@ export default function Settings() {
             <CardDescription>Manage your notification preferences</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Coming soon</p>
+            <p className="text-sm text-muted-foreground">
+              We'll let you know when notification preferences are available.
+            </p>
           </CardContent>
         </Card>
 
