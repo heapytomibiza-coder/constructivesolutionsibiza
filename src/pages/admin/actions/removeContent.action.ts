@@ -40,7 +40,7 @@ export async function removeContent(
 
   if (deleteError) {
     console.error(`Error deleting ${contentType}:`, deleteError);
-    return { success: false, error: deleteError.message };
+    return { success: false, error: "Failed to remove content. Please try again." };
   }
 
   // Log admin action

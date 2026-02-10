@@ -22,6 +22,16 @@ export async function verifyProfessional({
     return { success: false, error: 'Not authenticated' };
   }
 
+  // Verify admin role server-side
+  const { data: hasAdmin } = await supabase.rpc("has_role", {
+    _user_id: user.id,
+    _role: "admin",
+  });
+
+  if (!hasAdmin) {
+    return { success: false, error: 'Admin access required' };
+  }
+
   const { error } = await supabase
     .from('professional_profiles')
     .update({
@@ -33,7 +43,7 @@ export async function verifyProfessional({
 
   if (error) {
     console.error('Error updating verification status:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: 'Failed to update verification status. Please try again.' };
   }
 
   // Log the action

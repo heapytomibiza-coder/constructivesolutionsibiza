@@ -52,7 +52,7 @@ const ResetPassword = () => {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       toast.error(t('resetPasswordPage.passwordTooShort'));
       return;
     }
@@ -166,7 +166,7 @@ const ResetPassword = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      minLength={6}
+                      minLength={8}
                       className="h-11 pr-10"
                       autoComplete="new-password"
                       autoFocus
@@ -192,7 +192,7 @@ const ResetPassword = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
                     className="h-11"
                     autoComplete="new-password"
                   />

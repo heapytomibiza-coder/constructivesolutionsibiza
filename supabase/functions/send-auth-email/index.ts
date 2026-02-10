@@ -56,6 +56,23 @@ const sendEmailWithSenderFallback = async ({ to, subject, html }: SendEmailArgs)
   return { usedFrom: PRIMARY_FROM, response: primary, primaryResponse: primary };
 };
 
+// Simple in-memory rate limiter
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const RATE_LIMIT_MAX = 5;
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX) return false;
+  return true;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -67,6 +84,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!email || !type) {
       throw new Error("Missing required fields: email and type");
+    }
+
+    // Rate limit by email
+    const emailKey = `email:${email.toLowerCase()}`;
+    if (!checkRateLimit(emailKey)) {
+      return new Response(
+        JSON.stringify({ success: true, message: "If an account exists, an email will be sent." }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     // Create admin client for generating links
