@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface Subcategory {
   id: string;
   name: string;
+  slug: string;
 }
 
 interface Props {
@@ -21,7 +22,7 @@ export default function SubcategorySelector({
   selectedSubcategoryId,
   onSelect,
 }: Props) {
-  const { t } = useTranslation('wizard');
+  const { t } = useTranslation(['wizard', 'common']);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +37,7 @@ export default function SubcategorySelector({
 
       const { data, error } = await supabase
         .from("service_subcategories")
-        .select("id, name")
+        .select("id, name, slug")
         .eq("category_id", categoryId)
         .eq("is_active", true)
         .order("display_order");
@@ -56,13 +57,18 @@ export default function SubcategorySelector({
   }
 
   if (loading) {
-    return <p className="text-muted-foreground">{t('subcategory.loading')}</p>;
+    return <p className="text-muted-foreground">{t('wizard:subcategory.loading')}</p>;
   }
+
+  const getSubcategoryLabel = (sub: Subcategory): string => {
+    const translated = t(`common:subcategories.${sub.slug}`, { defaultValue: '' });
+    return translated || sub.name;
+  };
 
   return (
     <div className="space-y-2">
       {subcategories.length === 0 ? (
-        <p className="text-muted-foreground">{t('subcategory.noSubcategories')}</p>
+        <p className="text-muted-foreground">{t('wizard:subcategory.noSubcategories')}</p>
       ) : (
         subcategories.map((subcategory) => {
           const isSelected = selectedSubcategoryId === subcategory.id;
@@ -77,7 +83,7 @@ export default function SubcategorySelector({
                   : 'border-border bg-card hover:border-primary/50'
               }`}
             >
-              {subcategory.name}
+              {getSubcategoryLabel(subcategory)}
             </button>
           );
         })

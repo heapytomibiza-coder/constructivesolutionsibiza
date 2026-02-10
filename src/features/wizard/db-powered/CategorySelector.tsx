@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { CATEGORY_KEYS } from "@/i18n/categoryTranslations";
 
 interface Category {
   id: string;
@@ -14,7 +15,7 @@ interface Props {
 }
 
 export default function CategorySelector({ selectedCategory, onSelect, onNext }: Props) {
-  const { t } = useTranslation('wizard');
+  const { t } = useTranslation(['wizard', 'common']);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,8 +38,14 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext }:
   }, []);
 
   if (loading) {
-    return <p className="text-muted-foreground">{t('category.loading')}</p>;
+    return <p className="text-muted-foreground">{t('wizard:category.loading')}</p>;
   }
+
+  const getCategoryLabel = (name: string): string => {
+    const key = CATEGORY_KEYS[name];
+    if (key) return t(`common:${key}`);
+    return name;
+  };
 
   return (
     <div className="space-y-2">
@@ -55,7 +62,7 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext }:
                 : 'border-border bg-card hover:border-primary/50'
             }`}
           >
-            {category.name}
+            {getCategoryLabel(category.name)}
           </button>
         );
       })}
