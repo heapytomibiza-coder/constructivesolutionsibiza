@@ -250,7 +250,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               microSlugs: [micro.slug],
             };
             targetStep = WizardStep.Questions;
-            console.log('[DeepLink] Full hierarchy validated:', microSlug, '→ Questions');
+            // Deep-link full hierarchy validated → Questions
           }
         }
       }
