@@ -1,37 +1,93 @@
 
-## Add "Change Password" to Settings Page
 
-### Why
-The Settings page currently has no way for logged-in users to change their password. This is a gap flagged in the checklist (item 8): if a user wants to update their password, there's no in-app path. The forgot-password route is behind `PublicOnlyGuard` and will redirect them to their dashboard.
+## Sitemap + Legal Page Scaffolds
 
-### What Changes
+### Production Domain
+`https://constructivesolutionsibiza.com`
 
-**File: `src/pages/settings/Settings.tsx`**
+---
 
-Add a "Security" card between the Account and Notifications sections:
+### 1. Create `public/sitemap.xml`
 
-- "Change Password" section with:
-  - New password input (with show/hide toggle)
-  - Confirm password input
-  - Submit button
-  - Uses `supabase.auth.updateUser({ password })` (same API as ResetPassword page)
-  - Validation: min 6 chars, passwords must match
-  - Success: toast confirmation
-  - Error: toast with message
+A static sitemap covering all public-facing routes:
 
-### Technical Details
+```text
+Homepage                    /
+Services                    /services
+Jobs Board                  /jobs
+Professionals               /professionals
+How It Works                /how-it-works
+Contact                     /contact
+Forum                       /forum
+Post a Job                  /post
+Privacy Policy              /privacy
+Terms of Service            /terms
+```
 
-- Uses the same `supabase.auth.updateUser()` call already proven in `ResetPassword.tsx`
-- No new dependencies needed
-- No database changes required
-- Follows existing Settings page card pattern (icon + title + description + content)
-- Uses `Shield` or `Lock` icon from lucide-react for the section header
+All URLs will use `https://constructivesolutionsibiza.com` as the base. `lastmod` set to today's date. Priority weighted: homepage 1.0, core pages 0.8, secondary 0.6.
 
-### Remaining Non-Code Items (for you to action)
+---
 
-| Item | What to do |
-|------|-----------|
-| `og-image.png` | Provide a 1200x630 branded image, place in `public/` |
-| `favicon.ico` | Provide a branded favicon, replace `public/favicon.ico` |
-| `SITE_URL` | Set this secret to your production domain (e.g., `https://csibiza.com`) so auth emails link correctly |
-| Rate limiting | Deferred to post-soft-launch hardening pass |
+### 2. Update `robots.txt`
+
+Change the existing `Sitemap:` directive from `csibiza.com` to:
+```
+Sitemap: https://constructivesolutionsibiza.com/sitemap.xml
+```
+
+---
+
+### 3. Scaffold Privacy Policy page (`src/pages/public/Privacy.tsx`)
+
+A minimal but professional page using `PublicLayout`:
+- Page title: "Privacy Policy"
+- Last updated date
+- Sections covering: information collected, how it's used, data sharing, cookies, user rights, contact
+- Content is placeholder-quality but structured correctly (not lorem ipsum -- real section headings with sensible defaults for a service marketplace)
+- Footer note: "For questions, contact us at [contact page link]"
+
+---
+
+### 4. Scaffold Terms of Service page (`src/pages/public/Terms.tsx`)
+
+Same pattern as Privacy:
+- Page title: "Terms of Service"
+- Sections: acceptance, platform description, user accounts, posting jobs, professional obligations, prohibited conduct, limitation of liability, contact
+- Real structure, soft-launch-acceptable copy
+
+---
+
+### 5. Register routes in `App.tsx`
+
+Add two new public routes before the catch-all:
+```
+/privacy  -> Privacy
+/terms    -> Terms
+```
+
+These are already linked from the footer (`PublicFooter.tsx`) and the auth page (`Auth.tsx`), so no navigation changes needed.
+
+---
+
+### 6. Update `index.html` OG URLs
+
+Update `og:image` to use the production domain path (the actual image file still needs to be provided by you).
+
+---
+
+### Summary
+
+| Change | File |
+|--------|------|
+| New file | `public/sitemap.xml` |
+| Edit | `public/robots.txt` (sitemap URL) |
+| New file | `src/pages/public/Privacy.tsx` |
+| New file | `src/pages/public/Terms.tsx` |
+| Edit | `src/App.tsx` (add 2 routes) |
+| Edit | `index.html` (OG URL base) |
+
+### Still needed from you
+- **OG image**: Drop a 1200x630 branded image into chat
+- **Favicon**: Drop a branded .ico or .png into chat
+- **SITE_URL secret**: Set to `https://constructivesolutionsibiza.com` in your environment
+- **Legal review**: The privacy/terms pages are scaffolds -- review and update the copy before hard launch
