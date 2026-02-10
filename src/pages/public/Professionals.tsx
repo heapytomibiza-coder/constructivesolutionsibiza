@@ -99,11 +99,52 @@ const Professionals = () => {
       // No filters - just get all publicly listed professionals (no ranking needed)
       const { data, error } = await supabase
         .from('professional_profiles')
-        .select('id, user_id, display_name, avatar_url, services_count, verification_status')
+        .select('id, user_id, display_name, avatar_url, services_count, verification_status, bio, tagline')
         .eq('is_publicly_listed', true);
 
       if (error) throw error;
-      return (data || []).map(p => ({ ...p, match_score: 0, coverage: 0 }));
+      
+      const pros: Professional[] = (data || []).map(p => ({ ...p, match_score: 0, coverage: 0 }));
+      
+      // In select mode, fetch top services for richer cards
+      if (selectMode && pros.length > 0) {
+        const userIds = pros.map(p => p.user_id).filter(Boolean) as string[];
+        if (userIds.length > 0) {
+          const { data: services } = await supabase
+            .from('professional_services')
+            .select('user_id, micro_id')
+            .in('user_id', userIds)
+            .eq('status', 'active');
+          
+          if (services?.length) {
+            const microIds = [...new Set(services.map(s => s.micro_id))];
+            const { data: micros } = await supabase
+              .from('service_micro_categories')
+              .select('id, name')
+              .in('id', microIds);
+            
+            const microMap = new Map(micros?.map(m => [m.id, m.name]) || []);
+            const userServicesMap = new Map<string, string[]>();
+            
+            for (const s of services) {
+              const name = microMap.get(s.micro_id);
+              if (name) {
+                const existing = userServicesMap.get(s.user_id) || [];
+                if (existing.length < 3) existing.push(name);
+                userServicesMap.set(s.user_id, existing);
+              }
+            }
+            
+            for (const pro of pros) {
+              if (pro.user_id) {
+                pro.top_services = userServicesMap.get(pro.user_id) || [];
+              }
+            }
+          }
+        }
+      }
+      
+      return pros;
     },
   });
 
