@@ -23,6 +23,7 @@ export default function SubcategorySelector({
   categoryId,
   selectedSubcategoryId,
   onSelect,
+  allowedSubcategoryIds,
 }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
