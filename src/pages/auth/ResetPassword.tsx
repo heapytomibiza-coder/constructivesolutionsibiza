@@ -166,7 +166,7 @@ const ResetPassword = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      minLength={6}
+                      minLength={8}
                       className="h-11 pr-10"
                       autoComplete="new-password"
                       autoFocus
