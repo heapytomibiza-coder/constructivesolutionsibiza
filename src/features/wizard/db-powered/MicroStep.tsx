@@ -24,6 +24,7 @@ export default function MicroStep({
   selectedMicroIds,
   onSelect,
   multiSelect = true,
+  allowedMicroIds,
 }: Props) {
   const { t } = useTranslation(['wizard', 'micros']);
   const [microCategories, setMicroCategories] = useState<MicroCategory[]>([]);
