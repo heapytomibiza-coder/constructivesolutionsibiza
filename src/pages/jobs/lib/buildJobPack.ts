@@ -90,11 +90,11 @@ export interface JobPack {
 
 // Budget range display mapping
 const BUDGET_DISPLAY: Record<string, string> = {
-  'under_500': 'Under €500',
-  '500_1000': '€500 – €1,000',
-  '1000_2500': '€1,000 – €2,500',
-  '2500_5000': '€2,500 – €5,000',
-  'over_5000': 'Over €5,000',
+  'under_500': 'Under 500 €',
+  '500_1000': '500–1,000 €',
+  '1000_2500': '1,000–2,500 €',
+  '2500_5000': '2,500–5,000 €',
+  'over_5000': 'Over 5,000 €',
   'need_quote': 'Quote needed',
 };
 
@@ -104,10 +104,10 @@ const BUDGET_DISPLAY: Record<string, string> = {
 function formatBudget(row: JobDetailsRow, answers: JobAnswers | null): string {
   // First check if we have structured budget data
   if (row.budget_type === "fixed" && row.budget_value != null) {
-    return `€${row.budget_value.toLocaleString()}`;
+    return `${row.budget_value.toLocaleString()} €`;
   }
   if (row.budget_type === "range" && row.budget_min != null && row.budget_max != null) {
-    return `€${row.budget_min.toLocaleString()} – €${row.budget_max.toLocaleString()}`;
+    return `${row.budget_min.toLocaleString()} – ${row.budget_max.toLocaleString()} €`;
   }
   
   // Check for budget range from wizard answers and humanize it
