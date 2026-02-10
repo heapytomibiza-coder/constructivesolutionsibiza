@@ -213,7 +213,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           targetStep = WizardStep.Questions;
           // Deep-link hydrated micro → Questions
         } else {
-          console.warn('[DeepLink] Micro lookup failed:', microSlug, error?.message || 'not found');
+          // Deep-link micro lookup failed - stay at conservative step
           // Stay at resolver's conservative step (Micro or Category)
         }
       }
