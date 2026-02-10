@@ -5,14 +5,10 @@ import { PLATFORM } from '@/domain/scope';
 import { Wrench, Plus, ArrowLeft, Shield } from 'lucide-react';
 
 /**
- * PROFESSIONAL SERVICES PAGE - Manage offered services
+ * PROFESSIONAL SERVICES PAGE
  * 
- * TODO: Implement service management with:
- * - Add/remove services from taxonomy
- * - Set pricing per service
- * - Service availability
- * 
- * Construction-grade professional styling.
+ * Placeholder - service management coming soon.
+ * Pros manage services via onboarding flow.
  */
 
 const ProfessionalServices = () => {

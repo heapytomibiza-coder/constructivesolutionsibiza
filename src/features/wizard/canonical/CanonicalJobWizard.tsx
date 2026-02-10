@@ -529,7 +529,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         setCurrentStep(deriveStepFromState(draft));
       }
     } catch (e) {
-      console.warn('Failed to restore draft:', e);
+      // Draft restore failed silently
     }
     markDraftChecked();
     setShowDraftModal(false);

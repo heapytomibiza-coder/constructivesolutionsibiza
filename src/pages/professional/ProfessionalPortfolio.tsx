@@ -5,14 +5,10 @@ import { PLATFORM } from '@/domain/scope';
 import { Image, Plus, ArrowLeft, Shield } from 'lucide-react';
 
 /**
- * PROFESSIONAL PORTFOLIO PAGE - Showcase past work
+ * PROFESSIONAL PORTFOLIO PAGE
  * 
- * TODO: Implement portfolio with:
- * - Photo uploads to storage
- * - Project descriptions
- * - Before/after comparisons
- * 
- * Construction-grade professional styling.
+ * Placeholder - portfolio feature coming soon.
+ * Redirects to dashboard in production.
  */
 
 const ProfessionalPortfolio = () => {
