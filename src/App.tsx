@@ -26,6 +26,8 @@ import Professionals from "./pages/public/Professionals";
 import ProfessionalDetails from "./pages/public/ProfessionalDetails";
 import HowItWorks from "./pages/public/HowItWorks";
 import Contact from "./pages/public/Contact";
+import Privacy from "./pages/public/Privacy";
+import Terms from "./pages/public/Terms";
 
 // Auth Pages
 import Auth from "./pages/auth/Auth";
