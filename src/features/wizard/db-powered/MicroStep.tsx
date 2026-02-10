@@ -23,7 +23,7 @@ export default function MicroStep({
   onSelect,
   multiSelect = true,
 }: Props) {
-  const { t } = useTranslation('wizard');
+  const { t } = useTranslation(['wizard', 'micros']);
   const [microCategories, setMicroCategories] = useState<MicroCategory[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -57,6 +57,12 @@ export default function MicroStep({
     return null;
   }
 
+  /** Get localized micro name: check micros namespace, fall back to DB name */
+  const getMicroLabel = (micro: MicroCategory): string => {
+    const translated = t(`micros:${micro.slug}`, { defaultValue: '' });
+    return translated || micro.name;
+  };
+
   const handleToggle = (micro: MicroCategory) => {
     if (multiSelect) {
       const isSelected = selectedMicroIds.includes(micro.id);
@@ -82,13 +88,13 @@ export default function MicroStep({
   return (
     <div>
       <label className="block text-sm font-medium mb-2">
-        {multiSelect ? t('micro.selectMultiple') : t('micro.selectSingle')}
+        {multiSelect ? t('wizard:micro.selectMultiple') : t('wizard:micro.selectSingle')}
       </label>
       
       {loading ? (
-        <p className="text-muted-foreground">{t('micro.loading')}</p>
+        <p className="text-muted-foreground">{t('wizard:micro.loading')}</p>
       ) : microCategories.length === 0 ? (
-        <p className="text-muted-foreground">{t('micro.noServices')}</p>
+        <p className="text-muted-foreground">{t('wizard:micro.noServices')}</p>
       ) : (
         <div className="space-y-2">
           {microCategories.map((micro) => {
@@ -106,7 +112,7 @@ export default function MicroStep({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="font-medium">{micro.name}</p>
+                    <p className="font-medium">{getMicroLabel(micro)}</p>
                     {micro.description && (
                       <p className="text-sm text-muted-foreground mt-1">
                         {micro.description}
@@ -127,7 +133,7 @@ export default function MicroStep({
       
       {multiSelect && selectedMicroIds.length > 0 && (
         <p className="mt-3 text-sm text-muted-foreground">
-          {t('micro.tasksSelected', { count: selectedMicroIds.length })}
+          {t('wizard:micro.tasksSelected', { count: selectedMicroIds.length })}
         </p>
       )}
     </div>
