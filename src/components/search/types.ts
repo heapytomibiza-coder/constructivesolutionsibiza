@@ -108,7 +108,7 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
       }
 
       // No useful data → fresh start
-      console.warn("[Search→Wizard] Micro missing all context, falling back to fresh");
+      // Micro missing all context - falling back to fresh
       return buildWizardLink({ mode: "fresh" });
     }
 

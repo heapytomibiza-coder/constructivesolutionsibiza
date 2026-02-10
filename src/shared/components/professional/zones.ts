@@ -92,7 +92,7 @@ export const getZoneById = (id: string): IbizaZone | undefined =>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Legacy Alias Map (for backwards compatibility with snake_case DB values)
-// TODO: Run migration to normalize all values, then remove this
+// Backwards compatibility with snake_case DB values
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ZONE_ALIASES: Record<string, string> = {

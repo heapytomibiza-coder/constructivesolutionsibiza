@@ -111,7 +111,7 @@ function deriveTargetStepFromParams(params: UrlParams): WizardStep {
     
     // ENFORCEMENT: step=subcategory requires category
     if (requestedStep === WizardStep.Subcategory && !params.category) {
-      console.warn('[WizardResolver] step=subcategory requested but category missing, falling back');
+      // step=subcategory requested but category missing - falling back
       return WizardStep.Category;
     }
     

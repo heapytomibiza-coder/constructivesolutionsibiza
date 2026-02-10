@@ -310,7 +310,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       try {
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(wizardState));
       } catch (e) {
-        console.warn('Failed to save wizard draft:', e);
+        // Draft save failed silently
       }
     }, 600);
     

@@ -50,7 +50,7 @@ export function useWizardDraft(wizardState: WizardState) {
       try {
         sessionStorage.setItem(STORAGE_KEY, wizardJson);
       } catch (e) {
-        console.warn('Failed to save wizard draft:', e);
+        // Draft save failed silently
       }
     }, 600);
 
