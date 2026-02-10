@@ -52,7 +52,7 @@ const ResetPassword = () => {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       toast.error(t('resetPasswordPage.passwordTooShort'));
       return;
     }
