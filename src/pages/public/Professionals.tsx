@@ -24,13 +24,16 @@ import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 
 interface Professional {
   id: string;
-  user_id?: string; // For selection mode
+  user_id?: string;
   display_name: string | null;
   avatar_url: string | null;
   services_count: number | null;
   verification_status: string | null;
   match_score?: number;
   coverage?: number;
+  bio?: string | null;
+  tagline?: string | null;
+  top_services?: string[];
 }
 
 interface FilterNames {
