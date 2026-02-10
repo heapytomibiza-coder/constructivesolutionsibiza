@@ -39,7 +39,7 @@ export async function archiveJob(
 
   if (updateError) {
     console.error("Error archiving job:", updateError);
-    return { success: false, error: updateError.message };
+    return { success: false, error: "Failed to archive job. Please try again." };
   }
 
   // Log admin action

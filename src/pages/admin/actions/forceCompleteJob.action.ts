@@ -39,7 +39,7 @@ export async function forceCompleteJob(
 
   if (updateError) {
     console.error("Error force completing job:", updateError);
-    return { success: false, error: updateError.message };
+    return { success: false, error: "Failed to complete job. Please try again." };
   }
 
   // Log admin action
