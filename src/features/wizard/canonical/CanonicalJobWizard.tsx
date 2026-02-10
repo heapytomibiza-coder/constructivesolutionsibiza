@@ -103,6 +103,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // Deep-link processing ref
   const deepLinkProcessedRef = useRef(false);
   
+  // === DIRECT MODE SCOPING ===
+  const proScope = useProServiceScope(wizardState.targetProfessionalId);
+  const isDirectMode = wizardState.dispatchMode === 'direct' && !!wizardState.targetProfessionalId;
+  
   // URL sync (only after initialization)
   useWizardUrlStep(currentStep, setCurrentStep);
   
