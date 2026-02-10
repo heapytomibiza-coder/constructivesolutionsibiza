@@ -16,7 +16,7 @@ interface Props {
   allowedCategoryIds?: string[];
 }
 
-export default function CategorySelector({ selectedCategory, onSelect, onNext }: Props) {
+export default function CategorySelector({ selectedCategory, onSelect, onNext, allowedCategoryIds }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
