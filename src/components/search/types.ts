@@ -87,7 +87,7 @@ export function buildWizardUrlFromHit(hit: SearchHit): string {
 
       // SMART LADDER: have cat+sub but missing slug → go to micro step
       if (hit.categoryId && hit.subcategoryId) {
-        console.warn("[Search→Wizard] Micro missing slug, falling back to subcategory mode");
+        // Micro missing slug - falling back to subcategory mode
         return buildWizardLink({
           mode: "subcategory",
           categoryId: hit.categoryId,
