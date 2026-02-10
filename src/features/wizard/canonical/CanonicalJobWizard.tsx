@@ -35,6 +35,7 @@ import {
   getPrevStep,
 } from './types';
 import { useWizardUrlStep } from './hooks/useWizardUrlStep';
+import { useProServiceScope } from './hooks/useProServiceScope';
 import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
 import { validateAllPacks, type ValidationErrorMap } from './lib/stepValidation';
 import {
