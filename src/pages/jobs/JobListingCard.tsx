@@ -55,12 +55,12 @@ function getSpecBadge(job: JobsBoardRow): { label: string; variant: "success" | 
 
 function formatBudget(j: JobsBoardRow): string {
   if (j.budget_type === "range" && j.budget_min != null && j.budget_max != null) {
-    return `€${j.budget_min.toLocaleString()}–€${j.budget_max.toLocaleString()}`;
+    return `${j.budget_min.toLocaleString()}–${j.budget_max.toLocaleString()} €`;
   }
   if (j.budget_type === "fixed" && j.budget_value != null) {
-    return `€${j.budget_value.toLocaleString()}`;
+    return `${j.budget_value.toLocaleString()} €`;
   }
-  if (budgetProxy(j) > 0) return `~€${budgetProxy(j).toLocaleString()}`;
+  if (budgetProxy(j) > 0) return `~${budgetProxy(j).toLocaleString()} €`;
   return "TBD";
 }
 
