@@ -337,8 +337,8 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     highlights,
     location: locationPayload,
     answers: answersPayload,
-    status: "open",
-    is_publicly_listed: true,
+    status: "ready",
+    is_publicly_listed: false,
   } as JobInsert;
 }
 

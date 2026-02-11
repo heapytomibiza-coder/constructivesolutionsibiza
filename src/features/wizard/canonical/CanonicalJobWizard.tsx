@@ -573,11 +573,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
     try {
       const payload = buildJobInsert(user.id, wizardState);
-      
-      // Save-first: always save as 'ready' and NOT publicly listed
-      payload.status = 'ready';
-      payload.is_publicly_listed = false;
-      
+
       const { data, error } = await supabase
         .from('jobs')
         .insert([payload])
