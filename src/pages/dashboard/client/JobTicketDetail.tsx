@@ -16,13 +16,10 @@ import {
   ArrowLeft,
   Globe,
   UserPlus,
-  Pencil,
-  Trash2,
   Loader2,
   MapPin,
   Calendar,
   DollarSign,
-  Briefcase,
   Clock,
   CheckCircle2,
   Eye,
@@ -111,15 +108,18 @@ export default function JobTicketDetail() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!jobId || !confirm('Are you sure you want to delete this job?')) return;
+  const handleClose = async () => {
+    if (!jobId || !confirm('Are you sure you want to close this job?')) return;
     try {
-      const { error } = await supabase.from('jobs').delete().eq('id', jobId);
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'closed' })
+        .eq('id', jobId);
       if (error) throw error;
-      toast.success('Job deleted.');
+      toast.success('Job closed.');
       navigate('/dashboard/client');
     } catch {
-      toast.error('Failed to delete job.');
+      toast.error('Failed to close job.');
     }
   };
 
@@ -167,9 +167,9 @@ export default function JobTicketDetail() {
             {statusConfig.label}
           </Badge>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive" onClick={handleDelete}>
-              <Trash2 className="h-3.5 w-3.5" />
-              Delete
+            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive" onClick={handleClose}>
+              <XCircle className="h-3.5 w-3.5" />
+              Close Job
             </Button>
           </div>
         </div>
@@ -239,6 +239,13 @@ export default function JobTicketDetail() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Fix 5: Saved banner */}
+        {job.status === 'ready' && (
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="text-sm font-medium">Saved — you can invite professionals or post publicly anytime.</p>
+          </div>
+        )}
 
         {/* Distribution Actions */}
         <Card>

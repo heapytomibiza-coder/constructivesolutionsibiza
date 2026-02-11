@@ -102,8 +102,8 @@ const isLogisticsHandled = (questionId: string): boolean => {
   return LOGISTICS_SUFFIXES.some(suffix => questionId.endsWith(suffix));
 };
 
-// Types that show as tappable tiles
-const TILE_TYPES = new Set(['radio', 'select', 'checkbox', 'single_select', 'multi_select']);
+// Types that show as tappable tiles (number also rendered but with input)
+const TILE_TYPES = new Set(['radio', 'select', 'checkbox', 'single_select', 'multi_select', 'number']);
 
 interface Props {
   microSlugs: string[];
@@ -234,27 +234,32 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
     }
   }, [packs, answers, onChange]);
 
+  // Blocked question types (text inputs not used in tile-only flow)
+  const BLOCKED_TYPES = new Set(['text', 'textarea', 'long_text']);
+
   // Build a label-based dedup map so shared questions across packs are asked only once
-  const { visibleQuestions, sharedLabelMap } = useMemo(() => {
+  const { visibleQuestions, sharedLabelMap, totalRawCount } = useMemo(() => {
+    type SharedEntry = { packSlug: string; questionId: string; question: QuestionDef };
     const questions: { pack: QuestionPack; question: QuestionDef }[] = [];
-    // Maps normalizedLabel -> all (packSlug, questionId) pairs that share it
-    const labelMap = new Map<string, { packSlug: string; questionId: string }[]>();
-    // Track which normalized labels we've already added a question for
+    const labelMap = new Map<string, SharedEntry[]>();
     const addedLabels = new Set<string>();
+    let rawCount = 0;
     
     packs.forEach(pack => {
       const packQuestions = pack.questions || [];
       
-      // Dedupe within pack
       const seen = new Set<string>();
       packQuestions.forEach(q => {
         const key = q.id?.trim();
         if (!key || seen.has(key)) return;
         if (isLogisticsHandled(q.id)) return;
         
-        // Skip text/textarea types (we want tile-only flow)
         const normalizedType = normalizeType(q.type);
-        if (!TILE_TYPES.has(normalizedType) && !TILE_TYPES.has(q.type)) return;
+        // Fix 3: blocklist instead of allowlist, allow number type
+        if (BLOCKED_TYPES.has(normalizedType) || BLOCKED_TYPES.has(q.type)) {
+          console.warn(`Blocked question type "${normalizedType}" for ${q.id}`);
+          return;
+        }
         
         // Check conditional visibility
         const dep = q.show_if || q.dependsOn;
@@ -275,31 +280,51 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
         }
         
         seen.add(key);
+        rawCount++;
         
-        // Cross-pack dedup by normalized label
-        const normalizedLabel = q.label.trim().toLowerCase();
+        // Fix 1: dedupe key priority chain
+        const baseKey =
+          (q as any).canonical_key ||
+          (q as any).dedupe_key ||
+          q.label.trim().toLowerCase();
+
+        // Fix 2: conditional questions always get pack-scoped key (skip cross-pack dedup)
+        const isConditional = Boolean(q.show_if || q.dependsOn);
+        let dedupeKey = isConditional ? `${pack.micro_slug}::${q.id}` : baseKey;
         
-        // Track all pack/question pairs for this label
-        if (!labelMap.has(normalizedLabel)) {
-          labelMap.set(normalizedLabel, []);
+        // Fix 7: conflict detection for mismatched dedup candidates
+        if (!isConditional && labelMap.has(dedupeKey)) {
+          const existing = labelMap.get(dedupeKey)![0];
+          const existingQ = existing.question;
+          const typesMatch = normalizeType(existingQ.type) === normalizeType(q.type);
+          const optionsMatch = JSON.stringify(existingQ.options) === JSON.stringify(q.options);
+          
+          if (!typesMatch || !optionsMatch) {
+            console.warn(`Question conflict for key "${dedupeKey}": different structure`);
+            dedupeKey = `${pack.micro_slug}::${q.id}`;
+          }
         }
-        labelMap.get(normalizedLabel)!.push({ packSlug: pack.micro_slug, questionId: q.id });
+        
+        // Track all pack/question pairs for this dedup key
+        if (!labelMap.has(dedupeKey)) {
+          labelMap.set(dedupeKey, []);
+        }
+        labelMap.get(dedupeKey)!.push({ packSlug: pack.micro_slug, questionId: q.id, question: q });
         
         // Only add the first occurrence to visible questions
-        if (!addedLabels.has(normalizedLabel)) {
-          addedLabels.add(normalizedLabel);
+        if (!addedLabels.has(dedupeKey)) {
+          addedLabels.add(dedupeKey);
           questions.push({ pack, question: { ...q, type: normalizeType(q.type) } });
         }
       });
     });
     
-    return { visibleQuestions: questions, sharedLabelMap: labelMap };
+    return { visibleQuestions: questions, sharedLabelMap: labelMap, totalRawCount: rawCount };
   }, [packs, answers]);
 
   const handleAnswerChange = useCallback((microSlug: string, questionId: string, value: unknown, questionLabel?: string) => {
     const microAnswers = (answers.microAnswers as Record<string, Record<string, unknown>>) || {};
     
-    // Start with the direct answer
     const updated = {
       ...microAnswers,
       [microSlug]: {
@@ -308,17 +333,25 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
       },
     };
     
-    // Sync to all packs that share the same label (cross-pack dedup)
+    // Sync to all packs that share the same dedup key
     if (questionLabel) {
-      const normalizedLabel = questionLabel.trim().toLowerCase();
-      const shared = sharedLabelMap.get(normalizedLabel);
-      if (shared && shared.length > 1) {
-        for (const { packSlug, questionId: qId } of shared) {
-          if (packSlug === microSlug && qId === questionId) continue;
-          updated[packSlug] = {
-            ...(updated[packSlug] || {}),
-            [qId]: value,
-          };
+      // Try all possible dedup keys to find the right shared group
+      const possibleKeys = [
+        (undefined as any), // placeholder
+        questionLabel.trim().toLowerCase(),
+      ];
+      
+      for (const [, entries] of sharedLabelMap) {
+        const match = entries.find(e => e.packSlug === microSlug && e.questionId === questionId);
+        if (match && entries.length > 1) {
+          for (const { packSlug, questionId: qId } of entries) {
+            if (packSlug === microSlug && qId === questionId) continue;
+            updated[packSlug] = {
+              ...(updated[packSlug] || {}),
+              [qId]: value,
+            };
+          }
+          break;
         }
       }
     }
@@ -420,6 +453,13 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
 
   return (
     <div className="flex flex-col min-h-[400px]">
+      {/* Fix 6: dedup helper note */}
+      {packs.length > 1 && totalRawCount > visibleQuestions.length && (
+        <p className="text-xs text-muted-foreground mb-2">
+          We've combined overlapping questions so you only answer once.
+        </p>
+      )}
+
       {/* Progress bar */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
@@ -461,55 +501,73 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
           </p>
         )}
 
-        {/* Tile options */}
-        <div className="grid gap-3 mt-4">
-          {question.options?.map((opt) => {
-            const option = normalizeOption(opt);
-            const isSelected = isMulti
-              ? selectedValues.includes(option.value)
-              : selectedValues === option.value;
+        {/* Tile options (for select types) */}
+        {question.type !== 'number' && (
+          <div className="grid gap-3 mt-4">
+            {question.options?.map((opt) => {
+              const option = normalizeOption(opt);
+              const isSelected = isMulti
+                ? selectedValues.includes(option.value)
+                : selectedValues === option.value;
 
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => handleTileSelect(pack, question, option.value, isMulti)}
-                className={cn(
-                  'relative w-full text-left p-4 rounded-xl border-2 transition-all duration-200',
-                  'min-h-[60px] flex items-center gap-4',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                  'active:scale-[0.98]',
-                  isSelected
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-border bg-card hover:border-primary/40 hover:shadow-sm'
-                )}
-              >
-                {/* Selection indicator */}
-                <div
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleTileSelect(pack, question, option.value, isMulti)}
                   className={cn(
-                    'flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-200',
-                    isMulti && 'rounded-lg',
+                    'relative w-full text-left p-4 rounded-xl border-2 transition-all duration-200',
+                    'min-h-[60px] flex items-center gap-4',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                    'active:scale-[0.98]',
                     isSelected
-                      ? 'border-primary bg-primary text-primary-foreground scale-110'
-                      : 'border-muted-foreground/30 bg-background'
+                      ? 'border-primary bg-primary/5 shadow-md'
+                      : 'border-border bg-card hover:border-primary/40 hover:shadow-sm'
                   )}
                 >
-                  {isSelected && <Check className="w-4 h-4" strokeWidth={3} />}
-                </div>
+                  <div
+                    className={cn(
+                      'flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-200',
+                      isMulti && 'rounded-lg',
+                      isSelected
+                        ? 'border-primary bg-primary text-primary-foreground scale-110'
+                        : 'border-muted-foreground/30 bg-background'
+                    )}
+                  >
+                    {isSelected && <Check className="w-4 h-4" strokeWidth={3} />}
+                  </div>
+                  <span
+                    className={cn(
+                      'flex-1 text-base font-medium transition-colors',
+                      isSelected ? 'text-foreground' : 'text-muted-foreground'
+                    )}
+                  >
+                    {option.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-                {/* Label */}
-                <span
-                  className={cn(
-                    'flex-1 text-base font-medium transition-colors',
-                    isSelected ? 'text-foreground' : 'text-muted-foreground'
-                  )}
-                >
-                  {option.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        {/* Number input (Fix 3) */}
+        {question.type === 'number' && (
+          <div className="mt-4">
+            <input
+              type="number"
+              value={currentValue != null ? String(currentValue) : ''}
+              onChange={(e) => {
+                const val = e.target.value === '' ? undefined : Number(e.target.value);
+                handleAnswerChange(pack.micro_slug, question.id, val, question.label);
+              }}
+              min={(question as any).min}
+              max={(question as any).max}
+              step={(question as any).step || 1}
+              placeholder={question.placeholder || ''}
+              className="w-full p-4 rounded-xl border-2 border-border bg-card text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
+            />
+          </div>
+        )}
 
         {/* Error display */}
         {errors?.[pack.micro_slug]?.[question.id] && (
