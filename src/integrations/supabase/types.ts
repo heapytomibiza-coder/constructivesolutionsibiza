@@ -281,6 +281,65 @@ export type Database = {
           },
         ]
       }
+      job_invites: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          message: string | null
+          professional_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          message?: string | null
+          professional_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          message?: string | null
+          professional_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_invites_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_invites_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_invites_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_invites_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_reviews: {
         Row: {
           comment: string | null

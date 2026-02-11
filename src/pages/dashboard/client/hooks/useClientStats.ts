@@ -40,7 +40,7 @@ export function useClientStats() {
       if (jobsError) throw jobsError;
 
       const activeJobs = jobs?.filter(j => j.status === 'open').length || 0;
-      const draftJobs = jobs?.filter(j => j.status === 'draft').length || 0;
+      const draftJobs = jobs?.filter(j => j.status === 'draft' || j.status === 'ready').length || 0;
       const inProgressJobs = jobs?.filter(j => j.status === 'in_progress').length || 0;
       const totalJobs = jobs?.length || 0;
 

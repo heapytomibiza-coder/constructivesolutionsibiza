@@ -1,22 +1,19 @@
 /**
- * Review Step - "Job Brief" Story Format
- * A clean, scannable summary that reads like a confirmation page
+ * Review Step - "Job Brief" Story Format (Save-First)
+ * A clean, scannable summary that reads like a confirmation page.
+ * No dispatch mode selection — distribution happens post-save from dashboard.
  */
 
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Pencil, Users, User, Camera, FileText } from 'lucide-react';
-import { WizardState, WizardStep, DispatchMode } from '../types';
+import { Pencil, Camera, FileText, Save } from 'lucide-react';
+import { WizardState, WizardStep } from '../types';
 import { formatBudgetRange, formatLocationDisplay, formatTiming } from '../lib/formatDisplay';
 
 interface ReviewStepProps {
   wizardState: WizardState;
   onEdit: (step: WizardStep) => void;
-  onDispatchModeChange: (mode: DispatchMode) => void;
   isAuthenticated: boolean;
 }
 
@@ -36,7 +33,6 @@ function EditLink({ onClick }: { onClick: () => void }) {
 export function ReviewStep({
   wizardState,
   onEdit,
-  onDispatchModeChange,
   isAuthenticated,
 }: ReviewStepProps) {
   const { t } = useTranslation('jobs');
@@ -46,9 +42,6 @@ export function ReviewStep({
     microNames,
     logistics,
     extras,
-    dispatchMode,
-    targetProfessionalId,
-    targetProfessionalName,
   } = wizardState;
 
   const formattedLocation = formatLocationDisplay(
@@ -142,75 +135,26 @@ export function ReviewStep({
         </CardContent>
       </Card>
 
-      {/* Dispatch Mode Selection */}
-      <Card>
-        <CardContent className="p-5 space-y-4">
-          <h4 className="text-sm font-medium text-muted-foreground">
-            {t('wizard.dispatchTitle', 'How would you like to send this job?')}
-          </h4>
-
-          <RadioGroup
-            value={dispatchMode}
-            onValueChange={(value) => onDispatchModeChange(value as DispatchMode)}
-            className="space-y-3"
-          >
-            <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-border hover:border-primary/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-              <RadioGroupItem value="broadcast" className="mt-0.5" />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  <p className="font-medium">{t('wizard.broadcastTitle', 'Post to job board')}</p>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t('wizard.broadcastDesc', 'All professionals in this category can see and respond')}
-                </p>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-border hover:border-primary/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-              <RadioGroupItem value="direct" className="mt-0.5" />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-primary" />
-                  <p className="font-medium">{t('wizard.directTitle', 'Send privately')}</p>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t('wizard.directDesc', 'Only professionals you select will receive this job')}
-                </p>
-              </div>
-            </label>
-          </RadioGroup>
-
-          {/* Selected professional (direct mode) */}
-          {dispatchMode === 'direct' && (
-            <div className="pt-3 border-t border-border">
-              {targetProfessionalId ? (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">
-                      {targetProfessionalName || t('wizard.selectedPro', 'Professional')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{t('wizard.selectedPro', 'Selected professional')}</p>
-                  </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/professionals?select=true">{t('wizard.changePro', 'Change')}</Link>
-                  </Button>
-                </div>
-              ) : (
-                <Button variant="outline" asChild className="w-full">
-                  <Link to="/professionals?select=true">{t('wizard.choosePro', 'Choose a Professional')}</Link>
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Save-first explanation */}
+      <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+        <div className="flex items-start gap-3">
+          <Save className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Your job will be saved to your dashboard
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              From there you can post it publicly, send it to matched professionals, or invite specific ones — without rewriting anything.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Auth notice */}
       {!isAuthenticated && (
         <div className="p-4 rounded-lg bg-muted/50 border border-border text-center">
           <p className="text-sm text-muted-foreground">
-            You'll need to sign in to post this job. Your progress will be saved.
+            You'll need to sign in to save this job. Your progress will be saved.
           </p>
         </div>
       )}

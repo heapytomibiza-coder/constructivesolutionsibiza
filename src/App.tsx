@@ -42,6 +42,8 @@ import JobDetailsPage from "./pages/jobs/JobDetailsPage";
 
 // Dashboards
 import ClientDashboard from "./pages/dashboard/client/ClientDashboard";
+import JobTicketDetail from "./pages/dashboard/client/JobTicketDetail";
+import MatchAndSend from "./pages/dashboard/client/MatchAndSend";
 import ProDashboard from "./pages/dashboard/professional/ProDashboard";
 
 // Messages
@@ -134,6 +136,8 @@ const App = () => {
             <Route element={<RouteGuard />}>
               {/* Client Routes */}
               <Route path="/dashboard/client" element={<ClientDashboard />} />
+              <Route path="/dashboard/jobs/:jobId" element={<JobTicketDetail />} />
+              <Route path="/dashboard/jobs/:jobId/invite" element={<MatchAndSend />} />
               
               {/* Messages (shared) */}
               <Route path="/messages" element={<Messages />} />
