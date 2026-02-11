@@ -234,14 +234,18 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
     }
   }, [packs, answers, onChange]);
 
-  // Get flattened list of visible questions
-  const visibleQuestions = useMemo(() => {
+  // Build a label-based dedup map so shared questions across packs are asked only once
+  const { visibleQuestions, sharedLabelMap } = useMemo(() => {
     const questions: { pack: QuestionPack; question: QuestionDef }[] = [];
+    // Maps normalizedLabel -> all (packSlug, questionId) pairs that share it
+    const labelMap = new Map<string, { packSlug: string; questionId: string }[]>();
+    // Track which normalized labels we've already added a question for
+    const addedLabels = new Set<string>();
     
     packs.forEach(pack => {
       const packQuestions = pack.questions || [];
       
-      // Dedupe and normalize
+      // Dedupe within pack
       const seen = new Set<string>();
       packQuestions.forEach(q => {
         const key = q.id?.trim();
@@ -271,27 +275,56 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
         }
         
         seen.add(key);
-        questions.push({ pack, question: { ...q, type: normalizeType(q.type) } });
+        
+        // Cross-pack dedup by normalized label
+        const normalizedLabel = q.label.trim().toLowerCase();
+        
+        // Track all pack/question pairs for this label
+        if (!labelMap.has(normalizedLabel)) {
+          labelMap.set(normalizedLabel, []);
+        }
+        labelMap.get(normalizedLabel)!.push({ packSlug: pack.micro_slug, questionId: q.id });
+        
+        // Only add the first occurrence to visible questions
+        if (!addedLabels.has(normalizedLabel)) {
+          addedLabels.add(normalizedLabel);
+          questions.push({ pack, question: { ...q, type: normalizeType(q.type) } });
+        }
       });
     });
     
-    return questions;
+    return { visibleQuestions: questions, sharedLabelMap: labelMap };
   }, [packs, answers]);
 
-  const handleAnswerChange = useCallback((microSlug: string, questionId: string, value: unknown) => {
+  const handleAnswerChange = useCallback((microSlug: string, questionId: string, value: unknown, questionLabel?: string) => {
     const microAnswers = (answers.microAnswers as Record<string, Record<string, unknown>>) || {};
     
-    onChange({
-      ...answers,
-      microAnswers: {
-        ...microAnswers,
-        [microSlug]: {
-          ...(microAnswers[microSlug] || {}),
-          [questionId]: value,
-        },
+    // Start with the direct answer
+    const updated = {
+      ...microAnswers,
+      [microSlug]: {
+        ...(microAnswers[microSlug] || {}),
+        [questionId]: value,
       },
-    });
-  }, [answers, onChange]);
+    };
+    
+    // Sync to all packs that share the same label (cross-pack dedup)
+    if (questionLabel) {
+      const normalizedLabel = questionLabel.trim().toLowerCase();
+      const shared = sharedLabelMap.get(normalizedLabel);
+      if (shared && shared.length > 1) {
+        for (const { packSlug, questionId: qId } of shared) {
+          if (packSlug === microSlug && qId === questionId) continue;
+          updated[packSlug] = {
+            ...(updated[packSlug] || {}),
+            [qId]: value,
+          };
+        }
+      }
+    }
+    
+    onChange({ ...answers, microAnswers: updated });
+  }, [answers, onChange, sharedLabelMap]);
 
   const getAnswer = useCallback((microSlug: string, questionId: string): unknown => {
     const microAnswers = answers.microAnswers as Record<string, Record<string, unknown>>;
@@ -312,10 +345,10 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
       const newValue = isChecked
         ? current.filter(v => v !== optionValue)
         : [...current, optionValue];
-      handleAnswerChange(pack.micro_slug, question.id, newValue);
+      handleAnswerChange(pack.micro_slug, question.id, newValue, question.label);
     } else {
       // Single select - set and auto-advance
-      handleAnswerChange(pack.micro_slug, question.id, optionValue);
+      handleAnswerChange(pack.micro_slug, question.id, optionValue, question.label);
       
       // Auto-advance after short delay
       setTimeout(() => {

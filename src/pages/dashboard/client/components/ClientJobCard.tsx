@@ -32,12 +32,25 @@ const getStatusBadgeVariant = (status: string) => {
       return 'default';
     case 'draft':
       return 'secondary';
+    case 'ready':
+      return 'secondary';
     case 'in_progress':
       return 'outline';
     case 'completed':
       return 'success' as const;
     default:
       return 'secondary';
+  }
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'ready': return 'Saved';
+    case 'open': return 'Live';
+    case 'in_progress': return 'In Progress';
+    case 'completed': return 'Completed';
+    case 'draft': return 'Draft';
+    default: return status;
   }
 };
 
@@ -93,7 +106,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         {/* Header row: Badge + timestamp */}
         <div className="flex items-center justify-between gap-2 mb-2">
           <Badge variant={getStatusBadgeVariant(job.status)}>
-            {job.status === 'in_progress' ? 'In Progress' : job.status}
+            {getStatusLabel(job.status)}
           </Badge>
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
@@ -112,6 +125,13 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             : 'Uncategorized'}
         </p>
         
+        {/* Status message for saved jobs */}
+        {job.status === 'ready' && (
+          <p className="text-xs text-muted-foreground mb-3">
+            Saved — choose how to share from the job page
+          </p>
+        )}
+        
         {/* Status message for open jobs */}
         {job.status === 'open' && !job.assigned_professional_id && (
           <p className="text-xs text-muted-foreground mb-3">
@@ -121,6 +141,13 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         
         {/* Actions row */}
         <div className="flex items-center gap-2 flex-wrap">
+          {job.status === 'ready' && (
+            <Button variant="default" size="sm" className="gap-1" asChild>
+              <Link to={`/dashboard/jobs/${job.id}`}>
+                Share Job
+              </Link>
+            </Button>
+          )}
           {job.status === 'open' && !job.assigned_professional_id && (
             <AssignProSelector jobId={job.id} onAssigned={onJobUpdated} />
           )}
@@ -136,7 +163,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             </Button>
           )}
           <Button variant="outline" size="sm" asChild>
-            <Link to={`/jobs/${job.id}`}>View</Link>
+            <Link to={job.status === 'ready' ? `/dashboard/jobs/${job.id}` : `/jobs/${job.id}`}>View</Link>
           </Button>
         </div>
       </div>

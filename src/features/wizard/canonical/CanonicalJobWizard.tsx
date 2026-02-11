@@ -551,12 +551,11 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     clearDraftChecked();
   }, []);
 
-  // === SUBMISSION ===
+  // === SUBMISSION (Save-first: always saves as 'ready', redirects to ticket detail) ===
   
   const handleSubmit = useCallback(async () => {
     // Auth check
     if (!isAuthenticated || !user) {
-      // Save current state and set redirect to resume wizard after auth
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(wizardState));
       sessionStorage.setItem('authRedirect', '/post?resume=true');
       navigate('/auth');
@@ -570,22 +569,14 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       return;
     }
 
-    // Direct mode validation
-    if (wizardState.dispatchMode === 'direct' && !wizardState.targetProfessionalId) {
-      toast.error(t('errors.selectPro'));
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
       const payload = buildJobInsert(user.id, wizardState);
       
-      // Set visibility based on dispatch mode
-      if (wizardState.dispatchMode === 'direct') {
-        payload.is_publicly_listed = false;
-        payload.assigned_professional_id = wizardState.targetProfessionalId;
-      }
+      // Save-first: always save as 'ready' and NOT publicly listed
+      payload.status = 'ready';
+      payload.is_publicly_listed = false;
       
       const { data, error } = await supabase
         .from('jobs')
@@ -594,47 +585,20 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         .single();
 
       if (error) {
-        // Check for duplicate
         if (error.code === '23505') {
           toast.info(t('toasts.duplicate'));
-          navigate('/dashboard');
+          navigate('/dashboard/client');
           return;
         }
         throw error;
       }
 
-      // For direct mode: also create conversation
-      if (wizardState.dispatchMode === 'direct' && wizardState.targetProfessionalId) {
-        const { data: convoId, error: convoError } = await supabase.rpc(
-          'create_direct_conversation',
-          {
-            p_job_id: data.id,
-            p_client_id: user.id,
-            p_pro_id: wizardState.targetProfessionalId,
-          }
-        );
-
-        if (convoError) {
-          console.error('Failed to create conversation:', convoError);
-          // Job still created, just navigate to dashboard
-          clearSession();
-          toast.warning(t('toasts.convoFailed'));
-          navigate('/dashboard');
-          return;
-        }
-
-        // Success - navigate to conversation
-        clearSession();
-        toast.success(t('toasts.directSuccess'));
-        navigate(`/messages/${convoId}`);
-        return;
-      }
-
-      // Broadcast mode: standard flow
+      // Clear wizard session
       clearSession();
-      queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
-      toast.success(t('toasts.broadcastSuccess'));
-      navigate(`/jobs?highlight=${data.id}`);
+      queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['client_stats'] });
+      toast.success('Job saved! Choose how to share it.');
+      navigate(`/dashboard/jobs/${data.id}`);
       
     } catch (error) {
       console.error('Submit error:', error);
@@ -823,7 +787,6 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             <ReviewStep
               wizardState={wizardState}
               onEdit={handleJumpToStep}
-              onDispatchModeChange={handleDispatchModeChange}
               isAuthenticated={isAuthenticated}
             />
           )}
@@ -861,12 +824,12 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               </>
             ) : isAuthenticated ? (
               <>
-                {t('buttons.submit')}
+                Save Job
                 <Check className="h-4 w-4" />
               </>
             ) : (
               <>
-                {t('buttons.signInToSubmit')}
+                Sign in to Save
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
