@@ -1,216 +1,329 @@
 
 
-# Implementation Plan: Question Deduplication + Save-First Job Flow
+# Hardening Plan: Question Dedup + Save-First Flow Fixes
 
 ## Overview
 
-Two interconnected improvements to the job wizard:
-
-**A) Question Deduplication** -- When multiple micro-services are selected, identical questions from different packs are asked repeatedly. Fix: merge questions by label so each is asked only once.
-
-**B) Save-First Job Flow** -- Currently the wizard immediately posts/sends on submit. Fix: always save the ticket first (status="ready"), then let the user choose distribution from their dashboard ticket page. The ticket is reusable -- they can invite more pros or post publicly later without rewriting.
+This plan addresses 7 specific issues identified in the first-pass implementation, prioritized by breakage risk.
 
 ---
 
-## Part A: Question Deduplication
+## Fix 1: Dedupe Key Priority (fragile label-only matching)
 
-### The Problem
+**Problem**: Currently deduping by `q.label.trim().toLowerCase()` only. Will break when labels are tweaked or translated.
 
-Database evidence: `ac-installation` and `ac-servicing` both contain questions with identical labels ("What do you need?", "Property type", "How many units or areas?") but different IDs (`ac_installation_01_task` vs `ac_servicing_01_task`). When both are selected, the user sees each question twice.
+**File**: `src/features/wizard/canonical/steps/QuestionsStep.tsx` (line 280)
 
-### The Fix
+**Change**: Replace the single normalizedLabel line with a priority chain:
 
-Deduplicate questions by **normalized label** across all packs before rendering. When two packs share a question label, show it once. The answer is stored under a shared canonical key and copied to both micro-slug answer buckets so downstream systems (job cards, pro briefing) still work.
+```
+const dedupeKey =
+  (q as any).canonical_key ||
+  (q as any).dedupe_key ||
+  q.label.trim().toLowerCase();
+```
 
-### Technical Changes
-
-**File: `src/features/wizard/canonical/steps/QuestionsStep.tsx`**
-
-Change the `visibleQuestions` memo (around line 238) to:
-
-1. Collect all questions from all packs (as it does now)
-2. Before pushing to the array, normalize the label (lowercase, trim)
-3. If a question with that normalized label has already been added, skip it but record the mapping (so the answer gets copied to all matching pack/question pairs)
-4. Store a `sharedWith` map: `normalizedLabel -> [{packSlug, questionId}]`
-
-When an answer changes:
-
-1. Look up the canonical label for the answered question
-2. Copy the answer value to all other pack/question pairs that share that label
-3. This ensures `answers.microAnswers['ac-installation']['ac_installation_03_property']` and `answers.microAnswers['ac-servicing']['ac_servicing_03_property']` always stay in sync
-
-**No database changes required.** This is purely a frontend rendering + answer-sync fix.
-
-### User Experience
-
-- When multiple micros are selected, the question count drops (e.g. 16 down to 8-10)
-- A small note appears: "We've combined overlapping questions so you only answer once."
-- Micro-specific questions that truly differ still appear normally
+Use `dedupeKey` everywhere that currently uses `normalizedLabel` (in `labelMap`, `addedLabels`, and `handleAnswerChange`).
 
 ---
 
-## Part B: Save-First Job Flow + Ticket Reuse
+## Fix 2: Skip dedup for conditional questions
 
-### Current Behaviour
+**Problem**: Questions with `show_if` or `dependsOn` evaluate visibility against their own pack's answers. When deduped cross-pack, the "canonical" question might belong to pack A while the dependency is satisfied in pack B, causing inconsistent visibility.
 
-1. Wizard Review step shows "Post to job board" or "Send privately"
-2. Submit button immediately creates the job with `status='open'` and `is_publicly_listed=true/false`
-3. User is redirected to `/jobs` (broadcast) or `/messages` (direct)
-4. No way to reuse the ticket or change distribution later
+**File**: `src/features/wizard/canonical/steps/QuestionsStep.tsx` (inside the `useMemo` block, around line 260)
 
-### New Behaviour
-
-1. Wizard Review step button becomes **"Save Job"** (not "Post" or "Submit")
-2. On save: job is created with `status='ready'` and `is_publicly_listed=false`
-3. User is redirected to a new **Ticket Detail page** (`/dashboard/jobs/:id`)
-4. From the Ticket Detail page, user can:
-   - **Post to Job Board** (sets `status='open'`, `is_publicly_listed=true`)
-   - **Invite Specific Professionals** (opens Match and Send screen)
-   - Edit the ticket
-   - Close/delete the ticket
-5. The ticket is always saved and reusable
-
-### Database Changes
-
-**Migration: Add `ready` to job status workflow**
-
-No schema change needed -- `status` is already a `text` column with no CHECK constraint. The value `'ready'` just needs to be recognized by the application code.
-
-**New table: `job_invites`** (for direct invitations)
+**Change**: Before computing the dedupeKey, check if the question has conditional logic. If it does, treat it as unique (skip cross-pack dedup):
 
 ```
-id              uuid PRIMARY KEY DEFAULT gen_random_uuid()
-job_id          uuid NOT NULL REFERENCES jobs(id)
-professional_id uuid NOT NULL
-message         text
-status          text NOT NULL DEFAULT 'sent'  -- sent, viewed, accepted, declined
-created_at      timestamptz NOT NULL DEFAULT now()
-updated_at      timestamptz NOT NULL DEFAULT now()
-UNIQUE(job_id, professional_id)
+// Conditional questions: don't dedupe cross-pack (MVP safe)
+if ((q.show_if || q.dependsOn) && packs.length > 1) {
+  // Use a pack-scoped key so it's unique per pack
+  dedupeKey = `${pack.micro_slug}::${q.id}`;
+}
 ```
 
-RLS policies:
-- Job owner can INSERT, SELECT, UPDATE their own invites
-- Invited professional can SELECT and UPDATE (accept/decline) their invites
-- No DELETE (soft status management only)
+This ensures conditional questions always appear when their own pack's dependency is met, without cross-pack interference.
 
-### Frontend Changes
+---
 
-**1. Review Step (`ReviewStep.tsx`)**
+## Fix 3: Allow number input type (not just tiles)
 
-- Remove the "Post to job board" / "Send privately" radio group
-- Replace with a simple confirmation summary
-- Button text: "Save Job" (authenticated) or "Sign in to Save" (unauthenticated)
+**Problem**: Line 257 filters out anything not in `TILE_TYPES`. This silently drops `number` inputs (measurements, quantities, unit counts) which are valid question types.
 
-**2. Wizard Submit (`CanonicalJobWizard.tsx` handleSubmit)**
+**File**: `src/features/wizard/canonical/steps/QuestionsStep.tsx` (line 256-257)
 
-- Change: insert job with `status: 'ready'`, `is_publicly_listed: false`
-- Remove: direct conversation creation logic (moves to Ticket Detail)
-- Remove: dispatch mode from wizard state (distribution happens post-save)
-- Redirect to: `/dashboard/jobs/${jobId}`
+**Change**: Add `'number'` to the allowed types check, or better yet, create an explicit blocklist instead of an allowlist:
 
-**3. New Page: Ticket Detail (`/dashboard/jobs/:id`)**
+```
+const BLOCKED_TYPES = new Set(['text', 'textarea', 'long_text']);
+// Replace the TILE_TYPES check with:
+if (BLOCKED_TYPES.has(normalizedType) || BLOCKED_TYPES.has(q.type)) return;
+```
 
-Layout:
-- Job summary card (category, services, location, budget, timing)
-- Status badge: "Saved -- Not shared yet" / "Live" / "In Progress"
-- Action buttons:
-  - "Post to Job Board" -- updates `status='open'`, `is_publicly_listed=true`
-  - "Invite Professionals" -- navigates to Match and Send screen
-  - "Edit Job" -- navigates back to wizard with job data pre-filled
-- Activity section (after sharing): shows invites sent and their statuses
+Add a basic number input renderer in the question rendering section (after the tile grid) for `type === 'number'` questions, with min/max/step support.
 
-**4. New Page: Match and Send (`/dashboard/jobs/:id/invite`)**
+---
 
-Layout:
-- Sticky ticket summary bar at top
-- List of matched professionals (uses existing `professional_matching_scores` view filtered by job's micro_slug + zone)
-- Each pro card shows: name, rating, relevant services, zones covered
-- "View Profile" opens a slide-over drawer (no page navigation)
-- "Invite" button sends the saved job to that professional (creates `job_invite` row)
-- Can invite multiple professionals without leaving
+## Fix 4: Soft-delete instead of hard delete on Ticket Detail
 
-**5. Client Dashboard Updates**
+**Problem**: `JobTicketDetail.tsx` uses `supabase.from('jobs').delete()` with a `confirm()` dialog. This breaks audit trails and orphans related invites/conversations.
 
-- Show jobs with `status='ready'` under "Saved Jobs" section
-- Add "Invite more" / "Post publicly" quick actions on job cards
-- Update `ClientJobCard` to handle the `ready` status
+**File**: `src/pages/dashboard/client/JobTicketDetail.tsx` (the `handleDelete` function)
 
-**6. Professional Side**
+**Change**: Replace the hard delete with a status update to `'closed'`:
 
-- New query: fetch invites for the logged-in professional
-- Show invites in Pro Dashboard with Accept/Decline actions
-- Accepting an invite creates a conversation (reuses existing `get_or_create_conversation` RPC)
+```typescript
+const handleClose = async () => {
+  if (!jobId || !confirm('Are you sure you want to close this job?')) return;
+  try {
+    const { error } = await supabase
+      .from('jobs')
+      .update({ status: 'closed' })
+      .eq('id', jobId);
+    if (error) throw error;
+    toast.success('Job closed.');
+    navigate('/dashboard/client');
+  } catch {
+    toast.error('Failed to close job.');
+  }
+};
+```
 
-### Route Changes
+Update the button label from "Delete" to "Close Job" and change the icon from `Trash2` to `XCircle`.
 
-| Route | Purpose |
+---
+
+## Fix 5: Add "Saved" banner on Ticket Detail page
+
+**Problem**: No explicit reassurance when user lands on the ticket page after saving.
+
+**File**: `src/pages/dashboard/client/JobTicketDetail.tsx`
+
+**Change**: Add a banner when `job.status === 'ready'` above the distribution actions:
+
+```
+{job.status === 'ready' && (
+  <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+    <p className="text-sm font-medium">Saved -- you can invite professionals or post publicly anytime.</p>
+  </div>
+)}
+```
+
+---
+
+## Fix 6: Add dedup helper note in QuestionsStep
+
+**Problem**: When questions are merged, the user has no indication that the system is being smart.
+
+**File**: `src/features/wizard/canonical/steps/QuestionsStep.tsx`
+
+**Change**: When `packs.length > 1` and the deduped count is less than total raw count, show a note above the progress bar:
+
+```
+{packs.length > 1 && totalRawCount > visibleQuestions.length && (
+  <p className="text-xs text-muted-foreground mb-2">
+    We've combined overlapping questions so you only answer once.
+  </p>
+)}
+```
+
+Compute `totalRawCount` as the sum of all pack question counts (after logistics/type filtering) inside the `useMemo`.
+
+---
+
+## Fix 7: Add conflict detection for mismatched dedup candidates
+
+**Problem**: Two questions could share a dedupe key but differ in type, options, or required status, leading to silent data corruption.
+
+**File**: `src/features/wizard/canonical/steps/QuestionsStep.tsx` (inside the `useMemo`, when a duplicate key is found)
+
+**Change**: When adding to `labelMap` for an existing key, compare the new question's `type` and `options` against the first entry. If they differ, use a pack-scoped key instead (treating them as distinct):
+
+```
+const existing = labelMap.get(dedupeKey)![0];
+const existingQ = existing.question;
+const typesMatch = normalizeType(existingQ.type) === normalizeType(q.type);
+const optionsMatch = JSON.stringify(existingQ.options) === JSON.stringify(q.options);
+
+if (!typesMatch || !optionsMatch) {
+  // Conflict: treat as unique question
+  console.warn(`Question conflict for key "${dedupeKey}": different structure`);
+  const scopedKey = `${pack.micro_slug}::${q.id}`;
+  labelMap.set(scopedKey, [{ packSlug: pack.micro_slug, questionId: q.id }]);
+  questions.push({ pack, question: { ...q, type: normalizeType(q.type) } });
+  continue; // or equivalent flow control
+}
+```
+
+This requires storing the question object in the labelMap entries (adding a `question` field alongside `packSlug` and `questionId`).
+
+---
+
+## Summary of Files Modified
+
+| File | Changes |
 |---|---|
-| `/dashboard/jobs/:id` | Ticket Detail page |
-| `/dashboard/jobs/:id/invite` | Match and Send screen |
+| `src/features/wizard/canonical/steps/QuestionsStep.tsx` | Fixes 1, 2, 3, 6, 7 -- dedupe key priority, conditional skip, number type, helper note, conflict detection |
+| `src/pages/dashboard/client/JobTicketDetail.tsx` | Fixes 4, 5 -- soft-delete, saved banner |
 
-### Implementation Order
+## Implementation Order
 
-1. Question deduplication (Part A) -- standalone, no dependencies
-2. Database migration: `job_invites` table + RLS
-3. Wizard submission change (save as `ready`)
-4. Ticket Detail page
-5. Match and Send page with profile drawer
-6. Client Dashboard updates (ready status, invite actions)
-7. Professional invite inbox
+1. Fix 1 + 2 + 7 together (all in dedup `useMemo` block)
+2. Fix 3 (type filtering + number renderer)
+3. Fix 6 (dedup note UI)
+4. Fix 4 + 5 together (ticket detail hardening)
+
+No database migrations required. All changes are frontend-only.
+
+This hardening plan is **excellent** — it’s clear, scoped, and in the right order. I’d only tweak **two details** so it doesn’t introduce new bugs, and I’ll rewrite the key parts as **final “drop-in” guidance**.
 
 ---
 
-## Technical Details
+## ✅ Two important tweaks
 
-### Question Dedup Algorithm
+### Tweak A — Fix 2: don’t try to assign to `dedupeKey` after `const`
 
-```text
-Input: packs[] (each has micro_slug + questions[])
-Output: uniqueQuestions[] with sharedWith map
+In your Fix 2 snippet you set `dedupeKey = ...` but Fix 1 declares it as `const`. Make it:
 
-labelMap = new Map<normalizedLabel, {packSlug, questionId, question}[]>
+* compute `dedupeKey` with `let` **or**
+* compute `baseKey` then override to `scopedKey`
 
-for each pack in packs:
-  for each question in pack.questions:
-    key = question.label.trim().toLowerCase()
-    if labelMap.has(key):
-      labelMap.get(key).push({pack.micro_slug, question.id, question})
-    else:
-      labelMap.set(key, [{pack.micro_slug, question.id, question}])
-      uniqueQuestions.push(first entry)
+Recommended pattern (cleanest):
 
-On answer change for (slug, qId, value):
-  find all entries sharing the same label
-  copy value to all of them in microAnswers
+```ts
+const baseKey =
+  (q as any).canonical_key ||
+  (q as any).dedupe_key ||
+  q.label.trim().toLowerCase();
+
+const isConditional = Boolean(q.show_if || q.dependsOn);
+const dedupeKey = isConditional ? `${pack.micro_slug}::${q.id}` : baseKey;
 ```
 
-### Job Status State Machine
+No mutation, no TS complaints.
 
-```text
-ready --> open (posted to board)
-ready --> ready (invites sent, but not public)
-open  --> in_progress (pro assigned)
-ready --> in_progress (invite accepted)
-*     --> closed (user cancels)
-in_progress --> completed
+---
+
+### Tweak B — Fix 3: don’t blocklist “text” forever unless you’re certain
+
+Your blocklist is fine as MVP, but if you ever introduce *short text* questions (brand/model, serial, etc.) they’ll silently vanish again.
+
+Safer MVP rule:
+
+* Allow `number` now ✅
+* Keep text blocked ✅ **but** add a warning so you don’t forget:
+
+```ts
+if (BLOCKED_TYPES.has(normalizedType)) {
+  console.warn(`Blocked question type "${normalizedType}" for ${q.id}`);
+  return;
+}
 ```
 
-### Files to Create
+That way you’ll spot missing questions during testing.
 
-- `src/pages/dashboard/client/JobTicketDetail.tsx`
-- `src/pages/dashboard/client/MatchAndSend.tsx`
-- `src/pages/dashboard/client/components/ProProfileDrawer.tsx`
-- `src/pages/dashboard/client/hooks/useJobInvites.ts`
-- `src/pages/dashboard/professional/hooks/useProInvites.ts`
+---
 
-### Files to Modify
+## ✅ One correction: DB migration *is required* if `job_invites` doesn’t exist yet
 
-- `src/features/wizard/canonical/steps/QuestionsStep.tsx` (dedup logic)
-- `src/features/wizard/canonical/steps/ReviewStep.tsx` (remove dispatch choice, simplify to Save)
-- `src/features/wizard/canonical/CanonicalJobWizard.tsx` (submit as ready, redirect to ticket)
-- `src/features/wizard/canonical/types.ts` (simplify -- dispatchMode becomes post-save concern)
-- `src/pages/dashboard/client/ClientDashboard.tsx` (show ready jobs, add actions)
-- `src/pages/dashboard/client/components/ClientJobCard.tsx` (handle ready status)
-- `src/App.tsx` (new routes)
+Your summary says “No database migrations required. All changes are frontend-only.”
+
+That’s only true **if** `job_invites` is already deployed with RLS.
+
+If not, then:
+
+* Part A hardening = frontend-only ✅
+* Ticket page hardening = frontend-only ✅
+* Invites feature = requires DB migration ✅
+
+So just adjust that line to:
+
+> “No additional migrations required beyond the existing `job_invites` migration.”
+
+---
+
+## ✅ Final recommended implementation (exact structure)
+
+### QuestionsStep.tsx — inside the useMemo loop
+
+Use this consistent decision order:
+
+1. Filter logistics + blocked types
+2. Evaluate conditional visibility (as you already do)
+3. Decide `dedupeKey` (conditional → pack-scoped)
+4. Conflict-check duplicates
+5. Push first unique into `visibleQuestions`
+6. Always add mapping for answer sync
+
+**Key data structure change required for Fix 7:**
+`labelMap` entries must store the **question object** for the first representative.
+
+Example entry:
+
+```ts
+type SharedEntry = {
+  packSlug: string;
+  questionId: string;
+  question: QuestionDef;
+};
+
+const labelMap = new Map<string, SharedEntry[]>();
+```
+
+Then conflict detection can compare against `labelMap.get(dedupeKey)![0].question`.
+
+---
+
+## ✅ Your 7 fixes, validated
+
+### Fix 1 (dedupe key priority)
+
+✅ Correct and necessary.
+
+### Fix 2 (skip dedupe for conditional questions)
+
+✅ Correct (MVP safe).
+I’d remove the `packs.length > 1` check though — it’s harmless to always scope conditional questions even with 1 pack.
+
+### Fix 3 (allow number input)
+
+✅ Correct. Blocklist approach is good.
+
+### Fix 4 (soft delete → close)
+
+✅ Correct. Rename UI to “Close Job”.
+
+### Fix 5 (Saved banner)
+
+✅ Correct. Great UX reassurance.
+
+### Fix 6 (dedupe helper note)
+
+✅ Correct. Helps users trust the system.
+
+### Fix 7 (conflict detection)
+
+✅ Correct. Prevents silent corruption.
+Your “scopedKey fallback” is the right behaviour.
+
+---
+
+## ✅ Quick acceptance tests after hardening
+
+### Dedup
+
+* Select 2 micros with shared questions → shared questions appear once
+* Answer shared question → both micro answers get filled
+* Conditional question in pack B only → still shows when pack B dependency satisfied
+* Two different question structures sharing dedupeKey → both show (warning logged)
+
+### Ticket page
+
+* `ready` job shows banner
+* Close job changes status to closed and returns to dashboard
+* No deletes performed
+
+
+
 
