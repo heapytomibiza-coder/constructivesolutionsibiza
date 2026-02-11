@@ -235,7 +235,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
   }, [packs, answers, onChange]);
 
   // Blocked question types (text inputs not used in tile-only flow)
-  const BLOCKED_TYPES = new Set(['text', 'textarea', 'long_text']);
+  const BLOCKED_TYPES = new Set(['text', 'textarea', 'long_text', 'file']);
 
   // Build a label-based dedup map so shared questions across packs are asked only once
   const { visibleQuestions, sharedLabelMap, totalRawCount, pairToKey } = useMemo(() => {
