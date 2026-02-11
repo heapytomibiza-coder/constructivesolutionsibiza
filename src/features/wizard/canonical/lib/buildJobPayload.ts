@@ -6,6 +6,7 @@
 
 import type { TablesInsert, Json } from '@/integrations/supabase/types';
 import type { WizardState } from '../types';
+import { getZoneByIdSafe } from '@/shared/components/professional/zones';
 
 type JobInsert = TablesInsert<"jobs">;
 
@@ -51,11 +52,15 @@ function buildLocationJson(logistics: WizardState['logistics']): Json {
     };
   }
 
+  // Try centralized zones first, fall back to legacy map
+  const zone = getZoneByIdSafe(preset);
   const mapped = LOCATION_MAP[preset];
+  const area = zone?.label ?? mapped?.area ?? "Ibiza";
+  const town = mapped?.town ?? null;
   return {
     preset,
-    area: mapped?.area ?? "Ibiza",
-    town: mapped?.town ?? null,
+    area,
+    town,
     custom: null,
     zone: null,
     notes: null,
@@ -204,7 +209,9 @@ function mapLocationToArea(location?: string, customLocation?: string): string |
   if (location === 'other') {
     return customLocation?.trim() || null;
   }
-  return LOCATION_MAP[location]?.area || null;
+  // Use centralized zones lookup (handles both kebab-case and legacy snake_case)
+  const zone = getZoneByIdSafe(location);
+  return zone?.label || LOCATION_MAP[location]?.area || null;
 }
 
 /**
