@@ -238,10 +238,11 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
   const BLOCKED_TYPES = new Set(['text', 'textarea', 'long_text']);
 
   // Build a label-based dedup map so shared questions across packs are asked only once
-  const { visibleQuestions, sharedLabelMap, totalRawCount } = useMemo(() => {
+  const { visibleQuestions, sharedLabelMap, totalRawCount, pairToKey } = useMemo(() => {
     type SharedEntry = { packSlug: string; questionId: string; question: QuestionDef };
     const questions: { pack: QuestionPack; question: QuestionDef }[] = [];
     const labelMap = new Map<string, SharedEntry[]>();
+    const reverseLookup = new Map<string, string>(); // "${packSlug}::${questionId}" -> dedupeKey
     const addedLabels = new Set<string>();
     let rawCount = 0;
     
@@ -311,6 +312,9 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
         }
         labelMap.get(dedupeKey)!.push({ packSlug: pack.micro_slug, questionId: q.id, question: q });
         
+        // Patch A: build fast reverse lookup
+        reverseLookup.set(`${pack.micro_slug}::${q.id}`, dedupeKey);
+        
         // Only add the first occurrence to visible questions
         if (!addedLabels.has(dedupeKey)) {
           addedLabels.add(dedupeKey);
@@ -319,10 +323,10 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
       });
     });
     
-    return { visibleQuestions: questions, sharedLabelMap: labelMap, totalRawCount: rawCount };
+    return { visibleQuestions: questions, sharedLabelMap: labelMap, totalRawCount: rawCount, pairToKey: reverseLookup };
   }, [packs, answers]);
 
-  const handleAnswerChange = useCallback((microSlug: string, questionId: string, value: unknown, questionLabel?: string) => {
+  const handleAnswerChange = useCallback((microSlug: string, questionId: string, value: unknown) => {
     const microAnswers = (answers.microAnswers as Record<string, Record<string, unknown>>) || {};
     
     const updated = {
@@ -333,31 +337,22 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
       },
     };
     
-    // Sync to all packs that share the same dedup key
-    if (questionLabel) {
-      // Try all possible dedup keys to find the right shared group
-      const possibleKeys = [
-        (undefined as any), // placeholder
-        questionLabel.trim().toLowerCase(),
-      ];
-      
-      for (const [, entries] of sharedLabelMap) {
-        const match = entries.find(e => e.packSlug === microSlug && e.questionId === questionId);
-        if (match && entries.length > 1) {
-          for (const { packSlug, questionId: qId } of entries) {
-            if (packSlug === microSlug && qId === questionId) continue;
-            updated[packSlug] = {
-              ...(updated[packSlug] || {}),
-              [qId]: value,
-            };
-          }
-          break;
-        }
+    // Patch B: constant-time cross-pack sync via pairToKey
+    const pairKey = `${microSlug}::${questionId}`;
+    const dedupeKey = pairToKey.get(pairKey);
+    const shared = dedupeKey ? sharedLabelMap.get(dedupeKey) : null;
+    if (shared && shared.length > 1) {
+      for (const { packSlug, questionId: qId } of shared) {
+        if (packSlug === microSlug && qId === questionId) continue;
+        updated[packSlug] = {
+          ...(updated[packSlug] || {}),
+          [qId]: value,
+        };
       }
     }
     
     onChange({ ...answers, microAnswers: updated });
-  }, [answers, onChange, sharedLabelMap]);
+  }, [answers, onChange, sharedLabelMap, pairToKey]);
 
   const getAnswer = useCallback((microSlug: string, questionId: string): unknown => {
     const microAnswers = answers.microAnswers as Record<string, Record<string, unknown>>;
@@ -378,10 +373,10 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
       const newValue = isChecked
         ? current.filter(v => v !== optionValue)
         : [...current, optionValue];
-      handleAnswerChange(pack.micro_slug, question.id, newValue, question.label);
+      handleAnswerChange(pack.micro_slug, question.id, newValue);
     } else {
       // Single select - set and auto-advance
-      handleAnswerChange(pack.micro_slug, question.id, optionValue, question.label);
+      handleAnswerChange(pack.micro_slug, question.id, optionValue);
       
       // Auto-advance after short delay
       setTimeout(() => {
@@ -446,10 +441,12 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
   const current = visibleQuestions[currentIndex];
   const { pack, question } = current;
   const isMulti = question.type === 'checkbox' || question.type === 'multi_select';
+  const isNumber = question.type === 'number';
   const currentValue = getAnswer(pack.micro_slug, question.id);
   const selectedValues = isMulti 
     ? (Array.isArray(currentValue) ? currentValue as string[] : [])
     : (currentValue as string) || '';
+  const hasAnswer = isNumber ? currentValue != null && currentValue !== '' : isMulti ? selectedValues.length > 0 : !!selectedValues;
 
   return (
     <div className="flex flex-col min-h-[400px]">
@@ -558,7 +555,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
               value={currentValue != null ? String(currentValue) : ''}
               onChange={(e) => {
                 const val = e.target.value === '' ? undefined : Number(e.target.value);
-                handleAnswerChange(pack.micro_slug, question.id, val, question.label);
+                handleAnswerChange(pack.micro_slug, question.id, val);
               }}
               min={(question as any).min}
               max={(question as any).max}
@@ -578,9 +575,10 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
         )}
       </div>
 
-      {/* Continue button for multi-select, or when on last question with answer */}
-      {((isMulti && selectedValues.length > 0 && currentIndex < visibleQuestions.length - 1) || 
-        (currentIndex === visibleQuestions.length - 1 && (isMulti ? selectedValues.length > 0 : !!selectedValues))) && (
+      {/* Continue button for multi-select, number inputs, or last question */}
+      {((isMulti && hasAnswer && currentIndex < visibleQuestions.length - 1) ||
+        (isNumber && hasAnswer) ||
+        (currentIndex === visibleQuestions.length - 1 && hasAnswer)) && (
         <div className="mt-6 pt-4 border-t">
           <Button
             onClick={currentIndex < visibleQuestions.length - 1 ? goNext : onComplete}
