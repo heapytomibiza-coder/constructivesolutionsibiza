@@ -593,8 +593,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       clearSession();
       queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
       queryClient.invalidateQueries({ queryKey: ['client_stats'] });
-      toast.success('Job saved! Choose how to share it.');
-      navigate(`/dashboard/jobs/${data.id}`);
+      toast.success('Job posted! View it on the job board.');
+      navigate('/jobs');
       
     } catch (error) {
       console.error('Submit error:', error);
