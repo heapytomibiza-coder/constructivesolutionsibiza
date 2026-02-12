@@ -175,6 +175,11 @@ export default function AdminDashboard() {
           <TabsContent value="support">
             <SupportInbox />
           </TabsContent>
+
+          {/* Link Map Tab */}
+          <TabsContent value="linkmap">
+            <LinkMapSection />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
