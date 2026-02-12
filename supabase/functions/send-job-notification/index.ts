@@ -171,6 +171,61 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // After sending admin notifications, enqueue job match emails for matching pros
+    for (const item of queue) {
+      if (item.sent_at) continue; // skip items that weren't processed
+      try {
+        // Load job to get micro_slug
+        const { data: job } = await supabaseAdmin
+          .from("jobs")
+          .select("id, title, category, area, budget_type, budget_value, budget_min, budget_max, start_timing, micro_slug")
+          .eq("id", item.job_id)
+          .single();
+
+        if (!job?.micro_slug) continue;
+
+        // Find matching pros via micro_slug → micro_id → professional_services
+        const { data: microCat } = await supabaseAdmin
+          .from("service_micro_categories")
+          .select("id")
+          .eq("slug", job.micro_slug)
+          .eq("is_active", true)
+          .single();
+
+        if (!microCat) continue;
+
+        const { data: matchingPros } = await supabaseAdmin
+          .from("professional_services")
+          .select("user_id")
+          .eq("micro_id", microCat.id)
+          .eq("status", "offered");
+
+        if (!matchingPros || matchingPros.length === 0) continue;
+
+        const budget = formatBudget(job);
+        for (const pro of matchingPros) {
+          // Don't notify the job poster
+          if (pro.user_id === job.user_id) continue;
+          await supabaseAdmin
+            .from("email_notifications_queue")
+            .insert({
+              event_type: "job_match",
+              recipient_user_id: pro.user_id,
+              payload: {
+                job_id: job.id,
+                title: job.title,
+                category: job.category,
+                area: job.area || "Ibiza",
+                budget,
+                timing: job.start_timing || "Flexible",
+              },
+            });
+        }
+      } catch (matchErr) {
+        console.error("Job match enqueue error:", matchErr);
+      }
+    }
+
     return new Response(
       JSON.stringify({ processed: queue.length, sent }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }

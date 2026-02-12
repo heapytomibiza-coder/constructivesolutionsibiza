@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.send-job-notification]
 verify_jwt = false
+
+[functions.send-notifications]
+verify_jwt = false
