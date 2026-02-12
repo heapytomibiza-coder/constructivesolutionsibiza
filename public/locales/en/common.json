@@ -255,9 +255,9 @@
     "subtitle": "Simple. Structured. Built for Ibiza's construction community.",
     "trustBadge": "Guided process • Service-based matching • Ibiza only",
     "overviewTitle": "Three Steps. No Confusion.",
-    "overviewDesc": "TM Direct connects people who need work done with the right professionals — through a guided wizard that removes guesswork and saves everyone time.",
+    "overviewDesc": "Constructive Solutions Ibiza connects people who need work done with the right professionals — through a simple guided process that removes guesswork and saves everyone time.",
     "ov1Title": "Post Your Job",
-    "ov1Desc": "Use the guided wizard to describe exactly what you need. No long paragraphs — just clear, tick-box questions.",
+    "ov1Desc": "Use the step-by-step guide to describe exactly what you need. No long paragraphs — just clear, tick-box questions.",
     "ov2Title": "Get Matched",
     "ov2Desc": "Relevant professionals are notified instantly based on their selected services and preferences.",
     "ov3Title": "Connect & Complete",
@@ -299,7 +299,7 @@
       },
       "howLong": {
         "q": "How long does it take to post a job?",
-        "a": "Usually 1–2 minutes. The wizard guides you through simple tick-box questions."
+        "a": "Usually 1–2 minutes. The step-by-step guide walks you through simple tick-box questions."
       },
       "isFree": {
         "q": "Is posting a job free?",

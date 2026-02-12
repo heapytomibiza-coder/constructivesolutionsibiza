@@ -1,7 +1,7 @@
  {
    "board": {
      "title": "Job Board",
-     "subtitle": "Browse open jobs with full specs from the wizard",
+     "subtitle": "Browse open jobs with full specs from the guided process",
      "findWork": "Find work fast",
      "realScope": "Real scope, real answers, less back-and-forth.",
      "searchPlaceholder": "Search jobs (e.g. plumbing, shelves, leak)…",
