@@ -86,20 +86,26 @@ function formatHighlight(highlight: string): string {
     'need_quote': 'Quote needed',
   };
 
+  // Strip leading emoji prefix (e.g. "💰 1000_2500" → "1000_2500")
+  const stripped = highlight.replace(/^[\p{Emoji_Presentation}\p{Emoji}\uFE0F]+\s*/u, '').trim();
+
+  // Check budget map with stripped value
+  if (HIGHLIGHT_BUDGET[stripped]) return HIGHLIGHT_BUDGET[stripped];
+  // Also check original (backward compat)
   if (HIGHLIGHT_BUDGET[highlight]) return HIGHLIGHT_BUDGET[highlight];
 
   // Numeric range pattern like "1000_2500"
-  const budgetRangeMatch = highlight.match(/^(\d+)_(\d+)$/);
+  const budgetRangeMatch = stripped.match(/^(\d+)_(\d+)$/);
   if (budgetRangeMatch) {
     const min = parseInt(budgetRangeMatch[1], 10);
     const max = parseInt(budgetRangeMatch[2], 10);
     return `${min.toLocaleString()}–${max.toLocaleString()} €`;
   }
   
-  // Convert snake_case to sentence with dashes
-  if (highlight.includes("_") && !highlight.includes(" ")) {
-    return highlight
-      .replace(/_/g, "-")
+  // Convert snake_case to sentence with spaces
+  if (stripped.includes("_") && !stripped.includes(" ")) {
+    return stripped
+      .replace(/_/g, " ")
       .replace(/^\w/, (c) => c.toUpperCase());
   }
   
