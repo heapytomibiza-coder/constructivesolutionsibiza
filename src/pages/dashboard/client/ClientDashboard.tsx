@@ -91,8 +91,8 @@ const ClientDashboard = () => {
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-4 mb-8">
-          <Link to="/dashboard/client?filter=open" className="group">
-            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer">
+          <Link to="/dashboard/client?filter=open" className="group active:scale-[0.98] transition-transform">
+            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer active:bg-muted/40">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {t('client.activeJobs')}
@@ -101,7 +101,7 @@ const ClientDashboard = () => {
                   <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center">
                     <Briefcase className="h-5 w-5 text-primary" />
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -113,8 +113,8 @@ const ClientDashboard = () => {
               </CardContent>
             </Card>
           </Link>
-          <Link to="/dashboard/client?filter=in_progress" className="group">
-            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer">
+          <Link to="/dashboard/client?filter=in_progress" className="group active:scale-[0.98] transition-transform">
+            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer active:bg-muted/40">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {t('client.inProgress')}
@@ -123,7 +123,7 @@ const ClientDashboard = () => {
                   <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
                     <Clock className="h-5 w-5 text-accent" />
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -135,8 +135,8 @@ const ClientDashboard = () => {
               </CardContent>
             </Card>
           </Link>
-          <Link to="/dashboard/client?filter=draft" className="group">
-            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer">
+          <Link to="/dashboard/client?filter=draft" className="group active:scale-[0.98] transition-transform">
+            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer active:bg-muted/40">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {t('client.draftJobs')}
@@ -145,7 +145,7 @@ const ClientDashboard = () => {
                   <div className="h-10 w-10 rounded-sm bg-secondary flex items-center justify-center">
                     <FileText className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -157,8 +157,8 @@ const ClientDashboard = () => {
               </CardContent>
             </Card>
           </Link>
-          <Link to="/messages" className="group">
-            <Card className={`border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer ${stats.unreadMessages > 0 ? 'ring-1 ring-destructive/30' : ''}`}>
+          <Link to="/messages" className="group active:scale-[0.98] transition-transform">
+            <Card className={`border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer active:bg-muted/40 ${stats.unreadMessages > 0 ? 'ring-1 ring-destructive/30' : ''}`}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {t('stats.messages')}
@@ -167,7 +167,7 @@ const ClientDashboard = () => {
                   <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
                     <MessageSquare className="h-5 w-5 text-accent" />
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
                 </div>
               </CardHeader>
               <CardContent>
