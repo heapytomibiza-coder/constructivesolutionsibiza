@@ -161,6 +161,11 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
+          {/* Health Tab */}
+          <TabsContent value="health">
+            <HealthSection />
+          </TabsContent>
+
           {/* Users Tab */}
           <TabsContent value="users">
             <UsersSection />

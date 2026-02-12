@@ -194,6 +194,28 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
+        // Check notification preferences for user-targeted emails
+        if (item.recipient_user_id && (item.event_type === "new_message" || item.event_type === "job_match")) {
+          const { data: prefs } = await supabaseAdmin
+            .from("notification_preferences")
+            .select("email_messages, email_job_matches")
+            .eq("user_id", item.recipient_user_id)
+            .maybeSingle();
+
+          const allow =
+            item.event_type === "new_message" ? (prefs?.email_messages ?? true) :
+            item.event_type === "job_match" ? (prefs?.email_job_matches ?? true) :
+            true;
+
+          if (!allow) {
+            await supabaseAdmin
+              .from("email_notifications_queue")
+              .update({ sent_at: new Date().toISOString(), last_error: "skipped_by_preferences" })
+              .eq("id", item.id);
+            continue;
+          }
+        }
+
         // Build email based on event type
         const payload = item.payload || {};
         let email: { subject: string; html: string };
