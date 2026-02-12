@@ -91,8 +91,8 @@ const ClientDashboard = () => {
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-4 mb-8">
-          <Link to="/dashboard/client?filter=open" className="group">
-            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer">
+          <Link to="/dashboard/client?filter=open" className="group active:scale-[0.98] transition-transform">
+            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer active:bg-muted/40">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {t('client.activeJobs')}
