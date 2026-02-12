@@ -50,7 +50,7 @@ const SECTIONS: { title: string; entries: LinkEntry[] }[] = [
     entries: [
       { label: 'Sign in to respond', route: '/auth', roles: ['Guest'], source: 'JobListingCard', notes: 'Not logged in' },
       { label: 'Complete onboarding to apply', route: '/onboarding/professional', roles: ['Pro (incomplete)'], source: 'JobListingCard', notes: 'Onboarding not finished' },
-      { label: 'Add services to apply', route: '/onboarding/professional?edit=1&step=services', roles: ['Pro (0 services)'], source: 'JobListingCard', notes: 'Onboarding done, no services' },
+      { label: 'Add services to apply', route: '/onboarding/professional?step=services', roles: ['Pro (0 services)'], source: 'JobListingCard', notes: 'Onboarding done, no services' },
       { label: 'View & Apply / Message', route: '/jobs/:id (modal)', roles: ['Pro (ready)'], source: 'JobListingCard', notes: 'Pro with services' },
       { label: 'View details', route: '/jobs/:id (modal)', roles: ['Client', 'All'], source: 'JobListingCard' },
     ],

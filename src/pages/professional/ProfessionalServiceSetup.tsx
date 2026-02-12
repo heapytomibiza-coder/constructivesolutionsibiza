@@ -14,6 +14,7 @@ import {
   ArrowLeft, Check, Plus, X, Loader2, Shield, Heart, 
   ThumbsUp, Minus, Ban, Unlock
 } from 'lucide-react';
+import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
 import { PLATFORM } from '@/domain/scope';
 import { JobTypeCard } from './components/JobTypeCard';
 import { UnlockProgress } from './components/UnlockProgress';
@@ -353,9 +354,16 @@ const ProfessionalServiceSetup = () => {
     }
 
     try {
+      const { data: currentProfile } = await supabase
+        .from('professional_profiles')
+        .select('onboarding_phase')
+        .eq('user_id', user?.id)
+        .single();
+      
+      const newPhase = nextPhase(currentProfile?.onboarding_phase, 'service_setup');
       const { error } = await supabase
         .from('professional_profiles')
-        .update({ onboarding_phase: 'service_setup' })
+        .update({ onboarding_phase: newPhase })
         .eq('user_id', user?.id);
 
       if (error) throw error;

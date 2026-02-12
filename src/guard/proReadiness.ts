@@ -57,7 +57,7 @@ function buildNextAction(reasons: ProReadinessReason[]): ProReadinessResult['nex
     return { label: "Complete setup", href: "/onboarding/professional" };
   }
   if (reasons.includes('NO_SERVICES')) {
-    return { label: "Set up services", href: "/onboarding/professional?edit=1&step=services" };
+    return { label: "Set up services", href: "/onboarding/professional?step=services" };
   }
   if (reasons.includes('NOT_VERIFIED')) {
     return { label: "Verify account", href: "/onboarding/professional" };
