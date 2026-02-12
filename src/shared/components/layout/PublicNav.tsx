@@ -42,7 +42,7 @@ function DesktopNavLink({ route }: { route: RouteConfig }) {
 export function PublicNav() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isAuthenticated, activeRole, roles } = useSession();
+  const { isAuthenticated, activeRole, roles, user } = useSession();
 
   // Derive nav from registry
   const navModel = useMemo(
