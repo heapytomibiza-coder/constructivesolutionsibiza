@@ -126,7 +126,8 @@ export default function Settings() {
     : '/dashboard/client';
 
   const roleLabel = activeRole === 'professional' ? 'Tasker' : 'Asker';
-  const hasMultipleRoles = roles.length > 1;
+  const switchableRoles = roles.filter((r): r is UserRole => r === 'client' || r === 'professional');
+  const isAdmin = roles.includes('admin');
   const currentPrefs = prefs ?? DEFAULT_PREFS;
 
   return (
