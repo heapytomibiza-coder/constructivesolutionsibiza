@@ -126,7 +126,8 @@ export default function Settings() {
     : '/dashboard/client';
 
   const roleLabel = activeRole === 'professional' ? 'Tasker' : 'Asker';
-  const hasMultipleRoles = roles.length > 1;
+  const switchableRoles = roles.filter((r): r is UserRole => r === 'client' || r === 'professional');
+  const isAdmin = roles.includes('admin');
   const currentPrefs = prefs ?? DEFAULT_PREFS;
 
   return (
@@ -165,11 +166,11 @@ export default function Settings() {
             <Separator />
             <div>
               <p className="text-sm text-muted-foreground mb-2">Current Mode</p>
-              {hasMultipleRoles ? (
+              {switchableRoles.length > 1 ? (
                 <div className="flex gap-2">
-                  {roles.map((role) => {
+                  {switchableRoles.map((role) => {
                     const isActive = role === activeRole;
-                    const label = role === 'professional' ? 'Tasker' : role === 'admin' ? 'Admin' : 'Asker';
+                    const label = role === 'professional' ? 'Tasker' : 'Asker';
                     return (
                       <Button
                         key={role}
@@ -200,6 +201,25 @@ export default function Settings() {
                 <p className="font-medium">{roleLabel}</p>
               )}
             </div>
+            {isAdmin && (
+              <>
+                <Separator />
+                <div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-between active:scale-[0.97] transition-transform"
+                    onClick={() => navigate('/admin')}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Admin Panel
+                    </span>
+                    <ArrowLeft className="h-4 w-4 rotate-180" />
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
