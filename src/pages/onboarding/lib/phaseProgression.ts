@@ -53,7 +53,7 @@ export function normalizePhase(phase?: string | null): CanonicalPhase {
 export function nextPhase(
   currentPhase: string | null | undefined,
   targetPhase: CanonicalPhase,
-): string {
+): CanonicalPhase {
   const currentNormalized = normalizePhase(currentPhase);
   if (phaseIndex(currentNormalized) < phaseIndex(targetPhase)) {
     return targetPhase;

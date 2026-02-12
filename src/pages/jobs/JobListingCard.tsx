@@ -133,7 +133,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
   
   // Smart CTA link: route to exactly what's missing
   const profileCompletionLink = proNeedsServices 
-    ? '/onboarding/professional?edit=1&step=services'
+    ? '/onboarding/professional?step=services'
     : proNeedsSetup 
       ? '/onboarding/professional' 
       : '/dashboard/pro';
