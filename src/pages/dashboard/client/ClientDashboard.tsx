@@ -91,79 +91,99 @@ const ClientDashboard = () => {
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-4 mb-8">
-          <Card className="border-border/70">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {t('client.activeJobs')}
-              </CardTitle>
-              <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center">
-                <Briefcase className="h-5 w-5 text-primary" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              ) : (
-                <div className="text-3xl font-bold text-foreground">{stats.activeJobs}</div>
-              )}
-            </CardContent>
-          </Card>
-          <Card className="border-border/70">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {t('client.inProgress')}
-              </CardTitle>
-              <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-accent" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              ) : (
-                <div className="text-3xl font-bold text-foreground">{stats.inProgressJobs}</div>
-              )}
-            </CardContent>
-          </Card>
-          <Card className="border-border/70">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {t('client.draftJobs')}
-              </CardTitle>
-              <div className="h-10 w-10 rounded-sm bg-secondary flex items-center justify-center">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              ) : (
-                <div className="text-3xl font-bold text-foreground">{stats.draftJobs}</div>
-              )}
-            </CardContent>
-          </Card>
-          <Card className="border-border/70">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-                {t('stats.messages')}
-              </CardTitle>
-              <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
-                <MessageSquare className="h-5 w-5 text-accent" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl font-bold text-foreground">{stats.unreadMessages}</span>
-                  {stats.unreadMessages > 0 && (
-                    <Badge variant="destructive" className="text-xs">{t('stats.unread')}</Badge>
-                  )}
+          <Link to="/dashboard/client?filter=open" className="group">
+            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {t('client.activeJobs')}
+                </CardTitle>
+                <div className="flex items-center gap-1">
+                  <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <div className="text-3xl font-bold text-foreground">{stats.activeJobs}</div>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/dashboard/client?filter=in_progress" className="group">
+            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {t('client.inProgress')}
+                </CardTitle>
+                <div className="flex items-center gap-1">
+                  <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
+                    <Clock className="h-5 w-5 text-accent" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <div className="text-3xl font-bold text-foreground">{stats.inProgressJobs}</div>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/dashboard/client?filter=draft" className="group">
+            <Card className="border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {t('client.draftJobs')}
+                </CardTitle>
+                <div className="flex items-center gap-1">
+                  <div className="h-10 w-10 rounded-sm bg-secondary flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <div className="text-3xl font-bold text-foreground">{stats.draftJobs}</div>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/messages" className="group">
+            <Card className={`border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer ${stats.unreadMessages > 0 ? 'ring-1 ring-destructive/30' : ''}`}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {t('stats.messages')}
+                </CardTitle>
+                <div className="flex items-center gap-1">
+                  <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
+                    <MessageSquare className="h-5 w-5 text-accent" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl font-bold text-foreground">{stats.unreadMessages}</span>
+                    {stats.unreadMessages > 0 && (
+                      <Badge variant="destructive" className="text-xs">{t('stats.unread')}</Badge>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
         </div>
 
         {/* Jobs List */}
