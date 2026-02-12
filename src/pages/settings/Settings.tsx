@@ -209,7 +209,7 @@ export default function Settings() {
                     type="button"
                     variant="outline"
                     className="w-full justify-between active:scale-[0.97] transition-transform"
-                    onClick={() => navigate('/admin')}
+                    onClick={() => navigate('/dashboard/admin')}
                   >
                     <span className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />

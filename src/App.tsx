@@ -160,7 +160,7 @@ const App = () => {
               <Route path="/dashboard/pro" element={<ProDashboard />} />
 
               {/* Admin Dashboard */}
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/dashboard/admin" element={<AdminDashboard />} />
             </Route>
 
             {/* ============================================
