@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { PLATFORM } from '@/domain/scope';
 import { MobileNav } from './MobileNav';
 import { RoleSwitcher } from './RoleSwitcher';
+import { MobileRolePill } from './MobileRolePill';
+import { NotificationBell } from './NotificationBell';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
