@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSession } from '@/contexts/SessionContext';
+import type { UserRole } from '@/hooks/useSessionSnapshot';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -36,7 +37,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { user, activeRole, roles } = useSession();
+  const { user, activeRole, roles, switchRole } = useSession();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -163,12 +164,40 @@ export default function Settings() {
             </div>
             <Separator />
             <div>
-              <p className="text-sm text-muted-foreground">Current Mode</p>
-              <p className="font-medium">{roleLabel}</p>
-              {hasMultipleRoles && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  You can switch modes from the navigation menu
-                </p>
+              <p className="text-sm text-muted-foreground mb-2">Current Mode</p>
+              {hasMultipleRoles ? (
+                <div className="flex gap-2">
+                  {roles.map((role) => {
+                    const isActive = role === activeRole;
+                    const label = role === 'professional' ? 'Tasker' : role === 'admin' ? 'Admin' : 'Asker';
+                    return (
+                      <Button
+                        key={role}
+                        type="button"
+                        variant={isActive ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1 active:scale-[0.97] transition-transform"
+                        onClick={async () => {
+                          if (role === activeRole) return;
+                          await switchRole(role);
+                          queryClient.invalidateQueries({ queryKey: ['jobs'] });
+                          queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
+                          queryClient.invalidateQueries({ queryKey: ['matched_jobs'] });
+                          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+                          queryClient.invalidateQueries({ queryKey: ['client_stats'] });
+                          queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
+                          queryClient.invalidateQueries({ queryKey: ['pro_unread_messages'] });
+                          queryClient.invalidateQueries({ queryKey: ['professional_services'] });
+                          toast.success(`Switched to ${label} mode`);
+                        }}
+                      >
+                        {label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="font-medium">{roleLabel}</p>
               )}
             </div>
           </CardContent>
