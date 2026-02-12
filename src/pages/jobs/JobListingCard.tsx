@@ -111,12 +111,26 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
   const [isMessaging, setIsMessaging] = React.useState(false);
   const navigate = useNavigate();
   const specBadge = getSpecBadge(job);
-  const { user, isAuthenticated, hasRole, isProReady, activeRole } = useSession();
+  const { user, isAuthenticated, hasRole, isProReady, activeRole, professionalProfile } = useSession();
 
   // Check if job is open for actions
   const isJobOpen = job.status === "open";
   const isPro = hasRole("professional");
   const isClient = activeRole === "client";
+
+  // Determine what's blocking pro readiness for smart CTA routing
+  const proNeedsOnboarding = isPro && !isProReady && professionalProfile;
+  const proNeedsServices = proNeedsOnboarding && (professionalProfile?.servicesCount ?? 0) === 0;
+  const proNeedsSetup = proNeedsOnboarding && 
+    professionalProfile?.onboardingPhase !== 'service_setup' && 
+    professionalProfile?.onboardingPhase !== 'complete';
+  
+  // Smart CTA link: route to exactly what's missing
+  const profileCompletionLink = proNeedsServices 
+    ? '/onboarding/professional?edit=1&step=services'
+    : proNeedsSetup 
+      ? '/onboarding/professional' 
+      : '/dashboard/pro';
 
   const handleCardClick = () => setOpen(true);
 
