@@ -5,7 +5,8 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Search, AlertTriangle, CheckCircle, Archive, ExternalLink } from "lucide-react";
+import { Search, AlertTriangle, CheckCircle, Archive, ExternalLink, Copy } from "lucide-react";
+import { formatWhatsAppPost, copyToClipboard } from "../lib/formatWhatsAppPost";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
