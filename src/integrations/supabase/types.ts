@@ -503,6 +503,68 @@ export type Database = {
           },
         ]
       }
+      job_status_history: {
+        Row: {
+          change_source: string
+          changed_by: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          job_id: string
+          metadata: Json
+          to_status: string
+        }
+        Insert: {
+          change_source?: string
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          job_id: string
+          metadata?: Json
+          to_status: string
+        }
+        Update: {
+          change_source?: string
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          job_id?: string
+          metadata?: Json
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_status_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_status_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_status_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_status_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           answers: Json | null
@@ -633,6 +695,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_preferences: {
+        Row: {
+          digest_frequency: string
+          email_digests: boolean
+          email_job_matches: boolean
+          email_messages: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          digest_frequency?: string
+          email_digests?: boolean
+          email_job_matches?: boolean
+          email_messages?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          digest_frequency?: string
+          email_digests?: boolean
+          email_job_matches?: boolean
+          email_messages?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       professional_documents: {
         Row: {
@@ -1722,6 +1811,7 @@ export type Database = {
       }
     }
     Functions: {
+      admin_health_snapshot: { Args: never; Returns: Json }
       create_direct_conversation: {
         Args: { p_client_id: string; p_job_id: string; p_pro_id: string }
         Returns: string

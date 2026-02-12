@@ -2,20 +2,37 @@
  * SETTINGS PAGE
  * 
  * Accessible to any authenticated user.
- * Shows account info, role, and sign out option.
+ * Shows account info, role, notifications, and sign out option.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Bell, LogOut, Shield, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, User, Bell, LogOut, Shield, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+interface NotificationPrefs {
+  email_messages: boolean;
+  email_job_matches: boolean;
+  email_digests: boolean;
+  digest_frequency: string;
+}
+
+const DEFAULT_PREFS: NotificationPrefs = {
+  email_messages: true,
+  email_job_matches: true,
+  email_digests: false,
+  digest_frequency: 'daily',
+};
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -24,6 +41,49 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Notification preferences
+  const { data: prefs, isLoading: prefsLoading } = useQuery({
+    queryKey: ['notification_preferences', user?.id],
+    queryFn: async (): Promise<NotificationPrefs> => {
+      if (!user?.id) return DEFAULT_PREFS;
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('email_messages, email_job_matches, email_digests, digest_frequency')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        // Auto-create row if missing (for existing users)
+        await supabase.from('notification_preferences').insert({ user_id: user.id });
+        return DEFAULT_PREFS;
+      }
+      return data as NotificationPrefs;
+    },
+    enabled: !!user?.id,
+  });
+
+  const updatePrefsMutation = useMutation({
+    mutationFn: async (updates: Partial<NotificationPrefs>) => {
+      if (!user?.id) return;
+      const { error } = await supabase
+        .from('notification_preferences')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('user_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notification_preferences'] });
+    },
+    onError: () => {
+      toast.error('Failed to update preference');
+    },
+  });
+
+  const handleToggle = (key: keyof NotificationPrefs, value: boolean) => {
+    updatePrefsMutation.mutate({ [key]: value });
+  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +126,7 @@ export default function Settings() {
 
   const roleLabel = activeRole === 'professional' ? 'Tasker' : 'Asker';
   const hasMultipleRoles = roles.length > 1;
+  const currentPrefs = prefs ?? DEFAULT_PREFS;
 
   return (
     <div className="min-h-screen bg-background">
@@ -168,18 +229,73 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Notifications Section */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-muted-foreground" />
               <CardTitle className="text-base">Notifications</CardTitle>
             </div>
-            <CardDescription>Manage your notification preferences</CardDescription>
+            <CardDescription>Control which emails you receive</CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              We'll let you know when notification preferences are available.
-            </p>
+          <CardContent className="space-y-5">
+            {prefsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">New messages</Label>
+                    <p className="text-xs text-muted-foreground">Email me when I receive a new message</p>
+                  </div>
+                  <Switch
+                    checked={currentPrefs.email_messages}
+                    onCheckedChange={(v) => handleToggle('email_messages', v)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">Job matches</Label>
+                    <p className="text-xs text-muted-foreground">Email me when a job matches my services</p>
+                  </div>
+                  <Switch
+                    checked={currentPrefs.email_job_matches}
+                    onCheckedChange={(v) => handleToggle('email_job_matches', v)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">Email digest</Label>
+                    <p className="text-xs text-muted-foreground">Receive a summary of activity</p>
+                  </div>
+                  <Switch
+                    checked={currentPrefs.email_digests}
+                    onCheckedChange={(v) => handleToggle('email_digests', v)}
+                  />
+                </div>
+                {currentPrefs.email_digests && (
+                  <div className="pl-4 border-l-2 border-border">
+                    <Label className="text-sm">Digest frequency</Label>
+                    <Select
+                      value={currentPrefs.digest_frequency}
+                      onValueChange={(v) => updatePrefsMutation.mutate({ digest_frequency: v })}
+                    >
+                      <SelectTrigger className="w-32 mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
 
