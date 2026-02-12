@@ -272,9 +272,13 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
 
             {showCompleteProfileCTA && (
               <Button variant="outline" size="sm" asChild className="flex-1" onClick={(e) => e.stopPropagation()}>
-                <Link to="/dashboard/pro">
+                <Link to={profileCompletionLink}>
                   <Send className="mr-2 h-4 w-4" />
-                  Complete profile to apply
+                  {proNeedsServices 
+                    ? 'Add services to apply' 
+                    : proNeedsSetup 
+                      ? 'Complete onboarding to apply'
+                      : 'Set up profile to apply'}
                 </Link>
               </Button>
             )}
