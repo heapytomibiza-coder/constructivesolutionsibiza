@@ -157,8 +157,8 @@ const ClientDashboard = () => {
               </CardContent>
             </Card>
           </Link>
-          <Link to="/messages" className="group">
-            <Card className={`border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer ${stats.unreadMessages > 0 ? 'ring-1 ring-destructive/30' : ''}`}>
+          <Link to="/messages" className="group active:scale-[0.98] transition-transform">
+            <Card className={`border-border/70 transition-all group-hover:border-primary/40 group-hover:shadow-md cursor-pointer active:bg-muted/40 ${stats.unreadMessages > 0 ? 'ring-1 ring-destructive/30' : ''}`}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {t('stats.messages')}
