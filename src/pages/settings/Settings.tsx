@@ -37,7 +37,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { user, activeRole, roles } = useSession();
+  const { user, activeRole, roles, switchRole } = useSession();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
