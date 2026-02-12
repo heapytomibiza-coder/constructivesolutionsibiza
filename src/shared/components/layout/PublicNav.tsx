@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { PLATFORM } from '@/domain/scope';
 import { MobileNav } from './MobileNav';
 import { RoleSwitcher } from './RoleSwitcher';
+import { MobileRolePill } from './MobileRolePill';
+import { NotificationBell } from './NotificationBell';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,7 +42,7 @@ function DesktopNavLink({ route }: { route: RouteConfig }) {
 export function PublicNav() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isAuthenticated, activeRole, roles } = useSession();
+  const { isAuthenticated, activeRole, roles, user } = useSession();
 
   // Derive nav from registry
   const navModel = useMemo(
@@ -95,7 +97,10 @@ export function PublicNav() {
         </div>
 
         {/* Right side: Auth or User menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile role pill - visible on mobile for multi-role users */}
+          {isAuthenticated && <MobileRolePill />}
+          
           <LanguageSwitcher />
           
           {isAuthenticated ? (
@@ -106,6 +111,9 @@ export function PublicNav() {
                   <RoleSwitcher className="w-[140px]" />
                 </div>
               )}
+
+              {/* Notification bell */}
+              {user && <NotificationBell userId={user.id} />}
 
               {/* User dropdown */}
               <DropdownMenu>
