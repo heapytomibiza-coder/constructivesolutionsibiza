@@ -61,7 +61,7 @@ export interface SessionSnapshot {
 
   // Professional state (only for professionals)
   professionalProfile: ProfessionalProfileData | null;
-  isProReady: boolean; // verified + onboarding complete + has services
+  isProReady: boolean; // isPhaseReady(onboardingPhase) && servicesCount > 0 — verification is NOT a gate for MESSAGE/APPLY
 
   // Loading states
   isLoading: boolean;
