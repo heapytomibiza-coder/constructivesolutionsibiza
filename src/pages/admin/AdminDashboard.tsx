@@ -61,6 +61,10 @@ export default function AdminDashboard() {
               <Headset className="h-4 w-4" />
               <span className="hidden sm:inline">Support</span>
             </TabsTrigger>
+            <TabsTrigger value="linkmap" className="gap-2">
+              <Map className="h-4 w-4" />
+              <span className="hidden sm:inline">Link Map</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
