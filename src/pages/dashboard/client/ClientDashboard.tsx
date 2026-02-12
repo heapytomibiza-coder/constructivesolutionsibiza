@@ -123,7 +123,7 @@ const ClientDashboard = () => {
                   <div className="h-10 w-10 rounded-sm bg-accent/10 flex items-center justify-center">
                     <Clock className="h-5 w-5 text-accent" />
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
                 </div>
               </CardHeader>
               <CardContent>
