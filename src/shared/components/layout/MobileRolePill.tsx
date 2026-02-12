@@ -65,8 +65,8 @@ export function MobileRolePill() {
           className="md:hidden flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
         >
           {roleIcons[activeRole]}
-          <span className="uppercase tracking-wide">
-            {getRoleLabel(activeRole).slice(0, 6)}
+          <span className="max-w-[4.5rem] truncate uppercase tracking-wide">
+            {getRoleLabel(activeRole)}
           </span>
           <ChevronDown className="h-3 w-3 text-muted-foreground" />
         </button>
