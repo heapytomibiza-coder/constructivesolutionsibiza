@@ -141,7 +141,7 @@ const App = () => {
               
               {/* Messages (shared) */}
               <Route path="/messages" element={<Messages />} />
-              <Route path="/messages/:conversationId" element={<Messages />} />
+              <Route path="/messages/:id" element={<Messages />} />
 
               {/* Settings (shared) */}
               <Route path="/settings" element={<Settings />} />
