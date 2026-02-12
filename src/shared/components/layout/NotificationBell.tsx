@@ -49,7 +49,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
       <PopoverContent align="end" className="w-80 p-0">
         <div className="border-b border-border px-4 py-3">
           <p className="text-sm font-semibold text-foreground">
-            {t('nav.notifications', 'Notifications')}
+            {t('nav.messages', 'Messages')}
           </p>
         </div>
 
