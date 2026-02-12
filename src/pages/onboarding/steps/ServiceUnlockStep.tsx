@@ -11,6 +11,9 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ArrowRight, Briefcase, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSession } from '@/contexts/SessionContext';
+import { supabase } from '@/integrations/supabase/client';
+import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
 
 import { CategoryAccordion } from '../components/CategoryAccordion';
 import { ServiceSearchBar } from '../components/ServiceSearchBar';
@@ -30,6 +33,8 @@ const RECOMMENDED_MIN = 5;
 const RECOMMENDED_MAX = 15;
 
 export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: ServiceUnlockStepProps) {
+  const { user, professionalProfile, refresh } = useSession();
+  const currentPhase = professionalProfile?.onboardingPhase ?? 'not_started';
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [showSaved, setShowSaved] = useState(false);
@@ -182,8 +187,23 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
   }, [categories, searchQuery]);
 
   // Handle continue
-  const handleContinue = () => {
-    if (!canContinue) return;
+  const handleContinue = async () => {
+    if (!canContinue || !user?.id) return;
+
+    // Advance phase to service_setup (guarded — won't regress)
+    const newPhase = nextPhase(currentPhase, 'service_setup');
+    if (newPhase !== currentPhase) {
+      try {
+        await supabase
+          .from('professional_profiles')
+          .update({ onboarding_phase: newPhase })
+          .eq('user_id', user.id);
+        await refresh();
+      } catch (err) {
+        console.error('Error advancing phase:', err);
+      }
+    }
+
     onComplete();
   };
 

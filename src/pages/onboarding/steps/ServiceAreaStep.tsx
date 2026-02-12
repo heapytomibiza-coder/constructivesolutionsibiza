@@ -6,6 +6,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, MapPin, ArrowRight, ArrowLeft } from 'lucide-react';
+import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
 import { 
   ZoneTile, 
   IslandWideTile, 
@@ -20,7 +21,8 @@ interface ServiceAreaStepProps {
 }
 
 export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
-  const { user, refresh } = useSession();
+  const { user, refresh, professionalProfile } = useSession();
+  const currentPhase = professionalProfile?.onboardingPhase ?? 'not_started';
   const queryClient = useQueryClient();
   
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
@@ -66,7 +68,7 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
         .update({
           service_zones: zones,
           service_area_type: 'zones',
-          onboarding_phase: 'verification',
+          onboarding_phase: nextPhase(currentPhase, 'service_area'),
         })
         .eq('user_id', user.id);
 

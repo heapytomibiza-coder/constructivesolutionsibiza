@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { isPhaseReady } from '@/pages/onboarding/lib/phaseProgression';
 import type { User, Session } from '@supabase/supabase-js';
 
 /**
@@ -19,7 +20,9 @@ export type UserRole = 'client' | 'professional' | 'admin';
 export type OnboardingPhase = 
   | 'not_started' 
   | 'basic_info' 
-  | 'verification' 
+  | 'service_area'
+  | 'verification'  // legacy — normalized to service_area
+  | 'services'      // legacy — normalized to service_setup
   | 'service_setup' 
   | 'complete';
 
@@ -242,11 +245,10 @@ export function useSessionSnapshot(): SessionSnapshot {
   }, [roles]);
 
   // Calculate if professional is "ready" for marketplace actions
+  // Uses normalized phase check from phaseProgression utility
   // Soft launch: verification is a trust badge, NOT a gate.
-  // Ready = completed onboarding phases + has at least 1 service
   const isProReady = 
-    (professionalProfile?.onboardingPhase === 'service_setup' || 
-     professionalProfile?.onboardingPhase === 'complete') &&
+    isPhaseReady(professionalProfile?.onboardingPhase) &&
     (professionalProfile?.servicesCount ?? 0) > 0;
 
   return {
