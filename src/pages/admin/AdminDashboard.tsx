@@ -1,7 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity } from "lucide-react";
 import { UsersSection, JobsSection, ContentSection, SupportInbox } from "./sections";
 import { LinkMapSection } from "./sections/LinkMapSection";
