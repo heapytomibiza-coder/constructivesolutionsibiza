@@ -183,7 +183,7 @@ export const proDashboardRoutes: RouteConfig[] = [
 // ============================================
 export const adminRoutes: RouteConfig[] = [
   {
-    path: '/admin',
+    path: '/dashboard/admin',
     access: 'admin2FA',
     redirectTo: '/auth',
     lane: 'admin',
