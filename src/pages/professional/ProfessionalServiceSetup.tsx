@@ -355,7 +355,7 @@ const ProfessionalServiceSetup = () => {
     try {
       const { error } = await supabase
         .from('professional_profiles')
-        .update({ onboarding_phase: 'complete' })
+        .update({ onboarding_phase: 'service_setup' })
         .eq('user_id', user?.id);
 
       if (error) throw error;

@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, User, Phone, FileText, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
 
 interface BasicInfoStepProps {
   onComplete: () => void;
@@ -24,7 +25,8 @@ interface BasicInfoData {
 }
 
 export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
-  const { user, refresh } = useSession();
+  const { user, refresh, professionalProfile } = useSession();
+  const currentPhase = professionalProfile?.onboardingPhase ?? 'not_started';
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState<BasicInfoData>({
@@ -93,7 +95,7 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
           bio: data.bio,
           business_name: data.business_name,
           tagline: data.tagline,
-          onboarding_phase: 'basic_info',
+          onboarding_phase: nextPhase(currentPhase, 'basic_info'),
         })
         .eq('user_id', user.id);
 
