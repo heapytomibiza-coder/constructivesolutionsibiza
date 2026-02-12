@@ -161,7 +161,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
     try {
       const conversationId = await startConversation(job.id);
       // Use SPA navigation instead of hard reload
-      navigate(`/messages?conversation=${conversationId}`);
+      navigate(`/messages/${conversationId}`);
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
