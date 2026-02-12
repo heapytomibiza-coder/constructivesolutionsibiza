@@ -1,13 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity } from "lucide-react";
-import { useAdminStats } from "./hooks/useAdminStats";
-import { StatTile } from "@/shared/components/StatTile";
 import { UsersSection, JobsSection, ContentSection, SupportInbox } from "./sections";
 import { LinkMapSection } from "./sections/LinkMapSection";
 import { HealthSection } from "./sections/HealthSection";
+import { OperatorCockpit } from "./sections/OperatorCockpit";
 
 /**
  * ADMIN DASHBOARD
@@ -17,7 +14,6 @@ import { HealthSection } from "./sections/HealthSection";
  */
 export default function AdminDashboard() {
   const { t } = useTranslation("common");
-  const { data: stats, isLoading } = useAdminStats();
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,93 +68,9 @@ export default function AdminDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
+          {/* Overview Tab — Operator Cockpit */}
           <TabsContent value="overview" className="space-y-6">
-            {/* Platform Stats */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {isLoading ? (
-              <>
-                {[...Array(4)].map((_, i) => (
-                  <Card key={i}>
-                    <CardHeader className="pb-2">
-                      <Skeleton className="h-4 w-24" />
-                    </CardHeader>
-                    <CardContent>
-                      <Skeleton className="h-8 w-16" />
-                    </CardContent>
-                  </Card>
-                ))}
-              </>
-            ) : (
-              <>
-                <StatTile
-                  icon={<Users className="h-5 w-5 text-primary" />}
-                  label="Total Users"
-                  value={stats?.total_users ?? 0}
-                />
-                <StatTile
-                  icon={<Users className="h-5 w-5 text-primary" />}
-                  label="Active Professionals"
-                  value={`${stats?.active_professionals ?? 0} / ${stats?.total_professionals ?? 0}`}
-                />
-                <StatTile
-                  icon={<Briefcase className="h-5 w-5 text-primary" />}
-                  label="Open Jobs"
-                  value={`${stats?.open_jobs ?? 0} / ${stats?.total_jobs ?? 0}`}
-                />
-                <StatTile
-                  icon={<MessageSquare className="h-5 w-5 text-primary" />}
-                  label="Conversations"
-                  value={stats?.total_conversations ?? 0}
-                />
-                <StatTile
-                  icon={<Headset className="h-5 w-5 text-primary" />}
-                  label="Open Tickets"
-                  value={stats?.open_support_tickets ?? 0}
-                />
-              </>
-            )}
-            </div>
-
-            {/* Secondary Stats */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Jobs In Progress
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {isLoading ? <Skeleton className="h-8 w-12" /> : stats?.active_jobs ?? 0}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Completed Jobs
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {isLoading ? <Skeleton className="h-8 w-12" /> : stats?.completed_jobs ?? 0}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Forum Posts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {isLoading ? <Skeleton className="h-8 w-12" /> : stats?.total_posts ?? 0}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <OperatorCockpit />
           </TabsContent>
 
           {/* Health Tab */}
