@@ -17,7 +17,8 @@ import {
   LogOut,
   Settings,
   Loader2,
-  Clock
+  Clock,
+  ChevronRight
 } from 'lucide-react';
 import { ClientJobCard } from './components/ClientJobCard';
 
