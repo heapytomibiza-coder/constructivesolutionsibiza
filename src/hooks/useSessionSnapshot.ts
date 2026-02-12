@@ -241,13 +241,13 @@ export function useSessionSnapshot(): SessionSnapshot {
     return roles.includes(role);
   }, [roles]);
 
-  // Calculate if professional is "ready" (can access pro dashboard)
-  // Allow both 'service_configured' and 'complete' phases
+  // Calculate if professional is "ready" for marketplace actions
+  // Soft launch: verification is a trust badge, NOT a gate.
+  // Ready = completed onboarding phases + has at least 1 service
   const isProReady = 
-    professionalProfile?.verificationStatus === 'verified' &&
     (professionalProfile?.onboardingPhase === 'service_setup' || 
      professionalProfile?.onboardingPhase === 'complete') &&
-    professionalProfile?.servicesCount > 0;
+    (professionalProfile?.servicesCount ?? 0) > 0;
 
   return {
     user,

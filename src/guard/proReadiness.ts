@@ -43,9 +43,11 @@ export function getProReadiness(
 
   const reasons: ProReadinessReason[] = [];
 
-  if (profile.verificationStatus !== 'verified') {
-    reasons.push('NOT_VERIFIED');
-  }
+  // Soft launch: verification is a trust badge, not a marketplace gate.
+  // Uncomment below when verification becomes mandatory:
+  // if (profile.verificationStatus !== 'verified') {
+  //   reasons.push('NOT_VERIFIED');
+  // }
 
   if (!VALID_PHASES.has(profile.onboardingPhase)) {
     reasons.push('ONBOARDING_INCOMPLETE');
