@@ -17,7 +17,7 @@ import { useSessionSnapshot } from "@/hooks/useSessionSnapshot";
  */
 
 const Messages = () => {
-  const { conversationId } = useParams<{ conversationId?: string }>();
+  const { id: conversationId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const { user, isLoading: sessionLoading } = useSession();
   const { activeRole } = useSessionSnapshot();
