@@ -252,28 +252,80 @@
   },
   "howItWorks": {
     "title": "How It Works",
-    "subtitle": "Connecting clients with trusted construction professionals in Ibiza",
-    "trustBadge": "Verified trades • Same-day response • Ibiza-based",
-    "forClients": "For Clients",
-    "forProfessionals": "For Professionals",
-    "postJobButton": "Post a Job",
-    "joinAsProButton": "Join as Professional",
-    "clientStep1Title": "Post Your Project",
-    "clientStep1Desc": "Describe your construction or renovation needs using our guided wizard.",
-    "clientStep2Title": "Get Matched",
-    "clientStep2Desc": "We notify verified professionals who match your project requirements.",
-    "clientStep3Title": "Receive Quotes",
-    "clientStep3Desc": "Compare quotes, review profiles, and message professionals directly.",
-    "clientStep4Title": "Hire & Complete",
-    "clientStep4Desc": "Choose your professional and complete your project with confidence.",
-    "proStep1Title": "Create Your Profile",
-    "proStep1Desc": "Sign up and complete your professional profile with your services and portfolio.",
-    "proStep2Title": "Get Verified",
-    "proStep2Desc": "Complete our verification process to build trust with potential clients.",
-    "proStep3Title": "Receive Job Alerts",
-    "proStep3Desc": "Get notified when jobs matching your skills are posted in your area.",
-    "proStep4Title": "Win Work",
-    "proStep4Desc": "Send quotes, communicate with clients, and grow your business."
+    "subtitle": "Simple. Structured. Built for Ibiza's construction community.",
+    "trustBadge": "Guided process • Service-based matching • Ibiza only",
+    "overviewTitle": "Three Steps. No Confusion.",
+    "overviewDesc": "TM Direct connects people who need work done with the right professionals — through a guided wizard that removes guesswork and saves everyone time.",
+    "ov1Title": "Post Your Job",
+    "ov1Desc": "Use the guided wizard to describe exactly what you need. No long paragraphs — just clear, tick-box questions.",
+    "ov2Title": "Get Matched",
+    "ov2Desc": "Relevant professionals are notified instantly based on their selected services and preferences.",
+    "ov3Title": "Connect & Complete",
+    "ov3Desc": "Message securely, agree the details, and get the job done.",
+    "forClients": "I Need Work Done",
+    "forProfessionals": "I Want Work",
+    "postJobButton": "Start Your Project",
+    "joinAsProButton": "Join as a Tasker",
+    "clientStep1Title": "Choose the Service",
+    "clientStep1Desc": "Select a category, subcategory, and specific service so we know exactly what you need.",
+    "clientStep2Title": "Answer Simple Questions",
+    "clientStep2Desc": "We guide you with clear tick-box questions so professionals understand the job from the start.",
+    "clientStep3Title": "Add Budget & Timing",
+    "clientStep3Desc": "Set expectations clearly — budget range, preferred timing, and location.",
+    "clientStep4Title": "Post & Get Matched",
+    "clientStep4Desc": "Your job is sent to relevant professionals immediately. They message you directly.",
+    "clientAfter": "You stay in control — review messages, agree terms, and mark the job complete when you're happy.",
+    "proStep1Title": "Complete Your Profile",
+    "proStep1Desc": "Add your business info and service area. Takes about two minutes.",
+    "proStep2Title": "Select Your Services",
+    "proStep2Desc": "Choose exactly which services you offer. If you don't select it, you won't be matched to it.",
+    "proStep3Title": "Get Matched Automatically",
+    "proStep3Desc": "When a job is posted that matches your services, you're notified. No spam, no irrelevant requests.",
+    "proMatchTitle": "When a Job Lands",
+    "proMatchDesc": "You're notified if it matches your selected services. You can message the client directly — only relevant opportunities reach you.",
+    "proBadgeTitle": "Verification Badge",
+    "proBadgeDesc": "Verification increases trust and improves your visibility. It's not required to apply — it's a boost, not a gate.",
+    "whyTitle": "Why It's Different",
+    "why1": "Structured job posting — no vague requests",
+    "why2": "Service-based matching — not random browsing",
+    "why3": "Secure messaging between client and professional",
+    "why4": "Verified profiles as a trust signal",
+    "why5": "Focused local network — Ibiza only",
+    "faqTitle": "Frequently Asked Questions",
+    "faq": {
+      "account": {
+        "q": "Do I need an account to post a job?",
+        "a": "Yes. You'll create a quick account so you can manage your job and messages securely."
+      },
+      "howLong": {
+        "q": "How long does it take to post a job?",
+        "a": "Usually 1–2 minutes. The wizard guides you through simple tick-box questions."
+      },
+      "isFree": {
+        "q": "Is posting a job free?",
+        "a": "Yes. Posting is completely free."
+      },
+      "howMatched": {
+        "q": "How are professionals selected?",
+        "a": "They choose which services they offer during setup. If your job matches their services, they're notified automatically."
+      },
+      "unverified": {
+        "q": "Can professionals apply without being verified?",
+        "a": "Yes. Verification is a trust badge that boosts visibility — it's not required to respond to jobs."
+      },
+      "contactPro": {
+        "q": "How do I contact a professional?",
+        "a": "Through secure in-platform messaging. No phone numbers or emails are shared until you're ready."
+      },
+      "editJob": {
+        "q": "Can I change my job details after posting?",
+        "a": "Yes. You can edit your job from your dashboard before it's marked as completed."
+      },
+      "vsWhatsapp": {
+        "q": "What makes this better than WhatsApp groups?",
+        "a": "Structured job details, service-based matching, clear expectations, secure messaging, and no message flooding."
+      }
+    }
   },
   "professionals": {
     "title": "Browse Professionals",

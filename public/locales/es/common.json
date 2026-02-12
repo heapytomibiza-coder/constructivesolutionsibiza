@@ -255,28 +255,80 @@
   },
   "howItWorks": {
     "title": "Cómo Funciona",
-    "subtitle": "Conectando clientes con profesionales de construcción de confianza en Ibiza",
-    "trustBadge": "Oficios verificados • Respuesta el mismo día • En Ibiza",
-    "forClients": "Para Clientes",
-    "forProfessionals": "Para Profesionales",
-    "postJobButton": "Publicar un Trabajo",
-    "joinAsProButton": "Unirse como Profesional",
-    "clientStep1Title": "Publica Tu Proyecto",
-    "clientStep1Desc": "Describe tus necesidades de construcción o reforma usando nuestro asistente guiado.",
-    "clientStep2Title": "Recibe Coincidencias",
-    "clientStep2Desc": "Notificamos a profesionales verificados que coincidan con los requisitos de tu proyecto.",
-    "clientStep3Title": "Recibe Presupuestos",
-    "clientStep3Desc": "Compara presupuestos, revisa perfiles y contacta directamente con los profesionales.",
-    "clientStep4Title": "Contrata y Completa",
-    "clientStep4Desc": "Elige a tu profesional y completa tu proyecto con confianza.",
-    "proStep1Title": "Crea Tu Perfil",
-    "proStep1Desc": "Regístrate y completa tu perfil profesional con tus servicios y portafolio.",
-    "proStep2Title": "Verifica Tu Cuenta",
-    "proStep2Desc": "Completa nuestro proceso de verificación para generar confianza con clientes potenciales.",
-    "proStep3Title": "Recibe Alertas de Trabajos",
-    "proStep3Desc": "Recibe notificaciones cuando se publiquen trabajos que coincidan con tus habilidades.",
-    "proStep4Title": "Gana Trabajo",
-    "proStep4Desc": "Envía presupuestos, comunícate con clientes y haz crecer tu negocio."
+    "subtitle": "Simple. Estructurado. Hecho para la comunidad de construcción de Ibiza.",
+    "trustBadge": "Proceso guiado • Matching por servicio • Solo Ibiza",
+    "overviewTitle": "Tres Pasos. Sin Confusión.",
+    "overviewDesc": "TM Direct conecta a personas que necesitan trabajo con los profesionales adecuados — a través de un asistente guiado que elimina las dudas y ahorra tiempo.",
+    "ov1Title": "Publica Tu Trabajo",
+    "ov1Desc": "Usa el asistente guiado para describir exactamente lo que necesitas. Sin párrafos largos — solo preguntas claras.",
+    "ov2Title": "Recibe Coincidencias",
+    "ov2Desc": "Los profesionales relevantes son notificados automáticamente según sus servicios y preferencias.",
+    "ov3Title": "Conecta y Completa",
+    "ov3Desc": "Mensajea de forma segura, acuerda los detalles y completa el trabajo.",
+    "forClients": "Necesito Trabajo Hecho",
+    "forProfessionals": "Quiero Trabajar",
+    "postJobButton": "Empieza Tu Proyecto",
+    "joinAsProButton": "Únete como Tasker",
+    "clientStep1Title": "Elige el Servicio",
+    "clientStep1Desc": "Selecciona una categoría, subcategoría y servicio específico para que sepamos exactamente qué necesitas.",
+    "clientStep2Title": "Responde Preguntas Simples",
+    "clientStep2Desc": "Te guiamos con preguntas claras tipo casilla para que los profesionales entiendan el trabajo desde el inicio.",
+    "clientStep3Title": "Añade Presupuesto y Plazo",
+    "clientStep3Desc": "Establece expectativas claras — rango de presupuesto, calendario preferido y ubicación.",
+    "clientStep4Title": "Publica y Recibe Matches",
+    "clientStep4Desc": "Tu trabajo se envía a profesionales relevantes inmediatamente. Te contactan directamente.",
+    "clientAfter": "Tú mantienes el control — revisa mensajes, acuerda condiciones y marca el trabajo como completado cuando estés satisfecho.",
+    "proStep1Title": "Completa Tu Perfil",
+    "proStep1Desc": "Añade tu información de negocio y área de servicio. Lleva unos dos minutos.",
+    "proStep2Title": "Selecciona Tus Servicios",
+    "proStep2Desc": "Elige exactamente qué servicios ofreces. Si no lo seleccionas, no se te asignará.",
+    "proStep3Title": "Recibe Matches Automáticamente",
+    "proStep3Desc": "Cuando se publica un trabajo que coincide con tus servicios, se te notifica. Sin spam, sin solicitudes irrelevantes.",
+    "proMatchTitle": "Cuando Llega un Trabajo",
+    "proMatchDesc": "Se te notifica si coincide con tus servicios seleccionados. Puedes mensajear al cliente directamente — solo oportunidades relevantes llegan a ti.",
+    "proBadgeTitle": "Insignia de Verificación",
+    "proBadgeDesc": "La verificación aumenta la confianza y mejora tu visibilidad. No es necesaria para aplicar — es un impulso, no una barrera.",
+    "whyTitle": "Por Qué Es Diferente",
+    "why1": "Publicación de trabajo estructurada — sin solicitudes vagas",
+    "why2": "Matching basado en servicios — sin navegación aleatoria",
+    "why3": "Mensajería segura entre cliente y profesional",
+    "why4": "Perfiles verificados como señal de confianza",
+    "why5": "Red local enfocada — solo Ibiza",
+    "faqTitle": "Preguntas Frecuentes",
+    "faq": {
+      "account": {
+        "q": "¿Necesito una cuenta para publicar un trabajo?",
+        "a": "Sí. Crearás una cuenta rápida para gestionar tu trabajo y mensajes de forma segura."
+      },
+      "howLong": {
+        "q": "¿Cuánto tarda publicar un trabajo?",
+        "a": "Normalmente 1–2 minutos. El asistente te guía con preguntas sencillas tipo casilla."
+      },
+      "isFree": {
+        "q": "¿Es gratis publicar un trabajo?",
+        "a": "Sí. Publicar es completamente gratis."
+      },
+      "howMatched": {
+        "q": "¿Cómo se seleccionan los profesionales?",
+        "a": "Ellos eligen qué servicios ofrecen durante su configuración. Si tu trabajo coincide con sus servicios, se les notifica automáticamente."
+      },
+      "unverified": {
+        "q": "¿Pueden los profesionales aplicar sin estar verificados?",
+        "a": "Sí. La verificación es una insignia de confianza que aumenta la visibilidad — no es necesaria para responder a trabajos."
+      },
+      "contactPro": {
+        "q": "¿Cómo contacto a un profesional?",
+        "a": "A través de mensajería segura dentro de la plataforma. No se comparten teléfonos ni emails hasta que estés listo."
+      },
+      "editJob": {
+        "q": "¿Puedo cambiar los detalles de mi trabajo después de publicarlo?",
+        "a": "Sí. Puedes editar tu trabajo desde tu panel antes de que se marque como completado."
+      },
+      "vsWhatsapp": {
+        "q": "¿Qué lo hace mejor que los grupos de WhatsApp?",
+        "a": "Detalles de trabajo estructurados, matching por servicio, expectativas claras, mensajería segura y sin inundación de mensajes."
+      }
+    }
   },
   "professionals": {
     "title": "Explorar Profesionales",
