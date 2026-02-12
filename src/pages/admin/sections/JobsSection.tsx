@@ -236,6 +236,19 @@ export default function JobsSection() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          title="Copy WhatsApp"
+                          onClick={async () => {
+                            const text = formatWhatsAppPost(job, window.location.origin);
+                            const ok = await copyToClipboard(text);
+                            if (ok) toast.success("Copied to clipboard");
+                            else toast.error("Copy failed");
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           asChild
                         >
                           <a href={`/jobs/${job.id}`} target="_blank" rel="noopener noreferrer">

@@ -84,10 +84,10 @@ const SECTIONS: { title: string; entries: LinkEntry[] }[] = [
   {
     title: 'Admin',
     entries: [
-      { label: 'Admin Dashboard', route: '/admin', roles: ['Admin'], source: 'Direct URL', notes: 'Role-gated, redirects non-admin' },
-      { label: 'Users Tab', route: '/admin#users', roles: ['Admin'], source: 'AdminDashboard' },
-      { label: 'Jobs Tab', route: '/admin#jobs', roles: ['Admin'], source: 'AdminDashboard' },
-      { label: 'Support Inbox', route: '/admin#support', roles: ['Admin'], source: 'AdminDashboard' },
+      { label: 'Admin Dashboard', route: '/dashboard/admin', roles: ['Admin'], source: 'Settings', notes: 'Role-gated, redirects non-admin' },
+      { label: 'Users Tab', route: '/dashboard/admin#users', roles: ['Admin'], source: 'AdminDashboard' },
+      { label: 'Jobs Tab', route: '/dashboard/admin#jobs', roles: ['Admin'], source: 'AdminDashboard' },
+      { label: 'Support Inbox', route: '/dashboard/admin#support', roles: ['Admin'], source: 'AdminDashboard' },
     ],
   },
 ];
