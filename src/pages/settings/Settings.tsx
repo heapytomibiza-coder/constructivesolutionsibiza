@@ -163,12 +163,40 @@ export default function Settings() {
             </div>
             <Separator />
             <div>
-              <p className="text-sm text-muted-foreground">Current Mode</p>
-              <p className="font-medium">{roleLabel}</p>
-              {hasMultipleRoles && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  You can switch modes from the navigation menu
-                </p>
+              <p className="text-sm text-muted-foreground mb-2">Current Mode</p>
+              {hasMultipleRoles ? (
+                <div className="flex gap-2">
+                  {roles.map((role) => {
+                    const isActive = role === activeRole;
+                    const label = role === 'professional' ? 'Tasker' : role === 'admin' ? 'Admin' : 'Asker';
+                    return (
+                      <Button
+                        key={role}
+                        type="button"
+                        variant={isActive ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1 active:scale-[0.97] transition-transform"
+                        onClick={async () => {
+                          if (role === activeRole) return;
+                          await switchRole(role);
+                          queryClient.invalidateQueries({ queryKey: ['jobs'] });
+                          queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
+                          queryClient.invalidateQueries({ queryKey: ['matched_jobs'] });
+                          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+                          queryClient.invalidateQueries({ queryKey: ['client_stats'] });
+                          queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
+                          queryClient.invalidateQueries({ queryKey: ['pro_unread_messages'] });
+                          queryClient.invalidateQueries({ queryKey: ['professional_services'] });
+                          toast.success(`Switched to ${label} mode`);
+                        }}
+                      >
+                        {label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="font-medium">{roleLabel}</p>
               )}
             </div>
           </CardContent>
