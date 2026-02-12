@@ -340,6 +340,65 @@ export type Database = {
           },
         ]
       }
+      job_notifications_queue: {
+        Row: {
+          attempts: number
+          created_at: string
+          event: string
+          id: string
+          job_id: string
+          last_error: string | null
+          sent_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          event?: string
+          id?: string
+          job_id: string
+          last_error?: string | null
+          sent_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          event?: string
+          id?: string
+          job_id?: string
+          last_error?: string | null
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_notifications_queue_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_notifications_queue_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_notifications_queue_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_notifications_queue_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_reviews: {
         Row: {
           comment: string | null
