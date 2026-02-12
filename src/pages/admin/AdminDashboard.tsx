@@ -16,7 +16,6 @@ import { OperatorCockpit } from "./sections/OperatorCockpit";
  */
 export default function AdminDashboard() {
   const { t } = useTranslation("common");
-  const { data: stats, isLoading } = useAdminStats();
 
   return (
     <div className="min-h-screen bg-background">
