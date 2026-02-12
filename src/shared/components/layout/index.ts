@@ -2,6 +2,8 @@ export { HeroBanner } from './HeroBanner';
 export { LaneHeader } from './LaneHeader';
 export { LanguageSwitcher } from './LanguageSwitcher';
 export { MobileNav } from './MobileNav';
+export { MobileRolePill } from './MobileRolePill';
+export { NotificationBell } from './NotificationBell';
 export { PageHeader } from './PageHeader';
 export { PublicFooter } from './PublicFooter';
 export { PublicLayout } from './PublicLayout';

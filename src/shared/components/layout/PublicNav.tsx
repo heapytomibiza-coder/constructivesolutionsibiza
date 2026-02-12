@@ -97,7 +97,10 @@ export function PublicNav() {
         </div>
 
         {/* Right side: Auth or User menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile role pill - visible on mobile for multi-role users */}
+          {isAuthenticated && <MobileRolePill />}
+          
           <LanguageSwitcher />
           
           {isAuthenticated ? (
@@ -108,6 +111,9 @@ export function PublicNav() {
                   <RoleSwitcher className="w-[140px]" />
                 </div>
               )}
+
+              {/* Notification bell */}
+              {user && <NotificationBell userId={user.id} />}
 
               {/* User dropdown */}
               <DropdownMenu>
