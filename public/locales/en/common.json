@@ -18,7 +18,9 @@
     "openMenu": "Open menu",
     "menu": "Menu",
     "userMenu": "User menu",
-    "selectRole": "Select mode"
+    "selectRole": "Select mode",
+    "jobPriorities": "Job Priorities",
+    "proProfile": "Edit Profile"
   },
   "lanes": {
     "discover": "Discover",
