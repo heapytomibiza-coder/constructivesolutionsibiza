@@ -18,7 +18,8 @@ import {
   Loader2,
   ArrowRight,
   MapPin,
-  User
+  User,
+  Star
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { PendingReviewsCard } from '@/pages/dashboard/shared/components/PendingReviewsCard';
@@ -276,6 +277,12 @@ const ProDashboard = () => {
                   <Link to="/onboarding/professional?edit=1&step=services">
                     <Wrench className="h-4 w-4" />
                     {t('pro.updateServices')}
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2" asChild>
+                  <Link to="/professional/priorities">
+                    <Star className="h-4 w-4" />
+                    {t('pro.setJobPriorities', 'Set Job Priorities')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2" asChild>
