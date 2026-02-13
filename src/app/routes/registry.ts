@@ -163,6 +163,21 @@ export const proOnboardingRoutes: RouteConfig[] = [
     lane: 'professional',
     titleKey: 'nav.proServiceSetup',
   },
+  { 
+    path: '/professional/priorities', 
+    access: 'role:professional', 
+    redirectTo: '/auth', 
+    lane: 'professional',
+    nav: { section: 'working', labelKey: 'nav.jobPriorities', order: 3, hideWhenPublic: true },
+    titleKey: 'nav.jobPriorities',
+  },
+  { 
+    path: '/professional/profile', 
+    access: 'role:professional', 
+    redirectTo: '/auth', 
+    lane: 'professional',
+    titleKey: 'nav.proProfile',
+  },
 ];
 
 export const proDashboardRoutes: RouteConfig[] = [
