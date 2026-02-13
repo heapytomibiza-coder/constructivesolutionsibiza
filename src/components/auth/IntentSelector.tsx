@@ -11,6 +11,7 @@ interface IntentOption {
   value: UserIntent;
   icon: typeof HelpCircle;
   title: string;
+  subtitle?: string;
   description: string;
   gradient: string;
   accentClass: string;
@@ -30,6 +31,7 @@ export function IntentSelector({ value, onChange }: IntentSelectorProps) {
         value: 'client',
         icon: HelpCircle,
         title: t('intent.options.client.title'),
+        subtitle: t('intent.options.client.subtitle'),
         description: t('intent.options.client.description'),
         gradient: 'bg-gradient-steel',
         accentClass: 'text-primary',
@@ -38,6 +40,7 @@ export function IntentSelector({ value, onChange }: IntentSelectorProps) {
         value: 'professional',
         icon: Briefcase,
         title: t('intent.options.professional.title'),
+        subtitle: t('intent.options.professional.subtitle'),
         description: t('intent.options.professional.description'),
         gradient: 'bg-gradient-clay',
         accentClass: 'text-accent',
@@ -113,14 +116,21 @@ export function IntentSelector({ value, onChange }: IntentSelectorProps) {
 
                 {/* Text content */}
                 <div className="flex-1 text-left">
-                  <p
-                    className={cn(
-                      'font-display text-lg font-semibold transition-colors duration-300',
-                      isSelected && option.accentClass
+                  <div className="flex items-center gap-2">
+                    <p
+                      className={cn(
+                        'font-display text-lg font-semibold transition-colors duration-300',
+                        isSelected && option.accentClass
+                      )}
+                    >
+                      {option.title}
+                    </p>
+                    {option.subtitle && (
+                      <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                        {option.subtitle}
+                      </span>
                     )}
-                  >
-                    {option.title}
-                  </p>
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     {option.description}
                   </p>
