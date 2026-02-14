@@ -103,7 +103,7 @@ const Auth = () => {
       const activeRole = selectedIntent === 'professional' ? 'professional' : 'client';
 
       // Use Supabase's built-in auth which handles confirmation emails automatically
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -117,7 +117,14 @@ const Auth = () => {
 
       if (error) throw error;
 
-      // Show confirmation UI (works for both new and repeated signups)
+      // If auto-confirm is enabled, user gets a session immediately — redirect
+      if (data.session) {
+        toast.success(t('toast.signUpSuccess', 'Account created successfully!'));
+        navigate('/auth/callback');
+        return;
+      }
+
+      // Otherwise show confirmation UI
       setConfirmationEmail(email);
       setShowConfirmationSent(true);
 
