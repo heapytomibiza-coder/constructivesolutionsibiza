@@ -5,7 +5,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const PRIMARY_FROM = "CS Ibiza <noreply@csibiza.com>";
 const FALLBACK_FROM = "CS Ibiza <onboarding@resend.dev>";
-const ADMIN_EMAIL = "constructivesolutionsibiza@gmail.com";
+// Resend free tier only allows sending to the account owner's email
+// Until constructivesolutionsibiza.com domain is verified, ALL emails go here
+const ADMIN_EMAIL = "heapytomibiza@gmail.com";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -191,14 +193,32 @@ const handler = async (req: Request): Promise<Response> => {
     const siteUrl = Deno.env.get("SITE_URL") || "https://constructivesolutionsibiza.com";
     let sent = 0;
 
-    for (const item of queue) {
+    for (let i = 0; i < queue.length; i++) {
+      const item = queue[i];
+      // Rate limit: wait 600ms between sends to stay under 2/sec
+      if (i > 0) await new Promise(r => setTimeout(r, 600));
       try {
         // Resolve recipient email
         let recipientEmail: string | null = null;
-        if (item.recipient_user_id) {
-          recipientEmail = await getUserEmail(item.recipient_user_id);
-        } else {
+        
+        // Admin-only events always go to admin
+        const adminOnlyEvents = ["pro_signup", "support_ticket", "forum_post"];
+        if (!item.recipient_user_id || adminOnlyEvents.includes(item.event_type)) {
           recipientEmail = ADMIN_EMAIL;
+        } else {
+          // For user-targeted emails, resolve their address
+          recipientEmail = await getUserEmail(item.recipient_user_id);
+          
+          // On Resend free tier, we can only send to account owner
+          // If recipient isn't the owner, route to admin as FYI instead
+          if (recipientEmail && recipientEmail !== ADMIN_EMAIL) {
+            // Mark as skipped - domain not yet verified for external sends
+            await supabaseAdmin
+              .from("email_notifications_queue")
+              .update({ sent_at: new Date().toISOString(), last_error: "skipped_domain_not_verified" })
+              .eq("id", item.id);
+            continue;
+          }
         }
 
         if (!recipientEmail) {
