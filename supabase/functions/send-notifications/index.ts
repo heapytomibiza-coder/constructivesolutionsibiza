@@ -117,6 +117,21 @@ function buildSupportTicketEmail(payload: any, siteUrl: string) {
   };
 }
 
+function buildForumPostEmail(payload: any, siteUrl: string) {
+  const postUrl = `${siteUrl}/forum/post/${payload.post_id}`;
+  return {
+    subject: `📝 New forum post: ${payload.title}`,
+    html: emailShell(
+      "linear-gradient(135deg, #374151, #4b5563)",
+      "New Forum Post",
+      `<h2 style="margin: 0 0 4px; color: #111827; font-size: 18px;">${payload.title}</h2>
+      <p style="color: #9ca3af; font-size: 13px; margin: 0 0 12px;">by ${payload.author_display_name}</p>
+      ${payload.content_preview ? `<p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 20px;">${payload.content_preview}</p>` : ""}
+      <a href="${postUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Post →</a>`
+    ),
+  };
+}
+
 function buildJobMatchEmail(payload: any, siteUrl: string) {
   const jobUrl = `${siteUrl}/jobs/${payload.job_id}`;
   return {
@@ -232,6 +247,9 @@ const handler = async (req: Request): Promise<Response> => {
             break;
           case "job_match":
             email = buildJobMatchEmail(payload, siteUrl);
+            break;
+          case "forum_post":
+            email = buildForumPostEmail(payload, siteUrl);
             break;
           default:
             await supabaseAdmin
