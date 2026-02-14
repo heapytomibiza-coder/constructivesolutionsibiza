@@ -210,14 +210,9 @@ const handler = async (req: Request): Promise<Response> => {
           recipientEmail = await getUserEmail(item.recipient_user_id);
           
           // On Resend free tier, we can only send to account owner
-          // If recipient isn't the owner, route to admin as FYI instead
+          // Route all user-targeted emails to admin as FYI until domain is verified
           if (recipientEmail && recipientEmail !== ADMIN_EMAIL) {
-            // Mark as skipped - domain not yet verified for external sends
-            await supabaseAdmin
-              .from("email_notifications_queue")
-              .update({ sent_at: new Date().toISOString(), last_error: "skipped_domain_not_verified" })
-              .eq("id", item.id);
-            continue;
+            recipientEmail = ADMIN_EMAIL;
           }
         }
 
