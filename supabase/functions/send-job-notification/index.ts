@@ -5,7 +5,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const PRIMARY_FROM = "CS Ibiza <noreply@csibiza.com>";
 const FALLBACK_FROM = "CS Ibiza <onboarding@resend.dev>";
-const NOTIFY_EMAIL = "constructivesolutionsibiza@gmail.com";
+// Resend free tier only allows sending to the account owner's email
+const NOTIFY_EMAIL = "heapytomibiza@gmail.com";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -130,7 +131,10 @@ const handler = async (req: Request): Promise<Response> => {
     const siteUrl = Deno.env.get("SITE_URL") || origin || "https://id-preview--c31efcb5-ae5c-4284-990c-e746238ecde8.lovable.app";
 
     let sent = 0;
-    for (const item of queue) {
+    for (let i = 0; i < queue.length; i++) {
+      const item = queue[i];
+      // Rate limit: wait 600ms between sends to stay under 2/sec
+      if (i > 0) await new Promise(r => setTimeout(r, 600));
       try {
         // Load job details
         const { data: job, error: jobError } = await supabaseAdmin
