@@ -5,7 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 // Primary sender (your branded domain). This will only work once the domain is verified.
-const PRIMARY_FROM = "Constructive Solutions Ibiza <noreply@constructivesolutionsibiza.com>";
+const PRIMARY_FROM = "Constructive Solutions Ibiza <info@tmdirectibiza.com>";
 
 // Fallback sender (works without verifying your own domain).
 const FALLBACK_FROM = "CS Ibiza <onboarding@resend.dev>";
