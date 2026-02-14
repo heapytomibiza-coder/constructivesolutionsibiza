@@ -102,29 +102,20 @@ const Auth = () => {
       const roles: string[] = selectedIntent === 'client' ? ['client'] : ['client', 'professional'];
       const activeRole = selectedIntent === 'professional' ? 'professional' : 'client';
 
-      // Call our custom edge function to send branded email via Resend
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-auth-email`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            type: 'signup',
-            email,
-            password,
-            phone,
+      // Use Supabase's built-in auth which handles confirmation emails automatically
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
             intent: selectedIntent,
-          }),
-        }
-      );
+            ...(phone ? { phone } : {}),
+          },
+        },
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to send confirmation email');
-      }
+      if (error) throw error;
 
       // Show confirmation UI (works for both new and repeated signups)
       setConfirmationEmail(email);
@@ -153,23 +144,15 @@ const Auth = () => {
     
     setIsResending(true);
     try {
-      // Call our custom edge function to resend confirmation
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-auth-email`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            type: 'resend',
-            email: confirmationEmail,
-          }),
-        }
-      );
-      
-      // Always show success to prevent enumeration
+      // Use Supabase's built-in resend confirmation
+      await supabase.auth.resend({
+        type: 'signup',
+        email: confirmationEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
       toast.success(t('toast.confirmationResent'));
     } catch (error: unknown) {
       // Still show success to prevent enumeration
