@@ -7,11 +7,15 @@
 
 import { createContext, useContext, type ReactNode } from 'react';
 import { useSessionSnapshot, type SessionSnapshot } from '@/hooks/useSessionSnapshot';
+import { useMessageNotifications } from '@/hooks/useMessageNotifications';
 
 const SessionContext = createContext<SessionSnapshot | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const snapshot = useSessionSnapshot();
+
+  // Activate realtime message notifications (toast + browser + sound) for logged-in users
+  useMessageNotifications(snapshot.user?.id ?? null);
 
   return (
     <SessionContext.Provider value={snapshot}>
