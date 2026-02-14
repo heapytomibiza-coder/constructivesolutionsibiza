@@ -526,14 +526,17 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
     }
   };
 
+  // Only professionals (taskers) can message on job listings
+  const showMessageButton = isPro && !jobPack.isOwner;
+
   return (
     <div className="flex flex-wrap gap-2">
       {!user ? (
         <Button onClick={handleMessage} className="gap-2">
           <LogIn className="h-4 w-4" />
-          Sign in to message
+          Sign in to respond
         </Button>
-      ) : jobPack.isOwner ? null : (
+      ) : showMessageButton ? (
         <div className="flex flex-col gap-1">
           <Button 
             onClick={handleMessage} 
@@ -554,7 +557,7 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
             </span>
           )}
         </div>
-      )}
+      ) : null}
       <Button variant="outline" disabled className="gap-2">
         <Share2 className="h-4 w-4" />
         Share
