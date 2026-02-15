@@ -58,7 +58,7 @@ export default function InsightsSection() {
     <div className="space-y-8">
       {/* Construction Leader Pages */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Deep Analytics</h2>
+        <h2 className="text-lg font-semibold">Decision Pages</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {LEADER_PAGES.map((page) => {
             const Icon = page.icon;
