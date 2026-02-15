@@ -67,7 +67,7 @@ import AdminRouteLayout from "./pages/admin/AdminRouteLayout";
 import {
   MetricInsightPage, MarketGapPage, FunnelsPage,
   ProPerformancePage, PricingPage, TrendRadarPage,
-  UnansweredJobsPage, RepeatWorkPage,
+  UnansweredJobsPage, RepeatWorkPage, OnboardingFunnelPage,
 } from "./pages/admin/insights";
 
 // Launch Checklist
@@ -177,6 +177,7 @@ const App = () => {
                 <Route path="insights/trends" element={<TrendRadarPage />} />
                 <Route path="insights/unanswered-jobs" element={<UnansweredJobsPage />} />
                 <Route path="insights/repeat-work" element={<RepeatWorkPage />} />
+                <Route path="insights/onboarding-funnel" element={<OnboardingFunnelPage />} />
                 <Route path="insights/:metricKey" element={<MetricInsightPage />} />
               </Route>
             </Route>
