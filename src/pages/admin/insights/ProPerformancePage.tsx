@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Star, Clock, CheckCircle, MessageSquare } from "lucide-react";
+import { Star, Clock, CheckCircle, MessageSquare, Users } from "lucide-react";
 
 interface ProPerformanceRow {
   user_id: string;
@@ -65,7 +65,7 @@ export default function ProPerformancePage() {
         services_count: p.services_count,
         total_conversations: convoMap.get(p.user_id) ?? 0,
         total_completed: completedMap.get(p.user_id) ?? 0,
-        avg_rating: null, // Will be populated as reviews accumulate
+        avg_rating: null,
       }));
     },
     staleTime: 60_000,
@@ -74,7 +74,6 @@ export default function ProPerformancePage() {
   const sorted = useMemo(() => {
     if (!data) return [];
     return [...data].sort((a, b) => {
-      // Score: completed * 3 + conversations * 1 + services * 0.5
       const scoreA = a.total_completed * 3 + a.total_conversations + a.services_count * 0.5;
       const scoreB = b.total_completed * 3 + b.total_conversations + b.services_count * 0.5;
       return scoreB - scoreA;
@@ -187,6 +186,3 @@ export default function ProPerformancePage() {
     </div>
   );
 }
-
-// Import needed for summary cards
-import { Users } from "lucide-react";

@@ -11,6 +11,7 @@ export interface UnansweredJob {
   created_at: string;
   hours_waiting: number;
   conversation_count: number;
+  pro_message_count?: number;
 }
 
 export function useUnansweredJobs(hoursThreshold = 6) {
@@ -18,6 +19,21 @@ export function useUnansweredJobs(hoursThreshold = 6) {
     queryKey: ["admin", "unanswered_jobs", hoursThreshold],
     queryFn: async (): Promise<UnansweredJob[]> => {
       const { data, error } = await supabase.rpc("admin_unanswered_jobs", {
+        p_hours_threshold: hoursThreshold,
+      });
+      if (error) throw error;
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      return (Array.isArray(parsed) ? parsed : []) as UnansweredJob[];
+    },
+    staleTime: 30_000,
+  });
+}
+
+export function useNoProReplyJobs(hoursThreshold = 6) {
+  return useQuery({
+    queryKey: ["admin", "no_pro_reply_jobs", hoursThreshold],
+    queryFn: async (): Promise<UnansweredJob[]> => {
+      const { data, error } = await supabase.rpc("admin_no_pro_reply_jobs", {
         p_hours_threshold: hoursThreshold,
       });
       if (error) throw error;

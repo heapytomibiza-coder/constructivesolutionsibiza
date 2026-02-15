@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Mail, AlertTriangle, Briefcase, Users, Clock } from 'lucide-react';
+import { Mail, AlertTriangle, Briefcase, Users, Clock, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface HealthSnapshot {
   emails: { pending: number; failed: number; oldest_pending_minutes: number };
@@ -11,7 +12,25 @@ interface HealthSnapshot {
   users: { active_24h: number; active_7d: number };
 }
 
+function HealthCard({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <Card
+      className={onClick ? "cursor-pointer hover:border-primary/50 hover:shadow-md transition-all active:scale-[0.98]" : ""}
+      onClick={onClick}
+    >
+      {children}
+    </Card>
+  );
+}
+
 export function HealthSection() {
+  const navigate = useNavigate();
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin_health_snapshot'],
     queryFn: async (): Promise<HealthSnapshot> => {
@@ -19,7 +38,7 @@ export function HealthSection() {
       if (error) throw error;
       return data as unknown as HealthSnapshot;
     },
-    refetchInterval: 60_000, // auto-refresh every minute
+    refetchInterval: 60_000,
   });
 
   if (error) {
@@ -39,7 +58,7 @@ export function HealthSection() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Pending Emails */}
-        <Card>
+        <HealthCard>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Pending Emails
@@ -63,10 +82,10 @@ export function HealthSection() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </HealthCard>
 
         {/* Failed Emails */}
-        <Card>
+        <HealthCard>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Failed Emails
@@ -85,15 +104,18 @@ export function HealthSection() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </HealthCard>
 
         {/* Jobs Posted Today */}
-        <Card>
+        <HealthCard onClick={() => navigate("/dashboard/admin/insights/jobs_posted")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Jobs Posted Today
             </CardTitle>
-            <Briefcase className="h-5 w-5 text-primary" />
+            <div className="flex items-center gap-1">
+              <Briefcase className="h-5 w-5 text-primary" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -102,15 +124,18 @@ export function HealthSection() {
               <div className="text-3xl font-bold">{data?.jobs.posted_today ?? 0}</div>
             )}
           </CardContent>
-        </Card>
+        </HealthCard>
 
         {/* Active Users 24h */}
-        <Card>
+        <HealthCard onClick={() => navigate("/dashboard/admin/insights/messages_sent")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Active Users (24h)
             </CardTitle>
-            <Users className="h-5 w-5 text-primary" />
+            <div className="flex items-center gap-1">
+              <Users className="h-5 w-5 text-primary" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -119,15 +144,18 @@ export function HealthSection() {
               <div className="text-3xl font-bold">{data?.users.active_24h ?? 0}</div>
             )}
           </CardContent>
-        </Card>
+        </HealthCard>
 
         {/* Active Users 7d */}
-        <Card>
+        <HealthCard onClick={() => navigate("/dashboard/admin/insights/messages_sent")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Active Users (7d)
             </CardTitle>
-            <Users className="h-5 w-5 text-accent" />
+            <div className="flex items-center gap-1">
+              <Users className="h-5 w-5 text-accent" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -136,7 +164,7 @@ export function HealthSection() {
               <div className="text-3xl font-bold">{data?.users.active_7d ?? 0}</div>
             )}
           </CardContent>
-        </Card>
+        </HealthCard>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { useSession } from '@/contexts/SessionContext';
 import { CheckCircle2, ArrowRight, ArrowLeft, User, MapPin, Briefcase, Rocket } from 'lucide-react';
 import { PLATFORM } from '@/domain/scope';
+import { trackEvent } from '@/lib/trackEvent';
 import { BasicInfoStep, ServiceAreaStep, ServiceUnlockStep, ReviewStep } from './steps';
 import { cn } from '@/lib/utils';
 
@@ -125,6 +126,7 @@ const ProfessionalOnboarding = () => {
   }, [stepParam]);
 
   const handleBasicInfoComplete = () => {
+    trackEvent('pro_onboarding_started', 'professional', { step: 'basic_info' });
     setCurrentStep('service_area');
   };
 

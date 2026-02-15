@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,9 @@ export default function MetricInsightPage() {
     () => subDays(new Date(), metric?.defaultTimeframeDays ?? 30).toISOString(),
     [metric]
   );
+
+  // Reset pagination when filters change
+  useEffect(() => setPage(0), [area, category, metricKey]);
 
   const { data: drilldownRows, isLoading: drilldownLoading } = useAdminMetricDrilldown({
     metric: metricKey as AdminMetricKey,

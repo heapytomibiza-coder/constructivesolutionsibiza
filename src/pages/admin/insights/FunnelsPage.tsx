@@ -6,13 +6,7 @@ import { useAdminMetricTimeseries } from "../hooks/useAdminMetricTimeseries";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { subDays } from "date-fns";
 
-const FUNNEL_STEPS = [
-  { key: "job_wizard_started", label: "Started Wizard" },
-  { key: "job_step_completed", label: "Completed Steps" },
-  { key: "jobs_posted", label: "Posted Job" },
-  { key: "conversations", label: "Got Response" },
-  { key: "completed_jobs", label: "Completed" },
-];
+
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--primary) / 0.8)", "hsl(var(--primary) / 0.6)", "hsl(var(--primary) / 0.4)", "hsl(var(--primary) / 0.3)"];
 
