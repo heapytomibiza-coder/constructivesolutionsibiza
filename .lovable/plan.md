@@ -1,102 +1,77 @@
 
 
-# Final Onboarding Hardening: ServiceUnlockStep refresh() Guard
+# Bulletproof Email + Onboarding Fixes
 
-## Current State
+## What's Already Working
+- `htmlToPlainText()` helper is correctly implemented (the style regex is fine in the actual code)
+- Entity decoding covers the essential cases
+- Profile auto-insert guard exists in `ServiceAreaStep.tsx`
+- RLS policy on `professional_profiles` already has an INSERT policy: `WITH CHECK (auth.uid() = user_id)` -- so the client-side auto-insert will succeed
 
-All 4 onboarding steps have been audited. Here is the status:
+## What Needs Fixing
 
-| Step | refresh() guarded | trackEvent on error | Real error msg | Button alignment |
-|------|-------------------|---------------------|----------------|-----------------|
-| BasicInfoStep | Yes (line 107-111) | Yes (line 119) | Yes | OK (full-width) |
-| ServiceAreaStep | Yes (line 80-85) | Yes (line 93-96) | Yes | OK (flex gap-4) |
-| ServiceUnlockStep | **NO -- line 203** | Yes (line 206-209) | Yes | OK (flex gap-4) |
-| ReviewStep | Yes (line 79-83) | Yes (line 91) | Yes | OK (flex gap-4) |
+### 1. SMTP: Fix plain-text field name (`content` vs `text`)
 
-**ProfessionalOnboarding.tsx** step entry tracking: Done (lines 104, 110, 131-132, 137-138, 143-144).
+The `denomailer` library expects `content` for plain text, BUT combining `content` and `html` together may cause the library to produce malformed MIME. The safest approach with denomailer is to use `content` with explicit `mimeContent` parts for multipart/alternative.
 
-## The One Remaining Bug
-
-In `ServiceUnlockStep.tsx` lines 197-211, `await refresh()` (line 203) is inside the **same** try/catch as the Supabase update (line 198-201). If the DB write succeeds but `refresh()` throws:
-
-1. The catch fires
-2. `trackEvent('onboarding_step_failed')` logs a false positive
-3. But `onComplete()` (line 213) still runs because it's outside the try/catch
-
-This means the user advances correctly, but the analytics log a phantom failure. The fix is to separate `refresh()` into its own try/catch, matching the pattern used in all other steps.
-
-## Change
-
-**File:** `src/pages/onboarding/steps/ServiceUnlockStep.tsx`
-
-Replace lines 196-211 (the phase advancement block inside `handleContinue`):
+However, a simpler and proven fix: switch the send call to pass only `html` and let denomailer handle the MIME structure, OR verify the correct field. Based on denomailer docs, the correct multipart approach is:
 
 ```typescript
-// Current (broken):
-if (newPhase !== currentPhase) {
-  try {
-    await supabase
-      .from('professional_profiles')
-      .update({ onboarding_phase: newPhase })
-      .eq('user_id', user.id);
-    await refresh();  // <-- if this throws, catch logs false failure
-  } catch (err) {
-    console.error('Error advancing phase:', err);
-    const msg = err instanceof Error ? err.message : String(err);
-    trackEvent('onboarding_step_failed', 'professional', {
-      step: 'service_unlock',
-      error_message: msg,
-    });
-  }
-}
+await client.send({
+  from: ...,
+  to,
+  subject,
+  content: plainText,    // This becomes text/plain
+  html,                  // This becomes text/html
+});
 ```
 
-With:
+This is actually correct as-is. But we should add a test call to verify the output. The plan includes deploying and sending a verification email, then checking Gmail raw source.
 
-```typescript
-// Fixed (separated):
-if (newPhase !== currentPhase) {
-  try {
-    const { error } = await supabase
-      .from('professional_profiles')
-      .update({ onboarding_phase: newPhase })
-      .eq('user_id', user.id);
-    if (error) throw error;
-  } catch (err) {
-    console.error('Error advancing phase:', err);
-    const msg = err instanceof Error ? err.message : String(err);
-    trackEvent('onboarding_step_failed', 'professional', {
-      step: 'services',
-      error_message: msg,
-    });
-  }
+### 2. Remaining emoji in email body table cells
 
-  try {
-    await refresh();
-  } catch (e) {
-    console.warn('Session refresh failed after services save:', e);
-  }
-}
-```
+The job match email template uses emojis inside HTML table cells (lines 217-219): `📍`, `💶`, `⏱️`. These are safe inside HTML body (UTF-8 encoded in the HTML part), but for maximum compatibility, replace them with text labels.
 
-Key improvements:
-- `refresh()` gets its own try/catch (no false failure tracking)
-- Supabase response is checked with `if (error) throw error` (surfaces real DB errors)
-- Step name changed from `'service_unlock'` to `'services'` to match the canonical step ID used in ProfessionalOnboarding.tsx
+### 3. Add `console.error` with full object in ServiceAreaStep
 
-## Verification Checklist (Post-Merge)
+The current error handler already has `console.error('Error saving service area:', error)` -- this is correct. No change needed.
 
-After this change, all 4 steps will follow the identical pattern:
+---
 
-1. mutationFn / DB call throws only on real DB error
-2. refresh() is in its own try/catch -- never blocks user progression
-3. onError / catch shows the real error message via toast
-4. trackEvent fires with step name + error_message on real failures only
-5. Buttons use consistent flex gap-4, h-12, outline variant for "Go Back"
+## Implementation Steps
 
-## What This Does NOT Change
+### Step 1: Verify denomailer send shape
+- Confirm that `content` + `html` produces proper `multipart/alternative` by deploying and testing
+- If Gmail raw source still shows MIME garbage, switch to using denomailer's explicit content array format
 
-- No database or RLS changes
-- No changes to phaseProgression.ts (logic confirmed correct)
-- No changes to BasicInfoStep, ServiceAreaStep, or ReviewStep (already hardened)
-- No changes to ProfessionalOnboarding.tsx (step entry tracking already in place)
+### Step 2: Clean up job match email emojis in table cells
+Replace emoji prefixes in the HTML table with plain text labels:
+- `📍 Location` becomes `Location`
+- `💶 Budget` becomes `Budget`  
+- `⏱️ Timing` becomes `Timing`
+
+### Step 3: Deploy and verify
+- Deploy the updated edge function
+- Trigger a test email
+- Confirm in Gmail: clean HTML render, proper subject, multipart/alternative structure
+
+---
+
+## Technical Details
+
+### Files to modify:
+- `supabase/functions/send-notifications/index.ts` -- remove emojis from job match HTML table
+
+### No changes needed:
+- `ServiceAreaStep.tsx` -- the auto-insert guard and error handling are already correct
+- RLS policies -- the INSERT policy already allows `auth.uid() = user_id`
+- `htmlToPlainText()` -- the implementation is correct as written
+
+### Verification checklist:
+- Gmail renders clean HTML (no raw MIME headers)
+- Subject line shows normal text
+- Plain text part exists in raw source
+- Job match, support ticket, and signup emails all render correctly
+- Onboarding proceeds for users with missing profile rows
+- Toast shows real error messages (never `[object Object]`)
+
