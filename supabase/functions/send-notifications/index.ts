@@ -26,6 +26,31 @@ const supabaseAdmin = createClient(
 );
 
 // ============================================
+// HELPERS
+// ============================================
+
+/** Strip HTML tags to produce a plain-text fallback */
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/h[1-6]>/gi, "\n\n")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/td>/gi, "  ")
+    .replace(/<a[^>]+href="([^"]*)"[^>]*>(.*?)<\/a>/gi, "$2 ($1)")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+// ============================================
 // GMAIL SMTP SENDER
 // ============================================
 
@@ -43,10 +68,13 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ e
       },
     });
 
+    const plainText = htmlToPlainText(html);
+
     await client.send({
       from: `${BRAND_NAME} <${GMAIL_USER}>`,
       to,
       subject,
+      content: plainText,
       html,
     });
 
@@ -139,9 +167,10 @@ function buildProSignupEmail(payload: any, siteUrl: string) {
 }
 
 function buildSupportTicketEmail(payload: any, siteUrl: string) {
+  const priorityLabel = payload.priority === "high" ? "[HIGH]" : payload.priority === "medium" ? "[MEDIUM]" : "[LOW]";
   const priorityEmoji = payload.priority === "high" ? "🔴" : payload.priority === "medium" ? "🟡" : "🟢";
   return {
-    subject: `${priorityEmoji} Support ticket ${payload.ticket_number}: ${payload.issue_type}`,
+    subject: `${priorityLabel} Support ticket ${payload.ticket_number}: ${payload.issue_type}`,
     html: emailShell(
       "linear-gradient(135deg, #374151, #4b5563)",
       "New Support Ticket",
