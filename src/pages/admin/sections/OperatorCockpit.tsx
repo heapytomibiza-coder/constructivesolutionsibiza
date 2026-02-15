@@ -1,67 +1,65 @@
 import { useAdminStats } from "../hooks/useAdminStats";
 import { useLatestJobs } from "../hooks/useLatestJobs";
+import { useAdminAlerts } from "../hooks/useAdminAlerts";
+import type { AdminAlert } from "../hooks/useAdminAlerts";
 import { formatWhatsAppPost, copyToClipboard } from "../lib/formatWhatsAppPost";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertTriangle,
   CheckCircle2,
   Headset,
-  UserPlus,
   Briefcase,
   Copy,
   ExternalLink,
   Users,
   MessageSquare,
+  Mail,
+  Clock,
+  UserPlus,
+  Wrench,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { StatTile } from "@/shared/components/StatTile";
 import { useNavigate } from "react-router-dom";
 
-interface HealthSnapshot {
-  emails: { pending: number; failed: number; oldest_pending_minutes: number };
-  jobs: { posted_today: number };
-  users: { active_24h: number; active_7d: number };
-}
+const SEVERITY_ORDER: Record<string, number> = { red: 0, yellow: 1, blue: 2 };
+
+const ALERT_ICONS: Record<string, React.ReactNode> = {
+  failed_emails: <Mail className="h-5 w-5" />,
+  high_priority_tickets: <Headset className="h-5 w-5" />,
+  unanswered_jobs: <Briefcase className="h-5 w-5" />,
+  open_tickets: <Headset className="h-5 w-5" />,
+  stuck_onboarding: <Clock className="h-5 w-5" />,
+  new_signups_24h: <UserPlus className="h-5 w-5" />,
+  new_pros_24h: <Wrench className="h-5 w-5" />,
+};
+
+const SEVERITY_STYLES: Record<string, string> = {
+  red: "border-destructive/30 bg-destructive/5 text-destructive",
+  yellow: "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400",
+  blue: "border-primary/30 bg-primary/5 text-primary",
+};
 
 export function OperatorCockpit() {
   const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = useAdminStats();
   const { data: latestJobs, isLoading: jobsLoading } = useLatestJobs(10);
-  const { data: health, isLoading: healthLoading } = useQuery({
-    queryKey: ["admin_health_snapshot"],
-    queryFn: async (): Promise<HealthSnapshot> => {
-      const { data, error } = await supabase.rpc("admin_health_snapshot");
-      if (error) throw error;
-      return data as unknown as HealthSnapshot;
-    },
-    refetchInterval: 60_000,
-  });
+  const { data: alerts, isLoading: alertsLoading } = useAdminAlerts();
 
+  const sortedAlerts = (alerts ?? []).sort(
+    (a, b) => (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9)
+  );
   const baseUrl = window.location.origin;
 
   const handleCopyWhatsApp = async (job: (typeof latestJobs)[number]) => {
     const text = formatWhatsAppPost(job, baseUrl);
     const ok = await copyToClipboard(text);
-    if (ok) {
-      toast.success("Copied to clipboard");
-    } else {
-      toast.error("Copy failed — try selecting manually");
-    }
+    if (ok) toast.success("Copied to clipboard");
+    else toast.error("Copy failed — try selecting manually");
   };
-
-  // Attention items
-  const failedEmails = health?.emails.failed ?? 0;
-  const openTickets = stats?.open_support_tickets ?? 0;
-  const jobsToday = health?.jobs.posted_today ?? 0;
-
-  const allClear = failedEmails === 0 && openTickets === 0;
-  const attentionLoading = healthLoading || statsLoading;
 
   return (
     <div className="space-y-8">
@@ -69,65 +67,44 @@ export function OperatorCockpit() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Needs Attention</h2>
 
-        {attentionLoading ? (
+        {alertsLoading ? (
           <div className="grid gap-3 sm:grid-cols-3">
             {[...Array(3)].map((_, i) => (
               <Skeleton key={i} className="h-20 rounded-lg" />
             ))}
           </div>
-        ) : allClear ? (
+        ) : sortedAlerts.length === 0 ? (
           <Card className="border-accent/30 bg-accent/5">
             <CardContent className="p-4 flex items-center gap-3">
               <CheckCircle2 className="h-6 w-6 text-accent" />
               <div>
                 <p className="font-medium">All clear</p>
                 <p className="text-sm text-muted-foreground">
-                  No failed emails or urgent tickets right now.
+                  No alerts right now — everything looks good.
                 </p>
               </div>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-3">
-            {failedEmails > 0 && (
-              <Card className="border-destructive/30 bg-destructive/5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {sortedAlerts.map((alert) => (
+              <Card
+                key={alert.key}
+                className={`cursor-pointer transition-shadow hover:shadow-md ${SEVERITY_STYLES[alert.severity] ?? ""}`}
+                onClick={() => navigate(alert.cta_href)}
+              >
                 <CardContent className="p-4 flex items-center gap-3">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
-                  <div>
-                    <p className="text-2xl font-bold">{failedEmails}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Failed emails
-                    </p>
+                  <span className="shrink-0">
+                    {ALERT_ICONS[alert.key] ?? <AlertTriangle className="h-5 w-5" />}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-2xl font-bold">{alert.count}</p>
+                    <p className="text-xs font-medium">{alert.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">{alert.body}</p>
                   </div>
                 </CardContent>
               </Card>
-            )}
-            {openTickets > 0 && (
-              <Card className="border-secondary/50 bg-secondary/10">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <Headset className="h-5 w-5 text-secondary-foreground" />
-                  <div>
-                    <p className="text-2xl font-bold">{openTickets}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Open support tickets
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            {jobsToday > 0 && (
-              <Card className="border-primary/30 bg-primary/5">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <Briefcase className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-2xl font-bold">{jobsToday}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Jobs posted today
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            ))}
           </div>
         )}
       </section>
