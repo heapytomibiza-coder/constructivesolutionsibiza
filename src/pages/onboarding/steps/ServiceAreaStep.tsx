@@ -76,13 +76,19 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['professional-service-area'] });
-      await refresh();
+      try {
+        await refresh();
+      } catch (e) {
+        // Session refresh failed but save succeeded — continue anyway
+        console.warn('Session refresh failed after service area save:', e);
+      }
       toast.success('Saved!');
       onComplete();
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error('Error saving service area:', error);
-      toast.error('Something went wrong. Please try again.');
+      toast.error(msg || 'Something went wrong. Please try again.');
     },
   });
 
@@ -199,21 +205,21 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
               variant="outline"
               size="lg"
               onClick={onBack}
-              className="flex-1"
+              className="flex-1 h-12 flex items-center justify-center"
             >
-              <ArrowLeft className="h-5 w-5 mr-2" />
+              <ArrowLeft className="h-5 w-5 mr-2 shrink-0" />
               Go Back
             </Button>
             <Button 
               type="submit" 
               size="lg"
-              className="flex-1"
+              className="flex-1 h-12 flex items-center justify-center"
               disabled={saveMutation.isPending || selectedZones.length === 0}
             >
               {saveMutation.isPending ? (
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <Loader2 className="h-5 w-5 animate-spin mr-2 shrink-0" />
               ) : (
-                <ArrowRight className="h-5 w-5 mr-2" />
+                <ArrowRight className="h-5 w-5 mr-2 shrink-0" />
               )}
               Next Step
             </Button>
