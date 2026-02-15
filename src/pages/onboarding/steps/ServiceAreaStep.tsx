@@ -64,30 +64,18 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
     mutationFn: async (zones: string[]) => {
       if (!user?.id) throw new Error('Not authenticated');
 
-      // Guard: ensure professional_profiles row exists (upsert to handle race conditions)
-      const { error: upsertError } = await supabase
+      // Single upsert: creates row if missing, updates if exists — race-safe
+      const { error } = await supabase
         .from('professional_profiles')
         .upsert(
           {
             user_id: user.id,
-            onboarding_phase: 'not_started',
-            verification_status: 'unverified',
+            service_zones: zones,
+            service_area_type: 'zones',
+            onboarding_phase: nextPhase(currentPhase, 'service_area'),
           },
-          { onConflict: 'user_id', ignoreDuplicates: true }
+          { onConflict: 'user_id' }
         );
-      if (upsertError) {
-        console.error('Failed to ensure professional profile:', upsertError);
-        throw new Error(upsertError.message || 'Could not create your professional profile. Please try logging out and back in.');
-      }
-
-      const { error } = await supabase
-        .from('professional_profiles')
-        .update({
-          service_zones: zones,
-          service_area_type: 'zones',
-          onboarding_phase: nextPhase(currentPhase, 'service_area'),
-        })
-        .eq('user_id', user.id);
 
       if (error) throw new Error(error.message || 'Failed to save service area');
     },
