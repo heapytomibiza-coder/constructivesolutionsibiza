@@ -321,11 +321,33 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   
   // === STEP VIEW TRACKING ===
   const hasSubmittedRef = useRef(false);
+  const lastStepRef = useRef(currentStep);
+  const lastCategoryRef = useRef(wizardState.mainCategory);
+  const isInitializedRef = useRef(false);
+  const hasMeaningfulStateRef = useRef(false);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    lastStepRef.current = currentStep;
+  }, [currentStep]);
+
+  useEffect(() => {
+    lastCategoryRef.current = wizardState.mainCategory;
+    hasMeaningfulStateRef.current = !!wizardState.mainCategoryId;
+  }, [wizardState.mainCategory, wizardState.mainCategoryId]);
+
+  useEffect(() => {
+    isInitializedRef.current = isInitialized;
+  }, [isInitialized]);
 
   useEffect(() => {
     if (!isInitialized) return;
-    trackEvent('job_wizard_step_viewed', 'client', { step: currentStep, stepIndex: getStepIndex(currentStep) });
-  }, [currentStep, isInitialized]);
+    trackEvent('job_wizard_step_viewed', 'client', {
+      step: currentStep,
+      stepIndex: getStepIndex(currentStep),
+      category: wizardState.mainCategory,
+    });
+  }, [currentStep, isInitialized, wizardState.mainCategory]);
 
   // === BEFOREUNLOAD WARNING ===
   useEffect(() => {
@@ -340,16 +362,18 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isInitialized, wizardState.mainCategoryId]);
 
-  // === ABANDONMENT TRACKING (unmount while wizard has state) ===
+  // === ABANDONMENT TRACKING (reads from refs to avoid stale closures) ===
   useEffect(() => {
     return () => {
-      if (isInitialized && wizardState.mainCategoryId && !hasSubmittedRef.current) {
-        trackEvent('job_wizard_abandoned', 'client', {
-          lastStep: currentStep,
-          stepIndex: getStepIndex(currentStep),
-          category: wizardState.mainCategory,
-        });
-      }
+      if (!isInitializedRef.current) return;
+      if (!hasMeaningfulStateRef.current) return;
+      if (hasSubmittedRef.current) return;
+
+      trackEvent('job_wizard_abandoned', 'client', {
+        lastStep: lastStepRef.current,
+        stepIndex: getStepIndex(lastStepRef.current),
+        category: lastCategoryRef.current,
+      });
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
