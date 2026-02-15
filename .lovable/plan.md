@@ -1,117 +1,131 @@
 
-# Phase 5: Entity Detail Drawers
 
-## Overview
+# Fix: Single Admin Drawer Provider via Route Layout
 
-Add right-side Sheet drawers for Jobs and Users that open from any table row click across the admin panel. This eliminates tab-hopping and creates the "canvas" where future Phases 6 (alerts) and 7 (funnels) will land.
+## Problem
 
-## Architecture
+Right now there are **3 separate `AdminDrawerProvider` instances**, one in each of:
 
-### Drawer Provider Pattern
+- `AdminDashboard.tsx` (line 22)
+- `MetricInsightPage.tsx` (wraps its inner component)
+- `UnansweredJobsPage.tsx` (wraps its inner component)
 
-A single `AdminDrawerProvider` wraps the admin dashboard. Any table row in any tab/page calls `openDrawer({ type, id })` to open the relevant drawer. Drawers fetch their own data by ID -- no fat objects passed around.
+This means drawers mounted in `AdminDashboard` cannot be triggered from insight pages, and vice versa. Cross-linking (job drawer to user drawer) only works within the same provider instance.
 
-```text
-AdminDashboard
-  +-- AdminDrawerProvider (context)
-       +-- Tabs / TabsContent...
-       +-- JobDetailDrawer (renders when type === 'job')
-       +-- UserDetailDrawer (renders when type === 'user')
+## Solution
+
+Create a single `AdminRouteLayout` component that wraps ALL admin routes in `App.tsx`. Then remove per-page provider wrapping from all three files.
+
+## New File
+
+### `src/pages/admin/AdminRouteLayout.tsx`
+
+```tsx
+import { Outlet } from "react-router-dom";
+import { AdminDrawerProvider } from "./context/AdminDrawerContext";
+import { JobDetailDrawer, UserDetailDrawer } from "./components";
+
+export default function AdminRouteLayout() {
+  return (
+    <AdminDrawerProvider>
+      <Outlet />
+      <JobDetailDrawer />
+      <UserDetailDrawer />
+    </AdminDrawerProvider>
+  );
+}
 ```
 
-### New Files
+## Modified Files
 
-| File | Purpose |
-|------|---------|
-| `src/pages/admin/context/AdminDrawerContext.tsx` | Provider + `useAdminDrawer()` hook |
-| `src/pages/admin/components/JobDetailDrawer.tsx` | Job detail Sheet with summary, client, convos, timeline, admin actions |
-| `src/pages/admin/components/UserDetailDrawer.tsx` | User/Pro detail Sheet with profile, activity counts, admin actions |
-| `src/pages/admin/queries/adminJobDetails.query.ts` | Query hook fetching job + related data |
-| `src/pages/admin/queries/adminUserDetails.query.ts` | Query hook fetching user + pro profile + activity counts |
+### 1. `src/App.tsx` (lines 170-178)
 
-### Modified Files
+Nest all admin routes under a parent route using `AdminRouteLayout`:
 
-| File | Change |
+```tsx
+{/* Admin Dashboard */}
+<Route path="/dashboard/admin" element={<AdminRouteLayout />}>
+  <Route index element={<AdminDashboard />} />
+  <Route path="insights/market-gap" element={<MarketGapPage />} />
+  <Route path="insights/funnels" element={<FunnelsPage />} />
+  <Route path="insights/pro-performance" element={<ProPerformancePage />} />
+  <Route path="insights/pricing" element={<PricingPage />} />
+  <Route path="insights/trends" element={<TrendRadarPage />} />
+  <Route path="insights/unanswered-jobs" element={<UnansweredJobsPage />} />
+  <Route path="insights/repeat-work" element={<RepeatWorkPage />} />
+  <Route path="insights/:metricKey" element={<MetricInsightPage />} />
+</Route>
+```
+
+Add import for `AdminRouteLayout` at the top.
+
+### 2. `src/pages/admin/AdminDashboard.tsx`
+
+Remove:
+- `AdminDrawerProvider` wrapper (lines 22, 110)
+- `JobDetailDrawer` and `UserDetailDrawer` rendering (lines 108-109)
+- Related imports for those components and the provider
+
+The component becomes just the tabs UI -- no provider, no drawers.
+
+### 3. `src/pages/admin/insights/MetricInsightPage.tsx`
+
+Remove:
+- The `AdminDrawerProvider` wrapper in the default export
+- The `JobDetailDrawer` / `UserDetailDrawer` rendering in the default export
+- The split between `MetricInsightPageInner` and the wrapper -- flatten to a single default export
+
+Keep:
+- `useAdminDrawer()` usage for `onRowClick`
+- The `onRowClick` handler on `DrilldownTable`
+
+### 4. `src/pages/admin/insights/UnansweredJobsPage.tsx`
+
+Same pattern as MetricInsightPage:
+- Remove `AdminDrawerProvider` wrapper and drawer rendering from default export
+- Flatten `UnansweredJobsPageInner` into the default export
+- Keep `useAdminDrawer()` usage for row clicks
+
+### 5. `src/app/routes/registry.ts` (lines 119-130)
+
+Add the missing admin insight route patterns so `getRouteConfig()` works correctly for those paths:
+
+```ts
+export const adminRoutes: RouteConfig[] = [
+  {
+    path: '/dashboard/admin',
+    access: 'admin2FA',
+    redirectTo: '/auth',
+    lane: 'admin',
+    titleKey: 'nav.admin',
+  },
+  { path: '/dashboard/admin/insights/:metricKey', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/market-gap', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/funnels', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/pro-performance', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/pricing', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/trends', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/unanswered-jobs', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/repeat-work', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+];
+```
+
+## Result
+
+- One provider, one set of drawers, for all admin surfaces
+- Row clicks open drawers from any admin page (tabs, insight workspaces, standalone pages)
+- Cross-linking works everywhere (job drawer -> user drawer and back)
+- No duplicate provider instances
+- Route registry correctly recognizes all admin paths for guards and `getRouteConfig()`
+
+## Files Summary
+
+| File | Action |
 |------|--------|
-| `AdminDashboard.tsx` | Wrap content in `AdminDrawerProvider` |
-| `JobsSection.tsx` | Add row click -> `openDrawer({ type: 'job', id })` |
-| `UsersSection.tsx` | Add row click -> `openDrawer({ type: 'user', id })` |
-| `SupportInbox.tsx` | Add row click -> open job or user drawer from ticket context |
-| `MetricInsightPage.tsx` | Wire `onRowClick` on DrilldownTable for job/user metrics |
-| `UnansweredJobsPage.tsx` | Wire row click on job tables |
-| `src/pages/admin/queries/keys.ts` | Add `jobDetail` and `userDetail` key factories |
+| `src/pages/admin/AdminRouteLayout.tsx` | Create (5 lines) |
+| `src/App.tsx` | Nest admin routes under layout parent |
+| `src/pages/admin/AdminDashboard.tsx` | Remove provider + drawer mounting |
+| `src/pages/admin/insights/MetricInsightPage.tsx` | Remove provider + drawer mounting, flatten |
+| `src/pages/admin/insights/UnansweredJobsPage.tsx` | Remove provider + drawer mounting, flatten |
+| `src/app/routes/registry.ts` | Add missing admin insight route configs |
 
-## Drawer Contents
-
-### JobDetailDrawer
-
-- **Header**: Title, status badge, safety badge, flags
-- **Summary grid**: Category/subcategory, area, budget, timing, created date
-- **Client row**: Display name + phone (clickable -- opens UserDrawer via cross-link)
-- **Assigned Pro row**: If assigned, display name (clickable -- opens UserDrawer)
-- **Conversations**: Count + list of conversation previews (last message, pro name)
-- **Status Timeline**: From `job_status_history` table (ordered, with timestamps)
-- **Admin Actions footer**: Force Complete, Archive, Copy WhatsApp, Open Public Page -- reusing existing action functions
-
-### UserDetailDrawer
-
-- **Header**: Display name, phone, role badges, joined date
-- **Activity counts**: Jobs posted, conversations, support tickets
-- **Pro section** (if professional role): Verification status, onboarding phase, services count, is_listed status, service zones
-- **Admin Actions footer**: Verify/Reject Pro, Suspend/Unsuspend -- reusing existing action functions
-- Cross-link: "View their jobs" opens Jobs tab filtered
-
-## Data Fetching
-
-### Job Details Query
-
-Uses existing Supabase client queries (no new RPC needed for V1):
-- `jobs` table for the job record (admin can SELECT all via RLS)
-- `profiles` table for client display_name (admin can SELECT all)
-- `professional_profiles` for assigned pro info
-- `conversations` filtered by job_id (admin needs a SELECT policy -- already covered by view)
-- `job_status_history` filtered by job_id (admin SELECT policy exists)
-
-### User Details Query
-
-- `profiles` table for basic info
-- `user_roles` for roles
-- `professional_profiles` if professional
-- Count queries: jobs where user_id = X, conversations where client_id or pro_id = X, support_requests where created_by_user_id = X
-
-## Wiring Summary
-
-Every admin table row becomes clickable:
-
-- **JobsSection**: Row click calls `openDrawer({ type: 'job', id: job.id })`. Action buttons stay in the actions column for quick access; drawer provides full context.
-- **UsersSection**: Row click (on the row, not the dropdown) calls `openDrawer({ type: 'user', id: user.id })`. Dropdown menu stays for quick actions.
-- **SupportInbox**: Row click opens `openDrawer({ type: 'job', id: ticket.job_id })` if job exists, otherwise no-op.
-- **MetricInsightPage**: Pass `onRowClick` to DrilldownTable. For job-based metrics (jobs_posted, open_jobs, completed_jobs, active_jobs), open job drawer. For user-based metrics (new_users, new_pros), open user drawer.
-- **UnansweredJobsPage**: Row click opens job drawer.
-
-## UI Specifications
-
-- Uses existing `Sheet` component (right side, `sm:max-w-lg` width)
-- Skeleton loading state while data fetches
-- Sticky header with entity name + close button
-- Scrollable content area
-- Fixed footer with admin action buttons
-- Confirm dialogs for destructive actions (reusing existing Dialog pattern from JobsSection)
-- Cross-links between drawers: clicking "Client: John" in JobDrawer opens UserDrawer (replaces current drawer state)
-
-## Build Order
-
-1. Create `AdminDrawerContext` provider + hook
-2. Create `JobDetailDrawer` with data query
-3. Wire JobsSection row clicks + wrap AdminDashboard
-4. Create `UserDetailDrawer` with data query
-5. Wire UsersSection row clicks
-6. Wire MetricInsightPage drilldown rows
-7. Wire UnansweredJobsPage + SupportInbox rows
-
-## What This Does NOT Include
-
-- No new database RPCs (V1 uses existing client queries with admin RLS)
-- No new database tables or migrations
-- No SupportTicketDrawer (can be added later as an extension)
-- No changes to the drawer contents of ProProfileDrawer (that's a client-facing component, separate concern)
