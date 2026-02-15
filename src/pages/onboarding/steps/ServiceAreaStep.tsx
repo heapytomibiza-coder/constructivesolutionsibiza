@@ -6,6 +6,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, MapPin, ArrowRight, ArrowLeft } from 'lucide-react';
+import { trackEvent } from '@/lib/trackEvent';
 import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
 import { 
   ZoneTile, 
@@ -89,6 +90,10 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error('Error saving service area:', error);
       toast.error(msg || 'Something went wrong. Please try again.');
+      trackEvent('onboarding_step_failed', 'professional', {
+        step: 'service_area',
+        error_message: msg,
+      });
     },
   });
 

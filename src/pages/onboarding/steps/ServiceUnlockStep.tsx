@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
+import { trackEvent } from '@/lib/trackEvent';
 
 import { CategoryAccordion } from '../components/CategoryAccordion';
 import { ServiceSearchBar } from '../components/ServiceSearchBar';
@@ -201,6 +202,11 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
         await refresh();
       } catch (err) {
         console.error('Error advancing phase:', err);
+        const msg = err instanceof Error ? err.message : String(err);
+        trackEvent('onboarding_step_failed', 'professional', {
+          step: 'service_unlock',
+          error_message: msg,
+        });
       }
     }
 
@@ -328,33 +334,32 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
       )}
 
       {/* Navigation buttons - sticky footer */}
-      <div className="flex items-center justify-between pt-4 border-t border-border sticky bottom-0 bg-background/95 backdrop-blur-sm pb-4 -mx-4 px-4">
+      <div className="flex gap-4 pt-4 border-t border-border sticky bottom-0 bg-background/95 backdrop-blur-sm pb-4 -mx-4 px-4">
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="lg"
           onClick={onBack}
-          className="h-12 flex items-center justify-center"
+          className="flex-1 h-12 flex items-center justify-center"
         >
           <ArrowLeft className="h-5 w-5 mr-2 shrink-0" />
           Go Back
         </Button>
 
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-center gap-2 flex-1">
           <Button
             type="button"
             size="lg"
             onClick={handleContinue}
             disabled={!canContinue || isUpdating}
+            className="w-full h-12 flex items-center justify-center"
           >
             {isUpdating ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin mr-2 shrink-0" />
             ) : (
-              <>
-                Continue
-                <ArrowRight className="h-5 w-5 ml-2" />
-              </>
+              <ArrowRight className="h-5 w-5 mr-2 shrink-0" />
             )}
+            {isUpdating ? 'Saving...' : 'Continue'}
           </Button>
           {!canContinue && (
             <span className="text-sm text-muted-foreground">
