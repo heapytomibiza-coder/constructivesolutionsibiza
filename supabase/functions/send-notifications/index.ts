@@ -9,6 +9,7 @@ import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 const GMAIL_USER = "heapytomibiza@gmail.com";
 const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD") ?? "";
 const ADMIN_EMAIL = "heapytomibiza@gmail.com";
+const BRAND_NAME = "Constructive Solutions Ibiza";
 const ADMIN_WHATSAPP = Deno.env.get("ADMIN_WHATSAPP_NUMBER") ?? "";
 const WHATSAPP_API_KEY = Deno.env.get("WHATSAPP_CALLMEBOT_APIKEY") ?? "";
 
@@ -43,10 +44,9 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ e
     });
 
     await client.send({
-      from: `CS Ibiza <${GMAIL_USER}>`,
+      from: `${BRAND_NAME} <${GMAIL_USER}>`,
       to,
       subject,
-      content: "auto",
       html,
     });
 
@@ -102,7 +102,7 @@ function emailShell(headerBg: string, headerTitle: string, body: string, footer?
     </div>
     <div style="padding: 28px 32px;">${body}</div>
     <div style="background: #f9fafb; padding: 12px 32px; text-align: center; border-top: 1px solid #e5e7eb;">
-      <p style="color: #9ca3af; font-size: 11px; margin: 0;">${footer || `© ${new Date().getFullYear()} CS Ibiza`}</p>
+      <p style="color: #9ca3af; font-size: 11px; margin: 0;">${footer || `© ${new Date().getFullYear()} ${BRAND_NAME}`}</p>
     </div>
   </div>
 </body></html>`;
@@ -112,7 +112,7 @@ function buildMessageEmail(payload: any, siteUrl: string) {
   const preview = payload.message_preview || "New message";
   const convUrl = `${siteUrl}/messages/${payload.conversation_id}`;
   return {
-    subject: "💬 You have a new message — CS Ibiza",
+    subject: `You have a new message — ${BRAND_NAME}`,
     html: emailShell(
       "linear-gradient(135deg, #374151, #4b5563)",
       "New Message",
@@ -120,13 +120,13 @@ function buildMessageEmail(payload: any, siteUrl: string) {
       <p style="color: #9ca3af; font-size: 13px; margin: 0 0 20px;">Reply to keep the conversation going.</p>
       <a href="${convUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Conversation →</a>`
     ),
-    whatsapp: `💬 New message on CS Ibiza:\n"${preview.substring(0, 80)}"\n${convUrl}`,
+    whatsapp: `New message on ${BRAND_NAME}:\n"${preview.substring(0, 80)}"\n${convUrl}`,
   };
 }
 
 function buildProSignupEmail(payload: any, siteUrl: string) {
   return {
-    subject: `👷 New professional signup: ${payload.display_name}`,
+    subject: `New professional signup: ${payload.display_name}`,
     html: emailShell(
       "linear-gradient(135deg, #374151, #4b5563)",
       "New Professional Signup",
@@ -134,7 +134,7 @@ function buildProSignupEmail(payload: any, siteUrl: string) {
       <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px;">A new professional has registered. Review their profile and services in the admin panel.</p>
       <a href="${siteUrl}/admin" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">Review in Admin →</a>`
     ),
-    whatsapp: `👷 New pro signup: ${payload.display_name}\n${siteUrl}/admin`,
+    whatsapp: `New pro signup: ${payload.display_name}\n${siteUrl}/admin`,
   };
 }
 
@@ -161,7 +161,7 @@ function buildSupportTicketEmail(payload: any, siteUrl: string) {
 function buildForumPostEmail(payload: any, siteUrl: string) {
   const postUrl = `${siteUrl}/forum/post/${payload.post_id}`;
   return {
-    subject: `📝 New forum post: ${payload.title}`,
+    subject: `New forum post: ${payload.title}`,
     html: emailShell(
       "linear-gradient(135deg, #374151, #4b5563)",
       "New Forum Post",
@@ -170,14 +170,14 @@ function buildForumPostEmail(payload: any, siteUrl: string) {
       ${payload.content_preview ? `<p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 20px;">${payload.content_preview}</p>` : ""}
       <a href="${postUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Post →</a>`
     ),
-    whatsapp: `📝 New forum post: ${payload.title}\nBy: ${payload.author_display_name}\n${postUrl}`,
+    whatsapp: `New forum post: ${payload.title}\nBy: ${payload.author_display_name}\n${postUrl}`,
   };
 }
 
 function buildJobMatchEmail(payload: any, siteUrl: string) {
   const jobUrl = `${siteUrl}/jobs/${payload.job_id}`;
   return {
-    subject: `🛠️ New job match: ${payload.title} — ${payload.area || "Ibiza"}`,
+    subject: `New job match: ${payload.title} — ${payload.area || "Ibiza"}`,
     html: emailShell(
       "linear-gradient(135deg, #059669, #10b981)",
       "New Job Match",
@@ -190,9 +190,9 @@ function buildJobMatchEmail(payload: any, siteUrl: string) {
         <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">⏱️ Timing</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.timing || "Flexible"}</td></tr>
       </table>
       <a href="${jobUrl}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Job & Respond →</a>`,
-      `© ${new Date().getFullYear()} CS Ibiza — You're receiving this because this job matches your services`
+      `© ${new Date().getFullYear()} ${BRAND_NAME} — You're receiving this because this job matches your services`
     ),
-    whatsapp: `🛠️ New job: ${payload.title}\n📍 ${payload.area || "Ibiza"}\n💶 ${payload.budget || "TBD"}\n${jobUrl}`,
+    whatsapp: `New job: ${payload.title}\n${payload.area || "Ibiza"}\n${payload.budget || "TBD"}\n${jobUrl}`,
   };
 }
 

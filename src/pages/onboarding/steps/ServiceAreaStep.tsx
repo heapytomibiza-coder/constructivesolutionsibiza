@@ -87,9 +87,12 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
       onComplete();
     },
     onError: (error: unknown) => {
-      const msg = error instanceof Error ? error.message : String(error);
+      const msg = error instanceof Error ? error.message
+        : (typeof error === 'object' && error !== null && 'message' in error) ? String((error as { message: unknown }).message)
+        : typeof error === 'string' ? error
+        : 'Something went wrong. Please try again.';
       console.error('Error saving service area:', error);
-      toast.error(msg || 'Something went wrong. Please try again.');
+      toast.error(msg);
       trackEvent('onboarding_step_failed', 'professional', {
         step: 'service_area',
         error_message: msg,
