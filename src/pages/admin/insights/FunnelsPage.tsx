@@ -141,12 +141,13 @@ export default function FunnelsPage() {
         </div>
       )}
 
-      <Card>
+      <Card className="border-amber-200 bg-amber-50/50">
         <CardContent className="p-4">
-          <p className="text-sm text-muted-foreground">
-            💡 <strong>Tip:</strong> As event tracking is instrumented across the platform,
-            funnels will become more granular with per-step drop-off analysis. Currently
-            using aggregate metrics as approximation.
+          <p className="text-sm text-amber-800">
+            ⚠️ <strong>Approximated data:</strong> These funnels use aggregate platform metrics as a proxy.
+            Once <code>trackEvent()</code> is instrumented across the wizard and onboarding flows,
+            funnels will show per-step drop-off with precise conversion rates and time-between-steps analysis.
+            Event tracking infrastructure is ready — instrumentation is the next phase.
           </p>
         </CardContent>
       </Card>

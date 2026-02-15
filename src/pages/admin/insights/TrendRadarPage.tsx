@@ -9,6 +9,9 @@ import { subDays } from "date-fns";
 const CATEGORIES = [
   "electrical", "plumbing", "carpentry", "hvac", "construction",
   "kitchen-bathroom", "pool-spa", "handyman", "gardening-landscaping",
+  "painting-decorating", "cleaning", "architects-design",
+  "transport-logistics", "floors-doors-windows",
+  "commercial-industrial", "legal-regulatory",
 ];
 
 function TrendCard({ category }: { category: string }) {

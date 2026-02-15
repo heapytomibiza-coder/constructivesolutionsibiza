@@ -4,3 +4,5 @@ export { default as FunnelsPage } from "./FunnelsPage";
 export { default as ProPerformancePage } from "./ProPerformancePage";
 export { default as PricingPage } from "./PricingPage";
 export { default as TrendRadarPage } from "./TrendRadarPage";
+export { default as UnansweredJobsPage } from "./UnansweredJobsPage";
+export { default as RepeatWorkPage } from "./RepeatWorkPage";
