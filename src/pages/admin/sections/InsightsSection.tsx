@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { metricRegistry, allMetricKeys } from "../lib/metricRegistry";
 import {
-  Map, BarChart3, Users, DollarSign, Zap,
+  Map, BarChart3, Users, DollarSign, Zap, AlertTriangle, Repeat,
 } from "lucide-react";
 
 const LEADER_PAGES = [
@@ -36,6 +36,18 @@ const LEADER_PAGES = [
     label: "Trend Radar",
     description: "Week-over-week growth and anomaly detection",
     icon: Zap,
+  },
+  {
+    path: "/dashboard/admin/insights/unanswered-jobs",
+    label: "Unanswered Jobs",
+    description: "Jobs with no pro response — where demand is unserved",
+    icon: AlertTriangle,
+  },
+  {
+    path: "/dashboard/admin/insights/repeat-work",
+    label: "Repeat Work & Trust",
+    description: "Returning clients and rehired pros — your loyalty moat",
+    icon: Repeat,
   },
 ];
 

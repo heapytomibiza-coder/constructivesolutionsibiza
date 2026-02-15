@@ -66,6 +66,7 @@ import { AdminDashboard } from "./pages/admin";
 import {
   MetricInsightPage, MarketGapPage, FunnelsPage,
   ProPerformancePage, PricingPage, TrendRadarPage,
+  UnansweredJobsPage, RepeatWorkPage,
 } from "./pages/admin/insights";
 
 // Launch Checklist
@@ -172,6 +173,8 @@ const App = () => {
               <Route path="/dashboard/admin/insights/pro-performance" element={<ProPerformancePage />} />
               <Route path="/dashboard/admin/insights/pricing" element={<PricingPage />} />
               <Route path="/dashboard/admin/insights/trends" element={<TrendRadarPage />} />
+              <Route path="/dashboard/admin/insights/unanswered-jobs" element={<UnansweredJobsPage />} />
+              <Route path="/dashboard/admin/insights/repeat-work" element={<RepeatWorkPage />} />
               <Route path="/dashboard/admin/insights/:metricKey" element={<MetricInsightPage />} />
             </Route>
 

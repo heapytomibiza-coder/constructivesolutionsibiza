@@ -1869,6 +1869,18 @@ export type Database = {
           value: number
         }[]
       }
+      admin_repeat_work: {
+        Args: { p_from_ts?: string; p_to_ts?: string }
+        Returns: Json
+      }
+      admin_unanswered_jobs: {
+        Args: {
+          p_from_ts?: string
+          p_hours_threshold?: number
+          p_to_ts?: string
+        }
+        Returns: Json
+      }
       create_direct_conversation: {
         Args: { p_client_id: string; p_job_id: string; p_pro_id: string }
         Returns: string

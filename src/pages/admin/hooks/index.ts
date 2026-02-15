@@ -9,3 +9,5 @@ export * from "./useAdminContent";
 export * from "./useAdminMetricTimeseries";
 export * from "./useAdminMetricDrilldown";
 export * from "./useMarketGap";
+export * from "./useUnansweredJobs";
+export * from "./useRepeatWork";
