@@ -44,6 +44,33 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: string
+          metadata: Json | null
+          role: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -1812,6 +1839,36 @@ export type Database = {
     }
     Functions: {
       admin_health_snapshot: { Args: never; Returns: Json }
+      admin_market_gap: {
+        Args: { p_from_ts?: string; p_to_ts?: string }
+        Returns: Json
+      }
+      admin_metric_drilldown: {
+        Args: {
+          p_area_filter?: string
+          p_category_filter?: string
+          p_from_ts: string
+          p_limit_n?: number
+          p_metric_key: string
+          p_offset_n?: number
+          p_to_ts: string
+        }
+        Returns: Json
+      }
+      admin_metric_timeseries: {
+        Args: {
+          p_area_filter?: string
+          p_bucket?: string
+          p_category_filter?: string
+          p_from_ts: string
+          p_metric_key: string
+          p_to_ts: string
+        }
+        Returns: {
+          bucket_start: string
+          value: number
+        }[]
+      }
       create_direct_conversation: {
         Args: { p_client_id: string; p_job_id: string; p_pro_id: string }
         Returns: string
@@ -1838,6 +1895,10 @@ export type Database = {
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_professional_micro_stats: {
         Args: { p_micro_id: string; p_rating?: number; p_user_id: string }
+        Returns: undefined
+      }
+      track_event: {
+        Args: { p_event_name: string; p_metadata?: Json; p_role?: string }
         Returns: undefined
       }
     }

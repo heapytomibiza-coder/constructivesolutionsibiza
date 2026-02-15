@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity } from "lucide-react";
+import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity, LineChart } from "lucide-react";
 import { UsersSection, JobsSection, ContentSection, SupportInbox } from "./sections";
 import { LinkMapSection } from "./sections/LinkMapSection";
 import { HealthSection } from "./sections/HealthSection";
 import { OperatorCockpit } from "./sections/OperatorCockpit";
+import InsightsSection from "./sections/InsightsSection";
 
 /**
  * ADMIN DASHBOARD
@@ -37,10 +38,14 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="container py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-           <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-grid">
+           <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="gap-2">
+              <LineChart className="h-4 w-4" />
+              <span className="hidden sm:inline">Insights</span>
             </TabsTrigger>
             <TabsTrigger value="health" className="gap-2">
               <Activity className="h-4 w-4" />
@@ -71,6 +76,11 @@ export default function AdminDashboard() {
           {/* Overview Tab — Operator Cockpit */}
           <TabsContent value="overview" className="space-y-6">
             <OperatorCockpit />
+          </TabsContent>
+
+          {/* Insights Tab */}
+          <TabsContent value="insights" className="space-y-6">
+            <InsightsSection />
           </TabsContent>
 
           {/* Health Tab */}

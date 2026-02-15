@@ -63,6 +63,10 @@ import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/foru
 
 // Admin
 import { AdminDashboard } from "./pages/admin";
+import {
+  MetricInsightPage, MarketGapPage, FunnelsPage,
+  ProPerformancePage, PricingPage, TrendRadarPage,
+} from "./pages/admin/insights";
 
 // Launch Checklist
 import LaunchChecklist from "./pages/LaunchChecklist";
@@ -163,6 +167,12 @@ const App = () => {
 
               {/* Admin Dashboard */}
               <Route path="/dashboard/admin" element={<AdminDashboard />} />
+              <Route path="/dashboard/admin/insights/market-gap" element={<MarketGapPage />} />
+              <Route path="/dashboard/admin/insights/funnels" element={<FunnelsPage />} />
+              <Route path="/dashboard/admin/insights/pro-performance" element={<ProPerformancePage />} />
+              <Route path="/dashboard/admin/insights/pricing" element={<PricingPage />} />
+              <Route path="/dashboard/admin/insights/trends" element={<TrendRadarPage />} />
+              <Route path="/dashboard/admin/insights/:metricKey" element={<MetricInsightPage />} />
             </Route>
 
             {/* ============================================
