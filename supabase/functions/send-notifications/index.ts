@@ -1,13 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const PRIMARY_FROM = "CS Ibiza <noreply@csibiza.com>";
-const FALLBACK_FROM = "CS Ibiza <onboarding@resend.dev>";
-// Resend free tier only allows sending to the account owner's email
-// Until constructivesolutionsibiza.com domain is verified, ALL emails go here
+// ============================================
+// CONFIG
+// ============================================
+
+const GMAIL_USER = "heapytomibiza@gmail.com";
+const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD") ?? "";
 const ADMIN_EMAIL = "heapytomibiza@gmail.com";
+const ADMIN_WHATSAPP = Deno.env.get("ADMIN_WHATSAPP_NUMBER") ?? "";
+const WHATSAPP_API_KEY = Deno.env.get("WHATSAPP_CALLMEBOT_APIKEY") ?? "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,18 +24,63 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-async function sendWithFallback(to: string, subject: string, html: string) {
-  const primary = await resend.emails.send({
-    from: PRIMARY_FROM, to: [to], subject, html,
-  });
-  if (!primary.error) return primary;
+// ============================================
+// GMAIL SMTP SENDER
+// ============================================
 
-  const msg = String(primary.error.message ?? "");
-  if (msg.toLowerCase().includes("domain is not verified")) {
-    return resend.emails.send({ from: FALLBACK_FROM, to: [to], subject, html });
+async function sendEmail(to: string, subject: string, html: string): Promise<{ error?: string }> {
+  try {
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: GMAIL_USER,
+          password: GMAIL_APP_PASSWORD,
+        },
+      },
+    });
+
+    await client.send({
+      from: `CS Ibiza <${GMAIL_USER}>`,
+      to,
+      subject,
+      content: "auto",
+      html,
+    });
+
+    await client.close();
+    return {};
+  } catch (err) {
+    console.error("SMTP error:", err);
+    return { error: String(err) };
   }
-  return primary;
 }
+
+// ============================================
+// WHATSAPP SENDER (Callmebot)
+// ============================================
+
+async function sendWhatsApp(message: string): Promise<void> {
+  if (!ADMIN_WHATSAPP || !WHATSAPP_API_KEY) {
+    console.log("WhatsApp not configured, skipping");
+    return;
+  }
+  try {
+    const encoded = encodeURIComponent(message);
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${ADMIN_WHATSAPP}&text=${encoded}&apikey=${WHATSAPP_API_KEY}`;
+    const res = await fetch(url);
+    const body = await res.text();
+    console.log("WhatsApp sent:", res.status, body.substring(0, 100));
+  } catch (err) {
+    console.error("WhatsApp error:", err);
+  }
+}
+
+// ============================================
+// HELPERS
+// ============================================
 
 async function getUserEmail(userId: string): Promise<string | null> {
   const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
@@ -72,6 +120,7 @@ function buildMessageEmail(payload: any, siteUrl: string) {
       <p style="color: #9ca3af; font-size: 13px; margin: 0 0 20px;">Reply to keep the conversation going.</p>
       <a href="${convUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Conversation →</a>`
     ),
+    whatsapp: `💬 New message on CS Ibiza:\n"${preview.substring(0, 80)}"\n${convUrl}`,
   };
 }
 
@@ -85,6 +134,7 @@ function buildProSignupEmail(payload: any, siteUrl: string) {
       <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px;">A new professional has registered. Review their profile and services in the admin panel.</p>
       <a href="${siteUrl}/admin" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">Review in Admin →</a>`
     ),
+    whatsapp: `👷 New pro signup: ${payload.display_name}\n${siteUrl}/admin`,
   };
 }
 
@@ -96,26 +146,15 @@ function buildSupportTicketEmail(payload: any, siteUrl: string) {
       "linear-gradient(135deg, #374151, #4b5563)",
       "New Support Ticket",
       `<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        <tr>
-          <td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Ticket</td>
-          <td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.ticket_number}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Issue</td>
-          <td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.issue_type}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Priority</td>
-          <td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${priorityEmoji} ${payload.priority}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">From</td>
-          <td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.created_by_role}</td>
-        </tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Ticket</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.ticket_number}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Issue</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.issue_type}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Priority</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${priorityEmoji} ${payload.priority}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">From</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.created_by_role}</td></tr>
       </table>
       ${payload.summary ? `<p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 20px;">${payload.summary}</p>` : ""}
       <a href="${siteUrl}/admin" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">Open Support Inbox →</a>`
     ),
+    whatsapp: `${priorityEmoji} Support ticket ${payload.ticket_number}\nIssue: ${payload.issue_type}\nPriority: ${payload.priority}\n${siteUrl}/admin`,
   };
 }
 
@@ -131,6 +170,7 @@ function buildForumPostEmail(payload: any, siteUrl: string) {
       ${payload.content_preview ? `<p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 20px;">${payload.content_preview}</p>` : ""}
       <a href="${postUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Post →</a>`
     ),
+    whatsapp: `📝 New forum post: ${payload.title}\nBy: ${payload.author_display_name}\n${postUrl}`,
   };
 }
 
@@ -145,22 +185,14 @@ function buildJobMatchEmail(payload: any, siteUrl: string) {
       <h2 style="margin: 0 0 4px; color: #111827; font-size: 18px;">${payload.title}</h2>
       <p style="color: #9ca3af; font-size: 13px; margin: 0 0 16px;">${payload.category || ""}</p>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        <tr>
-          <td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">📍 Location</td>
-          <td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.area || "Ibiza"}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">💶 Budget</td>
-          <td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.budget || "To be discussed"}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">⏱️ Timing</td>
-          <td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.timing || "Flexible"}</td>
-        </tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">📍 Location</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.area || "Ibiza"}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">💶 Budget</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.budget || "To be discussed"}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">⏱️ Timing</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.timing || "Flexible"}</td></tr>
       </table>
       <a href="${jobUrl}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Job & Respond →</a>`,
       `© ${new Date().getFullYear()} CS Ibiza — You're receiving this because this job matches your services`
     ),
+    whatsapp: `🛠️ New job: ${payload.title}\n📍 ${payload.area || "Ibiza"}\n💶 ${payload.budget || "TBD"}\n${jobUrl}`,
   };
 }
 
@@ -195,22 +227,18 @@ const handler = async (req: Request): Promise<Response> => {
 
     for (let i = 0; i < queue.length; i++) {
       const item = queue[i];
-      // Rate limit: wait 600ms between sends to stay under 2/sec
       if (i > 0) await new Promise(r => setTimeout(r, 600));
+      
       try {
-        // Resolve recipient email
+        // Resolve recipient
         let recipientEmail: string | null = null;
-        
-        // Admin-only events always go to admin
         const adminOnlyEvents = ["pro_signup", "support_ticket", "forum_post"];
+        
         if (!item.recipient_user_id || adminOnlyEvents.includes(item.event_type)) {
           recipientEmail = ADMIN_EMAIL;
         } else {
-          // For user-targeted emails, resolve their address
           recipientEmail = await getUserEmail(item.recipient_user_id);
-          
-          // On Resend free tier, we can only send to account owner
-          // Route all user-targeted emails to admin as FYI until domain is verified
+          // Route all to admin until domain verified
           if (recipientEmail && recipientEmail !== ADMIN_EMAIL) {
             recipientEmail = ADMIN_EMAIL;
           }
@@ -224,7 +252,7 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        // Check notification preferences for user-targeted emails
+        // Check notification preferences
         if (item.recipient_user_id && (item.event_type === "new_message" || item.event_type === "job_match")) {
           const { data: prefs } = await supabaseAdmin
             .from("notification_preferences")
@@ -246,9 +274,9 @@ const handler = async (req: Request): Promise<Response> => {
           }
         }
 
-        // Build email based on event type
+        // Build email
         const payload = item.payload || {};
-        let email: { subject: string; html: string };
+        let email: { subject: string; html: string; whatsapp?: string };
 
         switch (item.event_type) {
           case "new_message":
@@ -274,12 +302,13 @@ const handler = async (req: Request): Promise<Response> => {
             continue;
         }
 
-        const result = await sendWithFallback(recipientEmail, email.subject, email.html);
+        // Send email via Gmail SMTP
+        const result = await sendEmail(recipientEmail, email.subject, email.html);
 
         if (result.error) {
           await supabaseAdmin
             .from("email_notifications_queue")
-            .update({ attempts: item.attempts + 1, last_error: String(result.error.message) })
+            .update({ attempts: item.attempts + 1, last_error: result.error })
             .eq("id", item.id);
         } else {
           await supabaseAdmin
@@ -287,8 +316,14 @@ const handler = async (req: Request): Promise<Response> => {
             .update({ sent_at: new Date().toISOString() })
             .eq("id", item.id);
           sent++;
+
+          // Also send WhatsApp for admin-targeted events
+          if (email.whatsapp && adminOnlyEvents.includes(item.event_type)) {
+            await sendWhatsApp(email.whatsapp);
+          }
         }
       } catch (itemErr) {
+        console.error("Item error:", itemErr);
         await supabaseAdmin
           .from("email_notifications_queue")
           .update({ attempts: item.attempts + 1, last_error: String(itemErr) })
