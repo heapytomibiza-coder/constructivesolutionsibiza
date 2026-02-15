@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Search, AlertTriangle, CheckCircle, Archive, ExternalLink, Copy } from "lucide-react";
+import { useAdminDrawer } from "../context/AdminDrawerContext";
 import { formatWhatsAppPost, copyToClipboard } from "../lib/formatWhatsAppPost";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,7 @@ export default function JobsSection() {
   const [actionType, setActionType] = useState<ActionType>(null);
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { openDrawer } = useAdminDrawer();
 
   const queryClient = useQueryClient();
   const { data: jobs, isLoading } = useAdminJobs({ filter, search });
@@ -191,7 +193,7 @@ export default function JobsSection() {
                 </TableRow>
               ) : (
                 jobs.map((job) => (
-                  <TableRow key={job.id}>
+                  <TableRow key={job.id} className="cursor-pointer" onClick={() => openDrawer({ type: "job", id: job.id })}>
                     <TableCell>
                       <div className="font-medium truncate max-w-[200px]">
                         {job.title}
@@ -231,7 +233,7 @@ export default function JobsSection() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           variant="ghost"

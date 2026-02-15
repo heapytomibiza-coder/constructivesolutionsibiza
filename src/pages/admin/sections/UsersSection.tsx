@@ -31,6 +31,7 @@ import { Search, MoreHorizontal, Ban, CheckCircle, XCircle, Shield } from "lucid
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import { suspendUser, unsuspendUser } from "../actions/suspendUser.action";
 import { verifyProfessional } from "../actions/verifyProfessional.action";
+import { useAdminDrawer } from "../context/AdminDrawerContext";
 import type { AdminUser, UserStatusFilter } from "../types";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -45,6 +46,7 @@ export default function UsersSection() {
   const [filter, setFilter] = useState<UserStatusFilter>('all');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const { openDrawer } = useAdminDrawer();
 
   // Debounce search
   const handleSearchChange = (value: string) => {
@@ -179,7 +181,7 @@ export default function UsersSection() {
               </TableHeader>
               <TableBody>
                 {users?.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.id} className="cursor-pointer" onClick={() => openDrawer({ type: "user", id: user.id })}>
                     <TableCell>
                       <div>
                         <div className="font-medium">
@@ -197,7 +199,7 @@ export default function UsersSection() {
                     <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
                       {format(new Date(user.created_at), 'MMM d, yyyy')}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">

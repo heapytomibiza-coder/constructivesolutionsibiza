@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Headset, ExternalLink, UserPlus, CheckCircle } from "lucide-react";
+import { useAdminDrawer } from "../../context/AdminDrawerContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +29,7 @@ import type { SupportStatusFilter, SupportRequest } from "../../types";
 export default function SupportInbox() {
   const [filter, setFilter] = useState<SupportStatusFilter>('active');
   const queryClient = useQueryClient();
+  const { openDrawer } = useAdminDrawer();
   const { data: tickets, isLoading } = useSupportRequests(filter);
 
   const handleAssign = async (ticket: SupportRequest) => {
@@ -121,7 +123,11 @@ export default function SupportInbox() {
                 </TableRow>
               ) : (
                 tickets.map((ticket) => (
-                  <TableRow key={ticket.id}>
+                  <TableRow
+                    key={ticket.id}
+                    className={ticket.job_id ? "cursor-pointer" : ""}
+                    onClick={() => ticket.job_id && openDrawer({ type: "job", id: ticket.job_id })}
+                  >
                     <TableCell>
                       <div>
                         <div className="font-mono text-sm font-medium">
@@ -159,7 +165,7 @@ export default function SupportInbox() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         {ticket.conversation_id && (
                           <Button

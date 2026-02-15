@@ -9,4 +9,6 @@ export const adminKeys = {
   content: (filter?: string, type?: string, search?: string) => [...adminKeys.all, 'content', { filter, type, search }] as const,
   support: (filter?: string) => [...adminKeys.all, 'support', { filter }] as const,
   supportDetail: (id: string) => [...adminKeys.all, 'support', id] as const,
+  jobDetail: (id: string) => [...adminKeys.all, 'jobDetail', id] as const,
+  userDetail: (id: string) => [...adminKeys.all, 'userDetail', id] as const,
 };
