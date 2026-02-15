@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/trackEvent";
 
 type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
 
@@ -45,6 +46,8 @@ export async function verifyProfessional({
     console.error('Error updating verification status:', error);
     return { success: false, error: 'Failed to update verification status. Please try again.' };
   }
+
+  trackEvent('admin_verified_professional', 'admin', { userId, status });
 
   // Log the action
   await supabase.from('admin_actions_log').insert({

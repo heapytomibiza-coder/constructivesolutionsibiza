@@ -319,6 +319,14 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     return () => clearTimeout(timer);
   }, [wizardState, isInitialized]);
   
+  // === STEP VIEW TRACKING ===
+  const hasSubmittedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+    trackEvent('job_wizard_step_viewed', 'client', { step: currentStep, stepIndex: getStepIndex(currentStep) });
+  }, [currentStep, isInitialized]);
+
   // === BEFOREUNLOAD WARNING ===
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -331,6 +339,20 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isInitialized, wizardState.mainCategoryId]);
+
+  // === ABANDONMENT TRACKING (unmount while wizard has state) ===
+  useEffect(() => {
+    return () => {
+      if (isInitialized && wizardState.mainCategoryId && !hasSubmittedRef.current) {
+        trackEvent('job_wizard_abandoned', 'client', {
+          lastStep: currentStep,
+          stepIndex: getStepIndex(currentStep),
+          category: wizardState.mainCategory,
+        });
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // === STEP HANDLERS ===
   
@@ -497,6 +519,11 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     }
     
     if (currentStep !== WizardStep.Review && canAdvance()) {
+      trackEvent('job_wizard_step_completed', 'client', {
+        step: currentStep,
+        stepIndex: getStepIndex(currentStep),
+        category: wizardState.mainCategory,
+      });
       const nextStep = getNextStep(currentStep);
       if (nextStep) {
         setCurrentStep(nextStep);
@@ -591,6 +618,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         throw error;
       }
 
+      // Mark as submitted so abandonment tracking doesn't fire
+      hasSubmittedRef.current = true;
       // Clear wizard session
       clearSession();
       queryClient.invalidateQueries({ queryKey: ['client_jobs'] });

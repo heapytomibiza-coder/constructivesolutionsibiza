@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { trackEvent } from '@/lib/trackEvent';
 import { awardProStats } from './awardProStats.action';
 
 interface SubmitReviewParams {
@@ -54,6 +55,8 @@ export async function submitReview({
     console.error('Error submitting review:', error);
     return { success: false, error: error.message };
   }
+
+  trackEvent('review_submitted', reviewerRole, { jobId, rating, reviewerRole, visibility });
 
   // Award stats when CLIENT rates PROFESSIONAL
   // This drives the verification ladder: unverified → progressing → verified → expert

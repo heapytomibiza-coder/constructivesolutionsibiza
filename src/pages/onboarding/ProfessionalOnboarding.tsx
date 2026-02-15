@@ -131,10 +131,12 @@ const ProfessionalOnboarding = () => {
   };
 
   const handleServiceAreaComplete = () => {
+    trackEvent('pro_onboarding_step_completed', 'professional', { step: 'service_area' });
     setCurrentStep('services');
   };
 
   const handleServicesComplete = () => {
+    trackEvent('pro_onboarding_step_completed', 'professional', { step: 'services' });
     setCurrentStep('review');
   };
 

@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { trackEvent } from '@/lib/trackEvent';
 
 /**
  * Assign a professional to a job and set status to in_progress.
@@ -83,6 +84,8 @@ export async function assignProfessional(
   if (!data) {
     return { success: false, error: 'Job could not be assigned (it may have changed)' };
   }
+
+  trackEvent('hire_initiated', 'client', { jobId, proId: professionalId });
 
   return { success: true };
 }

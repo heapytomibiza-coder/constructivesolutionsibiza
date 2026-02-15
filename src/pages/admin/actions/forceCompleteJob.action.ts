@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/trackEvent";
 
 export async function forceCompleteJob(
   jobId: string,
@@ -41,6 +42,8 @@ export async function forceCompleteJob(
     console.error("Error force completing job:", updateError);
     return { success: false, error: "Failed to complete job. Please try again." };
   }
+
+  trackEvent('admin_force_completed_job', 'admin', { jobId });
 
   // Log admin action
   const { error: logError } = await supabase.from("admin_actions_log").insert({
