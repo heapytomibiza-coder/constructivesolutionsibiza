@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,18 @@ import { InsightFilterBar } from "../components/InsightFilterBar";
 import { DrilldownTable } from "../components/DrilldownTable";
 import { useAdminMetricDrilldown } from "../hooks/useAdminMetricDrilldown";
 import { metricRegistry, type AdminMetricKey } from "../lib/metricRegistry";
+import { AdminDrawerProvider, useAdminDrawer } from "../context/AdminDrawerContext";
+import { JobDetailDrawer, UserDetailDrawer } from "../components";
 import { subDays } from "date-fns";
 
-export default function MetricInsightPage() {
+const JOB_METRICS: string[] = ["jobs_posted", "open_jobs", "completed_jobs", "active_jobs"];
+const USER_METRICS: string[] = ["new_users", "new_pros"];
+
+function MetricInsightPageInner() {
   const { metricKey } = useParams<{ metricKey: string }>();
   const navigate = useNavigate();
   const metric = metricRegistry[metricKey as AdminMetricKey];
+  const { openDrawer } = useAdminDrawer();
 
   const [area, setArea] = useState<string | null>(null);
   const [category, setCategory] = useState<string | null>(null);
@@ -122,10 +128,29 @@ export default function MetricInsightPage() {
               page={page}
               pageSize={pageSize}
               onPageChange={setPage}
+              onRowClick={(row) => {
+                const id = row.id as string | undefined;
+                if (!id) return;
+                if (JOB_METRICS.includes(metricKey as string)) {
+                  openDrawer({ type: "job", id });
+                } else if (USER_METRICS.includes(metricKey as string)) {
+                  openDrawer({ type: "user", id });
+                }
+              }}
             />
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function MetricInsightPage() {
+  return (
+    <AdminDrawerProvider>
+      <MetricInsightPageInner />
+      <JobDetailDrawer />
+      <UserDetailDrawer />
+    </AdminDrawerProvider>
   );
 }

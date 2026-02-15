@@ -11,6 +11,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { AdminDrawerProvider, useAdminDrawer } from "../context/AdminDrawerContext";
+import { JobDetailDrawer, UserDetailDrawer } from "../components";
 
 function urgencyColor(hours: number) {
   if (hours >= 48) return "bg-red-100 text-red-800 border-red-200";
@@ -58,6 +60,7 @@ function BreakdownCards({ data }: { data: UnansweredJob[] | undefined }) {
 }
 
 function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | undefined; isLoading: boolean; threshold: number }) {
+  const { openDrawer } = useAdminDrawer();
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -89,7 +92,7 @@ function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | unde
         </TableHeader>
         <TableBody>
           {data.map((job) => (
-            <TableRow key={job.id}>
+            <TableRow key={job.id} className="cursor-pointer" onClick={() => openDrawer({ type: "job", id: job.id })}>
               <TableCell className="font-medium max-w-[200px] truncate">{job.title}</TableCell>
               <TableCell className="capitalize">{job.category?.replace(/-/g, " ") ?? "—"}</TableCell>
               <TableCell>{job.area ?? "—"}</TableCell>
@@ -112,7 +115,7 @@ function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | unde
   );
 }
 
-export default function UnansweredJobsPage() {
+function UnansweredJobsPageInner() {
   const navigate = useNavigate();
   const [threshold, setThreshold] = useState(6);
   const [tier, setTier] = useState<"no_conversation" | "no_reply">("no_conversation");
@@ -177,7 +180,6 @@ export default function UnansweredJobsPage() {
           </TabsList>
 
           <TabsContent value="no_conversation" className="space-y-6 mt-4">
-            {/* Summary */}
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardContent className="p-4 text-center">
@@ -209,7 +211,7 @@ export default function UnansweredJobsPage() {
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardContent className="p-4 text-center">
-                  <MessageSquare className="h-5 w-5 text-amber-600 mx-auto mb-1" />
+                  <MessageSquare className="h-5 w-5 text-secondary-foreground mx-auto mb-1" />
                   <div className="text-2xl font-bold">{noReplyData?.length ?? 0}</div>
                   <div className="text-xs text-muted-foreground">No Pro Reply</div>
                 </CardContent>
@@ -235,5 +237,15 @@ export default function UnansweredJobsPage() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+export default function UnansweredJobsPage() {
+  return (
+    <AdminDrawerProvider>
+      <UnansweredJobsPageInner />
+      <JobDetailDrawer />
+      <UserDetailDrawer />
+    </AdminDrawerProvider>
   );
 }
