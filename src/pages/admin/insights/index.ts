@@ -1,0 +1,6 @@
+export { default as MetricInsightPage } from "./MetricInsightPage";
+export { default as MarketGapPage } from "./MarketGapPage";
+export { default as FunnelsPage } from "./FunnelsPage";
+export { default as ProPerformancePage } from "./ProPerformancePage";
+export { default as PricingPage } from "./PricingPage";
+export { default as TrendRadarPage } from "./TrendRadarPage";
