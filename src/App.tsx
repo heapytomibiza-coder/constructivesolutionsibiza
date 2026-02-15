@@ -63,6 +63,7 @@ import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/foru
 
 // Admin
 import { AdminDashboard } from "./pages/admin";
+import AdminRouteLayout from "./pages/admin/AdminRouteLayout";
 import {
   MetricInsightPage, MarketGapPage, FunnelsPage,
   ProPerformancePage, PricingPage, TrendRadarPage,
@@ -167,15 +168,17 @@ const App = () => {
               <Route path="/dashboard/pro" element={<ProDashboard />} />
 
               {/* Admin Dashboard */}
-              <Route path="/dashboard/admin" element={<AdminDashboard />} />
-              <Route path="/dashboard/admin/insights/market-gap" element={<MarketGapPage />} />
-              <Route path="/dashboard/admin/insights/funnels" element={<FunnelsPage />} />
-              <Route path="/dashboard/admin/insights/pro-performance" element={<ProPerformancePage />} />
-              <Route path="/dashboard/admin/insights/pricing" element={<PricingPage />} />
-              <Route path="/dashboard/admin/insights/trends" element={<TrendRadarPage />} />
-              <Route path="/dashboard/admin/insights/unanswered-jobs" element={<UnansweredJobsPage />} />
-              <Route path="/dashboard/admin/insights/repeat-work" element={<RepeatWorkPage />} />
-              <Route path="/dashboard/admin/insights/:metricKey" element={<MetricInsightPage />} />
+              <Route path="/dashboard/admin" element={<AdminRouteLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="insights/market-gap" element={<MarketGapPage />} />
+                <Route path="insights/funnels" element={<FunnelsPage />} />
+                <Route path="insights/pro-performance" element={<ProPerformancePage />} />
+                <Route path="insights/pricing" element={<PricingPage />} />
+                <Route path="insights/trends" element={<TrendRadarPage />} />
+                <Route path="insights/unanswered-jobs" element={<UnansweredJobsPage />} />
+                <Route path="insights/repeat-work" element={<RepeatWorkPage />} />
+                <Route path="insights/:metricKey" element={<MetricInsightPage />} />
+              </Route>
             </Route>
 
             {/* ============================================

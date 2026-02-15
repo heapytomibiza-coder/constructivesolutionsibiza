@@ -9,14 +9,13 @@ import { InsightFilterBar } from "../components/InsightFilterBar";
 import { DrilldownTable } from "../components/DrilldownTable";
 import { useAdminMetricDrilldown } from "../hooks/useAdminMetricDrilldown";
 import { metricRegistry, type AdminMetricKey } from "../lib/metricRegistry";
-import { AdminDrawerProvider, useAdminDrawer } from "../context/AdminDrawerContext";
-import { JobDetailDrawer, UserDetailDrawer } from "../components";
+import { useAdminDrawer } from "../context/AdminDrawerContext";
 import { subDays } from "date-fns";
 
 const JOB_METRICS: string[] = ["jobs_posted", "open_jobs", "completed_jobs", "active_jobs"];
 const USER_METRICS: string[] = ["new_users", "new_pros"];
 
-function MetricInsightPageInner() {
+export default function MetricInsightPage() {
   const { metricKey } = useParams<{ metricKey: string }>();
   const navigate = useNavigate();
   const metric = metricRegistry[metricKey as AdminMetricKey];
@@ -145,12 +144,3 @@ function MetricInsightPageInner() {
   );
 }
 
-export default function MetricInsightPage() {
-  return (
-    <AdminDrawerProvider>
-      <MetricInsightPageInner />
-      <JobDetailDrawer />
-      <UserDetailDrawer />
-    </AdminDrawerProvider>
-  );
-}

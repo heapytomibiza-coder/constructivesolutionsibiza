@@ -11,8 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
-import { AdminDrawerProvider, useAdminDrawer } from "../context/AdminDrawerContext";
-import { JobDetailDrawer, UserDetailDrawer } from "../components";
+import { useAdminDrawer } from "../context/AdminDrawerContext";
 
 function urgencyColor(hours: number) {
   if (hours >= 48) return "bg-red-100 text-red-800 border-red-200";
@@ -115,7 +114,7 @@ function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | unde
   );
 }
 
-function UnansweredJobsPageInner() {
+export default function UnansweredJobsPage() {
   const navigate = useNavigate();
   const [threshold, setThreshold] = useState(6);
   const [tier, setTier] = useState<"no_conversation" | "no_reply">("no_conversation");
@@ -240,12 +239,3 @@ function UnansweredJobsPageInner() {
   );
 }
 
-export default function UnansweredJobsPage() {
-  return (
-    <AdminDrawerProvider>
-      <UnansweredJobsPageInner />
-      <JobDetailDrawer />
-      <UserDetailDrawer />
-    </AdminDrawerProvider>
-  );
-}

@@ -6,8 +6,6 @@ import { LinkMapSection } from "./sections/LinkMapSection";
 import { HealthSection } from "./sections/HealthSection";
 import { OperatorCockpit } from "./sections/OperatorCockpit";
 import InsightsSection from "./sections/InsightsSection";
-import { AdminDrawerProvider } from "./context/AdminDrawerContext";
-import { JobDetailDrawer, UserDetailDrawer } from "./components";
 
 /**
  * ADMIN DASHBOARD
@@ -19,8 +17,7 @@ export default function AdminDashboard() {
   const { t } = useTranslation("common");
 
   return (
-    <AdminDrawerProvider>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
         {/* Header */}
         <div className="border-b bg-card">
           <div className="container py-6">
@@ -101,12 +98,7 @@ export default function AdminDashboard() {
               <LinkMapSection />
             </TabsContent>
           </Tabs>
-        </div>
       </div>
-
-      {/* Entity Drawers */}
-      <JobDetailDrawer />
-      <UserDetailDrawer />
-    </AdminDrawerProvider>
+    </div>
   );
 }
