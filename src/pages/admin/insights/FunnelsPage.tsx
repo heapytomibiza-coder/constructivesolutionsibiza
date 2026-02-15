@@ -142,13 +142,23 @@ export default function FunnelsPage() {
       )}
 
       <Card className="border-amber-200 bg-amber-50/50">
-        <CardContent className="p-4">
-          <p className="text-sm text-amber-800">
-            ⚠️ <strong>Approximated data:</strong> These funnels use aggregate platform metrics as a proxy.
-            Once <code>trackEvent()</code> is instrumented across the wizard and onboarding flows,
-            funnels will show per-step drop-off with precise conversion rates and time-between-steps analysis.
-            Event tracking infrastructure is ready — instrumentation is the next phase.
+        <CardContent className="p-4 space-y-3">
+          <p className="text-sm text-amber-800 font-semibold">
+            ⚠️ Funnels are approximated until event instrumentation is complete.
           </p>
+          <p className="text-sm text-amber-700">
+            These funnels use aggregate platform metrics as a proxy. Once <code className="bg-amber-100 px-1 rounded">trackEvent()</code> is
+            instrumented, funnels will show per-step drop-off with precise conversion rates and time-between-steps analysis.
+          </p>
+          <div className="text-sm text-amber-800">
+            <p className="font-medium mb-1">Instrumentation checklist:</p>
+            <ul className="list-disc list-inside space-y-0.5 text-amber-700">
+              <li>Instrument wizard step events (<code className="text-xs bg-amber-100 px-1 rounded">job_wizard_started</code>, <code className="text-xs bg-amber-100 px-1 rounded">job_step_completed</code>)</li>
+              <li>Instrument onboarding step events (<code className="text-xs bg-amber-100 px-1 rounded">pro_signup_started</code>, <code className="text-xs bg-amber-100 px-1 rounded">pro_scope_selected</code>)</li>
+              <li>Instrument conversation + first reply timestamps (<code className="text-xs bg-amber-100 px-1 rounded">lead_received</code>, <code className="text-xs bg-amber-100 px-1 rounded">replied</code>)</li>
+              <li>Instrument hire + completion events (<code className="text-xs bg-amber-100 px-1 rounded">hire_initiated</code>, <code className="text-xs bg-amber-100 px-1 rounded">review_submitted</code>)</li>
+            </ul>
+          </div>
         </CardContent>
       </Card>
     </div>

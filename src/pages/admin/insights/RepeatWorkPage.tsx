@@ -32,7 +32,7 @@ export default function RepeatWorkPage() {
         </div>
 
         {/* Summary */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <Card>
             <CardContent className="p-4 text-center">
               <Users className="h-5 w-5 text-primary mx-auto mb-1" />
@@ -45,6 +45,22 @@ export default function RepeatWorkPage() {
               <Star className="h-5 w-5 text-primary mx-auto mb-1" />
               <div className="text-2xl font-bold">{data?.summary.total_rehired_pros ?? 0}</div>
               <div className="text-xs text-muted-foreground">Rehired Pros</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold">
+                {data?.summary.repeat_rate != null ? `${Math.round(data.summary.repeat_rate * 100)}%` : "—"}
+              </div>
+              <div className="text-xs text-muted-foreground">Repeat Rate</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold">
+                {data?.summary.rehire_rate != null ? `${Math.round(data.summary.rehire_rate * 100)}%` : "—"}
+              </div>
+              <div className="text-xs text-muted-foreground">Rehire Rate</div>
             </CardContent>
           </Card>
           <Card>

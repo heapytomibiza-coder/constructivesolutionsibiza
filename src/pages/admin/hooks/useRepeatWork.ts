@@ -21,10 +21,14 @@ export interface RehiredPro {
 
 export interface RepeatWorkData {
   repeat_clients: RepeatClient[] | null;
-  rehired_pros: RehiredPro[] | null;
+  rehired_pros: (RehiredPro & { completion_ratio?: number })[] | null;
   summary: {
     total_repeat_clients: number;
     total_rehired_pros: number;
+    total_clients_in_period: number;
+    total_active_pros_in_period: number;
+    repeat_rate: number | null;
+    rehire_rate: number | null;
   };
 }
 
