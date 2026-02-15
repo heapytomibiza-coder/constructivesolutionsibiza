@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/trackEvent";
 
 export async function archiveJob(
   jobId: string,
@@ -41,6 +42,8 @@ export async function archiveJob(
     console.error("Error archiving job:", updateError);
     return { success: false, error: "Failed to archive job. Please try again." };
   }
+
+  trackEvent('admin_archived_job', 'admin', { jobId, reason });
 
   // Log admin action
   const { error: logError } = await supabase.from("admin_actions_log").insert({

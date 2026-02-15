@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { trackEvent } from '@/lib/trackEvent';
 
 /**
  * Mark a job as completed.
@@ -59,6 +60,8 @@ export async function completeJob(jobId: string): Promise<{ success: boolean; er
   if (!updated) {
     return { success: false, error: 'Job already completed or status changed' };
   }
+
+  trackEvent('job_completed', 'client', { jobId });
 
   return { success: true };
 }

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/trackEvent";
 
 interface SuspendUserParams {
   userId: string;
@@ -43,6 +44,8 @@ export async function suspendUser({ userId, reason }: SuspendUserParams): Promis
     console.error('Error suspending user:', error);
     return { success: false, error: 'Failed to suspend user. Please try again.' };
   }
+
+  trackEvent('admin_suspended_user', 'admin', { userId, reason });
 
   // Log the action
   await supabase.from('admin_actions_log').insert({

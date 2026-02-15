@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { trackEvent } from '@/lib/trackEvent';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -76,6 +77,7 @@ export function ReviewStep({ onBack }: ReviewStepProps) {
       if (error) throw error;
 
       await refresh();
+      trackEvent('pro_profile_published', 'professional', { onboardingPhase: 'complete' });
       toast.success("🎉 You're live! Time to start receiving work.");
       navigate('/dashboard/pro');
     } catch (error) {
