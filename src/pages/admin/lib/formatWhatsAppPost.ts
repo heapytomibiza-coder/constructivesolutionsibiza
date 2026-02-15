@@ -42,7 +42,7 @@ export function formatWhatsAppPost(job: WhatsAppJobInput, baseUrl: string): stri
   const link = `${baseUrl}/jobs/${job.id}`;
 
   return [
-    `🛠️ *NEW JOB (CS Ibiza)*`,
+    `🛠️ *NEW JOB (Constructive Solutions Ibiza)*`,
     `*Title:* ${job.title}`,
     trade && `*Trade:* ${trade}`,
     `*Area:* ${job.area || "TBC"}`,
