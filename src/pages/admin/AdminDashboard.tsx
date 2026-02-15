@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity, LineChart } from "lucide-react";
 import { UsersSection, JobsSection, ContentSection, SupportInbox } from "./sections";
@@ -14,7 +13,6 @@ import InsightsSection from "./sections/InsightsSection";
  * Future phases will add Users, Jobs, Content, Analytics sections
  */
 export default function AdminDashboard() {
-  const { t } = useTranslation("common");
 
   return (
     <div className="min-h-screen bg-background">
