@@ -64,6 +64,28 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
     mutationFn: async (zones: string[]) => {
       if (!user?.id) throw new Error('Not authenticated');
 
+      // Guard: ensure professional_profiles row exists before updating
+      const { data: existing } = await supabase
+        .from('professional_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!existing) {
+        // Auto-create the row if missing (handles edge cases like incomplete signup)
+        const { error: insertError } = await supabase
+          .from('professional_profiles')
+          .insert({
+            user_id: user.id,
+            onboarding_phase: 'not_started',
+            verification_status: 'unverified',
+          });
+        if (insertError) {
+          console.error('Failed to create professional profile:', insertError);
+          throw new Error('Could not create your professional profile. Please try logging out and back in.');
+        }
+      }
+
       const { error } = await supabase
         .from('professional_profiles')
         .update({
@@ -73,7 +95,7 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
         })
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) throw new Error(error.message || 'Failed to save service area');
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['professional-service-area'] });
