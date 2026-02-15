@@ -235,6 +235,28 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // ---- Test endpoint: ?test_email=1&to=recipient@example.com ----
+    const url = new URL(req.url);
+    const testEmail = url.searchParams.get("test_email");
+    const testTo = url.searchParams.get("to");
+
+    if (testEmail === "1" && testTo) {
+      const testHtml = emailShell(
+        "linear-gradient(135deg, #059669, #10b981)",
+        "Email Format Test",
+        `<p style="color: #374151; font-size: 15px; line-height: 1.6;">This is a <strong>test email</strong> to verify multipart/alternative rendering.</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+          <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Location</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">Ibiza Town</td></tr>
+          <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Budget</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">500 - 1,000 EUR</td></tr>
+        </table>
+        <p style="color: #6b7280; font-size: 13px;">If you see this cleanly rendered, the MIME structure is correct.</p>`
+      );
+      const result = await sendEmail(testTo, `Email Format Test - ${BRAND_NAME}`, testHtml);
+      return new Response(
+        JSON.stringify({ test: true, sent: !result.error, error: result.error || null }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
     const { data: queue, error: queueError } = await supabaseAdmin
       .from("email_notifications_queue")
       .select("*")
