@@ -1,149 +1,130 @@
 
 
-# Phase 7: Event Instrumentation
+# Phase 6: Admin Alerts Engine (Operator Cockpit Upgrade)
 
-## Overview
+## Problem
 
-Add 12 new trackEvent calls across the application to replace proxy-based funnels with real behavioral data. No database changes needed -- the existing `analytics_events` table and `track_event()` RPC already support this.
+The admin currently has no visibility into critical events unless manually checking tables. The "Needs Attention" section only shows 3 static metrics (failed emails, open tickets, jobs today). There's no signal for new signups, stuck onboarding, unanswered jobs, or error spikes.
 
-## Current State
+## Solution
 
-4 events are already instrumented:
-- `job_wizard_started` (CanonicalJobWizard.tsx, line 139)
-- `job_posted` (CanonicalJobWizard.tsx, line 598)
-- `pro_onboarding_started` (ProfessionalOnboarding.tsx, line 129)
-- `conversation_started` (messageJob.action.ts, line 61)
+Build a dynamic alerts system powered by a single new RPC that evaluates alert rules server-side and returns only the alerts that need attention. No new tables needed for v0 -- pure computed alerts from existing data.
 
-## New Events (12 total)
+## Architecture
 
-### Wizard Step Tracking (3 events)
+The alerts engine is **entirely computed** (no `admin_alerts` table yet). A single RPC evaluates all rules and returns active alerts. This avoids the complexity of a cron job, deduplication, and state management. When you need persistence (snooze/acknowledge), that's Phase 6.1.
 
-**1. `job_wizard_step_completed`** -- fires in `handleNext` when advancing
-- File: `src/features/wizard/canonical/CanonicalJobWizard.tsx`
-- Location: Inside `handleNext`, after validation passes and before `setCurrentStep(nextStep)` (around line 500-503)
-- Payload: `{ step: currentStep, stepIndex: getStepIndex(currentStep), category: wizardState.mainCategory }`
-
-**2. `job_wizard_abandoned`** -- fires on beforeunload when wizard has meaningful state
-- File: `src/features/wizard/canonical/CanonicalJobWizard.tsx`
-- Location: In the `beforeunload` handler (around line 324-333). Use `navigator.sendBeacon` with the Supabase RPC URL since async calls don't work in beforeunload. Alternatively, track on component unmount via a cleanup effect.
-- Better approach: Add a useEffect cleanup that fires when the component unmounts (user navigates away) while the wizard has state but hasn't submitted.
-- Payload: `{ lastStep: currentStep, stepIndex: getStepIndex(currentStep), category: wizardState.mainCategory }`
-
-**3. `job_wizard_step_viewed`** -- fires when step changes
-- File: `src/features/wizard/canonical/CanonicalJobWizard.tsx`
-- Location: New useEffect that watches `currentStep` and `isInitialized`
-- Payload: `{ step: currentStep, stepIndex: getStepIndex(currentStep) }`
-
-### Hire Flow (2 events)
-
-**4. `hire_initiated`** -- fires when client assigns a professional
-- File: `src/pages/jobs/actions/assignProfessional.action.ts`
-- Location: After the successful update (around line 85, after the `if (!data)` check)
-- Payload: `{ jobId, proId: professionalId }`
-- Role: `'client'`
-
-**5. `job_completed`** -- fires when client marks job complete
-- File: `src/pages/jobs/actions/completeJob.action.ts`
-- Location: After successful update confirmation (around line 61, before `return { success: true }`)
-- Payload: `{ jobId }`
-- Role: `'client'`
-
-### Review (1 event)
-
-**6. `review_submitted`** -- fires when a review is successfully inserted
-- File: `src/pages/jobs/actions/submitReview.action.ts`
-- Location: After the successful insert, before the awardProStats block (around line 57)
-- Payload: `{ jobId, rating, reviewerRole, visibility }`
-- Role: `reviewerRole`
-
-### Pro Onboarding Steps (2 events)
-
-**7. `pro_onboarding_step_completed`** -- fires when advancing through onboarding steps
-- File: `src/pages/onboarding/ProfessionalOnboarding.tsx`
-- Location: In `handleServiceAreaComplete` (line 133) and `handleServicesComplete` (line 137)
-- Payload: `{ step: 'service_area' }` and `{ step: 'services' }` respectively
-- Role: `'professional'`
-
-**8. `pro_profile_published`** -- fires when onboarding completes (review step submit)
-- File: `src/pages/onboarding/ProfessionalOnboarding.tsx`
-- Location: In the review step's completion handler (wherever the final "Go Live" action is)
-- Payload: `{ onboardingPhase: 'complete' }`
-- Role: `'professional'`
-
-### Admin Actions (4 events)
-
-**9. `admin_force_completed_job`**
-- File: `src/pages/admin/actions/forceCompleteJob.action.ts`
-- Location: After successful force-complete
-- Payload: `{ jobId }`
-- Role: `'admin'`
-
-**10. `admin_archived_job`**
-- File: `src/pages/admin/actions/archiveJob.action.ts`
-- Location: After successful archive (around line 39, before the log insert)
-- Payload: `{ jobId, reason }`
-- Role: `'admin'`
-
-**11. `admin_verified_professional`**
-- File: `src/pages/admin/actions/verifyProfessional.action.ts`
-- Location: After successful verification update
-- Payload: `{ userId, status }`
-- Role: `'admin'`
-
-**12. `admin_suspended_user`**
-- File: `src/pages/admin/actions/suspendUser.action.ts`
-- Location: After successful suspension
-- Payload: `{ userId, reason }`
-- Role: `'admin'`
-
-## Implementation Pattern
-
-Each instrumentation point is a single line added after a successful action:
-
-```typescript
-trackEvent('event_name', 'role', { key: value });
+```text
++---------------------------+
+|  admin_operator_alerts()  |  <-- New SECURITY DEFINER RPC
+|  Evaluates 7 alert rules  |
+|  Returns: AlertCard[]     |
++---------------------------+
+            |
+            v
++---------------------------+
+|  useAdminAlerts() hook    |  <-- New React Query hook
+|  Polls every 60s          |
++---------------------------+
+            |
+            v
++---------------------------+
+|  OperatorCockpit.tsx      |  <-- Upgraded "Needs Attention"
+|  Renders dynamic cards    |
+|  with severity + CTA      |
++---------------------------+
 ```
 
-Fire-and-forget. No `await`. No try/catch needed (trackEvent already handles errors internally). Never blocks the user flow.
+## Step 1: New RPC -- `admin_operator_alerts()`
 
-## Files Modified
+Creates a SECURITY DEFINER function that evaluates all alert rules against live data and returns a JSON array of active alerts.
 
-| File | Events Added |
-|------|-------------|
-| `src/features/wizard/canonical/CanonicalJobWizard.tsx` | `job_wizard_step_viewed`, `job_wizard_step_completed`, `job_wizard_abandoned` |
-| `src/pages/jobs/actions/assignProfessional.action.ts` | `hire_initiated` |
-| `src/pages/jobs/actions/completeJob.action.ts` | `job_completed` |
-| `src/pages/jobs/actions/submitReview.action.ts` | `review_submitted` |
-| `src/pages/onboarding/ProfessionalOnboarding.tsx` | `pro_onboarding_step_completed` (x2), `pro_profile_published` |
-| `src/pages/admin/actions/archiveJob.action.ts` | `admin_archived_job` |
-| `src/pages/admin/actions/forceCompleteJob.action.ts` | `admin_force_completed_job` |
-| `src/pages/admin/actions/verifyProfessional.action.ts` | `admin_verified_professional` |
-| `src/pages/admin/actions/suspendUser.action.ts` | `admin_suspended_user` |
+**Alert rules (7 total):**
+
+| # | Alert Key | Severity | Threshold | CTA Link |
+|---|-----------|----------|-----------|----------|
+| 1 | `failed_emails` | red | failed > 0 | Health tab |
+| 2 | `high_priority_tickets` | red | open high-priority tickets > 0 | Support tab |
+| 3 | `open_tickets` | yellow | open/triage tickets > 0 | Support tab |
+| 4 | `unanswered_jobs` | red | jobs with no conversation after 6h > 0 | Unanswered jobs insight |
+| 5 | `stuck_onboarding` | yellow | pros stuck in non-complete phase > 6h | Users tab (filtered to professionals) |
+| 6 | `new_signups_24h` | blue (info) | new users in last 24h > 0 | Users insight |
+| 7 | `new_pros_24h` | blue (info) | new pros in last 24h > 0 | Pros insight |
+
+**Return shape per alert:**
+```text
+{
+  key: text,
+  severity: 'red' | 'yellow' | 'blue',
+  title: text,
+  body: text,
+  count: integer,
+  cta_label: text,
+  cta_href: text
+}
+```
+
+The RPC only returns alerts where the threshold is crossed (empty array = all clear).
+
+**SQL migration:** Creates the function in a new migration file.
+
+## Step 2: New Hook -- `useAdminAlerts()`
+
+**File:** `src/pages/admin/hooks/useAdminAlerts.ts`
+
+- Calls `admin_operator_alerts` RPC
+- Polls every 60 seconds (matches health snapshot interval)
+- Returns `{ alerts, isLoading, error }`
+- Alert type interface defined here
+- Exported from hooks index
+
+## Step 3: Upgrade OperatorCockpit "Needs Attention" Section
+
+**File:** `src/pages/admin/sections/OperatorCockpit.tsx`
+
+Replace the current hardcoded attention cards with dynamic rendering from `useAdminAlerts()`:
+
+- **Red cards** (destructive styling): failed emails, high-priority tickets, unanswered jobs
+- **Yellow cards** (warning styling): open tickets, stuck onboarding
+- **Blue cards** (info styling): new signups, new pros (positive signals, not problems)
+- Each card shows: icon, count, title, description, and a CTA button that navigates to the relevant page
+- "All clear" state remains when alerts array is empty
+- Remove the old separate health snapshot query from the cockpit (alerts RPC covers it)
+
+**Card layout:**
+- Severity-ordered: red first, then yellow, then blue
+- Grid: responsive, 1-3 columns
+- Each card is clickable (navigates to cta_href)
+
+## Step 4: Hook Index Export
+
+**File:** `src/pages/admin/hooks/index.ts`
+
+Add `useAdminAlerts` export.
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `supabase/migrations/[timestamp]_admin_operator_alerts.sql` | New RPC function |
+| `src/pages/admin/hooks/useAdminAlerts.ts` | New hook (new file) |
+| `src/pages/admin/hooks/index.ts` | Add export |
+| `src/pages/admin/sections/OperatorCockpit.tsx` | Replace hardcoded attention with dynamic alerts |
 
 ## What This Does NOT Include
 
-- No database migrations (existing `analytics_events` table handles all events)
-- No new RPCs (existing `track_event()` RPC works for all events)
-- No changes to the trackEvent utility (current signature covers all cases)
-- No FunnelsPage upgrade yet (that comes after events are flowing and have data)
-- No new UI components
+- No `admin_alerts` table (no persistence yet -- that's Phase 6.1 for snooze/acknowledge)
+- No cron job or edge function (alerts are computed on-read)
+- No external notifications (WhatsApp/email alerts come later)
+- No changes to Health tab (it stays as-is for detailed diagnostics)
+- No changes to the drawer system or routing
 
-## Build Order
+## Acceptance Criteria
 
-1. Wizard events (step_viewed, step_completed, abandoned) -- highest funnel value
-2. Hire flow events (hire_initiated, job_completed) -- marketplace conversion signal
-3. Review event -- quality signal
-4. Onboarding events -- pro supply funnel
-5. Admin events -- audit trail
+- Opening `/dashboard/admin` shows real-time alert cards based on actual data
+- Red alerts appear first, then yellow, then blue
+- Clicking any card navigates to the correct page/tab
+- When all thresholds are clear, "All clear" message displays
+- Alerts refresh every 60 seconds without manual reload
+- RPC enforces admin role check server-side
 
-## Verification
-
-After deployment, run this query to confirm events are flowing:
-
-```sql
-SELECT event_name, count(*), max(created_at)
-FROM analytics_events
-WHERE created_at > now() - interval '1 hour'
-GROUP BY event_name
-ORDER BY count(*) DESC;
-```
