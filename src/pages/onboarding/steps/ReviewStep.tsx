@@ -7,13 +7,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackEvent } from '@/lib/trackEvent';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft, CheckCircle2, Rocket, Loader2, 
   User, MapPin, Briefcase, AlertCircle 
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
@@ -76,13 +76,19 @@ export function ReviewStep({ onBack }: ReviewStepProps) {
 
       if (error) throw error;
 
-      await refresh();
+      try {
+        await refresh();
+      } catch (e) {
+        console.warn('Session refresh failed after go-live:', e);
+      }
       trackEvent('pro_profile_published', 'professional', { onboardingPhase: 'complete' });
       toast.success("🎉 You're live! Time to start receiving work.");
       navigate('/dashboard/pro');
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error('Error going live:', error);
-      toast.error('Something went wrong. Please try again.');
+      toast.error(msg || 'Failed to go live. Please try again.');
+      trackEvent('onboarding_step_failed', 'professional', { step: 'review', error_message: msg });
     } finally {
       setIsSubmitting(false);
     }
@@ -182,13 +188,13 @@ export function ReviewStep({ onBack }: ReviewStepProps) {
       )}
 
       {/* Navigation buttons */}
-      <div className="flex items-center justify-between pt-4 border-t border-border">
+      <div className="flex gap-4 pt-4 border-t border-border">
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="lg"
           onClick={onBack}
-          className="h-12 flex items-center justify-center"
+          className="flex-1 h-12 flex items-center justify-center"
         >
           <ArrowLeft className="h-5 w-5 mr-2 shrink-0" />
           Go Back
@@ -200,15 +206,15 @@ export function ReviewStep({ onBack }: ReviewStepProps) {
           disabled={!canGoLive || isSubmitting}
           size="lg"
           className={cn(
-            'gap-3 px-10',
+            'flex-1 h-12 flex items-center justify-center gap-3',
             canGoLive && 'bg-gradient-steel'
           )}
         >
           {isSubmitting ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin shrink-0" />
           ) : (
             <>
-              <Rocket className="h-5 w-5" />
+              <Rocket className="h-5 w-5 shrink-0" />
               Go Live
             </>
           )}
