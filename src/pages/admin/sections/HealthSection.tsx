@@ -60,10 +60,13 @@ export function HealthSection() {
         {/* Pending Emails */}
         <HealthCard>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending Emails
-            </CardTitle>
-            <Mail className="h-5 w-5 text-primary" />
+            <div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Pending Emails
+              </CardTitle>
+              <span className="text-[10px] text-muted-foreground/60">System metric</span>
+            </div>
+            <Mail className="h-5 w-5 text-muted-foreground/50" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -87,9 +90,12 @@ export function HealthSection() {
         {/* Failed Emails */}
         <HealthCard>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Failed Emails
-            </CardTitle>
+            <div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Failed Emails
+              </CardTitle>
+              <span className="text-[10px] text-muted-foreground/60">System metric</span>
+            </div>
             <AlertTriangle className="h-5 w-5 text-destructive" />
           </CardHeader>
           <CardContent>
@@ -129,9 +135,12 @@ export function HealthSection() {
         {/* Active Users 24h */}
         <HealthCard onClick={() => navigate("/dashboard/admin/insights/messages_sent")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Active Users (24h)
-            </CardTitle>
+            <div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Active Users (24h)
+              </CardTitle>
+              <span className="text-[10px] text-muted-foreground/60">via messages</span>
+            </div>
             <div className="flex items-center gap-1">
               <Users className="h-5 w-5 text-primary" />
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -149,9 +158,12 @@ export function HealthSection() {
         {/* Active Users 7d */}
         <HealthCard onClick={() => navigate("/dashboard/admin/insights/messages_sent")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Active Users (7d)
-            </CardTitle>
+            <div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Active Users (7d)
+              </CardTitle>
+              <span className="text-[10px] text-muted-foreground/60">via messages</span>
+            </div>
             <div className="flex items-center gap-1">
               <Users className="h-5 w-5 text-accent" />
               <ChevronRight className="h-4 w-4 text-muted-foreground" />

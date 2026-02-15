@@ -194,7 +194,7 @@ export function OperatorCockpit() {
 
       {/* ── Quick Stats ── */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Quick Stats</h2>
+        <h2 className="text-lg font-semibold">Platform Snapshot</h2>
 
         {statsLoading ? (
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
