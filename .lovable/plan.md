@@ -1,74 +1,102 @@
 
 
-# Onboarding Hardening: Close Remaining Gaps
+# Final Onboarding Hardening: ServiceUnlockStep refresh() Guard
 
-Based on the full audit, the onboarding flow is ~85% hardened. Four specific gaps remain that need fixing.
+## Current State
 
-## Gap 1: ReviewStep Has Unguarded refresh() and Generic Error
+All 4 onboarding steps have been audited. Here is the status:
 
-**File:** `src/pages/onboarding/steps/ReviewStep.tsx`
+| Step | refresh() guarded | trackEvent on error | Real error msg | Button alignment |
+|------|-------------------|---------------------|----------------|-----------------|
+| BasicInfoStep | Yes (line 107-111) | Yes (line 119) | Yes | OK (full-width) |
+| ServiceAreaStep | Yes (line 80-85) | Yes (line 93-96) | Yes | OK (flex gap-4) |
+| ServiceUnlockStep | **NO -- line 203** | Yes (line 206-209) | Yes | OK (flex gap-4) |
+| ReviewStep | Yes (line 79-83) | Yes (line 91) | Yes | OK (flex gap-4) |
 
-The `handleGoLive` function (line 59-88) has:
-- Bare `await refresh()` at line 79 (not in try/catch -- if it throws, the catch at line 83 fires)
-- Generic "Something went wrong. Please try again." toast at line 85
-- No `trackEvent` call for failure
+**ProfessionalOnboarding.tsx** step entry tracking: Done (lines 104, 110, 131-132, 137-138, 143-144).
 
-**Fix:**
-- Wrap `await refresh()` in its own try/catch (same pattern as other steps)
-- Replace generic toast with actual error message
-- Add `trackEvent('onboarding_step_failed', 'professional', { step: 'review', error_message })` in the catch block
+## The One Remaining Bug
 
-## Gap 2: BasicInfoStep Missing Error Tracking
+In `ServiceUnlockStep.tsx` lines 197-211, `await refresh()` (line 203) is inside the **same** try/catch as the Supabase update (line 198-201). If the DB write succeeds but `refresh()` throws:
 
-**File:** `src/pages/onboarding/steps/BasicInfoStep.tsx`
+1. The catch fires
+2. `trackEvent('onboarding_step_failed')` logs a false positive
+3. But `onComplete()` (line 213) still runs because it's outside the try/catch
 
-The `onError` handler (line 114-118) logs to console and shows the real error message, but does NOT call `trackEvent`. ServiceAreaStep and ServiceUnlockStep already have this.
+This means the user advances correctly, but the analytics log a phantom failure. The fix is to separate `refresh()` into its own try/catch, matching the pattern used in all other steps.
 
-**Fix:**
-- Add `trackEvent('onboarding_step_failed', 'professional', { step: 'basic_info', error_message: msg })` to the onError handler
+## Change
 
-## Gap 3: ReviewStep Button Alignment (Mobile Consistency)
+**File:** `src/pages/onboarding/steps/ServiceUnlockStep.tsx`
 
-**File:** `src/pages/onboarding/steps/ReviewStep.tsx`
+Replace lines 196-211 (the phase advancement block inside `handleContinue`):
 
-The navigation buttons (lines 185-216) use `justify-between` layout with `variant="ghost"` for Go Back -- inconsistent with the other steps which now use `flex gap-4` with `variant="outline"` and `flex-1 h-12`.
+```typescript
+// Current (broken):
+if (newPhase !== currentPhase) {
+  try {
+    await supabase
+      .from('professional_profiles')
+      .update({ onboarding_phase: newPhase })
+      .eq('user_id', user.id);
+    await refresh();  // <-- if this throws, catch logs false failure
+  } catch (err) {
+    console.error('Error advancing phase:', err);
+    const msg = err instanceof Error ? err.message : String(err);
+    trackEvent('onboarding_step_failed', 'professional', {
+      step: 'service_unlock',
+      error_message: msg,
+    });
+  }
+}
+```
 
-**Fix:**
-- Change container from `justify-between` to `flex gap-4`
-- Change Go Back to `variant="outline"` with `flex-1 h-12 flex items-center justify-center`
-- Add `flex-1 h-12 flex items-center justify-center` to the Go Live button
-- Add `shrink-0` to icons
+With:
 
-## Gap 4: Step Entry Tracking for Drop-off Measurement
+```typescript
+// Fixed (separated):
+if (newPhase !== currentPhase) {
+  try {
+    const { error } = await supabase
+      .from('professional_profiles')
+      .update({ onboarding_phase: newPhase })
+      .eq('user_id', user.id);
+    if (error) throw error;
+  } catch (err) {
+    console.error('Error advancing phase:', err);
+    const msg = err instanceof Error ? err.message : String(err);
+    trackEvent('onboarding_step_failed', 'professional', {
+      step: 'services',
+      error_message: msg,
+    });
+  }
 
-**File:** `src/pages/onboarding/ProfessionalOnboarding.tsx`
+  try {
+    await refresh();
+  } catch (e) {
+    console.warn('Session refresh failed after services save:', e);
+  }
+}
+```
 
-Currently tracks step completion but NOT step entry. This means we can't measure "user entered Service Area but never completed it."
+Key improvements:
+- `refresh()` gets its own try/catch (no false failure tracking)
+- Supabase response is checked with `if (error) throw error` (surfaces real DB errors)
+- Step name changed from `'service_unlock'` to `'services'` to match the canonical step ID used in ProfessionalOnboarding.tsx
 
-**Fix:**
-- Add `trackEvent` calls in the step transition handlers. Track `pro_onboarding_step_entered` with the step name when navigating TO each step (in `handleStepClick` and the initial step resolution).
+## Verification Checklist (Post-Merge)
 
-## Summary of Changes
+After this change, all 4 steps will follow the identical pattern:
 
-| File | Change |
-|------|--------|
-| `src/pages/onboarding/steps/ReviewStep.tsx` | Guard refresh(), surface real errors, add trackEvent, fix button alignment |
-| `src/pages/onboarding/steps/BasicInfoStep.tsx` | Add trackEvent to onError |
-| `src/pages/onboarding/ProfessionalOnboarding.tsx` | Add step entry tracking |
+1. mutationFn / DB call throws only on real DB error
+2. refresh() is in its own try/catch -- never blocks user progression
+3. onError / catch shows the real error message via toast
+4. trackEvent fires with step name + error_message on real failures only
+5. Buttons use consistent flex gap-4, h-12, outline variant for "Go Back"
 
 ## What This Does NOT Change
 
-- No database changes needed
-- No RLS changes (all policies confirmed correct)
-- No changes to phaseProgression.ts (logic is sound)
-- No changes to proReadiness.ts (gating is correct)
-- No changes to ServiceAreaStep or ServiceUnlockStep (already hardened)
-
-## Acceptance Criteria
-
-- All 4 onboarding steps track failures via `trackEvent`
-- All 4 steps have `refresh()` guarded in try/catch
-- No generic "Something went wrong" toasts remain (real error messages shown)
-- Button layout is consistent across all 4 steps (flex gap-4, h-12, outline variant for Go Back)
-- Step entry events allow measuring drop-off per step in analytics_events table
-
+- No database or RLS changes
+- No changes to phaseProgression.ts (logic confirmed correct)
+- No changes to BasicInfoStep, ServiceAreaStep, or ReviewStep (already hardened)
+- No changes to ProfessionalOnboarding.tsx (step entry tracking already in place)
