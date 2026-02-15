@@ -194,25 +194,30 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
     // Advance phase to service_setup (guarded — won't regress)
     const newPhase = nextPhase(currentPhase, 'service_setup');
     if (newPhase !== currentPhase) {
+      let phaseUpdated = false;
+
       try {
         const { error } = await supabase
           .from('professional_profiles')
           .update({ onboarding_phase: newPhase })
           .eq('user_id', user.id);
         if (error) throw error;
+        phaseUpdated = true;
       } catch (err) {
         console.error('Error advancing phase:', err);
         const msg = err instanceof Error ? err.message : String(err);
         trackEvent('onboarding_step_failed', 'professional', {
-          step: 'services',
+          step: 'service_unlock',
           error_message: msg,
         });
       }
 
-      try {
-        await refresh();
-      } catch (e) {
-        console.warn('Session refresh failed after services save:', e);
+      if (phaseUpdated) {
+        try {
+          await refresh();
+        } catch (e) {
+          console.warn('Session refresh failed after phase advance:', e);
+        }
       }
     }
 
