@@ -101,11 +101,13 @@ const ProfessionalOnboarding = () => {
   const handleStepClick = (stepId: string) => {
     if (editMode) {
       setCurrentStep(stepId as WizardStep);
+      trackEvent('pro_onboarding_step_entered', 'professional', { step: stepId, edit_mode: true });
       return;
     }
     const status = getStepStatus(stepId as StepId);
     if (status === 'complete' || status === 'current') {
       setCurrentStep(stepId as WizardStep);
+      trackEvent('pro_onboarding_step_entered', 'professional', { step: stepId });
     }
   };
 
@@ -127,16 +129,19 @@ const ProfessionalOnboarding = () => {
 
   const handleBasicInfoComplete = () => {
     trackEvent('pro_onboarding_started', 'professional', { step: 'basic_info' });
+    trackEvent('pro_onboarding_step_entered', 'professional', { step: 'service_area' });
     setCurrentStep('service_area');
   };
 
   const handleServiceAreaComplete = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'service_area' });
+    trackEvent('pro_onboarding_step_entered', 'professional', { step: 'services' });
     setCurrentStep('services');
   };
 
   const handleServicesComplete = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'services' });
+    trackEvent('pro_onboarding_step_entered', 'professional', { step: 'review' });
     setCurrentStep('review');
   };
 

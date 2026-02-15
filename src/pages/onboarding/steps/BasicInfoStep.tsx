@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { trackEvent } from '@/lib/trackEvent';
 import { Loader2, User, Phone, FileText, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
@@ -115,6 +116,7 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error('Error saving basic info:', error);
       toast.error(msg || 'Something went wrong. Please try again.');
+      trackEvent('onboarding_step_failed', 'professional', { step: 'basic_info', error_message: msg });
     },
   });
 
