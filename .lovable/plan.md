@@ -1,130 +1,74 @@
 
 
-# Phase 6: Admin Alerts Engine (Operator Cockpit Upgrade)
+# Onboarding Hardening: Close Remaining Gaps
 
-## Problem
+Based on the full audit, the onboarding flow is ~85% hardened. Four specific gaps remain that need fixing.
 
-The admin currently has no visibility into critical events unless manually checking tables. The "Needs Attention" section only shows 3 static metrics (failed emails, open tickets, jobs today). There's no signal for new signups, stuck onboarding, unanswered jobs, or error spikes.
+## Gap 1: ReviewStep Has Unguarded refresh() and Generic Error
 
-## Solution
+**File:** `src/pages/onboarding/steps/ReviewStep.tsx`
 
-Build a dynamic alerts system powered by a single new RPC that evaluates alert rules server-side and returns only the alerts that need attention. No new tables needed for v0 -- pure computed alerts from existing data.
+The `handleGoLive` function (line 59-88) has:
+- Bare `await refresh()` at line 79 (not in try/catch -- if it throws, the catch at line 83 fires)
+- Generic "Something went wrong. Please try again." toast at line 85
+- No `trackEvent` call for failure
 
-## Architecture
+**Fix:**
+- Wrap `await refresh()` in its own try/catch (same pattern as other steps)
+- Replace generic toast with actual error message
+- Add `trackEvent('onboarding_step_failed', 'professional', { step: 'review', error_message })` in the catch block
 
-The alerts engine is **entirely computed** (no `admin_alerts` table yet). A single RPC evaluates all rules and returns active alerts. This avoids the complexity of a cron job, deduplication, and state management. When you need persistence (snooze/acknowledge), that's Phase 6.1.
+## Gap 2: BasicInfoStep Missing Error Tracking
 
-```text
-+---------------------------+
-|  admin_operator_alerts()  |  <-- New SECURITY DEFINER RPC
-|  Evaluates 7 alert rules  |
-|  Returns: AlertCard[]     |
-+---------------------------+
-            |
-            v
-+---------------------------+
-|  useAdminAlerts() hook    |  <-- New React Query hook
-|  Polls every 60s          |
-+---------------------------+
-            |
-            v
-+---------------------------+
-|  OperatorCockpit.tsx      |  <-- Upgraded "Needs Attention"
-|  Renders dynamic cards    |
-|  with severity + CTA      |
-+---------------------------+
-```
+**File:** `src/pages/onboarding/steps/BasicInfoStep.tsx`
 
-## Step 1: New RPC -- `admin_operator_alerts()`
+The `onError` handler (line 114-118) logs to console and shows the real error message, but does NOT call `trackEvent`. ServiceAreaStep and ServiceUnlockStep already have this.
 
-Creates a SECURITY DEFINER function that evaluates all alert rules against live data and returns a JSON array of active alerts.
+**Fix:**
+- Add `trackEvent('onboarding_step_failed', 'professional', { step: 'basic_info', error_message: msg })` to the onError handler
 
-**Alert rules (7 total):**
+## Gap 3: ReviewStep Button Alignment (Mobile Consistency)
 
-| # | Alert Key | Severity | Threshold | CTA Link |
-|---|-----------|----------|-----------|----------|
-| 1 | `failed_emails` | red | failed > 0 | Health tab |
-| 2 | `high_priority_tickets` | red | open high-priority tickets > 0 | Support tab |
-| 3 | `open_tickets` | yellow | open/triage tickets > 0 | Support tab |
-| 4 | `unanswered_jobs` | red | jobs with no conversation after 6h > 0 | Unanswered jobs insight |
-| 5 | `stuck_onboarding` | yellow | pros stuck in non-complete phase > 6h | Users tab (filtered to professionals) |
-| 6 | `new_signups_24h` | blue (info) | new users in last 24h > 0 | Users insight |
-| 7 | `new_pros_24h` | blue (info) | new pros in last 24h > 0 | Pros insight |
+**File:** `src/pages/onboarding/steps/ReviewStep.tsx`
 
-**Return shape per alert:**
-```text
-{
-  key: text,
-  severity: 'red' | 'yellow' | 'blue',
-  title: text,
-  body: text,
-  count: integer,
-  cta_label: text,
-  cta_href: text
-}
-```
+The navigation buttons (lines 185-216) use `justify-between` layout with `variant="ghost"` for Go Back -- inconsistent with the other steps which now use `flex gap-4` with `variant="outline"` and `flex-1 h-12`.
 
-The RPC only returns alerts where the threshold is crossed (empty array = all clear).
+**Fix:**
+- Change container from `justify-between` to `flex gap-4`
+- Change Go Back to `variant="outline"` with `flex-1 h-12 flex items-center justify-center`
+- Add `flex-1 h-12 flex items-center justify-center` to the Go Live button
+- Add `shrink-0` to icons
 
-**SQL migration:** Creates the function in a new migration file.
+## Gap 4: Step Entry Tracking for Drop-off Measurement
 
-## Step 2: New Hook -- `useAdminAlerts()`
+**File:** `src/pages/onboarding/ProfessionalOnboarding.tsx`
 
-**File:** `src/pages/admin/hooks/useAdminAlerts.ts`
+Currently tracks step completion but NOT step entry. This means we can't measure "user entered Service Area but never completed it."
 
-- Calls `admin_operator_alerts` RPC
-- Polls every 60 seconds (matches health snapshot interval)
-- Returns `{ alerts, isLoading, error }`
-- Alert type interface defined here
-- Exported from hooks index
+**Fix:**
+- Add `trackEvent` calls in the step transition handlers. Track `pro_onboarding_step_entered` with the step name when navigating TO each step (in `handleStepClick` and the initial step resolution).
 
-## Step 3: Upgrade OperatorCockpit "Needs Attention" Section
-
-**File:** `src/pages/admin/sections/OperatorCockpit.tsx`
-
-Replace the current hardcoded attention cards with dynamic rendering from `useAdminAlerts()`:
-
-- **Red cards** (destructive styling): failed emails, high-priority tickets, unanswered jobs
-- **Yellow cards** (warning styling): open tickets, stuck onboarding
-- **Blue cards** (info styling): new signups, new pros (positive signals, not problems)
-- Each card shows: icon, count, title, description, and a CTA button that navigates to the relevant page
-- "All clear" state remains when alerts array is empty
-- Remove the old separate health snapshot query from the cockpit (alerts RPC covers it)
-
-**Card layout:**
-- Severity-ordered: red first, then yellow, then blue
-- Grid: responsive, 1-3 columns
-- Each card is clickable (navigates to cta_href)
-
-## Step 4: Hook Index Export
-
-**File:** `src/pages/admin/hooks/index.ts`
-
-Add `useAdminAlerts` export.
-
-## Files Changed
+## Summary of Changes
 
 | File | Change |
 |------|--------|
-| `supabase/migrations/[timestamp]_admin_operator_alerts.sql` | New RPC function |
-| `src/pages/admin/hooks/useAdminAlerts.ts` | New hook (new file) |
-| `src/pages/admin/hooks/index.ts` | Add export |
-| `src/pages/admin/sections/OperatorCockpit.tsx` | Replace hardcoded attention with dynamic alerts |
+| `src/pages/onboarding/steps/ReviewStep.tsx` | Guard refresh(), surface real errors, add trackEvent, fix button alignment |
+| `src/pages/onboarding/steps/BasicInfoStep.tsx` | Add trackEvent to onError |
+| `src/pages/onboarding/ProfessionalOnboarding.tsx` | Add step entry tracking |
 
-## What This Does NOT Include
+## What This Does NOT Change
 
-- No `admin_alerts` table (no persistence yet -- that's Phase 6.1 for snooze/acknowledge)
-- No cron job or edge function (alerts are computed on-read)
-- No external notifications (WhatsApp/email alerts come later)
-- No changes to Health tab (it stays as-is for detailed diagnostics)
-- No changes to the drawer system or routing
+- No database changes needed
+- No RLS changes (all policies confirmed correct)
+- No changes to phaseProgression.ts (logic is sound)
+- No changes to proReadiness.ts (gating is correct)
+- No changes to ServiceAreaStep or ServiceUnlockStep (already hardened)
 
 ## Acceptance Criteria
 
-- Opening `/dashboard/admin` shows real-time alert cards based on actual data
-- Red alerts appear first, then yellow, then blue
-- Clicking any card navigates to the correct page/tab
-- When all thresholds are clear, "All clear" message displays
-- Alerts refresh every 60 seconds without manual reload
-- RPC enforces admin role check server-side
+- All 4 onboarding steps track failures via `trackEvent`
+- All 4 steps have `refresh()` guarded in try/catch
+- No generic "Something went wrong" toasts remain (real error messages shown)
+- Button layout is consistent across all 4 steps (flex gap-4, h-12, outline variant for Go Back)
+- Step entry events allow measuring drop-off per step in analytics_events table
 
