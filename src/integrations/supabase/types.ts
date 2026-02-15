@@ -1877,6 +1877,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_operator_alerts: { Args: never; Returns: Json }
       admin_repeat_work: {
         Args: { p_from_ts?: string; p_to_ts?: string }
         Returns: Json

@@ -11,3 +11,4 @@ export * from "./useAdminMetricDrilldown";
 export * from "./useMarketGap";
 export * from "./useUnansweredJobs";
 export * from "./useRepeatWork";
+export * from "./useAdminAlerts";
