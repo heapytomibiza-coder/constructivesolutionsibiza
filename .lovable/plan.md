@@ -1,248 +1,99 @@
 
+# Phase Completion Audit + Fixes
 
-# Admin Analytics Deep-Dive: Interactive Insight Workspaces
+## Phase Scoreboard
 
-## Overview
-
-Transform the admin dashboard from static stat tiles into an interactive analytics platform with drilldowns, trend charts, segmentation, and actionable insights. Every metric becomes clickable and opens a rich workspace. Five new "construction leader" insight pages provide market gap analysis, funnel tracking, and performance scoring.
-
-## Current State
-
-- 7-tab admin dashboard: Overview, Health, Users, Jobs, Content, Support, Link Map
-- `admin_platform_stats` view provides basic counts (total users, jobs, pros, etc.)
-- `admin_health_snapshot()` RPC tracks email queue + daily activity
-- All sections show flat tables with filters -- no charts, no trends, no drilldowns
-- 9 areas (Ibiza Town, San Antonio, Santa Eulalia, etc.), 9 job categories, 23 jobs, 7 pros, 13 conversations in the database
-- No event tracking infrastructure exists yet
-
-## What We'll Build
-
-### Phase 1: Foundation (Database + Event Tracking)
-
-**1a. Analytics Events Table**
-New `analytics_events` table to track user behaviour across the platform:
-- `user_id`, `role`, `event_name`, `metadata` (JSONB), `created_at`
-- Events: `job_wizard_started`, `job_posted`, `conversation_started`, `lead_received`, `pro_signup_completed`, `quote_sent`, etc.
-- RPC `track_event()` for safe inserts
-- Indexes on `(event_name, created_at)` and `(user_id, created_at)`
-
-**1b. Timeseries RPC: `admin_metric_timeseries`**
-Returns bucketed counts for any metric key over a date range with optional area/category filters. Powers all trend charts.
-
-Parameters: `metric_key`, `from_ts`, `to_ts`, `bucket` (hour/day), `area_filter`, `category_filter`
-
-Supported metrics: `open_jobs`, `completed_jobs`, `new_users`, `new_pros`, `conversations`, `support_tickets`, `jobs_posted`
-
-**1c. Drilldown RPC: `admin_metric_drilldown`**
-Returns the underlying rows for any metric key with filters and pagination. Powers all drilldown tables.
-
-Parameters: `metric_key`, `from_ts`, `to_ts`, `area_filter`, `category_filter`, `limit_n`, `offset_n`
-
-**1d. Performance Indexes**
-- `jobs(status, is_publicly_listed, created_at)`
-- `jobs(area, category, created_at)`
-- `conversations(created_at)`
-- `messages(sender_id, created_at)`
-- `professional_services(user_id, micro_id)`
-
-### Phase 2: Frontend Infrastructure
-
-**2a. Metric Registry**
-`src/pages/admin/lib/metricRegistry.ts` -- single source of truth for every metric:
-- Label, description, default timeframe, icon, drilldown route
-- Used by stat tiles, charts, and insight pages
-
-**2b. Shared Hooks**
-- `useAdminMetricTimeseries(metric, from, to, bucket, filters)` -- powers trend charts
-- `useAdminMetricDrilldown(metric, from, to, filters, pagination)` -- powers row tables
-- `useAdminAlerts()` -- fetches attention items with severity
-
-**2c. Reusable Components**
-- `MetricTrendChart` -- Recharts line/area chart with 7d/30d/90d toggle
-- `DrilldownTable` -- Paginated table with row click to entity detail
-- `InsightFilterBar` -- Area, category, date range, export CSV
-- `MetricDefinitionTooltip` -- "What does this count?" hover
-- `DeltaBadge` -- Shows "+12% vs last week" change indicators
-
-### Phase 3: Clickable Stat Tiles + Insight Workspaces
-
-**3a. Make Every Tile Clickable**
-Update `OperatorCockpit.tsx` and `HealthSection.tsx` so every `StatTile` navigates to `/dashboard/admin/insights/:metricKey`
-
-**3b. Metric Insight Page (shared template)**
-`src/pages/admin/insights/MetricInsightPage.tsx`
-
-Route: `/dashboard/admin/insights/:metricKey`
-
-Layout:
-```text
-+----------------------------------+
-| [Metric Name]  [Definition ?]    |
-| Current: 42    +12% vs last week |
-+----------------------------------+
-| [7d] [30d] [90d]  [Area v] [Cat v] |
-| ~~~~ Trend Chart ~~~~            |
-+----------------------------------+
-| Drilldown Table                  |
-| [row] [row] [row] ...           |
-| [Export CSV] [Create Alert]      |
-+----------------------------------+
-```
-
-Each stat from the Overview and Health tabs gets its own workspace with the chart + filters + underlying rows + actions.
-
-### Phase 4: Five "Construction Leader" Insight Pages
-
-**4a. Demand vs Supply Heatmap (Market Gap Index)**
-`src/pages/admin/insights/MarketGapPage.tsx`
-
-- Grid: Areas (rows) x Categories (columns)
-- Each cell shows: demand count, supply count, gap score
-- Gap score = normalized(demand) - normalized(supply * responsiveness)
-- Color-coded: red = shortage, green = well-served
-- Click cell to see specific jobs + available pros
-- Powered by new RPC `admin_market_gap(from_ts, to_ts)`
-- Actionable output: "Recruit plumbers in Santa Eulalia -- gap score 0.82"
-
-**4b. Conversion Funnels**
-`src/pages/admin/insights/FunnelsPage.tsx`
-
-Client funnel: Landing -> Start wizard -> Complete steps -> Post job -> Get responses -> Hire -> Complete -> Review
-
-Pro funnel: Sign up -> Select services -> Complete profile -> Receive leads -> Reply -> Get hired -> Complete work
-
-- Horizontal funnel bars with drop-off percentages
-- Segment by area, category, device
-- Powered by `analytics_events` table
-- Actionable: "38% drop-off at step 3 -- simplify attachments"
-
-**4c. Pro Performance Dashboard (Response and SLA)**
-`src/pages/admin/insights/ProPerformancePage.tsx`
-
-- Pro leaderboard: time-to-first-reply, reply rate, completion rate, avg rating
-- Pro Performance Score (weighted composite)
-- Flag slow/unresponsive pros
-- Identify top performers for badges
-- Powered by: `conversations`, `messages`, `professional_micro_stats`, `job_reviews`
-
-**4d. Price Intelligence**
-`src/pages/admin/insights/PricingPage.tsx`
-
-- Budget band distribution by category and area
-- Average budget ranges per micro-service
-- Jobs with no responses (price too low?) vs high-response jobs
-- Powered by: `jobs.budget_type/value/min/max` aggregations
-
-**4e. Trend Radar**
-`src/pages/admin/insights/TrendRadarPage.tsx`
-
-- Fastest growing categories (this week vs last week)
-- Seasonal patterns (month-over-month for each category)
-- Anomaly detection ("Electrical jobs up 150% this week in San Antonio")
-- New micro-services being requested
-- Plain-English insight cards: "Rewiring jobs up 38% week-on-week in Santa Gertrudis"
-
-### Phase 5: Entity Detail Drawers
-
-**5a. Job Detail Drawer**
-Click any job row in any admin table to open a side drawer showing:
-- Full job details, answers, timeline
-- Status history (from `job_status_history`)
-- Conversations linked to this job
-- Admin actions (force complete, archive, flag)
-
-**5b. User/Pro Detail Drawer**
-Click any user row to see:
-- Role, signup date, activity summary
-- For pros: services scope, performance score, lead metrics, reviews
-- Admin actions (verify, suspend, message)
-
-### Phase 6: Alerts Engine + Next Best Action
-
-**6a. Smart Alerts**
-New `admin_alerts` table (or computed in RPC):
-- "3 jobs posted 2+ hours ago with no pro response"
-- "Pro X received 5 leads, replied to 0"
-- "Electrical demand spike in San Antonio but 0 active electricians"
-- Severity: red/amber/blue
-- Actions: acknowledge, assign, snooze
-
-**6b. Next Best Action Panel**
-Added to OperatorCockpit, generates plain-English recommendations:
-- "Recruit plumbers in Ibiza Town -- gap score 0.82"
-- "Wizard drop-off high at Step 3 -- consider simplifying"
-- "Auto-nudge pros who haven't replied in 30 minutes"
-
-### Phase 7: Event Instrumentation
-
-Add `trackEvent()` calls throughout existing flows:
-- Job wizard: each step started/completed/abandoned
-- Pro onboarding: each phase entered/completed
-- Messaging: conversation opened, message sent, reply time
-- Job lifecycle: posted, viewed by pro, response received, hired, completed, reviewed
+| Phase | Status | Details |
+|-------|--------|---------|
+| 1. Database foundation | COMPLETE | `analytics_events` table, `track_event()` RPC, `admin_metric_timeseries` (with `generate_series` zero-fill), `admin_metric_drilldown`, `admin_market_gap`, `admin_unanswered_jobs`, `admin_repeat_work` -- all exist with `SECURITY DEFINER` + `has_role` admin checks |
+| 2. Frontend infra | COMPLETE | `metricRegistry.ts`, `useAdminMetricTimeseries`, `useAdminMetricDrilldown`, `MetricTrendChart`, `DrilldownTable`, `InsightFilterBar`, `DeltaBadge` all exist and work together |
+| 3. Clickable tiles + Insight Workspace | PARTIAL | `MetricInsightPage` template is complete. But stat tiles in `OperatorCockpit` and `HealthSection` are NOT clickable -- they don't link to insight workspaces |
+| 4. Leader insight pages | MOSTLY COMPLETE | All 7 pages exist and render. But have bugs and missing features (detailed below) |
+| 5. Entity detail drawers | NOT STARTED | No drawers exist for jobs, users, or pros |
+| 6. Alerts engine | NOT STARTED | No alerts table, hooks, or UI |
+| 7. Event instrumentation | NOT STARTED | `trackEvent()` utility exists but is called ZERO times across the entire codebase |
 
 ---
 
-## Updated Admin Tab Structure
+## What needs to be fixed / completed
 
-```text
-Overview (Operator Cockpit + Next Best Action)
-Health (email queue, activity, alerts)
-Insights (new tab -- grid of all metric workspaces + 5 leader pages)
-Users (existing + entity detail drawer)
-Jobs (existing + entity detail drawer)
-Content (existing)
-Support (existing)
-Link Map (existing)
-```
+### Fix 1: Make stat tiles clickable (Phase 3 gap)
+
+`OperatorCockpit.tsx` has 5 `StatTile` components (Total Users, Active Pros, Open Jobs, Conversations, Open Tickets) that are just static numbers. They need to navigate to their corresponding insight workspace on click.
+
+`HealthSection.tsx` has 5 cards (Pending Emails, Failed Emails, Jobs Posted Today, Active Users 24h, Active Users 7d) that are also static.
+
+**Change**: Wrap each `StatTile` / health card with click handlers that navigate to `/dashboard/admin/insights/:metricKey`.
+
+### Fix 2: MetricInsightPage pagination bug
+
+When area or category filters change, `page` state stays at whatever value it was. If you're on page 3 and change the area filter, the drilldown requests offset 150 which likely returns empty data.
+
+**Change**: Add `useEffect(() => setPage(0), [area, category, metricKey])` to reset pagination on filter change.
+
+### Fix 3: Remove dead `FUNNEL_STEPS` constant
+
+`FunnelsPage.tsx` has an unused `FUNNEL_STEPS` array referencing event metric keys (`job_wizard_started`, `job_step_completed`) that don't exist in the metric system. This is misleading dead code.
+
+**Change**: Delete the `FUNNEL_STEPS` constant.
+
+### Fix 4: ProPerformancePage has an import error
+
+`Users` is imported at the bottom of the file (line 192) after the default export, which is incorrect. It should be part of the top imports.
+
+**Change**: Move `Users` import to the top with the other lucide imports.
+
+### Fix 5: TrendRadarPage fires 32 parallel RPC calls
+
+Each of the 16 categories makes 2 `useAdminMetricTimeseries` calls (this week + last week) = 32 simultaneous RPC calls on page load. This is a performance problem.
+
+**Change**: Replace with a single aggregation query that fetches all category trends at once, or batch the calls.
+
+### Fix 6: InsightFilterBar uses hardcoded area/category arrays
+
+The `AREAS` and `CATEGORIES` arrays are hardcoded and will drift from actual taxonomy. Already missing newer categories like `painting-decorating`, `cleaning`, `architects-design`, etc.
+
+**Change**: Populate filter options dynamically from the database (service_categories table for categories, distinct job areas for areas).
+
+### Fix 7: Add "No Pro Reply" tier to Unanswered Jobs
+
+Current definition is "no conversations". But a more painful failure is "conversation exists but pro never replied". The `conversations` table has `pro_id` and `messages` table has `sender_id`, so we can detect this.
+
+**Change**: Add a second section or toggle showing jobs where a conversation exists but the pro has sent zero messages.
+
+### Fix 8: Begin event instrumentation (Phase 7 kickstart)
+
+`trackEvent()` is defined but never called. Without this, funnels will remain proxy-mode forever.
+
+**Change**: Add `trackEvent()` calls to the highest-value touchpoints:
+- Job wizard: `job_wizard_started` when entering the wizard, `job_posted` on successful publish
+- Pro onboarding: `pro_onboarding_started` when entering onboarding
+- Messaging: `conversation_started` when a pro initiates contact
+
+---
 
 ## Technical Details
 
-### New Database Objects
-- Table: `analytics_events` (with RLS: admin SELECT, authenticated INSERT via RPC)
-- RPC: `admin_metric_timeseries()` (SECURITY DEFINER, admin-only)
-- RPC: `admin_metric_drilldown()` (SECURITY DEFINER, admin-only)
-- RPC: `admin_market_gap()` (SECURITY DEFINER, admin-only)
-- RPC: `track_event()` (SECURITY DEFINER, any authenticated user)
-- 5 performance indexes
+### Files to modify
 
-### New Frontend Files
-- `src/pages/admin/lib/metricRegistry.ts`
-- `src/pages/admin/hooks/useAdminMetricTimeseries.ts`
-- `src/pages/admin/hooks/useAdminMetricDrilldown.ts`
-- `src/pages/admin/hooks/useAdminAlerts.ts`
-- `src/pages/admin/components/MetricTrendChart.tsx`
-- `src/pages/admin/components/DrilldownTable.tsx`
-- `src/pages/admin/components/InsightFilterBar.tsx`
-- `src/pages/admin/components/DeltaBadge.tsx`
-- `src/pages/admin/components/EntityDetailDrawer.tsx`
-- `src/pages/admin/insights/MetricInsightPage.tsx`
-- `src/pages/admin/insights/MarketGapPage.tsx`
-- `src/pages/admin/insights/FunnelsPage.tsx`
-- `src/pages/admin/insights/ProPerformancePage.tsx`
-- `src/pages/admin/insights/PricingPage.tsx`
-- `src/pages/admin/insights/TrendRadarPage.tsx`
-- `src/pages/admin/sections/InsightsSection.tsx`
-- `src/lib/trackEvent.ts`
+- `src/pages/admin/sections/OperatorCockpit.tsx` -- add `useNavigate` + click handlers on stat tiles
+- `src/pages/admin/sections/HealthSection.tsx` -- add click handlers on health cards
+- `src/pages/admin/insights/MetricInsightPage.tsx` -- add `useEffect` for page reset on filter change
+- `src/pages/admin/insights/FunnelsPage.tsx` -- remove dead `FUNNEL_STEPS` constant
+- `src/pages/admin/insights/ProPerformancePage.tsx` -- fix `Users` import position
+- `src/pages/admin/insights/TrendRadarPage.tsx` -- refactor to reduce RPC calls (batch approach)
+- `src/pages/admin/components/InsightFilterBar.tsx` -- fetch areas/categories from database
+- `src/pages/admin/insights/UnansweredJobsPage.tsx` -- add "No Pro Reply" tier
+- `src/pages/admin/hooks/useUnansweredJobs.ts` -- update to support two-tier definition
+- `src/features/wizard/canonical/CanonicalJobWizard.tsx` -- add `trackEvent` calls
+- `src/pages/onboarding/ProfessionalOnboarding.tsx` -- add `trackEvent` calls
+- `src/pages/jobs/PostJob.tsx` -- add `trackEvent` on publish
 
-### Modified Files
-- `src/pages/admin/AdminDashboard.tsx` (add Insights tab)
-- `src/pages/admin/sections/OperatorCockpit.tsx` (clickable tiles + Next Best Action panel)
-- `src/pages/admin/sections/HealthSection.tsx` (clickable tiles)
-- `src/pages/admin/sections/JobsSection.tsx` (row click -> drawer)
-- `src/pages/admin/sections/UsersSection.tsx` (row click -> drawer)
-- `src/pages/admin/hooks/index.ts` (export new hooks)
-- `src/app/routes/registry.ts` (add insight sub-routes)
-- `src/App.tsx` (add insight page routes)
-- Various user-facing pages (add `trackEvent()` calls)
+### Build order
 
-### Build Order
-1. Database: `analytics_events` table + RPCs + indexes (foundation)
-2. Frontend: metric registry + shared chart/table components
-3. Clickable stat tiles + MetricInsightPage template
-4. Market Gap + Funnels pages (highest immediate value)
-5. Pro Performance + Pricing pages
-6. Trend Radar + Alerts Engine
-7. Event instrumentation across user flows
-8. Entity detail drawers
-
+1. Bugs first: pagination reset, dead code removal, import fix (quick wins)
+2. Clickable stat tiles (completes Phase 3)
+3. Dynamic filter bar (prevents taxonomy drift)
+4. TrendRadar performance fix (reduces 32 calls to 1-2)
+5. Unanswered Jobs v2 with "No Pro Reply" tier
+6. Event instrumentation kickstart (begins Phase 7)
