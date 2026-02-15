@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -12,19 +14,44 @@ interface InsightFilterBarProps {
   onExportCSV?: () => void;
 }
 
-const AREAS = [
-  "Ibiza Town", "San Antonio", "Santa Eulalia", "San José",
-  "San Juan", "Santa Gertrudis", "San Rafael", "Es Canar", "Cala Llonga",
-];
+function useFilterOptions() {
+  const { data: categories } = useQuery({
+    queryKey: ["admin", "filter_categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_categories")
+        .select("slug, name")
+        .eq("is_active", true)
+        .order("display_order");
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 5 * 60_000,
+  });
 
-const CATEGORIES = [
-  "electrical", "plumbing", "carpentry", "hvac", "construction",
-  "kitchen-bathroom", "pool-spa", "handyman", "gardening-landscaping",
-];
+  const { data: areas } = useQuery({
+    queryKey: ["admin", "filter_areas"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("area")
+        .not("area", "is", null)
+        .neq("area", "");
+      if (error) throw error;
+      const unique = [...new Set((data ?? []).map((j) => j.area as string))].sort();
+      return unique;
+    },
+    staleTime: 5 * 60_000,
+  });
+
+  return { categories: categories ?? [], areas: areas ?? [] };
+}
 
 export function InsightFilterBar({
   area, onAreaChange, category, onCategoryChange, onExportCSV,
 }: InsightFilterBarProps) {
+  const { areas, categories } = useFilterOptions();
+
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Select value={area ?? "all"} onValueChange={(v) => onAreaChange(v === "all" ? null : v)}>
@@ -33,7 +60,7 @@ export function InsightFilterBar({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Areas</SelectItem>
-          {AREAS.map((a) => (
+          {areas.map((a) => (
             <SelectItem key={a} value={a}>{a}</SelectItem>
           ))}
         </SelectContent>
@@ -45,8 +72,8 @@ export function InsightFilterBar({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Categories</SelectItem>
-          {CATEGORIES.map((c) => (
-            <SelectItem key={c} value={c}>{c.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
+          {categories.map((c) => (
+            <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
           ))}
         </SelectContent>
       </Select>

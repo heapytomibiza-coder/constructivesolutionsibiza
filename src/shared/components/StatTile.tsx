@@ -2,6 +2,7 @@ import * as React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 
 interface StatTileProps {
   icon: React.ReactNode;
@@ -10,6 +11,7 @@ interface StatTileProps {
   isNew?: boolean;
   iconClassName?: string;
   className?: string;
+  onClick?: () => void;
 }
 
 export function StatTile({
@@ -19,9 +21,16 @@ export function StatTile({
   isNew,
   iconClassName,
   className,
+  onClick,
 }: StatTileProps) {
   return (
-    <Card className={cn("", className)}>
+    <Card
+      className={cn(
+        onClick && "cursor-pointer hover:border-primary/50 hover:shadow-md transition-all active:scale-[0.98]",
+        className
+      )}
+      onClick={onClick}
+    >
       <CardContent className="p-4 flex items-center gap-3">
         <div
           className={cn(
@@ -42,6 +51,9 @@ export function StatTile({
             )}
           </div>
         </div>
+        {onClick && (
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+        )}
       </CardContent>
     </Card>
   );

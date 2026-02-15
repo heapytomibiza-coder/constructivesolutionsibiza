@@ -23,6 +23,7 @@ import { ArrowLeft, ArrowRight, Check, Loader2, FileText } from 'lucide-react';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { trackEvent } from '@/lib/trackEvent';
 
 // Canonical modules
 import { 
@@ -135,6 +136,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       // Will be processed in separate effect
     } else {
       setIsInitialized(true);
+      trackEvent('job_wizard_started', 'client', { mode: resolution.mode });
     }
   }, [location.search, isInitialized]);
   
@@ -593,6 +595,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       clearSession();
       queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
       queryClient.invalidateQueries({ queryKey: ['client_stats'] });
+      trackEvent('job_posted', 'client', { jobId: data.id, category: wizardState.mainCategory });
       toast.success('Job posted! View it on the job board.');
       navigate('/jobs');
       

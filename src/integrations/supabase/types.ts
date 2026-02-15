@@ -1869,6 +1869,14 @@ export type Database = {
           value: number
         }[]
       }
+      admin_no_pro_reply_jobs: {
+        Args: {
+          p_from_ts?: string
+          p_hours_threshold?: number
+          p_to_ts?: string
+        }
+        Returns: Json
+      }
       admin_repeat_work: {
         Args: { p_from_ts?: string; p_to_ts?: string }
         Returns: Json

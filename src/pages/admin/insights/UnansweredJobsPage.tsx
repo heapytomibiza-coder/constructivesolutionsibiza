@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertTriangle, Clock } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, AlertTriangle, Clock, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useUnansweredJobs } from "../hooks/useUnansweredJobs";
+import { useUnansweredJobs, useNoProReplyJobs, type UnansweredJob } from "../hooks/useUnansweredJobs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -18,20 +19,111 @@ function urgencyColor(hours: number) {
   return "bg-muted text-muted-foreground";
 }
 
-export default function UnansweredJobsPage() {
-  const navigate = useNavigate();
-  const [threshold, setThreshold] = useState(6);
-  const { data, isLoading } = useUnansweredJobs(threshold);
-
-  const thresholds = [2, 6, 24, 48];
-
-  // Build area/category breakdown
+function BreakdownCards({ data }: { data: UnansweredJob[] | undefined }) {
   const areaBreakdown = new Map<string, number>();
   const catBreakdown = new Map<string, number>();
   data?.forEach((j) => {
     if (j.area) areaBreakdown.set(j.area, (areaBreakdown.get(j.area) ?? 0) + 1);
     if (j.category) catBreakdown.set(j.category, (catBreakdown.get(j.category) ?? 0) + 1);
   });
+
+  if (areaBreakdown.size === 0 && catBreakdown.size === 0) return null;
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card>
+        <CardHeader><CardTitle className="text-base">By Area</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          {[...areaBreakdown.entries()].sort((a, b) => b[1] - a[1]).map(([area, count]) => (
+            <div key={area} className="flex justify-between items-center p-2 rounded-lg border">
+              <span className="font-medium">{area}</span>
+              <Badge variant="destructive">{count} jobs</Badge>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle className="text-base">By Category</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          {[...catBreakdown.entries()].sort((a, b) => b[1] - a[1]).map(([cat, count]) => (
+            <div key={cat} className="flex justify-between items-center p-2 rounded-lg border">
+              <span className="font-medium capitalize">{cat.replace(/-/g, " ")}</span>
+              <Badge variant="destructive">{count} jobs</Badge>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | undefined; isLoading: boolean; threshold: number }) {
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+      </div>
+    );
+  }
+
+  if (!data?.length) {
+    return (
+      <p className="text-center text-muted-foreground py-8">
+        🎉 No jobs waiting longer than {threshold}h — great responsiveness!
+      </p>
+    );
+  }
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Title</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Area</TableHead>
+            <TableHead>Budget</TableHead>
+            <TableHead>Waiting</TableHead>
+            <TableHead>Posted</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((job) => (
+            <TableRow key={job.id}>
+              <TableCell className="font-medium max-w-[200px] truncate">{job.title}</TableCell>
+              <TableCell className="capitalize">{job.category?.replace(/-/g, " ") ?? "—"}</TableCell>
+              <TableCell>{job.area ?? "—"}</TableCell>
+              <TableCell>
+                {job.budget_value ? `€${job.budget_value.toLocaleString()}` : job.budget_type ?? "—"}
+              </TableCell>
+              <TableCell>
+                <Badge className={urgencyColor(job.hours_waiting)}>
+                  {Math.round(job.hours_waiting)}h
+                </Badge>
+              </TableCell>
+              <TableCell className="text-muted-foreground text-xs">
+                {format(new Date(job.created_at), "MMM d, HH:mm")}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+export default function UnansweredJobsPage() {
+  const navigate = useNavigate();
+  const [threshold, setThreshold] = useState(6);
+  const [tier, setTier] = useState<"no_conversation" | "no_reply">("no_conversation");
+
+  const { data: noConvoData, isLoading: noConvoLoading } = useUnansweredJobs(threshold);
+  const { data: noReplyData, isLoading: noReplyLoading } = useNoProReplyJobs(threshold);
+
+  const activeData = tier === "no_conversation" ? noConvoData : noReplyData;
+  const activeLoading = tier === "no_conversation" ? noConvoLoading : noReplyLoading;
+
+  const thresholds = [2, 6, 24, 48];
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,7 +137,7 @@ export default function UnansweredJobsPage() {
           <div>
             <h1 className="text-2xl font-bold">Unanswered Jobs</h1>
             <p className="text-sm text-muted-foreground">
-              Jobs with zero pro responses — where you're failing to serve demand.
+              Two tiers of marketplace failure — supply gaps and responsiveness gaps.
             </p>
           </div>
         </div>
@@ -65,126 +157,82 @@ export default function UnansweredJobsPage() {
           ))}
         </div>
 
-        {/* Summary cards */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <AlertTriangle className="h-5 w-5 text-destructive mx-auto mb-1" />
-              <div className="text-2xl font-bold">{data?.length ?? 0}</div>
-              <div className="text-xs text-muted-foreground">Unanswered Jobs</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Clock className="h-5 w-5 text-primary mx-auto mb-1" />
-              <div className="text-2xl font-bold">
-                {data?.length ? Math.round(data.reduce((s, j) => s + j.hours_waiting, 0) / data.length) : 0}h
-              </div>
-              <div className="text-xs text-muted-foreground">Avg Wait Time</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold">{areaBreakdown.size}</div>
-              <div className="text-xs text-muted-foreground">Areas Affected</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold">{catBreakdown.size}</div>
-              <div className="text-xs text-muted-foreground">Categories</div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Two-tier tabs */}
+        <Tabs value={tier} onValueChange={(v) => setTier(v as typeof tier)}>
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="no_conversation" className="gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              No Conversation
+              {noConvoData && (
+                <Badge variant="destructive" className="ml-1 text-xs">{noConvoData.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="no_reply" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              No Pro Reply
+              {noReplyData && (
+                <Badge variant="secondary" className="ml-1 text-xs">{noReplyData.length}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Heatmap by area + category */}
-        {(areaBreakdown.size > 0 || catBreakdown.size > 0) && (
-          <div className="grid gap-4 md:grid-cols-2">
+          <TabsContent value="no_conversation" className="space-y-6 mt-4">
+            {/* Summary */}
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <AlertTriangle className="h-5 w-5 text-destructive mx-auto mb-1" />
+                  <div className="text-2xl font-bold">{noConvoData?.length ?? 0}</div>
+                  <div className="text-xs text-muted-foreground">No Conversation</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Clock className="h-5 w-5 text-primary mx-auto mb-1" />
+                  <div className="text-2xl font-bold">
+                    {noConvoData?.length ? Math.round(noConvoData.reduce((s, j) => s + j.hours_waiting, 0) / noConvoData.length) : 0}h
+                  </div>
+                  <div className="text-xs text-muted-foreground">Avg Wait Time</div>
+                </CardContent>
+              </Card>
+            </div>
+            <BreakdownCards data={noConvoData} />
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">By Area</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {[...areaBreakdown.entries()]
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([area, count]) => (
-                    <div key={area} className="flex justify-between items-center p-2 rounded-lg border">
-                      <span className="font-medium">{area}</span>
-                      <Badge variant="destructive">{count} jobs</Badge>
-                    </div>
-                  ))}
+              <CardHeader><CardTitle className="text-base">Jobs With No Conversation</CardTitle></CardHeader>
+              <CardContent>
+                <JobTable data={noConvoData} isLoading={noConvoLoading} threshold={threshold} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="no_reply" className="space-y-6 mt-4">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <MessageSquare className="h-5 w-5 text-amber-600 mx-auto mb-1" />
+                  <div className="text-2xl font-bold">{noReplyData?.length ?? 0}</div>
+                  <div className="text-xs text-muted-foreground">No Pro Reply</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Clock className="h-5 w-5 text-primary mx-auto mb-1" />
+                  <div className="text-2xl font-bold">
+                    {noReplyData?.length ? Math.round(noReplyData.reduce((s, j) => s + j.hours_waiting, 0) / noReplyData.length) : 0}h
+                  </div>
+                  <div className="text-xs text-muted-foreground">Avg Wait Time</div>
+                </CardContent>
+              </Card>
+            </div>
+            <BreakdownCards data={noReplyData} />
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">By Category</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {[...catBreakdown.entries()]
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([cat, count]) => (
-                    <div key={cat} className="flex justify-between items-center p-2 rounded-lg border">
-                      <span className="font-medium capitalize">{cat.replace(/-/g, " ")}</span>
-                      <Badge variant="destructive">{count} jobs</Badge>
-                    </div>
-                  ))}
+              <CardHeader><CardTitle className="text-base">Jobs With Conversation But No Pro Reply</CardTitle></CardHeader>
+              <CardContent>
+                <JobTable data={noReplyData} isLoading={noReplyLoading} threshold={threshold} />
               </CardContent>
             </Card>
-          </div>
-        )}
-
-        {/* Detail table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">All Unanswered Jobs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-              </div>
-            ) : !data?.length ? (
-              <p className="text-center text-muted-foreground py-8">
-                🎉 No unanswered jobs waiting longer than {threshold}h — great responsiveness!
-              </p>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Area</TableHead>
-                      <TableHead>Budget</TableHead>
-                      <TableHead>Waiting</TableHead>
-                      <TableHead>Posted</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.map((job) => (
-                      <TableRow key={job.id}>
-                        <TableCell className="font-medium max-w-[200px] truncate">{job.title}</TableCell>
-                        <TableCell className="capitalize">{job.category?.replace(/-/g, " ") ?? "—"}</TableCell>
-                        <TableCell>{job.area ?? "—"}</TableCell>
-                        <TableCell>
-                          {job.budget_value ? `€${job.budget_value.toLocaleString()}` : job.budget_type ?? "—"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={urgencyColor(job.hours_waiting)}>
-                            {Math.round(job.hours_waiting)}h
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-xs">
-                          {format(new Date(job.created_at), "MMM d, HH:mm")}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

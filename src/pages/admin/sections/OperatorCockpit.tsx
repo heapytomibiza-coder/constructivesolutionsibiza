@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { StatTile } from "@/shared/components/StatTile";
+import { useNavigate } from "react-router-dom";
 
 interface HealthSnapshot {
   emails: { pending: number; failed: number; oldest_pending_minutes: number };
@@ -29,6 +30,7 @@ interface HealthSnapshot {
 }
 
 export function OperatorCockpit() {
+  const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = useAdminStats();
   const { data: latestJobs, isLoading: jobsLoading } = useLatestJobs(10);
   const { data: health, isLoading: healthLoading } = useQuery({
@@ -206,26 +208,31 @@ export function OperatorCockpit() {
               icon={<Users className="h-5 w-5 text-primary" />}
               label="Total Users"
               value={stats?.total_users ?? 0}
+              onClick={() => navigate("/dashboard/admin/insights/new_users")}
             />
             <StatTile
               icon={<Users className="h-5 w-5 text-primary" />}
               label="Active Pros"
               value={`${stats?.active_professionals ?? 0} / ${stats?.total_professionals ?? 0}`}
+              onClick={() => navigate("/dashboard/admin/insights/new_pros")}
             />
             <StatTile
               icon={<Briefcase className="h-5 w-5 text-primary" />}
               label="Open Jobs"
               value={`${stats?.open_jobs ?? 0} / ${stats?.total_jobs ?? 0}`}
+              onClick={() => navigate("/dashboard/admin/insights/open_jobs")}
             />
             <StatTile
               icon={<MessageSquare className="h-5 w-5 text-primary" />}
               label="Conversations"
               value={stats?.total_conversations ?? 0}
+              onClick={() => navigate("/dashboard/admin/insights/conversations")}
             />
             <StatTile
               icon={<Headset className="h-5 w-5 text-primary" />}
               label="Open Tickets"
               value={stats?.open_support_tickets ?? 0}
+              onClick={() => navigate("/dashboard/admin/insights/support_tickets")}
             />
           </div>
         )}

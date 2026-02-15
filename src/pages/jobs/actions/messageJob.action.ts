@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UserError } from "@/shared/lib/userError";
+import { trackEvent } from "@/lib/trackEvent";
 import { requireProReady } from "@/guard/proReadiness";
 import type { ProfessionalProfileData } from "@/hooks/useSessionSnapshot";
 
@@ -56,6 +57,8 @@ export async function startConversation(
   if (!data) {
     throw new Error("Conversation ID not returned");
   }
+
+  trackEvent('conversation_started', 'professional', { jobId, conversationId: String(data) });
 
   return String(data);
 }
