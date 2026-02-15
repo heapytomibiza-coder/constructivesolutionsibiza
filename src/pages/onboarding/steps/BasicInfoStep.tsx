@@ -103,13 +103,18 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['professional-basic-info'] });
-      await refresh();
+      try {
+        await refresh();
+      } catch (e) {
+        console.warn('Session refresh failed after basic info save:', e);
+      }
       toast.success('Saved!');
       onComplete();
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error('Error saving basic info:', error);
-      toast.error('Something went wrong. Please try again.');
+      toast.error(msg || 'Something went wrong. Please try again.');
     },
   });
 
