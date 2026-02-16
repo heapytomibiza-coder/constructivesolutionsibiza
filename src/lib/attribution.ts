@@ -47,7 +47,8 @@ function getCookie(name: string): string | null {
 /** Set a cookie */
 function setCookie(name: string, value: string, maxAge: number): void {
   try {
-    document.cookie = `${name}=${encodeURIComponent(value)};path=/;max-age=${maxAge};SameSite=Lax`;
+    const secure = window.location.protocol === 'https:' ? ';Secure' : '';
+    document.cookie = `${name}=${encodeURIComponent(value)};path=/;max-age=${maxAge};SameSite=Lax${secure}`;
   } catch {
     // ignore
   }

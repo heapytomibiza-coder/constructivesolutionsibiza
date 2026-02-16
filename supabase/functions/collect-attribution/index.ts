@@ -55,13 +55,19 @@ Deno.serve(async (req) => {
       raw_params: typeof body.raw_params === "object" ? body.raw_params : {},
     };
 
-    // Step 1: INSERT first-touch (ignore if session already exists)
-    await supabase
+    // Step 1: INSERT first-touch (ignore if session already exists via unique constraint)
+    const { error: insertErr } = await supabase
       .from("attribution_sessions")
-      .insert(firstTouchRow)
-      .select("id") // needed to not throw on conflict
-      .maybeSingle();
-    // Ignore conflict error — first-touch preserved
+      .insert(firstTouchRow);
+
+    // Ignore unique violation (23505) — first-touch preserved
+    if (insertErr && insertErr.code !== "23505") {
+      console.error("[collect-attribution] insert error:", insertErr);
+      return new Response(JSON.stringify({ error: "Failed to store" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Step 2: UPDATE last-touch fields always
     const lastTouchFields: Record<string, unknown> = {
@@ -93,28 +99,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Step 3: Bind user_id if JWT present
+    // Step 3: Bind user_id if JWT present — use getUser() (canonical in edge functions)
     const authHeader = req.headers.get("Authorization");
     if (authHeader?.startsWith("Bearer ")) {
-      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const authClient = createClient(
         Deno.env.get("SUPABASE_URL")!,
         anonKey,
         { global: { headers: { Authorization: authHeader } } },
       );
-      const { data: claims } = await authClient.auth.getClaims(
-        authHeader.replace("Bearer ", ""),
-      );
-      if (claims?.claims?.sub) {
-        const userId = claims.claims.sub as string;
-        // Bind session to user
+      const { data: { user }, error: userErr } = await authClient.auth.getUser();
+
+      if (!userErr && user?.id) {
+        const userId = user.id;
+        // Bind session to user (only if not already bound)
         await supabase
           .from("attribution_sessions")
           .update({ user_id: userId })
           .eq("session_id", sessionId)
-          .is("user_id", null); // only if not already bound
+          .is("user_id", null);
 
-        // Update profile attribution
+        // Build lean attribution for profile
         const leanAttr = {
           session_id: sessionId,
           ref: sanitize(body.ref, 200),
@@ -123,22 +128,23 @@ Deno.serve(async (req) => {
           utm_campaign: sanitize(body.utm_campaign, 200),
         };
 
-        const { data: profile } = await supabase
+        // Update profile attribution via auth client (RLS-safe)
+        const { data: profile } = await authClient
           .from("profiles")
           .select("first_touch_attribution")
           .eq("user_id", userId)
           .single();
 
-        const updates: Record<string, unknown> = {
+        const profileUpdates: Record<string, unknown> = {
           last_touch_attribution: leanAttr,
         };
         if (!profile?.first_touch_attribution) {
-          updates.first_touch_attribution = leanAttr;
+          profileUpdates.first_touch_attribution = leanAttr;
         }
 
-        await supabase
+        await authClient
           .from("profiles")
-          .update(updates)
+          .update(profileUpdates)
           .eq("user_id", userId);
       }
     }
