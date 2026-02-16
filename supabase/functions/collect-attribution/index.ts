@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
       return v.slice(0, maxLen) || null;
     };
 
-    const row = {
+    const firstTouchRow = {
       session_id: sessionId,
       landing_url: sanitize(body.landing_url, 2000),
       referrer: sanitize(body.referrer, 2000),
@@ -53,21 +53,94 @@ Deno.serve(async (req) => {
       gclid: sanitize(body.gclid, 200),
       fbclid: sanitize(body.fbclid, 200),
       raw_params: typeof body.raw_params === "object" ? body.raw_params : {},
-      last_seen_at: new Date().toISOString(),
     };
 
-    // Upsert: first-touch fields preserved on conflict, last-touch updated
-    const { error } = await supabase.from("attribution_sessions").upsert(
-      row,
-      { onConflict: "session_id", ignoreDuplicates: false },
-    );
+    // Step 1: INSERT first-touch (ignore if session already exists)
+    await supabase
+      .from("attribution_sessions")
+      .insert(firstTouchRow)
+      .select("id") // needed to not throw on conflict
+      .maybeSingle();
+    // Ignore conflict error — first-touch preserved
 
-    if (error) {
-      console.error("[collect-attribution] upsert error:", error);
+    // Step 2: UPDATE last-touch fields always
+    const lastTouchFields: Record<string, unknown> = {
+      last_seen_at: new Date().toISOString(),
+    };
+    // Only update campaign fields if new params are present (not a bare revisit)
+    if (body.utm_source || body.utm_medium || body.utm_campaign || body.ref || body.gclid || body.fbclid) {
+      lastTouchFields.utm_source = sanitize(body.utm_source, 200);
+      lastTouchFields.utm_medium = sanitize(body.utm_medium, 200);
+      lastTouchFields.utm_campaign = sanitize(body.utm_campaign, 200);
+      lastTouchFields.utm_term = sanitize(body.utm_term, 200);
+      lastTouchFields.utm_content = sanitize(body.utm_content, 200);
+      lastTouchFields.ref = sanitize(body.ref, 200);
+      lastTouchFields.gclid = sanitize(body.gclid, 200);
+      lastTouchFields.fbclid = sanitize(body.fbclid, 200);
+      lastTouchFields.raw_params = typeof body.raw_params === "object" ? body.raw_params : {};
+    }
+
+    const { error: updateErr } = await supabase
+      .from("attribution_sessions")
+      .update(lastTouchFields)
+      .eq("session_id", sessionId);
+
+    if (updateErr) {
+      console.error("[collect-attribution] update error:", updateErr);
       return new Response(JSON.stringify({ error: "Failed to store" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Step 3: Bind user_id if JWT present
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const authClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        anonKey,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const { data: claims } = await authClient.auth.getClaims(
+        authHeader.replace("Bearer ", ""),
+      );
+      if (claims?.claims?.sub) {
+        const userId = claims.claims.sub as string;
+        // Bind session to user
+        await supabase
+          .from("attribution_sessions")
+          .update({ user_id: userId })
+          .eq("session_id", sessionId)
+          .is("user_id", null); // only if not already bound
+
+        // Update profile attribution
+        const leanAttr = {
+          session_id: sessionId,
+          ref: sanitize(body.ref, 200),
+          utm_source: sanitize(body.utm_source, 200),
+          utm_medium: sanitize(body.utm_medium, 200),
+          utm_campaign: sanitize(body.utm_campaign, 200),
+        };
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("first_touch_attribution")
+          .eq("user_id", userId)
+          .single();
+
+        const updates: Record<string, unknown> = {
+          last_touch_attribution: leanAttr,
+        };
+        if (!profile?.first_touch_attribution) {
+          updates.first_touch_attribution = leanAttr;
+        }
+
+        await supabase
+          .from("profiles")
+          .update(updates)
+          .eq("user_id", userId);
+      }
     }
 
     return new Response(JSON.stringify({ ok: true }), {
