@@ -135,16 +135,16 @@ export function ReviewStep({
         </CardContent>
       </Card>
 
-      {/* Save-first explanation */}
+      {/* Reassurance + Save explanation */}
       <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
         <div className="flex items-start gap-3">
           <Save className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium text-foreground">
-              Your job will be saved to your dashboard
+              You're not committing to hire anyone
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              From there you can post it publicly, send it to matched professionals, or invite specific ones — without rewriting anything.
+              Your job will be matched with local professionals. You can edit, cancel, or ignore replies anytime — no obligation.
             </p>
           </div>
         </div>

@@ -61,6 +61,9 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
       <h3 className="font-display text-lg font-semibold">
         Photos & Additional Details
       </h3>
+      <p className="text-sm text-muted-foreground -mt-2">
+        Everything here is optional — skip ahead if you prefer.
+      </p>
 
       {/* Photos */}
       <div className="space-y-2">

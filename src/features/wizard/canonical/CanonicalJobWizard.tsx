@@ -19,7 +19,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Check, Loader2, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, FileText } from 'lucide-react';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -347,6 +347,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       stepIndex: getStepIndex(currentStep),
       category: wizardState.mainCategory,
     });
+    if (currentStep === WizardStep.Review) {
+      trackEvent('review_step_entered', 'client', { category: wizardState.mainCategory });
+    }
   }, [currentStep, isInitialized, wizardState.mainCategory]);
 
   // === BEFOREUNLOAD WARNING ===
@@ -607,6 +610,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // === SUBMISSION (Save-first: always saves as 'ready', redirects to ticket detail) ===
   
   const handleSubmit = useCallback(async () => {
+    trackEvent('review_post_clicked', 'client', { category: wizardState.mainCategory });
+
     // Auth check
     if (!isAuthenticated || !user) {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(wizardState));
@@ -867,7 +872,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           <Button 
             onClick={handleSubmit} 
             disabled={isSubmitting}
-            className="gap-2 min-h-[48px] md:min-h-0"
+            className="gap-2 min-h-[48px] md:min-h-0 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6"
           >
             {isSubmitting ? (
               <>
@@ -876,12 +881,12 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               </>
             ) : isAuthenticated ? (
               <>
-                Save Job
-                <Check className="h-4 w-4" />
+                Get Matched
+                <ArrowRight className="h-4 w-4" />
               </>
             ) : (
               <>
-                Sign in to Save
+                Sign in & Get Matched
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
