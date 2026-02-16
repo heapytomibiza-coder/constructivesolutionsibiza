@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { metricRegistry, allMetricKeys } from "../lib/metricRegistry";
 import {
-  Map, BarChart3, Users, DollarSign, Zap, AlertTriangle, Repeat, UserCheck,
+  Map, BarChart3, Users, DollarSign, Zap, AlertTriangle, Repeat, UserCheck, Globe,
 } from "lucide-react";
 
 const LEADER_PAGES = [
@@ -54,6 +54,12 @@ const LEADER_PAGES = [
     label: "Onboarding Funnel",
     description: "Step-by-step timing, drop-off, and failure tracking for pro onboarding",
     icon: UserCheck,
+  },
+  {
+    path: "/dashboard/admin/insights/top-sources",
+    label: "Top Sources",
+    description: "Where users come from — WhatsApp, Instagram, ads, direct",
+    icon: Globe,
   },
 ];
 
