@@ -1,10 +1,12 @@
 /**
- * Attribution helpers — parse, read, write localStorage.
- * Pure functions, no side-effects except localStorage.
+ * Attribution helpers — parse, read, write localStorage + cookie.
+ * Pure functions, no side-effects except localStorage/cookie.
  */
 
 const SID_KEY = 'csibiza_sid';
 const ATTR_KEY = 'csibiza_attr';
+const COOKIE_NAME = 'csibiza_sid';
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 export interface AttributionData {
   session_id: string;
@@ -32,27 +34,53 @@ function uuidv4(): string {
   return crypto.randomUUID();
 }
 
-/** Get or create a stable session ID */
-export function getSessionId(): string {
+/** Read a cookie value by name */
+function getCookie(name: string): string | null {
   try {
-    let sid = localStorage.getItem(SID_KEY);
-    if (!sid) {
-      sid = uuidv4();
-      localStorage.setItem(SID_KEY, sid);
-    }
-    return sid;
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : null;
   } catch {
-    // SSR / private browsing fallback
-    return uuidv4();
+    return null;
   }
 }
 
-/** Check if this is the first visit (no existing session) */
+/** Set a cookie */
+function setCookie(name: string, value: string, maxAge: number): void {
+  try {
+    document.cookie = `${name}=${encodeURIComponent(value)};path=/;max-age=${maxAge};SameSite=Lax`;
+  } catch {
+    // ignore
+  }
+}
+
+/** Get or create a stable session ID (localStorage + cookie) */
+export function getSessionId(): string {
+  try {
+    // Try localStorage first, then cookie fallback
+    let sid = localStorage.getItem(SID_KEY) || getCookie(COOKIE_NAME);
+    if (!sid) {
+      sid = uuidv4();
+    }
+    // Always persist to both stores
+    localStorage.setItem(SID_KEY, sid);
+    setCookie(COOKIE_NAME, sid, COOKIE_MAX_AGE);
+    return sid;
+  } catch {
+    // SSR / private browsing fallback
+    const cookieSid = getCookie(COOKIE_NAME);
+    if (cookieSid) return cookieSid;
+    const newSid = uuidv4();
+    setCookie(COOKIE_NAME, newSid, COOKIE_MAX_AGE);
+    return newSid;
+  }
+}
+
+/** Check if this is the first visit (no existing session in either store) */
 export function isFirstVisit(): boolean {
   try {
-    return !localStorage.getItem(SID_KEY);
+    return !localStorage.getItem(SID_KEY) && !getCookie(COOKIE_NAME);
   } catch {
-    return true;
+    return !getCookie(COOKIE_NAME);
   }
 }
 

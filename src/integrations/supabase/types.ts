@@ -1952,6 +1952,10 @@ export type Database = {
         Args: { p_from_ts?: string; p_to_ts?: string }
         Returns: Json
       }
+      admin_top_sources: {
+        Args: { p_from_ts?: string; p_to_ts?: string }
+        Returns: Json
+      }
       admin_unanswered_jobs: {
         Args: {
           p_from_ts?: string

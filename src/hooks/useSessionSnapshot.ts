@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { isPhaseReady } from '@/pages/onboarding/lib/phaseProgression';
-import { getSessionId, readAttribution } from '@/lib/attribution';
+import { bindAttributionOnSignIn } from '@/hooks/useAttribution';
 import type { User, Session } from '@supabase/supabase-js';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -77,41 +77,8 @@ export interface SessionSnapshot {
 
 const DEFAULT_ROLE: UserRole = 'client';
 
-/**
- * Bind attribution session to user on signup/login.
- * Fire-and-forget — never blocks auth flow.
- */
-async function bindAttributionToUser(userId: string): Promise<void> {
-  const sessionId = getSessionId();
-  const attr = readAttribution();
-  const leanAttr = attr ? {
-    session_id: attr.session_id,
-    ref: attr.ref ?? null,
-    utm_source: attr.utm_source ?? null,
-    utm_medium: attr.utm_medium ?? null,
-    utm_campaign: attr.utm_campaign ?? null,
-  } : { session_id: sessionId };
-
-  // Check if first_touch is already set
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('first_touch_attribution')
-    .eq('user_id', userId)
-    .single();
-
-  const updates: Record<string, unknown> = {
-    last_touch_attribution: leanAttr,
-  };
-
-  if (!profile?.first_touch_attribution) {
-    updates.first_touch_attribution = leanAttr;
-  }
-
-  await supabase
-    .from('profiles')
-    .update(updates)
-    .eq('user_id', userId);
-}
+// Attribution binding is now handled server-side via the collect-attribution edge function.
+// See bindAttributionOnSignIn() in useAttribution.ts.
 
 export function useSessionSnapshot(): SessionSnapshot {
   const [user, setUser] = useState<User | null>(null);
@@ -262,9 +229,9 @@ export function useSessionSnapshot(): SessionSnapshot {
             // Use setTimeout to avoid potential deadlock with Supabase client
             setTimeout(() => loadUserData(newSession.user.id), 0);
 
-            // Fire-and-forget: bind attribution session to user
+            // Fire-and-forget: bind attribution session → user via edge function
             if (event === 'SIGNED_IN') {
-              bindAttributionToUser(newSession.user.id).catch(() => {});
+              bindAttributionOnSignIn().catch(() => {});
             }
           }
         } else if (event === 'SIGNED_OUT') {

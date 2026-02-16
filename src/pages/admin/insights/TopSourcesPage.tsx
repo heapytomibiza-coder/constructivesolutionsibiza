@@ -8,9 +8,12 @@ import { useNavigate } from "react-router-dom";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import type { Json } from "@/integrations/supabase/types";
 
 interface SourceRow {
   source: string;
+  utm_medium: string | null;
+  utm_campaign: string | null;
   sessions: number;
   signups: number;
   jobs_posted: number;
@@ -22,68 +25,29 @@ export default function TopSourcesPage() {
   const [days, setDays] = useState(30);
 
   const fromTs = new Date(Date.now() - days * 86400000).toISOString();
+  const toTs = new Date().toISOString();
 
-  // Query attribution_sessions joined with profiles and jobs
+  // Use admin-gated SECURITY DEFINER RPC instead of direct table query
   const { data: sources, isLoading } = useQuery({
     queryKey: ["admin", "top-sources", days],
     queryFn: async () => {
-      // Get all attribution sessions in range
-      const { data: sessions, error } = await supabase
-        .from("attribution_sessions")
-        .select("session_id, utm_source, utm_campaign, ref, user_id, first_seen_at")
-        .gte("first_seen_at", fromTs)
-        .order("first_seen_at", { ascending: false })
-        .limit(1000);
+      const { data, error } = await supabase.rpc("admin_top_sources", {
+        p_from_ts: fromTs,
+        p_to_ts: toTs,
+      });
 
       if (error) throw error;
-      if (!sessions?.length) return [];
+      if (!data) return [];
 
-      // Get jobs with attribution in range
-      const { data: jobs } = await supabase
-        .from("jobs")
-        .select("id, attribution, created_at")
-        .gte("created_at", fromTs)
-        .not("attribution", "is", null)
-        .limit(1000);
-
-      // Group by source (ref > utm_source > "Direct")
-      const sourceMap = new Map<string, { sessions: number; userIds: Set<string>; jobCount: number }>();
-
-      for (const s of sessions) {
-        const key = s.ref || s.utm_source || "Direct";
-        if (!sourceMap.has(key)) {
-          sourceMap.set(key, { sessions: 0, userIds: new Set(), jobCount: 0 });
-        }
-        const entry = sourceMap.get(key)!;
-        entry.sessions++;
-        if (s.user_id) entry.userIds.add(s.user_id);
-      }
-
-      // Count jobs per source
-      for (const j of jobs ?? []) {
-        const attr = j.attribution as Record<string, unknown> | null;
-        if (!attr) continue;
-        const key = (attr.ref as string) || (attr.utm_source as string) || "Direct";
-        if (!sourceMap.has(key)) {
-          sourceMap.set(key, { sessions: 0, userIds: new Set(), jobCount: 0 });
-        }
-        sourceMap.get(key)!.jobCount++;
-      }
-
-      const rows: SourceRow[] = [];
-      for (const [source, data] of sourceMap) {
-        rows.push({
-          source,
-          sessions: data.sessions,
-          signups: data.userIds.size,
-          jobs_posted: data.jobCount,
-          conversion_rate: data.sessions > 0
-            ? Math.round((data.jobCount / data.sessions) * 100)
-            : 0,
-        });
-      }
-
-      return rows.sort((a, b) => b.sessions - a.sessions);
+      return (data as unknown as SourceRow[]).map((r) => ({
+        source: r.source || "Direct",
+        utm_medium: r.utm_medium,
+        utm_campaign: r.utm_campaign,
+        sessions: Number(r.sessions) || 0,
+        signups: Number(r.signups) || 0,
+        jobs_posted: Number(r.jobs_posted) || 0,
+        conversion_rate: Number(r.conversion_rate) || 0,
+      }));
     },
   });
 
@@ -163,16 +127,20 @@ export default function TopSourcesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Source</TableHead>
+                  <TableHead>Medium</TableHead>
+                  <TableHead>Campaign</TableHead>
                   <TableHead className="text-right">Sessions</TableHead>
                   <TableHead className="text-right">Signups</TableHead>
-                  <TableHead className="text-right">Jobs Posted</TableHead>
-                  <TableHead className="text-right">Conversion %</TableHead>
+                  <TableHead className="text-right">Jobs</TableHead>
+                  <TableHead className="text-right">Conv %</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sources.map((row) => (
-                  <TableRow key={row.source}>
+                {sources.map((row, i) => (
+                  <TableRow key={`${row.source}-${row.utm_campaign}-${i}`}>
                     <TableCell className="font-medium">{row.source}</TableCell>
+                    <TableCell className="text-muted-foreground">{row.utm_medium || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{row.utm_campaign || "—"}</TableCell>
                     <TableCell className="text-right">{row.sessions}</TableCell>
                     <TableCell className="text-right">{row.signups}</TableCell>
                     <TableCell className="text-right">{row.jobs_posted}</TableCell>
