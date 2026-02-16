@@ -213,6 +213,7 @@ export const adminRoutes: RouteConfig[] = [
   { path: '/dashboard/admin/insights/unanswered-jobs', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
   { path: '/dashboard/admin/insights/repeat-work', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
   { path: '/dashboard/admin/insights/onboarding-funnel', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/top-sources', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
 ];
 
 // ============================================

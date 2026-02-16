@@ -7,6 +7,7 @@
 import type { TablesInsert, Json } from '@/integrations/supabase/types';
 import type { WizardState } from '../types';
 import { getZoneByIdSafe } from '@/shared/components/professional/zones';
+import { getLeanAttribution } from '@/lib/attribution';
 
 type JobInsert = TablesInsert<"jobs">;
 
@@ -333,6 +334,9 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     _pack_missing: (packTracking?._pack_missing as boolean) ?? false,
   };
 
+  // Attribution data from landing session
+  const attribution = getLeanAttribution() as unknown as Json;
+
   // Return with all filterable columns populated directly
   return {
     user_id: userId,
@@ -353,6 +357,7 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     highlights,
     location: locationPayload,
     answers: answersPayload,
+    attribution,
     status: "open",
     is_publicly_listed: true,
   } as JobInsert;

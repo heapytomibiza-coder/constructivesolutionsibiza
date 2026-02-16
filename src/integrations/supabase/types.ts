@@ -71,6 +71,63 @@ export type Database = {
         }
         Relationships: []
       }
+      attribution_sessions: {
+        Row: {
+          fbclid: string | null
+          first_seen_at: string
+          gclid: string | null
+          id: string
+          landing_url: string | null
+          last_seen_at: string
+          raw_params: Json | null
+          ref: string | null
+          referrer: string | null
+          session_id: string
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          fbclid?: string | null
+          first_seen_at?: string
+          gclid?: string | null
+          id?: string
+          landing_url?: string | null
+          last_seen_at?: string
+          raw_params?: Json | null
+          ref?: string | null
+          referrer?: string | null
+          session_id: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          fbclid?: string | null
+          first_seen_at?: string
+          gclid?: string | null
+          id?: string
+          landing_url?: string | null
+          last_seen_at?: string
+          raw_params?: Json | null
+          ref?: string | null
+          referrer?: string | null
+          session_id?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -597,6 +654,7 @@ export type Database = {
           answers: Json | null
           area: string | null
           assigned_professional_id: string | null
+          attribution: Json | null
           budget_max: number | null
           budget_min: number | null
           budget_type: string | null
@@ -627,6 +685,7 @@ export type Database = {
           answers?: Json | null
           area?: string | null
           assigned_professional_id?: string | null
+          attribution?: Json | null
           budget_max?: number | null
           budget_min?: number | null
           budget_type?: string | null
@@ -657,6 +716,7 @@ export type Database = {
           answers?: Json | null
           area?: string | null
           assigned_professional_id?: string | null
+          attribution?: Json | null
           budget_max?: number | null
           budget_min?: number | null
           budget_type?: string | null
@@ -1066,7 +1126,9 @@ export type Database = {
         Row: {
           created_at: string | null
           display_name: string | null
+          first_touch_attribution: Json | null
           id: string
+          last_touch_attribution: Json | null
           phone: string | null
           updated_at: string | null
           user_id: string
@@ -1074,7 +1136,9 @@ export type Database = {
         Insert: {
           created_at?: string | null
           display_name?: string | null
+          first_touch_attribution?: Json | null
           id?: string
+          last_touch_attribution?: Json | null
           phone?: string | null
           updated_at?: string | null
           user_id: string
@@ -1082,7 +1146,9 @@ export type Database = {
         Update: {
           created_at?: string | null
           display_name?: string | null
+          first_touch_attribution?: Json | null
           id?: string
+          last_touch_attribution?: Json | null
           phone?: string | null
           updated_at?: string | null
           user_id?: string
