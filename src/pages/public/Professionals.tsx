@@ -100,7 +100,9 @@ const Professionals = () => {
       const { data, error } = await supabase
         .from('professional_profiles')
         .select('id, user_id, display_name, avatar_url, services_count, verification_status, bio, tagline')
-        .eq('is_publicly_listed', true);
+        .eq('is_publicly_listed', true)
+        .eq('onboarding_phase', 'complete')
+        .not('display_name', 'is', null);
 
       if (error) throw error;
       

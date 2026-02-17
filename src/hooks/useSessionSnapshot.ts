@@ -152,7 +152,16 @@ export function useSessionSnapshot(): SessionSnapshot {
     setError(null);
 
     try {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+      // Gracefully handle stale refresh tokens
+      if (sessionError) {
+        const msg = (sessionError as any)?.message?.toLowerCase?.() ?? '';
+        if (msg.includes('refresh token') || msg.includes('token not found')) {
+          console.warn('Stale session detected, signing out');
+          await supabase.auth.signOut();
+        }
+      }
       
       if (currentSession?.user) {
         setSession(currentSession);
