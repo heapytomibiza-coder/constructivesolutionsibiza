@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const NOTIFICATION_SOUND_URL = 'https://cdn.pixabay.com/audio/2024/11/27/audio_c26dca42c3.mp3';
+const NOTIFICATION_SOUND_URL = '/sounds/notify.mp3';
 
 interface MessagePayload {
   id: string;
