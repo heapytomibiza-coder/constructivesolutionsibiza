@@ -1,9 +1,12 @@
 /**
  * ReviewStep - Final review and Go Live step
  * Builder-friendly: Clear checklist, encouraging language
+ * 
+ * Fetches service_zones and phone directly from DB to avoid
+ * stale session cache blocking the "Go Live" button.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackEvent } from '@/lib/trackEvent';
 import { Button } from '@/components/ui/button';
@@ -30,16 +33,41 @@ export function ReviewStep({ onBack }: ReviewStepProps) {
   const { user, professionalProfile, refresh } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fresh DB data to avoid stale session cache blocking "Go Live"
+  const [freshZones, setFreshZones] = useState<string[] | null>(null);
+  const [freshPhone, setFreshPhone] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+
+    (async () => {
+      const [ppRes, profRes] = await Promise.all([
+        supabase.from('professional_profiles').select('service_zones').eq('user_id', user.id).single(),
+        supabase.from('profiles').select('phone').eq('user_id', user.id).single(),
+      ]);
+      if (cancelled) return;
+      setFreshZones(ppRes.data?.service_zones ?? []);
+      setFreshPhone(profRes.data?.phone ?? null);
+    })();
+
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   const { data: categories = [] } = useServiceTaxonomy();
   const { selectedMicroIds } = useProfessionalServices();
+
+  // Use fresh DB data when available, fall back to session snapshot
+  const effectiveZones = freshZones ?? professionalProfile?.serviceZones ?? [];
+  const effectivePhone = freshPhone ?? professionalProfile?.phone ?? null;
 
   // Validation checks
   const hasBasicInfo = !!(
     professionalProfile?.displayName?.trim() || 
     professionalProfile?.businessName?.trim()
   );
-  const hasPhone = !!professionalProfile?.phone?.trim();
-  const hasServiceArea = (professionalProfile?.serviceZones?.length || 0) > 0;
+  const hasPhone = !!effectivePhone?.trim();
+  const hasServiceArea = effectiveZones.length > 0;
   const hasServices = selectedMicroIds.size > 0;
 
   const canGoLive = hasBasicInfo && hasPhone && hasServiceArea && hasServices;
