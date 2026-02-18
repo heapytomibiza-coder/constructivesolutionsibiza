@@ -20,9 +20,10 @@ interface IntentOption {
 interface IntentSelectorProps {
   value: UserIntent | null;
   onChange: (intent: UserIntent) => void;
+  allowProfessional?: boolean;
 }
 
-export function IntentSelector({ value, onChange }: IntentSelectorProps) {
+export function IntentSelector({ value, onChange, allowProfessional = false }: IntentSelectorProps) {
   const { t } = useTranslation('auth');
 
   const intentOptions: IntentOption[] = useMemo(
@@ -57,6 +58,11 @@ export function IntentSelector({ value, onChange }: IntentSelectorProps) {
     [t]
   );
 
+  const filteredOptions = useMemo(() => {
+    if (allowProfessional) return intentOptions;
+    return intentOptions.filter((o) => o.value !== 'professional');
+  }, [allowProfessional, intentOptions]);
+
   return (
     <div className="space-y-5">
       {/* Welcome visual - warm Mediterranean moment */}
@@ -74,7 +80,7 @@ export function IntentSelector({ value, onChange }: IntentSelectorProps) {
 
       {/* Intent cards with staggered animation */}
       <div className="grid gap-3">
-        {intentOptions.map((option, index) => {
+        {filteredOptions.map((option, index) => {
           const isSelected = value === option.value;
           const Icon = option.icon;
 

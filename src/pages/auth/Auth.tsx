@@ -43,6 +43,7 @@ const Auth = () => {
   );
 
   const returnUrl = searchParams.get('returnUrl'); // No default - let callback handle role-based routing
+  const allowProfessional = searchParams.get('pro') === '1';
 
   // Double-check: ready can be true before HTTP fetch completes with useSuspense: false
   // Verify that a known key actually resolves (not to itself)
@@ -345,7 +346,7 @@ const Auth = () => {
                   </div>
                 ) : showIntentSelector ? (
                   <div className="space-y-6">
-                    <IntentSelector value={selectedIntent} onChange={handleIntentSelect} />
+                    <IntentSelector value={selectedIntent} onChange={handleIntentSelect} allowProfessional={allowProfessional} />
                     <Button
                       type="button"
                       className="w-full"

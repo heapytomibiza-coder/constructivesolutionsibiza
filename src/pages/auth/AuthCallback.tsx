@@ -64,14 +64,14 @@ const AuthCallback = () => {
         const onboardingPhase = profileData?.onboarding_phase || 'not_started';
 
         // Established professionals go to dashboard, new ones to onboarding
-        if (onboardingPhase === 'complete' || onboardingPhase === 'service_setup') {
+        if (onboardingPhase === 'complete') {
           navigate('/dashboard/pro');
         } else {
           navigate('/onboarding/professional');
         }
       } else {
-        // Clients go to client dashboard
-        navigate('/dashboard/client');
+        // Clients go straight to the wizard to build the habit
+        navigate('/post');
       }
     };
 
