@@ -66,9 +66,7 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
-                <Link to="/professionals">{t('hero.browsePros')}</Link>
-              </Button>
+              {/* Browse Taskers hidden until ready */}
             </div>
             
             {/* Trust badges - LAST, anchoring the bottom */}
