@@ -8,9 +8,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Plus } from 'lucide-react';
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
+
+/** Calculate profile completeness for a listing */
+function getCompleteness(listing: MyListing): number {
+  let score = 0;
+  if (listing.display_title?.trim()) score += 20;
+  if (listing.short_description?.trim()) score += 20;
+  if (listing.hero_image_url) score += 30;
+  if (listing.starting_price) score += 20;
+  if (listing.location_base) score += 10;
+  return score;
+}
 
 function statusBadge(status: string) {
   switch (status) {
@@ -64,6 +76,15 @@ function ListingCard({ listing }: { listing: MyListing }) {
                 From {listing.starting_price} €
               </p>
             )}
+            {listing.status === 'draft' && (() => {
+              const pct = getCompleteness(listing);
+              return (
+                <div className="flex items-center gap-2 mt-1.5">
+                  <Progress value={pct} className="h-1.5 flex-1 max-w-[100px]" />
+                  <span className="text-[11px] text-muted-foreground font-medium">{pct}%</span>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
