@@ -26,6 +26,8 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { PendingReviewsCard } from '@/pages/dashboard/shared/components/PendingReviewsCard';
 import { cn } from '@/lib/utils';
+import { QuickActionTile } from '@/pages/dashboard/shared/components/QuickActionTile';
+import { MessageCircle } from 'lucide-react';
 
 /**
  * PROFESSIONAL DASHBOARD
@@ -197,6 +199,12 @@ const ProDashboard = () => {
             label={t('pro.messages')}
             hint={t('pro.messagesHint', 'Chat with Askers')}
           />
+          <QuickActionTile
+            to="/forum"
+            icon={MessageCircle}
+            label={t('pro.communityForum', 'Community Forum')}
+            hint={t('pro.communityForumHint', 'Ask questions, get recommendations')}
+          />
         </div>
 
         {/* Two-Column Layout */}
@@ -320,6 +328,12 @@ const ProDashboard = () => {
                     )}
                   </Link>
                 </Button>
+                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
+                  <Link to="/forum">
+                    <MessageCircle className="h-4 w-4" />
+                    {t('pro.communityForum', 'Community Forum')}
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
 
@@ -356,40 +370,5 @@ const ProDashboard = () => {
     </div>
   );
 };
-
-/* ── Mobile Quick Action Tile ── */
-function QuickActionTile({
-  to,
-  icon: Icon,
-  label,
-  hint,
-}: {
-  to: string;
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  hint?: string;
-}) {
-  return (
-    <Link
-      to={to}
-      className={cn(
-        'flex items-start gap-2.5 p-3 rounded-lg border border-border/70 bg-card',
-        'hover:border-primary/30 hover:bg-muted/30 transition-colors',
-        'active:scale-[0.98] active:bg-muted/50',
-        'min-h-[56px]'
-      )}
-    >
-      <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="h-4 w-4 text-primary" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-foreground leading-tight">{label}</div>
-        {hint && (
-          <div className="text-xs text-muted-foreground mt-0.5 leading-tight">{hint}</div>
-        )}
-      </div>
-    </Link>
-  );
-}
 
 export default ProDashboard;

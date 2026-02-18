@@ -14,6 +14,7 @@ import {
   Plus, 
   FileText, 
   MessageSquare,
+  MessageCircle,
   LogOut,
   Settings,
   Loader2,
@@ -21,6 +22,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { ClientJobCard } from './components/ClientJobCard';
+import { QuickActionTile } from '@/pages/dashboard/shared/components/QuickActionTile';
 
 /**
  * CLIENT DASHBOARD
@@ -185,6 +187,67 @@ const ClientDashboard = () => {
             </Card>
           </Link>
         </div>
+
+        {/* Quick Actions — mobile */}
+        <div className="grid grid-cols-2 gap-2 mb-5 sm:hidden">
+          <QuickActionTile
+            to="/post"
+            icon={Plus}
+            label={t('client.postJob')}
+            hint={t('client.postJobHint', 'Describe what you need done')}
+          />
+          <QuickActionTile
+            to="/messages"
+            icon={MessageSquare}
+            label={t('stats.messages')}
+            hint={t('client.messagesHint', 'Chat with Taskers')}
+          />
+          <QuickActionTile
+            to="/forum"
+            icon={MessageCircle}
+            label={t('client.communityForum', 'Community Forum')}
+            hint={t('client.communityForumHint', 'Ask questions, get recommendations')}
+          />
+          <QuickActionTile
+            to="/settings"
+            icon={Settings}
+            label="Settings"
+            hint={t('client.settingsHint', 'Account and preferences')}
+          />
+        </div>
+
+        {/* Quick Actions — desktop */}
+        <Card className="border-border/70 mb-5 hidden sm:block">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium">{t('client.quickActions', 'Quick Actions')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1.5 px-4 pb-4">
+            <Button className="w-full justify-start gap-2 h-10" asChild>
+              <Link to="/post">
+                <Plus className="h-4 w-4" />
+                {t('client.postJob')}
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
+              <Link to="/messages">
+                <MessageSquare className="h-4 w-4" />
+                {t('stats.messages')}
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
+              <Link to="/forum">
+                <MessageCircle className="h-4 w-4" />
+                {t('client.communityForum', 'Community Forum')}
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
+              <Link to="/settings">
+                <Settings className="h-4 w-4" />
+                {t('client.settingsHint', 'Settings')}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Jobs List */}
         <Card className="border-border/70">
