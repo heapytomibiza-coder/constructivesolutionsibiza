@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Star, ThumbsUp, Minus, Loader2, Check } from 'lucide-react';
+import { getCategoryIconByName } from '@/lib/categoryIcons';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/contexts/SessionContext';
 import { useServiceTaxonomy } from '@/pages/onboarding/hooks/useServiceTaxonomy';
@@ -194,7 +195,7 @@ export default function JobPriorities() {
                 <Card key={group.categoryId} className="card-grounded animate-fade-in">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-                      {group.icon && <span className="text-lg">{group.icon}</span>}
+                      {(() => { const CatIcon = getCategoryIconByName(group.categoryName); return <CatIcon className="h-5 w-5 text-primary" />; })()}
                       {group.categoryName}
                       <Badge variant="secondary" className="ml-auto text-xs font-normal">
                         {group.micros.length}
