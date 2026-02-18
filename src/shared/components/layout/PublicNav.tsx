@@ -154,7 +154,7 @@ export function PublicNav() {
             </>
           ) : (
             <>
-              <Button variant="ghost" asChild className="hidden sm:inline-flex">
+              <Button variant="ghost" asChild>
                 <Link to="/auth">{t('nav.signIn')}</Link>
               </Button>
               <Button variant="accent" asChild>

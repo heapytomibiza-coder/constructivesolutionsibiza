@@ -9,6 +9,7 @@
  * 3. Handles all access rules from the route registry
  */
 
+import { useState, useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
@@ -78,15 +79,22 @@ export function RouteGuard({ children }: RouteGuardProps) {
  */
 export function PublicOnlyGuard({ children }: RouteGuardProps) {
   const { isAuthenticated, activeRole, isLoading, isReady } = useSessionSnapshot();
+  const [timedOut, setTimedOut] = useState(false);
 
-  if (isLoading || !isReady) {
+  useEffect(() => {
+    const timer = setTimeout(() => setTimedOut(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // If still loading but timed out, show page anyway (let user sign in)
+  if ((isLoading || !isReady) && !timedOut) {
     return <LoadingSpinner />;
   }
 
   if (isAuthenticated) {
     const dashboardPath = activeRole === 'professional' 
       ? '/dashboard/pro' 
-      : '/dashboard/client';
+      : '/post';  // Wizard-first for clients
     return <Navigate to={dashboardPath} replace />;
   }
 
