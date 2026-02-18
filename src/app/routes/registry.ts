@@ -66,6 +66,13 @@ export const publicRoutes: RouteConfig[] = [
     titleKey: 'nav.howItWorks',
   },
   { 
+    path: '/about', 
+    access: 'public', 
+    lane: 'public', 
+    nav: { section: 'public', labelKey: 'nav.about', order: 6 },
+    titleKey: 'nav.about',
+  },
+  { 
     path: '/contact', 
     access: 'public', 
     lane: 'public', 

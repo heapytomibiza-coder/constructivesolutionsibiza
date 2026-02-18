@@ -28,6 +28,7 @@ import HowItWorks from "./pages/public/HowItWorks";
 import Contact from "./pages/public/Contact";
 import Privacy from "./pages/public/Privacy";
 import Terms from "./pages/public/Terms";
+import About from "./pages/public/About";
 import { ServiceListingDetail } from "./pages/services";
 
 // Auth Pages
@@ -126,6 +127,7 @@ const App = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/about" element={<About />} />
             <Route path="/services/listing/:listingId" element={<RolloutGate min="service-layer"><ServiceListingDetail /></RolloutGate>} />
             {/* Backward-compat redirects */}
             <Route path="/marketplace" element={<Navigate to="/services" replace />} />

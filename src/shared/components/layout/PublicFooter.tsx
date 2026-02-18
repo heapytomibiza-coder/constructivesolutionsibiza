@@ -29,6 +29,9 @@ export function PublicFooter() {
             <Link to="/how-it-works" className="hover:text-foreground transition-colors">
               {t('footer.howItWorks')}
             </Link>
+            <Link to="/about" className="hover:text-foreground transition-colors">
+              {t('footer.about')}
+            </Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">
               {t('footer.contact')}
             </Link>
