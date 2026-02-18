@@ -1,93 +1,97 @@
 
-# Add Cascade Filters to /services + Asker/Tasker Language Cleanup
+# Clean Up Tasker Dashboard: Dead Pages, Links, Actions, Language
 
 ## Overview
 
-Three focused changes for launch readiness:
-1. Add cascading category/subcategory/micro filter dropdowns to the /services page
-2. Add a sort option (Newest / Lowest price)
-3. Replace all "Professional" language in public-facing service pages with "Tasker"
+Four focused changes to make the Tasker dashboard clean and consistent:
+1. Remove dead placeholder pages (ProfessionalServices, ProfessionalPortfolio)
+2. Fix the "Your Services" stat tile to link to My Listings instead of onboarding
+3. Streamline quick actions (remove duplicate "Update Services" entry)
+4. Complete Asker/Tasker language sweep across all dashboard translation keys
 
-No new pages. No architecture changes. Same data, better browsing + consistent language.
+## Changes
 
-## What Changes
+### 1. Remove dead placeholder pages
 
-### 1. Extend the `service_listings_browse` database view
+**Delete files:**
+- `src/pages/professional/ProfessionalPortfolio.tsx`
+- `src/pages/professional/ProfessionalServices.tsx`
 
-The current view has `category_name`, `subcategory_name`, `micro_name`, `micro_slug` but is missing `category_slug` and `subcategory_slug` -- needed for URL-shareable filters.
+These are empty placeholders that already redirect to `/dashboard/pro` in App.tsx (lines 172, 176). The redirects stay -- we just remove the dead source files.
 
-**Migration**: Drop and recreate the view adding:
-- `sc.slug AS category_slug`
-- `ss.slug AS subcategory_slug`
+Also remove the `/professional/service-setup` route (App.tsx line 173) and the `ProfessionalServiceSetup` import (line 55). This page duplicates onboarding logic and is not linked from anywhere in the dashboard. The route registry entry for `/professional/service-setup` will also be removed.
 
-Everything else stays identical.
+### 2. Fix "Your Services" stat tile link
 
-### 2. Build cascade filter bar on /services
+In `ProDashboard.tsx` line 117, change the Services stat tile link from:
+```
+/onboarding/professional?edit=1&step=services
+```
+to:
+```
+/professional/listings
+```
 
-Add a filter bar above the listings grid with:
-- **Category** dropdown (populated from distinct values in fetched listings)
-- **Subcategory** dropdown (filtered by selected category)
-- **Task** dropdown (filtered by selected subcategory)
-- **Sort** dropdown: Newest (default) | Lowest price
+This sends Taskers to their actual listings management page, not back into onboarding.
 
-Filter logic:
-- Selecting Category resets Subcategory + Task
-- Selecting Subcategory resets Task
-- All filtering happens client-side on the already-fetched listings (no extra queries)
-- Selections are synced to URL query params: `?category=plumbing&subcategory=bathrooms&sort=price_asc`
-- Wizard can link to `/services?micro=leak-repair` and it works automatically
+### 3. Streamline quick actions
 
-### 3. Asker/Tasker language cleanup
+Currently the dashboard has two overlapping actions:
+- "My Services" -> `/professional/listings`
+- "Update Services" -> `/onboarding/professional?edit=1&step=services`
 
-Update hardcoded English text in service components and translation keys:
+Replace "Update Services" with "Job Priorities" in both mobile (2x2 grid) and desktop quick actions. The resulting set becomes:
 
-| Current | New |
-|---------|-----|
-| "Contact Professional" | "Contact Tasker" |
-| "Professional" (fallback name) | "Tasker" |
-| "Browse Professionals" | "Browse Taskers" |
-| "Join as Professional" | "Join as Tasker" |
-| provider card heading "Professional" | "Tasker" |
+| Action | Link | Icon |
+|--------|------|------|
+| My Listings | /professional/listings | Store |
+| Job Priorities | /professional/priorities | Star |
+| Edit Profile | /professional/profile | User |
+| Messages | /messages | MessageSquare |
 
-Plus translation file updates for both EN and ES `common.json`.
+This removes the confusing onboarding re-entry from the dashboard. Taskers who need to add new micros can still access onboarding from the My Listings empty state.
+
+### 4. Asker/Tasker language sweep on dashboard translations
+
+**`public/locales/en/dashboard.json`** updates:
+
+| Key | Current | New |
+|-----|---------|-----|
+| `pro.title` | "Professional Dashboard" | "Tasker Dashboard" |
+| `pro.myListings` | (new) | "My Listings" |
+| `client.title` | "Dashboard" | "Asker Dashboard" |
+| `client.selectPro` | "Select pro" | "Select Tasker" |
+| `client.noProsYet` | "No professionals have messaged yet" | "No Taskers have messaged yet" |
+| `client.professionalFallback` | "Professional" | "Tasker" |
+| `client.assignedSuccess` | "Professional assigned successfully" | "Tasker assigned successfully" |
+| `client.assignedFail` | "Failed to assign professional" | "Failed to assign Tasker" |
+
+**`public/locales/es/dashboard.json`** -- equivalent Spanish updates:
+
+| Key | Current | New |
+|-----|---------|-----|
+| `pro.title` | "Panel de Profesional" | "Panel del Tasker" |
+| `pro.myListings` | (new) | "Mis Listados" |
+| `client.title` | "Panel" | "Panel del Solicitante" |
+| `client.selectPro` | "Seleccionar profesional" | "Seleccionar Tasker" |
+| `client.noProsYet` | "Aun no hay profesionales..." | "Aun no hay Taskers..." |
+| `client.professionalFallback` | "Profesional" | "Tasker" |
+| `client.assignedSuccess` | "Profesional asignado correctamente" | "Tasker asignado correctamente" |
+| `client.assignedFail` | "No se pudo asignar al profesional" | "No se pudo asignar al Tasker" |
 
 ## Technical Details
 
 ### Files to modify
+- `src/App.tsx` -- remove ProfessionalServiceSetup import + route, remove ProfessionalServices/Portfolio imports (redirects already handle these)
+- `src/app/routes/registry.ts` -- remove `/professional/service-setup` route entry
+- `src/pages/dashboard/professional/ProDashboard.tsx` -- fix stat tile link, streamline quick actions
+- `public/locales/en/dashboard.json` -- language updates
+- `public/locales/es/dashboard.json` -- language updates
 
-**Database migration** (1 file):
-- New migration: recreate `service_listings_browse` view adding `category_slug` and `subcategory_slug` columns
+### Files to delete
+- `src/pages/professional/ProfessionalPortfolio.tsx`
+- `src/pages/professional/ProfessionalServices.tsx`
+- `src/pages/professional/ProfessionalServiceSetup.tsx`
 
-**Frontend** (5 files):
-- `src/pages/services/queries/serviceListings.query.ts` -- add `category_slug` and `subcategory_slug` to the `ServiceListingCard` interface
-- `src/pages/public/Services.tsx` -- add filter bar with 3 cascade dropdowns + sort dropdown, read/write URL query params, filter listings client-side
-- `src/pages/services/ServiceListingDetail.tsx` -- change "Contact Professional" to translated "Contact Tasker", change fallback name from "Professional" to "Tasker"
-- `src/pages/services/ServiceListingCard.tsx` -- change fallback provider name from "Professional" to "Tasker"
-
-**Translation files** (4 files):
-- `public/locales/en/common.json` -- add `services.contactTasker`, `services.emptyState` update, update `professionals.*` labels
-- `public/locales/es/common.json` -- same Spanish equivalents
-- `public/locales/en/lexicon.json` -- add `contactTasker` and `browseTaskers` keys
-- `public/locales/es/lexicon.json` -- Spanish equivalents
-
-### Filter implementation approach
-
-The `/services` page already fetches all live listings via `useServiceListingsBrowse()`. Filters will work by:
-1. Reading URL search params on mount (`useSearchParams`)
-2. Deriving unique category/subcategory/micro options from the full listings array
-3. Filtering the displayed listings based on selected values
-4. Updating URL params when dropdowns change
-
-This avoids any new database queries -- all filtering is client-side on the already-loaded data.
-
-### URL param structure
-```
-/services                           -- show all
-/services?category=plumbing         -- filter by category
-/services?category=plumbing&subcategory=bathrooms  -- drill down
-/services?micro=leak-repair         -- direct micro filter
-/services?sort=price_asc            -- sort by price
-```
-
-### No other files need changes
-Route registry, App.tsx, ServiceListingEditor, and all hooks remain as-is.
+### No database changes needed
+All changes are frontend-only.
