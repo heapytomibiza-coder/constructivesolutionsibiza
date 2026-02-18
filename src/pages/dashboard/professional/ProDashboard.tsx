@@ -102,7 +102,7 @@ const ProDashboard = () => {
                 <p className="text-sm text-muted-foreground mt-0.5">{t('pro.setupDescription')}</p>
               </div>
               <Button variant="accent" size="sm" asChild className="shrink-0">
-                <Link to="/onboarding/professional?step=services">
+                <Link to="/professional/listings">
                   <Wrench className="h-4 w-4 mr-1.5" />
                   {t('pro.addCategories', 'Add Categories')}
                 </Link>
@@ -233,7 +233,7 @@ const ProDashboard = () => {
                     {t('pro.setUpServicesToSee')}
                   </p>
                   <Button size="sm" asChild>
-                    <Link to="/onboarding/professional?step=services">{t('pro.setUpServices')}</Link>
+                    <Link to="/professional/listings">{t('pro.setUpServices')}</Link>
                   </Button>
                 </div>
               ) : matchedJobs.length === 0 ? (
