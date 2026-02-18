@@ -3,7 +3,7 @@
     "home": "Inicio",
     "services": "Servicios",
     "jobs": "Trabajos",
-    "professionals": "Profesionales",
+    "professionals": "Taskers",
     "howItWorks": "Cómo funciona",
     "community": "Comunidad",
     "contact": "Contacto",
@@ -43,7 +43,7 @@
     "title": "Conectamos tu idea con la realidad",
     "subtitle": "Te ayudamos a definir el alcance, alinear expectativas y encontrar al profesional adecuado",
     "postJob": "Empieza Tu Proyecto",
-    "browsePros": "Ver Profesionales"
+    "browsePros": "Ver Taskers"
   },
   "trust": {
     "verified": "Oficios verificados",
@@ -127,7 +127,7 @@
   "services": {
     "title": "Nuestros Servicios",
     "subtitle": "Encuentra profesionales de confianza en todos los servicios de construcción e inmobiliarios",
-    "trustBadge": "Oficios verificados • Profesionales de Ibiza",
+    "trustBadge": "Oficios verificados • Taskers de Ibiza",
     "viewServices": "Ver servicios",
     "cantFind": "¿No encuentras lo que buscas?",
     "postCustomJob": "Publicar un trabajo personalizado",
@@ -148,10 +148,10 @@
     "backToServices": "Volver a Servicios",
     "categoryNotFound": "Categoría no encontrada",
     "categoryNotFoundDesc": "Esta categoría no existe o ya no está disponible.",
-    "verifiedOnly": "Solo profesionales verificados",
-    "heroSubtitle": "Encuentra profesionales de {{category}} de confianza en Ibiza",
+    "verifiedOnly": "Solo Taskers verificados",
+    "heroSubtitle": "Encuentra Taskers de {{category}} de confianza en Ibiza",
     "orBrowse": "O",
-    "browseProsLink": "ver profesionales directamente",
+    "browseProsLink": "ver Taskers directamente",
     "noSubcategories": "No hay subcategorías disponibles para este servicio."
   },
   "subcategories": {
@@ -280,7 +280,7 @@
     "ov3Title": "Conecta y Completa",
     "ov3Desc": "Mensajea de forma segura, acuerda los detalles y completa el trabajo.",
     "forClients": "Necesito Trabajo Hecho",
-    "forProfessionals": "Quiero Trabajar",
+    "forProfessionals": "Soy un Tasker",
     "postJobButton": "Empieza Tu Proyecto",
     "joinAsProButton": "Únete como Tasker",
     "clientStep1Title": "Elige el Servicio",
@@ -345,12 +345,12 @@
     }
   },
   "professionals": {
-    "title": "Explorar Profesionales",
-    "titleSelect": "Elige un Profesional",
-    "subtitle": "Descubre profesionales que ofrecen servicios en Ibiza",
+    "title": "Explorar Taskers",
+    "titleSelect": "Elige un Tasker",
+    "subtitle": "Descubre Taskers que ofrecen servicios en Ibiza",
     "subtitleSelect": "Selecciona a quién te gustaría enviar tu solicitud de trabajo",
-    "trustBadge": "Profesionales en Ibiza",
-    "searchPlaceholder": "Buscar profesionales...",
+    "trustBadge": "Taskers en Ibiza",
+    "searchPlaceholder": "Buscar Taskers...",
     "searchButton": "Buscar",
     "filteringBy": "Filtrando por:",
     "clearAll": "Limpiar todo",
@@ -358,11 +358,11 @@
     "viewButton": "Ver",
     "selectButton": "Seleccionar",
     "backToJob": "Volver al Trabajo",
-    "selectProBanner": "Selecciona un profesional para enviar tu trabajo",
-    "noResultsFiltered": "No se encontraron profesionales con estos filtros.",
-    "noResultsEmpty": "Aún no hay profesionales listados. ¡Vuelve pronto!",
+    "selectProBanner": "Selecciona un Tasker para enviar tu trabajo",
+    "noResultsFiltered": "No se encontraron Taskers con estos filtros.",
+    "noResultsEmpty": "Aún no hay Taskers listados. ¡Vuelve pronto!",
     "clearFilters": "Limpiar Filtros",
-    "joinAsPro": "Unirse como Profesional"
+    "joinAsPro": "Unirse como Tasker"
   },
   "universalSearch": {
     "placeholder": "¿Qué podemos ayudarte a encontrar?",
