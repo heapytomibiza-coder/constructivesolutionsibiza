@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
-import { useSessionSnapshot } from '@/hooks/useSessionSnapshot';
+import { useSession } from '@/contexts/SessionContext';
 import { getRouteConfig } from '@/app/routes';
 import { checkAccess } from '@/guard/access';
 import { buildRedirectUrl, buildReturnUrl } from '@/guard/redirects';
@@ -36,7 +36,7 @@ function LoadingSpinner() {
 
 export function RouteGuard({ children }: RouteGuardProps) {
   const location = useLocation();
-  const { isAuthenticated, hasRole, isProReady, isLoading, isReady } = useSessionSnapshot();
+  const { isAuthenticated, hasRole, isProReady, isLoading, isReady } = useSession();
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
  * - For routes like /auth that should redirect authenticated users away
  */
 export function PublicOnlyGuard({ children }: RouteGuardProps) {
-  const { isAuthenticated, activeRole, isLoading, isReady } = useSessionSnapshot();
+  const { isAuthenticated, activeRole, isLoading, isReady } = useSession();
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
