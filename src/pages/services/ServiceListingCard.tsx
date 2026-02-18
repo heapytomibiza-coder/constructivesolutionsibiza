@@ -55,7 +55,7 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
               </AvatarFallback>
             </Avatar>
             <span className="text-sm text-muted-foreground truncate">
-              {listing.provider_name ?? 'Professional'}
+              {listing.provider_name ?? 'Tasker'}
             </span>
           </div>
 
