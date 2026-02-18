@@ -7,6 +7,7 @@
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronRight, Check } from 'lucide-react';
+import { getCategoryIconByName } from '@/lib/categoryIcons';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MicroToggleTile } from './MicroToggleTile';
@@ -109,7 +110,7 @@ export function CategoryAccordion({
       >
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-4">
-            <span className="text-3xl">{category.icon_emoji || '📦'}</span>
+            {(() => { const CatIcon = getCategoryIconByName(category.name); return <CatIcon className="h-7 w-7 text-primary" />; })()}
             <div className="text-left">
               <h3 className="text-lg font-semibold text-foreground">{category.name}</h3>
               <p className="text-base text-muted-foreground">

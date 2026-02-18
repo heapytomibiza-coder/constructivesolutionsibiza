@@ -14,6 +14,7 @@ import {
   ArrowLeft, CheckCircle2, Rocket, Loader2, 
   User, MapPin, Briefcase, AlertCircle 
 } from 'lucide-react';
+import { getCategoryIconByName } from '@/lib/categoryIcons';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
@@ -161,7 +162,7 @@ export function ReviewStep({ onBack }: ReviewStepProps) {
               {selectedServicesByCategory.map(category => (
                 <div key={category.categoryName}>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xl">{category.categoryEmoji || '📦'}</span>
+                    {(() => { const CatIcon = getCategoryIconByName(category.categoryName); return <CatIcon className="h-5 w-5 text-primary" />; })()}
                     <span className="font-semibold text-base">{category.categoryName}</span>
                     <Badge variant="secondary" className="text-sm">
                       {category.services.length}
