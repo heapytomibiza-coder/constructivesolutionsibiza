@@ -1,97 +1,89 @@
 
-# Clean Up Tasker Dashboard: Dead Pages, Links, Actions, Language
+# Tasker Dashboard: Idiot-Proof Redesign
 
 ## Overview
 
-Four focused changes to make the Tasker dashboard clean and consistent:
-1. Remove dead placeholder pages (ProfessionalServices, ProfessionalPortfolio)
-2. Fix the "Your Services" stat tile to link to My Listings instead of onboarding
-3. Streamline quick actions (remove duplicate "Update Services" entry)
-4. Complete Asker/Tasker language sweep across all dashboard translation keys
+Redesign the Tasker Dashboard and My Listings page with clear, non-overlapping actions, honest stat labels, and one-line hints on every quick action tile. Only one place to change service categories (inside My Listings header).
 
 ## Changes
 
-### 1. Remove dead placeholder pages
+### 1. ProDashboard.tsx -- Stats, Quick Actions, Section Rename
 
-**Delete files:**
-- `src/pages/professional/ProfessionalPortfolio.tsx`
-- `src/pages/professional/ProfessionalServices.tsx`
+**Stats row -- "Service Categories" with hint:**
+- Rename "Your Services" label to "Service Categories"
+- Add small hint text below: "Used to match you to jobs" (hidden on mobile for space)
+- Link stays at `/professional/listings`
 
-These are empty placeholders that already redirect to `/dashboard/pro` in App.tsx (lines 172, 176). The redirects stay -- we just remove the dead source files.
+**Mobile quick actions -- hints on every tile:**
+- Upgrade `QuickActionTile` component to accept an optional `hint` prop
+- Change layout from `items-center` to `items-start` with a text column (label + hint)
+- Four tiles with hints:
+  - Manage Listings: "Edit prices, photos and details"
+  - Job Priorities: "Get more of the work you want"
+  - Edit Profile: "Update your Tasker profile"
+  - Messages: "Chat with Askers"
 
-Also remove the `/professional/service-setup` route (App.tsx line 173) and the `ProfessionalServiceSetup` import (line 55). This page duplicates onboarding logic and is not linked from anywhere in the dashboard. The route registry entry for `/professional/service-setup` will also be removed.
+**Desktop quick actions -- rename section:**
+- Change header from "Quick Actions" to "Manage Your Work"
+- Replace first button label from "My Listings" to "Manage Listings"
+- Replace "Job Priorities" key to use new `pro.jobPriorities`
 
-### 2. Fix "Your Services" stat tile link
+**Setup alert button:**
+- Change hardcoded "Setup" text to translated "Add Categories"
 
-In `ProDashboard.tsx` line 117, change the Services stat tile link from:
-```
-/onboarding/professional?edit=1&step=services
-```
-to:
-```
-/professional/listings
-```
+### 2. MyServiceListings.tsx -- Hub Header with "Add / Remove Categories"
 
-This sends Taskers to their actual listings management page, not back into onboarding.
+**Page header upgrade:**
+- Replace hardcoded "My Service Listings" nav title with translated "Manage Listings"
+- Add a sub-header row with:
+  - Left: hint text "Edit and publish your services to appear on the platform."
+  - Right: "Add / Remove Categories" button linking to `/onboarding/professional?edit=1&step=services`
+- This becomes the ONLY place (besides the setup alert) where Taskers access category selection
 
-### 3. Streamline quick actions
+**Empty state text:**
+- Update empty tab messages to use translated keys with clearer wording
+- "Add Services" button text becomes "Add / Remove Categories"
+- Add `useTranslation('dashboard')` hook (currently missing)
 
-Currently the dashboard has two overlapping actions:
-- "My Services" -> `/professional/listings`
-- "Update Services" -> `/onboarding/professional?edit=1&step=services`
+### 3. Translation Files (EN + ES)
 
-Replace "Update Services" with "Job Priorities" in both mobile (2x2 grid) and desktop quick actions. The resulting set becomes:
+**New keys added to `public/locales/en/dashboard.json`:**
+- `pro.serviceCategories`: "Service Categories"
+- `pro.serviceCategoriesHint`: "Used to match you to jobs"
+- `pro.manageYourWork`: "Manage Your Work"
+- `pro.manageListings`: "Manage Listings"
+- `pro.manageListingsHint`: "Edit prices, photos and details"
+- `pro.manageListingsPageHint`: "Edit and publish your services to appear on the platform."
+- `pro.jobPriorities`: "Job Priorities"
+- `pro.jobPrioritiesHint`: "Get more of the work you want"
+- `pro.editProfileHint`: "Update your Tasker profile"
+- `pro.messagesHint`: "Chat with Askers"
+- `pro.addCategories`: "Add Categories"
+- `pro.addRemoveCategories`: "Add / Remove Categories"
+- `pro.emptyDrafts`, `pro.emptyLive`, `pro.emptyPaused`: clearer empty states
 
-| Action | Link | Icon |
-|--------|------|------|
-| My Listings | /professional/listings | Store |
-| Job Priorities | /professional/priorities | Star |
-| Edit Profile | /professional/profile | User |
-| Messages | /messages | MessageSquare |
-
-This removes the confusing onboarding re-entry from the dashboard. Taskers who need to add new micros can still access onboarding from the My Listings empty state.
-
-### 4. Asker/Tasker language sweep on dashboard translations
-
-**`public/locales/en/dashboard.json`** updates:
-
-| Key | Current | New |
-|-----|---------|-----|
-| `pro.title` | "Professional Dashboard" | "Tasker Dashboard" |
-| `pro.myListings` | (new) | "My Listings" |
-| `client.title` | "Dashboard" | "Asker Dashboard" |
-| `client.selectPro` | "Select pro" | "Select Tasker" |
-| `client.noProsYet` | "No professionals have messaged yet" | "No Taskers have messaged yet" |
-| `client.professionalFallback` | "Professional" | "Tasker" |
-| `client.assignedSuccess` | "Professional assigned successfully" | "Tasker assigned successfully" |
-| `client.assignedFail` | "Failed to assign professional" | "Failed to assign Tasker" |
-
-**`public/locales/es/dashboard.json`** -- equivalent Spanish updates:
-
-| Key | Current | New |
-|-----|---------|-----|
-| `pro.title` | "Panel de Profesional" | "Panel del Tasker" |
-| `pro.myListings` | (new) | "Mis Listados" |
-| `client.title` | "Panel" | "Panel del Solicitante" |
-| `client.selectPro` | "Seleccionar profesional" | "Seleccionar Tasker" |
-| `client.noProsYet` | "Aun no hay profesionales..." | "Aun no hay Taskers..." |
-| `client.professionalFallback` | "Profesional" | "Tasker" |
-| `client.assignedSuccess` | "Profesional asignado correctamente" | "Tasker asignado correctamente" |
-| `client.assignedFail` | "No se pudo asignar al profesional" | "No se pudo asignar al Tasker" |
+**Spanish equivalents in `public/locales/es/dashboard.json`:**
+- All matching keys with natural Spanish translations (e.g. "Gestiona Tu Trabajo", "Categorias de Servicio")
 
 ## Technical Details
 
-### Files to modify
-- `src/App.tsx` -- remove ProfessionalServiceSetup import + route, remove ProfessionalServices/Portfolio imports (redirects already handle these)
-- `src/app/routes/registry.ts` -- remove `/professional/service-setup` route entry
-- `src/pages/dashboard/professional/ProDashboard.tsx` -- fix stat tile link, streamline quick actions
-- `public/locales/en/dashboard.json` -- language updates
-- `public/locales/es/dashboard.json` -- language updates
+### Files to modify (4 total)
 
-### Files to delete
-- `src/pages/professional/ProfessionalPortfolio.tsx`
-- `src/pages/professional/ProfessionalServices.tsx`
-- `src/pages/professional/ProfessionalServiceSetup.tsx`
+| File | What changes |
+|------|-------------|
+| `src/pages/dashboard/professional/ProDashboard.tsx` | Stat label + hint, QuickActionTile hint prop, section rename, setup alert button text |
+| `src/pages/professional/MyServiceListings.tsx` | Add i18n hook, hub header with "Add / Remove Categories" button, translated empty states |
+| `public/locales/en/dashboard.json` | Add 13 new translation keys |
+| `public/locales/es/dashboard.json` | Add 13 matching Spanish keys |
 
-### No database changes needed
-All changes are frontend-only.
+### No database changes, no new files, no route changes
+
+All changes are UI copy + layout within existing components.
+
+### Result: the "idiot-proof" mental model
+
+- **Service Categories (58)** = what I can do (matching)
+- **Manage Listings** = what I show publicly (prices/photos/details)
+- **Add / Remove Categories** = only inside My Listings header (one entrance)
+- **No duplicate actions** on the dashboard
+- **Every tile explains itself** with a one-line hint
