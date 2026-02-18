@@ -6,6 +6,7 @@
  */
 
 export { RouteGuard, PublicOnlyGuard } from './RouteGuard';
+export { RolloutGate } from './RolloutGate';
 export { checkAccess, type AccessContext, type Role } from './access';
 export { buildRedirectUrl, buildReturnUrl } from './redirects';
 export { 
