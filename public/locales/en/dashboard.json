@@ -19,7 +19,13 @@
     "loading": "Loading...",
     "professionalFallback": "Tasker",
     "assignedSuccess": "Tasker assigned successfully",
-    "assignedFail": "Failed to assign Tasker"
+    "assignedFail": "Failed to assign Tasker",
+    "quickActions": "Quick Actions",
+    "communityForum": "Community Forum",
+    "communityForumHint": "Ask questions, get recommendations",
+    "settingsHint": "Account and preferences",
+    "postJobHint": "Describe what you need done",
+    "messagesHint": "Chat with Taskers"
   },
   "pro": {
     "title": "Tasker Dashboard",
@@ -55,6 +61,8 @@
     "updateServices": "Update Services",
     "editProfile": "Edit Profile",
     "viewMessages": "View Messages",
+    "communityForum": "Community Forum",
+    "communityForumHint": "Ask questions, get recommendations",
     "profileStatus": "Profile Status",
     "servicesAdded": "Services added",
     "profileDetails": "Profile details",

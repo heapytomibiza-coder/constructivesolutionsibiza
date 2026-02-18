@@ -19,7 +19,13 @@
     "loading": "Cargando...",
     "professionalFallback": "Tasker",
     "assignedSuccess": "Tasker asignado correctamente",
-    "assignedFail": "No se pudo asignar al Tasker"
+    "assignedFail": "No se pudo asignar al Tasker",
+    "quickActions": "Acciones Rápidas",
+    "communityForum": "Foro de la Comunidad",
+    "communityForumHint": "Haz preguntas, obtén recomendaciones",
+    "settingsHint": "Cuenta y preferencias",
+    "postJobHint": "Describe lo que necesitas",
+    "messagesHint": "Chatea con Taskers"
   },
   "pro": {
     "title": "Panel del Tasker",
@@ -55,6 +61,8 @@
     "updateServices": "Actualizar Servicios",
     "editProfile": "Editar perfil",
     "viewMessages": "Ver Mensajes",
+    "communityForum": "Foro de la Comunidad",
+    "communityForumHint": "Haz preguntas, obtén recomendaciones",
     "profileStatus": "Estado del Perfil",
     "servicesAdded": "Servicios añadidos",
     "profileDetails": "Detalles del perfil",
