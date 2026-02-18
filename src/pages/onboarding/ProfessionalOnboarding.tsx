@@ -53,12 +53,18 @@ const ProfessionalOnboarding = () => {
     complete: 'review',
   };
 
-  const initialStep: WizardStep = editMode ? 'tracker' : (phaseToStep[phase] ?? 'basic_info');
-  const [currentStep, setCurrentStep] = useState<WizardStep>(initialStep);
+  // Fix 4: Safe default — defer phase-based step until loading completes
+  const [currentStep, setCurrentStep] = useState<WizardStep>(editMode ? 'tracker' : 'basic_info');
 
   // Current step index (0-based) for progress display
   const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
   const progress = currentStepIndex >= 0 ? ((currentStepIndex + 1) / STEPS.length) * 100 : 25;
+
+  // Fix 4: Set correct step once profile has loaded
+  useEffect(() => {
+    if (isLoading || editMode) return;
+    setCurrentStep(phaseToStep[phase] ?? 'basic_info');
+  }, [isLoading, editMode, phase]);
 
   // Only redirect completed users when NOT in edit mode
   useEffect(() => {
@@ -67,27 +73,35 @@ const ProfessionalOnboarding = () => {
     }
   }, [phase, editMode, navigate]);
 
-  // Deep-link to a step
+  // Fix 1: Deep-link to a step — gate tracker behind edit mode
   useEffect(() => {
     if (!stepParam) return;
-    const allowed: WizardStep[] = ['basic_info', 'service_area', 'services', 'review', 'tracker'];
+    const allowed: WizardStep[] = editMode
+      ? ['tracker', 'basic_info', 'service_area', 'services', 'review']
+      : ['basic_info', 'service_area', 'services', 'review'];
     if (allowed.includes(stepParam)) {
       setCurrentStep(stepParam);
     }
-  }, [stepParam]);
+  }, [stepParam, editMode]);
 
-  // Update step when phase changes (e.g. after save + refresh)
+  // Fix 2: Safety fallback — tracker can never exist outside edit mode
+  useEffect(() => {
+    if (!editMode && currentStep === 'tracker') {
+      setCurrentStep('basic_info');
+    }
+  }, [editMode, currentStep]);
+
+  // Fix 3: Phase auto-advance with currentStep in deps (no stale closure)
   useEffect(() => {
     if (editMode) return;
-    const nextStep = phaseToStep[phase] ?? 'basic_info';
-    // Only auto-advance if we're behind
     const stepOrder: WizardStep[] = ['basic_info', 'service_area', 'services', 'review'];
+    const nextStep = phaseToStep[phase] ?? 'basic_info';
     const currentIdx = stepOrder.indexOf(currentStep);
     const nextIdx = stepOrder.indexOf(nextStep);
     if (nextIdx > currentIdx) {
       setCurrentStep(nextStep);
     }
-  }, [phase, editMode]);
+  }, [phase, editMode, currentStep]);
 
   // Step completion handlers - always advance to next step
   const handleBasicInfoComplete = () => {
@@ -156,18 +170,15 @@ const ProfessionalOnboarding = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
               {editMode
                 ? 'Edit your professional profile'
-                : currentStep === 'tracker' ? "Let's get you started" :
-                  currentStep === 'basic_info' ? 'Step 1: About You' :
-                  currentStep === 'service_area' ? 'Step 2: Where You Work' :
-                  currentStep === 'services' ? 'Step 3: The Work You Do' :
-                  'Step 4: Go Live!'}
+                : currentStep === 'basic_info' ? 'Step 1: About You'
+                : currentStep === 'service_area' ? 'Step 2: Where You Work'
+                : currentStep === 'services' ? 'Step 3: The Work You Do'
+                : 'Step 4: Go Live!'}
             </h1>
             <p className="text-lg text-muted-foreground">
               {editMode
                 ? 'Jump to any step and update your details.'
-                : currentStep === 'tracker' 
-                  ? "Just a few quick steps and you'll be ready to receive work."
-                  : `Step ${currentStepIndex + 1} of ${STEPS.length}`}
+                : `Step ${currentStepIndex + 1} of ${STEPS.length}`}
             </p>
           </div>
 
