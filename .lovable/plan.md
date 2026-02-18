@@ -1,44 +1,93 @@
 
+# Add Cascade Filters to /services + Asker/Tasker Language Cleanup
 
-# Simplify /services — One Clean Listings Page
+## Overview
+
+Three focused changes for launch readiness:
+1. Add cascading category/subcategory/micro filter dropdowns to the /services page
+2. Add a sort option (Newest / Lowest price)
+3. Replace all "Professional" language in public-facing service pages with "Tasker"
+
+No new pages. No architecture changes. Same data, better browsing + consistent language.
 
 ## What Changes
 
-The `/services` page currently shows a 16-card category grid as the primary content, with live listings tucked below as "Featured Services". The user wants this flipped: **just show live service listings** as the main content, remove the category grid, and keep the wizard as a visible CTA.
+### 1. Extend the `service_listings_browse` database view
 
-### 1. Rewrite `/services` page to show listings only
+The current view has `category_name`, `subcategory_name`, `micro_name`, `micro_slug` but is missing `category_slug` and `subcategory_slug` -- needed for URL-shareable filters.
 
-Replace the current two-section layout with a single, clean listings grid:
+**Migration**: Drop and recreate the view adding:
+- `sc.slug AS category_slug`
+- `ss.slug AS subcategory_slug`
 
-- **Hero**: Keep compact hero banner (existing)
-- **Listings grid**: Show all live `service_listings_browse` cards, sorted by recently published
-- **Empty state**: If no listings yet, show a clean message with wizard CTA
-- **Wizard CTA**: Bottom section — "Not sure who to choose? Post a job and get matched."
-- **No category grid**: Remove the 16 category cards entirely (taxonomy still powers the system behind the scenes)
+Everything else stays identical.
 
-The `categoryIcons` map, `MAIN_CATEGORIES` import, and `CATEGORY_KEYS` import all get removed from this file.
+### 2. Build cascade filter bar on /services
 
-### 2. Keep `/services/:categorySlug` intact
+Add a filter bar above the listings grid with:
+- **Category** dropdown (populated from distinct values in fetched listings)
+- **Subcategory** dropdown (filtered by selected category)
+- **Task** dropdown (filtered by selected subcategory)
+- **Sort** dropdown: Newest (default) | Lowest price
 
-The category drill-down page stays — it's useful when linked from elsewhere (e.g., wizard, SEO). It just won't be the primary discovery path from `/services` anymore.
+Filter logic:
+- Selecting Category resets Subcategory + Task
+- Selecting Subcategory resets Task
+- All filtering happens client-side on the already-fetched listings (no extra queries)
+- Selections are synced to URL query params: `?category=plumbing&subcategory=bathrooms&sort=price_asc`
+- Wizard can link to `/services?micro=leak-repair` and it works automatically
 
-### 3. Keep `/services/listing/:listingId` intact
+### 3. Asker/Tasker language cleanup
 
-Service detail page is already clean and correctly routed.
+Update hardcoded English text in service components and translation keys:
 
-### 4. No route changes needed
+| Current | New |
+|---------|-----|
+| "Contact Professional" | "Contact Tasker" |
+| "Professional" (fallback name) | "Tasker" |
+| "Browse Professionals" | "Browse Taskers" |
+| "Join as Professional" | "Join as Tasker" |
+| provider card heading "Professional" | "Tasker" |
 
-All routes are already consolidated from the previous work. This is purely a page content simplification.
+Plus translation file updates for both EN and ES `common.json`.
 
 ## Technical Details
 
-### File: `src/pages/public/Services.tsx`
-- Remove: `MAIN_CATEGORIES` import, `CATEGORY_KEYS` import, `categoryIcons` map, the entire category grid section
-- Keep: `useServiceListingsBrowse` hook, `ServiceListingCardComponent`, hero banner, wizard CTA
-- Change: Show listings as the primary content (not gated behind "Featured Services" heading)
-- Add: Simple empty state when no listings exist
-- Remove unused icon imports (most of the lucide icons were for category cards)
+### Files to modify
+
+**Database migration** (1 file):
+- New migration: recreate `service_listings_browse` view adding `category_slug` and `subcategory_slug` columns
+
+**Frontend** (5 files):
+- `src/pages/services/queries/serviceListings.query.ts` -- add `category_slug` and `subcategory_slug` to the `ServiceListingCard` interface
+- `src/pages/public/Services.tsx` -- add filter bar with 3 cascade dropdowns + sort dropdown, read/write URL query params, filter listings client-side
+- `src/pages/services/ServiceListingDetail.tsx` -- change "Contact Professional" to translated "Contact Tasker", change fallback name from "Professional" to "Tasker"
+- `src/pages/services/ServiceListingCard.tsx` -- change fallback provider name from "Professional" to "Tasker"
+
+**Translation files** (4 files):
+- `public/locales/en/common.json` -- add `services.contactTasker`, `services.emptyState` update, update `professionals.*` labels
+- `public/locales/es/common.json` -- same Spanish equivalents
+- `public/locales/en/lexicon.json` -- add `contactTasker` and `browseTaskers` keys
+- `public/locales/es/lexicon.json` -- Spanish equivalents
+
+### Filter implementation approach
+
+The `/services` page already fetches all live listings via `useServiceListingsBrowse()`. Filters will work by:
+1. Reading URL search params on mount (`useSearchParams`)
+2. Deriving unique category/subcategory/micro options from the full listings array
+3. Filtering the displayed listings based on selected values
+4. Updating URL params when dropdowns change
+
+This avoids any new database queries -- all filtering is client-side on the already-loaded data.
+
+### URL param structure
+```
+/services                           -- show all
+/services?category=plumbing         -- filter by category
+/services?category=plumbing&subcategory=bathrooms  -- drill down
+/services?micro=leak-repair         -- direct micro filter
+/services?sort=price_asc            -- sort by price
+```
 
 ### No other files need changes
-The route registry, App.tsx, ServiceListingCard, ServiceListingDetail, and all hooks remain as-is.
-
+Route registry, App.tsx, ServiceListingEditor, and all hooks remain as-is.
