@@ -244,6 +244,7 @@ const ProfessionalOnboarding = () => {
           ) : currentStep === 'review' ? (
             <ReviewStep
               onBack={() => editMode ? setCurrentStep('tracker') : setCurrentStep('services')}
+              onNavigate={(step) => setCurrentStep(step as WizardStep)}
             />
           ) : null}
         </div>

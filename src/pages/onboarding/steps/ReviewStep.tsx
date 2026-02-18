@@ -26,9 +26,10 @@ import { useProfessionalServices } from '../hooks/useProfessionalServices';
 
 interface ReviewStepProps {
   onBack: () => void;
+  onNavigate?: (step: string) => void;
 }
 
-export function ReviewStep({ onBack }: ReviewStepProps) {
+export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
   const navigate = useNavigate();
   const { user, professionalProfile, refresh } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -163,18 +164,21 @@ export function ReviewStep({ onBack }: ReviewStepProps) {
             label="About you"
             description="Name and contact details"
             isComplete={hasBasicInfo && hasPhone}
+            onClick={!hasBasicInfo || !hasPhone ? () => onNavigate?.('basic_info') : undefined}
           />
           <ChecklistItem
             icon={MapPin}
             label="Where you work"
             description="Areas of Ibiza"
             isComplete={hasServiceArea}
+            onClick={!hasServiceArea ? () => onNavigate?.('service_area') : undefined}
           />
           <ChecklistItem
             icon={Briefcase}
             label="Jobs selected"
             description={`${selectedMicroIds.size} job type${selectedMicroIds.size !== 1 ? 's' : ''} picked`}
             isComplete={hasServices}
+            onClick={!hasServices ? () => onNavigate?.('services') : undefined}
           />
         </CardContent>
       </Card>
@@ -264,20 +268,28 @@ function ChecklistItem({
   icon: Icon, 
   label, 
   description, 
-  isComplete 
+  isComplete,
+  onClick,
 }: { 
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   description: string;
   isComplete: boolean;
+  onClick?: () => void;
 }) {
+  const isClickable = !!onClick;
   return (
-    <div className={cn(
-      'flex items-center gap-4 p-4 rounded-xl border-2 transition-colors',
-      isComplete 
-        ? 'bg-primary/10 border-primary/40' 
-        : 'bg-muted/30 border-border'
-    )}>
+    <div 
+      className={cn(
+        'flex items-center gap-4 p-4 rounded-xl border-2 transition-colors',
+        isComplete 
+          ? 'bg-primary/10 border-primary/40' 
+          : 'bg-muted/30 border-border',
+        isClickable && 'cursor-pointer hover:border-primary/50 hover:bg-muted/50 active:scale-[0.98]'
+      )}
+      onClick={onClick}
+      role={isClickable ? 'button' : undefined}
+    >
       <div className={cn(
         'flex h-12 w-12 items-center justify-center rounded-full shrink-0',
         isComplete ? 'bg-primary/20' : 'bg-muted'
