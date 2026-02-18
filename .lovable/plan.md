@@ -1,28 +1,76 @@
 
-# Marketplace Activation — COMPLETED
 
-All phases implemented:
+# Unify Services + Marketplace into One Coherent Section
 
-## ✅ Phase 1: Demo Listings Seeded
-- 8 live listings across AC, bathroom, plumbing, electrical, maintenance, garden, pool
-- 26 pricing items with realistic Ibiza-market EUR prices
-- Spread across Ibiza Town, San Antonio, Santa Eulalia, San Juan, San José, Island Wide
-- Using real providers: Thomas Heap + Alex Richardson
+## Problem
+Right now there are two separate public sections that confuse users:
+- **Services** (`/services`) -- shows a grid of 16 category cards (taxonomy)
+- **Marketplace** (`/marketplace`) -- shows live service listing cards from professionals
 
-## ✅ Phase 2: Listing Editor Polish
-- Completion % progress bar on draft cards (title 20%, desc 20%, image 30%, pricing 20%, location 10%)
-- `listing_published` and `listing_paused` analytics events tracked via `track_event` RPC
+These should be one unified experience under "Services".
 
-## ✅ Phase 3: Budget Step UX
-- Budget options now render as quick-select tile chips (same style as timing)
-- "Not sure / Need quote" demoted to secondary text link below chips
-- Removed heavy radio group layout
+## What Changes
 
-## ✅ Phase 4: Missing Question Packs
-- Seeded 4 packs: paint-walls, paint-ceiling, paint-woodwork, lawn-mowing
-- Each pack has 6 questions covering scope, condition, preferences, and access
+### 1. Merge the pages: `/services` becomes a two-part page
+The current `/services` page (category grid) will be enhanced to also show live service listings below the categories. This gives visitors both entry points in one place:
+- Top section: "Browse by Category" (existing 16 category cards)
+- Bottom section: "Featured Services" (live service listing cards from the marketplace)
 
-## Next High-Impact Items
-- Get 3-5 real providers to complete their listings
-- Monitor budget selection distribution (expect fewer "need_quote" selections)
-- Consider adding "month" to pricing unit constraint for recurring services
+### 2. Route consolidation
+- `/services` -- unified browse page (categories + live listings)
+- `/services/:categorySlug` -- category drill-down (unchanged)
+- `/services/listing/:listingId` -- service listing detail (moved from `/marketplace/:listingId`)
+- `/marketplace` -- redirect to `/services` (backward compat)
+- `/marketplace/:listingId` -- redirect to `/services/listing/:listingId`
+
+### 3. Remove "Marketplace" from nav
+- Remove the separate "Marketplace" nav entry from the route registry
+- The existing "Services" nav link covers everything
+- Update nav label key `nav.marketplace` references
+
+### 4. Update all internal links
+- `ServiceListingCard` links: `/marketplace/:id` becomes `/services/listing/:id`
+- `ServiceListingDetail` "Back" link: points to `/services` instead of `/marketplace`
+- `JobDetailsModal` price comparison links: update any `/marketplace` references
+- Pro Dashboard "My Listings" link stays at `/professional/listings` (already correct)
+
+### 5. Update Pro Dashboard label clarity
+- Rename "My Listings" to "My Services" in the quick action tiles for consistency with the public-facing "Services" naming
+- The link still goes to `/professional/listings` (the editor page)
+
+## Technical Details
+
+### Files to modify
+- `src/pages/public/Services.tsx` -- Add a "Featured Services" section below the category grid, using the existing `useServiceListingsBrowse` hook and `ServiceListingCardComponent`
+- `src/pages/services/ServiceListingDetail.tsx` -- Update back link from `/marketplace` to `/services`
+- `src/pages/services/ServiceListingCard.tsx` -- Update link from `/marketplace/:id` to `/services/listing/:id`
+- `src/App.tsx` -- Move listing detail route to `/services/listing/:listingId`, add redirects for old `/marketplace` paths
+- `src/app/routes/registry.ts` -- Remove `/marketplace` nav entry, add `/services/listing/:listingId` route
+- `public/locales/en/common.json` -- Remove `nav.marketplace`, update labels
+- `public/locales/es/common.json` -- Same Spanish translation cleanup
+- `src/pages/dashboard/professional/ProDashboard.tsx` -- Change "My Listings" label to "My Services"
+- `src/pages/jobs/hooks/useListingsForJob.ts` -- Update any `/marketplace` link references
+- `src/pages/jobs/JobDetailsModal.tsx` -- Update comparison section links if any point to `/marketplace`
+
+### Route registry changes
+Remove:
+```
+{ path: '/marketplace', ... nav: { section: 'public', labelKey: 'nav.marketplace', order: 3 } }
+{ path: '/marketplace/:listingId', ... }
+```
+
+Add:
+```
+{ path: '/services/listing/:listingId', access: 'public', lane: 'public' }
+```
+
+### No database changes needed
+All queries use the same `service_listings_browse` view -- only the URL paths and component composition change.
+
+### Implementation order
+1. Update route registry (remove marketplace routes, add service listing route)
+2. Update `App.tsx` routes + add redirects
+3. Enhance `Services.tsx` with live listings section
+4. Update `ServiceListingCard` and `ServiceListingDetail` link paths
+5. Update Pro Dashboard labels
+6. Clean up translation files
