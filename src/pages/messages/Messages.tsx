@@ -7,7 +7,7 @@ import { useConversations, useMarkConversationRead, type Conversation } from "./
 import { PLATFORM } from "@/domain/scope";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useSessionSnapshot } from "@/hooks/useSessionSnapshot";
+
 
 /**
  * MESSAGES PAGE - Inbox + Thread View
@@ -19,8 +19,7 @@ import { useSessionSnapshot } from "@/hooks/useSessionSnapshot";
 const Messages = () => {
   const { id: conversationId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const { user, isLoading: sessionLoading } = useSession();
-  const { activeRole } = useSessionSnapshot();
+  const { user, isLoading: sessionLoading, activeRole } = useSession();
   const isMobile = useIsMobile();
   const { markRead } = useMarkConversationRead();
   
