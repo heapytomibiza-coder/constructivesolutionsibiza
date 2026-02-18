@@ -91,48 +91,6 @@ const Index = () => {
         </p>
       </HeroBanner>
 
-      {/* Categories Grid */}
-      <section className="py-16 bg-background">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-3xl font-bold text-foreground">
-              {t('home.ourServices')}
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              {t('home.ourServicesDesc')}
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {MAIN_CATEGORIES.slice(0, 8).map((category) => {
-              const slug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-              return (
-                <Link key={category} to={`/services/${slug}`}>
-                  <Card className="h-full service-card-hover cursor-pointer group">
-                    <CardContent className="flex items-center gap-3 p-4">
-                      <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary group-hover:bg-accent/10 group-hover:text-accent transition-colors">
-                        {categoryIcons[category] || <Hammer className="h-5 w-5" />}
-                      </div>
-                      <span className="font-medium text-foreground">
-                        {t(CATEGORY_KEYS[category] || category)}
-                      </span>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="mt-8 text-center">
-            <Button variant="outline" asChild>
-              <Link to="/services">
-                {t('home.viewAllServices')}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
 
       {/* Trust Signals */}
       <section className="py-16 bg-gradient-concrete">
