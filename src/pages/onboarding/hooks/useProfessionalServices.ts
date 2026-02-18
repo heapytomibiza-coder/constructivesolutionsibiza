@@ -43,6 +43,12 @@ export function useProfessionalServices() {
           }, { onConflict: 'user_id,micro_id' });
 
         if (error) throw error;
+
+        // Auto-create draft service listing
+        await supabase.rpc('create_draft_service_listings', {
+          p_provider_id: user.id,
+          p_micro_ids: [microId],
+        });
       } else {
         // Remove the service
         const { error } = await supabase
@@ -84,6 +90,12 @@ export function useProfessionalServices() {
 
       if (error) throw error;
       await updateServicesCount(user.id);
+
+      // Auto-create draft service listings for newly added micros
+      await supabase.rpc('create_draft_service_listings', {
+        p_provider_id: user.id,
+        p_micro_ids: microIds,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professional-services-binary'] });

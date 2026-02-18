@@ -1239,6 +1239,72 @@ export type Database = {
         }
         Relationships: []
       }
+      service_listings: {
+        Row: {
+          created_at: string
+          display_title: string
+          gallery: string[] | null
+          hero_image_url: string | null
+          id: string
+          location_base: string | null
+          micro_id: string
+          pricing_summary: string | null
+          provider_id: string
+          published_at: string | null
+          short_description: string | null
+          status: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          display_title?: string
+          gallery?: string[] | null
+          hero_image_url?: string | null
+          id?: string
+          location_base?: string | null
+          micro_id: string
+          pricing_summary?: string | null
+          provider_id: string
+          published_at?: string | null
+          short_description?: string | null
+          status?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          display_title?: string
+          gallery?: string[] | null
+          hero_image_url?: string | null
+          id?: string
+          location_base?: string | null
+          micro_id?: string
+          pricing_summary?: string | null
+          provider_id?: string
+          published_at?: string | null
+          short_description?: string | null
+          status?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_listings_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_micro_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_listings_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_search_index"
+            referencedColumns: ["micro_id"]
+          },
+        ]
+      }
       service_micro_categories: {
         Row: {
           created_at: string
@@ -1286,6 +1352,63 @@ export type Database = {
             columns: ["subcategory_id"]
             isOneToOne: false
             referencedRelation: "service_subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_pricing_items: {
+        Row: {
+          created_at: string
+          id: string
+          info_description: string | null
+          is_enabled: boolean
+          label: string
+          price_amount: number | null
+          price_currency: string
+          service_listing_id: string
+          sort_order: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          info_description?: string | null
+          is_enabled?: boolean
+          label: string
+          price_amount?: number | null
+          price_currency?: string
+          service_listing_id: string
+          sort_order?: number
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          info_description?: string | null
+          is_enabled?: boolean
+          label?: string
+          price_amount?: number | null
+          price_currency?: string
+          service_listing_id?: string
+          sort_order?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_pricing_items_service_listing_id_fkey"
+            columns: ["service_listing_id"]
+            isOneToOne: false
+            referencedRelation: "service_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_pricing_items_service_listing_id_fkey"
+            columns: ["service_listing_id"]
+            isOneToOne: false
+            referencedRelation: "service_listings_browse"
             referencedColumns: ["id"]
           },
         ]
@@ -1344,6 +1467,45 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "service_search_index"
             referencedColumns: ["category_id"]
+          },
+        ]
+      }
+      service_views: {
+        Row: {
+          created_at: string
+          id: string
+          service_listing_id: string
+          session_id: string | null
+          viewer_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          service_listing_id: string
+          session_id?: string | null
+          viewer_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          service_listing_id?: string
+          session_id?: string | null
+          viewer_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_views_service_listing_id_fkey"
+            columns: ["service_listing_id"]
+            isOneToOne: false
+            referencedRelation: "service_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_views_service_listing_id_fkey"
+            columns: ["service_listing_id"]
+            isOneToOne: false
+            referencedRelation: "service_listings_browse"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1888,6 +2050,46 @@ export type Database = {
         }
         Relationships: []
       }
+      service_listings_browse: {
+        Row: {
+          category_name: string | null
+          created_at: string | null
+          display_title: string | null
+          hero_image_url: string | null
+          id: string | null
+          location_base: string | null
+          micro_id: string | null
+          micro_name: string | null
+          micro_slug: string | null
+          pricing_summary: string | null
+          provider_avatar: string | null
+          provider_id: string | null
+          provider_name: string | null
+          provider_verification: string | null
+          published_at: string | null
+          short_description: string | null
+          starting_price: number | null
+          starting_price_unit: string | null
+          subcategory_name: string | null
+          view_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_listings_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_micro_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_listings_micro_id_fkey"
+            columns: ["micro_id"]
+            isOneToOne: false
+            referencedRelation: "service_search_index"
+            referencedColumns: ["micro_id"]
+          },
+        ]
+      }
       service_search_index: {
         Row: {
           category_id: string | null
@@ -1967,6 +2169,31 @@ export type Database = {
       create_direct_conversation: {
         Args: { p_client_id: string; p_job_id: string; p_pro_id: string }
         Returns: string
+      }
+      create_draft_service_listings: {
+        Args: { p_micro_ids: string[]; p_provider_id: string }
+        Returns: {
+          created_at: string
+          display_title: string
+          gallery: string[] | null
+          hero_image_url: string | null
+          id: string
+          location_base: string | null
+          micro_id: string
+          pricing_summary: string | null
+          provider_id: string
+          published_at: string | null
+          short_description: string | null
+          status: string
+          updated_at: string
+          view_count: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "service_listings"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_conversations_with_unread: {
         Args: never
