@@ -114,7 +114,7 @@ const ProDashboard = () => {
         {/* Compact Stats Row — 3 across on mobile */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-5">
           <Link
-            to="/onboarding/professional?edit=1&step=services"
+            to="/professional/listings"
             className="group"
           >
             <Card className="border-border/70 h-full transition-colors group-hover:border-primary/30">
@@ -175,12 +175,7 @@ const ProDashboard = () => {
           <QuickActionTile
             to="/professional/listings"
             icon={Store}
-            label={t('pro.myServices', 'My Services')}
-          />
-          <QuickActionTile
-            to="/onboarding/professional?edit=1&step=services"
-            icon={Wrench}
-            label={t('pro.updateServices')}
+            label={t('pro.myListings', 'My Listings')}
           />
           <QuickActionTile
             to="/professional/priorities"
@@ -191,6 +186,11 @@ const ProDashboard = () => {
             to="/professional/profile"
             icon={User}
             label={t('pro.editProfile')}
+          />
+          <QuickActionTile
+            to="/messages"
+            icon={MessageSquare}
+            label={t('pro.messages')}
           />
         </div>
 
@@ -289,13 +289,13 @@ const ProDashboard = () => {
                 <Button className="w-full justify-start gap-2 h-10" asChild>
                   <Link to="/professional/listings">
                     <Store className="h-4 w-4" />
-                    {t('pro.myServices', 'My Services')}
+                    {t('pro.myListings', 'My Listings')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
-                  <Link to="/onboarding/professional?edit=1&step=services">
-                    <Wrench className="h-4 w-4" />
-                    {t('pro.updateServices')}
+                  <Link to="/professional/priorities">
+                    <Star className="h-4 w-4" />
+                    {t('pro.setJobPriorities', 'Job Priorities')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
