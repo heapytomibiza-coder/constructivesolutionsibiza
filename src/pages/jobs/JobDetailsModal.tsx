@@ -479,7 +479,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
             </div>
             {matchedListings.length > 4 && (
               <div className="text-center">
-                <Link to="/marketplace" className="text-sm text-primary hover:underline">
+                <Link to="/services" className="text-sm text-primary hover:underline">
                   View all on Marketplace →
                 </Link>
               </div>

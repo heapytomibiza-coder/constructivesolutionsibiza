@@ -3,15 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PublicLayout, HeroBanner } from '@/components/layout';
+import { Skeleton } from '@/components/ui/skeleton';
 import { MAIN_CATEGORIES } from '@/domain/scope';
 import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
 import { 
   Hammer, Wrench, Droplets, Zap, Wind, Paintbrush, 
   Sparkles, TreePine, Waves, PenTool, Truck, 
   ChefHat, DoorOpen, Settings, Building2, FileCheck,
-  ArrowRight, Shield
+  ArrowRight, Shield, Store
 } from 'lucide-react';
 import heroServices from '@/assets/heroes/hero-services.jpg';
+import { useServiceListingsBrowse } from '@/pages/services/queries/serviceListings.query';
+import { ServiceListingCardComponent } from '@/pages/services/ServiceListingCard';
 
 /**
  * SERVICES PAGE - Browse all service categories
@@ -41,6 +44,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
 
 const Services = () => {
   const { t } = useTranslation('common');
+  const { data: listings, isLoading: listingsLoading } = useServiceListingsBrowse();
 
   return (
     <PublicLayout>
@@ -81,6 +85,31 @@ const Services = () => {
             );
           })}
         </div>
+
+        {/* Featured Services */}
+        {(listingsLoading || (listings && listings.length > 0)) && (
+          <div className="mt-16">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="font-display text-2xl font-bold">Featured Services</h2>
+                <p className="text-sm text-muted-foreground mt-1">Live service listings from Ibiza professionals</p>
+              </div>
+            </div>
+            {listingsLoading ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-72 rounded-lg" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {listings!.slice(0, 8).map((listing) => (
+                  <ServiceListingCardComponent key={listing.id} listing={listing} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* CTA */}
         <div className="mt-16 text-center bg-gradient-accent rounded-lg p-8">

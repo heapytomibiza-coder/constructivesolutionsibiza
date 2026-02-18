@@ -15,7 +15,7 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
   const priceLabel = formatStartingPrice(listing.starting_price, listing.starting_price_unit);
 
   return (
-    <Link to={`/marketplace/${listing.id}`}>
+    <Link to={`/services/listing/${listing.id}`}>
       <Card className="h-full card-grounded transition-all hover:shadow-soft hover:border-accent/50 cursor-pointer group overflow-hidden">
         {/* Image */}
         <div className="aspect-[16/10] bg-muted overflow-hidden">

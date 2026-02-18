@@ -175,7 +175,7 @@ const ProDashboard = () => {
           <QuickActionTile
             to="/professional/listings"
             icon={Store}
-            label={t('pro.myListings', 'My Listings')}
+            label={t('pro.myServices', 'My Services')}
           />
           <QuickActionTile
             to="/onboarding/professional?edit=1&step=services"
@@ -289,7 +289,7 @@ const ProDashboard = () => {
                 <Button className="w-full justify-start gap-2 h-10" asChild>
                   <Link to="/professional/listings">
                     <Store className="h-4 w-4" />
-                    {t('pro.myListings', 'My Listings')}
+                    {t('pro.myServices', 'My Services')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>

@@ -10,7 +10,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { ScrollToTop } from "@/shared/components/layout/ScrollToTop";
 import { RouteGuard, PublicOnlyGuard } from "@/guard";
@@ -28,7 +28,7 @@ import HowItWorks from "./pages/public/HowItWorks";
 import Contact from "./pages/public/Contact";
 import Privacy from "./pages/public/Privacy";
 import Terms from "./pages/public/Terms";
-import { ServiceMarketplace, ServiceListingDetail } from "./pages/services";
+import { ServiceListingDetail } from "./pages/services";
 
 // Auth Pages
 import Auth from "./pages/auth/Auth";
@@ -78,6 +78,12 @@ import LaunchChecklist from "./pages/LaunchChecklist";
 
 const queryClient = new QueryClient();
 
+/** Redirect /marketplace/:listingId → /services/listing/:listingId */
+function MarketplaceListingRedirect() {
+  const { listingId } = useParams();
+  return <Navigate to={`/services/listing/${listingId}`} replace />;
+}
+
 const App = () => {
   const [i18nReady, setI18nReady] = useState(false);
 
@@ -120,8 +126,10 @@ const App = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
-            <Route path="/marketplace" element={<ServiceMarketplace />} />
-            <Route path="/marketplace/:listingId" element={<ServiceListingDetail />} />
+            <Route path="/services/listing/:listingId" element={<ServiceListingDetail />} />
+            {/* Backward-compat redirects */}
+            <Route path="/marketplace" element={<Navigate to="/services" replace />} />
+            <Route path="/marketplace/:listingId" element={<MarketplaceListingRedirect />} />
             <Route path="/launch-checklist" element={<LaunchChecklist />} />
             <Route path="/launch-checklist" element={<LaunchChecklist />} />
             
