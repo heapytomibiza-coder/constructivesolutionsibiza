@@ -38,8 +38,9 @@ export const publicRoutes: RouteConfig[] = [
     lane: 'public', 
     nav: { section: 'public', labelKey: 'nav.services', order: 2 },
     titleKey: 'nav.services',
+    minRollout: 'service-layer',
   },
-  { path: '/services/:categorySlug', access: 'public', lane: 'public' },
+  { path: '/services/:categorySlug', access: 'public', lane: 'public', minRollout: 'service-layer' },
   { 
     path: '/jobs', 
     access: 'public', 
@@ -53,9 +54,10 @@ export const publicRoutes: RouteConfig[] = [
     lane: 'public', 
     nav: { section: 'public', labelKey: 'nav.professionals', order: 4 },
     titleKey: 'nav.professionals',
+    minRollout: 'founding-members',
   },
-  { path: '/professionals/:id', access: 'public', lane: 'public' },
-  { path: '/services/listing/:listingId', access: 'public', lane: 'public' },
+  { path: '/professionals/:id', access: 'public', lane: 'public', minRollout: 'founding-members' },
+  { path: '/services/listing/:listingId', access: 'public', lane: 'public', minRollout: 'service-layer' },
   { 
     path: '/how-it-works', 
     access: 'public', 

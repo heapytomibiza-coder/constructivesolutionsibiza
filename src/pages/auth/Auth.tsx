@@ -27,6 +27,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [fullName, setFullName] = useState('');
 
   // Intent selection state (for signup flow) - START with intent selector
   const [showIntentSelector, setShowIntentSelector] = useState(true);
@@ -110,6 +111,7 @@ const Auth = () => {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             intent: selectedIntent,
+            full_name: fullName,
             ...(phone ? { phone } : {}),
           },
         },
@@ -132,6 +134,7 @@ const Auth = () => {
       setEmail('');
       setPassword('');
       setPhone('');
+      setFullName('');
       setSelectedIntent(null);
       setShowIntentSelector(true);
     } catch (error: unknown) {
@@ -367,6 +370,20 @@ const Auth = () => {
                       >
                         {t('signUp.intentBadge.change')}
                       </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-fullname">{t('form.fullName.label', 'Full name')}</Label>
+                      <Input
+                        id="signup-fullname"
+                        type="text"
+                        placeholder={t('form.fullName.placeholder', 'Your full name')}
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        required
+                        className="h-11"
+                        autoComplete="name"
+                      />
                     </div>
 
                     <div className="space-y-2">
