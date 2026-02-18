@@ -1,84 +1,61 @@
 
 
-# Fix Intent Selector Labels + Job Details Timing/Capitalization
+# Add Quick Actions to Client Dashboard + Community Forum Links
 
-## What's changing
+## Summary
 
-### 1. Intent Selector -- Update labels to match Asker/Tasker branding
+The Pro Dashboard already has a direct link to `/professional/profile` in both mobile and desktop quick actions. The Client Dashboard currently has no quick action section at all -- just stats and a job list.
 
-Currently when signing up (with `allowProfessional=false`), users see:
-- "I'm a Client" (Asker badge)
-- "Both"
+This plan adds:
+1. A **quick actions section** to the Client Dashboard (matching the Pro Dashboard pattern) with links to Post Job, Messages, Community Forum, and Settings
+2. A **Community Forum tile** to the Pro Dashboard's quick actions (both mobile and desktop)
 
-**New copy:**
-- Option 1: **"I'm an Asker"** with subtitle badge "Asker" -- description: "I need help with a project -- post jobs, get quotes, hire professionals"
-- Option 2: **"I'm a Tasker"** with subtitle badge "Tasker" -- description: "We'll add you as both so you can hire and offer services"
+## Changes
 
-This repurposes the "Both" card into the clear Tasker entry point, explaining that both roles are included automatically.
+### 1. `src/pages/dashboard/client/ClientDashboard.tsx`
 
-### 2. Job Details -- Fix timing display and capitalization
+Add a quick actions grid between the stats row and the jobs list card, using the same `QuickActionTile` pattern from ProDashboard:
 
-The `formatTiming` function in `buildJobPack.ts` and the `prettyStatus` function in `JobDetailsModal.tsx` have inconsistent capitalization:
-- `prettyStatus("in_progress")` produces "In progress" instead of "In Progress"
-- Timing labels like "This week", "This month" need consistent title case
+**Mobile (2-column grid, visible below `sm`):**
+- Post a Job (`/post`) -- Plus icon
+- Messages (`/messages`) -- MessageSquare icon
+- Community Forum (`/forum`) -- MessageCircle icon (from lucide)
+- Settings (`/settings`) -- Settings icon
 
-**Fix:** Update `prettyStatus` to capitalize each word (Title Case), and ensure timing display values use proper capitalization.
+**Desktop (card with stacked buttons, hidden below `sm`):**
+Same four actions rendered as full-width buttons inside a "Quick Actions" card, matching the Pro Dashboard's desktop layout.
 
-### 3. Password hint alignment
+Import the `QuickActionTile` component -- since it's currently defined locally inside `ProDashboard.tsx`, it will be extracted to a shared location first.
 
-The signup password hint still says "At least 6 characters" but the minimum was changed to 8. Update both EN and ES translation files.
+### 2. Extract `QuickActionTile` to shared component
 
----
+Move `QuickActionTile` from `src/pages/dashboard/professional/ProDashboard.tsx` into `src/pages/dashboard/shared/components/QuickActionTile.tsx` so both dashboards can reuse it.
 
-## Files to change
+Update ProDashboard to import from the new shared location.
 
-### `public/locales/en/auth.json`
-- `intent.options.client.title`: "I'm a Client" -> "I'm an Asker"
-- `intent.options.both.title`: "Both" -> "I'm a Tasker"
-- `intent.options.both.subtitle`: (add) "Tasker"
-- `intent.options.both.description`: "I hire professionals AND offer my own services" -> "We'll add you as both so you can hire and offer services"
-- `signUp.passwordHint`: "At least 6 characters" -> "At least 8 characters"
-- `resetPasswordPage.passwordTooShort`: "Password must be at least 6 characters" -> "Password must be at least 8 characters"
+### 3. `src/pages/dashboard/professional/ProDashboard.tsx`
 
-### `public/locales/es/auth.json`
-- `intent.options.client.title`: "Soy cliente" -> "Soy Asker"
-- `intent.options.both.title`: "Ambos" -> "Soy Tasker"
-- `intent.options.both.subtitle`: (add) "Tasker"
-- `intent.options.both.description`: "Contrato profesionales Y tambien ofrezco mis propios servicios" -> "Te agregaremos como ambos para que puedas contratar y ofrecer servicios"
-- `signUp.passwordHint`: "Minimo 6 caracteres" -> "Minimo 8 caracteres"
-- `resetPasswordPage.passwordTooShort`: update to 8 characters
+Add a "Community Forum" tile to both the mobile quick actions grid and the desktop quick actions card:
+- Community Forum (`/forum`) -- MessageCircle icon
+- Hint: "Ask questions, get recommendations"
 
-### `src/pages/jobs/JobDetailsModal.tsx`
-- Fix `prettyStatus` to use Title Case (capitalize every word, not just the first)
+### 4. Translation keys (EN + ES)
 
-### `src/pages/jobs/lib/buildJobPack.ts`
-- Verify timing labels use consistent capitalization (already correct: "This week", "This month", etc.)
+Add to `public/locales/en/dashboard.json`:
+- `client.quickActions`: "Quick Actions"
+- `client.communityForum`: "Community Forum"
+- `client.communityForumHint`: "Ask questions, get recommendations"
+- `client.settingsHint`: "Account and preferences"
+- `client.postJobHint`: "Describe what you need done"
+- `client.messagesHint`: "Chat with Taskers"
+- `pro.communityForum`: "Community Forum"
+- `pro.communityForumHint`: "Ask questions, get recommendations"
 
----
+Add equivalent keys to `public/locales/es/dashboard.json`.
 
-## Technical details
+## Technical notes
 
-### prettyStatus fix (JobDetailsModal.tsx, line 41-44)
-
-Current:
-```typescript
-function prettyStatus(s: string | null | undefined): string {
-  if (!s) return "";
-  return s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
-}
-```
-
-Fixed (Title Case all words):
-```typescript
-function prettyStatus(s: string | null | undefined): string {
-  if (!s) return "";
-  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-```
-
-This changes "in progress" to "In Progress", "open" to "Open", etc.
-
-### Intent selector -- no component changes needed
-
-The `IntentSelector.tsx` component already supports optional `subtitle` on any option. Since the "both" option currently has no subtitle, adding `"subtitle": "Tasker"` to the JSON will make the badge appear automatically.
+- The `QuickActionTile` component already accepts `to`, `icon`, `label`, and `hint` props -- no API changes needed, just relocating it
+- The forum is already a public route (`/forum`) so no rollout gating is needed
+- Both dashboards maintain their existing nav bar, stats, and content -- only the quick actions section is modified
 
