@@ -408,6 +408,7 @@ const Auth = () => {
                         placeholder={t('signUp.phone.placeholder')}
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
+                        required
                         className="h-11"
                         autoComplete="tel"
                       />
