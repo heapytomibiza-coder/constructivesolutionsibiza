@@ -104,7 +104,7 @@ const ProDashboard = () => {
               <Button variant="accent" size="sm" asChild className="shrink-0">
                 <Link to="/onboarding/professional?step=services">
                   <Wrench className="h-4 w-4 mr-1.5" />
-                  Setup
+                  {t('pro.addCategories', 'Add Categories')}
                 </Link>
               </Button>
             </CardContent>
@@ -128,7 +128,8 @@ const ProDashboard = () => {
                 ) : (
                   <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.servicesCount}</p>
                 )}
-                <p className="text-xs text-muted-foreground mt-0.5">{t('pro.yourServices')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('pro.serviceCategories', 'Service Categories')}</p>
+                <p className="text-[11px] text-muted-foreground/70 mt-0.5 leading-tight hidden sm:block">{t('pro.serviceCategoriesHint', 'Used to match you to jobs')}</p>
               </CardContent>
             </Card>
           </Link>
@@ -175,22 +176,26 @@ const ProDashboard = () => {
           <QuickActionTile
             to="/professional/listings"
             icon={Store}
-            label={t('pro.myListings', 'My Listings')}
+            label={t('pro.manageListings', 'Manage Listings')}
+            hint={t('pro.manageListingsHint', 'Edit prices, photos and details')}
           />
           <QuickActionTile
             to="/professional/priorities"
             icon={Star}
-            label={t('pro.setJobPriorities', 'Job Priorities')}
+            label={t('pro.jobPriorities', 'Job Priorities')}
+            hint={t('pro.jobPrioritiesHint', 'Get more of the work you want')}
           />
           <QuickActionTile
             to="/professional/profile"
             icon={User}
             label={t('pro.editProfile')}
+            hint={t('pro.editProfileHint', 'Update your Tasker profile')}
           />
           <QuickActionTile
             to="/messages"
             icon={MessageSquare}
             label={t('pro.messages')}
+            hint={t('pro.messagesHint', 'Chat with Askers')}
           />
         </div>
 
@@ -283,19 +288,19 @@ const ProDashboard = () => {
             {/* Quick Actions — desktop only */}
             <Card className="border-border/70 hidden sm:block">
               <CardHeader className="pb-2 pt-4 px-4">
-                <CardTitle className="text-sm font-medium">{t('pro.quickActions')}</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('pro.manageYourWork', 'Manage Your Work')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-1.5 px-4 pb-4">
                 <Button className="w-full justify-start gap-2 h-10" asChild>
                   <Link to="/professional/listings">
                     <Store className="h-4 w-4" />
-                    {t('pro.myListings', 'My Listings')}
+                    {t('pro.manageListings', 'Manage Listings')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
                   <Link to="/professional/priorities">
                     <Star className="h-4 w-4" />
-                    {t('pro.setJobPriorities', 'Job Priorities')}
+                    {t('pro.jobPriorities', 'Job Priorities')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
@@ -357,25 +362,32 @@ function QuickActionTile({
   to,
   icon: Icon,
   label,
+  hint,
 }: {
   to: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
+  hint?: string;
 }) {
   return (
     <Link
       to={to}
       className={cn(
-        'flex items-center gap-2.5 p-3 rounded-lg border border-border/70 bg-card',
+        'flex items-start gap-2.5 p-3 rounded-lg border border-border/70 bg-card',
         'hover:border-primary/30 hover:bg-muted/30 transition-colors',
         'active:scale-[0.98] active:bg-muted/50',
-        'min-h-[48px]'
+        'min-h-[56px]'
       )}
     >
-      <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+      <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
         <Icon className="h-4 w-4 text-primary" />
       </div>
-      <span className="text-sm font-medium text-foreground leading-tight">{label}</span>
+      <div className="min-w-0">
+        <div className="text-sm font-medium text-foreground leading-tight">{label}</div>
+        {hint && (
+          <div className="text-xs text-muted-foreground mt-0.5 leading-tight">{hint}</div>
+        )}
+      </div>
     </Link>
   );
 }

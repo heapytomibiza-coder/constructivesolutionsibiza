@@ -9,9 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Plus } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Plus, Wrench } from 'lucide-react';
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
+import { useTranslation } from 'react-i18next';
 
 /** Calculate profile completeness for a listing */
 function getCompleteness(listing: MyListing): number {
@@ -142,6 +143,7 @@ function ListingCard({ listing }: { listing: MyListing }) {
 }
 
 export default function MyServiceListings() {
+  const { t } = useTranslation('dashboard');
   const { data: listings, isLoading } = useMyListings();
 
   const drafts = listings?.filter(l => l.status === 'draft') ?? [];
@@ -155,11 +157,26 @@ export default function MyServiceListings() {
           <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
             <Link to="/dashboard/pro"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
-          <h1 className="font-display text-lg font-semibold">My Service Listings</h1>
+          <h1 className="font-display text-lg font-semibold">
+            {t('pro.manageListings', 'Manage Listings')}
+          </h1>
         </div>
       </nav>
 
       <div className="container py-5 sm:py-8">
+        {/* Hub header with hint + Add/Remove Categories */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-5">
+          <p className="text-sm text-muted-foreground">
+            {t('pro.manageListingsPageHint', 'Edit and publish your services to appear on the platform.')}
+          </p>
+          <Button variant="outline" size="sm" asChild className="shrink-0 gap-1.5">
+            <Link to="/onboarding/professional?edit=1&step=services">
+              <Wrench className="h-3.5 w-3.5" />
+              {t('pro.addRemoveCategories', 'Add / Remove Categories')}
+            </Link>
+          </Button>
+        </div>
+
         <Tabs defaultValue="draft">
           <TabsList className="mb-4">
             <TabsTrigger value="draft">Draft ({drafts.length})</TabsTrigger>
@@ -175,7 +192,7 @@ export default function MyServiceListings() {
             <>
               <TabsContent value="draft" className="space-y-3">
                 {drafts.length === 0 ? (
-                  <EmptyTab message="No draft listings. Add services in onboarding to create drafts." />
+                  <EmptyTab message={t('pro.emptyDrafts', 'No draft listings. Add categories to create drafts.')} t={t} />
                 ) : (
                   drafts.map(l => <ListingCard key={l.id} listing={l} />)
                 )}
@@ -183,7 +200,7 @@ export default function MyServiceListings() {
 
               <TabsContent value="live" className="space-y-3">
                 {live.length === 0 ? (
-                  <EmptyTab message="No live listings yet. Edit and publish your drafts to go live." />
+                  <EmptyTab message={t('pro.emptyLive', 'No live listings yet. Edit and publish your drafts to go live.')} t={t} />
                 ) : (
                   live.map(l => <ListingCard key={l.id} listing={l} />)
                 )}
@@ -191,7 +208,7 @@ export default function MyServiceListings() {
 
               <TabsContent value="paused" className="space-y-3">
                 {paused.length === 0 ? (
-                  <EmptyTab message="No paused listings." />
+                  <EmptyTab message={t('pro.emptyPaused', 'No paused listings.')} t={t} />
                 ) : (
                   paused.map(l => <ListingCard key={l.id} listing={l} />)
                 )}
@@ -204,13 +221,13 @@ export default function MyServiceListings() {
   );
 }
 
-function EmptyTab({ message }: { message: string }) {
+function EmptyTab({ message, t }: { message: string; t: ReturnType<typeof useTranslation>['t'] }) {
   return (
     <div className="py-12 text-center">
       <p className="text-sm text-muted-foreground mb-3">{message}</p>
       <Button variant="outline" size="sm" asChild>
         <Link to="/onboarding/professional?edit=1&step=services">
-          <Plus className="h-4 w-4 mr-1.5" /> Add Services
+          <Wrench className="h-4 w-4 mr-1.5" /> {t('pro.addRemoveCategories', 'Add / Remove Categories')}
         </Link>
       </Button>
     </div>
