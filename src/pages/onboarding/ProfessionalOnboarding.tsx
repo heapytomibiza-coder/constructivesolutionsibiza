@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +39,7 @@ const ProfessionalOnboarding = () => {
   const editMode = params.get('edit') === '1';
   const stepParam = params.get('step') as WizardStep | null;
 
-  const { professionalProfile, isLoading } = useSession();
+  const { user, professionalProfile, isLoading } = useSession();
   const phase = professionalProfile?.onboardingPhase || 'not_started';
 
   // Determine the starting step based on phase
@@ -59,6 +60,36 @@ const ProfessionalOnboarding = () => {
   // Current step index (0-based) for progress display
   const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
   const progress = currentStepIndex >= 0 ? ((currentStepIndex + 1) / STEPS.length) * 100 : 25;
+
+  // Fresh DB checks for accurate stepper ticks (not index-based)
+  const [stepCompletion, setStepCompletion] = useState([false, false, false, false]);
+
+  useEffect(() => {
+    if (!user?.id || isLoading) return;
+    let cancelled = false;
+    (async () => {
+      const [ppRes, profRes, svcRes] = await Promise.all([
+        supabase.from('professional_profiles')
+          .select('service_zones, display_name, business_name')
+          .eq('user_id', user.id).single(),
+        supabase.from('profiles')
+          .select('phone')
+          .eq('user_id', user.id).single(),
+        supabase.from('professional_services')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', 'offered'),
+      ]);
+      if (cancelled) return;
+      const pp = ppRes.data;
+      const hasName = !!(pp?.display_name?.trim() || pp?.business_name?.trim());
+      const hasPhone = !!profRes.data?.phone?.trim();
+      const hasZones = (pp?.service_zones?.length ?? 0) > 0;
+      const hasServices = (svcRes.count ?? 0) > 0;
+      setStepCompletion([hasName && hasPhone, hasZones, hasServices, false]);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id, isLoading, currentStep]);
 
   // Fix 4: Set correct step once profile has loaded
   useEffect(() => {
@@ -187,7 +218,7 @@ const ProfessionalOnboarding = () => {
             <div className="mb-8 animate-fade-in">
               <div className="flex justify-between mb-3">
                 {STEPS.map((step, index) => {
-                  const isComplete = index < currentStepIndex;
+                  const isComplete = stepCompletion[index];
                   const isCurrent = index === currentStepIndex;
                   return (
                     <div key={step.id} className="flex flex-col items-center gap-1.5">
