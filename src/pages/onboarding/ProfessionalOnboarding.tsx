@@ -15,22 +15,21 @@ type WizardStep = 'tracker' | 'basic_info' | 'service_area' | 'services' | 'revi
 interface StepConfig {
   id: string;
   label: string;
-  description: string;
   icon: React.ComponentType<{ className?: string }>;
 }
 
 const STEPS: StepConfig[] = [
-  { id: 'basic_info', label: 'About You', description: 'Your name and contact details', icon: User },
-  { id: 'service_area', label: 'Where You Work', description: 'Which areas of Ibiza', icon: MapPin },
-  { id: 'services', label: 'The Work You Do', description: 'Jobs you want to receive', icon: Briefcase },
-  { id: 'review', label: 'All Done!', description: 'Check and go live', icon: Rocket },
+  { id: 'basic_info', label: 'About You', icon: User },
+  { id: 'service_area', label: 'Where You Work', icon: MapPin },
+  { id: 'services', label: 'The Work You Do', icon: Briefcase },
+  { id: 'review', label: 'Go Live', icon: Rocket },
 ];
 
 /**
  * PROFESSIONAL ONBOARDING WIZARD
  * 
- * Builder-friendly multi-step onboarding.
- * Warm, conversational language. Large touch targets.
+ * Simple linear 4-step flow for first-time onboarding.
+ * Edit mode shows a tracker overview for jumping between steps.
  */
 const ProfessionalOnboarding = () => {
   const navigate = useNavigate();
@@ -40,76 +39,26 @@ const ProfessionalOnboarding = () => {
   const stepParam = params.get('step') as WizardStep | null;
 
   const { professionalProfile, isLoading } = useSession();
-  const [currentStep, setCurrentStep] = useState<WizardStep>('tracker');
-
-  // Determine completed steps based on onboarding phase
   const phase = professionalProfile?.onboardingPhase || 'not_started';
-  
-  type StepStatus = "complete" | "current" | "pending";
-  const stepOrder = ["basic_info", "service_area", "services", "review"] as const;
-  type StepId = (typeof stepOrder)[number];
 
-  /**
-   * Returns status for a step based on onboarding phase.
-   *
-   * Rules:
-   * - not_started => basic_info is current
-   * - otherwise current step is derived from phase
-   * - steps before current are complete, after are pending
-   */
-  const getStepStatus = (stepId: StepId): StepStatus => {
-    // Defensive: normalize phase just in case it comes back null/undefined
-    const p = (phase ?? "not_started") as string;
-
-    /**
-     * Map a stored onboarding phase to "what step should be current now"
-     * This is a "phase -> current step" mapping (not "phase -> completed step").
-     */
-    const phaseToCurrentStep: Record<string, StepId | "done"> = {
-      // start state
-      not_started: "basic_info",
-
-      // MVP phases (matching step completion)
-      basic_info: "service_area",
-      service_area: "services",
-      services: "review",
-      review: "done",
-      complete: "done",
-
-      // Backwards-compatible aliases (if older names exist in DB)
-      verification: "services",
-      service_setup: "review",
-    };
-
-    const currentStepId = phaseToCurrentStep[p] ?? "basic_info";
-
-    if (currentStepId === "done") return "complete";
-
-    const stepIndex = stepOrder.indexOf(stepId);
-    const currentIndex = stepOrder.indexOf(currentStepId);
-
-    if (stepIndex < currentIndex) return "complete";
-    if (stepIndex === currentIndex) return "current";
-    return "pending";
+  // Determine the starting step based on phase
+  const phaseToStep: Record<string, WizardStep> = {
+    not_started: 'basic_info',
+    basic_info: 'service_area',
+    service_area: 'services',
+    services: 'review',
+    service_setup: 'review',
+    verification: 'services',
+    review: 'review',
+    complete: 'review',
   };
 
-  const completedSteps = STEPS.filter(s => getStepStatus(s.id as StepId) === 'complete').length;
-  const progress = phase === 'complete' || phase === 'service_setup' 
-    ? 100 
-    : ((completedSteps + 1) / STEPS.length) * 100;
+  const initialStep: WizardStep = editMode ? 'tracker' : (phaseToStep[phase] ?? 'basic_info');
+  const [currentStep, setCurrentStep] = useState<WizardStep>(initialStep);
 
-  const handleStepClick = (stepId: string) => {
-    if (editMode) {
-      setCurrentStep(stepId as WizardStep);
-      trackEvent('pro_onboarding_step_entered', 'professional', { step: stepId, edit_mode: true });
-      return;
-    }
-    const status = getStepStatus(stepId as StepId);
-    if (status === 'complete' || status === 'current') {
-      setCurrentStep(stepId as WizardStep);
-      trackEvent('pro_onboarding_step_entered', 'professional', { step: stepId });
-    }
-  };
+  // Current step index (0-based) for progress display
+  const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
+  const progress = currentStepIndex >= 0 ? ((currentStepIndex + 1) / STEPS.length) * 100 : 25;
 
   // Only redirect completed users when NOT in edit mode
   useEffect(() => {
@@ -118,7 +67,7 @@ const ProfessionalOnboarding = () => {
     }
   }, [phase, editMode, navigate]);
 
-  // Deep-link to a step (edit mode or first visit)
+  // Deep-link to a step
   useEffect(() => {
     if (!stepParam) return;
     const allowed: WizardStep[] = ['basic_info', 'service_area', 'services', 'review', 'tracker'];
@@ -127,38 +76,35 @@ const ProfessionalOnboarding = () => {
     }
   }, [stepParam]);
 
-  // When re-editing a completed step, return to tracker instead of advancing
-  const isReEditingStep = (stepId: string) => {
-    return getStepStatus(stepId as StepId) === 'complete';
-  };
+  // Update step when phase changes (e.g. after save + refresh)
+  useEffect(() => {
+    if (editMode) return;
+    const nextStep = phaseToStep[phase] ?? 'basic_info';
+    // Only auto-advance if we're behind
+    const stepOrder: WizardStep[] = ['basic_info', 'service_area', 'services', 'review'];
+    const currentIdx = stepOrder.indexOf(currentStep);
+    const nextIdx = stepOrder.indexOf(nextStep);
+    if (nextIdx > currentIdx) {
+      setCurrentStep(nextStep);
+    }
+  }, [phase, editMode]);
 
+  // Step completion handlers - always advance to next step
   const handleBasicInfoComplete = () => {
     trackEvent('pro_onboarding_started', 'professional', { step: 'basic_info' });
-    if (isReEditingStep('basic_info')) {
-      setCurrentStep('tracker');
-      return;
-    }
-    trackEvent('pro_onboarding_step_entered', 'professional', { step: 'service_area' });
+    if (editMode) { setCurrentStep('tracker'); return; }
     setCurrentStep('service_area');
   };
 
   const handleServiceAreaComplete = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'service_area' });
-    if (isReEditingStep('service_area')) {
-      setCurrentStep('tracker');
-      return;
-    }
-    trackEvent('pro_onboarding_step_entered', 'professional', { step: 'services' });
+    if (editMode) { setCurrentStep('tracker'); return; }
     setCurrentStep('services');
   };
 
   const handleServicesComplete = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'services' });
-    if (isReEditingStep('services')) {
-      setCurrentStep('tracker');
-      return;
-    }
-    trackEvent('pro_onboarding_step_entered', 'professional', { step: 'review' });
+    if (editMode) { setCurrentStep('tracker'); return; }
     setCurrentStep('review');
   };
 
@@ -173,7 +119,7 @@ const ProfessionalOnboarding = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
-      {/* Navigation - Friendlier */}
+      {/* Navigation */}
       <nav className="border-b border-border bg-card/90 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="container flex h-18 items-center justify-between py-4">
           <Link to="/" className="flex items-center gap-3">
@@ -194,7 +140,7 @@ const ProfessionalOnboarding = () => {
               Back to Dashboard
             </Button>
           )}
-          {currentStep !== 'tracker' && (
+          {editMode && currentStep !== 'tracker' && (
             <Button variant="ghost" size="sm" onClick={() => setCurrentStep('tracker')}>
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Overview
@@ -205,157 +151,88 @@ const ProfessionalOnboarding = () => {
 
       <div className="container py-10 sm:py-14">
         <div className="mx-auto max-w-xl">
-          {/* Header - Warm, friendly */}
+          {/* Header */}
           <div className="text-center mb-10 animate-fade-in">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
               {editMode
                 ? 'Edit your professional profile'
-                : currentStep === 'tracker' ? "Let's get you started" : 
+                : currentStep === 'tracker' ? "Let's get you started" :
                   currentStep === 'basic_info' ? 'Step 1: About You' :
                   currentStep === 'service_area' ? 'Step 2: Where You Work' :
                   currentStep === 'services' ? 'Step 3: The Work You Do' :
-                  'Step 4: All Done!'}
+                  'Step 4: Go Live!'}
             </h1>
             <p className="text-lg text-muted-foreground">
               {editMode
                 ? 'Jump to any step and update your details.'
                 : currentStep === 'tracker' 
                   ? "Just a few quick steps and you'll be ready to receive work."
-                  : 'Complete this step to continue.'}
+                  : `Step ${currentStepIndex + 1} of ${STEPS.length}`}
             </p>
           </div>
 
-          {/* Progress Card - Only shown on tracker overview */}
-          {currentStep === 'tracker' && (
-            <Card className="mb-8 card-grounded animate-fade-in">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold">
-                    You're doing great!
-                  </CardTitle>
-                  <span className="text-base font-semibold text-primary">
-                    {completedSteps} of {STEPS.length} done
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Progress value={progress} className="h-3" />
-                {/* Step indicators */}
-                <div className="flex justify-between mt-3">
-                  {STEPS.map((step, index) => {
-                    const status = getStepStatus(step.id as StepId);
-                    return (
-                      <div 
-                        key={step.id}
-                        className={cn(
-                          'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors',
-                          status === 'complete' && 'bg-primary text-primary-foreground',
-                          status === 'current' && 'bg-primary/20 text-primary border-2 border-primary',
-                          status === 'pending' && 'bg-muted text-muted-foreground'
-                        )}
-                      >
-                        {status === 'complete' ? (
+          {/* Step progress indicator - shown during linear flow (not tracker) */}
+          {currentStep !== 'tracker' && (
+            <div className="mb-8 animate-fade-in">
+              <div className="flex justify-between mb-3">
+                {STEPS.map((step, index) => {
+                  const isComplete = index < currentStepIndex;
+                  const isCurrent = index === currentStepIndex;
+                  return (
+                    <div key={step.id} className="flex flex-col items-center gap-1.5">
+                      <div className={cn(
+                        'flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold transition-colors',
+                        isComplete && 'bg-primary text-primary-foreground',
+                        isCurrent && 'bg-primary/20 text-primary border-2 border-primary',
+                        !isComplete && !isCurrent && 'bg-muted text-muted-foreground'
+                      )}>
+                        {isComplete ? (
                           <CheckCircle2 className="h-5 w-5" />
                         ) : (
                           index + 1
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                      <span className={cn(
+                        'text-xs font-medium hidden sm:block',
+                        isCurrent ? 'text-primary' : 'text-muted-foreground'
+                      )}>
+                        {step.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
           )}
 
           {/* Content based on current step */}
           {currentStep === 'tracker' ? (
-            <div className="space-y-4">
-              {STEPS.map((step, index) => {
-                const status = getStepStatus(step.id as StepId);
-                const isComplete = status === 'complete';
-                const isCurrent = status === 'current';
-                const canClick = editMode ? true : isComplete || isCurrent;
-                const Icon = step.icon;
-
-                return (
-                  <Card 
-                    key={step.id}
-                    className={cn(
-                      'card-grounded transition-all duration-300',
-                      'animate-fade-in',
-                      isCurrent && 'border-primary/60 ring-2 ring-primary/20 shadow-lg',
-                      canClick && 'cursor-pointer hover:border-primary/50',
-                      !canClick && 'opacity-50'
-                    )}
-                    style={{ animationDelay: `${index * 80}ms` }}
-                    onClick={() => canClick && handleStepClick(step.id)}
-                  >
-                    <CardContent className="flex items-center justify-between py-5 px-5">
-                      <div className="flex items-center gap-4">
-                        {/* Step number/icon - Larger */}
-                        <div className={cn(
-                          'flex h-14 w-14 items-center justify-center rounded-xl text-lg font-bold',
-                          isComplete && 'bg-primary/15 text-primary',
-                          isCurrent && 'bg-gradient-steel text-white shadow-md',
-                          !isComplete && !isCurrent && 'bg-muted text-muted-foreground'
-                        )}>
-                          {isComplete ? (
-                            <CheckCircle2 className="h-7 w-7" />
-                          ) : isCurrent ? (
-                            <Icon className="h-7 w-7" />
-                          ) : (
-                            <span>{index + 1}</span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-lg font-semibold text-foreground">
-                            {step.label}
-                          </p>
-                          <p className="text-base text-muted-foreground">
-                            {step.description}
-                          </p>
-                        </div>
-                      </div>
-                      {canClick && (
-                        <Button 
-                          variant={isCurrent ? 'default' : 'outline'} 
-                          size="default"
-                          className="shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStepClick(step.id);
-                          }}
-                        >
-                          {editMode ? 'Edit' : isComplete ? 'Edit' : 'Start'}
-                          <ArrowRight className="ml-2 h-5 w-5" />
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-
-              {/* Reassurance message */}
-              <p className="text-center text-base text-muted-foreground pt-4">
-                Trusted by builders across Ibiza
-              </p>
-            </div>
+            <TrackerView
+              steps={STEPS}
+              phase={phase}
+              editMode={editMode}
+              onStepClick={(stepId) => {
+                setCurrentStep(stepId as WizardStep);
+                trackEvent('pro_onboarding_step_entered', 'professional', { step: stepId, edit_mode: editMode });
+              }}
+            />
           ) : currentStep === 'basic_info' ? (
             <BasicInfoStep onComplete={handleBasicInfoComplete} />
           ) : currentStep === 'service_area' ? (
             <ServiceAreaStep 
               onComplete={handleServiceAreaComplete} 
-              onBack={() => setCurrentStep('basic_info')}
+              onBack={() => editMode ? setCurrentStep('tracker') : setCurrentStep('basic_info')}
             />
           ) : currentStep === 'services' ? (
             <ServiceUnlockStep
               onComplete={handleServicesComplete}
-              onBack={() => setCurrentStep('service_area')}
+              onBack={() => editMode ? setCurrentStep('tracker') : setCurrentStep('service_area')}
               editMode={editMode}
             />
           ) : currentStep === 'review' ? (
             <ReviewStep
-              onBack={() => setCurrentStep('services')}
+              onBack={() => editMode ? setCurrentStep('tracker') : setCurrentStep('services')}
             />
           ) : null}
         </div>
@@ -365,3 +242,112 @@ const ProfessionalOnboarding = () => {
 };
 
 export default ProfessionalOnboarding;
+
+/* ──────── Tracker View (edit mode only) ──────── */
+
+interface TrackerViewProps {
+  steps: StepConfig[];
+  phase: string;
+  editMode: boolean;
+  onStepClick: (stepId: string) => void;
+}
+
+function TrackerView({ steps, phase, editMode, onStepClick }: TrackerViewProps) {
+  const stepOrder = ['basic_info', 'service_area', 'services', 'review'] as const;
+  
+  const phaseToCurrentStep: Record<string, string | 'done'> = {
+    not_started: 'basic_info',
+    basic_info: 'service_area',
+    service_area: 'services',
+    services: 'review',
+    service_setup: 'review',
+    review: 'done',
+    complete: 'done',
+    verification: 'services',
+  };
+
+  const currentStepId = phaseToCurrentStep[phase] ?? 'basic_info';
+
+  const getStatus = (stepId: string): 'complete' | 'current' | 'pending' => {
+    if (currentStepId === 'done') return 'complete';
+    const stepIdx = stepOrder.indexOf(stepId as typeof stepOrder[number]);
+    const curIdx = stepOrder.indexOf(currentStepId as typeof stepOrder[number]);
+    if (stepIdx < curIdx) return 'complete';
+    if (stepIdx === curIdx) return 'current';
+    return 'pending';
+  };
+
+  const completedCount = steps.filter(s => getStatus(s.id) === 'complete').length;
+
+  return (
+    <div className="space-y-4">
+      {/* Progress summary */}
+      <Card className="card-grounded mb-6">
+        <CardContent className="py-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-lg font-semibold">Your progress</span>
+            <span className="text-base font-semibold text-primary">
+              {completedCount} of {steps.length} done
+            </span>
+          </div>
+          <Progress value={(completedCount / steps.length) * 100} className="h-3" />
+        </CardContent>
+      </Card>
+
+      {steps.map((step, index) => {
+        const status = getStatus(step.id);
+        const isComplete = status === 'complete';
+        const isCurrent = status === 'current';
+        const canClick = editMode || isComplete || isCurrent;
+        const Icon = step.icon;
+
+        return (
+          <Card 
+            key={step.id}
+            className={cn(
+              'card-grounded transition-all duration-300 animate-fade-in',
+              isCurrent && 'border-primary/60 ring-2 ring-primary/20 shadow-lg',
+              canClick && 'cursor-pointer hover:border-primary/50',
+              !canClick && 'opacity-50'
+            )}
+            style={{ animationDelay: `${index * 80}ms` }}
+            onClick={() => canClick && onStepClick(step.id)}
+          >
+            <CardContent className="flex items-center justify-between py-5 px-5">
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  'flex h-14 w-14 items-center justify-center rounded-xl text-lg font-bold',
+                  isComplete && 'bg-primary/15 text-primary',
+                  isCurrent && 'bg-gradient-steel text-white shadow-md',
+                  !isComplete && !isCurrent && 'bg-muted text-muted-foreground'
+                )}>
+                  {isComplete ? (
+                    <CheckCircle2 className="h-7 w-7" />
+                  ) : isCurrent ? (
+                    <Icon className="h-7 w-7" />
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                </div>
+                <p className="text-lg font-semibold text-foreground">
+                  {step.label}
+                </p>
+              </div>
+              {canClick && (
+                <Button 
+                  variant={isCurrent ? 'default' : 'outline'} 
+                  size="default"
+                  className="shrink-0"
+                  onClick={(e) => { e.stopPropagation(); onStepClick(step.id); }}
+                >
+                  {isComplete ? 'Edit' : 'Start'}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
