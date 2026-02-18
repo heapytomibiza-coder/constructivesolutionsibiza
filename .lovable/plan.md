@@ -1,50 +1,84 @@
-# Fix: "Go Live" Blocked + Home Tiles Mismatch
 
-## Problem 1: "Go Live" button is disabled (not a spinner bug)
 
-**Root cause**: All stuck professionals have `service_zones = NULL` in the database. The ReviewStep requires `service_zones` to be non-empty before enabling the "Go Live" button -- so it stays greyed out with "Complete all checklist items to go live".
+# Fix Intent Selector Labels + Job Details Timing/Capitalization
 
-The service zones are correctly saved by ServiceAreaStep, but the session snapshot only loads `service_zones` from `professional_profiles`. Since these users show `service_zones = NULL` in the DB, either:
+## What's changing
 
-- They navigated directly to a later step via URL params (skipping ServiceAreaStep)
-- An earlier version of the code didn't save zones
+### 1. Intent Selector -- Update labels to match Asker/Tasker branding
 
-**Fix A -- Session snapshot not loading service_zones (already works)**
-The `useSessionSnapshot` already fetches `service_zones` at line 116. No change needed here.
+Currently when signing up (with `allowProfessional=false`), users see:
+- "I'm a Client" (Asker badge)
+- "Both"
 
-**Fix B -- Make ReviewStep resilient: fetch directly from DB**
-Instead of relying solely on the session snapshot (which might be stale), the ReviewStep should fetch `service_zones` directly from the database to get the freshest data. This ensures the checklist reflects actual DB state.
+**New copy:**
+- Option 1: **"I'm an Asker"** with subtitle badge "Asker" -- description: "I need help with a project -- post jobs, get quotes, hire professionals"
+- Option 2: **"I'm a Tasker"** with subtitle badge "Tasker" -- description: "We'll add you as both so you can hire and offer services"
 
-**Fix C -- Data repair for stuck users**
-Run a one-time SQL to check which users at `service_setup` phase genuinely have no zones. For those, the admin dashboard already surfaces them -- they need to go back and complete the ServiceAreaStep.
+This repurposes the "Both" card into the clear Tasker entry point, explaining that both roles are included automatically.
 
-## Problem 2: Home tiles category name mismatch
+### 2. Job Details -- Fix timing display and capitalization
 
-**Root cause**: `MAIN_CATEGORIES` in `src/domain/scope.ts` has `'Architects & Design'` but the database has `'Architects, Design & Management'`. When the homepage generates a slug from the name, it creates `architects-design` but the DB slug is `architects-design-management`.
+The `formatTiming` function in `buildJobPack.ts` and the `prettyStatus` function in `JobDetailsModal.tsx` have inconsistent capitalization:
+- `prettyStatus("in_progress")` produces "In progress" instead of "In Progress"
+- Timing labels like "This week", "This month" need consistent title case
 
-**Fix**: Update `MAIN_CATEGORIES` and `categoryIcons` in the Index page to match the actual DB category name.
+**Fix:** Update `prettyStatus` to capitalize each word (Title Case), and ensure timing display values use proper capitalization.
+
+### 3. Password hint alignment
+
+The signup password hint still says "At least 6 characters" but the minimum was changed to 8. Update both EN and ES translation files.
 
 ---
 
-## Technical Changes
+## Files to change
 
-### 1. Update `src/domain/scope.ts`
+### `public/locales/en/auth.json`
+- `intent.options.client.title`: "I'm a Client" -> "I'm an Asker"
+- `intent.options.both.title`: "Both" -> "I'm a Tasker"
+- `intent.options.both.subtitle`: (add) "Tasker"
+- `intent.options.both.description`: "I hire professionals AND offer my own services" -> "We'll add you as both so you can hire and offer services"
+- `signUp.passwordHint`: "At least 6 characters" -> "At least 8 characters"
+- `resetPasswordPage.passwordTooShort`: "Password must be at least 6 characters" -> "Password must be at least 8 characters"
 
-- Change `'Architects & Design'` to `'Architects, Design & Management'` in `MAIN_CATEGORIES`
+### `public/locales/es/auth.json`
+- `intent.options.client.title`: "Soy cliente" -> "Soy Asker"
+- `intent.options.both.title`: "Ambos" -> "Soy Tasker"
+- `intent.options.both.subtitle`: (add) "Tasker"
+- `intent.options.both.description`: "Contrato profesionales Y tambien ofrezco mis propios servicios" -> "Te agregaremos como ambos para que puedas contratar y ofrecer servicios"
+- `signUp.passwordHint`: "Minimo 6 caracteres" -> "Minimo 8 caracteres"
+- `resetPasswordPage.passwordTooShort`: update to 8 characters
 
-### 2. Update `src/pages/Index.tsx`
+### `src/pages/jobs/JobDetailsModal.tsx`
+- Fix `prettyStatus` to use Title Case (capitalize every word, not just the first)
 
-- Change the `categoryIcons` key from `'Architects & Design'` to `'Architects, Design & Management'`
+### `src/pages/jobs/lib/buildJobPack.ts`
+- Verify timing labels use consistent capitalization (already correct: "This week", "This month", etc.)
 
-### 3. Update `src/pages/onboarding/steps/ReviewStep.tsx`
+---
 
-- Add a direct DB query for `service_zones` and `phone` to ensure the checklist is based on fresh data, not just the session cache
-- This prevents false "incomplete" states when the session hasn't refreshed yet
+## Technical details
 
-### 4. Update `src/i18n/categoryTranslations.ts` (if needed)
+### prettyStatus fix (JobDetailsModal.tsx, line 41-44)
 
-- Ensure the translation key for the renamed category matches
+Current:
+```typescript
+function prettyStatus(s: string | null | undefined): string {
+  if (!s) return "";
+  return s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+}
+```
 
-### 5. Data verification query
+Fixed (Title Case all words):
+```typescript
+function prettyStatus(s: string | null | undefined): string {
+  if (!s) return "";
+  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+```
 
-- Check stuck users and confirm whether they truly have no zones or if it's a display issue
+This changes "in progress" to "In Progress", "open" to "Open", etc.
+
+### Intent selector -- no component changes needed
+
+The `IntentSelector.tsx` component already supports optional `subtitle` on any option. Since the "both" option currently has no subtitle, adding `"subtitle": "Tasker"` to the JSON will make the badge appear automatically.
+
