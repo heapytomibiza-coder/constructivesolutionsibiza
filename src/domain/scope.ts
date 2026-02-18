@@ -63,7 +63,7 @@ export const MAIN_CATEGORIES = [
   'Cleaning',
   'Gardening & Landscaping',
   'Pool & Spa',
-  'Architects & Design',
+  'Architects, Design & Management',
   'Transport & Logistics',
   'Kitchen & Bathroom',
   'Floors, Doors & Windows',
