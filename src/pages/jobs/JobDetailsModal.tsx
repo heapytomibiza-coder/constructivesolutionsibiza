@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@/contexts/SessionContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,6 +19,8 @@ import { buildJobPack, type JobPack } from "./lib/buildJobPack";
 import { extractMicroAnswers } from "./lib/answerResolver";
 import { FormattedAnswers } from "./components/FormattedAnswers";
 import { isUserError } from "@/shared/lib/userError";
+import { useListingsForJob } from "./hooks/useListingsForJob";
+import { ServiceListingCardComponent } from "@/pages/services/ServiceListingCard";
 import type { JobAnswers } from "./types";
 
 function safeAnswers(a: unknown): JobAnswers | null {
@@ -269,6 +272,7 @@ interface JobDetailsBodyContentProps {
 
 function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
   const [lightboxIndex, setLightboxIndex] = React.useState<number | null>(null);
+  const { data: matchedListings } = useListingsForJob(jobPack.services?.[0]?.slug);
   const specBadge = getSpecBadge(jobPack);
   const isAsap = jobPack.timing?.display?.toLowerCase().includes("asap");
 
@@ -461,6 +465,28 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
           </CardContent>
         </Card>
       </section>
+
+      {/* Compare Service Providers */}
+      {matchedListings && matchedListings.length > 0 && (
+        <>
+          <Separator className="bg-border/60" />
+          <section className="space-y-3">
+            <div className="text-sm font-semibold">Compare Service Providers</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {matchedListings.slice(0, 4).map((listing) => (
+                <ServiceListingCardComponent key={listing.id} listing={listing as any} />
+              ))}
+            </div>
+            {matchedListings.length > 4 && (
+              <div className="text-center">
+                <Link to="/marketplace" className="text-sm text-primary hover:underline">
+                  View all on Marketplace →
+                </Link>
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }

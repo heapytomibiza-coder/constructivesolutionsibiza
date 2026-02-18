@@ -55,6 +55,8 @@ import ProfessionalOnboarding from "./pages/onboarding/ProfessionalOnboarding";
 import ProfessionalServiceSetup from "./pages/professional/ProfessionalServiceSetup";
 import ProfileEdit from "./pages/professional/ProfileEdit";
 import JobPriorities from "./pages/professional/JobPriorities";
+import MyServiceListings from "./pages/professional/MyServiceListings";
+import ServiceListingEditor from "./pages/professional/ServiceListingEditor";
 
 // Settings
 import { Settings } from "./pages/settings";
@@ -164,6 +166,8 @@ const App = () => {
               <Route path="/professional/profile" element={<ProfileEdit />} />
               <Route path="/professional/priorities" element={<JobPriorities />} />
               <Route path="/professional/portfolio" element={<Navigate to="/dashboard/pro" replace />} />
+              <Route path="/professional/listings" element={<MyServiceListings />} />
+              <Route path="/professional/listings/:listingId/edit" element={<ServiceListingEditor />} />
 
               {/* Forum - New Post (requires auth) */}
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />

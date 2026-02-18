@@ -20,7 +20,8 @@ import {
   MapPin,
   User,
   Star,
-  ChevronRight
+  ChevronRight,
+  Store
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { PendingReviewsCard } from '@/pages/dashboard/shared/components/PendingReviewsCard';
@@ -172,6 +173,11 @@ const ProDashboard = () => {
         {/* Quick Actions — visible on mobile before matched jobs */}
         <div className="grid grid-cols-2 gap-2 mb-5 sm:hidden">
           <QuickActionTile
+            to="/professional/listings"
+            icon={Store}
+            label={t('pro.myListings', 'My Listings')}
+          />
+          <QuickActionTile
             to="/onboarding/professional?edit=1&step=services"
             icon={Wrench}
             label={t('pro.updateServices')}
@@ -185,11 +191,6 @@ const ProDashboard = () => {
             to="/professional/profile"
             icon={User}
             label={t('pro.editProfile')}
-          />
-          <QuickActionTile
-            to="/jobs"
-            icon={Briefcase}
-            label={t('pro.browseAllJobs')}
           />
         </div>
 
@@ -286,15 +287,15 @@ const ProDashboard = () => {
               </CardHeader>
               <CardContent className="space-y-1.5 px-4 pb-4">
                 <Button className="w-full justify-start gap-2 h-10" asChild>
-                  <Link to="/onboarding/professional?edit=1&step=services">
-                    <Wrench className="h-4 w-4" />
-                    {t('pro.updateServices')}
+                  <Link to="/professional/listings">
+                    <Store className="h-4 w-4" />
+                    {t('pro.myListings', 'My Listings')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
-                  <Link to="/professional/priorities">
-                    <Star className="h-4 w-4" />
-                    {t('pro.setJobPriorities', 'Set Job Priorities')}
+                  <Link to="/onboarding/professional?edit=1&step=services">
+                    <Wrench className="h-4 w-4" />
+                    {t('pro.updateServices')}
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>

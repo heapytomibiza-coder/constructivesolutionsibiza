@@ -186,6 +186,20 @@ export const proOnboardingRoutes: RouteConfig[] = [
     lane: 'professional',
     titleKey: 'nav.proProfile',
   },
+  { 
+    path: '/professional/listings', 
+    access: 'role:professional', 
+    redirectTo: '/auth', 
+    lane: 'professional',
+    nav: { section: 'working', labelKey: 'nav.myListings', order: 2, hideWhenPublic: true },
+    titleKey: 'nav.myListings',
+  },
+  { 
+    path: '/professional/listings/:listingId/edit', 
+    access: 'role:professional', 
+    redirectTo: '/auth', 
+    lane: 'professional',
+  },
 ];
 
 export const proDashboardRoutes: RouteConfig[] = [
