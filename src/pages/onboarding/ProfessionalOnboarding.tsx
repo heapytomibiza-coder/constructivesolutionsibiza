@@ -225,45 +225,47 @@ const ProfessionalOnboarding = () => {
             </p>
           </div>
 
-          {/* Progress Card - Encouraging */}
-          <Card className="mb-8 card-grounded animate-fade-in">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">
-                  You're doing great!
-                </CardTitle>
-                <span className="text-base font-semibold text-primary">
-                  {completedSteps} of {STEPS.length} done
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Progress value={progress} className="h-3" />
-              {/* Step indicators */}
-              <div className="flex justify-between mt-3">
-                {STEPS.map((step, index) => {
-                const status = getStepStatus(step.id as StepId);
-                  return (
-                    <div 
-                      key={step.id}
-                      className={cn(
-                        'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors',
-                        status === 'complete' && 'bg-primary text-primary-foreground',
-                        status === 'current' && 'bg-primary/20 text-primary border-2 border-primary',
-                        status === 'pending' && 'bg-muted text-muted-foreground'
-                      )}
-                    >
-                      {status === 'complete' ? (
-                        <CheckCircle2 className="h-5 w-5" />
-                      ) : (
-                        index + 1
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Progress Card - Only shown on tracker overview */}
+          {currentStep === 'tracker' && (
+            <Card className="mb-8 card-grounded animate-fade-in">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-semibold">
+                    You're doing great!
+                  </CardTitle>
+                  <span className="text-base font-semibold text-primary">
+                    {completedSteps} of {STEPS.length} done
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Progress value={progress} className="h-3" />
+                {/* Step indicators */}
+                <div className="flex justify-between mt-3">
+                  {STEPS.map((step, index) => {
+                    const status = getStepStatus(step.id as StepId);
+                    return (
+                      <div 
+                        key={step.id}
+                        className={cn(
+                          'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors',
+                          status === 'complete' && 'bg-primary text-primary-foreground',
+                          status === 'current' && 'bg-primary/20 text-primary border-2 border-primary',
+                          status === 'pending' && 'bg-muted text-muted-foreground'
+                        )}
+                      >
+                        {status === 'complete' ? (
+                          <CheckCircle2 className="h-5 w-5" />
+                        ) : (
+                          index + 1
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Content based on current step */}
           {currentStep === 'tracker' ? (
