@@ -1,61 +1,44 @@
 
 
-# Add Quick Actions to Client Dashboard + Community Forum Links
+# Fix Onboarding Navigation: Bulletproof Linear Flow
 
-## Summary
+## Problem
 
-The Pro Dashboard already has a direct link to `/professional/profile` in both mobile and desktop quick actions. The Client Dashboard currently has no quick action section at all -- just stats and a job list.
+Five bugs in the onboarding wizard cause confusion, loops, and "flash of wrong step" issues:
 
-This plan adds:
-1. A **quick actions section** to the Client Dashboard (matching the Pro Dashboard pattern) with links to Post Job, Messages, Community Forum, and Settings
-2. A **Community Forum tile** to the Pro Dashboard's quick actions (both mobile and desktop)
+1. Tracker view leaks into first-time onboarding via `?step=tracker` deep-links
+2. Phase auto-advance effect has a stale `currentStep` closure (missing dependency)
+3. Initial step is computed before profile data loads, causing flash of wrong step
+4. Header/progress text references tracker in non-edit paths
+5. No safety fallback to prevent tracker from ever rendering outside edit mode
 
-## Changes
+## Changes (single file: `ProfessionalOnboarding.tsx`)
 
-### 1. `src/pages/dashboard/client/ClientDashboard.tsx`
+### Fix 1 -- Gate tracker behind edit mode in deep-link effect (line 71-77)
 
-Add a quick actions grid between the stats row and the jobs list card, using the same `QuickActionTile` pattern from ProDashboard:
+Replace the `allowed` list to exclude `tracker` when `editMode` is false, and add `editMode` to the dependency array.
 
-**Mobile (2-column grid, visible below `sm`):**
-- Post a Job (`/post`) -- Plus icon
-- Messages (`/messages`) -- MessageSquare icon
-- Community Forum (`/forum`) -- MessageCircle icon (from lucide)
-- Settings (`/settings`) -- Settings icon
+### Fix 2 -- Add safety fallback effect
 
-**Desktop (card with stacked buttons, hidden below `sm`):**
-Same four actions rendered as full-width buttons inside a "Quick Actions" card, matching the Pro Dashboard's desktop layout.
+New effect that forces `currentStep` back to `basic_info` if it ever becomes `tracker` while `editMode` is false. Belt-and-suspenders guard.
 
-Import the `QuickActionTile` component -- since it's currently defined locally inside `ProDashboard.tsx`, it will be extracted to a shared location first.
+### Fix 3 -- Fix stale closure in phase auto-advance (line 80-90)
 
-### 2. Extract `QuickActionTile` to shared component
+Add `currentStep` to the dependency array so the comparison uses the real current value.
 
-Move `QuickActionTile` from `src/pages/dashboard/professional/ProDashboard.tsx` into `src/pages/dashboard/shared/components/QuickActionTile.tsx` so both dashboards can reuse it.
+### Fix 4 -- Defer initial step until loading completes (line 56-57)
 
-Update ProDashboard to import from the new shared location.
+Initialize `currentStep` to `editMode ? 'tracker' : 'basic_info'` (safe default), then set the correct phase-based step in an effect that waits for `isLoading` to be false.
 
-### 3. `src/pages/dashboard/professional/ProDashboard.tsx`
+### Fix 5 -- Clean up header text (lines 159, 168-169)
 
-Add a "Community Forum" tile to both the mobile quick actions grid and the desktop quick actions card:
-- Community Forum (`/forum`) -- MessageCircle icon
-- Hint: "Ask questions, get recommendations"
+Remove the `tracker` branches from the non-edit header/subtitle since tracker can no longer appear outside edit mode.
 
-### 4. Translation keys (EN + ES)
+## Result
 
-Add to `public/locales/en/dashboard.json`:
-- `client.quickActions`: "Quick Actions"
-- `client.communityForum`: "Community Forum"
-- `client.communityForumHint`: "Ask questions, get recommendations"
-- `client.settingsHint`: "Account and preferences"
-- `client.postJobHint`: "Describe what you need done"
-- `client.messagesHint`: "Chat with Taskers"
-- `pro.communityForum`: "Community Forum"
-- `pro.communityForumHint`: "Ask questions, get recommendations"
+Two hard rules enforced:
+- Non-edit mode can only ever show: `basic_info | service_area | services | review`
+- Only `?edit=1` may render the tracker overview
 
-Add equivalent keys to `public/locales/es/dashboard.json`.
-
-## Technical notes
-
-- The `QuickActionTile` component already accepts `to`, `icon`, `label`, and `hint` props -- no API changes needed, just relocating it
-- The forum is already a public route (`/forum`) so no rollout gating is needed
-- Both dashboards maintain their existing nav bar, stats, and content -- only the quick actions section is modified
+No database changes. No new files. Single file edit.
 
