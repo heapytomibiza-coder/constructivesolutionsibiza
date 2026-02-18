@@ -1,6 +1,6 @@
 {
   "client": {
-    "title": "Panel",
+    "title": "Panel del Solicitante",
     "welcomeBack": "Bienvenido de nuevo, {{email}}",
     "postJob": "Publicar Trabajo",
     "yourJobs": "Tus Trabajos",
@@ -14,21 +14,22 @@
     "view": "Ver",
     "complete": "Completar",
     "assign": "Asignar",
-    "selectPro": "Seleccionar profesional",
-    "noProsYet": "Aún no hay profesionales que hayan enviado mensajes",
+    "selectPro": "Seleccionar Tasker",
+    "noProsYet": "Aún no hay Taskers que hayan enviado mensajes",
     "loading": "Cargando...",
-    "professionalFallback": "Profesional",
-    "assignedSuccess": "Profesional asignado correctamente",
-    "assignedFail": "No se pudo asignar al profesional"
+    "professionalFallback": "Tasker",
+    "assignedSuccess": "Tasker asignado correctamente",
+    "assignedFail": "No se pudo asignar al Tasker"
   },
   "pro": {
-    "title": "Panel de Profesional",
+    "title": "Panel del Tasker",
     "welcomeBack": "Bienvenido de nuevo, {{email}}",
     "browseAllJobs": "Ver Todos los Trabajos",
     "completeSetup": "Completa tu Configuración",
     "setupDescription": "Añade tus servicios para empezar a recibir oportunidades de trabajo.",
     "setUpServices": "Configurar Servicios",
     "yourServices": "Tus Servicios",
+    "myListings": "Mis Listados",
     "matchedJobs": "Trabajos Coincidentes",
     "matchedJobsDesc": "Trabajos que coinciden con tus servicios seleccionados",
     "messages": "Mensajes",

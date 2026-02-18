@@ -52,7 +52,7 @@ import Messages from "./pages/messages/Messages";
 
 // Professional Onboarding & Management
 import ProfessionalOnboarding from "./pages/onboarding/ProfessionalOnboarding";
-import ProfessionalServiceSetup from "./pages/professional/ProfessionalServiceSetup";
+
 import ProfileEdit from "./pages/professional/ProfileEdit";
 import JobPriorities from "./pages/professional/JobPriorities";
 import MyServiceListings from "./pages/professional/MyServiceListings";
@@ -170,7 +170,7 @@ const App = () => {
               {/* Professional Onboarding */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
               <Route path="/professional/services" element={<Navigate to="/dashboard/pro" replace />} />
-              <Route path="/professional/service-setup" element={<ProfessionalServiceSetup />} />
+              <Route path="/professional/service-setup" element={<Navigate to="/dashboard/pro" replace />} />
               <Route path="/professional/profile" element={<ProfileEdit />} />
               <Route path="/professional/priorities" element={<JobPriorities />} />
               <Route path="/professional/portfolio" element={<Navigate to="/dashboard/pro" replace />} />

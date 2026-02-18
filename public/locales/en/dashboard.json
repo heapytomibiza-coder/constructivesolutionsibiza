@@ -1,6 +1,6 @@
 {
   "client": {
-    "title": "Dashboard",
+    "title": "Asker Dashboard",
     "welcomeBack": "Welcome back, {{email}}",
     "postJob": "Post a Job",
     "yourJobs": "Your Jobs",
@@ -14,21 +14,22 @@
     "view": "View",
     "complete": "Complete",
     "assign": "Assign",
-    "selectPro": "Select pro",
-    "noProsYet": "No professionals have messaged yet",
+    "selectPro": "Select Tasker",
+    "noProsYet": "No Taskers have messaged yet",
     "loading": "Loading...",
-    "professionalFallback": "Professional",
-    "assignedSuccess": "Professional assigned successfully",
-    "assignedFail": "Failed to assign professional"
+    "professionalFallback": "Tasker",
+    "assignedSuccess": "Tasker assigned successfully",
+    "assignedFail": "Failed to assign Tasker"
   },
   "pro": {
-    "title": "Professional Dashboard",
+    "title": "Tasker Dashboard",
     "welcomeBack": "Welcome back, {{email}}",
     "browseAllJobs": "Browse All Jobs",
     "completeSetup": "Complete Your Setup",
     "setupDescription": "Add your services to start receiving matched job opportunities.",
     "setUpServices": "Set Up Services",
     "yourServices": "Your Services",
+    "myListings": "My Listings",
     "matchedJobs": "Matched Jobs",
     "matchedJobsDesc": "Jobs that match your selected services",
     "messages": "Messages",
