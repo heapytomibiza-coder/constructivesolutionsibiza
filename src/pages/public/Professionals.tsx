@@ -294,15 +294,15 @@ const Professionals = () => {
                   <div className={selectMode ? 'space-y-3' : ''}>
                     <div className="flex items-center gap-4">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={pro.avatar_url || undefined} alt={pro.display_name || 'Professional'} />
+                        <AvatarImage src={pro.avatar_url || undefined} alt={pro.display_name || 'Tasker'} />
                         <AvatarFallback>
-                          {(pro.display_name || 'P').charAt(0).toUpperCase()}
+                          {(pro.display_name || 'T').charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium truncate">
-                            {pro.display_name || 'Professional'}
+                            {pro.display_name || 'Tasker'}
                           </h3>
                           {pro.verification_status === 'verified' && (
                             <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />

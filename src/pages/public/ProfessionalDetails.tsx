@@ -60,12 +60,12 @@ const ProfessionalDetails = () => {
           <Button variant="ghost" className="mb-4 gap-2" asChild>
             <Link to="/professionals">
               <ArrowLeft className="h-4 w-4" />
-              Back to Professionals
+              Back to Taskers
             </Link>
           </Button>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Shield className="h-4 w-4 text-primary" />
-            <span>Verified professional profile</span>
+            <span>Verified Tasker profile</span>
           </div>
         </div>
       </div>
@@ -102,10 +102,10 @@ const ProfessionalDetails = () => {
           <Card className="border-dashed card-grounded">
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground mb-4">
-                Professional not found or no longer available.
+                Tasker not found or no longer available.
               </p>
               <Button variant="outline" asChild>
-                <Link to="/professionals">Browse Professionals</Link>
+                <Link to="/professionals">Browse Taskers</Link>
               </Button>
             </CardContent>
           </Card>
@@ -116,15 +116,15 @@ const ProfessionalDetails = () => {
                 <CardHeader>
                   <div className="flex items-start gap-4">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage src={professional.avatar_url || undefined} alt={professional.display_name || 'Professional'} />
+                      <AvatarImage src={professional.avatar_url || undefined} alt={professional.display_name || 'Tasker'} />
                       <AvatarFallback className="text-lg bg-primary/10 text-primary rounded-sm">
-                        {(professional.display_name || 'P').charAt(0).toUpperCase()}
+                        {(professional.display_name || 'T').charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <CardTitle className="font-display text-2xl">
-                          {professional.display_name || 'Professional'}
+                          {professional.display_name || 'Tasker'}
                         </CardTitle>
                         {professional.verification_status === 'verified' && (
                           <BadgeCheck className="h-5 w-5 text-primary" />
@@ -146,7 +146,7 @@ const ProfessionalDetails = () => {
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      This professional hasn't added a bio yet.
+                      This Tasker hasn't added a bio yet.
                     </p>
                   )}
                 </CardContent>
@@ -167,7 +167,7 @@ const ProfessionalDetails = () => {
                     </Link>
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
-                    Create a job request and send it directly to this professional
+                    Create a job request and send it directly to this Tasker
                   </p>
                 </CardContent>
               </Card>

@@ -3,7 +3,7 @@
     "home": "Home",
     "services": "Services",
     "jobs": "Jobs",
-    "professionals": "Professionals",
+    "professionals": "Taskers",
     "howItWorks": "How it works",
     "community": "Community",
     "contact": "Contact",
@@ -43,7 +43,7 @@
     "title": "Bridging the gap between idea and build",
     "subtitle": "We help you understand the scope, set your expectations, and connect you with the right professionals",
     "postJob": "Start Your Project",
-    "browsePros": "Browse Professionals"
+    "browsePros": "Browse Taskers"
   },
   "trust": {
     "verified": "Verified trades",
@@ -127,7 +127,7 @@
   "services": {
     "title": "Our Services",
     "subtitle": "Find trusted professionals across all construction and property services",
-    "trustBadge": "Verified trades • Ibiza-based professionals",
+    "trustBadge": "Verified trades • Ibiza-based Taskers",
     "viewServices": "View services",
     "cantFind": "Can't find what you're looking for?",
     "postCustomJob": "Post a Custom Job",
@@ -149,9 +149,9 @@
     "categoryNotFound": "Category Not Found",
     "categoryNotFoundDesc": "This service category doesn't exist or is no longer available.",
     "verifiedOnly": "Verified professionals only",
-    "heroSubtitle": "Find trusted {{category}} professionals in Ibiza",
+    "heroSubtitle": "Find trusted {{category}} Taskers in Ibiza",
     "orBrowse": "Or",
-    "browseProsLink": "browse professionals directly",
+    "browseProsLink": "browse Taskers directly",
     "noSubcategories": "No subcategories available for this service."
   },
   "subcategories": {
@@ -277,9 +277,9 @@
     "ov3Title": "Connect & Complete",
     "ov3Desc": "Message securely, agree the details, and get the job done.",
     "forClients": "I Need Work Done",
-    "forProfessionals": "I Want Work",
+    "forProfessionals": "I'm a Tasker",
     "postJobButton": "Start Your Project",
-    "joinAsProButton": "Join as a Tasker",
+    "joinAsProButton": "Join as Tasker",
     "clientStep1Title": "Choose the Service",
     "clientStep1Desc": "Select a category, subcategory, and specific service so we know exactly what you need.",
     "clientStep2Title": "Answer Simple Questions",
@@ -342,12 +342,12 @@
     }
   },
   "professionals": {
-    "title": "Browse Professionals",
-    "titleSelect": "Choose a Professional",
-    "subtitle": "Discover professionals offering services across Ibiza",
+    "title": "Browse Taskers",
+    "titleSelect": "Choose a Tasker",
+    "subtitle": "Discover Taskers offering services across Ibiza",
     "subtitleSelect": "Select who you'd like to send your job request to",
-    "trustBadge": "Ibiza-based professionals",
-    "searchPlaceholder": "Search professionals...",
+    "trustBadge": "Ibiza-based Taskers",
+    "searchPlaceholder": "Search Taskers...",
     "searchButton": "Search",
     "filteringBy": "Filtering by:",
     "clearAll": "Clear all",
@@ -355,11 +355,11 @@
     "viewButton": "View",
     "selectButton": "Select",
     "backToJob": "Back to Job",
-    "selectProBanner": "Select a professional to send your job to",
-    "noResultsFiltered": "No professionals found matching these filters.",
-    "noResultsEmpty": "No professionals listed yet. Check back soon!",
+    "selectProBanner": "Select a Tasker to send your job to",
+    "noResultsFiltered": "No Taskers found matching these filters.",
+    "noResultsEmpty": "No Taskers listed yet. Check back soon!",
     "clearFilters": "Clear Filters",
-    "joinAsPro": "Join as Professional"
+    "joinAsPro": "Join as Tasker"
   },
   "universalSearch": {
     "placeholder": "What can we help you find?",
