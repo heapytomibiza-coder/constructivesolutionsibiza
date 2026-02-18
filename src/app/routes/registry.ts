@@ -118,6 +118,7 @@ export const clientRoutes: RouteConfig[] = [
     access: 'auth', 
     redirectTo: '/auth', 
     lane: 'shared', 
+    nav: { section: 'shared', labelKey: 'nav.messages', order: 40, hideWhenPublic: true },
     titleKey: 'nav.messages',
   },
   { path: '/messages/:id', access: 'auth', redirectTo: '/auth', lane: 'shared' },
