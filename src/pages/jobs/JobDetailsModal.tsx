@@ -40,7 +40,7 @@ function renderConsultation(type: string | null | undefined) {
 
 function prettyStatus(s: string | null | undefined): string {
   if (!s) return "";
-  return s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function statusVariant(
