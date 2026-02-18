@@ -28,6 +28,7 @@ import HowItWorks from "./pages/public/HowItWorks";
 import Contact from "./pages/public/Contact";
 import Privacy from "./pages/public/Privacy";
 import Terms from "./pages/public/Terms";
+import { ServiceMarketplace, ServiceListingDetail } from "./pages/services";
 
 // Auth Pages
 import Auth from "./pages/auth/Auth";
@@ -117,6 +118,9 @@ const App = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/marketplace" element={<ServiceMarketplace />} />
+            <Route path="/marketplace/:listingId" element={<ServiceListingDetail />} />
+            <Route path="/launch-checklist" element={<LaunchChecklist />} />
             <Route path="/launch-checklist" element={<LaunchChecklist />} />
             
             {/* Forum - Public read, auth for new posts */}

@@ -20,7 +20,8 @@
     "userMenu": "User menu",
     "selectRole": "Select mode",
     "jobPriorities": "Job Priorities",
-    "proProfile": "Edit Profile"
+    "proProfile": "Edit Profile",
+    "marketplace": "Marketplace"
   },
   "lanes": {
     "discover": "Discover",
