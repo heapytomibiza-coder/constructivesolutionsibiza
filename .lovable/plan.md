@@ -1,66 +1,90 @@
 
+# Fix Mobile Sign-In: Visibility + Guard Issue
 
-# Complete the Drip-Feed: AuthCallback Routing + Invite-Only Pro Signup
+## Problem
 
-Two remaining changes to finish the pipe-control phase.
+Two issues preventing smooth mobile sign-in:
 
-## 1. AuthCallback.tsx -- Fix post-login routing
+1. **"Sign in" is invisible on mobile** -- the button is hidden behind the hamburger menu (`hidden sm:inline-flex`), so users can't find it
+2. **Stale session redirect** -- if a user has any previous session in localStorage, `PublicOnlyGuard` redirects them away from `/auth` to `/dashboard/client` before the sign-in page loads. On a slow mobile connection, this can appear as "page doesn't load"
 
-Two changes in one file:
+## Fix 1: Make "Sign in" visible on mobile nav bar
 
-**A) Clients route to `/post` (wizard-first habit)**
+**File:** `src/shared/components/layout/PublicNav.tsx`
 
-Change line 74 from:
-```
-navigate('/dashboard/client');
-```
-to:
-```
-navigate('/post');
-```
+Change the Sign in button from `hidden sm:inline-flex` to always visible when not authenticated. On mobile, show a compact text link instead of a full button to save space.
 
-**B) Pros forced into onboarding until fully complete**
-
-Change line 67 from:
-```
-if (onboardingPhase === 'complete' || onboardingPhase === 'service_setup') {
-```
-to:
-```
-if (onboardingPhase === 'complete') {
+Replace:
+```tsx
+<Button variant="ghost" asChild className="hidden sm:inline-flex">
+  <Link to="/auth">{t('nav.signIn')}</Link>
+</Button>
 ```
 
-This ensures pros land in `/onboarding/professional` until they finish -- no shortcut via `service_setup`.
-
-## 2. IntentSelector.tsx -- Hide "Professional" unless `?pro=1`
-
-**A) Add `allowProfessional` prop**
-
-Add an optional prop to the component:
-```
-allowProfessional?: boolean  (defaults to false)
+With:
+```tsx
+<Button variant="ghost" asChild>
+  <Link to="/auth">{t('nav.signIn')}</Link>
+</Button>
 ```
 
-**B) Filter options**
+This makes "Sign in" visible on all screen sizes when the user is not authenticated.
 
-When `allowProfessional` is false, filter out the `'professional'` intent option. The "Both" option stays visible (it still gives pro role but doesn't telegraph the full marketplace).
+## Fix 2: Improve PublicOnlyGuard resilience
 
-**C) Wire it in Auth.tsx**
+**File:** `src/guard/RouteGuard.tsx`
 
-Read `searchParams.get('pro') === '1'` and pass as `allowProfessional` to `IntentSelector`.
+The `PublicOnlyGuard` currently redirects authenticated users to `/dashboard/client` (for clients). Two problems:
+- It should redirect to `/post` to match the wizard-first habit (consistent with AuthCallback)
+- It should handle loading state with a timeout so the page never gets stuck
 
-## How you use it day-to-day
+Changes:
+1. Update the client redirect from `/dashboard/client` to `/post` (matching AuthCallback behavior)
+2. Add a safety timeout: if session check takes longer than 3 seconds, assume unauthenticated and show the auth page (better to let them sign in than show a spinner forever)
 
-- WhatsApp group (clients): send `yourdomain.com/post` or `yourdomain.com/auth?mode=signup` -- they only see "I need help" and "Both"
-- Invited pros: send `yourdomain.com/auth?mode=signup&pro=1` -- they see all three options
-- After login: clients land on the wizard; pros land on onboarding until complete
+## Technical Details
+
+### PublicOnlyGuard changes (RouteGuard.tsx)
+
+```tsx
+export function PublicOnlyGuard({ children }: RouteGuardProps) {
+  const { isAuthenticated, activeRole, isLoading, isReady } = useSessionSnapshot();
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setTimedOut(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // If still loading but timed out, show page anyway (let user sign in)
+  if ((isLoading || !isReady) && !timedOut) {
+    return <LoadingSpinner />;
+  }
+
+  if (isAuthenticated) {
+    const dashboardPath = activeRole === 'professional'
+      ? '/dashboard/pro'
+      : '/post';  // Wizard-first for clients
+    return <Navigate to={dashboardPath} replace />;
+  }
+
+  return children ? <>{children}</> : <Outlet />;
+}
+```
+
+### PublicNav changes
+
+Remove `hidden sm:inline-flex` from the "Sign in" button so it's visible on mobile.
 
 ## Files changed
 
 | File | Change |
 |------|--------|
-| `src/pages/auth/AuthCallback.tsx` | Client route to `/post`; pro route strict `complete` check |
-| `src/components/auth/IntentSelector.tsx` | Add `allowProfessional` prop + filter |
-| `src/pages/auth/Auth.tsx` | Read `?pro=1` param + pass to IntentSelector |
+| `src/shared/components/layout/PublicNav.tsx` | Remove `hidden sm:inline-flex` from Sign in button |
+| `src/guard/RouteGuard.tsx` | Add 3s loading timeout to PublicOnlyGuard; change client redirect to `/post` |
 
-No database changes. No new files.
+## Result
+
+- Users on mobile will see "Sign in" directly in the top bar (no need to open hamburger)
+- If a stale session causes the guard to hang, the auth page shows after 3 seconds instead of spinning forever
+- Clients who are already logged in and visit `/auth` get sent to the wizard (consistent with post-login flow)
