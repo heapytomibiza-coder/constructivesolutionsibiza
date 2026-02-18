@@ -46,7 +46,7 @@ const ServiceListingDetail = () => {
         <div className="container py-16 text-center">
           <h1 className="text-xl font-semibold mb-4">Service not found</h1>
           <Button variant="outline" asChild>
-            <Link to="/marketplace"><ArrowLeft className="h-4 w-4 mr-2" /> Back to Marketplace</Link>
+            <Link to="/services"><ArrowLeft className="h-4 w-4 mr-2" /> Back to Services</Link>
           </Button>
         </div>
       </PublicLayout>
@@ -59,8 +59,8 @@ const ServiceListingDetail = () => {
     <PublicLayout>
       <div className="container py-8">
         {/* Back link */}
-        <Link to="/marketplace" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6">
-          <ArrowLeft className="h-4 w-4" /> Back to Marketplace
+        <Link to="/services" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6">
+          <ArrowLeft className="h-4 w-4" /> Back to Services
         </Link>
 
         <div className="grid gap-8 lg:grid-cols-3">

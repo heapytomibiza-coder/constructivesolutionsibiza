@@ -55,14 +55,7 @@ export const publicRoutes: RouteConfig[] = [
     titleKey: 'nav.professionals',
   },
   { path: '/professionals/:id', access: 'public', lane: 'public' },
-  {
-    path: '/marketplace',
-    access: 'public',
-    lane: 'public',
-    nav: { section: 'public', labelKey: 'nav.marketplace', order: 3 },
-    titleKey: 'nav.marketplace',
-  },
-  { path: '/marketplace/:listingId', access: 'public', lane: 'public' },
+  { path: '/services/listing/:listingId', access: 'public', lane: 'public' },
   { 
     path: '/how-it-works', 
     access: 'public', 

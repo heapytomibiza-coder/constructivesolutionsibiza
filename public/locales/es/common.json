@@ -21,7 +21,8 @@
     "selectRole": "Seleccionar modo",
     "jobPriorities": "Prioridades de Trabajo",
     "proProfile": "Editar Perfil",
-    "marketplace": "Marketplace"
+    "myListings": "Mis Anuncios",
+    "myServices": "Mis Servicios"
   },
   "lanes": {
     "discover": "Descubrir",
