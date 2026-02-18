@@ -130,7 +130,17 @@
     "trustBadge": "Verified trades • Ibiza-based professionals",
     "viewServices": "View services",
     "cantFind": "Can't find what you're looking for?",
-    "postCustomJob": "Post a Custom Job"
+    "postCustomJob": "Post a Custom Job",
+    "filterCategory": "Category",
+    "filterService": "Service",
+    "filterTask": "Task",
+    "allCategories": "All Categories",
+    "allServices": "All Services",
+    "allTasks": "All Tasks",
+    "sortBy": "Sort by",
+    "sortNewest": "Newest",
+    "sortPrice": "Lowest price",
+    "contactTasker": "Contact Tasker"
   },
   "serviceCategory": {
     "whatKindOfWork": "What kind of work do you need?",

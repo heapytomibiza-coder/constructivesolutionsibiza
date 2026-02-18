@@ -2053,6 +2053,7 @@ export type Database = {
       service_listings_browse: {
         Row: {
           category_name: string | null
+          category_slug: string | null
           created_at: string | null
           display_title: string | null
           hero_image_url: string | null
@@ -2071,6 +2072,7 @@ export type Database = {
           starting_price: number | null
           starting_price_unit: string | null
           subcategory_name: string | null
+          subcategory_slug: string | null
           view_count: number | null
         }
         Relationships: [

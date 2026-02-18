@@ -19,7 +19,9 @@ export interface ServiceListingCard {
   micro_name: string | null;
   micro_slug: string | null;
   subcategory_name: string | null;
+  subcategory_slug: string | null;
   category_name: string | null;
+  category_slug: string | null;
   starting_price: number | null;
   starting_price_unit: string | null;
 }

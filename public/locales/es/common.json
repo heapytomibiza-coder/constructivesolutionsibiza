@@ -130,7 +130,17 @@
     "trustBadge": "Oficios verificados • Profesionales de Ibiza",
     "viewServices": "Ver servicios",
     "cantFind": "¿No encuentras lo que buscas?",
-    "postCustomJob": "Publicar un trabajo personalizado"
+    "postCustomJob": "Publicar un trabajo personalizado",
+    "filterCategory": "Categoría",
+    "filterService": "Servicio",
+    "filterTask": "Tarea",
+    "allCategories": "Todas las Categorías",
+    "allServices": "Todos los Servicios",
+    "allTasks": "Todas las Tareas",
+    "sortBy": "Ordenar por",
+    "sortNewest": "Más recientes",
+    "sortPrice": "Precio más bajo",
+    "contactTasker": "Contactar Tasker"
   },
   "serviceCategory": {
     "whatKindOfWork": "¿Qué tipo de trabajo necesitas?",
