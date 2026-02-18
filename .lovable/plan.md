@@ -1,89 +1,36 @@
 
-# Tasker Dashboard: Idiot-Proof Redesign
 
-## Overview
+# Final Polish: Fix Remaining Link & Cleanup Issues
 
-Redesign the Tasker Dashboard and My Listings page with clear, non-overlapping actions, honest stat labels, and one-line hints on every quick action tile. Only one place to change service categories (inside My Listings header).
+## What's Already Done (no changes needed)
+- ProDashboard: Service Categories label + hint, QuickActionTile with hints, "Manage Your Work" section -- all correct
+- MyServiceListings: Hub header with "Add / Remove Categories" button -- correct
+- App.tsx: `/professional/listings` route wired to `MyServiceListings` -- correct
+- Translation keys in both EN and ES -- correct
 
-## Changes
+## What Still Needs Fixing (3 small items)
 
-### 1. ProDashboard.tsx -- Stats, Quick Actions, Section Rename
+### 1. App.tsx -- Remove duplicate `/launch-checklist` route (lines 133-134)
+Two identical routes exist. Delete one.
 
-**Stats row -- "Service Categories" with hint:**
-- Rename "Your Services" label to "Service Categories"
-- Add small hint text below: "Used to match you to jobs" (hidden on mobile for space)
-- Link stays at `/professional/listings`
+### 2. ProDashboard.tsx -- Setup alert link should go to `/professional/listings` (line 105)
+Currently the setup alert sends Taskers to onboarding (`/onboarding/professional?step=services`). Per the agreed model, the dashboard should send users to the Manage Listings hub, which is the single place that then links out to onboarding via "Add / Remove Categories".
 
-**Mobile quick actions -- hints on every tile:**
-- Upgrade `QuickActionTile` component to accept an optional `hint` prop
-- Change layout from `items-center` to `items-start` with a text column (label + hint)
-- Four tiles with hints:
-  - Manage Listings: "Edit prices, photos and details"
-  - Job Priorities: "Get more of the work you want"
-  - Edit Profile: "Update your Tasker profile"
-  - Messages: "Chat with Askers"
+Same fix for the empty matched-jobs "Set Up Services" button (line 236) -- change to `/professional/listings`.
 
-**Desktop quick actions -- rename section:**
-- Change header from "Quick Actions" to "Manage Your Work"
-- Replace first button label from "My Listings" to "Manage Listings"
-- Replace "Job Priorities" key to use new `pro.jobPriorities`
-
-**Setup alert button:**
-- Change hardcoded "Setup" text to translated "Add Categories"
-
-### 2. MyServiceListings.tsx -- Hub Header with "Add / Remove Categories"
-
-**Page header upgrade:**
-- Replace hardcoded "My Service Listings" nav title with translated "Manage Listings"
-- Add a sub-header row with:
-  - Left: hint text "Edit and publish your services to appear on the platform."
-  - Right: "Add / Remove Categories" button linking to `/onboarding/professional?edit=1&step=services`
-- This becomes the ONLY place (besides the setup alert) where Taskers access category selection
-
-**Empty state text:**
-- Update empty tab messages to use translated keys with clearer wording
-- "Add Services" button text becomes "Add / Remove Categories"
-- Add `useTranslation('dashboard')` hook (currently missing)
-
-### 3. Translation Files (EN + ES)
-
-**New keys added to `public/locales/en/dashboard.json`:**
-- `pro.serviceCategories`: "Service Categories"
-- `pro.serviceCategoriesHint`: "Used to match you to jobs"
-- `pro.manageYourWork`: "Manage Your Work"
-- `pro.manageListings`: "Manage Listings"
-- `pro.manageListingsHint`: "Edit prices, photos and details"
-- `pro.manageListingsPageHint`: "Edit and publish your services to appear on the platform."
-- `pro.jobPriorities`: "Job Priorities"
-- `pro.jobPrioritiesHint`: "Get more of the work you want"
-- `pro.editProfileHint`: "Update your Tasker profile"
-- `pro.messagesHint`: "Chat with Askers"
-- `pro.addCategories`: "Add Categories"
-- `pro.addRemoveCategories`: "Add / Remove Categories"
-- `pro.emptyDrafts`, `pro.emptyLive`, `pro.emptyPaused`: clearer empty states
-
-**Spanish equivalents in `public/locales/es/dashboard.json`:**
-- All matching keys with natural Spanish translations (e.g. "Gestiona Tu Trabajo", "Categorias de Servicio")
+### 3. MyServiceListings.tsx -- Simplify EmptyTab component (line 224)
+Currently passes `t` as a prop with a complex `ReturnType<typeof useTranslation>['t']` type. Replace with a self-contained component that calls `useTranslation` internally -- cleaner and avoids TS quirks.
 
 ## Technical Details
 
-### Files to modify (4 total)
+### Files to modify (3 total)
 
-| File | What changes |
-|------|-------------|
-| `src/pages/dashboard/professional/ProDashboard.tsx` | Stat label + hint, QuickActionTile hint prop, section rename, setup alert button text |
-| `src/pages/professional/MyServiceListings.tsx` | Add i18n hook, hub header with "Add / Remove Categories" button, translated empty states |
-| `public/locales/en/dashboard.json` | Add 13 new translation keys |
-| `public/locales/es/dashboard.json` | Add 13 matching Spanish keys |
+| File | Change |
+|------|--------|
+| `src/App.tsx` | Delete duplicate `/launch-checklist` route (line 134) |
+| `src/pages/dashboard/professional/ProDashboard.tsx` | Change setup alert link (line 105) from `/onboarding/professional?step=services` to `/professional/listings`; change empty-state "Set Up Services" link (line 236) to `/professional/listings` |
+| `src/pages/professional/MyServiceListings.tsx` | Refactor `EmptyTab` to call `useTranslation('dashboard')` internally instead of receiving `t` as a prop; remove `t` prop from all 3 call sites |
 
-### No database changes, no new files, no route changes
+### No new files, no database changes, no translation changes
+All keys already exist. This is purely wiring + cleanup.
 
-All changes are UI copy + layout within existing components.
-
-### Result: the "idiot-proof" mental model
-
-- **Service Categories (58)** = what I can do (matching)
-- **Manage Listings** = what I show publicly (prices/photos/details)
-- **Add / Remove Categories** = only inside My Listings header (one entrance)
-- **No duplicate actions** on the dashboard
-- **Every tile explains itself** with a one-line hint
