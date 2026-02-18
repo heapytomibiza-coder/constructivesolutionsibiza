@@ -43,6 +43,12 @@ export interface RouteConfig {
   redirectTo?: string; // Where to redirect if access denied
 
   /**
+   * Drip-feed gating: hide from nav + block access until rollout phase reached.
+   * @see src/domain/rollout.ts
+   */
+  minRollout?: import('@/domain/rollout').RolloutPhase;
+
+  /**
    * Visual pathway map
    * - client = Hiring lane
    * - professional = Working lane

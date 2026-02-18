@@ -16,6 +16,7 @@ import { useSessionSnapshot } from '@/hooks/useSessionSnapshot';
 import { getRouteConfig } from '@/app/routes';
 import { checkAccess } from '@/guard/access';
 import { buildRedirectUrl, buildReturnUrl } from '@/guard/redirects';
+import { isRolloutActive } from '@/domain/rollout';
 
 interface RouteGuardProps {
   children?: React.ReactNode;
@@ -46,6 +47,11 @@ export function RouteGuard({ children }: RouteGuardProps) {
   // If no route config found, allow access (router will handle 404)
   if (!routeConfig) {
     return children ? <>{children}</> : <Outlet />;
+  }
+
+  // Rollout gating: block direct URL access to unreleased features
+  if (routeConfig.minRollout && !isRolloutActive(routeConfig.minRollout)) {
+    return <Navigate to="/" replace />;
   }
 
   const { access, redirectTo } = routeConfig;

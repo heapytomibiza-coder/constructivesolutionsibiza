@@ -8,6 +8,7 @@
 import type { NavSection, RouteConfig, AccessRule } from './rules';
 import { getNavBySection } from './match';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
+import { isRolloutActive } from '@/domain/rollout';
 
 /**
  * Section render order for nav menus
@@ -80,6 +81,9 @@ export function canSeeRoute(route: RouteConfig, ctx: {
   roles: UserRole[];
   activeRole?: UserRole;
 }): boolean {
+  // Rollout gating: hide unreleased routes from nav
+  if (route.minRollout && !isRolloutActive(route.minRollout)) return false;
+
   const { isAuthenticated, roles } = ctx;
 
   // Check nav visibility flags
