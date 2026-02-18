@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { toast } from 'sonner';
+import { trackEvent } from '@/lib/trackEvent';
 
 export interface PricingItem {
   id: string;
@@ -179,6 +180,7 @@ export function usePublishListing() {
       toast.success('Listing published successfully!');
       qc.invalidateQueries({ queryKey: ['listing-detail', listingId] });
       qc.invalidateQueries({ queryKey: ['my-listings'] });
+      trackEvent('listing_published', 'professional', { listing_id: listingId });
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to publish listing');
@@ -201,6 +203,7 @@ export function usePauseListing() {
       toast.success('Listing paused');
       qc.invalidateQueries({ queryKey: ['listing-detail', listingId] });
       qc.invalidateQueries({ queryKey: ['my-listings'] });
+      trackEvent('listing_paused', 'professional', { listing_id: listingId });
     },
   });
 }

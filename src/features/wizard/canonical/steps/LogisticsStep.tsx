@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import {
@@ -183,41 +183,40 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
         )}
       </section>
 
-      {/* Section 3: BUDGET - Radio Options */}
+      {/* Section 3: BUDGET - Quick chips + radio fallback */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Wallet className="h-4 w-4 text-primary" />
           <Label className="text-sm font-semibold">{t('logistics.budgetTitle')}</Label>
         </div>
-        <RadioGroup
-          value={logistics.budgetRange || ''}
-          onValueChange={(val) => onChange({ budgetRange: val })}
-          className="grid gap-2"
-        >
-          {BUDGET_KEYS.map((opt) => (
-            <label
+
+        {/* Quick-select budget chips */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {BUDGET_KEYS.filter(o => o.value !== 'need_quote').map((opt) => (
+            <TileOption
               key={opt.value}
-              htmlFor={`budget-${opt.value}`}
-              className={cn(
-                'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all',
-                'hover:border-primary/50 hover:bg-accent/30',
-                logistics.budgetRange === opt.value
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border bg-card'
-              )}
+              selected={logistics.budgetRange === opt.value}
+              onClick={() => onChange({ budgetRange: opt.value })}
+              className="text-sm py-3"
             >
-              <RadioGroupItem 
-                value={opt.value} 
-                id={`budget-${opt.value}`}
-                className="shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <span className="font-medium text-sm">{t(opt.labelKey)}</span>
-                <span className="text-xs text-muted-foreground ml-2">{t(opt.hintKey)}</span>
-              </div>
-            </label>
+              {t(opt.labelKey)}
+            </TileOption>
           ))}
-        </RadioGroup>
+        </div>
+
+        {/* Secondary "Not sure" option */}
+        <button
+          type="button"
+          onClick={() => onChange({ budgetRange: 'need_quote' })}
+          className={cn(
+            'text-xs transition-colors',
+            logistics.budgetRange === 'need_quote'
+              ? 'text-primary font-medium underline'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          {t('logistics.budget.needQuote')} →
+        </button>
       </section>
 
       {/* Section 4: CONTACT PREFERENCE */}
