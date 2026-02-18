@@ -127,20 +127,37 @@ const ProfessionalOnboarding = () => {
     }
   }, [stepParam]);
 
+  // When re-editing a completed step, return to tracker instead of advancing
+  const isReEditingStep = (stepId: string) => {
+    return getStepStatus(stepId as StepId) === 'complete';
+  };
+
   const handleBasicInfoComplete = () => {
     trackEvent('pro_onboarding_started', 'professional', { step: 'basic_info' });
+    if (isReEditingStep('basic_info')) {
+      setCurrentStep('tracker');
+      return;
+    }
     trackEvent('pro_onboarding_step_entered', 'professional', { step: 'service_area' });
     setCurrentStep('service_area');
   };
 
   const handleServiceAreaComplete = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'service_area' });
+    if (isReEditingStep('service_area')) {
+      setCurrentStep('tracker');
+      return;
+    }
     trackEvent('pro_onboarding_step_entered', 'professional', { step: 'services' });
     setCurrentStep('services');
   };
 
   const handleServicesComplete = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'services' });
+    if (isReEditingStep('services')) {
+      setCurrentStep('tracker');
+      return;
+    }
     trackEvent('pro_onboarding_step_entered', 'professional', { step: 'review' });
     setCurrentStep('review');
   };
