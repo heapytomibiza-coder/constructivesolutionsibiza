@@ -1,1 +1,27 @@
-{}
+{
+  "gates-railings": "Gates & Railings",
+  "structural-welding": "Structural Welding",
+  "decorative-ironwork": "Decorative Ironwork",
+  "security-grilles-shutters": "Security Grilles & Shutters",
+  "metal-staircases": "Metal Staircases",
+  "metal-repairs-restoration": "Metal Repairs & Restoration",
+  "custom-metal-fabrication": "Custom Metal Fabrication",
+  "balcony-railings": "Balcony Railings",
+  "metal-fencing": "Metal Fencing",
+  "roller-shutters": "Roller Shutters",
+  "residential-window-cleaning": "Residential Window Cleaning",
+  "commercial-window-cleaning": "Commercial Window Cleaning",
+  "high-rise-window-cleaning": "High-Rise Window Cleaning",
+  "post-construction-window-cleaning": "Post-Construction Window Cleaning",
+  "solar-panel-cleaning": "Solar Panel Cleaning",
+  "solar-panel-installation": "Solar Panel Installation",
+  "solar-panel-maintenance": "Solar Panel Maintenance",
+  "solar-panel-repair": "Solar Panel Repair",
+  "solar-inverter-installation": "Solar Inverter Installation",
+  "solar-inverter-repair": "Solar Inverter Repair",
+  "battery-storage-installation": "Battery Storage Installation",
+  "battery-storage-maintenance": "Battery Storage Maintenance",
+  "solar-system-inspection": "Solar System Inspection",
+  "off-grid-solar-systems": "Off-Grid Solar Systems",
+  "solar-panel-removal-reinstallation": "Solar Panel Removal & Reinstallation"
+}
