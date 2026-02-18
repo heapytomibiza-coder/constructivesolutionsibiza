@@ -40,12 +40,20 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setTimedOut(true), 5000);
+    if (isReady && !isLoading) return;
+    const timer = setTimeout(() => setTimedOut(true), 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isReady, isLoading]);
 
   if ((isLoading || !isReady) && !timedOut) {
     return <LoadingSpinner />;
+  }
+
+  // Timed out and still unresolved — fail safe to /auth
+  if ((isLoading || !isReady) && timedOut) {
+    const returnUrl = buildReturnUrl(location.pathname, location.search);
+    const redirectUrl = buildRedirectUrl('/auth', returnUrl);
+    return <Navigate to={redirectUrl} replace />;
   }
 
   const currentPath = location.pathname;
@@ -88,16 +96,18 @@ export function PublicOnlyGuard({ children }: RouteGuardProps) {
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
+    if (isReady && !isLoading) return;
     const timer = setTimeout(() => setTimedOut(true), 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isReady, isLoading]);
 
   // If still loading but timed out, show page anyway (let user sign in)
   if ((isLoading || !isReady) && !timedOut) {
     return <LoadingSpinner />;
   }
 
-  if (isAuthenticated) {
+  // Only redirect once session is truly resolved
+  if (isReady && !isLoading && isAuthenticated) {
     const dashboardPath = activeRole === 'professional' 
       ? '/dashboard/pro' 
       : '/post';  // Wizard-first for clients
