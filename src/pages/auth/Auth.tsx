@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, Shield, ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react';
 import { IntentSelector, type UserIntent } from '@/components/auth/IntentSelector';
+import { trackEvent } from '@/lib/trackEvent';
 
 /**
  * AUTH PAGE
@@ -60,7 +61,7 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    trackEvent('login_started', 'client', { method: 'email' });
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -76,6 +77,8 @@ const Auth = () => {
     } catch (error: any) {
       const message = error?.message || t('toast.signInFailed');
       const code = error?.code;
+
+      trackEvent('login_failed', 'client', { error: message, code });
 
       // If the user exists but hasn't confirmed their email yet,
       // show the confirmation UI so they can resend the email.
@@ -98,6 +101,7 @@ const Auth = () => {
     if (!selectedIntent) return;
 
     setIsLoading(true);
+    trackEvent('signup_started', 'client', { intent: selectedIntent });
 
     try {
       // Determine roles based on intent
@@ -144,6 +148,7 @@ const Auth = () => {
           ? error.message
           : t('toast.signUpFailed');
 
+      trackEvent('signup_failed', 'client', { error: message, intent: selectedIntent });
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -426,7 +431,7 @@ const Auth = () => {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
-                          minLength={6}
+                          minLength={8}
                           className="h-11 pr-10"
                           autoComplete="new-password"
                         />

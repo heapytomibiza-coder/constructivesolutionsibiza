@@ -37,8 +37,14 @@ function LoadingSpinner() {
 export function RouteGuard({ children }: RouteGuardProps) {
   const location = useLocation();
   const { isAuthenticated, hasRole, isProReady, isLoading, isReady } = useSessionSnapshot();
+  const [timedOut, setTimedOut] = useState(false);
 
-  if (isLoading || !isReady) {
+  useEffect(() => {
+    const timer = setTimeout(() => setTimedOut(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if ((isLoading || !isReady) && !timedOut) {
     return <LoadingSpinner />;
   }
 

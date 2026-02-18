@@ -13,7 +13,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { ScrollToTop } from "@/shared/components/layout/ScrollToTop";
-import { RouteGuard, PublicOnlyGuard } from "@/guard";
+import { RouteGuard, PublicOnlyGuard, RolloutGate } from "@/guard";
 import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
 import { Loader2 } from "lucide-react";
 
@@ -116,17 +116,17 @@ const App = () => {
                 PUBLIC ROUTES - No auth required
                 ============================================ */}
             <Route path="/" element={<Index />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/services/:categorySlug" element={<ServiceCategory />} />
+            <Route path="/services" element={<RolloutGate min="service-layer"><Services /></RolloutGate>} />
+            <Route path="/services/:categorySlug" element={<RolloutGate min="service-layer"><ServiceCategory /></RolloutGate>} />
             <Route path="/jobs" element={<JobBoardPage />} />
             <Route path="/jobs/:jobId" element={<JobDetailsPage />} />
-            <Route path="/professionals" element={<Professionals />} />
-            <Route path="/professionals/:id" element={<ProfessionalDetails />} />
+            <Route path="/professionals" element={<RolloutGate min="founding-members"><Professionals /></RolloutGate>} />
+            <Route path="/professionals/:id" element={<RolloutGate min="founding-members"><ProfessionalDetails /></RolloutGate>} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
-            <Route path="/services/listing/:listingId" element={<ServiceListingDetail />} />
+            <Route path="/services/listing/:listingId" element={<RolloutGate min="service-layer"><ServiceListingDetail /></RolloutGate>} />
             {/* Backward-compat redirects */}
             <Route path="/marketplace" element={<Navigate to="/services" replace />} />
             <Route path="/marketplace/:listingId" element={<MarketplaceListingRedirect />} />
