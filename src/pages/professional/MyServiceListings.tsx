@@ -117,7 +117,7 @@ function ListingCard({ listing }: { listing: MyListing }) {
                   <Pause className="h-3.5 w-3.5" /> Pause
                 </Button>
                 <Button variant="ghost" size="sm" className="h-8 gap-1.5" asChild>
-                  <Link to={`/marketplace/${listing.id}`}>
+                  <Link to={`/services/listing/${listing.id}`}>
                     <Eye className="h-3.5 w-3.5" /> View
                   </Link>
                 </Button>
