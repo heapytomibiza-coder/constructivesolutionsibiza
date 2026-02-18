@@ -131,7 +131,6 @@ const App = () => {
             <Route path="/marketplace" element={<Navigate to="/services" replace />} />
             <Route path="/marketplace/:listingId" element={<MarketplaceListingRedirect />} />
             <Route path="/launch-checklist" element={<LaunchChecklist />} />
-            <Route path="/launch-checklist" element={<LaunchChecklist />} />
             
             {/* Forum - Public read, auth for new posts */}
             <Route path="/forum" element={<ForumIndex />} />

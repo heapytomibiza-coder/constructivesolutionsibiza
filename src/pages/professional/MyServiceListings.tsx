@@ -192,7 +192,7 @@ export default function MyServiceListings() {
             <>
               <TabsContent value="draft" className="space-y-3">
                 {drafts.length === 0 ? (
-                  <EmptyTab message={t('pro.emptyDrafts', 'No draft listings. Add categories to create drafts.')} t={t} />
+                  <EmptyTab message={t('pro.emptyDrafts', 'No draft listings. Add categories to create drafts.')} />
                 ) : (
                   drafts.map(l => <ListingCard key={l.id} listing={l} />)
                 )}
@@ -200,7 +200,7 @@ export default function MyServiceListings() {
 
               <TabsContent value="live" className="space-y-3">
                 {live.length === 0 ? (
-                  <EmptyTab message={t('pro.emptyLive', 'No live listings yet. Edit and publish your drafts to go live.')} t={t} />
+                  <EmptyTab message={t('pro.emptyLive', 'No live listings yet. Edit and publish your drafts to go live.')} />
                 ) : (
                   live.map(l => <ListingCard key={l.id} listing={l} />)
                 )}
@@ -208,7 +208,7 @@ export default function MyServiceListings() {
 
               <TabsContent value="paused" className="space-y-3">
                 {paused.length === 0 ? (
-                  <EmptyTab message={t('pro.emptyPaused', 'No paused listings.')} t={t} />
+                  <EmptyTab message={t('pro.emptyPaused', 'No paused listings.')} />
                 ) : (
                   paused.map(l => <ListingCard key={l.id} listing={l} />)
                 )}
@@ -221,7 +221,8 @@ export default function MyServiceListings() {
   );
 }
 
-function EmptyTab({ message, t }: { message: string; t: ReturnType<typeof useTranslation>['t'] }) {
+function EmptyTab({ message }: { message: string }) {
+  const { t } = useTranslation('dashboard');
   return (
     <div className="py-12 text-center">
       <p className="text-sm text-muted-foreground mb-3">{message}</p>
