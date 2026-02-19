@@ -193,9 +193,11 @@ export function deriveStepFromState(state: WizardState): WizardStep {
   if (!state.microIds || state.microIds.length === 0) return WizardStep.Micro;
 
   // Step 4: Questions
-  // Check if microAnswers has any actual data (not just empty container)
+  // Check if microAnswers has any actual answered content (not just empty pack containers)
   const microAnswersObj = state.answers?.microAnswers;
-  const hasAnyAnswers = microAnswersObj && Object.keys(microAnswersObj).length > 0;
+  const hasAnyAnswers = microAnswersObj && Object.values(microAnswersObj).some(
+    pack => pack && typeof pack === 'object' && Object.keys(pack as object).length > 0
+  );
   const hasLogisticsStarted = !!state.logistics?.location || !!state.logistics?.budgetRange;
   if (!hasAnyAnswers && !hasLogisticsStarted) return WizardStep.Questions;
 

@@ -513,10 +513,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   );
 
   const handleAnswersChange = useCallback(
-    (answers: Record<string, unknown>) => {
+    (answers: WizardState['answers']) => {
       setWizardState(prev => ({
         ...prev,
-        answers: answers as WizardState['answers'],
+        answers,
       }));
       // Clear question errors when user makes changes
       if (Object.keys(questionErrors).length > 0) {
@@ -678,7 +678,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       if (isEditMode && editJobId) {
         // === EDIT MODE: UPDATE existing job (status-gated) ===
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { user_id, ...updatePayload } = payload;
+        const { user_id, status, is_publicly_listed, ...updatePayload } = payload;
         const { data: updatedRows, error: updateError } = await supabase
           .from('jobs')
           .update(updatePayload)
