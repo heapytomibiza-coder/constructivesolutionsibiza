@@ -43,6 +43,10 @@ function formatBudget(job: any): string {
   return "To be discussed";
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+}
+
 async function sendTelegramAlert(job: any, siteUrl: string) {
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
@@ -51,21 +55,25 @@ async function sendTelegramAlert(job: any, siteUrl: string) {
   const budget = formatBudget(job);
   const jobUrl = `${siteUrl}/jobs/${job.id}`;
   const text = [
-    `🛠️ *NEW JOB POSTED*`,
-    `*${(job.title || "Untitled").replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&")}*`,
-    `📍 ${job.area || "Ibiza"} · ${job.category || "General"}`,
-    `💶 ${budget}`,
-    `⏱️ ${job.start_timing || "Flexible"}`,
+    `🚨 <b>NEW JOB POSTED</b>`,
+    `<b>${escapeHtml(job.title || "Untitled")}</b>`,
+    `📍 ${escapeHtml(job.area || "Ibiza")} · ${escapeHtml(job.category || "General")}`,
+    `💶 ${escapeHtml(budget)}`,
+    `⏱️ ${escapeHtml(job.start_timing || "Flexible")}`,
     ``,
-    `[View Job](${jobUrl})`,
+    `<a href="${jobUrl}">View Job</a>`,
   ].join("\n");
 
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "MarkdownV2" }),
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
     });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("Telegram sendMessage failed:", res.status, body);
+    }
   } catch (err) {
     console.error("Telegram alert failed:", err);
   }
