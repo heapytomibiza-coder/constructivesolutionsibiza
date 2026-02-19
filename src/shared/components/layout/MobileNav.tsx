@@ -13,7 +13,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { RoleSwitcher } from './RoleSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Menu, LogOut } from 'lucide-react';
+import { Menu, LogOut, MessageSquare } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import type { NavSection, RouteConfig } from '@/app/routes';
@@ -145,6 +145,14 @@ export function MobileNav() {
                 className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-foreground bg-muted/50 hover:bg-muted transition-colors"
               >
                 {t('nav.dashboard')}
+              </Link>
+              <Link
+                to="/messages"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mt-1"
+              >
+                <MessageSquare className="h-4 w-4" />
+                {t('nav.messages')}
               </Link>
             </div>
 
