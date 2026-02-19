@@ -79,25 +79,30 @@ const Messages = () => {
   const showThread = conversationId && (selectedConversation || !isMobile);
   const showList = !isMobile || !conversationId;
 
+  // On mobile with active thread, go full-screen chat (hide nav + header)
+  const mobileThread = isMobile && !!conversationId;
+
   return (
     <div className="h-dvh bg-background flex flex-col overflow-hidden">
-      {/* Navigation */}
-      <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-sm bg-gradient-steel flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
-            </div>
-            <span className="font-display text-xl font-semibold text-foreground">
-              {PLATFORM.shortName}
-            </span>
-          </Link>
-        </div>
-      </nav>
+      {/* Navigation — hidden on mobile when viewing a thread */}
+      {!mobileThread && (
+        <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
+          <div className="container flex h-14 items-center justify-between">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-sm bg-gradient-steel flex items-center justify-center shadow-sm">
+                <span className="text-primary-foreground font-display font-bold text-xs">CS</span>
+              </div>
+              <span className="font-display text-lg font-semibold text-foreground">
+                {PLATFORM.shortName}
+              </span>
+            </Link>
+          </div>
+        </nav>
+      )}
 
       <div className="flex-1 flex flex-col min-h-0">
         {/* Page Header */}
-        <div className={cn("container py-4 border-b border-border bg-gradient-concrete", isMobile && conversationId && "hidden")}>
+        <div className={cn("container py-3 border-b border-border bg-gradient-concrete", mobileThread && "hidden")}>
           <div className="flex items-center gap-2">
             <Link
               to={dashboardPath}
