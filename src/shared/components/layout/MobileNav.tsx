@@ -64,12 +64,12 @@ export function MobileNav() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isAuthenticated, activeRole, roles } = useSession();
+  const { isAuthenticated, activeRole, roles, user } = useSession();
 
   // Get visible nav from registry
   const navModel = useMemo(
-    () => getVisibleNavModel({ isAuthenticated, roles, activeRole }),
-    [isAuthenticated, roles, activeRole]
+    () => getVisibleNavModel({ isAuthenticated, roles, activeRole, userEmail: user?.email }),
+    [isAuthenticated, roles, activeRole, user?.email]
   );
 
   const visibleSections = useMemo(

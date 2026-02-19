@@ -46,8 +46,8 @@ export function PublicNav() {
 
   // Derive nav from registry
   const navModel = useMemo(
-    () => getVisibleNavModel({ isAuthenticated, roles, activeRole }),
-    [isAuthenticated, roles, activeRole]
+    () => getVisibleNavModel({ isAuthenticated, roles, activeRole, userEmail: user?.email }),
+    [isAuthenticated, roles, activeRole, user?.email]
   );
 
   const handleSignOut = async () => {

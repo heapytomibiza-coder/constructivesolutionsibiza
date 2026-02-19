@@ -6,6 +6,7 @@
  */
 
 import type { AccessRule } from '@/app/routes';
+import { isAdminEmail } from '@/domain/adminAllowlist';
 
 export type Role = 'client' | 'professional' | 'admin';
 
@@ -13,6 +14,7 @@ export interface AccessContext {
   isAuthenticated: boolean;
   hasRole: (role: Role) => boolean;
   isProReady: boolean;
+  userEmail?: string | null;
 }
 
 /**
@@ -37,8 +39,7 @@ export function checkAccess(rule: AccessRule, ctx: AccessContext): boolean {
       return ctx.isAuthenticated && ctx.hasRole('professional') && ctx.isProReady;
 
     case 'admin2FA':
-      // For now, just check admin role. 2FA can be added later.
-      return ctx.isAuthenticated && ctx.hasRole('admin');
+      return ctx.isAuthenticated && ctx.hasRole('admin') && isAdminEmail(ctx.userEmail);
 
     default:
       // Unknown access rule - deny by default
