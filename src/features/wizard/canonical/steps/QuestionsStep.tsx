@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, Check, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import type { WizardState } from '../types';
 
 // Question definition from the pack
 interface QuestionDef {
@@ -107,8 +108,8 @@ const TILE_TYPES = new Set(['radio', 'select', 'checkbox', 'single_select', 'mul
 
 interface Props {
   microSlugs: string[];
-  answers: Record<string, unknown>;
-  onChange: (answers: Record<string, unknown>) => void;
+  answers: WizardState['answers'];
+  onChange: (answers: WizardState['answers']) => void;
   onPacksLoaded?: (packs: QuestionPack[]) => void;
   onComplete?: () => void; // Called when user finishes all questions
   errors?: Record<string, Record<string, string>>;
