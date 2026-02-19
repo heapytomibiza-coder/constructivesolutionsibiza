@@ -1,124 +1,111 @@
 
-# Edit Job, Duplicate Job, and Close Job -- Asker Dashboard
 
-## Overview
+# Fix Answers Schema Consistency + Harden Edit/Duplicate/Close
 
-Add three key actions to every job card in the Asker Dashboard: **Edit**, **Duplicate**, and **Close**. The Edit flow reuses the existing wizard in "edit mode" (prefilled from the saved job), while Duplicate creates a new draft copy. Close lets the asker cancel/archive a job they no longer need.
+## Problem
 
-## What Changes
+The `WizardState.answers` field has an inconsistent schema across the codebase:
 
-### 1. Database: Add `edit_version` column to `jobs`
+- **QuestionsStep** expects `answers.microAnswers` (a container object with nested per-micro stores)
+- **EMPTY_WIZARD_STATE** starts with `answers: {}` (no `microAnswers` key)
+- **buildJobPayload** treats `answers` as flat key-values via `Object.fromEntries(Object.entries(answers))`
+- **hydrateFromJob** sets `answers: microAnswers` (flat, missing container)
+- **ClientJobCard duplicate** also sets `answers: microAnswers` (flat)
+- **handleCategorySelect / handleSubcategorySelect / applySearchResult** reset to `answers: {}` (breaks `answers.microAnswers` on next read)
 
-Add a single column to track edit history:
+This means edit mode, duplicate, and even fresh wizard flows can silently break when QuestionsStep tries to read `answers.microAnswers`.
+
+Additionally, the edit submission path has two gaps:
+1. No status gate on the UPDATE (a race could edit a job that moved to `in_progress`)
+2. `edit_version` is never incremented (the column exists but no code touches it)
+
+## Changes
+
+### 1. Database: Add `increment_job_edit_version` RPC
+
+Create an atomic increment function so the JS client doesn't need raw SQL:
 
 ```sql
-ALTER TABLE public.jobs ADD COLUMN edit_version integer NOT NULL DEFAULT 0;
+CREATE OR REPLACE FUNCTION public.increment_job_edit_version(p_job_id uuid)
+RETURNS void
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  UPDATE public.jobs
+  SET edit_version = edit_version + 1
+  WHERE id = p_job_id;
+$$;
+
+REVOKE ALL ON FUNCTION public.increment_job_edit_version(uuid) FROM public;
+GRANT EXECUTE ON FUNCTION public.increment_job_edit_version(uuid) TO authenticated;
 ```
 
-No new tables needed for V1. The existing `updated_at` column already auto-updates. A full `job_events` audit table can come later.
+### 2. `src/features/wizard/canonical/types.ts`
 
-### 2. New Route: `/post?edit=<jobId>`
+- Add `WizardAnswers` type with `microAnswers` as required key plus optional pack tracking fields
+- Change `WizardState.answers` from `Record<string, unknown>` to `WizardAnswers`
+- Change `EMPTY_WIZARD_STATE.answers` from `{}` to `{ microAnswers: {} }`
 
-The existing `/post` page mounts `CanonicalJobWizard`. We add an `edit` query param that triggers "edit mode":
+### 3. `src/features/wizard/canonical/lib/buildJobPayload.ts`
 
-- Wizard detects `?edit=<jobId>` on mount
-- Fetches the job row from DB (owner-checked via RLS)
-- Hydrates `WizardState` from the saved `answers` JSON
-- Sets a flag `isEditMode = true` with the `editJobId`
-- On submit: **UPDATE** instead of INSERT, increment `edit_version`, toast "Job updated!"
-- Redirect back to dashboard or job ticket page
+- Fix `microAnswers` extraction: read from `answers.microAnswers` (not `Object.fromEntries(answers)`)
+- Fix `packTracking` extraction: read `_pack_source/_pack_slug/_pack_missing` from the answers container
+- Fix `buildHighlights`: scan inside `answers.microAnswers` values only (not top-level tracking keys)
 
-### 3. Editing Rules (Safe by Default)
+### 4. `src/features/wizard/canonical/lib/hydrateFromJob.ts`
 
-- **Owner-only**: RLS already enforces `auth.uid() = user_id` on UPDATE
-- **Status gate**: Only allow editing jobs with status `open`, `ready`, or `draft`. Block edits on `completed`, `cancelled`, `in_progress`
-- **What can change**: All wizard fields (category, micro tasks, logistics, extras, answers). Title and teaser are rebuilt from the updated state.
-- **What stays**: `id`, `user_id`, `created_at`, `attribution`, `assigned_professional_id`
+- Don't hard-fail when `job.answers` is null -- default to `{}`
+- Set `state.answers = { microAnswers: ..., _pack_source: ..., _pack_slug: ..., _pack_missing: ... }` (canonical container)
+- Fallback to `job.micro_slug` when `selected.microSlugs` is missing
+- If slugs exist but IDs/names are missing, look them up from `service_micro_categories`
+- Guard against invalid date strings (`new Date("bad")`)
 
-### 4. Duplicate Job
+### 5. `src/features/wizard/canonical/CanonicalJobWizard.tsx`
 
-- Copy all wizard-relevant fields from the existing job into a fresh `WizardState`
-- Navigate to `/post` with the state pre-loaded in sessionStorage
-- No `edit` param -- this creates a brand new job
-- The wizard treats it as a normal new draft
+**Edit init (line 143):** Change `setCurrentStep(WizardStep.Review)` to `setCurrentStep(deriveStepFromState(result.state))` so edit lands on the right step based on state completeness.
 
-### 5. Close/Cancel Job
+**Edit submit (lines 678-698):** 
+- Add `.in('status', ['draft', 'ready', 'open'])` to the UPDATE query + `.select('id')` to detect 0-row updates
+- If 0 rows updated, toast "This job can't be edited anymore" and redirect
+- Call `supabase.rpc('increment_job_edit_version', { p_job_id: editJobId })` after successful update
 
-- Simple status update to `cancelled` (need to add to valid_status constraint)
-- Confirmation dialog before closing
-- Already partially implemented in `JobTicketDetail` (as "Close Job")
+**Category/subcategory reset (lines 441, 457):** Change `answers: {}` to `answers: { microAnswers: {} }` so the canonical shape is preserved on downstream resets.
 
-### 6. UI Changes to `ClientJobCard`
+### 6. `src/features/wizard/canonical/lib/resolveWizardMode.ts`
 
-Add Edit and Duplicate buttons to each job card:
+**applySearchResult (line 370):** Change `answers: {}` to `answers: { microAnswers: {} }` to match canonical shape.
 
-| Job Status | Edit | Duplicate | Close |
-|------------|------|-----------|-------|
-| draft/ready | Yes | Yes | Yes |
-| open | Yes | Yes | Yes |
-| in_progress | No | Yes | Yes |
-| completed | No | Yes | No |
+### 7. `src/pages/dashboard/client/components/ClientJobCard.tsx`
 
-### 7. Wizard Changes (`CanonicalJobWizard.tsx`)
+**handleDuplicate:** Fix draft answers shape from `answers: microAnswers` to `answers: { microAnswers, _pack_source, _pack_slug, _pack_missing }`. Also switch to `sessionStorage.setItem('wizardDraftChecked', '1')` + `navigate('/post?resume=true')` for smoother UX (skip draft prompt).
 
-The wizard's mode resolver already handles multiple init modes. We add one more:
-
-```text
-Priority order (updated):
-1. ?edit=<jobId>  --> fetch job, hydrate, edit mode
-2. Search selection --> direct to Questions
-3. Deep-link params --> apply and navigate
-4. Resume flag --> restore draft
-5. Draft exists --> prompt user
-6. Fresh start
-```
-
-Key changes in the wizard:
-- New state: `isEditMode`, `editJobId`
-- New hydration function: `hydrateWizardFromJob(jobRow)` that maps `answers` JSON back to `WizardState`
-- Submit handler branches: if `isEditMode`, run UPDATE + increment `edit_version`; else run INSERT as today
-- Review step shows "Save Changes" instead of "Post Job" in edit mode
-- Skip draft prompt when in edit mode
-
-### 8. Files to Create/Modify
-
-**New files:**
-- `src/features/wizard/canonical/lib/hydrateFromJob.ts` -- Maps a job DB row back into `WizardState`
-
-**Modified files:**
-- `src/features/wizard/canonical/CanonicalJobWizard.tsx` -- Edit mode detection, UPDATE path, UI label changes
-- `src/features/wizard/canonical/lib/resolveWizardMode.ts` -- Add edit mode to resolution priority
-- `src/features/wizard/canonical/steps/ReviewStep.tsx` -- "Save Changes" button label in edit mode
-- `src/pages/dashboard/client/components/ClientJobCard.tsx` -- Add Edit, Duplicate, Close buttons
-- `src/pages/jobs/PostJob.tsx` -- Pass edit mode context (minor, if needed)
-
-**Database migration:**
-- Add `edit_version` column to `jobs` table
-
-### 9. Hydration Logic (Technical Detail)
-
-The `hydrateFromJob` function maps the stored `answers` JSON back to `WizardState`:
-
-```text
-job.answers.selected --> mainCategory, subcategory, microNames, microIds, microSlugs
-job.answers.microAnswers --> answers
-job.answers.logistics --> logistics (with date string -> Date conversion)
-job.answers.extras --> extras
-job.category / job.subcategory --> mainCategory, subcategory (fallback)
-```
-
-Category/subcategory IDs need a lookup since they're not stored in the job row (only names are). The hydration function will query `service_categories` and `service_subcategories` by name to get the IDs.
-
-### 10. Translation Keys
+### 8. Translation keys
 
 Add to `wizard.json` (EN + ES):
-- `buttons.saveChanges`: "Save Changes" / "Guardar Cambios"
-- `toasts.updateSuccess`: "Job updated!" / "Trabajo actualizado!"
-- `toasts.duplicateCreated`: "Draft created from copy" / "Borrador creado desde copia"
+- `toasts.editNotAllowed`: "This job can't be edited anymore. Duplicate it instead." / "Este trabajo ya no se puede editar. Duplica el trabajo en su lugar."
+- `toasts.editLoadFailed`: "Could not load job for editing" / "No se pudo cargar el trabajo para editarlo"
 
-Add to `dashboard.json` (EN + ES):
-- `client.edit`: "Edit" / "Editar"
-- `client.duplicate`: "Duplicate" / "Duplicar"
-- `client.close`: "Close" / "Cerrar"
-- `client.closeConfirm`: "Are you sure you want to close this job?" / "Seguro que quieres cerrar este trabajo?"
-- `client.jobUpdated`: "Job updated successfully" / "Trabajo actualizado correctamente"
+## Files touched
+
+| File | Action |
+|------|--------|
+| DB migration (RPC) | Create `increment_job_edit_version` function |
+| `src/features/wizard/canonical/types.ts` | Add `WizardAnswers` type, fix empty state |
+| `src/features/wizard/canonical/lib/buildJobPayload.ts` | Fix answers extraction + highlights |
+| `src/features/wizard/canonical/lib/hydrateFromJob.ts` | Fix answers shape, add fallbacks |
+| `src/features/wizard/canonical/CanonicalJobWizard.tsx` | Status-gate edit, increment version, fix resets |
+| `src/features/wizard/canonical/lib/resolveWizardMode.ts` | Fix `applySearchResult` answers reset |
+| `src/pages/dashboard/client/components/ClientJobCard.tsx` | Fix duplicate draft shape |
+| `public/locales/en/wizard.json` | Add toast keys |
+| `public/locales/es/wizard.json` | Add toast keys (Spanish) |
+
+## What this solves
+
+- Edit mode round-trips cleanly (DB write matches DB read matches wizard state)
+- Duplicate preserves question answers correctly
+- Fresh wizard and search-result flows don't break `answers.microAnswers`
+- Edit is blocked on jobs that moved past `open` status
+- `edit_version` increments atomically on every successful edit
+- Wizard lands on the correct step in edit mode (not always Review)
+
