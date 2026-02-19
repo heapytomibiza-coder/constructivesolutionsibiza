@@ -25,7 +25,14 @@
     "communityForumHint": "Ask questions, get recommendations",
     "settingsHint": "Account and preferences",
     "postJobHint": "Describe what you need done",
-    "messagesHint": "Chat with Taskers"
+    "messagesHint": "Chat with Taskers",
+    "editJob": "Edit",
+    "duplicateJob": "Duplicate",
+    "closeJob": "Close",
+    "closeConfirm": "Are you sure you want to close this job? This cannot be undone.",
+    "jobUpdated": "Job updated successfully",
+    "jobClosed": "Job closed",
+    "closeFailed": "Failed to close job"
   },
   "pro": {
     "title": "Tasker Dashboard",

@@ -5,15 +5,16 @@
  * Flow: Category → Subcategory → Micro → Questions → Logistics → Extras → Review
  * 
  * Mode Resolution (priority order):
- * 1. Search selection → direct to Questions (bypass draft)
- * 2. Deep-link params → apply and navigate (bypass draft)
- * 3. Resume flag → restore draft directly
- * 4. Draft exists → prompt user
- * 5. Fresh start
+ * 1. ?edit=<jobId>  --> fetch job, hydrate, edit mode
+ * 2. Search selection → direct to Questions (bypass draft)
+ * 3. Deep-link params → apply and navigate (bypass draft)
+ * 4. Resume flag → restore draft directly
+ * 5. Draft exists → prompt user
+ * 6. Fresh start
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { flushSync } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +39,7 @@ import {
 import { useWizardUrlStep } from './hooks/useWizardUrlStep';
 import { useProServiceScope } from './hooks/useProServiceScope';
 import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
+import { hydrateFromJob, canEditJob } from './lib/hydrateFromJob';
 import { validateAllPacks, type ValidationErrorMap } from './lib/stepValidation';
 import {
   resolveWizardMode,
@@ -94,6 +96,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const [wizardState, setWizardState] = useState<WizardState>(EMPTY_WIZARD_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // === EDIT MODE STATE ===
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editJobId, setEditJobId] = useState<string | null>(null);
+  
   // Question pack validation state
   const [questionPacks, setQuestionPacks] = useState<{ micro_slug: string; questions: unknown[] }[]>([]);
   const [questionErrors, setQuestionErrors] = useState<Record<string, ValidationErrorMap>>({});
@@ -111,9 +117,46 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // URL sync (only after initialization)
   useWizardUrlStep(currentStep, setCurrentStep);
   
-  // === SINGLE-POINT MODE RESOLUTION ===
+  // === EDIT MODE DETECTION (highest priority) ===
   useEffect(() => {
     if (isInitialized) return;
+    
+    const sp = new URLSearchParams(location.search);
+    const editId = sp.get('edit');
+    if (!editId) return; // Not edit mode, let normal resolution handle it
+    
+    let cancelled = false;
+    
+    const loadJob = async () => {
+      const result = await hydrateFromJob(editId);
+      if (cancelled) return;
+      
+      if (!result) {
+        toast.error('Could not load job for editing');
+        navigate('/dashboard/client');
+        return;
+      }
+      
+      setIsEditMode(true);
+      setEditJobId(editId);
+      setWizardState(result.state);
+      setCurrentStep(WizardStep.Review); // Go straight to review in edit mode
+      markDraftChecked();
+      setIsInitialized(true);
+      trackEvent('job_wizard_started', 'client', { mode: 'edit', jobId: editId });
+    };
+    
+    loadJob();
+    return () => { cancelled = true; };
+  }, [location.search, isInitialized, navigate]);
+  
+  // === SINGLE-POINT MODE RESOLUTION (skipped if edit mode) ===
+  useEffect(() => {
+    if (isInitialized) return;
+    
+    // Skip if edit param present (handled above)
+    const sp = new URLSearchParams(location.search);
+    if (sp.get('edit')) return;
     
     const resolution = resolveWizardMode({ urlSearch: location.search });
     setModeResolution(resolution);
@@ -607,7 +650,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     clearDraftChecked();
   }, []);
 
-  // === SUBMISSION (Save-first: always saves as 'ready', redirects to ticket detail) ===
+  // === SUBMISSION (handles both new jobs and edits) ===
   
   const handleSubmit = useCallback(async () => {
     trackEvent('review_post_clicked', 'client', { category: wizardState.mainCategory });
@@ -632,39 +675,60 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     try {
       const payload = buildJobInsert(user.id, wizardState);
 
-      const { data, error } = await supabase
-        .from('jobs')
-        .insert([payload])
-        .select('id')
-        .single();
+      if (isEditMode && editJobId) {
+        // === EDIT MODE: UPDATE existing job ===
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { user_id, ...updatePayload } = payload;
+        const { error } = await supabase
+          .from('jobs')
+          .update(updatePayload)
+          .eq('id', editJobId);
 
-      if (error) {
-        if (error.code === '23505') {
-          toast.info(t('toasts.duplicate'));
-          navigate('/dashboard/client');
-          return;
+        if (error) throw error;
+
+        // Track the edit event
+        trackEvent('job_edited', 'client', { jobId: editJobId, category: wizardState.mainCategory });
+
+        hasSubmittedRef.current = true;
+        clearSession();
+        queryClient.invalidateQueries({ queryKey: ['jobs'] });
+        queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
+        queryClient.invalidateQueries({ queryKey: ['client_stats'] });
+        toast.success(t('toasts.updateSuccess'));
+        navigate('/dashboard/client');
+      } else {
+        // === NEW JOB: INSERT ===
+        const { data, error } = await supabase
+          .from('jobs')
+          .insert([payload])
+          .select('id')
+          .single();
+
+        if (error) {
+          if (error.code === '23505') {
+            toast.info(t('toasts.duplicate'));
+            navigate('/dashboard/client');
+            return;
+          }
+          throw error;
         }
-        throw error;
-      }
 
-      // Mark as submitted so abandonment tracking doesn't fire
-      hasSubmittedRef.current = true;
-      // Clear wizard session
-      clearSession();
-      queryClient.invalidateQueries({ queryKey: ['jobs'] });
-      queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
-      queryClient.invalidateQueries({ queryKey: ['client_stats'] });
-      trackEvent('job_posted', 'client', { jobId: data.id, category: wizardState.mainCategory });
-      toast.success('Job posted! View it on the job board.');
-      navigate('/jobs');
-      
+        hasSubmittedRef.current = true;
+        clearSession();
+        queryClient.invalidateQueries({ queryKey: ['jobs'] });
+        queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
+        queryClient.invalidateQueries({ queryKey: ['client_stats'] });
+        trackEvent('job_posted', 'client', { jobId: data.id, category: wizardState.mainCategory });
+        toast.success('Job posted! View it on the job board.');
+        navigate('/jobs');
+      }
     } catch (error) {
       console.error('Submit error:', error);
       toast.error(t('toasts.submitFailed'));
     } finally {
       setIsSubmitting(false);
     }
-  }, [isAuthenticated, user, wizardState, navigate, clearSession, queryClient, t]);
+  }, [isAuthenticated, user, wizardState, navigate, clearSession, queryClient, t, isEditMode, editJobId]);
 
   // === RENDER ===
   
@@ -879,6 +943,11 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {t('ui.submitting')}
+              </>
+            ) : isEditMode ? (
+              <>
+                {t('buttons.saveChanges')}
+                <ArrowRight className="h-4 w-4" />
               </>
             ) : isAuthenticated ? (
               <>

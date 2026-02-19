@@ -665,6 +665,7 @@ export type Database = {
           computed_safety: string | null
           created_at: string
           description: string | null
+          edit_version: number
           flags: string[] | null
           has_photos: boolean | null
           highlights: string[]
@@ -696,6 +697,7 @@ export type Database = {
           computed_safety?: string | null
           created_at?: string
           description?: string | null
+          edit_version?: number
           flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[]
@@ -727,6 +729,7 @@ export type Database = {
           computed_safety?: string | null
           created_at?: string
           description?: string | null
+          edit_version?: number
           flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[]

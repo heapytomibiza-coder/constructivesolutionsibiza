@@ -92,7 +92,8 @@
     "back": "Atrás",
     "continue": "Continuar",
     "submit": "Publicar Trabajo",
-    "signInToSubmit": "Iniciar sesión para publicar"
+    "signInToSubmit": "Iniciar sesión para publicar",
+    "saveChanges": "Guardar Cambios"
   },
   "ui": {
     "submitting": "Enviando...",
@@ -103,7 +104,9 @@
     "convoFailed": "Trabajo guardado, pero no se pudo iniciar la conversación",
     "directSuccess": "¡Trabajo enviado al profesional!",
     "broadcastSuccess": "¡Trabajo publicado en el marketplace!",
-    "submitFailed": "No se pudo publicar. Inténtalo de nuevo."
+    "submitFailed": "No se pudo publicar. Inténtalo de nuevo.",
+    "updateSuccess": "¡Trabajo actualizado!",
+    "duplicateCreated": "Borrador creado desde copia"
   },
   "errors": {
     "authRequired": "Necesitas iniciar sesión para publicar un trabajo",

@@ -92,7 +92,8 @@
     "back": "Back",
     "continue": "Continue",
     "submit": "Post Job",
-    "signInToSubmit": "Sign In to Post"
+    "signInToSubmit": "Sign In to Post",
+    "saveChanges": "Save Changes"
   },
   "ui": {
     "submitting": "Submitting...",
@@ -103,7 +104,9 @@
     "convoFailed": "Job saved but could not start conversation",
     "directSuccess": "Job sent to professional!",
     "broadcastSuccess": "Job posted to marketplace!",
-    "submitFailed": "Failed to post job. Please try again."
+    "submitFailed": "Failed to post job. Please try again.",
+    "updateSuccess": "Job updated!",
+    "duplicateCreated": "Draft created from copy"
   },
   "errors": {
     "authRequired": "You need to sign in to submit a job",

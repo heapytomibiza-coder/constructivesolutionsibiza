@@ -1,0 +1,1 @@
+ALTER TABLE public.jobs ADD COLUMN edit_version integer NOT NULL DEFAULT 0;
