@@ -134,30 +134,28 @@ function buildHighlights(state: WizardState): string[] {
     highlights.push(`📸 ${extras.photos!.length} photo${extras.photos!.length > 1 ? 's' : ''}`);
   }
 
-  // Extract useful info from answers if available
-  if (answers && typeof answers === 'object') {
-    // Look for common answer patterns
-    const answerObj = answers as Record<string, unknown>;
-    
-    // Size/quantity from answers
-    Object.entries(answerObj).forEach(([key, value]) => {
-      if (highlights.length >= 5) return;
-      
-      if (typeof value === 'object' && value !== null) {
-        const v = value as Record<string, unknown>;
-        // Check for quantity-like fields
-        if (v.quantity && typeof v.quantity === 'number') {
-          highlights.push(`📏 Qty: ${v.quantity}`);
-        }
-        if (v.size && typeof v.size === 'string') {
-          highlights.push(`📐 ${v.size}`);
-        }
-        if (v.area_sqm && typeof v.area_sqm === 'number') {
-          highlights.push(`📐 ${v.area_sqm}m²`);
-        }
+  // Extract useful info from micro answers if available
+  const answersContainer = (answers && typeof answers === 'object') ? (answers as Record<string, unknown>) : {};
+  const microAnswersForHighlights =
+    (answersContainer.microAnswers && typeof answersContainer.microAnswers === 'object')
+      ? (answersContainer.microAnswers as Record<string, unknown>)
+      : {};
+
+  Object.values(microAnswersForHighlights).forEach((packVal) => {
+    if (highlights.length >= 5) return;
+    if (packVal && typeof packVal === 'object') {
+      const v = packVal as Record<string, unknown>;
+      if (v.quantity && typeof v.quantity === 'number') {
+        highlights.push(`📏 Qty: ${v.quantity}`);
       }
-    });
-  }
+      if (v.size && typeof v.size === 'string') {
+        highlights.push(`📐 ${v.size}`);
+      }
+      if (v.area_sqm && typeof v.area_sqm === 'number') {
+        highlights.push(`📐 ${v.area_sqm}m²`);
+      }
+    }
+  });
 
   return highlights.slice(0, 5);
 }
@@ -294,13 +292,13 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
   // Build proper location JSON (area-safe, no addresses)
   const locationPayload = buildLocationJson(logistics);
 
-  // Full answers payload for detailed view
-  const microAnswers = Object.fromEntries(
-    Object.entries(answers ?? {}).map(([k, v]) => [k, v as Json])
-  ) as Record<string, Json>;
-
-  // Extract pack tracking metadata if present
-  const packTracking = answers as Record<string, unknown> | undefined;
+  // Canonical answers container (QuestionsStep expects answers.microAnswers)
+  const answersObj = (answers && typeof answers === 'object') ? (answers as Record<string, unknown>) : {};
+  const microAnswers =
+    (answersObj.microAnswers && typeof answersObj.microAnswers === 'object')
+      ? (answersObj.microAnswers as Record<string, Json>)
+      : {};
+  const packTracking = answersObj;
   
   const answersPayload: Json = {
     selected: {
