@@ -268,66 +268,99 @@
   },
   "howItWorks": {
     "title": "How It Works",
-    "subtitle": "Simple. Structured. Built for Ibiza's construction community.",
-    "trustBadge": "Guided process • Service-based matching • Ibiza only",
-    "overviewTitle": "Three Steps. No Confusion.",
-    "overviewDesc": "Constructive Solutions Ibiza connects people who need work done with the right professionals — through a simple guided process that removes guesswork and saves everyone time.",
-    "ov1Title": "Post Your Job",
-    "ov1Desc": "Use the step-by-step guide to describe exactly what you need. No long paragraphs — just clear, tick-box questions.",
-    "ov2Title": "Get Matched",
-    "ov2Desc": "Relevant professionals are notified instantly based on their selected services and preferences.",
-    "ov3Title": "Connect & Complete",
-    "ov3Desc": "Message securely, agree the details, and get the job done.",
-    "forClients": "I Need Work Done",
-    "forProfessionals": "I'm a Tasker",
-    "postJobButton": "Start Your Project",
-    "joinAsProButton": "Join as Tasker",
-    "clientStep1Title": "Choose the Service",
-    "clientStep1Desc": "Select a category, subcategory, and specific service so we know exactly what you need.",
-    "clientStep2Title": "Answer Simple Questions",
-    "clientStep2Desc": "We guide you with clear tick-box questions so professionals understand the job from the start.",
+    "subtitle": "This system is simple in structure, but thoughtful in design. It guides the job at the beginning — so the working relationship starts properly.",
+    "trustBadge": "Guided process • Intelligent matching • Ibiza only",
+    "introP1": "It doesn't replace how people work.",
+    "introP2": "It improves how jobs begin.",
+    "introP3": "Clear structure at the start removes confusion later.",
+
+    "forClients": "For Clients",
+    "forClientsAka": "(Askers)",
+
+    "clientStep1Title": "Choose the Exact Service",
+    "clientStep1Desc": "Select the specific service you need — not just a broad trade. This allows the system to tailor the right questions to your job.",
+    "clientStep1Why": "Clear service selection prevents vague posts and misunderstandings from the beginning.",
+
+    "clientStep2Title": "Answer Guided Questions",
+    "clientStep2Desc": "You're guided through practical, trade-specific questions. No long paragraphs. No repeating yourself in multiple messages.",
+    "clientStep2Why": "Professionals understand the scope before messaging you — sometimes even before needing a site visit. That reduces back-and-forth and leads to more realistic pricing.",
+
     "clientStep3Title": "Add Budget & Timing",
-    "clientStep3Desc": "Set expectations clearly — budget range, preferred timing, and location.",
-    "clientStep4Title": "Post & Get Matched",
-    "clientStep4Desc": "Your job is sent to relevant professionals immediately. They message you directly.",
-    "clientAfter": "You stay in control — review messages, agree terms, and mark the job complete when you're happy.",
-    "proStep1Title": "Complete Your Profile",
-    "proStep1Desc": "Add your business info and service area. Takes about two minutes.",
-    "proStep2Title": "Select Your Services",
-    "proStep2Desc": "Choose exactly which services you offer. If you don't select it, you won't be matched to it.",
-    "proStep3Title": "Get Matched Automatically",
-    "proStep3Desc": "When a job is posted that matches your services, you're notified. No spam, no irrelevant requests.",
-    "proMatchTitle": "When a Job Lands",
-    "proMatchDesc": "You're notified if it matches your selected services. You can message the client directly — only relevant opportunities reach you.",
-    "proBadgeTitle": "Verification Badge",
-    "proBadgeDesc": "Verification increases trust and improves your visibility. It's not required to apply — it's a boost, not a gate.",
-    "whyTitle": "Why It's Different",
-    "why1": "Structured job posting — no vague requests",
-    "why2": "Service-based matching — not random browsing",
-    "why3": "Secure messaging between client and professional",
-    "why4": "Verified profiles as a trust signal",
-    "why5": "Focused local network — Ibiza only",
+    "clientStep3Desc": "Set a budget range and preferred timeframe.",
+    "clientStep3Why": "It prevents misalignment. Professionals can respond honestly, and you avoid unrealistic quotes.",
+
+    "clientStep4Title": "Intelligent Matching",
+    "clientStep4Desc": "Your job is analysed properly before notifications are sent.",
+    "clientStep4Why": "Only relevant professionals are notified. You then speak directly and agree terms personally.",
+    "clientStep4Matching": "Matching considers:",
+    "clientStep4Match1": "Exact services and sub-services",
+    "clientStep4Match2": "Service area",
+    "clientStep4Match3": "Professional work preferences",
+    "clientStep4Match4": "Profile completeness",
+    "clientStep4Match5": "Reliability signals built over time",
+
+    "clientClosing": "The system supports the beginning — the relationship remains human.",
+    "postJobButton": "Start Your Project",
+
+    "forProfessionals": "For Professionals",
+    "forProfessionalsAka": "(Taskers)",
+
+    "proStep1Title": "Define What You Actually Want to Do",
+    "proStep1Desc": "You don't just select a trade. You choose exact services, sub-services, your working area, and the type of work you prefer. You decide what reaches you.",
+    "proStep1Why": "You receive work aligned with your strengths and interests — not just anything under your trade label.",
+
+    "proStep2Title": "Receive Structured Jobs",
+    "proStep2Desc": "When a job matches you, it already includes clear service type, scope questions answered, budget range, and timing.",
+    "proStep2Why": "You're not chasing basic information. You can decide calmly whether it's worth pursuing. That protects your time and standards.",
+
+    "proStep3Title": "Communicate Directly",
+    "proStep3Desc": "Once matched, you speak directly with the client. You agree details in your own way.",
+    "proStep3Why": "The system does not interfere with how you work. It simply improves how the job begins.",
+
+    "joinAsProButton": "Join as a Professional",
+
+    "whyExistsTitle": "Why This Structure Exists",
+    "whyExistsIntro": "Because too much time is wasted in construction:",
+    "whyExists1": "Vague job posts",
+    "whyExists2": "Endless clarification messages",
+    "whyExists3": "Site visits just to understand basic scope",
+    "whyExists4": "Blind undercutting",
+    "whyExists5": "Quotes given without budget clarity",
+    "whyExists6": "100+ unread WhatsApp messages",
+    "whyExistsClosing": "Structure at the beginning prevents frustration later.",
+
+    "standardsTitle": "Standards — For Both Sides",
+    "standards1": "Clients are guided to provide proper detail.",
+    "standards2": "Professionals are expected to communicate clearly and respectfully.",
+    "standardsVerifyTitle": "Verification is not bought.",
+    "standardsVerifyIntro": "It is earned through:",
+    "standardsVerify1": "Completed work",
+    "standardsVerify2": "Reliable communication",
+    "standardsVerify3": "Positive feedback",
+    "standardsVerify4": "Consistent standards",
+    "standardsClosing": "Trust is built through action.",
+
     "faqTitle": "Frequently Asked Questions",
     "faq": {
       "account": {
         "q": "Do I need an account to post a job?",
-        "a": "Yes. You'll create a quick account so you can manage your job and messages securely."
+        "a": "Yes. An account allows your job to be structured properly and ensures communication stays organised."
       },
       "howLong": {
         "q": "How long does it take to post a job?",
-        "a": "Usually 1–2 minutes. The step-by-step guide walks you through simple tick-box questions."
+        "a": "Usually 1–2 minutes. The guided process walks you through practical, trade-specific questions."
       },
       "isFree": {
         "q": "Is posting a job free?",
-        "a": "Yes. Posting is completely free."
+        "a": "Yes. You only agree terms directly with the professional you choose."
       },
       "howMatched": {
         "q": "How are professionals selected?",
-        "a": "They choose which services they offer during setup. If your job matches their services, they're notified automatically."
+        "a": "They choose which services they want to be matched with. When your job aligns with their selected services, preferences, and area, they're notified."
       },
       "unverified": {
-        "q": "Can professionals apply without being verified?",
-        "a": "Yes. Verification is a trust badge that boosts visibility — it's not required to respond to jobs."
+        "q": "Can professionals apply without verification?",
+        "a": "Yes. Verification is earned over time — it reflects reliability, not payment."
       },
       "contactPro": {
         "q": "How do I contact a professional?",
@@ -335,11 +368,11 @@
       },
       "editJob": {
         "q": "Can I change my job details after posting?",
-        "a": "Yes. You can edit your job from your dashboard before it's marked as completed."
+        "a": "Yes. You can update your job if something changes, so professionals always see accurate information."
       },
       "vsWhatsapp": {
         "q": "What makes this better than WhatsApp groups?",
-        "a": "Structured job details, service-based matching, clear expectations, secure messaging, and no message flooding."
+        "a": "Jobs are structured from the beginning. Professionals receive only relevant work. Scope, budget and timing are clarified early. Communication remains direct — without message floods."
       }
     }
   },
