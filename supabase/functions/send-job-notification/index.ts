@@ -43,6 +43,34 @@ function formatBudget(job: any): string {
   return "To be discussed";
 }
 
+async function sendTelegramAlert(job: any, siteUrl: string) {
+  const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
+  const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
+  if (!token || !chatId) return;
+
+  const budget = formatBudget(job);
+  const jobUrl = `${siteUrl}/jobs/${job.id}`;
+  const text = [
+    `🛠️ *NEW JOB POSTED*`,
+    `*${(job.title || "Untitled").replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&")}*`,
+    `📍 ${job.area || "Ibiza"} · ${job.category || "General"}`,
+    `💶 ${budget}`,
+    `⏱️ ${job.start_timing || "Flexible"}`,
+    ``,
+    `[View Job](${jobUrl})`,
+  ].join("\n");
+
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "MarkdownV2" }),
+    });
+  } catch (err) {
+    console.error("Telegram alert failed:", err);
+  }
+}
+
 function buildEmailHtml(job: any, siteUrl: string): string {
   const budget = formatBudget(job);
   const area = job.area || "Ibiza";
@@ -128,7 +156,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const origin = req.headers.get("origin") || req.headers.get("referer")?.split("/").slice(0, 3).join("/");
-    const siteUrl = Deno.env.get("SITE_URL") || origin || "https://id-preview--c31efcb5-ae5c-4284-990c-e746238ecde8.lovable.app";
+    const siteUrl = Deno.env.get("PUBLIC_SITE_ORIGIN") || Deno.env.get("SITE_URL") || origin || "https://constructivesolutionsibiza.com";
 
     let sent = 0;
     for (let i = 0; i < queue.length; i++) {
@@ -154,6 +182,9 @@ const handler = async (req: Request): Promise<Response> => {
         const subject = `🛠️ New job: ${job.title} — ${job.area || "Ibiza"}`;
         const html = buildEmailHtml(job, siteUrl);
         const result = await sendWithFallback(NOTIFY_EMAIL, subject, html);
+
+        // Send Telegram push notification
+        await sendTelegramAlert(job, siteUrl);
 
         if (result.error) {
           await supabaseAdmin
