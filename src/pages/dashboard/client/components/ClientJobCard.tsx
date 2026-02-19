@@ -139,7 +139,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
       sessionStorage.setItem('wizardDraftChecked', '1'); // Skip draft prompt
     }
 
-    toast.success(t('client.duplicateCreated') || 'Draft created from copy');
+    toast.success(t('client.duplicateCreated', 'Draft created from copy'));
     navigate('/post?resume=true');
   };
 

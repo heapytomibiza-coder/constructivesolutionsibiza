@@ -32,7 +32,8 @@
     "closeConfirm": "Are you sure you want to close this job? This cannot be undone.",
     "jobUpdated": "Job updated successfully",
     "jobClosed": "Job closed",
-    "closeFailed": "Failed to close job"
+    "closeFailed": "Failed to close job",
+    "duplicateCreated": "Draft created from copy"
   },
   "pro": {
     "title": "Tasker Dashboard",

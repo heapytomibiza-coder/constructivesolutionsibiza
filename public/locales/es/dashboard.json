@@ -32,7 +32,8 @@
     "closeConfirm": "¿Seguro que quieres cerrar este trabajo? Esta acción no se puede deshacer.",
     "jobUpdated": "Trabajo actualizado correctamente",
     "jobClosed": "Trabajo cerrado",
-    "closeFailed": "No se pudo cerrar el trabajo"
+    "closeFailed": "No se pudo cerrar el trabajo",
+    "duplicateCreated": "Borrador creado desde copia"
   },
   "pro": {
     "title": "Panel del Tasker",
