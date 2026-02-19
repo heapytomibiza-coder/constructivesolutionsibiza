@@ -36,9 +36,6 @@ export function JobBoardHeroSection({
         <p className="text-sm text-muted-foreground mt-1">
           {t('board.realScope')}
         </p>
-        <p className="text-xs text-muted-foreground/70 mt-1">
-          {tc('trust.realSpecs')} • {tc('trust.lessBackForth')} • {tc('trust.ibizaOnly')}
-        </p>
       </div>
 
       <div className="relative mb-4">

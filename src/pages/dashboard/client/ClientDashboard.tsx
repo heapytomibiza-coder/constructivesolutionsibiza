@@ -47,11 +47,11 @@ const ClientDashboard = () => {
       {/* Navigation */}
       <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-sm bg-gradient-steel flex items-center justify-center shadow-sm">
+          <Link to="/" className="flex items-center gap-1.5 min-w-0">
+            <div className="h-9 w-9 shrink-0 rounded-sm bg-gradient-steel flex items-center justify-center shadow-sm">
               <span className="text-primary-foreground font-display font-bold text-sm">CS</span>
             </div>
-            <span className="font-display text-xl font-semibold text-foreground">
+            <span className="font-display text-lg font-semibold text-foreground hidden xs:inline truncate">
               CS Ibiza
             </span>
           </Link>
@@ -74,16 +74,16 @@ const ClientDashboard = () => {
 
       <div className="container py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="font-display text-3xl font-bold text-foreground">
+        <div className="flex items-start justify-between mb-8 gap-3">
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
               {t('client.title')}
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1 text-sm truncate">
               {t('client.welcomeBack', { email: user?.email || '' })}
             </p>
           </div>
-          <Button className="gap-2" asChild>
+          <Button className="gap-2 shrink-0 hidden sm:inline-flex" asChild>
             <Link to="/post">
               <Plus className="h-4 w-4" />
               {t('client.postJob')}
