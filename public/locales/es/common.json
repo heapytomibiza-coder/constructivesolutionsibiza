@@ -271,66 +271,99 @@
   },
   "howItWorks": {
     "title": "Cómo Funciona",
-    "subtitle": "Simple. Estructurado. Hecho para la comunidad de construcción de Ibiza.",
-    "trustBadge": "Proceso guiado • Matching por servicio • Solo Ibiza",
-    "overviewTitle": "Tres Pasos. Sin Confusión.",
-    "overviewDesc": "Constructive Solutions Ibiza conecta a personas que necesitan trabajo con los profesionales adecuados — a través de un proceso guiado que elimina las dudas y ahorra tiempo.",
-    "ov1Title": "Publica Tu Trabajo",
-    "ov1Desc": "Usa el asistente guiado para describir exactamente lo que necesitas. Sin párrafos largos — solo preguntas claras.",
-    "ov2Title": "Recibe Coincidencias",
-    "ov2Desc": "Los profesionales relevantes son notificados automáticamente según sus servicios y preferencias.",
-    "ov3Title": "Conecta y Completa",
-    "ov3Desc": "Mensajea de forma segura, acuerda los detalles y completa el trabajo.",
-    "forClients": "Necesito Trabajo Hecho",
-    "forProfessionals": "Soy un Tasker",
+    "subtitle": "Este sistema es simple en estructura, pero cuidado en diseño. Guía el trabajo desde el principio — para que la relación laboral empiece bien.",
+    "trustBadge": "Proceso guiado • Matching inteligente • Solo Ibiza",
+    "introP1": "No reemplaza la forma de trabajar.",
+    "introP2": "Mejora cómo comienzan los trabajos.",
+    "introP3": "Una estructura clara al inicio evita confusiones después.",
+
+    "forClients": "Para Clientes",
+    "forClientsAka": "(Askers)",
+
+    "clientStep1Title": "Elige el Servicio Exacto",
+    "clientStep1Desc": "Selecciona el servicio específico que necesitas — no solo un oficio general. Esto permite que el sistema adapte las preguntas correctas a tu trabajo.",
+    "clientStep1Why": "Una selección clara del servicio evita publicaciones vagas y malentendidos desde el principio.",
+
+    "clientStep2Title": "Responde Preguntas Guiadas",
+    "clientStep2Desc": "Te guiamos con preguntas prácticas y específicas del oficio. Sin párrafos largos. Sin repetirte en múltiples mensajes.",
+    "clientStep2Why": "Los profesionales entienden el alcance antes de contactarte — a veces incluso antes de necesitar una visita. Eso reduce el ir y venir y lleva a precios más realistas.",
+
+    "clientStep3Title": "Añade Presupuesto y Plazos",
+    "clientStep3Desc": "Establece un rango de presupuesto y plazo preferido.",
+    "clientStep3Why": "Evita desajustes. Los profesionales pueden responder con honestidad y tú evitas presupuestos irrealistas.",
+
+    "clientStep4Title": "Matching Inteligente",
+    "clientStep4Desc": "Tu trabajo se analiza correctamente antes de enviar notificaciones.",
+    "clientStep4Why": "Solo se notifica a profesionales relevantes. Luego hablas directamente y acordáis condiciones personalmente.",
+    "clientStep4Matching": "El matching considera:",
+    "clientStep4Match1": "Servicios y sub-servicios exactos",
+    "clientStep4Match2": "Área de servicio",
+    "clientStep4Match3": "Preferencias de trabajo del profesional",
+    "clientStep4Match4": "Completitud del perfil",
+    "clientStep4Match5": "Señales de fiabilidad construidas con el tiempo",
+
+    "clientClosing": "El sistema apoya el comienzo — la relación sigue siendo humana.",
     "postJobButton": "Empieza Tu Proyecto",
-    "joinAsProButton": "Únete como Tasker",
-    "clientStep1Title": "Elige el Servicio",
-    "clientStep1Desc": "Selecciona una categoría, subcategoría y servicio específico para que sepamos exactamente qué necesitas.",
-    "clientStep2Title": "Responde Preguntas Simples",
-    "clientStep2Desc": "Te guiamos con preguntas claras tipo casilla para que los profesionales entiendan el trabajo desde el inicio.",
-    "clientStep3Title": "Añade Presupuesto y Plazo",
-    "clientStep3Desc": "Establece expectativas claras — rango de presupuesto, calendario preferido y ubicación.",
-    "clientStep4Title": "Publica y Recibe Matches",
-    "clientStep4Desc": "Tu trabajo se envía a profesionales relevantes inmediatamente. Te contactan directamente.",
-    "clientAfter": "Tú mantienes el control — revisa mensajes, acuerda condiciones y marca el trabajo como completado cuando estés satisfecho.",
-    "proStep1Title": "Completa Tu Perfil",
-    "proStep1Desc": "Añade tu información de negocio y área de servicio. Lleva unos dos minutos.",
-    "proStep2Title": "Selecciona Tus Servicios",
-    "proStep2Desc": "Elige exactamente qué servicios ofreces. Si no lo seleccionas, no se te asignará.",
-    "proStep3Title": "Recibe Matches Automáticamente",
-    "proStep3Desc": "Cuando se publica un trabajo que coincide con tus servicios, se te notifica. Sin spam, sin solicitudes irrelevantes.",
-    "proMatchTitle": "Cuando Llega un Trabajo",
-    "proMatchDesc": "Se te notifica si coincide con tus servicios seleccionados. Puedes mensajear al cliente directamente — solo oportunidades relevantes llegan a ti.",
-    "proBadgeTitle": "Insignia de Verificación",
-    "proBadgeDesc": "La verificación aumenta la confianza y mejora tu visibilidad. No es necesaria para aplicar — es un impulso, no una barrera.",
-    "whyTitle": "Por Qué Es Diferente",
-    "why1": "Publicación de trabajo estructurada — sin solicitudes vagas",
-    "why2": "Matching basado en servicios — sin navegación aleatoria",
-    "why3": "Mensajería segura entre cliente y profesional",
-    "why4": "Perfiles verificados como señal de confianza",
-    "why5": "Red local enfocada — solo Ibiza",
+
+    "forProfessionals": "Para Profesionales",
+    "forProfessionalsAka": "(Taskers)",
+
+    "proStep1Title": "Define Lo Que Realmente Quieres Hacer",
+    "proStep1Desc": "No solo seleccionas un oficio. Eliges servicios exactos, sub-servicios, tu zona de trabajo y el tipo de trabajo que prefieres. Tú decides qué te llega.",
+    "proStep1Why": "Recibes trabajo alineado con tus fortalezas e intereses — no cualquier cosa bajo tu etiqueta de oficio.",
+
+    "proStep2Title": "Recibe Trabajos Estructurados",
+    "proStep2Desc": "Cuando un trabajo coincide contigo, ya incluye tipo de servicio claro, preguntas de alcance respondidas, rango de presupuesto y plazos.",
+    "proStep2Why": "No estás persiguiendo información básica. Puedes decidir con calma si merece la pena. Eso protege tu tiempo y tus estándares.",
+
+    "proStep3Title": "Comunícate Directamente",
+    "proStep3Desc": "Una vez emparejado, hablas directamente con el cliente. Acordáis los detalles a vuestra manera.",
+    "proStep3Why": "El sistema no interfiere en cómo trabajas. Simplemente mejora cómo comienza el trabajo.",
+
+    "joinAsProButton": "Únete como Profesional",
+
+    "whyExistsTitle": "Por Qué Existe Esta Estructura",
+    "whyExistsIntro": "Porque se pierde demasiado tiempo en construcción:",
+    "whyExists1": "Publicaciones de trabajo vagas",
+    "whyExists2": "Mensajes interminables de aclaración",
+    "whyExists3": "Visitas a obra solo para entender el alcance básico",
+    "whyExists4": "Rebajas a ciegas",
+    "whyExists5": "Presupuestos dados sin claridad de presupuesto",
+    "whyExists6": "100+ mensajes sin leer en WhatsApp",
+    "whyExistsClosing": "La estructura al principio previene frustraciones después.",
+
+    "standardsTitle": "Estándares — Para Ambas Partes",
+    "standards1": "Los clientes son guiados para proporcionar detalles adecuados.",
+    "standards2": "Se espera que los profesionales se comuniquen de forma clara y respetuosa.",
+    "standardsVerifyTitle": "La verificación no se compra.",
+    "standardsVerifyIntro": "Se gana a través de:",
+    "standardsVerify1": "Trabajo completado",
+    "standardsVerify2": "Comunicación fiable",
+    "standardsVerify3": "Opiniones positivas",
+    "standardsVerify4": "Estándares consistentes",
+    "standardsClosing": "La confianza se construye con acciones.",
+
     "faqTitle": "Preguntas Frecuentes",
     "faq": {
       "account": {
         "q": "¿Necesito una cuenta para publicar un trabajo?",
-        "a": "Sí. Crearás una cuenta rápida para gestionar tu trabajo y mensajes de forma segura."
+        "a": "Sí. Una cuenta permite que tu trabajo se estructure correctamente y que la comunicación se mantenga organizada."
       },
       "howLong": {
         "q": "¿Cuánto tarda publicar un trabajo?",
-        "a": "Normalmente 1–2 minutos. El asistente te guía con preguntas sencillas tipo casilla."
+        "a": "Normalmente 1–2 minutos. El proceso guiado te lleva por preguntas prácticas y específicas del oficio."
       },
       "isFree": {
         "q": "¿Es gratis publicar un trabajo?",
-        "a": "Sí. Publicar es completamente gratis."
+        "a": "Sí. Solo acuerdas condiciones directamente con el profesional que elijas."
       },
       "howMatched": {
         "q": "¿Cómo se seleccionan los profesionales?",
-        "a": "Ellos eligen qué servicios ofrecen durante su configuración. Si tu trabajo coincide con sus servicios, se les notifica automáticamente."
+        "a": "Ellos eligen con qué servicios quieren ser emparejados. Cuando tu trabajo coincide con sus servicios, preferencias y zona, se les notifica."
       },
       "unverified": {
-        "q": "¿Pueden los profesionales aplicar sin estar verificados?",
-        "a": "Sí. La verificación es una insignia de confianza que aumenta la visibilidad — no es necesaria para responder a trabajos."
+        "q": "¿Pueden los profesionales aplicar sin verificación?",
+        "a": "Sí. La verificación se gana con el tiempo — refleja fiabilidad, no pago."
       },
       "contactPro": {
         "q": "¿Cómo contacto a un profesional?",
@@ -338,11 +371,11 @@
       },
       "editJob": {
         "q": "¿Puedo cambiar los detalles de mi trabajo después de publicarlo?",
-        "a": "Sí. Puedes editar tu trabajo desde tu panel antes de que se marque como completado."
+        "a": "Sí. Puedes actualizar tu trabajo si algo cambia, para que los profesionales siempre vean información precisa."
       },
       "vsWhatsapp": {
         "q": "¿Qué lo hace mejor que los grupos de WhatsApp?",
-        "a": "Detalles de trabajo estructurados, matching por servicio, expectativas claras, mensajería segura y sin inundación de mensajes."
+        "a": "Los trabajos están estructurados desde el principio. Los profesionales solo reciben trabajo relevante. Alcance, presupuesto y plazos se aclaran pronto. La comunicación sigue siendo directa — sin avalanchas de mensajes."
       }
     }
   },
