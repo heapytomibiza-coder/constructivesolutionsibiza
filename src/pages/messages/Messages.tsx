@@ -7,6 +7,7 @@ import { useConversations, useMarkConversationRead, type Conversation } from "./
 import { PLATFORM } from "@/domain/scope";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 
 /**
@@ -79,7 +80,7 @@ const Messages = () => {
   const showList = !isMobile || !conversationId;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-dvh bg-background flex flex-col overflow-hidden">
       {/* Navigation */}
       <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
@@ -94,9 +95,9 @@ const Messages = () => {
         </div>
       </nav>
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Page Header */}
-        <div className="container py-4 border-b border-border bg-gradient-concrete">
+        <div className={cn("container py-4 border-b border-border bg-gradient-concrete", isMobile && conversationId && "hidden")}>
           <div className="flex items-center gap-2">
             <Link
               to={dashboardPath}
@@ -113,7 +114,7 @@ const Messages = () => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden min-h-0">
           {/* Desktop: Two columns / Mobile: Conditional */}
           {!isMobile ? (
             <>
@@ -160,7 +161,7 @@ const Messages = () => {
                 />
               </div>
             ) : (
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col min-h-0">
                 <ConversationThread
                   conversationId={conversationId!}
                   currentUserId={user.id}

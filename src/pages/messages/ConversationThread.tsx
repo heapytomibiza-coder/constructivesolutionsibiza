@@ -151,7 +151,7 @@ export function ConversationThread({
             )}
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-2">
+        <p className="text-[11px] text-muted-foreground mt-1 hidden sm:block">
           Enter or ⌘/Ctrl+Enter to send · Shift+Enter for new line
         </p>
       </div>
