@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from '@/contexts/SessionContext';
+import { getDashboardPath } from '@/app/routes';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
 import { User, Briefcase, ChevronDown } from 'lucide-react';
 import {
@@ -28,6 +30,8 @@ export function MobileRolePill() {
   const { t } = useTranslation();
   const { roles, activeRole, switchRole } = useSession();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
 
   if (roles.length <= 1) return null;
@@ -55,6 +59,10 @@ export function MobileRolePill() {
     queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
     queryClient.invalidateQueries({ queryKey: ['pro_unread_messages'] });
     queryClient.invalidateQueries({ queryKey: ['professional_services'] });
+
+    if (location.pathname.startsWith('/dashboard')) {
+      navigate(getDashboardPath(newRole));
+    }
     setOpen(false);
   };
 
