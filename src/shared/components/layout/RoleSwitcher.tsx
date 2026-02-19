@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from '@/contexts/SessionContext';
+import { getDashboardPath } from '@/app/routes';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
 import {
   Select,
@@ -25,6 +27,8 @@ export function RoleSwitcher({ className }: RoleSwitcherProps) {
   const { t } = useTranslation();
   const { roles, activeRole, switchRole } = useSession();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Only show if user has multiple roles
   if (roles.length <= 1) {
@@ -59,6 +63,10 @@ export function RoleSwitcher({ className }: RoleSwitcherProps) {
     queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
     queryClient.invalidateQueries({ queryKey: ['pro_unread_messages'] });
     queryClient.invalidateQueries({ queryKey: ['professional_services'] });
+
+    if (location.pathname.startsWith('/dashboard')) {
+      navigate(getDashboardPath(newRole as UserRole));
+    }
   };
 
   return (
