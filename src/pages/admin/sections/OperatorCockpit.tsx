@@ -1,5 +1,6 @@
+import { useCallback } from "react";
 import { useAdminStats } from "../hooks/useAdminStats";
-import { useLatestJobs } from "../hooks/useLatestJobs";
+import { useLatestJobs, type LatestJob } from "../hooks/useLatestJobs";
 import { useAdminAlerts } from "../hooks/useAdminAlerts";
 import type { AdminAlert } from "../hooks/useAdminAlerts";
 import { formatWhatsAppPost, copyToClipboard } from "../lib/formatWhatsAppPost";
@@ -25,6 +26,21 @@ import { formatDistanceToNow } from "date-fns";
 import { StatTile } from "@/shared/components/StatTile";
 import { useNavigate } from "react-router-dom";
 
+function playNotifySound() {
+  try {
+    const audio = new Audio("/sounds/notify.mp3");
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
+  } catch {}
+}
+
+function showBrowserNotification(title: string, body: string) {
+  if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+  try {
+    new Notification(title, { body, icon: "/favicon.ico" });
+  } catch {}
+}
+
 const SEVERITY_ORDER: Record<string, number> = { red: 0, yellow: 1, blue: 2 };
 
 const ALERT_ICONS: Record<string, React.ReactNode> = {
@@ -46,8 +62,16 @@ const SEVERITY_STYLES: Record<string, string> = {
 export function OperatorCockpit() {
   const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = useAdminStats();
-  const { data: latestJobs, isLoading: jobsLoading } = useLatestJobs(10);
   const { data: alerts, isLoading: alertsLoading } = useAdminAlerts();
+
+  const handleNewJob = useCallback((job: LatestJob) => {
+    const desc = [job.area, job.category].filter(Boolean).join(" • ") || "New listing";
+    toast(`🚨 New job: ${job.title}`, { description: desc });
+    playNotifySound();
+    showBrowserNotification("New Job Posted", `${job.title} — ${desc}`);
+  }, []);
+
+  const { data: latestJobs, isLoading: jobsLoading } = useLatestJobs(10, handleNewJob);
 
   const sortedAlerts = (alerts ?? []).sort(
     (a, b) => (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9)
