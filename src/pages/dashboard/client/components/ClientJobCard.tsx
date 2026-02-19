@@ -1,14 +1,27 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Pencil, Copy, X } from 'lucide-react';
 import { CompletionModal, RatingModal } from '@/pages/jobs/components';
 import { completeJob } from '@/pages/jobs/actions/completeJob.action';
 import { submitReview } from '@/pages/jobs/actions/submitReview.action';
 import { toast } from 'sonner';
 import { AssignProSelector } from '@/pages/dashboard/shared/components/AssignProSelector';
+import { useTranslation } from 'react-i18next';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface Job {
   id: string;
@@ -19,6 +32,7 @@ interface Job {
   created_at: string;
   is_publicly_listed: boolean;
   assigned_professional_id: string | null;
+  answers?: unknown;
 }
 
 interface ClientJobCardProps {
@@ -38,6 +52,8 @@ const getStatusBadgeVariant = (status: string) => {
       return 'outline';
     case 'completed':
       return 'success' as const;
+    case 'cancelled':
+      return 'destructive' as const;
     default:
       return 'secondary';
   }
@@ -49,17 +65,93 @@ const getStatusLabel = (status: string) => {
     case 'open': return 'Live';
     case 'in_progress': return 'In Progress';
     case 'completed': return 'Completed';
+    case 'cancelled': return 'Closed';
     case 'draft': return 'Draft';
     default: return status;
   }
 };
 
+/** Which actions are available per status */
+function getActions(status: string) {
+  const canEdit = ['draft', 'ready', 'open'].includes(status);
+  const canDuplicate = ['draft', 'ready', 'open', 'in_progress', 'completed'].includes(status);
+  const canClose = ['draft', 'ready', 'open', 'in_progress'].includes(status);
+  return { canEdit, canDuplicate, canClose };
+}
+
 export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
+  const { t } = useTranslation('dashboard');
+  const navigate = useNavigate();
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const canComplete = job.status === 'in_progress' && job.assigned_professional_id;
+  const { canEdit, canDuplicate, canClose } = getActions(job.status);
+
+  const handleEdit = () => {
+    navigate(`/post?edit=${job.id}`);
+  };
+
+  const handleDuplicate = () => {
+    // Store the job's answers in sessionStorage so wizard picks it up as a draft
+    if (job.answers) {
+      const answers = job.answers as Record<string, unknown>;
+      const selected = (answers.selected ?? {}) as Record<string, unknown>;
+      const logistics = (answers.logistics ?? {}) as Record<string, unknown>;
+      const extras = (answers.extras ?? {}) as Record<string, unknown>;
+      const microAnswers = (answers.microAnswers ?? {}) as Record<string, unknown>;
+
+      const draftState = {
+        mainCategory: selected.mainCategory || job.category || '',
+        mainCategoryId: '', // Will need lookup — wizard handles empty gracefully
+        subcategory: selected.subcategory || job.subcategory || '',
+        subcategoryId: '',
+        microNames: (selected.microNames as string[]) || [],
+        microIds: (selected.microIds as string[]) || [],
+        microSlugs: (selected.microSlugs as string[]) || [],
+        answers: microAnswers,
+        logistics: {
+          location: (logistics.location as string) || '',
+          customLocation: (logistics.customLocation as string) || undefined,
+          startDatePreset: (logistics.startDatePreset as string) || undefined,
+          budgetRange: (logistics.budgetRange as string) || undefined,
+          accessDetails: (logistics.accessDetails as string[]) || [],
+        },
+        extras: {
+          photos: (extras.photos as string[]) || [],
+          notes: (extras.notes as string) || undefined,
+          permitsConcern: (extras.permitsConcern as boolean) || undefined,
+        },
+        dispatchMode: 'broadcast',
+      };
+
+      sessionStorage.setItem('wizardState', JSON.stringify(draftState));
+      sessionStorage.removeItem('wizardDraftChecked'); // Force draft prompt
+    }
+
+    toast.success(t('client.duplicateJob') + ' — ' + t('client.editJob'));
+    navigate('/post');
+  };
+
+  const handleClose = async () => {
+    setIsClosing(true);
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'cancelled' })
+        .eq('id', job.id);
+
+      if (error) throw error;
+      toast.success(t('client.jobClosed'));
+      onJobUpdated();
+    } catch {
+      toast.error(t('client.closeFailed'));
+    } finally {
+      setIsClosing(false);
+    }
+  };
 
   const handleComplete = async () => {
     setIsCompleting(true);
@@ -68,7 +160,6 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
       if (result.success) {
         toast.success('Job marked as completed!');
         setShowCompletionModal(false);
-        // Show rating modal if there's an assigned pro
         if (job.assigned_professional_id) {
           setShowRatingModal(true);
         }
@@ -165,6 +256,52 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
           <Button variant="outline" size="sm" asChild>
             <Link to={job.status === 'ready' ? `/dashboard/jobs/${job.id}` : `/jobs/${job.id}`}>View</Link>
           </Button>
+
+          {/* Edit */}
+          {canEdit && (
+            <Button variant="ghost" size="sm" className="gap-1" onClick={handleEdit}>
+              <Pencil className="h-3.5 w-3.5" />
+              {t('client.editJob')}
+            </Button>
+          )}
+
+          {/* Duplicate */}
+          {canDuplicate && (
+            <Button variant="ghost" size="sm" className="gap-1" onClick={handleDuplicate}>
+              <Copy className="h-3.5 w-3.5" />
+              {t('client.duplicateJob')}
+            </Button>
+          )}
+
+          {/* Close */}
+          {canClose && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive">
+                  <X className="h-3.5 w-3.5" />
+                  {t('client.closeJob')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('client.closeJob')}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t('client.closeConfirm')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleClose}
+                    disabled={isClosing}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isClosing ? 'Closing...' : t('client.closeJob')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </div>
 
