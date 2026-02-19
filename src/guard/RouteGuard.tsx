@@ -36,7 +36,7 @@ function LoadingSpinner() {
 
 export function RouteGuard({ children }: RouteGuardProps) {
   const location = useLocation();
-  const { isAuthenticated, hasRole, isProReady, isLoading, isReady } = useSession();
+  const { isAuthenticated, hasRole, isProReady, isLoading, isReady, user } = useSession();
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
@@ -76,6 +76,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     isAuthenticated,
     hasRole,
     isProReady,
+    userEmail: user?.email,
   });
 
   if (!hasAccess) {

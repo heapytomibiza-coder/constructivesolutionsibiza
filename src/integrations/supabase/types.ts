@@ -44,6 +44,21 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_allowlist: {
+        Row: {
+          created_at: string
+          email: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -2228,6 +2243,7 @@ export type Database = {
         Args: { p_micro_id: string; p_rating?: number; p_user_id: string }
         Returns: undefined
       }
+      is_admin_email: { Args: never; Returns: boolean }
       track_event: {
         Args: { p_event_name: string; p_metadata?: Json; p_role?: string }
         Returns: undefined

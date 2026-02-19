@@ -9,6 +9,7 @@ import type { NavSection, RouteConfig, AccessRule } from './rules';
 import { getNavBySection } from './match';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
 import { isRolloutActive } from '@/domain/rollout';
+import { isAdminEmail } from '@/domain/adminAllowlist';
 
 /**
  * Section render order for nav menus
@@ -80,18 +81,19 @@ export function canSeeRoute(route: RouteConfig, ctx: {
   isAuthenticated: boolean;
   roles: UserRole[];
   activeRole?: UserRole;
+  userEmail?: string | null;
 }): boolean {
   // Rollout gating: hide unreleased routes from nav
   if (route.minRollout && !isRolloutActive(route.minRollout)) return false;
 
-  const { isAuthenticated, roles } = ctx;
+  const { isAuthenticated, roles, userEmail } = ctx;
 
   // Check nav visibility flags
   if (isAuthenticated && route.nav?.hideWhenAuthed) return false;
   if (!isAuthenticated && route.nav?.hideWhenPublic) return false;
 
   // Check access rules
-  return checkAccess(route.access, ctx);
+  return checkAccess(route.access, { ...ctx, userEmail });
 }
 
 /**
@@ -100,8 +102,9 @@ export function canSeeRoute(route: RouteConfig, ctx: {
 function checkAccess(access: AccessRule, ctx: {
   isAuthenticated: boolean;
   roles: UserRole[];
+  userEmail?: string | null;
 }): boolean {
-  const { isAuthenticated, roles } = ctx;
+  const { isAuthenticated, roles, userEmail } = ctx;
 
   switch (access) {
     case 'public':
@@ -113,10 +116,9 @@ function checkAccess(access: AccessRule, ctx: {
     case 'role:professional':
       return isAuthenticated && roles.includes('professional');
     case 'proReady':
-      // Simplified check - full proReady check is in guard
       return isAuthenticated && roles.includes('professional');
     case 'admin2FA':
-      return isAuthenticated && roles.includes('admin');
+      return isAuthenticated && roles.includes('admin') && isAdminEmail(userEmail);
     default:
       return false;
   }
@@ -131,6 +133,7 @@ export function getRoutesForSection(
     isAuthenticated: boolean;
     roles: UserRole[];
     activeRole?: UserRole;
+    userEmail?: string | null;
   }
 ): RouteConfig[] {
   const navModel = getNavBySection();
@@ -146,6 +149,7 @@ export function getVisibleNavModel(ctx: {
   isAuthenticated: boolean;
   roles: UserRole[];
   activeRole?: UserRole;
+  userEmail?: string | null;
 }): Record<NavSection, RouteConfig[]> {
   const sections = getVisibleSections(ctx);
   const result: Partial<Record<NavSection, RouteConfig[]>> = {};
