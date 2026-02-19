@@ -651,6 +651,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       hasSubmittedRef.current = true;
       // Clear wizard session
       clearSession();
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
       queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
       queryClient.invalidateQueries({ queryKey: ['client_stats'] });
       trackEvent('job_posted', 'client', { jobId: data.id, category: wizardState.mainCategory });

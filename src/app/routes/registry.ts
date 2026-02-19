@@ -88,6 +88,7 @@ export const publicRoutes: RouteConfig[] = [
   },
   { path: '/forum/:categorySlug', access: 'public', lane: 'public' },
   { path: '/forum/post/:postId', access: 'public', lane: 'public' },
+  { path: '/dispute-policy', access: 'public', lane: 'public' },
 ];
 
 // ============================================

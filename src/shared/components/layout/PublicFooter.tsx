@@ -41,6 +41,9 @@ export function PublicFooter() {
             <Link to="/terms" className="hover:text-foreground transition-colors">
               {t('footer.terms')}
             </Link>
+            <Link to="/dispute-policy" className="hover:text-foreground transition-colors">
+              Dispute Policy
+            </Link>
           </div>
 
           <p className="text-sm text-muted-foreground">
