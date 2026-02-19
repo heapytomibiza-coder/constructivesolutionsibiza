@@ -48,6 +48,7 @@ import ClientDashboard from "./pages/dashboard/client/ClientDashboard";
 import JobTicketDetail from "./pages/dashboard/client/JobTicketDetail";
 import MatchAndSend from "./pages/dashboard/client/MatchAndSend";
 import ProDashboard from "./pages/dashboard/professional/ProDashboard";
+import DashboardResolver from "./pages/dashboard/DashboardResolver";
 
 // Messages
 import Messages from "./pages/messages/Messages";
@@ -158,6 +159,9 @@ const App = () => {
                 PROTECTED ROUTES - Wrapped in RouteGuard
                 ============================================ */}
             <Route element={<RouteGuard />}>
+              {/* Dashboard resolver — /dashboard → correct dashboard for active role */}
+              <Route path="/dashboard" element={<DashboardResolver />} />
+
               {/* Client Routes */}
               <Route path="/dashboard/client" element={<ClientDashboard />} />
               <Route path="/dashboard/jobs/:jobId" element={<JobTicketDetail />} />
