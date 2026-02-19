@@ -60,8 +60,9 @@ export function MobileRolePill() {
     queryClient.invalidateQueries({ queryKey: ['pro_unread_messages'] });
     queryClient.invalidateQueries({ queryKey: ['professional_services'] });
 
-    if (location.pathname.startsWith('/dashboard')) {
-      navigate(getDashboardPath(newRole));
+    const target = getDashboardPath(newRole);
+    if (location.pathname.startsWith('/dashboard') && location.pathname !== target) {
+      navigate(target, { replace: true });
     }
     setOpen(false);
   };
