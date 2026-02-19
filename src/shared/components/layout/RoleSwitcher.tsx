@@ -64,8 +64,9 @@ export function RoleSwitcher({ className }: RoleSwitcherProps) {
     queryClient.invalidateQueries({ queryKey: ['pro_unread_messages'] });
     queryClient.invalidateQueries({ queryKey: ['professional_services'] });
 
-    if (location.pathname.startsWith('/dashboard')) {
-      navigate(getDashboardPath(newRole as UserRole));
+    const target = getDashboardPath(newRole as UserRole);
+    if (location.pathname.startsWith('/dashboard') && location.pathname !== target) {
+      navigate(target, { replace: true });
     }
   };
 
