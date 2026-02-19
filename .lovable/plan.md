@@ -1,107 +1,88 @@
 
 
-# Admin Email Allowlist - Two-Layer Security Hardening
+# Admin Job Alert System: In-App Realtime + Telegram Push
 
-## Current State
+## Problem
+Email notifications for new job posts are unreliable (spam filters, delayed push, Gmail bundling). You need instant, guaranteed alerts when a new job is posted.
 
-Admin access currently relies on a single mechanism: the `user_roles` table containing `'admin'` in the `roles` array, checked via `has_role(auth.uid(), 'admin')` in RLS policies and `roles.includes('admin')` in the frontend `RouteGuard`.
+## Solution: Two-Layer Alert System
 
-This means anyone who somehow gets the `admin` role in `user_roles` has full admin access. The user wants a second, independent layer: an email-based allowlist.
+### Layer 1: In-App Realtime Alerts (when you're at your laptop)
+- Toast notification + sound ping when a new job is posted
+- Works inside the admin dashboard automatically
+- Uses the existing notification pattern from `useMessageNotifications`
 
-## Plan
+### Layer 2: Telegram Bot Push (when you're away)
+- Instant push to your phone via Telegram
+- No approval process, no templates, no cost
+- Triggered server-side from the existing `send-job-notification` edge function
 
-### Layer 1: Database (real security)
+---
 
-**New table: `admin_allowlist`**
+## Technical Implementation
 
-Create via migration:
+### Step 1: Enable Realtime on the `jobs` table
+Currently only `messages` and `conversations` are on the realtime publication. We need to add `jobs` so the admin UI can detect new inserts instantly.
 
-```text
-- Table: admin_allowlist
-  - email (text, primary key) 
-  - created_at (timestamptz, default now())
-- Seed with 3 emails:
-  - heapytomibiza@gmail.com
-  - constructivesolutionsibiza@gmail.com  
-  - heapymagic@googlemail.com
-- RLS: admin-only SELECT, no public INSERT/UPDATE/DELETE
+Database migration:
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE public.jobs;
 ```
 
-**New function: `is_admin_email()`**
+### Step 2: Add Realtime listener to `useLatestJobs.ts`
+Subscribe to `INSERT` events on the `jobs` table. When a new open+listed job arrives:
+- Invalidate `["admin", "latest_jobs"]` and `["admin", "jobs"]` queries
+- Return the new job payload so the UI layer can alert
 
-A stable SQL function that checks if the current JWT email is in the allowlist. This does NOT replace `has_role()` -- it supplements it. Admin access now requires BOTH:
-- `has_role(uid, 'admin')` (role in user_roles table)
-- `is_admin_email()` (email in allowlist)
+### Step 3: Add toast + sound alert in `OperatorCockpit.tsx`
+The OperatorCockpit already uses `useLatestJobs` and is the admin landing page -- the best place to detect and show alerts. Add:
+- Track the "last seen" job ID via a ref
+- When a new job appears that doesn't match the last seen ID: fire a toast with job title/area/category
+- Play the existing `/sounds/notify.mp3` sound
+- Show browser notification (same pattern as message notifications)
 
-**Update existing admin RLS policies**
+### Step 4: Telegram Bot integration via Edge Function
+Add Telegram sending to the existing `send-job-notification` edge function (which already fires on every new job via the queue). After sending the email, also send a Telegram message.
 
-All tables that currently use `has_role(auth.uid(), 'admin')` will be updated to also require `is_admin_email()`. The affected tables are:
+Required new secrets (you'll be prompted to enter these):
+- `TELEGRAM_BOT_TOKEN` -- from BotFather
+- `TELEGRAM_CHAT_ID` -- your personal chat ID
 
-- `admin_actions_log` (SELECT, INSERT)
-- `support_requests` (SELECT, UPDATE for admin policies)
-- `job_notifications_queue` (SELECT)
-- `analytics_events` (SELECT)
-- `attribution_sessions` (SELECT)
-- `conversation_participants` (INSERT, UPDATE, SELECT for admin policies)
-- `professional_profiles` (SELECT, UPDATE for admin policies)
-- `professional_documents` (SELECT, UPDATE for admin policies)
-- `service_views` (SELECT for admin policy)
-- `service_listings` (SELECT for admin policy)
-- `job_status_history` (SELECT for admin policy)
-- `forum_posts` (SELECT, DELETE for admin policies)
-- `user_roles` (SELECT, UPDATE for admin policies)
-- `messages` (SELECT for support/admin policy)
-
-The pattern changes from:
-```text
-has_role(auth.uid(), 'admin'::text)
+The Telegram message format:
 ```
-to:
-```text
-(has_role(auth.uid(), 'admin'::text) AND public.is_admin_email())
+NEW JOB POSTED
+-- Title
+-- Area | Category
+-- Budget
+-- Link to job
 ```
 
-All admin DB functions (`admin_health_snapshot`, `admin_metric_drilldown`, `admin_operator_alerts`, etc.) already use `has_role()` internally. These will also be updated to require `is_admin_email()`.
+### Step 5: Setup instructions for Telegram (one-time, takes 2 minutes)
+1. Open Telegram, search for `@BotFather`
+2. Send `/newbot`, name it something like "CS Ibiza Alerts"
+3. Copy the bot token (looks like `123456:ABC-DEF...`)
+4. Start a chat with your new bot and send any message
+5. Visit `https://api.telegram.org/bot<TOKEN>/getUpdates` to get your `chat_id`
+6. Provide both values when prompted
 
-### Layer 2: Frontend (UX guard)
+---
 
-**New file: `src/domain/adminAllowlist.ts`**
+## Files Changed
 
-A simple module exporting:
-- `ADMIN_EMAIL_ALLOWLIST` -- Set of allowed emails
-- `isAdminEmail(email)` -- check function
+| File | Change |
+|------|--------|
+| New migration | Add `jobs` to realtime publication |
+| `src/pages/admin/hooks/useLatestJobs.ts` | Add Realtime subscription for job inserts, invalidate queries |
+| `src/pages/admin/sections/OperatorCockpit.tsx` | Add new-job detection (ref-based), toast + sound + browser notification |
+| `supabase/functions/send-job-notification/index.ts` | Add Telegram message sending after email |
 
-**Update `src/guard/access.ts`**
+## What You Keep
+- Email notifications continue working as backup (existing system untouched)
+- WhatsApp copy button on admin dashboard stays
+- All existing admin alert infrastructure (operator alerts RPC) unchanged
 
-The `admin2FA` access rule will additionally check the user's email against the allowlist. This requires passing the user email into the `AccessContext`.
-
-**Update `src/guard/RouteGuard.tsx`**
-
-Pass `user?.email` into the access check context so the admin2FA rule can verify email.
-
-**Update nav visibility**
-
-The `canSeeRoute` function in `src/app/routes/nav.ts` will also check admin email for `admin2FA` routes, ensuring admin nav links are hidden from non-allowlisted users.
-
-### Technical Details
-
-**Migration SQL** (single migration):
-1. Create `admin_allowlist` table with RLS
-2. Seed 3 emails
-3. Create `is_admin_email()` function (STABLE, SECURITY DEFINER, search_path = public)
-4. Drop and recreate all admin-related RLS policies to include `is_admin_email()` check
-5. Update all admin RPC functions to add `is_admin_email()` check
-
-**Frontend files to modify:**
-- `src/domain/adminAllowlist.ts` (new)
-- `src/guard/access.ts` -- add `userEmail` to `AccessContext`, check in `admin2FA` case
-- `src/guard/RouteGuard.tsx` -- pass `user?.email` to `checkAccess`
-- `src/app/routes/nav.ts` -- add email check for admin2FA visibility
-- `src/hooks/useSessionSnapshot.ts` -- no changes needed (already exposes `user.email`)
-
-**Security model after this change:**
-```text
-Admin access = has_role('admin') AND email in admin_allowlist
-```
-Both layers must pass. Even if someone manipulates `user_roles` to add `admin`, they still can't access admin data without a matching email in the JWT.
+## Future Options (not in this implementation)
+- WhatsApp Cloud API alerts (requires Meta app + template approval)
+- Severity-based routing (critical = Telegram + email, low = dashboard only)
+- Admin alert history/backlog table
 
