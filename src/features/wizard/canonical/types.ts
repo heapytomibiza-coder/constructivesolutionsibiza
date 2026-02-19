@@ -5,6 +5,17 @@
 
 export type ConsultationType = "site_visit" | "phone_call" | "video_call" | "message";
 
+// === CANONICAL ANSWERS CONTAINER ===
+export type PackSource = 'strong' | 'generic' | 'fallback';
+
+export type WizardAnswers = {
+  microAnswers: Record<string, Record<string, unknown>>;
+  _pack_source?: PackSource;
+  _pack_slug?: string | null;
+  _pack_missing?: boolean;
+  [key: string]: unknown;
+};
+
 // === STEP ENUM (string-based for URL sync + debugging) ===
 export enum WizardStep {
   Category = "category",
@@ -53,8 +64,8 @@ export interface WizardState {
   microIds: string[];
   microSlugs: string[];
 
-  // === QUESTIONS (future-safe) ===
-  answers: Record<string, unknown>;
+  // === QUESTIONS (canonical container) ===
+  answers: WizardAnswers;
 
   // === LOGISTICS ===
   logistics: {
@@ -98,7 +109,7 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   microIds: [],
   microSlugs: [],
 
-  answers: {},
+  answers: { microAnswers: {} },
 
   logistics: {
     location: "",

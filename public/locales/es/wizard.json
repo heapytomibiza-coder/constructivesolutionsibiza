@@ -106,7 +106,9 @@
     "broadcastSuccess": "¡Trabajo publicado en el marketplace!",
     "submitFailed": "No se pudo publicar. Inténtalo de nuevo.",
     "updateSuccess": "¡Trabajo actualizado!",
-    "duplicateCreated": "Borrador creado desde copia"
+    "duplicateCreated": "Borrador creado desde copia",
+    "editNotAllowed": "Este trabajo ya no se puede editar. Duplica el trabajo en su lugar.",
+    "editLoadFailed": "No se pudo cargar el trabajo para editarlo"
   },
   "errors": {
     "authRequired": "Necesitas iniciar sesión para publicar un trabajo",

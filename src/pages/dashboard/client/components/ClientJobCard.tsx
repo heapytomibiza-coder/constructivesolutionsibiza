@@ -101,7 +101,10 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
       const selected = (answers.selected ?? {}) as Record<string, unknown>;
       const logistics = (answers.logistics ?? {}) as Record<string, unknown>;
       const extras = (answers.extras ?? {}) as Record<string, unknown>;
-      const microAnswers = (answers.microAnswers ?? {}) as Record<string, unknown>;
+      const microAnswers =
+        (answers.microAnswers && typeof answers.microAnswers === 'object')
+          ? (answers.microAnswers as Record<string, Record<string, unknown>>)
+          : {};
 
       const draftState = {
         mainCategory: selected.mainCategory || job.category || '',
@@ -111,7 +114,12 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         microNames: (selected.microNames as string[]) || [],
         microIds: (selected.microIds as string[]) || [],
         microSlugs: (selected.microSlugs as string[]) || [],
-        answers: microAnswers,
+        answers: {
+          microAnswers,
+          ...(answers._pack_source ? { _pack_source: answers._pack_source } : {}),
+          ...(answers._pack_slug ? { _pack_slug: answers._pack_slug } : {}),
+          ...(typeof answers._pack_missing === 'boolean' ? { _pack_missing: answers._pack_missing } : {}),
+        },
         logistics: {
           location: (logistics.location as string) || '',
           customLocation: (logistics.customLocation as string) || undefined,
@@ -128,11 +136,11 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
       };
 
       sessionStorage.setItem('wizardState', JSON.stringify(draftState));
-      sessionStorage.removeItem('wizardDraftChecked'); // Force draft prompt
+      sessionStorage.setItem('wizardDraftChecked', '1'); // Skip draft prompt
     }
 
-    toast.success(t('client.duplicateJob') + ' — ' + t('client.editJob'));
-    navigate('/post');
+    toast.success(t('client.duplicateCreated') || 'Draft created from copy');
+    navigate('/post?resume=true');
   };
 
   const handleClose = async () => {

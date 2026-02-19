@@ -43,14 +43,11 @@ export async function hydrateFromJob(jobId: string): Promise<{
   if (error || !job) return null;
   if (!canEditJob(job.status)) return null;
 
-  const answers = job.answers as Record<string, unknown> | null;
-  if (!answers) {
-    // Job has no answers JSON — can't hydrate wizard meaningfully
-    return null;
-  }
+  // Don't hard-fail when answers is null — default to {}
+  const answers = (job.answers as Record<string, unknown> | null) ?? {};
 
   const selected = (answers.selected ?? {}) as Record<string, unknown>;
-  const microAnswers = (answers.microAnswers ?? {}) as Record<string, unknown>;
+  const rawMicroAnswers = (answers.microAnswers ?? {}) as Record<string, Record<string, unknown>>;
   const logistics = (answers.logistics ?? {}) as Record<string, unknown>;
   const extras = (answers.extras ?? {}) as Record<string, unknown>;
 
@@ -82,10 +79,34 @@ export async function hydrateFromJob(jobId: string): Promise<{
     if (sub) subcategoryId = sub.id;
   }
 
-  // Parse date strings back to Date objects
+  // Micros: fallback to job.micro_slug when selected.microSlugs is missing
+  let microSlugs: string[] =
+    (Array.isArray(selected.microSlugs) && (selected.microSlugs as string[])) ||
+    (job.micro_slug ? [job.micro_slug] : []);
+
+  let microIds: string[] = Array.isArray(selected.microIds) ? (selected.microIds as string[]) : [];
+  let microNames: string[] = Array.isArray(selected.microNames) ? (selected.microNames as string[]) : [];
+
+  // If we have slugs but no IDs/names, look them up
+  if (microSlugs.length > 0 && (microIds.length === 0 || microNames.length === 0)) {
+    const { data: micros } = await supabase
+      .from('service_micro_categories')
+      .select('id, name, slug')
+      .in('slug', microSlugs)
+      .eq('is_active', true);
+
+    if (micros && micros.length > 0) {
+      const bySlug = new Map(micros.map(m => [m.slug, m]));
+      microIds = microSlugs.map(s => bySlug.get(s)?.id).filter(Boolean) as string[];
+      microNames = microSlugs.map(s => bySlug.get(s)?.name).filter(Boolean) as string[];
+    }
+  }
+
+  // Guard against invalid date strings
   const parseDate = (v: unknown): Date | undefined => {
-    if (typeof v === 'string' && v) return new Date(v);
-    return undefined;
+    if (typeof v !== 'string' || !v) return undefined;
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? undefined : d;
   };
 
   const state: WizardState = {
@@ -94,10 +115,16 @@ export async function hydrateFromJob(jobId: string): Promise<{
     mainCategoryId,
     subcategory: subName,
     subcategoryId,
-    microNames: (selected.microNames as string[]) || [],
-    microIds: (selected.microIds as string[]) || [],
-    microSlugs: (selected.microSlugs as string[]) || [],
-    answers: microAnswers,
+    microNames,
+    microIds,
+    microSlugs,
+    // Canonical answers container
+    answers: {
+      microAnswers: rawMicroAnswers,
+      _pack_source: (answers._pack_source as any) ?? undefined,
+      _pack_slug: (answers._pack_slug as any) ?? undefined,
+      _pack_missing: (answers._pack_missing as any) ?? undefined,
+    },
     logistics: {
       location: (logistics.location as string) || '',
       customLocation: (logistics.customLocation as string) || undefined,

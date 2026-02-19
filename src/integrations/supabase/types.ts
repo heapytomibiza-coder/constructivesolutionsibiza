@@ -2220,6 +2220,10 @@ export type Database = {
         Returns: string
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      increment_job_edit_version: {
+        Args: { p_job_id: string }
+        Returns: undefined
+      }
       increment_professional_micro_stats: {
         Args: { p_micro_id: string; p_rating?: number; p_user_id: string }
         Returns: undefined

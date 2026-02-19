@@ -106,7 +106,9 @@
     "broadcastSuccess": "Job posted to marketplace!",
     "submitFailed": "Failed to post job. Please try again.",
     "updateSuccess": "Job updated!",
-    "duplicateCreated": "Draft created from copy"
+    "duplicateCreated": "Draft created from copy",
+    "editNotAllowed": "This job can't be edited anymore. Duplicate it instead.",
+    "editLoadFailed": "Could not load job for editing"
   },
   "errors": {
     "authRequired": "You need to sign in to submit a job",

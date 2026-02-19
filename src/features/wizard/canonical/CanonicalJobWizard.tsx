@@ -140,7 +140,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       setIsEditMode(true);
       setEditJobId(editId);
       setWizardState(result.state);
-      setCurrentStep(WizardStep.Review); // Go straight to review in edit mode
+      setCurrentStep(deriveStepFromState(result.state));
       markDraftChecked();
       setIsInitialized(true);
       trackEvent('job_wizard_started', 'client', { mode: 'edit', jobId: editId });
@@ -438,7 +438,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         microNames: [],
         microIds: [],
         microSlugs: [],
-        answers: {},
+        answers: { microAnswers: {} },
       }));
     });
     setCurrentStep(WizardStep.Subcategory);
@@ -454,7 +454,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         microNames: [],
         microIds: [],
         microSlugs: [],
-        answers: {},
+        answers: { microAnswers: {} },
       }));
     });
     setCurrentStep(WizardStep.Micro);
@@ -516,7 +516,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     (answers: Record<string, unknown>) => {
       setWizardState(prev => ({
         ...prev,
-        answers,
+        answers: answers as WizardState['answers'],
       }));
       // Clear question errors when user makes changes
       if (Object.keys(questionErrors).length > 0) {
@@ -676,15 +676,29 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       const payload = buildJobInsert(user.id, wizardState);
 
       if (isEditMode && editJobId) {
-        // === EDIT MODE: UPDATE existing job ===
+        // === EDIT MODE: UPDATE existing job (status-gated) ===
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { user_id, ...updatePayload } = payload;
-        const { error } = await supabase
+        const { data: updatedRows, error: updateError } = await supabase
           .from('jobs')
           .update(updatePayload)
-          .eq('id', editJobId);
+          .eq('id', editJobId)
+          .in('status', ['draft', 'ready', 'open'])
+          .select('id');
 
-        if (error) throw error;
+        if (updateError) throw updateError;
+
+        if (!updatedRows || updatedRows.length === 0) {
+          toast.error(t('toasts.editNotAllowed'));
+          navigate('/dashboard/client');
+          return;
+        }
+
+        // Atomically increment edit_version
+        const { error: incError } = await supabase.rpc('increment_job_edit_version', {
+          p_job_id: editJobId,
+        });
+        if (incError) console.warn('Failed to increment edit_version:', incError);
 
         // Track the edit event
         trackEvent('job_edited', 'client', { jobId: editJobId, category: wizardState.mainCategory });

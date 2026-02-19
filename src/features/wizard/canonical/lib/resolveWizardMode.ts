@@ -193,8 +193,9 @@ export function deriveStepFromState(state: WizardState): WizardStep {
   if (!state.microIds || state.microIds.length === 0) return WizardStep.Micro;
 
   // Step 4: Questions
-  // If logistics is already partially filled, user may have progressed past questions
-  const hasAnyAnswers = state.answers && Object.keys(state.answers).length > 0;
+  // Check if microAnswers has any actual data (not just empty container)
+  const microAnswersObj = state.answers?.microAnswers;
+  const hasAnyAnswers = microAnswersObj && Object.keys(microAnswersObj).length > 0;
   const hasLogisticsStarted = !!state.logistics?.location || !!state.logistics?.budgetRange;
   if (!hasAnyAnswers && !hasLogisticsStarted) return WizardStep.Questions;
 
@@ -367,7 +368,7 @@ export function applySearchResult(
       microNames: [result.microName],
       microIds: [result.microId],
       microSlugs: [result.microSlug],
-      answers: {}, // Reset answers for new selection
+      answers: { microAnswers: {} }, // Reset answers for new selection
       logistics: result.extracted?.urgency
         ? { ...currentState.logistics, startDatePreset: result.extracted.urgency }
         : currentState.logistics,
