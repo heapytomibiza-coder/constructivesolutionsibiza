@@ -111,6 +111,7 @@ export const clientRoutes: RouteConfig[] = [
     nav: { section: 'hiring', labelKey: 'nav.postJob', order: 1 },
     titleKey: 'nav.postJob',
   },
+  { path: '/dashboard', access: 'auth', redirectTo: '/auth', lane: 'shared' },
   { 
     path: '/dashboard/client', 
     access: 'role:client', 
