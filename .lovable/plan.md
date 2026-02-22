@@ -1,88 +1,47 @@
 
 
-# Admin Job Alert System: In-App Realtime + Telegram Push
+# Complete Spanish Translations for All Wizard Questions and Answer Options
 
-## Problem
-Email notifications for new job posts are unreliable (spam filters, delayed push, Gmail bundling). You need instant, guaranteed alerts when a new job is posted.
+## Overview
 
-## Solution: Two-Layer Alert System
+The wizard (Step 4 of 7) shows English text in Spanish mode because `public/locales/es/questions.json` is missing translations for ~143 question labels and ~1,533 answer options. The rendering code (`QuestionPackRenderer.tsx`) already handles lookups correctly — it just needs the translations to exist.
 
-### Layer 1: In-App Realtime Alerts (when you're at your laptop)
-- Toast notification + sound ping when a new job is posted
-- Works inside the admin dashboard automatically
-- Uses the existing notification pattern from `useMessageNotifications`
+## What Changes
 
-### Layer 2: Telegram Bot Push (when you're away)
-- Instant push to your phone via Telegram
-- No approval process, no templates, no cost
-- Triggered server-side from the existing `send-job-notification` edge function
+**Single file update:** `public/locales/es/questions.json`
 
----
+No code changes, no database changes, no schema changes.
 
-## Technical Implementation
+## Approach
 
-### Step 1: Enable Realtime on the `jobs` table
-Currently only `messages` and `conversations` are on the realtime publication. We need to add `jobs` so the admin UI can detect new inserts instantly.
+The update will be done in multiple batches since the file will grow from ~700 lines to ~2,500+ lines:
 
-Database migration:
-```sql
-ALTER PUBLICATION supabase_realtime ADD TABLE public.jobs;
-```
+### Batch 1: Missing Question Labels (~143)
+- Labels like "Approximate number of windows", "Approximate windows per floor", "Are any windows above ground floor?", "Additional services needed?", "Any access difficulties?", all the "Briefly describe..." labels, and many others
+- Many follow patterns already established (e.g. "How many X?" becomes "Cuantos X?")
 
-### Step 2: Add Realtime listener to `useLatestJobs.ts`
-Subscribe to `INSERT` events on the `jobs` table. When a new open+listed job arrives:
-- Invalidate `["admin", "latest_jobs"]` and `["admin", "jobs"]` queries
-- Return the new job payload so the UI layer can alert
+### Batch 2-5: Missing Answer Options (~1,533)
+These fall into clear categories that can be translated efficiently:
 
-### Step 3: Add toast + sound alert in `OperatorCockpit.tsx`
-The OperatorCockpit already uses `useLatestJobs` and is the admin landing page -- the best place to detect and show alerts. Add:
-- Track the "last seen" job ID via a ref
-- When a new job appears that doesn't match the last seen ID: fire a toast with job title/area/category
-- Play the existing `/sounds/notify.mp3` sound
-- Show browser notification (same pattern as message notifications)
+1. **Numeric/range patterns** (~40% of missing): "1-2 windows", "3-5 rooms", "6-10 filters", "50-100 m2" — these follow predictable Spanish patterns (ventanas, habitaciones, filtros, m2)
 
-### Step 4: Telegram Bot integration via Edge Function
-Add Telegram sending to the existing `send-job-notification` edge function (which already fires on every new job via the queue). After sending the email, also send a Telegram message.
+2. **Room/unit counts**: "1 room", "2-3 rooms", "4+ rooms", "1 shower", "2 taps" — straightforward unit translations
 
-Required new secrets (you'll be prompted to enter these):
-- `TELEGRAM_BOT_TOKEN` -- from BotFather
-- `TELEGRAM_CHAT_ID` -- your personal chat ID
+3. **Material/trade terms**: "Plasterboard", "Render", "Screed", "Bitumen felt" — construction-specific Spanish vocabulary for Ibiza market
 
-The Telegram message format:
-```
-NEW JOB POSTED
--- Title
--- Area | Category
--- Budget
--- Link to job
-```
+4. **Descriptive options**: "Walk-in shower", "Freestanding bath", "Mixer tap", "Under-sink", "Thermostatic" — plumbing/bathroom/kitchen specific terms
 
-### Step 5: Setup instructions for Telegram (one-time, takes 2 minutes)
-1. Open Telegram, search for `@BotFather`
-2. Send `/newbot`, name it something like "CS Ibiza Alerts"
-3. Copy the bot token (looks like `123456:ABC-DEF...`)
-4. Start a chat with your new bot and send any message
-5. Visit `https://api.telegram.org/bot<TOKEN>/getUpdates` to get your `chat_id`
-6. Provide both values when prompted
+5. **Service/scope options**: "Full rewire", "Partial rewire", "Safety check only", "Supply and fit" — trade service descriptions
 
----
+6. **Window cleaning specific**: "1-5 windows", "6-15 windows", "1 storey", "2 storeys", "Shutters/bars", "Ground floor only" — the new packs we recently added
 
-## Files Changed
+## Translation Tone
 
-| File | Change |
-|------|--------|
-| New migration | Add `jobs` to realtime publication |
-| `src/pages/admin/hooks/useLatestJobs.ts` | Add Realtime subscription for job inserts, invalidate queries |
-| `src/pages/admin/sections/OperatorCockpit.tsx` | Add new-job detection (ref-based), toast + sound + browser notification |
-| `supabase/functions/send-job-notification/index.ts` | Add Telegram message sending after email |
+- Practical, construction-appropriate Spanish (Ibiza context)
+- Consistent with existing translations already in the file
+- Professional but not overly formal (matching the PA service brand)
 
-## What You Keep
-- Email notifications continue working as backup (existing system untouched)
-- WhatsApp copy button on admin dashboard stays
-- All existing admin alert infrastructure (operator alerts RPC) unchanged
+## Result
 
-## Future Options (not in this implementation)
-- WhatsApp Cloud API alerts (requires Meta app + template approval)
-- Severity-based routing (critical = Telegram + email, low = dashboard only)
-- Admin alert history/backlog table
+After this update, every question pack in the wizard will render fully in Spanish. No more English leaking through labels or answer selections.
 
