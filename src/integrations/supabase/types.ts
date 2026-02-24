@@ -2273,6 +2273,13 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_conversation_counts_for_jobs: {
+        Args: { p_job_ids: string[] }
+        Returns: {
+          conversation_count: number
+          job_id: string
+        }[]
+      }
       get_conversations_with_unread: {
         Args: never
         Returns: {

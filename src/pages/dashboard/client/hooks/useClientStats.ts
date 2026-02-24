@@ -80,16 +80,14 @@ export function useClientStats() {
       if (error) throw error;
       if (!jobs?.length) return [];
 
-      // Fetch conversation counts per job in one query
+      // Fetch conversation counts via RPC (fast, RLS-safe)
       const jobIds = jobs.map(j => j.id);
       const { data: convCounts } = await supabase
-        .from('conversations')
-        .select('job_id')
-        .in('job_id', jobIds);
+        .rpc('get_conversation_counts_for_jobs', { p_job_ids: jobIds });
 
       const countMap = new Map<string, number>();
-      convCounts?.forEach(c => {
-        countMap.set(c.job_id, (countMap.get(c.job_id) || 0) + 1);
+      convCounts?.forEach((c: { job_id: string; conversation_count: number }) => {
+        countMap.set(c.job_id, Number(c.conversation_count));
       });
 
       return jobs.map(j => ({
