@@ -1117,6 +1117,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           )
         )}
       </div>
+      )}
     </div>
   );
 }
