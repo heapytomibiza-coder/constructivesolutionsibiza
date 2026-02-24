@@ -214,7 +214,7 @@ export default function ServiceListingEditor() {
               disabled={updateListing.isPending}
             >
               {updateListing.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
-              Save
+              {t('listingEditor.save')}
             </Button>
             {listing.status === 'draft' && (
               <Button
