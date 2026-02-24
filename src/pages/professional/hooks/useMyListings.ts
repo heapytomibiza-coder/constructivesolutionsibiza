@@ -9,6 +9,7 @@ export interface MyListing {
   id: string;
   micro_id: string;
   display_title: string;
+  display_title_i18n: Record<string, string> | null;
   short_description: string | null;
   hero_image_url: string | null;
   status: string;
@@ -19,6 +20,7 @@ export interface MyListing {
   created_at: string;
   updated_at: string;
   micro_name?: string;
+  micro_slug?: string;
   starting_price?: number | null;
 }
 
