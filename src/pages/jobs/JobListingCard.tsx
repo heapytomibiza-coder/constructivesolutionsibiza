@@ -227,9 +227,9 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
                 )}
               </div>
               <h3 className="text-base font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
-                {job.title}
+                {getI18nField(job.title, job.title_i18n, contentLang)}
               </h3>
-              {job.teaser && <p className="text-sm text-muted-foreground line-clamp-2">{job.teaser}</p>}
+              {job.teaser && <p className="text-sm text-muted-foreground line-clamp-2">{getI18nField(job.teaser, job.teaser_i18n, contentLang)}</p>}
             </div>
             <Button onClick={handleButtonClick} variant="outline" size="sm" className="hidden sm:inline-flex">
               {t('card.view')}
