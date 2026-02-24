@@ -392,6 +392,7 @@ function PricingItemRow({
   onDelete: (id: string) => void;
   onMove: (idx: number, dir: 'up' | 'down') => void;
 }) {
+  const { t } = useTranslation('professional');
   const [label, setLabel] = useState(item.label);
   const [price, setPrice] = useState(item.price_amount?.toString() ?? '');
   const [unit, setUnit] = useState(item.unit);
