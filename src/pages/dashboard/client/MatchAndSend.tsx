@@ -136,7 +136,7 @@ export default function MatchAndSend() {
           </Button>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground truncate">
-              Sending: {job.category} → {job.subcategory || job.title}
+              {t('matchAndSend.sending', { category: job.category, subcategory: job.subcategory || job.title })}
             </p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
               <span className="flex items-center gap-1">
