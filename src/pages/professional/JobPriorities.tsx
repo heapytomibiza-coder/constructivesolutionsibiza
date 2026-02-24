@@ -196,7 +196,7 @@ export default function JobPriorities() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                       {(() => { const CatIcon = getCategoryIconByName(group.categoryName); return <CatIcon className="h-5 w-5 text-primary" />; })()}
-                      {group.categoryName}
+                      {txCategory(group.categoryName, t)}
                       <Badge variant="secondary" className="ml-auto text-xs font-normal">
                         {group.micros.length}
                       </Badge>
