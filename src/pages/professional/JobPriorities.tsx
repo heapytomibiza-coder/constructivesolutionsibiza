@@ -53,7 +53,9 @@ function usePriorityOptions() {
 
 export default function JobPriorities() {
   const navigate = useNavigate();
+  const { t } = useTranslation('professional');
   const { user } = useSession();
+  const PRIORITY_OPTIONS = usePriorityOptions();
 
   const { data: categories = [], isLoading: loadingTaxonomy } = useServiceTaxonomy();
   const { selectedMicroIds, isLoading: loadingServices } = useProfessionalServices();
