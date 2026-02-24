@@ -4,8 +4,10 @@
  */
 
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
+import { txMicro } from '@/i18n/taxonomyTranslations';
 
 export interface MicroToggleTileProps {
   micro: {
@@ -31,6 +33,7 @@ export function MicroToggleTile({
   isFirstSelection = false,
   rightAccessory,
 }: MicroToggleTileProps) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
@@ -48,7 +51,7 @@ export function MicroToggleTile({
         isSelected && 'border-primary bg-primary/15 shadow-md'
       )}
     >
-      <span className="flex-1 truncate pr-3">{micro.name}</span>
+      <span className="flex-1 truncate pr-3">{txMicro(micro.slug, t, micro.name)}</span>
       
       {/* Slot for edit-mode preference pill etc */}
       {rightAccessory ? (

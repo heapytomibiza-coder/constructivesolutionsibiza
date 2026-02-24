@@ -20,7 +20,7 @@ import { startConversation } from "./actions";
 import { buildJobPack, type JobPack } from "./lib/buildJobPack";
 import { extractMicroAnswers } from "./lib/answerResolver";
 import { getI18nField, getContentLang } from "@/lib/i18nContent";
-import { txCategory, txSubcategory } from "@/i18n/taxonomyTranslations";
+import { txCategory, txSubcategory, txMicro } from "@/i18n/taxonomyTranslations";
 import { FormattedAnswers } from "./components/FormattedAnswers";
 import { isUserError } from "@/shared/lib/userError";
 import { useListingsForJob } from "./hooks/useListingsForJob";
@@ -292,7 +292,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
             {jobPack.services.map((s) => (
               <li key={s.slug} className="flex items-start gap-2">
                 <span className="mt-1 text-primary/60">•</span>
-                <span>{s.title}</span>
+                <span>{txMicro(s.slug, t, s.title)}</span>
               </li>
             ))}
           </ul>

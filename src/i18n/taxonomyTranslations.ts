@@ -170,3 +170,19 @@ export function txSubcategory(
   }
   return label;
 }
+
+/**
+ * Translate a micro-service name by its slug using i18n.
+ * Looks up micros:<slug> namespace. Falls back to the provided fallback or humanized slug.
+ */
+export function txMicro(
+  slug: string | null | undefined,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  fallback?: string | null
+): string {
+  if (!slug) return fallback ?? "";
+  const key = `micros:${slug}`;
+  const translated = t(key, { defaultValue: '' });
+  if (translated && translated !== key && translated !== slug) return translated;
+  return fallback ?? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { txMicro } from '@/i18n/taxonomyTranslations';
 import type { ResolvedServicePack } from "@/pages/jobs/lib/buildJobPack";
 
 interface FormattedAnswersProps {
@@ -48,7 +49,7 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
       {services.map((service) => (
         <div key={service.slug} className="space-y-3">
           <div className="text-sm font-semibold text-foreground">
-            {service.title}
+            {txMicro(service.slug, t, service.title)}
             {service.isFallback && (
               <span className="ml-2 text-xs text-muted-foreground font-normal">
                 ({t('loadingLabels', 'loading labels…')})

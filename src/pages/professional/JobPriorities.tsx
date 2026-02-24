@@ -7,6 +7,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { txCategory, txMicro } from '@/i18n/taxonomyTranslations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -195,7 +196,7 @@ export default function JobPriorities() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                       {(() => { const CatIcon = getCategoryIconByName(group.categoryName); return <CatIcon className="h-5 w-5 text-primary" />; })()}
-                      {group.categoryName}
+                      {txCategory(group.categoryName, t)}
                       <Badge variant="secondary" className="ml-auto text-xs font-normal">
                         {group.micros.length}
                       </Badge>
@@ -208,6 +209,7 @@ export default function JobPriorities() {
                         <PriorityRow
                           key={micro.id}
                           name={micro.name}
+                          slug={micro.slug}
                           currentPref={currentPref}
                           onChange={(pref) => handlePriorityChange(micro.id, pref)}
                           options={PRIORITY_OPTIONS}
@@ -237,18 +239,21 @@ export default function JobPriorities() {
 /* ── PriorityRow - Single micro with segmented priority buttons ── */
 function PriorityRow({
   name,
+  slug,
   currentPref,
   onChange,
   options,
 }: {
   name: string;
+  slug: string;
   currentPref: Preference;
   onChange: (pref: Preference) => void;
   options: ReturnType<typeof usePriorityOptions>;
 }) {
+  const { t } = useTranslation('professional');
   return (
     <div className="flex items-center justify-between gap-3 py-2 px-1">
-      <span className="text-base font-medium text-foreground flex-1 min-w-0 truncate">{name}</span>
+      <span className="text-base font-medium text-foreground flex-1 min-w-0 truncate">{txMicro(slug, t, name)}</span>
       <div className="flex gap-1.5 shrink-0">
         {options.map((opt) => {
           const Icon = opt.icon;

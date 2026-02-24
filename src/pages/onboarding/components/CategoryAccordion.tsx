@@ -5,9 +5,12 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ChevronRight, Check } from 'lucide-react';
 import { getCategoryIconByName } from '@/lib/categoryIcons';
+import { txCategory, txSubcategory } from '@/i18n/taxonomyTranslations';
+import { SUBCATEGORY_KEYS } from '@/i18n/taxonomyTranslations';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MicroToggleTile } from './MicroToggleTile';
@@ -65,6 +68,8 @@ export function CategoryAccordion({
   onPreferenceChange,
   isPreferenceUpdating = false,
 }: CategoryAccordionProps) {
+  const { t } = useTranslation(['common', 'onboarding']);
+
   // Filter micros by search query
   const filteredSubcategories = useMemo(() => {
     if (!searchQuery) return category.subcategories;
@@ -112,7 +117,7 @@ export function CategoryAccordion({
           <div className="flex items-center gap-4">
             {(() => { const CatIcon = getCategoryIconByName(category.name); return <CatIcon className="h-7 w-7 text-primary" />; })()}
             <div className="text-left">
-              <h3 className="text-lg font-semibold text-foreground">{category.name}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{txCategory(category.name, t)}</h3>
               <p className="text-base text-muted-foreground">
                 {totalMicros} jobs available
               </p>
@@ -182,7 +187,7 @@ export function CategoryAccordion({
               <div key={subcategory.id}>
                 {/* Subcategory header */}
                 <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  {subcategory.name}
+                  {txSubcategory(subcategory.name, t) ?? subcategory.name}
                 </h4>
                 
                 {/* Micro tiles grid - single column on mobile */}
