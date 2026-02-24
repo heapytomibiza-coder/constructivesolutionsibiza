@@ -242,7 +242,7 @@ export default function ProProfileDrawer({
             </div>
           </div>
         ) : (
-          <p className="text-muted-foreground">Profile not found.</p>
+          <p className="text-muted-foreground">{t('proProfile.notFound')}</p>
         )}
       </SheetContent>
     </Sheet>
