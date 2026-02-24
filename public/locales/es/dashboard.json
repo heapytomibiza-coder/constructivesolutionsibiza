@@ -176,7 +176,15 @@
     "postFailed": "No se pudo publicar. Inténtalo de nuevo.",
     "inviteSpecific": "Invitar profesionales específicos",
     "inviteSpecificDesc": "Busca profesionales compatibles, ve sus perfiles y envíales el trabajo",
-    "invitesSent": "Invitaciones enviadas ({{count}})"
+    "invitesSent": "Invitaciones enviadas ({{count}})",
+    "budgetUpTo": "Hasta €{{max}}",
+    "budgetFrom": "Desde €{{min}}",
+    "inviteStatus": {
+      "sent": "Enviada",
+      "viewed": "Vista",
+      "accepted": "Aceptada",
+      "declined": "Rechazada"
+    }
   },
   "stats": {
     "jobs": "Trabajos",

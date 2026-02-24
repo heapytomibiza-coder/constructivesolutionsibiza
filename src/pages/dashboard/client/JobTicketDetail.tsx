@@ -313,7 +313,9 @@ export default function JobTicketDetail() {
                       {statusIcon}
                       <div>
                         <p className="text-sm font-medium">{name}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{invite.status}</p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {t(`jobTicket.inviteStatus.${invite.status}`, { defaultValue: invite.status })}
+                        </p>
                       </div>
                     </div>
                   </div>

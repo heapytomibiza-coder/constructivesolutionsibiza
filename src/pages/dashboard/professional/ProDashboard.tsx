@@ -308,7 +308,9 @@ const ProDashboard = () => {
                             {job.start_timing && (
                               <span className="flex items-center gap-0.5">
                                 <Clock className="h-3 w-3" />
-                                {job.start_timing.replace(/_/g, ' ')}
+                                {t(`client.timing.${job.start_timing}`) !== `client.timing.${job.start_timing}`
+                                  ? t(`client.timing.${job.start_timing}`)
+                                  : job.start_timing.replace(/_/g, ' ')}
                               </span>
                             )}
                             <span>
