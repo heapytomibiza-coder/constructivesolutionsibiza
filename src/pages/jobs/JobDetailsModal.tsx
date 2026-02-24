@@ -238,8 +238,8 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
       {/* Header */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          {jobPack.category && <Badge variant="secondary">{jobPack.category}</Badge>}
-          {jobPack.subcategory && <Badge variant="outline">{jobPack.subcategory}</Badge>}
+          {jobPack.category && <Badge variant="secondary">{txCategory(jobPack.category, t)}</Badge>}
+          {jobPack.subcategory && <Badge variant="outline">{txSubcategory(jobPack.subcategory, t)}</Badge>}
           {jobPack.status && <Badge variant={statusVariant(jobPack.status)}>{translateStatus(jobPack.status, t)}</Badge>}
           {jobPack.isOwner && <Badge variant="outline">{t('card.yourJob')}</Badge>}
           {isAsap && <Badge variant="accent">{t('board.asap')}</Badge>}
