@@ -123,8 +123,11 @@ export const SUBCATEGORY_KEYS: Record<string, string> = {
   // Transport & Logistics
   "Moving Services": "moving-services",
   "Delivery": "delivery",
+  "Delivery Services": "delivery-services",
   "Vehicle Hire": "vehicle-hire",
   "Equipment Transport": "equipment-transport",
+  "Equipment Rental": "equipment-rental",
+  "Waste Removal": "waste-removal",
   // Handyman & General
   "General Repairs": "general-repairs",
   "Assembly Services": "assembly-services",
