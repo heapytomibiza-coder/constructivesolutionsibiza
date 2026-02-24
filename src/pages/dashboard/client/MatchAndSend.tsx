@@ -159,10 +159,10 @@ export default function MatchAndSend() {
       </div>
 
       <div className="container max-w-4xl py-6">
-        <h2 className="font-display text-xl font-bold mb-1">Professionals matching your job</h2>
+        <h2 className="font-display text-xl font-bold mb-1">{t('matchAndSend.matchingTitle')}</h2>
         <p className="text-sm text-muted-foreground mb-6">
-          {matchedPros.length} professional{matchedPros.length !== 1 ? 's' : ''} found
-          {microNames.length > 0 && ` for ${microNames.join(', ')}`}
+          {t('matchAndSend.found', { count: matchedPros.length })}
+          {microNames.length > 0 && ` ${t('matchAndSend.forServices', { services: microNames.join(', ') })}`}
         </p>
 
         {prosLoading ? (
