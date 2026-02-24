@@ -63,6 +63,7 @@ import { LogisticsStep } from './steps/LogisticsStep';
 import { ExtrasStep } from './steps/ExtrasStep';
 import { ReviewStep } from './steps/ReviewStep';
 import { QuestionsStep } from './steps/QuestionsStep';
+import { CustomRequestForm } from './steps/CustomRequestForm';
 
 // Constants
 const STORAGE_KEY = 'wizardState';
