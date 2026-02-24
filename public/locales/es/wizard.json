@@ -146,6 +146,24 @@
     "showingServicesFor": "Mostrando servicios ofrecidos por {{name}}",
     "noServices": "Este profesional aún no ha configurado sus servicios"
   },
+  "custom": {
+    "cta": "¿No encuentras lo que necesitas?",
+    "ctaDescription": "Publica una solicitud personalizada — la formatearemos como una tarjeta de trabajo.",
+    "ctaButton": "Publicar Solicitud Personalizada",
+    "headline": "Describe lo que necesitas",
+    "subtitle": "Cuéntanos qué necesitas. Lo convertiremos en una tarjeta clara para los profesionales.",
+    "categoryLabel": "Categoría principal",
+    "categoryPlaceholder": "Selecciona una categoría",
+    "titleLabel": "Título del trabajo",
+    "titlePlaceholder": "ej. Construir una pérgola con tiras LED integradas",
+    "titleHelp": "Sé específico — esto será el titular.",
+    "descriptionLabel": "Descripción del trabajo",
+    "descriptionPlaceholder": "¿Qué necesitas? ¿Dónde? ¿Alguna restricción?",
+    "descriptionHelp": "Incluye contexto de ubicación, escala y cómo debería quedar.",
+    "specsLabel": "Especificaciones concretas (opcional)",
+    "specsPlaceholder": "Medidas, materiales, preferencias de marca, plazos...",
+    "badge": "Solicitud Personalizada"
+  },
   "review": {
     "edit": "Editar",
     "category": "Categoría",

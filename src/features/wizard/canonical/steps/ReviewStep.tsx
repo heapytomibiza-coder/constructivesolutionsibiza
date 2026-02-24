@@ -44,7 +44,11 @@ export function ReviewStep({
     microSlugs,
     logistics,
     extras,
+    wizardMode,
+    customRequest,
   } = wizardState;
+
+  const isCustom = wizardMode === 'custom';
 
   const formattedLocation = formatLocationDisplay(
     logistics.location,
@@ -70,9 +74,13 @@ export function ReviewStep({
               <Badge variant="secondary" className="font-medium">
                 {txCategory(mainCategory, t) || t('wizard:review.category', 'Category')}
               </Badge>
-              {subcategory && (
+              {isCustom ? (
+                <Badge variant="outline" className="font-medium text-primary">
+                  {t('wizard:custom.badge', 'Custom Request')}
+                </Badge>
+              ) : subcategory ? (
                 <span className="text-sm text-muted-foreground">→ {txSubcategory(subcategory, t)}</span>
-              )}
+              ) : null}
             </div>
             <EditLink onClick={() => onEdit(WizardStep.Category)} label={editLabel} />
           </div>
@@ -85,7 +93,20 @@ export function ReviewStep({
             <h4 className="text-sm font-medium text-muted-foreground mb-2">
               {t('wizard:review.whatYouNeed', 'What you need')}
             </h4>
-            {microNames.length > 0 ? (
+            {isCustom && customRequest ? (
+              <div className="space-y-2">
+                <p className="font-semibold text-foreground">{customRequest.jobTitle}</p>
+                <p className="text-sm text-foreground/80 whitespace-pre-line">{customRequest.description}</p>
+                {customRequest.specs && (
+                  <div className="mt-2 p-3 rounded-md bg-muted/50 border border-border">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">
+                      {t('wizard:custom.specsLabel')}
+                    </p>
+                    <p className="text-sm whitespace-pre-line">{customRequest.specs}</p>
+                  </div>
+                )}
+              </div>
+            ) : microNames.length > 0 ? (
               <ul className="space-y-1.5">
                 {microNames.map((name, i) => (
                   <li key={i} className="font-medium flex items-start gap-2">
@@ -99,7 +120,9 @@ export function ReviewStep({
                 {t('wizard:review.noTasks', 'No tasks selected')}
               </p>
             )}
-            <EditLink onClick={() => onEdit(WizardStep.Micro)} label={editLabel} />
+            {!isCustom && (
+              <EditLink onClick={() => onEdit(WizardStep.Micro)} label={editLabel} />
+            )}
           </section>
 
           {/* Where & When - Grid */}
