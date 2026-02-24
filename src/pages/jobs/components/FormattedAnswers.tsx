@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { txMicro } from '@/i18n/taxonomyTranslations';
 import type { ResolvedServicePack } from "@/pages/jobs/lib/buildJobPack";
 
 interface FormattedAnswersProps {
