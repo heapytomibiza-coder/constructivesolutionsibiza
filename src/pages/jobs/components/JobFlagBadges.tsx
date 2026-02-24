@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ClipboardCheck, Zap } from "lucide-react";
 
@@ -8,45 +9,32 @@ interface JobFlagBadgesProps {
   compact?: boolean;
 }
 
-/**
- * Display badges for job flags computed by the rules engine.
- * Shows inspection requirements, safety status, and emergency indicators.
- */
 export function JobFlagBadges({ 
   flags, 
   inspectionBias, 
   safety, 
   compact = false 
 }: JobFlagBadgesProps) {
+  const { t } = useTranslation("jobs");
   const badges: React.ReactNode[] = [];
   const flagArray = flags ?? [];
   
-  // Emergency/Safety badges
   if (safety === "red" || flagArray.includes("EMERGENCY")) {
     badges.push(
-      <Badge 
-        key="emergency" 
-        variant="destructive" 
-        className="gap-1"
-      >
+      <Badge key="emergency" variant="destructive" className="gap-1">
         <Zap className="h-3 w-3" />
-        {!compact && "Emergency"}
+        {!compact && t('flags.emergency')}
       </Badge>
     );
   } else if (safety === "amber") {
     badges.push(
-      <Badge 
-        key="urgent" 
-        variant="outline" 
-        className="gap-1 border-warning text-warning"
-      >
+      <Badge key="urgent" variant="outline" className="gap-1 border-warning text-warning">
         <AlertTriangle className="h-3 w-3" />
-        {!compact && "Urgent"}
+        {!compact && t('flags.urgent')}
       </Badge>
     );
   }
   
-  // Inspection badges
   if (
     inspectionBias === "mandatory" || 
     inspectionBias === "high" ||
@@ -55,25 +43,19 @@ export function JobFlagBadges({
     flagArray.includes("QUOTE_SUBJECT_TO_INSPECTION")
   ) {
     badges.push(
-      <Badge 
-        key="inspection" 
-        variant="secondary" 
-        className="gap-1"
-      >
+      <Badge key="inspection" variant="secondary" className="gap-1">
         <ClipboardCheck className="h-3 w-3" />
-        {!compact && "Quote subject to inspection"}
+        {!compact && t('flags.quoteSubjectToInspection')}
       </Badge>
     );
   }
   
-  // Show specific flags if interesting (exclude already-handled ones)
   const handledFlags = [
     "EMERGENCY", "URGENT",
     "INSPECTION_MANDATORY", "INSPECTION_REQUIRED", "QUOTE_SUBJECT_TO_INSPECTION"
   ];
   const interestingFlags = flagArray.filter(f => !handledFlags.includes(f));
   
-  // Only show first 2 extra flags to avoid clutter
   interestingFlags.slice(0, 2).forEach((flag, i) => {
     badges.push(
       <Badge key={`flag-${i}`} variant="outline" className="text-xs">
