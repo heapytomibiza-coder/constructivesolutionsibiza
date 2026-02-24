@@ -238,12 +238,12 @@ export default function ServiceListingEditor() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Display Title *</Label>
+              <Label htmlFor="title">{t('listingEditor.displayTitle')} *</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                placeholder="e.g. Professional Plumbing Services"
+                placeholder={t('listingEditor.displayTitlePlaceholder')}
                 maxLength={100}
               />
             </div>
