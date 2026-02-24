@@ -511,7 +511,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
       {/* Question */}
       <div className="flex-1 animate-fade-in" key={question.id}>
         <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-          {question.label}
+          {tLabel(question.label)}
           {question.required && <span className="text-destructive ml-1">*</span>}
         </h3>
         
