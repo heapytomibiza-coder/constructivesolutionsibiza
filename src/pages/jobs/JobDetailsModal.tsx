@@ -230,7 +230,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
   };
 
   const specBadge = getSpecBadge(jobPack);
-  const isAsap = jobPack.timing?.display?.toLowerCase().includes("asap");
+  const isAsap = jobPack.timing?.preset === "asap";
 
   return (
     <div className="space-y-5">
