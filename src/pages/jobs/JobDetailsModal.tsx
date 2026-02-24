@@ -114,10 +114,10 @@ function PhotoLightbox({
         {hasMany && (
           <>
             <Button variant="secondary" size="icon" onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2">
-              <ChevronLeft className="h-5 w-5" /><span className="sr-only">Previous</span>
+              <ChevronLeft className="h-5 w-5" /><span className="sr-only">{t('detail.lightbox.previous')}</span>
             </Button>
             <Button variant="secondary" size="icon" onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2">
-              <ChevronRight className="h-5 w-5" /><span className="sr-only">Next</span>
+              <ChevronRight className="h-5 w-5" /><span className="sr-only">{t('detail.lightbox.next')}</span>
             </Button>
             <div className="mt-3 text-center text-sm text-white/80">{i + 1} / {photos.length}</div>
           </>
