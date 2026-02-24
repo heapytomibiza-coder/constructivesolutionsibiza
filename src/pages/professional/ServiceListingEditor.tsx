@@ -356,7 +356,7 @@ export default function ServiceListingEditor() {
           </CardHeader>
           <CardContent className="space-y-3">
             {pricingItems.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No pricing items yet. Add your first one above.</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t('listingEditor.noPricingItems')}</p>
             ) : (
               pricingItems.map((item, idx) => (
                 <PricingItemRow
