@@ -151,7 +151,7 @@ export default function ProProfileDrawer({
             {/* Bio */}
             {profile.bio && (
               <section>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">About</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">{t('proProfile.about')}</h4>
                 <p className="text-sm text-foreground leading-relaxed">{profile.bio}</p>
               </section>
             )}
