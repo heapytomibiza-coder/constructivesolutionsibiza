@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { buildSearchOrClause } from "@/features/search/lib/searchSynonyms";
+import { txCategory, txMicro, txSubcategory } from "@/i18n/taxonomyTranslations";
 import { useGlobalSearchShortcut } from "@/hooks/useGlobalSearchShortcut";
 import {
   type SearchHit,
@@ -24,7 +25,7 @@ import {
   buildWizardUrlFromHit,
   buildForumUrl,
   isServiceHit,
-  getHitTypeLabel,
+  getHitTypeLabelKey,
   getHitBreadcrumb,
 } from "./types";
 
