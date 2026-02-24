@@ -60,7 +60,8 @@
     "selectAll": "Selecciona todas las que correspondan",
     "continueToNext": "Continuar al siguiente paso",
     "uploadsAfterPost": "(se subirán después de publicar)",
-    "selectedFiles": "Seleccionados: {{files}}"
+    "selectedFiles": "Seleccionados: {{files}}",
+    "dedupNote": "Hemos combinado preguntas similares para que solo respondas una vez."
   },
   "logistics": {
     "whereTitle": "¿Dónde está el trabajo?",
