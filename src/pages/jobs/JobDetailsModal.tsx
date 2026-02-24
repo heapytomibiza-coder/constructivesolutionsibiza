@@ -44,9 +44,19 @@ function statusVariant(
   }
 }
 
-function prettyStatus(s: string | null | undefined): string {
+const STATUS_KEYS: Record<string, string> = {
+  open: 'status.open',
+  draft: 'status.draft',
+  ready: 'status.ready',
+  in_progress: 'status.inProgress',
+  completed: 'status.completed',
+  cancelled: 'status.cancelled',
+};
+
+function translateStatus(s: string | null | undefined, t: (k: string) => string): string {
   if (!s) return "";
-  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const key = STATUS_KEYS[s];
+  return key ? t(key) : s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
