@@ -9,6 +9,7 @@
  */
 
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { CanonicalJobWizard } from '@/features/wizard/canonical/CanonicalJobWizard';
 import { PLATFORM } from '@/domain/scope';
