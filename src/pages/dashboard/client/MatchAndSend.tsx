@@ -93,7 +93,7 @@ export default function MatchAndSend() {
         });
       if (error) {
         if (error.code === '23505') {
-          toast.info('Already invited this professional.');
+          toast.info(t('matchAndSend.alreadyInvited'));
           return;
         }
         throw error;
