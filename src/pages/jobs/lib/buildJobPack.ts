@@ -359,5 +359,11 @@ export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = [], t?:
     flags: row.flags ?? [],
     inspectionBias: row.computed_inspection_bias ?? null,
     safety: row.computed_safety ?? null,
+    
+    // i18n translations
+    sourceLang: (row as any).source_lang ?? null,
+    titleI18n: (row as any).title_i18n ?? null,
+    teaserI18n: (row as any).teaser_i18n ?? null,
+    descriptionI18n: (row as any).description_i18n ?? null,
   };
 }
