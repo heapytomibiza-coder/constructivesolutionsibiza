@@ -336,11 +336,11 @@ export default function ServiceListingEditor() {
 
             {/* Pricing Summary */}
             <div className="space-y-2">
-              <Label>Pricing Summary</Label>
+              <Label>{t('listingEditor.pricingSummary')}</Label>
               <Input
                 value={pricingSummary}
                 onChange={e => setPricingSummary(e.target.value)}
-                placeholder="e.g. Starting at 40 EUR/hr"
+                placeholder={t('listingEditor.pricingSummaryPlaceholder')}
               />
             </div>
           </CardContent>
