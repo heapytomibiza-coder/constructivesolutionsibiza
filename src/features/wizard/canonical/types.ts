@@ -138,6 +138,10 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   dispatchMode: 'broadcast',
   targetProfessionalId: undefined,
   targetProfessionalName: undefined,
+
+  // Default to structured (normal taxonomy flow)
+  wizardMode: 'structured',
+  customRequest: undefined,
 };
 
 // === STEP UTILITIES ===

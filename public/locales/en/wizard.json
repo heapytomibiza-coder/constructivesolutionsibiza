@@ -146,6 +146,24 @@
     "showingServicesFor": "Showing services offered by {{name}}",
     "noServices": "This professional hasn't set up their services yet"
   },
+  "custom": {
+    "cta": "Can't find what you need?",
+    "ctaDescription": "Post a custom request — we'll format it into a proper job card.",
+    "ctaButton": "Post Custom Request",
+    "headline": "Describe what you need",
+    "subtitle": "Tell us what you need. We'll turn it into a clear job card for professionals.",
+    "categoryLabel": "Main category",
+    "categoryPlaceholder": "Select a category",
+    "titleLabel": "Job title",
+    "titlePlaceholder": "e.g. Build a pergola with integrated LED strips",
+    "titleHelp": "Be specific — this becomes the headline.",
+    "descriptionLabel": "Job description",
+    "descriptionPlaceholder": "What needs doing? Where? Any constraints?",
+    "descriptionHelp": "Include location context, scale, and what \"done\" looks like.",
+    "specsLabel": "Specific specs (optional)",
+    "specsPlaceholder": "Measurements, materials, brand preferences, deadlines...",
+    "badge": "Custom Request"
+  },
   "review": {
     "edit": "Edit",
     "category": "Category",
