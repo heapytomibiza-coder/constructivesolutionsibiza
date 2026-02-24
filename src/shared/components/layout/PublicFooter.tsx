@@ -50,9 +50,15 @@ export function PublicFooter() {
             </Link>
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} {PLATFORM.name}
-          </p>
+          <div className="flex flex-col items-end gap-1">
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} {PLATFORM.name}
+            </p>
+            <div className="flex items-center gap-3">
+              <BuildStamp />
+              <ReportProblemButton userId={user?.id} activeRole={activeRole} />
+            </div>
+          </div>
         </div>
       </div>
     </footer>
