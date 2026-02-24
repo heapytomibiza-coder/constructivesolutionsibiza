@@ -33,7 +33,25 @@
     "jobUpdated": "Trabajo actualizado correctamente",
     "jobClosed": "Trabajo cerrado",
     "closeFailed": "No se pudo cerrar el trabajo",
-    "duplicateCreated": "Borrador creado desde copia"
+    "duplicateCreated": "Borrador creado desde copia",
+    "cancel": "Cancelar",
+    "closing": "Cerrando...",
+    "shareJob": "Compartir Trabajo",
+    "savedHint": "Guardado — elige cómo compartir desde la página del trabajo",
+    "noProMessaged": "Aún no hay profesionales que hayan enviado mensajes",
+    "completedSuccess": "¡Trabajo marcado como completado!",
+    "completeFailed": "No se pudo completar el trabajo",
+    "ratingSuccess": "¡Gracias por tu valoración!",
+    "ratingFailed": "No se pudo enviar la valoración",
+    "uncategorized": "Sin categoría",
+    "status": {
+      "ready": "Guardado",
+      "open": "Activo",
+      "in_progress": "En Progreso",
+      "completed": "Completado",
+      "cancelled": "Cerrado",
+      "draft": "Borrador"
+    }
   },
   "pro": {
     "title": "Panel del Tasker",
@@ -76,6 +94,39 @@
     "profileDetails": "Detalles del perfil",
     "publiclyVisible": "Visible públicamente",
     "addServicesHint": "Añade servicios y completa tu perfil para aparecer en los resultados de búsqueda."
+  },
+  "proProfile": {
+    "title": "Perfil Profesional",
+    "about": "Acerca de",
+    "services": "Servicios ({{count}})",
+    "areasCovered": "Zonas Cubiertas",
+    "islandWide": "Toda la isla",
+    "typicalLeadTime": "Tiempo de respuesta habitual:",
+    "reviews": "Reseñas ({{count}})",
+    "alreadyInvited": "Ya Invitado",
+    "inviteWithJob": "Invitar con este trabajo",
+    "verified": "Verificado",
+    "professional": "Profesional",
+    "notFound": "Perfil no encontrado."
+  },
+  "matchAndSend": {
+    "sending": "Enviando: {{category}} → {{subcategory}}",
+    "matchingTitle": "Profesionales que coinciden con tu trabajo",
+    "found": "{{count}} profesional encontrado",
+    "found_plural": "{{count}} profesionales encontrados",
+    "forServices": "para {{services}}",
+    "noMatch": "Aún no se encontraron profesionales compatibles. Prueba publicando en la bolsa de trabajo.",
+    "backToJob": "Volver al Trabajo",
+    "viewProfile": "Ver Perfil",
+    "invited": "Invitado",
+    "invite": "Invitar",
+    "inviteSent": "¡Invitación enviada!",
+    "inviteFailed": "No se pudo enviar la invitación.",
+    "alreadyInvited": "Ya invitaste a este profesional.",
+    "flexible": "Flexible",
+    "notFound": "Trabajo no encontrado.",
+    "services": "{{count}} servicios",
+    "match": "{{percent}}% coincidencia"
   },
   "stats": {
     "jobs": "Trabajos",
