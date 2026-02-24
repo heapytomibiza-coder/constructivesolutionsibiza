@@ -89,9 +89,11 @@ export const SUBCATEGORY_KEYS: Record<string, string> = {
   "Lawn Care": "lawn-care",
   "Tree & Hedge Care": "tree-hedge-care",
   "Irrigation Systems": "irrigation-systems",
+  "Irrigation": "irrigation",
   "Landscaping": "landscaping",
   "Tree Surgery": "tree-surgery",
   "Outdoor Living Spaces": "outdoor-living-spaces",
+  "Maintenance": "garden-maintenance",
   // Pool & Spa
   "Pool Construction": "pool-construction",
   "Pool Maintenance": "pool-maintenance",
