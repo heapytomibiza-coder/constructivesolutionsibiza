@@ -123,10 +123,7 @@ Rules:
     const targetLang: Lang = sourceLang === "en" ? "es" : "en";
     const translations: Record<string, string> = parsed.translations ?? {};
 
-    // Build update payload
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Build update payload (supabase client already created above)
 
     const updatePayload: Record<string, unknown> = {
       source_lang: sourceLang,
