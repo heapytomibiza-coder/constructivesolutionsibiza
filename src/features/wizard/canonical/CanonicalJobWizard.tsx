@@ -86,6 +86,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { t } = useTranslation('wizard');
+  const { t: tCommon } = useTranslation('common');
   const { user, isAuthenticated } = useSession();
   
   // === INITIALIZATION STATE ===
@@ -880,7 +881,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           {currentStep === WizardStep.Subcategory && (
             <div className="space-y-4">
               <h3 className="font-display text-lg font-semibold">
-                {t('subcategory.headline', { category: txCategory(wizardState.mainCategory, t) ?? wizardState.mainCategory })}
+                {t('subcategory.headline', { category: txCategory(wizardState.mainCategory, tCommon) ?? wizardState.mainCategory })}
               </h3>
               <SubcategorySelector
                 categoryId={wizardState.mainCategoryId}

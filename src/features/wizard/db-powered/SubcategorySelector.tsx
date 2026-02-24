@@ -67,8 +67,9 @@ export default function SubcategorySelector({
     const key = `common:subcategories.${sub.slug}`;
     const translated = t(key, { defaultValue: '' });
     if (translated && translated !== key) return translated;
-    // Humanize slug as fallback so new DB subcategories never show English DB name
-    return sub.slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    // Humanize slug as fallback — sentence case (not Title Case) for Spanish compatibility
+    const human = sub.slug.replace(/-/g, ' ');
+    return human.charAt(0).toUpperCase() + human.slice(1);
   };
 
   const filtered = allowedSubcategoryIds
