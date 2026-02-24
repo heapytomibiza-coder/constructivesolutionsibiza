@@ -184,11 +184,12 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
 
   /** Normalize a key string to avoid misses from dash/quote/spacing differences */
   const norm = (s: string): string =>
-    s
+    (s || '')
       .trim()
       .replace(/\s+/g, ' ')
       .replace(/[–—]/g, '-')
-      .replace(/['']/g, "'");
+      .replace(/['\u2018\u2019]/g, "'")
+      .replace(/["\u201C\u201D]/g, '"');
 
   /** Translate a question label using the questions namespace */
   const tLabel = (label: string): string => {
@@ -197,11 +198,18 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
     return translated || label;
   };
 
-  /** Translate an option label using the questions namespace */
-  const tOption = (label: string): string => {
-    const key = norm(label);
-    const translated = t(`questions:options.${key}`, { defaultValue: '' });
-    return translated || label;
+  /** Translate an option using value-first strategy (stable), fallback to label */
+  const tOption = (opt: QuestionOption): string => {
+    const valueKey = norm(opt.value);
+    const labelKey = norm(opt.label);
+
+    // Prefer stable value-based key
+    const byValue = t(`questions:options.${valueKey}`, { defaultValue: '' });
+    if (byValue) return byValue;
+
+    // Fallback to label-based key (legacy)
+    const byLabel = t(`questions:options.${labelKey}`, { defaultValue: '' });
+    return byLabel || opt.label;
   };
 
   /** Localize an option - translate its label while preserving the value */
@@ -209,7 +217,7 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
     const normalized = normalizeOption(opt);
     return {
       value: normalized.value,
-      label: tOption(normalized.label),
+      label: tOption(normalized),
     };
   };
   
