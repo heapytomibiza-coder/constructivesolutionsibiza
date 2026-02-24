@@ -199,7 +199,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         {/* Header row: Badge + timestamp */}
         <div className="flex items-center justify-between gap-2 mb-2">
           <Badge variant={getStatusBadgeVariant(job.status)}>
-            {getStatusLabel(job.status)}
+            {getStatusLabel(job.status, t)}
           </Badge>
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
