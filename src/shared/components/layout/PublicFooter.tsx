@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PLATFORM } from '@/domain/scope';
+import { BuildStamp } from '@/shared/components/layout/BuildStamp';
+import { ReportProblemButton } from '@/shared/components/ReportProblemButton';
+import { useSession } from '@/contexts/SessionContext';
 
 export function PublicFooter() {
   const { t } = useTranslation('common');
