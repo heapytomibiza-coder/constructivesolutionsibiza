@@ -109,7 +109,7 @@ function PhotoLightbox({
       <div className="relative w-full max-w-5xl">
         <img src={src} alt={`Photo ${i + 1} of ${photos.length}`} className="max-h-[85vh] w-full rounded-lg object-contain" draggable={false} />
         <Button variant="secondary" size="icon" onClick={onClose} className="absolute right-2 top-2">
-          <X className="h-4 w-4" /><span className="sr-only">Close</span>
+          <X className="h-4 w-4" /><span className="sr-only">{t('detail.lightbox.close')}</span>
         </Button>
         {hasMany && (
           <>
