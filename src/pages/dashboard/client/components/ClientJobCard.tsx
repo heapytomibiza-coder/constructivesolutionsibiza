@@ -10,6 +10,7 @@ import { submitReview } from '@/pages/jobs/actions/submitReview.action';
 import { toast } from 'sonner';
 import { AssignProSelector } from '@/pages/dashboard/shared/components/AssignProSelector';
 import { useTranslation } from 'react-i18next';
+import { txCategory, txSubcategory } from '@/i18n/taxonomyTranslations';
 import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
