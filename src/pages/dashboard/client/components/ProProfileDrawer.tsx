@@ -135,7 +135,7 @@ export default function ProProfileDrawer({
                   {profile.verification_status === 'verified' && (
                     <Badge variant="outline" className="gap-1 text-xs">
                       <ShieldCheck className="h-3 w-3" />
-                      Verified
+                      {t('proProfile.verified')}
                     </Badge>
                   )}
                   {avgRating && (
