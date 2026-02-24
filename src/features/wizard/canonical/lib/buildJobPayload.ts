@@ -429,8 +429,8 @@ export function validateWizardState(state: WizardState): { valid: boolean; error
     if (!state.microIds.length) errors.push("Please select at least one task");
   }
 
-  // Step 5 required fields (single source of truth via isStep5Complete)
-  const { isStep5Complete } = require('./stepValidation');
+  // Step 5 required fields (single source of truth)
+  const step5 = isStep5Complete(state.logistics);
   const step5 = isStep5Complete(state.logistics);
   errors.push(...step5.errors);
 
