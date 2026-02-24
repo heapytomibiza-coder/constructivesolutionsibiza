@@ -187,7 +187,7 @@ export function CategoryAccordion({
               <div key={subcategory.id}>
                 {/* Subcategory header */}
                 <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  {subcategory.name}
+                  {txSubcategory(subcategory.name, t) ?? subcategory.name}
                 </h4>
                 
                 {/* Micro tiles grid - single column on mobile */}
