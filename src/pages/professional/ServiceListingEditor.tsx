@@ -283,7 +283,7 @@ export default function ServiceListingEditor() {
                   ) : (
                     <>
                       <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
-                      <span className="text-sm text-muted-foreground">Upload hero image</span>
+                      <span className="text-sm text-muted-foreground">{t('listingEditor.heroImageUpload')}</span>
                     </>
                   )}
                   <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e, 'hero')} />
