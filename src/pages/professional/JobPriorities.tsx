@@ -131,10 +131,10 @@ export default function JobPriorities() {
           {/* Header */}
           <div className="text-center animate-fade-in">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-              Set Your Job Priorities
+              {t('priorities.title')}
             </h1>
             <p className="text-lg text-muted-foreground">
-              Tell us which jobs to send you first. Your choices update instantly.
+              {t('priorities.subtitle')}
             </p>
           </div>
 
