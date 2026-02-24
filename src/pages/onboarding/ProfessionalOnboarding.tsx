@@ -10,20 +10,21 @@ import { PLATFORM } from '@/domain/scope';
 import { trackEvent } from '@/lib/trackEvent';
 import { BasicInfoStep, ServiceAreaStep, ServiceUnlockStep, ReviewStep } from './steps';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 type WizardStep = 'tracker' | 'basic_info' | 'service_area' | 'services' | 'review';
 
 interface StepConfig {
   id: string;
-  label: string;
+  labelKey: string;
   icon: React.ComponentType<{ className?: string }>;
 }
 
 const STEPS: StepConfig[] = [
-  { id: 'basic_info', label: 'About You', icon: User },
-  { id: 'service_area', label: 'Where You Work', icon: MapPin },
-  { id: 'services', label: 'The Work You Do', icon: Briefcase },
-  { id: 'review', label: 'Go Live', icon: Rocket },
+  { id: 'basic_info', labelKey: 'wizard.stepLabels.basic_info', icon: User },
+  { id: 'service_area', labelKey: 'wizard.stepLabels.service_area', icon: MapPin },
+  { id: 'services', labelKey: 'wizard.stepLabels.services', icon: Briefcase },
+  { id: 'review', labelKey: 'wizard.stepLabels.review', icon: Rocket },
 ];
 
 /**
@@ -33,6 +34,7 @@ const STEPS: StepConfig[] = [
  * Edit mode shows a tracker overview for jumping between steps.
  */
 const ProfessionalOnboarding = () => {
+  const { t } = useTranslation('onboarding');
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -157,7 +159,7 @@ const ProfessionalOnboarding = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground text-lg">Loading...</div>
+        <div className="animate-pulse text-muted-foreground text-lg">{t('wizard.loading')}</div>
       </div>
     );
   }
@@ -182,13 +184,13 @@ const ProfessionalOnboarding = () => {
           {editMode && (
             <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/pro')}>
               <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Dashboard
+              {t('wizard.backToDashboard')}
             </Button>
           )}
           {editMode && currentStep !== 'tracker' && (
             <Button variant="ghost" size="sm" onClick={() => setCurrentStep('tracker')}>
               <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Overview
+              {t('wizard.backToOverview')}
             </Button>
           )}
         </div>
@@ -200,16 +202,13 @@ const ProfessionalOnboarding = () => {
           <div className="text-center mb-10 animate-fade-in">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
               {editMode
-                ? 'Edit your professional profile'
-                : currentStep === 'basic_info' ? 'Step 1: About You'
-                : currentStep === 'service_area' ? 'Step 2: Where You Work'
-                : currentStep === 'services' ? 'Step 3: The Work You Do'
-                : 'Step 4: Go Live!'}
+                ? t('wizard.editProfile')
+                : t(`wizard.stepHeaders.${currentStep}`, { defaultValue: '' })}
             </h1>
             <p className="text-lg text-muted-foreground">
               {editMode
-                ? 'Jump to any step and update your details.'
-                : `Step ${currentStepIndex + 1} of ${STEPS.length}`}
+                ? t('wizard.jumpToStep')
+                : t('wizard.stepOf', { current: currentStepIndex + 1, total: STEPS.length })}
             </p>
           </div>
 
@@ -238,7 +237,7 @@ const ProfessionalOnboarding = () => {
                         'text-xs font-medium hidden sm:block',
                         isCurrent ? 'text-primary' : 'text-muted-foreground'
                       )}>
-                        {step.label}
+                        {t(step.labelKey)}
                       </span>
                     </div>
                   );
@@ -296,6 +295,7 @@ interface TrackerViewProps {
 }
 
 function TrackerView({ steps, phase, editMode, onStepClick }: TrackerViewProps) {
+  const { t } = useTranslation('onboarding');
   const stepOrder = ['basic_info', 'service_area', 'services', 'review'] as const;
   
   const phaseToCurrentStep: Record<string, string | 'done'> = {
@@ -328,9 +328,9 @@ function TrackerView({ steps, phase, editMode, onStepClick }: TrackerViewProps) 
       <Card className="card-grounded mb-6">
         <CardContent className="py-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-lg font-semibold">Your progress</span>
+            <span className="text-lg font-semibold">{t('wizard.tracker.yourProgress')}</span>
             <span className="text-base font-semibold text-primary">
-              {completedCount} of {steps.length} done
+              {t('wizard.tracker.done', { completed: completedCount, total: steps.length })}
             </span>
           </div>
           <Progress value={(completedCount / steps.length) * 100} className="h-3" />
@@ -373,7 +373,7 @@ function TrackerView({ steps, phase, editMode, onStepClick }: TrackerViewProps) 
                   )}
                 </div>
                 <p className="text-lg font-semibold text-foreground">
-                  {step.label}
+                  {t(step.labelKey)}
                 </p>
               </div>
               {canClick && (
@@ -383,7 +383,7 @@ function TrackerView({ steps, phase, editMode, onStepClick }: TrackerViewProps) 
                   className="shrink-0"
                   onClick={(e) => { e.stopPropagation(); onStepClick(step.id); }}
                 >
-                  {isComplete ? 'Edit' : 'Start'}
+                  {isComplete ? t('wizard.tracker.edit') : t('wizard.tracker.start')}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               )}

@@ -1,6 +1,5 @@
 /**
  * ServiceUnlockStep - Binary micro-service selection wizard
- * 
  * Builder-friendly: Larger tiles, clearer states, friendly copy.
  */
 
@@ -15,6 +14,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
 import { trackEvent } from '@/lib/trackEvent';
+import { useTranslation } from 'react-i18next';
 
 import { CategoryAccordion } from '../components/CategoryAccordion';
 import { ServiceSearchBar } from '../components/ServiceSearchBar';
@@ -34,6 +34,7 @@ const RECOMMENDED_MIN = 5;
 const RECOMMENDED_MAX = 15;
 
 export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: ServiceUnlockStepProps) {
+  const { t } = useTranslation('onboarding');
   const { user, professionalProfile, refresh } = useSession();
   const currentPhase = professionalProfile?.onboardingPhase ?? 'not_started';
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,184 +44,84 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
   const [userExpandedDuringSearch, setUserExpandedDuringSearch] = useState(false);
   const savedTimerRef = useRef<number | null>(null);
 
-  // Data hooks
   const { data: categories = [], isLoading: isLoadingTaxonomy } = useServiceTaxonomy();
-  const { 
-    selectedMicroIds, 
-    isLoading: isLoadingServices,
-    toggleService,
-    bulkAddServices,
-    bulkRemoveServices,
-    isUpdating 
-  } = useProfessionalServices();
-
-  // Preferences hook - only used in edit mode
-  const {
-    preferences,
-    updatePreference,
-    isUpdating: isUpdatingPreference,
-  } = useMicroPreferences();
+  const { selectedMicroIds, isLoading: isLoadingServices, toggleService, bulkAddServices, bulkRemoveServices, isUpdating } = useProfessionalServices();
+  const { preferences, updatePreference, isUpdating: isUpdatingPreference } = useMicroPreferences();
 
   const selectedCount = selectedMicroIds.size;
   const canContinue = selectedCount >= MIN_SERVICES;
 
-  // Track first selection for enhanced animation
-  useEffect(() => {
-    if (selectedCount > 0 && isFirstSelection) {
-      setIsFirstSelection(false);
-    }
-  }, [selectedCount, isFirstSelection]);
+  useEffect(() => { if (selectedCount > 0 && isFirstSelection) setIsFirstSelection(false); }, [selectedCount, isFirstSelection]);
+  useEffect(() => { return () => { if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current); }; }, []);
 
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current);
-    };
-  }, []);
-
-  // Find first category with search matches for auto-expand
   const firstMatchingCategoryId = useMemo(() => {
     if (!searchQuery) return null;
     const q = searchQuery.toLowerCase();
-    
-    const match = categories.find((c) =>
-      c.subcategories.some((s) =>
-        s.micros.some((m) => 
-          m.name.toLowerCase().includes(q) || 
-          m.slug.toLowerCase().includes(q)
-        )
-      )
-    );
-    
+    const match = categories.find((c) => c.subcategories.some((s) => s.micros.some((m) => m.name.toLowerCase().includes(q) || m.slug.toLowerCase().includes(q))));
     return match?.id ?? null;
   }, [categories, searchQuery]);
 
-  // Auto-expand first matching category when searching (respects manual override)
   useEffect(() => {
-    if (!searchQuery) {
-      setExpandedCategoryId(null);
-      setUserExpandedDuringSearch(false);
-      return;
-    }
-
-    if (!userExpandedDuringSearch && firstMatchingCategoryId) {
-      setExpandedCategoryId(firstMatchingCategoryId);
-    }
+    if (!searchQuery) { setExpandedCategoryId(null); setUserExpandedDuringSearch(false); return; }
+    if (!userExpandedDuringSearch && firstMatchingCategoryId) setExpandedCategoryId(firstMatchingCategoryId);
   }, [searchQuery, firstMatchingCategoryId, userExpandedDuringSearch]);
 
-  // Calculate progress percentage
-  const progress = useMemo(() => {
-    if (selectedCount >= RECOMMENDED_MIN) return 100;
-    return (selectedCount / RECOMMENDED_MIN) * 100;
-  }, [selectedCount]);
+  const progress = useMemo(() => selectedCount >= RECOMMENDED_MIN ? 100 : (selectedCount / RECOMMENDED_MIN) * 100, [selectedCount]);
 
-  // Quiet "Saved" badge
   const flashSaved = useCallback(() => {
     setShowSaved(true);
-
-    if (savedTimerRef.current) {
-      window.clearTimeout(savedTimerRef.current);
-    }
-
-    savedTimerRef.current = window.setTimeout(() => {
-      setShowSaved(false);
-      savedTimerRef.current = null;
-    }, 1200);
+    if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = window.setTimeout(() => { setShowSaved(false); savedTimerRef.current = null; }, 1200);
   }, []);
 
-  // Handle micro toggle with quiet autosave feedback
   const handleMicroToggle = useCallback((microId: string) => {
-    const isCurrentlySelected = selectedMicroIds.has(microId);
-    toggleService({ microId, isSelected: !isCurrentlySelected });
+    toggleService({ microId, isSelected: !selectedMicroIds.has(microId) });
     flashSaved();
   }, [selectedMicroIds, toggleService, flashSaved]);
 
-  // Handle preference change (edit mode only)
   const handlePreferenceChange = useCallback((microId: string, preference: Preference) => {
     updatePreference(microId, preference);
     flashSaved();
   }, [updatePreference, flashSaved]);
 
-  // Handle select all for a category
   const handleSelectAllCategory = useCallback((categoryId: string) => {
     const category = categories.find(c => c.id === categoryId);
     if (!category) return;
-
-    const allMicroIds = category.subcategories.flatMap(sub => 
-      sub.micros.map(m => m.id)
-    );
+    const allMicroIds = category.subcategories.flatMap(sub => sub.micros.map(m => m.id));
     const newMicroIds = allMicroIds.filter(id => !selectedMicroIds.has(id));
-    
-    if (newMicroIds.length > 0) {
-      bulkAddServices(newMicroIds);
-      flashSaved();
-    }
+    if (newMicroIds.length > 0) { bulkAddServices(newMicroIds); flashSaved(); }
   }, [categories, selectedMicroIds, bulkAddServices, flashSaved]);
 
-  // Handle clear all for a category
   const handleClearCategory = useCallback((categoryId: string) => {
     const category = categories.find(c => c.id === categoryId);
     if (!category) return;
-
-    const allMicroIds = category.subcategories.flatMap(sub => 
-      sub.micros.map(m => m.id)
-    );
+    const allMicroIds = category.subcategories.flatMap(sub => sub.micros.map(m => m.id));
     const selectedInCategory = allMicroIds.filter(id => selectedMicroIds.has(id));
-    
-    if (selectedInCategory.length > 0) {
-      bulkRemoveServices(selectedInCategory);
-      flashSaved();
-    }
+    if (selectedInCategory.length > 0) { bulkRemoveServices(selectedInCategory); flashSaved(); }
   }, [categories, selectedMicroIds, bulkRemoveServices, flashSaved]);
 
-  // Memoize search results check
   const hasAnySearchResults = useMemo(() => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
-    return categories.some((c) =>
-      c.subcategories.some((s) =>
-        s.micros.some((m) => 
-          m.name.toLowerCase().includes(q) || 
-          m.slug.toLowerCase().includes(q)
-        )
-      )
-    );
+    return categories.some((c) => c.subcategories.some((s) => s.micros.some((m) => m.name.toLowerCase().includes(q) || m.slug.toLowerCase().includes(q))));
   }, [categories, searchQuery]);
 
-  // Handle continue
   const handleContinue = async () => {
     if (!canContinue || !user?.id) return;
-
-    // Advance phase to service_setup (guarded — won't regress)
     const newPhase = nextPhase(currentPhase, 'service_setup');
     if (newPhase !== currentPhase) {
       let phaseUpdated = false;
-
       try {
-        const { error } = await supabase
-          .from('professional_profiles')
-          .update({ onboarding_phase: newPhase })
-          .eq('user_id', user.id);
+        const { error } = await supabase.from('professional_profiles').update({ onboarding_phase: newPhase }).eq('user_id', user.id);
         if (error) throw error;
         phaseUpdated = true;
       } catch (err) {
         console.error('Error advancing phase:', err);
         const msg = err instanceof Error ? err.message : String(err);
-        trackEvent('onboarding_step_failed', 'professional', {
-          step: 'service_unlock',
-          error_message: msg,
-        });
+        trackEvent('onboarding_step_failed', 'professional', { step: 'service_unlock', error_message: msg });
       }
-
-      if (phaseUpdated) {
-        try {
-          await refresh();
-        } catch (e) {
-          console.warn('Session refresh failed after phase advance:', e);
-        }
-      }
+      if (phaseUpdated) { try { await refresh(); } catch (e) { console.warn('Session refresh failed after phase advance:', e); } }
     }
-
     onComplete();
   };
 
@@ -228,7 +129,6 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
 
   return (
     <div className="space-y-6">
-      {/* Header - Friendly language */}
       <Card className="card-grounded">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -237,35 +137,28 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
                 <Briefcase className="h-7 w-7 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl font-semibold">Which jobs do you want?</CardTitle>
-                <p className="text-base text-muted-foreground">
-                  Tap any job you're happy to do. We'll only send you these.
-                </p>
+                <CardTitle className="text-xl font-semibold">{t('serviceUnlock.title')}</CardTitle>
+                <p className="text-base text-muted-foreground">{t('serviceUnlock.description')}</p>
               </div>
             </div>
-            {/* Quiet autosave indicator */}
             {showSaved && (
-              <Badge 
-                variant="secondary" 
-                className="bg-primary/15 text-primary animate-fade-in text-sm"
-              >
+              <Badge variant="secondary" className="bg-primary/15 text-primary animate-fade-in text-sm">
                 <Check className="h-4 w-4 mr-1" />
-                Saved
+                {t('serviceUnlock.saved')}
               </Badge>
             )}
           </div>
         </CardHeader>
         <CardContent>
-          {/* Progress with count */}
           <div className="space-y-3">
             <div className="flex items-center justify-between text-base">
               <span className="font-semibold tabular-nums">
                 {selectedCount === 0 
-                  ? "No jobs selected yet" 
-                  : `You've picked ${selectedCount} job${selectedCount !== 1 ? 's' : ''}`}
+                  ? t('serviceUnlock.noJobsSelected')
+                  : t('serviceUnlock.jobsPicked', { count: selectedCount })}
               </span>
               {selectedCount >= RECOMMENDED_MIN && (
-                <span className="text-primary font-medium">Great selection!</span>
+                <span className="text-primary font-medium">{t('serviceUnlock.greatSelection')}</span>
               )}
             </div>
             <Progress value={progress} className="h-3" />
@@ -273,32 +166,21 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
         </CardContent>
       </Card>
 
-      {/* Permission to stop */}
       <p className="text-center text-base text-muted-foreground px-4">
-        Most professionals pick {RECOMMENDED_MIN}–{RECOMMENDED_MAX} jobs.
-        <span className="block text-sm mt-1 opacity-80">You don't need to select everything.</span>
+        {t('serviceUnlock.recommendedHint', { min: RECOMMENDED_MIN, max: RECOMMENDED_MAX })}
+        <span className="block text-sm mt-1 opacity-80">{t('serviceUnlock.noNeedAll')}</span>
       </p>
 
-      {/* Search bar */}
-      <ServiceSearchBar
-        value={searchQuery}
-        onChange={setSearchQuery}
-        placeholder="Search jobs..."
-      />
+      <ServiceSearchBar value={searchQuery} onChange={setSearchQuery} placeholder={t('serviceUnlock.searchPlaceholder')} />
 
-      {/* Loading state */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
         </div>
       ) : (
-        /* Category accordions */
         <div className="space-y-4">
           {categories.map((category) => (
-            <div
-              key={category.id}
-              className="animate-fade-in"
-            >
+            <div key={category.id} className="animate-fade-in">
               <CategoryAccordion
                 category={category}
                 selectedMicroIds={selectedMicroIds}
@@ -321,61 +203,33 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
             </div>
           ))}
 
-          {/* Empty search results */}
           {!hasAnySearchResults && (
             <div className="text-center py-10 text-muted-foreground">
-              <p className="text-lg">No jobs found for "{searchQuery}"</p>
-              <Button
-                variant="link"
-                onClick={() => setSearchQuery('')}
-                className="mt-3 text-base"
-              >
-                Clear search
+              <p className="text-lg">{t('serviceUnlock.noResults', { query: searchQuery })}</p>
+              <Button variant="link" onClick={() => setSearchQuery('')} className="mt-3 text-base">
+                {t('serviceUnlock.clearSearch')}
               </Button>
             </div>
           )}
         </div>
       )}
 
-      {/* Permission to stop - bottom reminder */}
       {selectedCount > 0 && selectedCount < RECOMMENDED_MIN && (
-        <p className="text-center text-sm text-muted-foreground">
-          You can always add more jobs later from your dashboard.
-        </p>
+        <p className="text-center text-sm text-muted-foreground">{t('serviceUnlock.addMoreLater')}</p>
       )}
 
-      {/* Navigation buttons - sticky footer */}
       <div className="flex gap-4 pt-4 border-t border-border sticky bottom-0 bg-background/95 backdrop-blur-sm pb-4 -mx-4 px-4">
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          onClick={onBack}
-          className="flex-1 h-12 flex items-center justify-center"
-        >
+        <Button type="button" variant="outline" size="lg" onClick={onBack} className="flex-1 h-12 flex items-center justify-center">
           <ArrowLeft className="h-5 w-5 mr-2 shrink-0" />
-          Go Back
+          {t('serviceUnlock.goBack')}
         </Button>
-
         <div className="flex flex-col items-center gap-2 flex-1">
-          <Button
-            type="button"
-            size="lg"
-            onClick={handleContinue}
-            disabled={!canContinue || isUpdating}
-            className="w-full h-12 flex items-center justify-center"
-          >
-            {isUpdating ? (
-              <Loader2 className="h-5 w-5 animate-spin mr-2 shrink-0" />
-            ) : (
-              <ArrowRight className="h-5 w-5 mr-2 shrink-0" />
-            )}
-            {isUpdating ? 'Saving...' : 'Continue'}
+          <Button type="button" size="lg" onClick={handleContinue} disabled={!canContinue || isUpdating} className="w-full h-12 flex items-center justify-center">
+            {isUpdating ? <Loader2 className="h-5 w-5 animate-spin mr-2 shrink-0" /> : <ArrowRight className="h-5 w-5 mr-2 shrink-0" />}
+            {isUpdating ? t('serviceUnlock.saving') : t('serviceUnlock.continue')}
           </Button>
           {!canContinue && (
-            <span className="text-sm text-muted-foreground">
-              Select at least 1 job to continue
-            </span>
+            <span className="text-sm text-muted-foreground">{t('serviceUnlock.selectMinimum')}</span>
           )}
         </div>
       </div>

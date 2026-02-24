@@ -12,6 +12,7 @@ import { trackEvent } from '@/lib/trackEvent';
 import { Loader2, User, Phone, FileText, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
+import { useTranslation } from 'react-i18next';
 
 interface BasicInfoStepProps {
   onComplete: () => void;
@@ -26,6 +27,7 @@ interface BasicInfoData {
 }
 
 export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
+  const { t } = useTranslation('onboarding');
   const { user, refresh, professionalProfile } = useSession();
   const currentPhase = professionalProfile?.onboardingPhase ?? 'not_started';
   const queryClient = useQueryClient();
@@ -43,14 +45,12 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
     queryKey: ['professional-basic-info', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      // Get from profiles table
       const { data: profile } = await supabase
         .from('profiles')
         .select('display_name, phone')
         .eq('user_id', user!.id)
         .single();
 
-      // Get from professional_profiles table  
       const { data: proProfile } = await supabase
         .from('professional_profiles')
         .select('display_name, bio, business_name, tagline')
@@ -77,18 +77,12 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
     mutationFn: async (data: BasicInfoData) => {
       if (!user?.id) throw new Error('Not authenticated');
 
-      // Update profiles table
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
-          display_name: data.display_name,
-          phone: data.phone,
-        })
+        .update({ display_name: data.display_name, phone: data.phone })
         .eq('user_id', user.id);
-
       if (profileError) throw profileError;
 
-      // Update professional_profiles table
       const { error: proProfileError } = await supabase
         .from('professional_profiles')
         .update({
@@ -99,39 +93,31 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
           onboarding_phase: nextPhase(currentPhase, 'basic_info'),
         })
         .eq('user_id', user.id);
-
       if (proProfileError) throw proProfileError;
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['professional-basic-info'] });
-      try {
-        await refresh();
-      } catch (e) {
-        console.warn('Session refresh failed after basic info save:', e);
-      }
-      toast.success('Saved!');
+      try { await refresh(); } catch (e) { console.warn('Session refresh failed after basic info save:', e); }
+      toast.success(t('basicInfo.saved'));
       onComplete();
     },
     onError: (error: unknown) => {
       const msg = error instanceof Error ? error.message : String(error);
       console.error('Error saving basic info:', error);
-      toast.error(msg || 'Something went wrong. Please try again.');
+      toast.error(msg || t('basicInfo.somethingWrong'));
       trackEvent('onboarding_step_failed', 'professional', { step: 'basic_info', error_message: msg });
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.display_name.trim()) {
-      toast.error('Please enter your name');
+      toast.error(t('basicInfo.enterName'));
       return;
     }
-
     saveMutation.mutate(formData);
   };
 
-  // Character count helpers
   const bioNearLimit = formData.bio.length > 400;
   const taglineNearLimit = formData.tagline.length > 80;
 
@@ -147,118 +133,97 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
     <Card className="card-grounded animate-fade-in">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-4">
-          {/* Icon container */}
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-steel shadow-md">
             <User className="h-7 w-7 text-white" />
           </div>
           <div>
-            <CardTitle className="text-xl font-semibold">Tell us about yourself</CardTitle>
-            <CardDescription className="text-base">
-              This is what clients will see when they view your profile.
-            </CardDescription>
+            <CardTitle className="text-xl font-semibold">{t('basicInfo.title')}</CardTitle>
+            <CardDescription className="text-base">{t('basicInfo.description')}</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-7">
-          {/* Name - Required */}
           <div className="space-y-2 animate-fade-in">
             <Label htmlFor="display_name" className="text-base font-medium">
-              Your Name <span className="text-destructive">*</span>
+              {t('basicInfo.nameLabel')} <span className="text-destructive">{t('basicInfo.nameRequired')}</span>
             </Label>
             <Input
               id="display_name"
-              placeholder="e.g. Juan García"
+              placeholder={t('basicInfo.namePlaceholder')}
               value={formData.display_name}
               onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
               required
             />
           </div>
 
-          {/* Phone */}
           <div className="space-y-2 animate-fade-in">
             <Label htmlFor="phone" className="text-base font-medium flex items-center gap-2">
               <Phone className="h-5 w-5 text-muted-foreground" />
-              Phone Number
+              {t('basicInfo.phoneLabel')}
             </Label>
             <Input
               id="phone"
               type="tel"
-              placeholder="+34 600 000 000"
+              placeholder={t('basicInfo.phonePlaceholder')}
               value={formData.phone}
               onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
             />
-            <p className="text-sm text-muted-foreground">
-              We'll send you WhatsApp notifications about new jobs
-            </p>
+            <p className="text-sm text-muted-foreground">{t('basicInfo.phoneHint')}</p>
           </div>
 
-          {/* Business Name - Optional */}
           <div className="space-y-2 animate-fade-in">
             <Label htmlFor="business_name" className="text-base font-medium">
-              Business Name <span className="text-muted-foreground text-sm">(optional)</span>
+              {t('basicInfo.businessNameLabel')} <span className="text-muted-foreground text-sm">{t('basicInfo.businessNameOptional')}</span>
             </Label>
             <Input
               id="business_name"
-              placeholder="e.g. García Electricidad S.L."
+              placeholder={t('basicInfo.businessNamePlaceholder')}
               value={formData.business_name}
               onChange={(e) => setFormData(prev => ({ ...prev, business_name: e.target.value }))}
             />
           </div>
 
-          {/* Tagline */}
           <div className="space-y-2 animate-fade-in">
             <Label htmlFor="tagline" className="text-base font-medium flex items-center gap-2">
               <FileText className="h-5 w-5 text-muted-foreground" />
-              Tagline
+              {t('basicInfo.taglineLabel')}
             </Label>
             <Input
               id="tagline"
-              placeholder="e.g. Reliable electrician with 15+ years experience"
+              placeholder={t('basicInfo.taglinePlaceholder')}
               value={formData.tagline}
               onChange={(e) => setFormData(prev => ({ ...prev, tagline: e.target.value }))}
               maxLength={100}
             />
-            <p className={cn(
-              'text-sm transition-colors',
-              taglineNearLimit ? 'text-accent' : 'text-muted-foreground'
-            )}>
-              A short headline that appears with your name • {formData.tagline.length}/100
+            <p className={cn('text-sm transition-colors', taglineNearLimit ? 'text-accent' : 'text-muted-foreground')}>
+              {t('basicInfo.taglineHint')} • {t('basicInfo.taglineCount', { count: formData.tagline.length })}
             </p>
           </div>
 
-          {/* Bio */}
           <div className="space-y-2 animate-fade-in">
-            <Label htmlFor="bio" className="text-base font-medium">About You</Label>
+            <Label htmlFor="bio" className="text-base font-medium">{t('basicInfo.bioLabel')}</Label>
             <Textarea
               id="bio"
-              placeholder="Tell clients about your experience, qualifications, and what makes you great at what you do..."
+              placeholder={t('basicInfo.bioPlaceholder')}
               value={formData.bio}
               onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
               rows={4}
               maxLength={500}
               className="resize-none text-lg"
             />
-            <p className={cn(
-              'text-sm transition-colors',
-              bioNearLimit ? 'text-accent' : 'text-muted-foreground'
-            )}>
-              {formData.bio.length}/500 characters
+            <p className={cn('text-sm transition-colors', bioNearLimit ? 'text-accent' : 'text-muted-foreground')}>
+              {t('basicInfo.bioCount', { count: formData.bio.length })}
             </p>
           </div>
 
-          <Button 
-            type="submit" 
-            size="lg"
-            className="w-full animate-fade-in"
-            disabled={saveMutation.isPending}
-          >
+          <Button type="submit" size="lg" className="w-full animate-fade-in" disabled={saveMutation.isPending}>
             {saveMutation.isPending ? (
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
             ) : (
               <ArrowRight className="h-5 w-5 mr-2" />
             )}
-            Next Step
+            {t('basicInfo.nextStep')}
           </Button>
         </form>
       </CardContent>
