@@ -349,9 +349,9 @@ export default function ServiceListingEditor() {
         {/* Pricing Items */}
         <Card className="border-border/70">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Pricing Menu</CardTitle>
+            <CardTitle className="text-base">{t('listingEditor.pricingMenu')}</CardTitle>
             <Button variant="outline" size="sm" onClick={handleAddPricingItem} disabled={upsertPricing.isPending}>
-              <Plus className="h-4 w-4 mr-1.5" /> Add Item
+              <Plus className="h-4 w-4 mr-1.5" /> {t('listingEditor.addItem')}
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
