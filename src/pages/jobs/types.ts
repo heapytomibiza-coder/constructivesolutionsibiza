@@ -74,4 +74,5 @@ export type JobDetailsRow = JobsBoardRow & {
   description: string | null;
   answers: JobAnswers | null;
   is_owner: boolean | null;
+  description_i18n: Record<string, string> | null;
 };
