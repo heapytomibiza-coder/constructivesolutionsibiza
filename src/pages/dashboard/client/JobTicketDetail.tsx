@@ -214,7 +214,13 @@ export default function JobTicketDetail() {
                 <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
                   <span className="text-xs text-muted-foreground block">{t('jobTicket.when')}</span>
-                  <p className="text-sm font-medium capitalize">{job.start_timing || t('jobTicket.flexible')}</p>
+                  <p className="text-sm font-medium capitalize">
+                    {job.start_timing
+                      ? (t(`client.timing.${job.start_timing}`) !== `client.timing.${job.start_timing}`
+                          ? t(`client.timing.${job.start_timing}`)
+                          : job.start_timing.replace(/_/g, ' '))
+                      : t('jobTicket.flexible')}
+                  </p>
                 </div>
               </div>
               {(job.budget_min || job.budget_max) && (
