@@ -292,13 +292,13 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('client.cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleClose}
                     disabled={isClosing}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    {isClosing ? 'Closing...' : t('client.closeJob')}
+                    {isClosing ? t('client.closing') : t('client.closeJob')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
