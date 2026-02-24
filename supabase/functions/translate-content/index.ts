@@ -39,6 +39,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Mark as pending before starting (so "pending" only exists while actively processing)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    await supabase.from(entity).update({ translation_status: "pending" }).eq("id", id);
+
     // Combine all fields for language detection + translation
     const textsToTranslate = Object.entries(fields).filter(
       ([, v]) => v && v.trim().length > 0
