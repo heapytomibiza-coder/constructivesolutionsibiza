@@ -117,8 +117,8 @@ function checkAccess(access: AccessRule, ctx: {
       return isAuthenticated && roles.includes('professional');
     case 'proReady':
       return isAuthenticated && roles.includes('professional');
-    case 'admin2FA':
-      return isAuthenticated && roles.includes('admin') && isAdminEmail(userEmail);
+    case 'admin':
+      return isAuthenticated && roles.includes('admin');
     default:
       return false;
   }

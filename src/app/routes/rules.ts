@@ -19,7 +19,7 @@ export type AccessRule =
   | 'role:client'
   | 'role:professional'
   | 'proReady'
-  | 'admin2FA';
+  | 'admin';
 
 /**
  * Lane = "clear pathways" + "where they meet"

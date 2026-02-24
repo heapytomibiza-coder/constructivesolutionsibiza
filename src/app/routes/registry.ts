@@ -217,21 +217,21 @@ export const proDashboardRoutes: RouteConfig[] = [
 export const adminRoutes: RouteConfig[] = [
   {
     path: '/dashboard/admin',
-    access: 'admin2FA',
+    access: 'admin',
     redirectTo: '/auth',
     lane: 'admin',
     titleKey: 'nav.admin',
   },
-  { path: '/dashboard/admin/insights/:metricKey', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
-  { path: '/dashboard/admin/insights/market-gap', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
-  { path: '/dashboard/admin/insights/funnels', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
-  { path: '/dashboard/admin/insights/pro-performance', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
-  { path: '/dashboard/admin/insights/pricing', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
-  { path: '/dashboard/admin/insights/trends', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
-  { path: '/dashboard/admin/insights/unanswered-jobs', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
-  { path: '/dashboard/admin/insights/repeat-work', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
-  { path: '/dashboard/admin/insights/onboarding-funnel', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
-  { path: '/dashboard/admin/insights/top-sources', access: 'admin2FA', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/:metricKey', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/market-gap', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/funnels', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/pro-performance', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/pricing', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/trends', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/unanswered-jobs', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/repeat-work', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/onboarding-funnel', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/insights/top-sources', access: 'admin', redirectTo: '/auth', lane: 'admin' },
 ];
 
 // ============================================
