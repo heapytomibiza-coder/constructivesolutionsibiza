@@ -176,8 +176,8 @@
     "inviteSpecific": "Invite Specific Professionals",
     "inviteSpecificDesc": "Browse matching professionals, view profiles, and send this job directly",
     "invitesSent": "Invites Sent ({{count}})",
-    "budgetUpTo": "Up to €{{max}}",
-    "budgetFrom": "From €{{min}}",
+    "budgetUpTo": "Up to {{amount}}",
+    "budgetFrom": "From {{amount}}",
     "inviteStatus": {
       "sent": "Sent",
       "viewed": "Viewed",
