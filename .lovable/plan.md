@@ -1,141 +1,63 @@
 
 
-## Plan: "Can't Find What You Need?" Custom Request Fallback
+## Plan: Custom Request Hardening — 7 Concrete Fixes
 
-### Problem
-When a user can't find their service in the structured taxonomy (Steps 1-3), they have no escape route. They leave, post in the wrong category, or think the platform is limited. This is especially important for Ibiza where hybrid/unusual services are common.
+After reviewing the current implementation, here are the specific issues and fixes needed to make the custom request flow production-ready.
 
-### Architecture Decision: Wizard Mode, Not a New Step
+### Issues Found
 
-Rather than adding a new step to `STEP_ORDER` (which would break URL sync, progress bars, step indices, and validation), we add a **wizard mode** (`structured` | `custom`) that:
-- Activates from a CTA at the bottom of Category, Subcategory, and Micro steps
-- Opens a **CustomRequestForm** component rendered _inside_ the existing Card area (replaces the current step content)
-- On submit, populates `wizardState` with synthetic values and jumps to **Logistics** (Step 5) — not directly to Review, because location/budget/timing are still needed for the job card to be useful
-- Questions step is skipped (no pack exists for custom requests)
-- Review step renders custom title/description instead of micro names
+1. **`validateWizardState` is weaker than `validateWizardForSubmission`** — it doesn't check timing/budget/consultation, so jobs can submit with missing logistics fields
+2. **`canAdvance()` for Logistics only checks location** — doesn't match Step 5 required fields (budget, timing, consultation), so users reach Review then fail on submit
+3. **`canLeaveStep()` blocks custom mode** at subcategory/micro steps (edge case in jump/edit flows)
+4. **Date crash after draft resume** — `logistics.startDate.toLocaleDateString()` and `.toISOString()` in `buildJobPayload.ts` will throw when dates are strings after JSON parse from sessionStorage
+5. **English "Specific specs:" hardcoded into stored description** — bakes English label into DB content
+6. **`handleCategorySelect`/`handleSubcategorySelect` don't reset `wizardMode`** — if user goes custom then backs out and picks structured, mode stays `custom`
+7. **Missing `specsSectionLabel` i18n key** — ReviewStep uses `specsLabel` (the form label) for the review card display
+8. **`hydrateFromJob` doesn't restore custom request data** — editing a custom job opens in structured mode with empty fields
+9. **Category names in CustomRequestForm dropdown show English DB names** — not translated
+10. **Budget min/max always null** — `parseBudgetRange` can't parse preset keys like `under_500`
 
-### Database Changes
+### Changes
 
-**Migration: Add `is_custom_request` column to `jobs` table**
+**`src/features/wizard/canonical/lib/buildJobPayload.ts`**
+- Make `formatDate` tolerate string inputs (draft resume safety)
+- Make `startDate` extraction tolerate strings
+- Make `buildHighlights` date line tolerate strings
+- Add `BUDGET_PRESETS` map and use it in budget parsing so `budget_min`/`budget_max` are populated
+- Update `determineBudgetType` to check presets first
+- Remove hardcoded "Specific specs:" from description — store raw description only, keep specs in `answers.custom`
+- Align `validateWizardState` with `isStep5Complete` (require timing/budget/consultation)
 
-```sql
-ALTER TABLE public.jobs
-  ADD COLUMN is_custom_request boolean NOT NULL DEFAULT false;
-```
+**`src/features/wizard/canonical/lib/stepValidation.ts`**
+- Update `canLeaveStep` to skip subcategory/micro checks when `wizardMode === 'custom'`
 
-No new tables needed. Custom requests store into the same `jobs` table with:
-- `is_custom_request = true`
-- `category` = selected parent category  
-- `micro_slug = NULL`
-- `title` = user-provided job title
-- `description` = user-provided description + specs merged
-- `answers` = `{ selected: {...}, microAnswers: {}, custom: { title, description, specs } }` — keeps the custom data in the canonical answers container for traceability
+**`src/features/wizard/canonical/CanonicalJobWizard.tsx`**
+- Update `canAdvance()` Logistics case to use `isStep5Complete`
+- Reset `wizardMode: 'structured'` and `customRequest: undefined` in `handleCategorySelect` and `handleSubcategorySelect`
+- Normalize draft dates in `handleResumeDraft` using a safe date parser
 
-### Type Changes (`types.ts`)
+**`src/features/wizard/canonical/lib/hydrateFromJob.ts`**
+- Add `is_custom_request` to select query and `JobRow` interface
+- Detect custom mode from `is_custom_request` column or `answers.custom` presence
+- Set `wizardMode` and `customRequest` in hydrated state
+- Clear structured fields when custom
 
-Add to `WizardState`:
+**`src/features/wizard/canonical/steps/CustomRequestForm.tsx`**
+- Translate category names in dropdown using `txCategory`
 
-```ts
-// Wizard mode: structured (normal) or custom (fallback)
-wizardMode: 'structured' | 'custom';
+**`src/features/wizard/canonical/steps/ReviewStep.tsx`**
+- Use `specsSectionLabel` key for specs display in review card
 
-// Custom request fields (only used when wizardMode === 'custom')
-customRequest?: {
-  jobTitle: string;
-  description: string;
-  specs?: string;
-};
-```
+**`public/locales/en/wizard.json`** and **`public/locales/es/wizard.json`**
+- Add `specsSectionLabel` key to `custom` block
 
-Update `EMPTY_WIZARD_STATE` with `wizardMode: 'structured'`.
-
-### New Component: `CustomRequestForm.tsx`
-
-Location: `src/features/wizard/canonical/steps/CustomRequestForm.tsx`
-
-Fields (all i18n-ready with `wizard` namespace keys):
-1. **Category** — dropdown of 9 parent categories (re-uses existing category data, pre-filled if already selected)
-2. **Job Title** — required, min 4 chars
-3. **Job Description** — required, min 20 chars, textarea
-4. **Specific Specs** — optional textarea
-
-On submit → sets `wizardMode: 'custom'`, populates `customRequest`, sets `mainCategory`/`mainCategoryId` from dropdown, then jumps to **Logistics** step (skipping Subcategory, Micro, and Questions).
-
-### Wizard Routing Changes (`CanonicalJobWizard.tsx`)
-
-1. **New state**: `wizardMode` tracked in `wizardState` (persisted in draft)
-2. **New state**: `showCustomForm` boolean to toggle the form overlay
-3. **CTA**: "Can't find what you need?" link at bottom of Category, Subcategory, and Micro step renders
-4. **Custom form submit handler**: Sets mode + state, jumps to `WizardStep.Logistics`
-5. **`handleNext`**: When `wizardMode === 'custom'`, skip from wherever we are straight to Logistics (bypasses Subcategory → Micro → Questions chain)
-6. **Progress bar**: When in custom mode, show simplified progress (e.g., "Custom Request → Details → Review")
-
-### Validation Changes (`stepValidation.ts`)
-
-- `validateWizardState` and `validateWizardForSubmission`: When `wizardMode === 'custom'`, skip subcategory/micro checks, require `customRequest.jobTitle` and `customRequest.description` instead
-
-### Payload Changes (`buildJobPayload.ts`)
-
-When `wizardMode === 'custom'`:
-- `title` = `customRequest.jobTitle`
-- `description` = merged description + specs
-- `teaser` = first 200 chars of description
-- `micro_slug` = `null`
-- `subcategory` = `null` (or "custom-request")
-- `is_custom_request` = `true`
-- `answers.custom` = `{ jobTitle, description, specs }` for traceability
-
-### Review Step Changes (`ReviewStep.tsx`)
-
-When `wizardState.wizardMode === 'custom'`:
-- Header shows category badge + "Custom Request" label
-- "What you need" section shows the custom title + description instead of micro names
-- Specs shown if provided
-- Everything else (location, budget, photos) renders normally
-
-### i18n Keys (both `en/wizard.json` and `es/wizard.json`)
-
-```json
-"custom": {
-  "cta": "Can't find what you need?",
-  "ctaDescription": "Post a custom request — we'll format it into a proper job card.",
-  "ctaButton": "Post Custom Request",
-  "headline": "Describe what you need",
-  "subtitle": "Tell us what you need. We'll turn it into a clear job card for professionals.",
-  "categoryLabel": "Main category",
-  "categoryPlaceholder": "Select a category",
-  "titleLabel": "Job title",
-  "titlePlaceholder": "e.g. Build a pergola with integrated LED strips",
-  "titleHelp": "Be specific — this becomes the headline.",
-  "descriptionLabel": "Job description",
-  "descriptionPlaceholder": "What needs doing? Where? Any constraints?",
-  "descriptionHelp": "Include location context, scale, and what \"done\" looks like.",
-  "specsLabel": "Specific specs (optional)",
-  "specsPlaceholder": "Measurements, materials, brand preferences, deadlines...",
-  "badge": "Custom Request"
-}
-```
-
-### Files to Create
-1. `src/features/wizard/canonical/steps/CustomRequestForm.tsx`
-
-### Files to Modify
-1. `src/features/wizard/canonical/types.ts` — add `wizardMode`, `customRequest` to state + empty defaults
-2. `src/features/wizard/canonical/CanonicalJobWizard.tsx` — add custom form toggle, CTA in steps 1-3, routing logic
-3. `src/features/wizard/canonical/lib/buildJobPayload.ts` — handle custom mode in `buildJobInsert` and `validateWizardState`
-4. `src/features/wizard/canonical/lib/stepValidation.ts` — relax subcategory/micro checks when custom
-5. `src/features/wizard/canonical/steps/ReviewStep.tsx` — render custom request data
-6. `public/locales/en/wizard.json` — add `custom.*` keys
-7. `public/locales/es/wizard.json` — add `custom.*` keys (Spanish)
-8. DB migration — add `is_custom_request` column
-
-### Flow Summary
-
-```text
-Normal:     Category → Subcategory → Micro → Questions → Logistics → Extras → Review
-Custom:     Category (CTA click) → CustomRequestForm → Logistics → Extras → Review
-```
-
-### Strategic Benefit
-Every custom request becomes a data signal. You can later query `SELECT category, title, description FROM jobs WHERE is_custom_request = true` to identify patterns and convert them into new structured microservices — evolving taxonomy from real demand.
+### Files to modify
+1. `src/features/wizard/canonical/lib/buildJobPayload.ts`
+2. `src/features/wizard/canonical/lib/stepValidation.ts`
+3. `src/features/wizard/canonical/CanonicalJobWizard.tsx`
+4. `src/features/wizard/canonical/lib/hydrateFromJob.ts`
+5. `src/features/wizard/canonical/steps/CustomRequestForm.tsx`
+6. `src/features/wizard/canonical/steps/ReviewStep.tsx`
+7. `public/locales/en/wizard.json`
+8. `public/locales/es/wizard.json`
 
