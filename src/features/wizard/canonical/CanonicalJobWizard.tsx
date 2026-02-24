@@ -603,8 +603,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   }, [currentStep, wizardState]);
 
   const handleNext = useCallback(() => {
-    // Questions step validation
-    if (currentStep === WizardStep.Questions && questionPacks.length > 0) {
+    // Questions step validation (only in structured mode)
+    if (currentStep === WizardStep.Questions && wizardState.wizardMode !== 'custom' && questionPacks.length > 0) {
       const microAnswers = (wizardState.answers.microAnswers as Record<string, Record<string, unknown>>) || {};
       const validation = validateAllPacks(questionPacks as { micro_slug: string; questions: { id: string; type: string; required?: boolean; min?: number; max?: number; show_if?: { questionId: string; value: string | string[] }; dependsOn?: { questionId: string; value: string | string[] } }[] }[], microAnswers);
       
@@ -624,19 +624,36 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         stepIndex: getStepIndex(currentStep),
         category: wizardState.mainCategory,
       });
-      const nextStep = getNextStep(currentStep);
+
+      let nextStep = getNextStep(currentStep);
+
+      // Custom mode: skip Subcategory, Micro, and Questions steps
+      if (wizardState.wizardMode === 'custom') {
+        while (nextStep && [WizardStep.Subcategory, WizardStep.Micro, WizardStep.Questions].includes(nextStep)) {
+          nextStep = getNextStep(nextStep);
+        }
+      }
+
       if (nextStep) {
         setCurrentStep(nextStep);
       }
     }
-  }, [currentStep, canAdvance, questionPacks, wizardState.answers]);
+  }, [currentStep, canAdvance, questionPacks, wizardState.answers, wizardState.wizardMode, wizardState.mainCategory]);
 
   const handleBack = useCallback(() => {
-    const prevStep = getPrevStep(currentStep);
+    let prevStep = getPrevStep(currentStep);
+
+    // Custom mode: skip Subcategory, Micro, and Questions steps when going back
+    if (wizardState.wizardMode === 'custom') {
+      while (prevStep && [WizardStep.Subcategory, WizardStep.Micro, WizardStep.Questions].includes(prevStep)) {
+        prevStep = getPrevStep(prevStep);
+      }
+    }
+
     if (prevStep) {
       setCurrentStep(prevStep);
     }
-  }, [currentStep]);
+  }, [currentStep, wizardState.wizardMode]);
 
   const handleJumpToStep = useCallback((step: WizardStep) => {
     // Only allow jumping to completed steps or current
