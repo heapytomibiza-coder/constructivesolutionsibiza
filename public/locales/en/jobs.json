@@ -1,4 +1,12 @@
 {
+  "status": {
+    "open": "Open",
+    "draft": "Draft",
+    "ready": "Saved",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
   "board": {
     "title": "Job Board",
     "subtitle": "Browse open jobs with full specs from the guided process",
@@ -97,12 +105,15 @@
     "completeSetup": "Complete setup to message",
     "loadingDetails": "Loading details…",
     "loadError": "Failed to load details: {{error}}",
+    "unknownError": "Unknown error",
+    "customLocation": "Custom location",
     "retry": "Retry",
     "startConversationFailed": "Failed to start conversation",
     "lightbox": {
       "close": "Close",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "photo": "Photo {{current}} of {{total}}"
     }
   },
   "flags": {

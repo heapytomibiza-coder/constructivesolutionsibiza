@@ -349,7 +349,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
                 <div className="grid grid-cols-3 gap-2">
                   {jobPack.photos.slice(0, 6).map((url, idx) => (
                     <button key={url} type="button" className="aspect-square overflow-hidden rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" onClick={() => setLightboxIndex(idx)}>
-                      <img src={url} alt={`Job photo ${idx + 1}`} className="h-full w-full object-cover transition-transform hover:scale-105" loading="lazy" />
+                      <img src={url} alt={t('detail.lightbox.photo', { current: idx + 1, total: jobPack.photos.length })} className="h-full w-full object-cover transition-transform hover:scale-105" loading="lazy" />
                     </button>
                   ))}
                 </div>

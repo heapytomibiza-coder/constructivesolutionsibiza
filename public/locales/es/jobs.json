@@ -1,4 +1,12 @@
 {
+  "status": {
+    "open": "Abierto",
+    "draft": "Borrador",
+    "ready": "Guardado",
+    "inProgress": "En Progreso",
+    "completed": "Completado",
+    "cancelled": "Cancelado"
+  },
   "board": {
     "title": "Bolsa de Trabajo",
     "subtitle": "Explora trabajos abiertos con especificaciones completas",
@@ -97,12 +105,15 @@
     "completeSetup": "Completa la configuración para enviar mensajes",
     "loadingDetails": "Cargando detalles…",
     "loadError": "Error al cargar detalles: {{error}}",
+    "unknownError": "Error desconocido",
+    "customLocation": "Ubicación personalizada",
     "retry": "Reintentar",
     "startConversationFailed": "No se pudo iniciar la conversación",
     "lightbox": {
       "close": "Cerrar",
       "previous": "Anterior",
-      "next": "Siguiente"
+      "next": "Siguiente",
+      "photo": "Foto {{current}} de {{total}}"
     }
   },
   "flags": {

@@ -168,7 +168,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
               <div className="flex flex-wrap items-center gap-2">
                 {job.category && <Badge variant="secondary">{job.category}</Badge>}
                 {job.subcategory && <Badge variant="outline">{job.subcategory}</Badge>}
-                {job.status && <Badge variant={statusVariant(job.status)}>{prettyStatus(job.status)}</Badge>}
+                {job.status && <Badge variant={statusVariant(job.status)}>{translateStatus(job.status, t)}</Badge>}
                 {isMatched && <Badge variant="accent">{t('card.matched')}</Badge>}
                 {job.start_timing === "asap" && <Badge variant="accent">{t('board.asap')}</Badge>}
                 <Badge variant={specBadge.variant}>{specBadge.label}</Badge>
