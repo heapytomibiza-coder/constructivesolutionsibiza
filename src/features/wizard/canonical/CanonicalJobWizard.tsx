@@ -592,13 +592,16 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         return wizardState.microIds.length > 0;
       case WizardStep.Questions:
         return true; // Questions are optional - can always continue
-      case WizardStep.Logistics:
-        // Location required, and if "other" then customLocation must be filled
-        if (!wizardState.logistics.location) return false;
+      case WizardStep.Logistics: {
+        // Use isStep5Complete as single source of truth
+        const { isStep5Complete } = require('./lib/stepValidation');
+        const step5 = isStep5Complete(wizardState.logistics);
+        if (!step5.ok) return false;
         if (wizardState.logistics.location === 'other' && !wizardState.logistics.customLocation?.trim()) {
           return false;
         }
         return true;
+      }
       case WizardStep.Extras:
         return true; // Extras are optional
       case WizardStep.Review:
