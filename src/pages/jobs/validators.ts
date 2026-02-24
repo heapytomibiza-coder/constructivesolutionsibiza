@@ -78,11 +78,17 @@ export const JobsBoardRowSchema = z.object({
   updated_at: z.string().nullable().optional(),
   status: z.string().nullable().optional(),
   is_publicly_listed: z.boolean().nullable().optional(),
+  // i18n fields
+  source_lang: z.string().nullable().optional(),
+  translation_status: z.string().nullable().optional(),
+  title_i18n: z.record(z.string()).nullable().optional(),
+  teaser_i18n: z.record(z.string()).nullable().optional(),
 }).passthrough();
 
 // Job details row (full view - includes answers)
 export const JobDetailsRowSchema = JobsBoardRowSchema.extend({
   description: z.string().nullable().optional(),
+  description_i18n: z.record(z.string()).nullable().optional(),
   answers: JobAnswersSchema.nullable().optional(),
   is_owner: z.boolean().nullable().optional(),
 }).passthrough();

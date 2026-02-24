@@ -86,7 +86,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
 
   const formatHighlight = (highlight: string): string => {
     // Strip leading emoji for matching
-    const stripped = highlight.replace(/^[\p{Emoji_Presentation}\p{Emoji}\uFE0F]+\s*/u, '').trim();
+    const stripped = highlight.replace(/^[^\p{L}\p{N}]+/u, '').trim();
 
     // Budget highlights
     const HIGHLIGHT_BUDGET: Record<string, string> = {
