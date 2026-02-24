@@ -310,10 +310,11 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
 
   // Start timing — tolerate string dates (draft resume)
   const startTiming = mapStartTiming(logistics.startDatePreset);
-  const startDate = typeof logistics.startDate === 'string'
-    ? logistics.startDate.split('T')[0]
-    : logistics.startDate
-      ? logistics.startDate.toISOString().split('T')[0]
+  const rawDate = logistics.startDate as Date | string | undefined;
+  const startDate = typeof rawDate === 'string'
+    ? rawDate.split('T')[0]
+    : rawDate
+      ? rawDate.toISOString().split('T')[0]
       : null;
 
   // Photos check

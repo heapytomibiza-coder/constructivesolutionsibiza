@@ -162,7 +162,8 @@
     "descriptionHelp": "Incluye contexto de ubicación, escala y cómo debería quedar.",
     "specsLabel": "Especificaciones concretas (opcional)",
     "specsPlaceholder": "Medidas, materiales, preferencias de marca, plazos...",
-    "badge": "Solicitud Personalizada"
+    "badge": "Solicitud personalizada",
+    "specsSectionLabel": "Especificaciones"
   },
   "review": {
     "edit": "Editar",
