@@ -14,7 +14,7 @@ export async function fetchJobDetails(jobId: string): Promise<JobDetailsRow> {
     .single();
 
   if (error) throw error;
-  return data as JobDetailsRow;
+  return data as unknown as JobDetailsRow;
 }
 
 /**

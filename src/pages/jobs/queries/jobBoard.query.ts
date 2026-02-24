@@ -14,7 +14,7 @@ export async function fetchJobsBoard(): Promise<JobsBoardRow[]> {
     .limit(200);
 
   if (error) throw error;
-  return (data ?? []) as JobsBoardRow[];
+  return (data ?? []) as unknown as JobsBoardRow[];
 }
 
 /**

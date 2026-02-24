@@ -86,6 +86,12 @@ export interface JobPack {
   flags: string[];
   inspectionBias: string | null;
   safety: string | null;
+  
+  // i18n translations
+  sourceLang: string | null;
+  titleI18n: Record<string, string> | null;
+  teaserI18n: Record<string, string> | null;
+  descriptionI18n: Record<string, string> | null;
 }
 
 /** Optional translation function passed from React callers */
@@ -353,5 +359,11 @@ export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = [], t?:
     flags: row.flags ?? [],
     inspectionBias: row.computed_inspection_bias ?? null,
     safety: row.computed_safety ?? null,
+    
+    // i18n translations
+    sourceLang: (row as any).source_lang ?? null,
+    titleI18n: (row as any).title_i18n ?? null,
+    teaserI18n: (row as any).teaser_i18n ?? null,
+    descriptionI18n: (row as any).description_i18n ?? null,
   };
 }

@@ -77,7 +77,18 @@
     "1000_2500": "1,000–2,500 €",
     "2500_5000": "2,500–5,000 €",
     "over5000": "Over 5,000 €",
-    "quoteNeeded": "Quote needed"
+    "quoteNeeded": "Quote needed",
+    "siteVisitNeeded": "Site visit needed",
+    "videoCallAvailable": "Video call available",
+    "parkingAvailable": "Parking available",
+    "stairsOnly": "Stairs only",
+    "elevatorAccess": "Elevator access",
+    "gatedProperty": "Gated property",
+    "keyPickupRequired": "Key pickup required",
+    "permitsMayBeNeeded": "Permits may be needed",
+    "photosCount": "{{count}} photo",
+    "photosCount_other": "{{count}} photos",
+    "quantity": "Qty: {{count}}"
   },
   "detail": {
     "title": "Job Details",

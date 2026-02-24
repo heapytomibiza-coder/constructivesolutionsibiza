@@ -19,6 +19,7 @@ import { useJobDetails, useQuestionPacks } from "./queries";
 import { startConversation } from "./actions";
 import { buildJobPack, type JobPack } from "./lib/buildJobPack";
 import { extractMicroAnswers } from "./lib/answerResolver";
+import { getI18nField, getContentLang } from "@/lib/i18nContent";
 import { FormattedAnswers } from "./components/FormattedAnswers";
 import { isUserError } from "@/shared/lib/userError";
 import { useListingsForJob } from "./hooks/useListingsForJob";
@@ -219,6 +220,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
   const { t, i18n } = useTranslation("jobs");
   const isEs = i18n.language?.startsWith("es");
   const dateLocale = isEs ? { locale: es } : undefined;
+  const contentLang = getContentLang(i18n.language);
 
   const getSpecBadge = (jp: JobPack): { label: string; variant: "success" | "secondary" | "outline" } => {
     const score = (jp.services?.length ?? 0) + (jp.hasPhotos ? 2 : 0) + (jp.budget?.display && jp.budget?.type !== 'tbd' ? 1 : 0);
@@ -249,8 +251,8 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
           )}
         </div>
         <div className="space-y-1">
-          <div className="text-xl font-semibold leading-snug">{jobPack.title}</div>
-          {jobPack.teaser && <p className="text-sm text-muted-foreground">{jobPack.teaser}</p>}
+          <div className="text-xl font-semibold leading-snug">{getI18nField(jobPack.title, jobPack.titleI18n, contentLang)}</div>
+          {jobPack.teaser && <p className="text-sm text-muted-foreground">{getI18nField(jobPack.teaser, jobPack.teaserI18n, contentLang)}</p>}
           <div className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(jobPack.createdAt), { addSuffix: true, ...dateLocale })}
           </div>

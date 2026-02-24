@@ -77,7 +77,18 @@
     "1000_2500": "1.000–2.500 €",
     "2500_5000": "2.500–5.000 €",
     "over5000": "Más de 5.000 €",
-    "quoteNeeded": "Presupuesto necesario"
+    "quoteNeeded": "Presupuesto necesario",
+    "siteVisitNeeded": "Se necesita visita al sitio",
+    "videoCallAvailable": "Videollamada disponible",
+    "parkingAvailable": "Aparcamiento disponible",
+    "stairsOnly": "Solo escaleras",
+    "elevatorAccess": "Acceso con ascensor",
+    "gatedProperty": "Propiedad con portón",
+    "keyPickupRequired": "Recogida de llaves necesaria",
+    "permitsMayBeNeeded": "Puede que se necesiten permisos",
+    "photosCount": "{{count}} foto",
+    "photosCount_other": "{{count}} fotos",
+    "quantity": "Cant: {{count}}"
   },
   "detail": {
     "title": "Detalles del trabajo",

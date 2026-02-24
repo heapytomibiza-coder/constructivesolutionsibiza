@@ -67,6 +67,21 @@ export default function ServiceListingEditor() {
         location_base: locationBase || null,
         pricing_summary: pricingSummary || null,
       });
+
+      // Fire-and-forget: translate user-generated content
+      if (title.trim() || description.trim()) {
+        supabase.functions.invoke('translate-content', {
+          body: {
+            entity: 'service_listings',
+            id: listingId,
+            fields: {
+              display_title: title,
+              short_description: description,
+            },
+          },
+        }).catch(() => { /* translation is best-effort */ });
+      }
+
       toast.success(t('listingEditor.listingSaved'));
     } catch (err) {
       toast.error(t('listingEditor.saveFailed'));
