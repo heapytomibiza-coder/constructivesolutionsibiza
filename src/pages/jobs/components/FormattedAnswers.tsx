@@ -73,7 +73,7 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
                 <span className="mt-0.5 text-primary/60">•</span>
                 <div className="flex-1">
                   <span className="text-muted-foreground">{translateLabel(answer.questionLabel)}:</span>{" "}
-                  <span className="font-medium">{translateValue(answer.displayValue)}</span>
+                  <span className="font-medium">{translateValue(answer.rawValue, answer.displayValue)}</span>
                 </div>
               </li>
             ))}
