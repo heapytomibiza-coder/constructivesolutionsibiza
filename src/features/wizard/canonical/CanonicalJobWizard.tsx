@@ -20,7 +20,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Loader2, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, FileText, HelpCircle } from 'lucide-react';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { txCategory } from '@/i18n/taxonomyTranslations';
