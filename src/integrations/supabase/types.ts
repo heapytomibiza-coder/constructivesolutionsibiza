@@ -2244,6 +2244,7 @@ export type Database = {
         Returns: undefined
       }
       is_admin_email: { Args: never; Returns: boolean }
+      switch_active_role: { Args: { p_new_role: string }; Returns: undefined }
       track_event: {
         Args: { p_event_name: string; p_metadata?: Json; p_role?: string }
         Returns: undefined
