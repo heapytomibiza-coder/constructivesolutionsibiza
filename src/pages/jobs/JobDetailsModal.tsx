@@ -211,7 +211,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
   const dateLocale = isEs ? { locale: es } : undefined;
 
   const getSpecBadge = (jp: JobPack): { label: string; variant: "success" | "secondary" | "outline" } => {
-    const score = (jp.services?.length ?? 0) + (jp.hasPhotos ? 2 : 0) + (jp.budget?.display && jp.budget.display !== "To be discussed" ? 1 : 0);
+    const score = (jp.services?.length ?? 0) + (jp.hasPhotos ? 2 : 0) + (jp.budget?.display && jp.budget?.type !== 'tbd' ? 1 : 0);
     if (score >= 4) return { label: t('card.goodSpec'), variant: "success" };
     if (score >= 2) return { label: t('card.basicSpec'), variant: "secondary" };
     return { label: t('card.needsDetail'), variant: "outline" };
