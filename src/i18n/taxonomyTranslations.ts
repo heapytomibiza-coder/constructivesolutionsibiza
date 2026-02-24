@@ -106,11 +106,17 @@ export const SUBCATEGORY_KEYS: Record<string, string> = {
   "3D Visualization": "3d-visualization",
   // Kitchen & Bathroom
   "Kitchen Fitting": "kitchen-fitting",
+  "Kitchen Installation": "kitchen-installation",
   "Bathroom Installation": "bathroom-installation",
   "Worktops & Surfaces": "worktops-surfaces",
+  "Worktops & Counters": "worktops-counters",
+  "Fixtures & Fittings": "fixtures-fittings",
   "Refurbishment": "refurbishment",
   // Floors, Doors & Windows
   "Flooring": "flooring",
+  "Flooring Installation": "flooring-installation",
+  "Door Installation": "door-installation",
+  "Window Installation": "window-installation",
   "Windows": "windows",
   "Doors": "doors",
   "Glazing": "glazing",
