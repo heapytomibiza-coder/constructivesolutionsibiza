@@ -23,6 +23,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, Loader2, FileText } from 'lucide-react';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
+import { txCategory } from '@/i18n/taxonomyTranslations';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
 
