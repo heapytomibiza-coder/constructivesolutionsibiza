@@ -12,6 +12,7 @@ export const NS = {
   lexicon: "lexicon",
   micros: "micros",
   questions: "questions",
+  legal: "legal",
 } as const;
 
 export type Namespace = (typeof NS)[keyof typeof NS];

@@ -13,7 +13,7 @@ i18n
     nonExplicitSupportedLngs: true,
     load: "languageOnly",
     cleanCode: true,
-    ns: ["common", "auth", "jobs", "forum", "dashboard", "wizard", "onboarding", "micros", "questions"],
+    ns: ["common", "auth", "jobs", "forum", "dashboard", "wizard", "onboarding", "micros", "questions", "legal"],
     defaultNS: "common",
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.json",
