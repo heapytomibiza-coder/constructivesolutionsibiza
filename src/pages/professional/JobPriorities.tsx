@@ -210,6 +210,7 @@ export default function JobPriorities() {
                           name={micro.name}
                           currentPref={currentPref}
                           onChange={(pref) => handlePriorityChange(micro.id, pref)}
+                          options={PRIORITY_OPTIONS}
                         />
                       );
                     })}

@@ -468,7 +468,7 @@ function PricingItemRow({
       </div>
 
       <Input
-        placeholder="Info / description (optional)"
+        placeholder={t('listingEditor.infoPlaceholder')}
         value={info}
         onChange={e => { setInfo(e.target.value); markDirty(); }}
         onBlur={handleBlur}
