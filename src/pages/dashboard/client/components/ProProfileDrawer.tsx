@@ -178,14 +178,14 @@ export default function ProProfileDrawer({
             {/* Service Area */}
             {(profile.service_zones?.length || profile.service_area_type) && (
               <section>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">Areas Covered</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">{t('proProfile.areasCovered')}</h4>
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <p className="text-sm">
                     {profile.service_zones?.length
                       ? profile.service_zones.join(', ')
                       : profile.service_area_type === 'island_wide'
-                        ? 'Island-wide'
+                        ? t('proProfile.islandWide')
                         : 'Ibiza'}
                   </p>
                 </div>
