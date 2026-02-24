@@ -141,7 +141,7 @@ Rules:
       }
     }
 
-    const remaining = (listings.length === 20) ? "more remaining — call again" : "batch complete";
+    const remaining = (listings.length === 5) ? "more remaining — call again" : "batch complete";
 
     return new Response(
       JSON.stringify({ status: "ok", processed: results.length, remaining, results }),
