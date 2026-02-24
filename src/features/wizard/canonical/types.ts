@@ -50,6 +50,16 @@ export const STEP_TITLES: Record<WizardStep, string> = {
 // === DISPATCH MODE (determines submission outcome) ===
 export type DispatchMode = 'broadcast' | 'direct';
 
+// === WIZARD MODE (structured vs custom fallback) ===
+export type WizardMode = 'structured' | 'custom';
+
+// === CUSTOM REQUEST (used when wizardMode === 'custom') ===
+export interface CustomRequest {
+  jobTitle: string;
+  description: string;
+  specs?: string;
+}
+
 // === WIZARD STATE (single source of truth) ===
 export interface WizardState {
   // === CATEGORY SELECTION ===
@@ -95,6 +105,10 @@ export interface WizardState {
   dispatchMode: DispatchMode;
   targetProfessionalId?: string;
   targetProfessionalName?: string; // For display in Review
+
+  // === WIZARD MODE (structured or custom fallback) ===
+  wizardMode: WizardMode;
+  customRequest?: CustomRequest;
 }
 
 // === EMPTY STATE (canonical default) ===
