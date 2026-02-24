@@ -273,7 +273,7 @@ export default function ServiceListingEditor() {
                     className="absolute bottom-2 right-2"
                     onClick={() => setHeroUrl(null)}
                   >
-                    Change
+                    {t('listingEditor.change')}
                   </Button>
                 </div>
               ) : (
