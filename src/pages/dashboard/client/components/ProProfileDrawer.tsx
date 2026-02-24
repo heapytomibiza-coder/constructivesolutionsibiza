@@ -231,12 +231,12 @@ export default function ProProfileDrawer({
               {isInvited ? (
                 <Button className="w-full gap-2" variant="secondary" disabled>
                   <UserCheck className="h-4 w-4" />
-                  Already Invited
+                  {t('proProfile.alreadyInvited')}
                 </Button>
               ) : onInvite ? (
                 <Button className="w-full gap-2" onClick={onInvite}>
                   <Send className="h-4 w-4" />
-                  Invite with this job
+                  {t('proProfile.inviteWithJob')}
                 </Button>
               ) : null}
             </div>
