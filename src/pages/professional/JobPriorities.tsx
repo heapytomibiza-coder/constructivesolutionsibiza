@@ -6,6 +6,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,40 +20,36 @@ import { useMicroPreferences } from '@/pages/onboarding/hooks/useMicroPreference
 import { PLATFORM } from '@/domain/scope';
 import type { Preference } from '@/pages/onboarding/types/preferences';
 
-/* ── Priority option config (no emojis — icons only) ── */
-const PRIORITY_OPTIONS: {
-  value: Preference;
-  label: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  activeClass: string;
-  inactiveClass: string;
-}[] = [
-  {
-    value: 'love',
-    label: 'Priority',
-    description: 'Send these first',
-    icon: Star,
-    activeClass: 'bg-primary text-primary-foreground border-primary shadow-sm',
-    inactiveClass: 'border-border text-muted-foreground hover:border-primary/40 hover:text-primary',
-  },
-  {
-    value: 'like',
-    label: 'Standard',
-    description: 'Happy to receive',
-    icon: ThumbsUp,
-    activeClass: 'bg-secondary text-foreground border-border shadow-sm',
-    inactiveClass: 'border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground',
-  },
-  {
-    value: 'neutral',
-    label: 'Low priority',
-    description: 'Only if nothing else',
-    icon: Minus,
-    activeClass: 'bg-muted text-muted-foreground border-border',
-    inactiveClass: 'border-border text-muted-foreground/60 hover:border-muted-foreground/40',
-  },
-];
+/* ── Priority option config ── */
+function usePriorityOptions() {
+  const { t } = useTranslation('professional');
+  return useMemo(() => [
+    {
+      value: 'love' as Preference,
+      label: t('priorities.priority'),
+      description: t('priorities.priorityDesc'),
+      icon: Star,
+      activeClass: 'bg-primary text-primary-foreground border-primary shadow-sm',
+      inactiveClass: 'border-border text-muted-foreground hover:border-primary/40 hover:text-primary',
+    },
+    {
+      value: 'like' as Preference,
+      label: t('priorities.standard'),
+      description: t('priorities.standardDesc'),
+      icon: ThumbsUp,
+      activeClass: 'bg-secondary text-foreground border-border shadow-sm',
+      inactiveClass: 'border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground',
+    },
+    {
+      value: 'neutral' as Preference,
+      label: t('priorities.lowPriority'),
+      description: t('priorities.lowPriorityDesc'),
+      icon: Minus,
+      activeClass: 'bg-muted text-muted-foreground border-border',
+      inactiveClass: 'border-border text-muted-foreground/60 hover:border-muted-foreground/40',
+    },
+  ], [t]);
+}
 
 export default function JobPriorities() {
   const navigate = useNavigate();
