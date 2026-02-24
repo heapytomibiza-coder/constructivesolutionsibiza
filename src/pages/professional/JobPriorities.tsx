@@ -180,10 +180,10 @@ export default function JobPriorities() {
             <Card className="card-grounded">
               <CardContent className="py-12 text-center">
                 <p className="text-lg text-muted-foreground mb-4">
-                  You haven't selected any jobs yet.
+                  {t('priorities.noJobs')}
                 </p>
                 <Button asChild>
-                  <Link to="/onboarding/professional?edit=1&step=services">Choose Your Jobs</Link>
+                  <Link to="/onboarding/professional?edit=1&step=services">{t('priorities.chooseJobs')}</Link>
                 </Button>
               </CardContent>
             </Card>
