@@ -223,7 +223,7 @@ export default function JobPriorities() {
           {groupedMicros.length > 0 && (
             <div className="flex justify-center pt-2 pb-8">
               <Button variant="outline" onClick={() => navigate('/dashboard/pro')}>
-                Done
+                {t('priorities.done')}
               </Button>
             </div>
           )}

@@ -458,8 +458,8 @@ function PricingItemRow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {UNIT_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              {(['hour', 'day', 'sqm', 'job', 'item'] as const).map(u => (
+                <SelectItem key={u} value={u}>{t(`listingEditor.units.${u}`)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
