@@ -237,7 +237,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
           {job.status === 'ready' && (
             <Button variant="default" size="sm" className="gap-1" asChild>
               <Link to={`/dashboard/jobs/${job.id}`}>
-                Share Job
+                {t('client.shareJob')}
               </Link>
             </Button>
           )}
