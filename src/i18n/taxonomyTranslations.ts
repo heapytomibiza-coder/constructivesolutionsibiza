@@ -89,9 +89,11 @@ export const SUBCATEGORY_KEYS: Record<string, string> = {
   "Lawn Care": "lawn-care",
   "Tree & Hedge Care": "tree-hedge-care",
   "Irrigation Systems": "irrigation-systems",
+  "Irrigation": "irrigation",
   "Landscaping": "landscaping",
   "Tree Surgery": "tree-surgery",
   "Outdoor Living Spaces": "outdoor-living-spaces",
+  // Note: "Maintenance" maps to hvac-maintenance above; garden-maintenance uses slug lookup
   // Pool & Spa
   "Pool Construction": "pool-construction",
   "Pool Maintenance": "pool-maintenance",
@@ -106,19 +108,28 @@ export const SUBCATEGORY_KEYS: Record<string, string> = {
   "3D Visualization": "3d-visualization",
   // Kitchen & Bathroom
   "Kitchen Fitting": "kitchen-fitting",
+  "Kitchen Installation": "kitchen-installation",
   "Bathroom Installation": "bathroom-installation",
   "Worktops & Surfaces": "worktops-surfaces",
+  "Worktops & Counters": "worktops-counters",
+  "Fixtures & Fittings": "fixtures-fittings",
   "Refurbishment": "refurbishment",
   // Floors, Doors & Windows
   "Flooring": "flooring",
+  "Flooring Installation": "flooring-installation",
+  "Door Installation": "door-installation",
+  "Window Installation": "window-installation",
   "Windows": "windows",
   "Doors": "doors",
   "Glazing": "glazing",
   // Transport & Logistics
   "Moving Services": "moving-services",
   "Delivery": "delivery",
+  "Delivery Services": "delivery-services",
   "Vehicle Hire": "vehicle-hire",
   "Equipment Transport": "equipment-transport",
+  "Equipment Rental": "equipment-rental",
+  "Waste Removal": "waste-removal",
   // Handyman & General
   "General Repairs": "general-repairs",
   "Assembly Services": "assembly-services",

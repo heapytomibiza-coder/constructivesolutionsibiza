@@ -264,7 +264,18 @@
     "building-permits": "Permisos de Obra",
     "planning-applications": "Solicitudes Urbanísticas",
     "inspections": "Inspecciones",
-    "compliance": "Cumplimiento Normativo"
+    "compliance": "Cumplimiento Normativo",
+    "kitchen-installation": "Instalación de Cocinas",
+    "worktops-counters": "Encimeras y Mostradores",
+    "fixtures-fittings": "Grifería y Accesorios",
+    "flooring-installation": "Instalación de Suelos",
+    "door-installation": "Instalación de Puertas",
+    "window-installation": "Instalación de Ventanas",
+    "delivery-services": "Servicios de Entrega",
+    "equipment-rental": "Alquiler de Equipos",
+    "irrigation": "Riego",
+    "waste-removal": "Retirada de Escombros",
+    "garden-maintenance": "Mantenimiento de Jardines"
   },
   "contact": {
     "title": "Contacto",

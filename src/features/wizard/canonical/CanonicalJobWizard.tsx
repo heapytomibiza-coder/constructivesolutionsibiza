@@ -23,6 +23,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, Loader2, FileText } from 'lucide-react';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
+import { txCategory } from '@/i18n/taxonomyTranslations';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
 
@@ -879,7 +880,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           {currentStep === WizardStep.Subcategory && (
             <div className="space-y-4">
               <h3 className="font-display text-lg font-semibold">
-                {t('subcategory.headline', { category: wizardState.mainCategory.toLowerCase() })}
+                {t('subcategory.headline', { category: (txCategory(wizardState.mainCategory, t) ?? wizardState.mainCategory).toLowerCase() })}
               </h3>
               <SubcategorySelector
                 categoryId={wizardState.mainCategoryId}
