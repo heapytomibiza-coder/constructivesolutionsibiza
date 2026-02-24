@@ -40,7 +40,7 @@ export default function JobTicketDetail() {
     open: { label: t('jobTicket.liveOnBoard'), variant: 'default' },
     in_progress: { label: t('jobTicket.inProgress'), variant: 'outline' },
     completed: { label: t('jobTicket.completed'), variant: 'default' },
-    closed: { label: t('jobTicket.closed'), variant: 'destructive' },
+    cancelled: { label: t('jobTicket.closed'), variant: 'destructive' },
   };
 
   const { data: job, isLoading } = useQuery({
@@ -112,7 +112,7 @@ export default function JobTicketDetail() {
     try {
       const { error } = await supabase
         .from('jobs')
-        .update({ status: 'closed' })
+        .update({ status: 'cancelled' })
         .eq('id', jobId);
       if (error) throw error;
       toast.success(t('jobTicket.jobClosed'));
@@ -214,7 +214,13 @@ export default function JobTicketDetail() {
                 <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
                   <span className="text-xs text-muted-foreground block">{t('jobTicket.when')}</span>
-                  <p className="text-sm font-medium capitalize">{job.start_timing || t('jobTicket.flexible')}</p>
+                  <p className="text-sm font-medium capitalize">
+                    {job.start_timing
+                      ? (t(`client.timing.${job.start_timing}`) !== `client.timing.${job.start_timing}`
+                          ? t(`client.timing.${job.start_timing}`)
+                          : job.start_timing.replace(/_/g, ' '))
+                      : t('jobTicket.flexible')}
+                  </p>
                 </div>
               </div>
               {(job.budget_min || job.budget_max) && (
@@ -226,8 +232,8 @@ export default function JobTicketDetail() {
                       {job.budget_min && job.budget_max
                         ? `€${job.budget_min}–€${job.budget_max}`
                         : job.budget_min
-                          ? `€${job.budget_min}+`
-                          : `Up to €${job.budget_max}`}
+                          ? t('jobTicket.budgetFrom', { min: job.budget_min })
+                          : t('jobTicket.budgetUpTo', { max: job.budget_max })}
                     </p>
                   </div>
                 </div>
@@ -307,7 +313,9 @@ export default function JobTicketDetail() {
                       {statusIcon}
                       <div>
                         <p className="text-sm font-medium">{name}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{invite.status}</p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {t(`jobTicket.inviteStatus.${invite.status}`, { defaultValue: invite.status })}
+                        </p>
                       </div>
                     </div>
                   </div>

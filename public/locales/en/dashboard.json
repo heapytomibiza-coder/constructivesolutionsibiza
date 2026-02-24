@@ -175,7 +175,15 @@
     "postFailed": "Failed to post job. Please try again.",
     "inviteSpecific": "Invite Specific Professionals",
     "inviteSpecificDesc": "Browse matching professionals, view profiles, and send this job directly",
-    "invitesSent": "Invites Sent ({{count}})"
+    "invitesSent": "Invites Sent ({{count}})",
+    "budgetUpTo": "Up to €{{max}}",
+    "budgetFrom": "From €{{min}}",
+    "inviteStatus": {
+      "sent": "Sent",
+      "viewed": "Viewed",
+      "accepted": "Accepted",
+      "declined": "Declined"
+    }
   },
   "stats": {
     "jobs": "Jobs",

@@ -235,7 +235,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
           {job.conversation_count > 0 && (
             <span className="flex items-center gap-0.5 text-primary font-medium">
               <MessageSquare className="h-3 w-3" />
-              {t('client.replies', '{{count}} replies', { count: job.conversation_count })}
+              {t('client.replies', { count: job.conversation_count })}
             </span>
           )}
         </div>
