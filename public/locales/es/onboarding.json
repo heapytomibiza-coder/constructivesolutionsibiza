@@ -61,5 +61,114 @@
     "like": "Me gusta",
     "neutral": "Neutral",
     "avoid": "Evitar"
+  },
+
+  "wizard": {
+    "loading": "Cargando...",
+    "backToDashboard": "Volver al Panel",
+    "backToOverview": "Volver al Resumen",
+    "editProfile": "Edita tu perfil profesional",
+    "jumpToStep": "Salta a cualquier paso y actualiza tus datos.",
+    "stepOf": "Paso {{current}} de {{total}}",
+    "stepLabels": {
+      "basic_info": "Sobre Ti",
+      "service_area": "Dónde Trabajas",
+      "services": "El Trabajo que Haces",
+      "review": "Empieza"
+    },
+    "stepHeaders": {
+      "basic_info": "Paso 1: Sobre Ti",
+      "service_area": "Paso 2: Dónde Trabajas",
+      "services": "Paso 3: El Trabajo que Haces",
+      "review": "Paso 4: ¡Empieza!"
+    },
+    "tracker": {
+      "yourProgress": "Tu progreso",
+      "done": "{{completed}} de {{total}} hecho",
+      "edit": "Editar",
+      "start": "Empezar"
+    }
+  },
+
+  "basicInfo": {
+    "title": "Cuéntanos sobre ti",
+    "description": "Esto es lo que los clientes verán al visitar tu perfil.",
+    "nameLabel": "Tu Nombre",
+    "nameRequired": "*",
+    "namePlaceholder": "ej. Juan García",
+    "phoneLabel": "Número de Teléfono",
+    "phonePlaceholder": "+34 600 000 000",
+    "phoneHint": "Te enviaremos notificaciones de WhatsApp sobre nuevos trabajos",
+    "businessNameLabel": "Nombre del Negocio",
+    "businessNameOptional": "(opcional)",
+    "businessNamePlaceholder": "ej. García Electricidad S.L.",
+    "taglineLabel": "Eslogan",
+    "taglinePlaceholder": "ej. Electricista fiable con más de 15 años de experiencia",
+    "taglineHint": "Un titular corto que aparece junto a tu nombre",
+    "taglineCount": "{{count}}/100",
+    "bioLabel": "Sobre Ti",
+    "bioPlaceholder": "Cuéntale a los clientes sobre tu experiencia, tus cualificaciones y lo que te hace genial en lo que haces...",
+    "bioCount": "{{count}}/500 caracteres",
+    "nextStep": "Siguiente Paso",
+    "saved": "¡Guardado!",
+    "enterName": "Por favor, introduce tu nombre",
+    "somethingWrong": "Algo salió mal. Por favor, inténtalo de nuevo."
+  },
+
+  "serviceArea": {
+    "title": "¿Dónde trabajas?",
+    "description": "Toca las zonas de Ibiza donde estés dispuesto a trabajar.",
+    "selectAll": "Seleccionar todo",
+    "deselectAll": "Deseleccionar todo",
+    "islandWide": "¡Genial! Recibirás trabajos de toda Ibiza",
+    "areasSelected": "{{count}} zona seleccionada",
+    "areasSelected_plural": "{{count}} zonas seleccionadas",
+    "selectAtLeast": "Por favor, selecciona al menos una zona",
+    "goBack": "Volver",
+    "nextStep": "Siguiente Paso",
+    "saved": "¡Guardado!"
+  },
+
+  "serviceUnlock": {
+    "title": "¿Qué trabajos quieres?",
+    "description": "Toca cualquier trabajo que estés dispuesto a hacer. Solo te enviaremos estos.",
+    "saved": "Guardado",
+    "noJobsSelected": "Ningún trabajo seleccionado todavía",
+    "jobsPicked": "Has elegido {{count}} trabajo",
+    "jobsPicked_plural": "Has elegido {{count}} trabajos",
+    "greatSelection": "¡Gran selección!",
+    "recommendedHint": "La mayoría de profesionales eligen {{min}}–{{max}} trabajos.",
+    "noNeedAll": "No necesitas seleccionarlo todo.",
+    "searchPlaceholder": "Buscar trabajos...",
+    "noResults": "No se encontraron trabajos para \"{{query}}\"",
+    "clearSearch": "Limpiar búsqueda",
+    "addMoreLater": "Siempre puedes añadir más trabajos desde tu panel.",
+    "goBack": "Volver",
+    "continue": "Continuar",
+    "saving": "Guardando...",
+    "selectMinimum": "Selecciona al menos 1 trabajo para continuar"
+  },
+
+  "review": {
+    "readyTitle": "¡Estás listo para empezar!",
+    "almostTitle": "Casi listo...",
+    "readyDescription": "Comprueba que todo está bien y dale al botón.",
+    "almostDescription": "Completa los puntos de abajo para empezar.",
+    "checklist": "Tu checklist de perfil",
+    "aboutYou": "Sobre ti",
+    "aboutYouDesc": "Nombre y datos de contacto",
+    "whereYouWork": "Dónde trabajas",
+    "whereYouWorkDesc": "Zonas de Ibiza",
+    "jobsSelected": "Trabajos seleccionados",
+    "jobsSelectedDesc": "{{count}} tipo de trabajo elegido",
+    "jobsSelectedDesc_plural": "{{count}} tipos de trabajo elegidos",
+    "sendJobsFor": "Solo te enviaremos trabajos de:",
+    "changeAnytime": "Puedes cambiar esto en cualquier momento desde tu panel.",
+    "goBack": "Volver",
+    "goLive": "Empezar",
+    "completeAll": "Completa todos los puntos del checklist para empezar",
+    "liveSuccess": "🎉 ¡Estás en vivo! Es hora de empezar a recibir trabajo.",
+    "completeFirst": "Por favor, completa todos los pasos primero",
+    "goLiveFailed": "No se pudo empezar. Por favor, inténtalo de nuevo."
   }
 }

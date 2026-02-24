@@ -13,12 +13,12 @@ i18n
     nonExplicitSupportedLngs: true,
     load: "languageOnly",
     cleanCode: true,
-    ns: ["common", "auth", "jobs", "forum", "dashboard", "wizard", "onboarding", "micros", "questions", "legal", "settings", "messages"],
+    ns: ["common", "auth", "jobs", "forum", "dashboard", "wizard", "onboarding", "micros", "questions", "legal", "settings", "messages", "professional"],
     defaultNS: "common",
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.json",
       // Cache bust to ensure fresh translations after deployments
-      queryStringParams: { v: '2026022404' },
+      queryStringParams: { v: '2026022405' },
     },
     detection: {
       order: ["localStorage", "navigator"],
