@@ -90,7 +90,7 @@ export function ReviewStep({
                 {microNames.map((name, i) => (
                   <li key={i} className="font-medium flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    {name}
+                    {txMicro(microSlugs[i], t, name)}
                   </li>
                 ))}
               </ul>
