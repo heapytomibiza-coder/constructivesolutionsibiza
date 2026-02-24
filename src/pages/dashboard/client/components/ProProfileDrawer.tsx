@@ -40,6 +40,7 @@ export default function ProProfileDrawer({
   onInvite,
   isInvited,
 }: ProProfileDrawerProps) {
+  const { t } = useTranslation('dashboard');
   // Fetch professional profile
   const { data: profile, isLoading } = useQuery({
     queryKey: ['pro_profile_detail', proUserId],
