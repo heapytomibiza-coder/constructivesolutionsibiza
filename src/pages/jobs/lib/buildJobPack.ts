@@ -361,9 +361,9 @@ export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = [], t?:
     safety: row.computed_safety ?? null,
     
     // i18n translations
-    sourceLang: (row as any).source_lang ?? null,
-    titleI18n: (row as any).title_i18n ?? null,
-    teaserI18n: (row as any).teaser_i18n ?? null,
-    descriptionI18n: (row as any).description_i18n ?? null,
+    sourceLang: row.source_lang ?? null,
+    titleI18n: row.title_i18n ?? null,
+    teaserI18n: row.teaser_i18n ?? null,
+    descriptionI18n: row.description_i18n ?? null,
   };
 }

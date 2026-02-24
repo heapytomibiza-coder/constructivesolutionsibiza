@@ -88,6 +88,7 @@ export const JobsBoardRowSchema = z.object({
 // Job details row (full view - includes answers)
 export const JobDetailsRowSchema = JobsBoardRowSchema.extend({
   description: z.string().nullable().optional(),
+  description_i18n: z.record(z.string()).nullable().optional(),
   answers: JobAnswersSchema.nullable().optional(),
   is_owner: z.boolean().nullable().optional(),
 }).passthrough();
