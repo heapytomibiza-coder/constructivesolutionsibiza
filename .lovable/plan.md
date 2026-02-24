@@ -1,107 +1,144 @@
 
 
-# Spanish Translation Audit — Remaining Hardcoded English
+# Phase 4+5: Translate Onboarding, Professional, and Dashboard Components
 
-## Current Status
+## Scope
 
-The **public-facing pages** (Homepage, How It Works, About, Contact, Jobs Board, Privacy, Terms, Dispute Policy) are now fully translated. The recent work fixed the legal pages, job board, and wizard renderer.
+This covers all remaining hardcoded English in authenticated pages across three groups:
 
-However, a significant number of **authenticated/internal pages** still have zero or partial i18n coverage. These pages were never wired up with `useTranslation` at all, so every string is hardcoded English.
+### Group A: Onboarding (5 files, ~60 keys)
 
-## Scope of Remaining Work
+**ProfessionalOnboarding.tsx** — Step labels, headers, tracker text:
+- `STEPS` array labels: "About You", "Where You Work", "The Work You Do", "Go Live"
+- Step headers: "Step 1: About You", "Edit your professional profile", etc.
+- Tracker: "Your progress", "X of Y done", "Edit", "Start"
+- "Back to Dashboard", "Back to Overview", "Loading..."
 
-### Tier 1 — User-Facing (High Priority)
+**BasicInfoStep.tsx** — Form labels and messages (~15 keys):
+- "Tell us about yourself", "This is what clients will see..."
+- "Your Name", "Phone Number", "Business Name", "Tagline", "About You"
+- Placeholders: "e.g. Juan García", "+34 600 000 000"
+- Helper text: "We'll send you WhatsApp notifications...", "A short headline..."
+- Buttons/toasts: "Next Step", "Saved!", "Please enter your name", "Something went wrong..."
 
-These pages are seen by every authenticated user:
+**ServiceAreaStep.tsx** — Zone selection (~10 keys):
+- "Where do you work?", "Tap the areas of Ibiza..."
+- "Select all", "Deselect all"
+- "Great! You'll receive jobs from across Ibiza", "X areas selected"
+- "Please select at least one area", "Go Back", "Next Step"
 
-**1. PostJob.tsx** — "Cancel" button (1 string)
-- Line 46: `Cancel` → needs `t('wizard:buttons.cancel')`
+**ServiceUnlockStep.tsx** — Service picker (~15 keys):
+- "Which jobs do you want?", "Tap any job you're happy to do..."
+- "Saved", "No jobs selected yet", "You've picked X jobs", "Great selection!"
+- "Most professionals pick 5–15 jobs", "You don't need to select everything"
+- "Search jobs...", "No jobs found for...", "Clear search"
+- "Go Back", "Continue", "Saving...", "Select at least 1 job to continue"
+- "You can always add more jobs later..."
 
-**2. CanonicalJobWizard.tsx** — 3 hardcoded strings
-- Line 736: `'Job posted! View it on the job board.'` toast
-- Line 968: `Get Matched` button label
-- Line 973: `Sign in & Get Matched` button label
+**ReviewStep.tsx** — Go-live checklist (~15 keys):
+- "You're ready to go live!", "Almost there..."
+- "Your profile checklist", "About you", "Where you work", "Jobs selected"
+- "We'll only send you jobs for:", "You can change this anytime..."
+- "Go Live", "Go Back", "Complete all checklist items to go live"
+- Toast: "You're live! Time to start receiving work.", "Please complete all steps first"
 
-**3. Settings.tsx** — Entire page (~30+ strings, zero `useTranslation`)
-- "Settings", "Account", "Your account information", "Email", "Not available"
-- "Current Mode", "Tasker", "Asker", `Switched to ${label} mode`
-- "Admin Panel", "Security", "Change your password", "New password", "Min. 6 characters"
-- "Confirm password", "Re-enter password", "Updating…", "Update Password"
-- "Notifications", "Control which emails you receive", "New messages", "Job matches"
-- "Email digest", "Receive a summary of activity", "Digest frequency", "Daily", "Weekly"
-- "Sign Out"
+### Group B: Professional pages (2 files, ~30 keys)
 
-**4. Messages pages** — Zero `useTranslation` across all 3 files
-- `ConversationList.tsx`: "Search conversations…", "No conversations yet", "No matching conversations", "Start by posting a job…"
-- `ConversationThread.tsx`: "No messages yet. Start the conversation!", "Type a message…", "Send"
-- `Messages.tsx`: "Messages", "Select a conversation", layout text
+**JobPriorities.tsx** — Priority settings:
+- "Set Your Job Priorities", "Tell us which jobs to send you first..."
+- Priority labels: "Priority"/"Send these first", "Standard"/"Happy to receive", "Low priority"/"Only if nothing else"
+- "Saved", "You haven't selected any jobs yet", "Choose Your Jobs", "Done"
+- "Back to Dashboard"
 
-**5. Onboarding pages** — Zero `useTranslation` (6+ files)
-- `ProfessionalOnboarding.tsx` and all step components
-- `ServiceUnlockStep.tsx`: "No jobs selected yet", "You've picked X jobs", "No jobs found for..."
-- `BasicInfoStep.tsx`, `ReviewStep.tsx`, `ServiceAreaStep.tsx`
+**ServiceListingEditor.tsx** — Listing form (~20 keys):
+- "Edit Listing", "Listing Details", "Display Title", "Short Description"
+- "Hero Image", "Gallery (up to 3)", "Location Base", "Pricing Summary"
+- "Pricing Menu", "Add Item", "No pricing items yet..."
+- Unit labels: "Per hour", "Per day", "Per m²", "Per job", "Per item"
+- "Save", "Publish", "Change", "Upload hero image", "Maximum 3 gallery images"
+- "Listing saved", "Failed to save listing", "Listing not found"
+- Publish validation: "Please fill in title, description, and upload a hero image..."
 
-### Tier 2 — Role-Specific (Medium Priority)
+### Group C: Dashboard child components (3 files, ~25 keys)
 
-**6. Professional pages** — Partial i18n (some files have it, some don't)
-- `JobPriorities.tsx`: "Choose Your Jobs", "No job types unlocked yet"
-- `ServiceListingEditor.tsx`: "No pricing items yet", many form labels
+**ClientJobCard.tsx** — Remaining hardcoded strings:
+- Status labels: "Saved", "Live", "In Progress", "Completed", "Closed", "Draft"
+- Status messages: "Saved — choose how to share...", "No professionals have messaged yet"
+- Buttons: "Share Job", "Complete", "View", "Cancel", "Closing..."
+- Toasts: "Job marked as completed!", "Failed to complete job", "Thanks for your rating!", "Failed to submit rating"
 
-**7. Dashboard pages** — `ClientDashboard.tsx` has `useTranslation` but several child components don't:
-- `ClientJobCard.tsx`: "Cancel" in AlertDialog
-- `ProProfileDrawer.tsx`: likely hardcoded
-- `MatchAndSend.tsx`: likely hardcoded
+**ProProfileDrawer.tsx** — Profile drawer (~12 keys):
+- "Professional Profile", "About", "Services (X)", "Areas Covered"
+- "Typical lead time:", "Reviews (X)", "Already Invited", "Invite with this job"
+- "Verified", "Island-wide", "Professional" (fallback name), "Profile not found."
 
-**8. Forum pages** — Partial (some translated, some not)
-- `ForumNewPost.tsx`: form buttons/labels
-- `ForumPost.tsx`: reply form
+**MatchAndSend.tsx** — Match & send page (~10 keys):
+- "Sending: ...", "Professionals matching your job", "X professionals found"
+- "No matching professionals found yet...", "Back to Job"
+- "View Profile", "Invited", "Invite", "Invite sent!", "Failed to send invite"
+- "Already invited this professional", "Flexible"
+- "Job not found."
 
-### Tier 3 — Admin-Only (Low Priority)
+### Group D: Remaining leaks in job detail (4 targeted fixes)
 
-Admin pages (DrilldownTable, UserDetailDrawer, JobDetailDrawer, SupportInbox, all insights pages) — all hardcoded English. Since these are internal tools, they can wait.
+1. **PhotoLightbox sr-only strings**: "Close", "Previous", "Next" — add `detail.lightbox.*` keys
+2. **"Failed to start conversation"** hardcoded toast — use `t('detail.startConversationFailed')`
+3. **`"To be discussed"` string comparison** in `getSpecBadge` — replace with data-driven check (`jp.budget?.type !== 'tbd'`)
+4. **Flag prettifier** in `JobFlagBadges.tsx` — add `EXTRA_FLAG_KEYS` mapping for known flags
 
-## Implementation Plan
+## Implementation Approach
 
-### Phase 1: Fix the 4 quick strings in wizard/post (5 min)
-- Add `cancel`, `getMatched`, `signInGetMatched` to `wizard` namespace (EN + ES)
-- Add `toasts.postSuccess` key
-- Update `PostJob.tsx` line 46 and `CanonicalJobWizard.tsx` lines 736, 968, 973
+### Locale files strategy
 
-### Phase 2: Settings page (create `settings` namespace)
-- Create `public/locales/en/settings.json` and `es/settings.json` with ~35 keys
-- Add `useTranslation('settings')` to Settings.tsx
-- Replace all hardcoded strings
+- **Onboarding**: Expand existing `public/locales/[en|es]/onboarding.json` with new sections: `wizard.*` (step labels/headers), `basicInfo.*`, `serviceArea.*`, `serviceUnlock.*`, `review.*`
+- **Professional**: Create new `public/locales/[en|es]/professional.json` namespace with `priorities.*`, `listingEditor.*`
+- **Dashboard**: Expand existing `public/locales/[en|es]/dashboard.json` with `client.status.*`, `client.card.*`, `proProfile.*`, `matchAndSend.*`
+- **Jobs**: Add `detail.lightbox.*`, `detail.startConversationFailed`, `flags.permitsMayBeNeeded`, `flags.siteVisitNeeded` to existing `jobs.json`
 
-### Phase 3: Messages pages (create `messages` namespace)
-- Create `public/locales/en/messages.json` and `es/messages.json`
-- Wire up `useTranslation` in ConversationList, ConversationThread, Messages
-- Already have a `public/locales/en/dashboard.json` with some message-related keys — check for reuse
+### i18n config changes
 
-### Phase 4: Onboarding pages (expand `onboarding` namespace)
-- The `onboarding` namespace already exists with some keys
-- Add missing keys for all step components
-- Wire up `useTranslation` in ProfessionalOnboarding and all steps
+- Add `professional` to the `ns` array in `src/i18n/index.ts`
+- Add `professional` to `src/i18n/namespaces.ts`
+- Bump cache version to `2026022405`
 
-### Phase 5: Professional + Dashboard child components
-- Expand `dashboard` namespace for remaining components
-- Fix `ClientJobCard.tsx` "Cancel" and similar
+### Code changes per file
 
-### Each phase follows the same pattern:
-1. Add EN keys (extract from current hardcoded strings)
-2. Add ES translations
-3. Add `useTranslation` import + replace strings
-4. Bump cache version
+Each file gets `useTranslation('<namespace>')` added and all hardcoded strings replaced with `t('key')`. The pattern is identical across all files:
 
-## Estimated Effort
+1. Add `import { useTranslation } from 'react-i18next'`
+2. Add `const { t } = useTranslation('<ns>')` in the component
+3. Replace every English string literal with `t('section.key')`
+4. For dynamic strings with interpolation: `t('key', { count: n })` or `t('key', { name: val })`
 
-| Phase | Files | Keys | Priority |
-|-------|-------|------|----------|
-| 1. Wizard quick fixes | 2 | 4 | Immediate |
-| 2. Settings | 1 | ~35 | High |
-| 3. Messages | 3 | ~20 | High |
-| 4. Onboarding | 6 | ~40 | Medium |
-| 5. Pro + Dashboard | 5+ | ~30 | Medium |
-| 6. Admin (optional) | 15+ | ~80 | Low |
+### JobFlagBadges structural fix
 
-I recommend starting with Phases 1-3 (wizard fixes + Settings + Messages) as these are the pages most users see daily.
+Add a translation mapping for known extra flags:
+```text
+const EXTRA_FLAG_KEYS: Record<string, string> = {
+  PERMITS_MAY_BE_NEEDED: 'flags.permitsMayBeNeeded',
+  SITE_VISIT_NEEDED: 'flags.siteVisitNeeded',
+  CLIENT_HAS_PERMIT_CONCERNS: 'flags.clientHasPermitConcerns',
+};
+```
+Use `t(EXTRA_FLAG_KEYS[flag])` when available, fallback to prettifier only for truly unknown flags.
+
+### JobDetailsModal "To be discussed" fix
+
+Replace string comparison:
+```text
+// Before: jp.budget.display !== "To be discussed"
+// After:  jp.budget?.type !== 'tbd'
+```
+This is data-driven and language-agnostic.
+
+## Estimated changes
+
+| Area | Files modified | New keys (EN+ES) |
+|------|---------------|-----------------|
+| Onboarding | 5 TSX + 2 JSON | ~60 |
+| Professional | 2 TSX + 2 JSON (new) | ~30 |
+| Dashboard | 3 TSX + 2 JSON | ~25 |
+| Jobs fixes | 3 TSX + 2 JSON | ~8 |
+| i18n config | 2 TS | — |
+| **Total** | **15 TSX + 10 JSON + 2 TS** | **~123 keys** |
 
