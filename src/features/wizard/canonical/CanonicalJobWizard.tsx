@@ -594,8 +594,6 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       case WizardStep.Questions:
         return true; // Questions are optional - can always continue
       case WizardStep.Logistics: {
-        // Use isStep5Complete as single source of truth
-        const { isStep5Complete } = require('./lib/stepValidation');
         const step5 = isStep5Complete(wizardState.logistics);
         if (!step5.ok) return false;
         if (wizardState.logistics.location === 'other' && !wizardState.logistics.customLocation?.trim()) {

@@ -432,7 +432,6 @@ export function validateWizardState(state: WizardState): { valid: boolean; error
   // Step 5 required fields (single source of truth)
   const logisticsCheck = isStep5Complete(state.logistics);
   errors.push(...logisticsCheck.errors);
-  errors.push(...step5.errors);
 
   // Custom location validation
   if (state.logistics.location === "other" && !state.logistics.customLocation?.trim()) {
