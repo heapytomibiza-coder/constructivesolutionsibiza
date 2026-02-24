@@ -86,6 +86,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { t } = useTranslation('wizard');
+  const { t: tCommon } = useTranslation('common');
   const { user, isAuthenticated } = useSession();
   
   // === INITIALIZATION STATE ===
