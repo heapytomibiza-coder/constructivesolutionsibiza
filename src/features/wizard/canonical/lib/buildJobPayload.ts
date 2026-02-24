@@ -8,6 +8,7 @@ import type { TablesInsert, Json } from '@/integrations/supabase/types';
 import type { WizardState } from '../types';
 import { getZoneByIdSafe } from '@/shared/components/professional/zones';
 import { getLeanAttribution } from '@/lib/attribution';
+import { isStep5Complete } from './stepValidation';
 
 type JobInsert = TablesInsert<"jobs">;
 
