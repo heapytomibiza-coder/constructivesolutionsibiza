@@ -256,7 +256,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             </Button>
           )}
           <Button variant="outline" size="sm" asChild>
-            <Link to={job.status === 'ready' ? `/dashboard/jobs/${job.id}` : `/jobs/${job.id}`}>View</Link>
+            <Link to={job.status === 'ready' ? `/dashboard/jobs/${job.id}` : `/jobs/${job.id}`}>{t('client.view')}</Link>
           </Button>
 
           {/* Edit */}
