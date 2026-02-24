@@ -36,6 +36,7 @@ import {
   getStepIndex,
   getNextStep,
   getPrevStep,
+  type CustomRequest,
 } from './types';
 import { useWizardUrlStep } from './hooks/useWizardUrlStep';
 import { useProServiceScope } from './hooks/useProServiceScope';
