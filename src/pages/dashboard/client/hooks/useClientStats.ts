@@ -20,13 +20,6 @@ interface Job {
   is_publicly_listed: boolean;
   assigned_professional_id: string | null;
   answers?: unknown;
-  area: string | null;
-  budget_type: string | null;
-  budget_value: number | null;
-  budget_min: number | null;
-  budget_max: number | null;
-  start_timing: string | null;
-  conversation_count?: number;
 }
 
 export function useClientStats() {
@@ -77,35 +70,15 @@ export function useClientStats() {
     queryFn: async (): Promise<Job[]> => {
       if (!user?.id) return [];
 
-      // Fetch jobs with metadata fields
       const { data, error } = await supabase
         .from('jobs')
-        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id, answers, area, budget_type, budget_value, budget_min, budget_max, start_timing')
+        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id, answers')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(10);
 
       if (error) throw error;
-      const jobs = data || [];
-
-      // Fetch conversation counts for these jobs
-      if (jobs.length > 0) {
-        const jobIds = jobs.map(j => j.id);
-        const { data: convos } = await supabase
-          .from('conversations')
-          .select('job_id')
-          .in('job_id', jobIds);
-
-        if (convos) {
-          const countMap = new Map<string, number>();
-          for (const c of convos) {
-            countMap.set(c.job_id, (countMap.get(c.job_id) || 0) + 1);
-          }
-          return jobs.map(j => ({ ...j, conversation_count: countMap.get(j.id) || 0 }));
-        }
-      }
-
-      return jobs.map(j => ({ ...j, conversation_count: 0 }));
+      return data || [];
     },
     enabled: !!user?.id,
   });
