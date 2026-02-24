@@ -68,6 +68,8 @@ export function CategoryAccordion({
   onPreferenceChange,
   isPreferenceUpdating = false,
 }: CategoryAccordionProps) {
+  const { t } = useTranslation(['common', 'onboarding']);
+
   // Filter micros by search query
   const filteredSubcategories = useMemo(() => {
     if (!searchQuery) return category.subcategories;
