@@ -13,6 +13,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { ScrollToTop } from "@/shared/components/layout/ScrollToTop";
+import { UrlNormalizer } from "@/shared/components/layout/UrlNormalizer";
 import { RouteGuard, PublicOnlyGuard, RolloutGate } from "@/guard";
 import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
 import { Loader2 } from "lucide-react";
