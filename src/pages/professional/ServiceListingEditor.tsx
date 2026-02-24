@@ -263,7 +263,7 @@ export default function ServiceListingEditor() {
 
             {/* Hero Image */}
             <div className="space-y-2">
-              <Label>Hero Image *</Label>
+              <Label>{t('listingEditor.heroImage')} *</Label>
               {heroUrl ? (
                 <div className="relative aspect-video rounded-lg overflow-hidden border border-border">
                   <img src={heroUrl} alt="Hero" className="w-full h-full object-cover" />
