@@ -447,7 +447,7 @@ function PricingItemRow({
         <div className="flex gap-2">
           <Input
             type="number"
-            placeholder="Price"
+            placeholder={t('listingEditor.pricePlaceholder')}
             value={price}
             onChange={e => { setPrice(e.target.value); markDirty(); }}
             onBlur={handleBlur}
