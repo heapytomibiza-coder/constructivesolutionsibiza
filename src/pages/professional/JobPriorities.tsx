@@ -249,7 +249,7 @@ function PriorityRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-3 py-2 px-1">
-      <span className="text-base font-medium text-foreground flex-1 min-w-0 truncate">{name}</span>
+      <span className="text-base font-medium text-foreground flex-1 min-w-0 truncate">{txMicro(slug, t, name)}</span>
       <div className="flex gap-1.5 shrink-0">
         {options.map((opt) => {
           const Icon = opt.icon;
