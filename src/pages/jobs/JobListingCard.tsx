@@ -14,6 +14,7 @@ import { useSession } from "@/contexts/SessionContext";
 import { startConversation } from "@/pages/jobs/actions/messageJob.action";
 import { toast } from "sonner";
 import { getI18nField, getContentLang } from "@/lib/i18nContent";
+import { txCategory, txSubcategory } from "@/i18n/taxonomyTranslations";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 
 interface JobListingCardProps {
