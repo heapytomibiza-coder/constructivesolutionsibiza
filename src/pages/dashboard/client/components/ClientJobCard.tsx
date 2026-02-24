@@ -56,14 +56,14 @@ function getActions(status: string) {
   return { canEdit, canDuplicate, canClose };
 }
 
-function formatBudgetLabel(job: ClientJob, t: (key: string, fallback?: string) => string): string | null {
+function formatBudgetLabel(job: ClientJob, t: (key: string, options?: Record<string, unknown>) => string): string | null {
   if (job.budget_min && job.budget_max) return `€${job.budget_min}–€${job.budget_max}`;
   if (job.budget_value) return `€${job.budget_value}`;
-  if (job.budget_type === 'tbd') return t('client.budgetTbd', 'Quote-based');
+  if (job.budget_type === 'tbd') return t('client.budgetTbd', { defaultValue: 'Quote-based' });
   return null;
 }
 
-function formatTimingLabel(timing: string | null, t: (key: string, fallback?: string) => string): string | null {
+function formatTimingLabel(timing: string | null, t: (key: string, options?: Record<string, unknown>) => string): string | null {
   if (!timing) return null;
   const key = `client.timing.${timing}`;
   const translated = t(key);

@@ -1,5 +1,6 @@
 import { es } from 'date-fns/locale/es';
 import { enUS } from 'date-fns/locale/en-US';
+import type { Locale } from 'date-fns';
 import i18n from '@/i18n';
 
 const localeMap: Record<string, Locale> = { es, en: enUS };
