@@ -882,78 +882,142 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       {/* Step Content */}
       <Card className="border-border/70">
         <CardContent className="pt-6">
-          {currentStep === WizardStep.Category && (
-            <div className="space-y-6">
-              <h3 className="font-display text-lg font-semibold">
-                {t('category.headline')}
-              </h3>
-              
-              {/* Direct mode scoping banner */}
-              {isDirectMode && proScope.proName && (
-                <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 text-sm text-foreground">
-                  {t('scope.showingServicesFor', { name: proScope.proName })}
-                </div>
-              )}
-              {isDirectMode && proScope.isEmpty && !proScope.isLoading && (
-                <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 text-sm text-muted-foreground">
-                  {t('scope.noServices')}
-                </div>
-              )}
-              
-              {/* Universal Search Bar - hide in scoped direct mode */}
-              {!isDirectMode && <ServiceSearchBar onSelect={handleSearchSelect} />}
-              
-              {/* Divider - hide in scoped direct mode */}
-              {!isDirectMode && (
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 h-px bg-border" />
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                    {t('category.orBrowse')}
-                  </span>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-              )}
-              
-              {/* Category Grid */}
-              <CategorySelector
-                selectedCategory={wizardState.mainCategory}
-                onSelect={handleCategorySelect}
-                allowedCategoryIds={isDirectMode ? proScope.categoryIds : undefined}
-              />
-            </div>
-          )}
+          {/* Custom Request Form (overlays step content) */}
+          {showCustomForm ? (
+            <CustomRequestForm
+              initial={wizardState.customRequest}
+              preselectedCategoryId={wizardState.mainCategoryId || undefined}
+              preselectedCategoryName={wizardState.mainCategory || undefined}
+              onBack={() => setShowCustomForm(false)}
+              onSubmit={handleCustomRequestSubmit}
+            />
+          ) : (
+            <>
+              {currentStep === WizardStep.Category && (
+                <div className="space-y-6">
+                  <h3 className="font-display text-lg font-semibold">
+                    {t('category.headline')}
+                  </h3>
+                  
+                  {/* Direct mode scoping banner */}
+                  {isDirectMode && proScope.proName && (
+                    <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 text-sm text-foreground">
+                      {t('scope.showingServicesFor', { name: proScope.proName })}
+                    </div>
+                  )}
+                  {isDirectMode && proScope.isEmpty && !proScope.isLoading && (
+                    <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 text-sm text-muted-foreground">
+                      {t('scope.noServices')}
+                    </div>
+                  )}
+                  
+                  {/* Universal Search Bar - hide in scoped direct mode */}
+                  {!isDirectMode && <ServiceSearchBar onSelect={handleSearchSelect} />}
+                  
+                  {/* Divider - hide in scoped direct mode */}
+                  {!isDirectMode && (
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 h-px bg-border" />
+                      <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                        {t('category.orBrowse')}
+                      </span>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+                  )}
+                  
+                  {/* Category Grid */}
+                  <CategorySelector
+                    selectedCategory={wizardState.mainCategory}
+                    onSelect={handleCategorySelect}
+                    allowedCategoryIds={isDirectMode ? proScope.categoryIds : undefined}
+                  />
 
-          {currentStep === WizardStep.Subcategory && (
-            <div className="space-y-4">
-              <h3 className="font-display text-lg font-semibold">
-                {t('subcategory.headline', { category: txCategory(wizardState.mainCategory, tCommon) ?? wizardState.mainCategory })}
-              </h3>
-              <SubcategorySelector
-                categoryId={wizardState.mainCategoryId}
-                categoryName={wizardState.mainCategory}
-                selectedSubcategoryId={wizardState.subcategoryId}
-                onSelect={handleSubcategorySelect}
-                allowedSubcategoryIds={isDirectMode ? proScope.subcategoryIds : undefined}
-              />
-            </div>
-          )}
+                  {/* Custom Request CTA */}
+                  {!isDirectMode && (
+                    <div className="pt-4 border-t border-border">
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomForm(true)}
+                        className="w-full flex items-center gap-3 p-4 rounded-lg border border-dashed border-border hover:border-primary/40 hover:bg-primary/5 transition-colors text-left group"
+                      >
+                        <HelpCircle className="h-5 w-5 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            {t('custom.cta')}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t('custom.ctaDescription')}
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
-          {currentStep === WizardStep.Micro && (
-            <div className="space-y-4">
-              <h3 className="font-display text-lg font-semibold">
-                {t('micro.headline')}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {t('micro.hint')}
-              </p>
-              <MicroStep
-                subcategoryId={wizardState.subcategoryId}
-                selectedMicroIds={wizardState.microIds}
-                onSelect={handleMicroSelect}
-                allowedMicroIds={isDirectMode ? proScope.microIds : undefined}
-              />
-            </div>
-          )}
+              {currentStep === WizardStep.Subcategory && (
+                <div className="space-y-4">
+                  <h3 className="font-display text-lg font-semibold">
+                    {t('subcategory.headline', { category: txCategory(wizardState.mainCategory, tCommon) ?? wizardState.mainCategory })}
+                  </h3>
+                  <SubcategorySelector
+                    categoryId={wizardState.mainCategoryId}
+                    categoryName={wizardState.mainCategory}
+                    selectedSubcategoryId={wizardState.subcategoryId}
+                    onSelect={handleSubcategorySelect}
+                    allowedSubcategoryIds={isDirectMode ? proScope.subcategoryIds : undefined}
+                  />
+
+                  {/* Custom Request CTA */}
+                  {!isDirectMode && (
+                    <div className="pt-4 border-t border-border">
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomForm(true)}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/40 hover:bg-primary/5 transition-colors text-left group"
+                      >
+                        <HelpCircle className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                        <p className="text-sm text-muted-foreground group-hover:text-foreground">
+                          {t('custom.cta')}
+                        </p>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {currentStep === WizardStep.Micro && (
+                <div className="space-y-4">
+                  <h3 className="font-display text-lg font-semibold">
+                    {t('micro.headline')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t('micro.hint')}
+                  </p>
+                  <MicroStep
+                    subcategoryId={wizardState.subcategoryId}
+                    selectedMicroIds={wizardState.microIds}
+                    onSelect={handleMicroSelect}
+                    allowedMicroIds={isDirectMode ? proScope.microIds : undefined}
+                  />
+
+                  {/* Custom Request CTA */}
+                  {!isDirectMode && (
+                    <div className="pt-4 border-t border-border">
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomForm(true)}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/40 hover:bg-primary/5 transition-colors text-left group"
+                      >
+                        <HelpCircle className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                        <p className="text-sm text-muted-foreground group-hover:text-foreground">
+                          {t('custom.cta')}
+                        </p>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
           {currentStep === WizardStep.Questions && (
             <QuestionsStep
