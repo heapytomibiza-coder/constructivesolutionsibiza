@@ -59,16 +59,10 @@ const getStatusBadgeVariant = (status: string) => {
   }
 };
 
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'ready': return 'Saved';
-    case 'open': return 'Live';
-    case 'in_progress': return 'In Progress';
-    case 'completed': return 'Completed';
-    case 'cancelled': return 'Closed';
-    case 'draft': return 'Draft';
-    default: return status;
-  }
+const getStatusLabel = (status: string, t: (key: string) => string) => {
+  const key = `client.status.${status}`;
+  const translated = t(key);
+  return translated !== key ? translated : status;
 };
 
 /** Which actions are available per status */
