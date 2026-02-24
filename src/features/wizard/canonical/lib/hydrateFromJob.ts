@@ -17,6 +17,7 @@ interface JobRow {
   answers: Json | null;
   status: string;
   user_id: string;
+  is_custom_request?: boolean | null;
 }
 
 /** Statuses that allow editing */
