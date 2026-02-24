@@ -16,6 +16,7 @@ import { PLATFORM } from '@/domain/scope';
 import heroPost from '@/assets/heroes/hero-post.jpg';
 
 const PostJob = () => {
+  const { t } = useTranslation('wizard');
   return (
     <div className="min-h-screen relative">
       {/* Background Image */}
