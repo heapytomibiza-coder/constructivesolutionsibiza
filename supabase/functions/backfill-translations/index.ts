@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
       .from("service_listings")
       .select("id, display_title, short_description")
       .or("translation_status.eq.pending,source_lang.is.null,display_title_i18n.eq.{}")
-      .limit(20);
+      .limit(5);
 
     if (fetchErr) throw new Error(`Fetch error: ${fetchErr.message}`);
     if (!listings || listings.length === 0) {
