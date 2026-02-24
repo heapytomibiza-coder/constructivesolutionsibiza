@@ -84,7 +84,8 @@ function buildHighlights(state: WizardState): string[] {
   } else if (logistics.startDatePreset === "this_month") {
     highlights.push("📅 This month");
   } else if (logistics.startDate) {
-    highlights.push(`📅 ${logistics.startDate.toLocaleDateString()}`);
+    const d = logistics.startDate;
+    highlights.push(`📅 ${typeof d === 'string' ? d : d.toLocaleDateString()}`);
   }
 
   // Budget highlight - format human-readable
