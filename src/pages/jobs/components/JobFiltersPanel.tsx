@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { FilterX } from "lucide-react";
+import { txCategory } from "@/i18n/taxonomyTranslations";
 
 export type Filters = {
   search: string;
