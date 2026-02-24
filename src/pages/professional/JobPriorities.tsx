@@ -121,7 +121,7 @@ export default function JobPriorities() {
           </Link>
           <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/pro')}>
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Dashboard
+            {t('priorities.backToDashboard')}
           </Button>
         </div>
       </nav>
