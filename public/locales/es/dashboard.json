@@ -93,7 +93,14 @@
     "servicesAdded": "Servicios añadidos",
     "profileDetails": "Detalles del perfil",
     "publiclyVisible": "Visible públicamente",
-    "addServicesHint": "Añade servicios y completa tu perfil para aparecer en los resultados de búsqueda."
+    "addServicesHint": "Añade servicios y completa tu perfil para aparecer en los resultados de búsqueda.",
+    "publish": "Publicar",
+    "pause": "Pausar",
+    "unpause": "Reanudar",
+    "view": "Ver",
+    "noImage": "Sin imagen",
+    "fromPrice": "Desde {{price}} €",
+    "untitled": "Sin título"
   },
   "proProfile": {
     "title": "Perfil Profesional",
@@ -137,6 +144,8 @@
   "status": {
     "open": "Abierto",
     "draft": "Borrador",
+    "live": "Activo",
+    "paused": "Pausado",
     "in_progress": "En Progreso",
     "completed": "Completado"
   },

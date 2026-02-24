@@ -9,6 +9,7 @@ export interface MyListing {
   id: string;
   micro_id: string;
   display_title: string;
+  display_title_i18n: Record<string, string> | null;
   short_description: string | null;
   hero_image_url: string | null;
   status: string;
@@ -19,6 +20,7 @@ export interface MyListing {
   created_at: string;
   updated_at: string;
   micro_name?: string;
+  micro_slug?: string;
   starting_price?: number | null;
 }
 
@@ -32,7 +34,7 @@ export function useMyListings() {
       const { data: listings, error } = await supabase
         .from('service_listings')
         .select(`
-          id, micro_id, display_title, short_description, hero_image_url,
+          id, micro_id, display_title, display_title_i18n, short_description, hero_image_url,
           status, location_base, pricing_summary, view_count, published_at,
           created_at, updated_at
         `)
@@ -45,10 +47,10 @@ export function useMyListings() {
       const microIds = [...new Set(listings.map(l => l.micro_id))];
       const { data: micros } = await supabase
         .from('service_micro_categories')
-        .select('id, name')
+        .select('id, name, slug')
         .in('id', microIds);
 
-      const microMap = new Map(micros?.map(m => [m.id, m.name]) ?? []);
+      const microMap = new Map(micros?.map(m => [m.id, { name: m.name, slug: m.slug }]) ?? []);
 
       // Fetch starting prices
       const listingIds = listings.map(l => l.id);
@@ -66,11 +68,16 @@ export function useMyListings() {
         }
       });
 
-      return listings.map(l => ({
-        ...l,
-        micro_name: microMap.get(l.micro_id) ?? 'Service',
-        starting_price: priceMap.get(l.id) ?? null,
-      })) as MyListing[];
+      return listings.map(l => {
+        const micro = microMap.get(l.micro_id);
+        return {
+          ...l,
+          display_title_i18n: (l as any).display_title_i18n ?? null,
+          micro_name: micro?.name ?? 'Service',
+          micro_slug: micro?.slug ?? undefined,
+          starting_price: priceMap.get(l.id) ?? null,
+        };
+      }) as MyListing[];
     },
   });
 }

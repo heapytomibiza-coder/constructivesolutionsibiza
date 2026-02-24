@@ -92,7 +92,14 @@
     "servicesAdded": "Services added",
     "profileDetails": "Profile details",
     "publiclyVisible": "Publicly visible",
-    "addServicesHint": "Add services + complete your profile to appear in search results."
+    "addServicesHint": "Add services + complete your profile to appear in search results.",
+    "publish": "Publish",
+    "pause": "Pause",
+    "unpause": "Unpause",
+    "view": "View",
+    "noImage": "No image",
+    "fromPrice": "From {{price}} €",
+    "untitled": "Untitled"
   },
   "proProfile": {
     "title": "Professional Profile",
@@ -136,6 +143,8 @@
   "status": {
     "open": "Open",
     "draft": "Draft",
+    "live": "Live",
+    "paused": "Paused",
     "in_progress": "In Progress",
     "completed": "Completed"
   },
