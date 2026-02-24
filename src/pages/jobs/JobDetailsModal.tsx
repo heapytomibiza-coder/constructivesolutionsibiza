@@ -251,8 +251,8 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
           )}
         </div>
         <div className="space-y-1">
-          <div className="text-xl font-semibold leading-snug">{jobPack.title}</div>
-          {jobPack.teaser && <p className="text-sm text-muted-foreground">{jobPack.teaser}</p>}
+          <div className="text-xl font-semibold leading-snug">{getI18nField(jobPack.title, jobPack.titleI18n, contentLang)}</div>
+          {jobPack.teaser && <p className="text-sm text-muted-foreground">{getI18nField(jobPack.teaser, jobPack.teaserI18n, contentLang)}</p>}
           <div className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(jobPack.createdAt), { addSuffix: true, ...dateLocale })}
           </div>
