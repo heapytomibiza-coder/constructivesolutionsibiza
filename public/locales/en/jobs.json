@@ -97,7 +97,13 @@
     "completeSetup": "Complete setup to message",
     "loadingDetails": "Loading details…",
     "loadError": "Failed to load details: {{error}}",
-    "retry": "Retry"
+    "retry": "Retry",
+    "startConversationFailed": "Failed to start conversation",
+    "lightbox": {
+      "close": "Close",
+      "previous": "Previous",
+      "next": "Next"
+    }
   },
   "flags": {
     "emergency": "Emergency",

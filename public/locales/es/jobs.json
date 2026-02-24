@@ -97,7 +97,13 @@
     "completeSetup": "Completa la configuración para enviar mensajes",
     "loadingDetails": "Cargando detalles…",
     "loadError": "Error al cargar detalles: {{error}}",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "startConversationFailed": "No se pudo iniciar la conversación",
+    "lightbox": {
+      "close": "Cerrar",
+      "previous": "Anterior",
+      "next": "Siguiente"
+    }
   },
   "flags": {
     "emergency": "Emergencia",

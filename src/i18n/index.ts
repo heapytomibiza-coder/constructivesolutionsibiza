@@ -18,7 +18,7 @@ i18n
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.json",
       // Cache bust to ensure fresh translations after deployments
-      queryStringParams: { v: '2026022404' },
+      queryStringParams: { v: '2026022405' },
     },
     detection: {
       order: ["localStorage", "navigator"],
