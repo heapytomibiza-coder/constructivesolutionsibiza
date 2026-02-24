@@ -68,10 +68,10 @@ export function ReviewStep({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="font-medium">
-                {mainCategory || t('wizard:review.category', 'Category')}
+                {txCategory(mainCategory, t) || t('wizard:review.category', 'Category')}
               </Badge>
               {subcategory && (
-                <span className="text-sm text-muted-foreground">→ {subcategory}</span>
+                <span className="text-sm text-muted-foreground">→ {txSubcategory(subcategory, t)}</span>
               )}
             </div>
             <EditLink onClick={() => onEdit(WizardStep.Category)} label={editLabel} />
