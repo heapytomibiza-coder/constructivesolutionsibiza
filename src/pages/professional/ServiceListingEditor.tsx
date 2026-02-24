@@ -249,12 +249,12 @@ export default function ServiceListingEditor() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="desc">Short Description *</Label>
+              <Label htmlFor="desc">{t('listingEditor.shortDescription')} *</Label>
               <Textarea
                 id="desc"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Briefly describe your service (max 200 chars)"
+                placeholder={t('listingEditor.shortDescPlaceholder')}
                 maxLength={200}
                 rows={3}
               />
