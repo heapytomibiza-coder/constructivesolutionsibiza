@@ -191,7 +191,7 @@ export default function ServiceListingEditor() {
   if (!listing) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Listing not found</p>
+        <p className="text-muted-foreground">{t('listingEditor.notFound')}</p>
       </div>
     );
   }
