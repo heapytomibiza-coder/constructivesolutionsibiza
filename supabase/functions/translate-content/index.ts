@@ -19,9 +19,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-
+  let body: TranslateRequest = { entity: "jobs", id: "", fields: {} };
   try {
-    const body: TranslateRequest = await req.json();
+    body = await req.json();
     const { entity, id, fields } = body;
 
     if (!entity || !id || !fields || Object.keys(fields).length === 0) {
@@ -38,6 +38,13 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Mark as pending before starting (so "pending" only exists while actively processing)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    await supabase.from(entity).update({ translation_status: "pending" }).eq("id", id);
 
     // Combine all fields for language detection + translation
     const textsToTranslate = Object.entries(fields).filter(
@@ -116,10 +123,7 @@ Rules:
     const targetLang: Lang = sourceLang === "en" ? "es" : "en";
     const translations: Record<string, string> = parsed.translations ?? {};
 
-    // Build update payload
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Build update payload (supabase client already created above)
 
     const updatePayload: Record<string, unknown> = {
       source_lang: sourceLang,
@@ -179,6 +183,15 @@ Rules:
     );
   } catch (err) {
     console.error("translate-content error:", err);
+
+    // Best-effort: mark translation as failed so it doesn't stay pending
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const sb = createClient(supabaseUrl, supabaseKey);
+      await sb.from(body.entity).update({ translation_status: "failed" }).eq("id", body.id);
+    } catch (_) { /* ignore */ }
+
     return new Response(
       JSON.stringify({ error: (err as Error).message }),
       {
