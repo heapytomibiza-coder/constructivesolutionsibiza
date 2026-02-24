@@ -1,98 +1,83 @@
 
 
-## Plan: Debugging & Observability Toolkit
+## Plan: Fix Status Mismatch, Timing Labels, and Remaining Hardcoded Strings
 
-Add 4 features that turn "it's weird" into actionable evidence: a build stamp, a debug context store, a centralized error handler with visible toasts, and a "Report a Problem" button.
-
----
-
-### 1. Build Stamp Component
-
-**New file: `src/shared/components/layout/BuildStamp.tsx`**
-
-A tiny component that reads `VITE_APP_VERSION`, `VITE_GIT_SHA`, and `VITE_BUILD_TIME` from `import.meta.env` and renders them as a discreet line of text (e.g. `v0.1.0 · abc1234`). Defaults gracefully to "dev" / "local" when env vars are absent.
-
-**Edit: `src/shared/components/layout/PublicFooter.tsx`**
-
-Import `BuildStamp` and render it below the existing copyright line, inside the same footer container.
-
-**Edit: `src/vite-env.d.ts`**
-
-Extend the `ImportMetaEnv` interface to declare `VITE_APP_VERSION`, `VITE_GIT_SHA`, `VITE_BUILD_TIME` so TypeScript is happy.
+This batch addresses the 8 gotchas raised in the review. All changes are low-risk surface fixes.
 
 ---
 
-### 2. Debug Context Store
+### 1. Standardize job closure status to `cancelled`
 
-**New file: `src/lib/debugContext.ts`**
+The domain model (`src/domain/models.ts` line 77) defines the canonical status as `cancelled`. `ClientJobCard` already uses `cancelled`. `JobTicketDetail` incorrectly uses `closed`.
 
-A lightweight in-memory store (plain object, no React state) with two exports:
-- `setLastSupabaseError(err)` -- saves the most recent error object (message, code, details, hint)
-- `getDebugContext()` -- returns the current debug snapshot
-
-No dependencies, no React. Used by the error handler and the report button.
+**Edit: `src/pages/dashboard/client/JobTicketDetail.tsx`**
+- Line 43: Change STATUS_CONFIG key from `closed` to `cancelled` (keep the label as `t('jobTicket.closed')` since "Closed" is the user-facing term).
+- Line 115: Change `status: 'closed'` to `status: 'cancelled'`.
 
 ---
 
-### 3. Centralized Supabase Error Handler
+### 2. Fix hardcoded English in JobTicketDetail
 
-**New file: `src/lib/supabaseErrorHandler.ts`**
-
-Exports `handleSupabaseError(error, context?)` which:
-1. Calls `setLastSupabaseError(error)` to capture it
-2. Maps common error codes to user-friendly messages (PGRST301 = "Permission denied", 23505 = "Duplicate entry", etc.)
-3. Shows a Sonner `toast.error()` with the context label and mapped message
-4. Logs the full error to console for devs
-
-This does NOT replace existing error handling -- it's a utility teams can adopt incrementally. No existing files are modified for this; it's opt-in.
+**Edit: `src/pages/dashboard/client/JobTicketDetail.tsx`**
+- Line 230: Replace `Up to €${job.budget_max}` with a translated string using a new i18n key `jobTicket.budgetUpTo`.
+- Line 310: Replace raw `{invite.status}` with a translated invite status using new i18n keys under `jobTicket.inviteStatus`.
+- Line 217: The raw `job.start_timing` display should use the same timing translation keys already defined at `client.timing.*`.
 
 ---
 
-### 4. "Report a Problem" Button
+### 3. Translate timing labels on Tasker dashboard
 
-**New file: `src/shared/components/ReportProblemButton.tsx`**
-
-A small text-link button (styled with `text-xs text-muted-foreground`) that, when clicked:
-1. Assembles a JSON payload: current URL, build info, auth state (logged in, user ID, active role), browser/device info, current language, and `getDebugContext()` (last Supabase error)
-2. Copies it to clipboard via `navigator.clipboard.writeText()`
-3. Shows a Sonner success toast confirming it was copied
-
-Props: accepts `user` and `activeRole` from `useSession()`.
-
-**Edit: `src/shared/components/layout/PublicFooter.tsx`**
-
-Import `ReportProblemButton` and render it next to the copyright line. It reads session context to populate auth info. For unauthenticated users, auth fields show as null (still useful for route + build + browser).
+**Edit: `src/pages/dashboard/professional/ProDashboard.tsx`**
+- Line 311: Replace `job.start_timing.replace(/_/g, ' ')` with a translated lookup using the same `client.timing.*` keys (they're shared timing concepts, not role-specific).
 
 ---
 
-### 5. i18n Keys
+### 4. Add missing i18n keys
 
-**Edit: `public/locales/en/common.json`**
+**Edit: `public/locales/en/dashboard.json`**
+- Add `jobTicket.budgetUpTo`: `"Up to €{{max}}"`
+- Add `jobTicket.budgetFrom`: `"From €{{min}}"`
+- Add `jobTicket.inviteStatus.sent`: `"Sent"`
+- Add `jobTicket.inviteStatus.viewed`: `"Viewed"`
+- Add `jobTicket.inviteStatus.accepted`: `"Accepted"`
+- Add `jobTicket.inviteStatus.declined`: `"Declined"`
 
-Add under a `"debug"` namespace:
-- `"reportProblem"`: "Report a problem"
-- `"reportCopied"`: "Debug info copied to clipboard"
+**Edit: `public/locales/es/dashboard.json`**
+- Add `jobTicket.budgetUpTo`: `"Hasta €{{max}}"`
+- Add `jobTicket.budgetFrom`: `"Desde €{{min}}"`
+- Add `jobTicket.inviteStatus.sent`: `"Enviada"`
+- Add `jobTicket.inviteStatus.viewed`: `"Vista"`
+- Add `jobTicket.inviteStatus.accepted`: `"Aceptada"`
+- Add `jobTicket.inviteStatus.declined`: `"Rechazada"`
 
-**Edit: `public/locales/es/common.json`**
+---
 
-Add:
-- `"reportProblem"`: "Reportar un problema"
-- `"reportCopied"`: "Info de depuración copiada"
+### 5. Fix pluralization pattern for replies
+
+The JSON already has `replies_one` and `replies` (which acts as `replies_other`). The current `t()` call in `ClientJobCard` passes a default value string as second arg which can interfere with plural resolution.
+
+**Edit: `src/pages/dashboard/client/components/ClientJobCard.tsx`**
+- Change `t('client.replies', '{{count}} replies', { count: ... })` to `t('client.replies', { count: ... })` (remove the default value string so i18next plural resolution works correctly).
+
+---
+
+### 6. Bump i18n cache version
+
+**Edit: `src/i18n/index.ts`**
+- Increment queryStringParams version to force fresh translation fetch.
 
 ---
 
 ### Files Changed Summary
 
-| File | Action |
+| File | Change |
 |------|--------|
-| `src/vite-env.d.ts` | Edit -- add env type declarations |
-| `src/lib/debugContext.ts` | Create |
-| `src/lib/supabaseErrorHandler.ts` | Create |
-| `src/shared/components/layout/BuildStamp.tsx` | Create |
-| `src/shared/components/ReportProblemButton.tsx` | Create |
-| `src/shared/components/layout/PublicFooter.tsx` | Edit -- add BuildStamp + ReportProblemButton |
-| `public/locales/en/common.json` | Edit -- add debug keys |
-| `public/locales/es/common.json` | Edit -- add debug keys |
+| `src/pages/dashboard/client/JobTicketDetail.tsx` | Fix status to `cancelled`, translate budget/timing/invite labels |
+| `src/pages/dashboard/professional/ProDashboard.tsx` | Translate timing label |
+| `src/pages/dashboard/client/components/ClientJobCard.tsx` | Fix pluralization call |
+| `public/locales/en/dashboard.json` | Add budget + invite status keys |
+| `public/locales/es/dashboard.json` | Add budget + invite status keys |
+| `src/i18n/index.ts` | Bump cache version |
 
-No database changes. No edge function changes. No breaking changes to existing error handling.
+No database changes. No edge function changes. No breaking changes.
 
