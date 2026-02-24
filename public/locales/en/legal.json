@@ -1,0 +1,429 @@
+{
+  "shared": {
+    "company": "Constructive Solutions Ibiza",
+    "lastUpdated": "Last updated: {{date}}"
+  },
+
+  "privacy": {
+    "title": "Privacy Policy",
+    "date": "10 February 2026",
+    "intro": [
+      "{{company}} (\"we\", \"us\", or \"our\") operates a construction and trade services marketplace connecting property owners with qualified professionals in Ibiza. This Privacy Policy explains how we collect, use, and protect your personal information when you use our platform."
+    ],
+    "sections": [
+      {
+        "title": "1. Information We Collect",
+        "bullets": [
+          "Account information (name, email address, phone number)",
+          "Profile details you provide (business name, service areas, bio)",
+          "Job posting content (descriptions, photos, location preferences)",
+          "Messages exchanged through our platform",
+          "Usage data (pages visited, features used, device information)"
+        ]
+      },
+      {
+        "title": "2. How We Use Your Information",
+        "bullets": [
+          "To operate and improve the platform",
+          "To match clients with suitable professionals",
+          "To facilitate communication between users",
+          "To send service-related notifications",
+          "To ensure platform safety and prevent fraud",
+          "To comply with legal obligations"
+        ]
+      },
+      {
+        "title": "3. Data Sharing",
+        "paragraphs": [
+          "We do not sell your personal data. We share information only with: service providers who help us operate the platform, professionals or clients you choose to connect with, and authorities when required by law."
+        ]
+      },
+      {
+        "title": "4. Cookies & Analytics",
+        "paragraphs": [
+          "We use essential cookies for authentication and session management. We may use analytics tools to understand how users interact with the platform. You can manage cookie preferences through your browser settings."
+        ]
+      },
+      {
+        "title": "5. Your Rights",
+        "paragraphs": [
+          "You may request access to, correction of, or deletion of your personal data at any time. To exercise these rights, contact us through our <contactLink>contact page</contactLink>."
+        ]
+      },
+      {
+        "title": "6. Data Security",
+        "paragraphs": [
+          "We use industry-standard encryption and security measures to protect your data. However, no method of transmission over the internet is 100% secure."
+        ]
+      },
+      {
+        "title": "7. Contact",
+        "paragraphs": [
+          "For privacy-related questions, please reach out via our <contactLink>contact page</contactLink> or email us at <emailLink>{{email}}</emailLink>."
+        ]
+      }
+    ],
+    "email": "constructivesolutionsibiza@gmail.com"
+  },
+
+  "terms": {
+    "title": "Terms of Service",
+    "date": "19 February 2026",
+    "intro": [
+      "Welcome to {{company}}. By accessing or using our platform, you agree to be bound by these Terms of Service. If you do not agree, please do not use the platform."
+    ],
+    "sections": [
+      {
+        "title": "1. Platform Role",
+        "paragraphs": [
+          "{{company}} operates as a structured marketplace facilitating connections between clients (Askers) and construction professionals (Taskers).",
+          "We provide:"
+        ],
+        "bullets1": [
+          "Job posting infrastructure",
+          "Payment processing integration",
+          "A structured 28-day dispute facilitation process",
+          "Account governance and moderation"
+        ],
+        "paragraphs2": [
+          "We do not:"
+        ],
+        "bullets2": [
+          "Perform construction work",
+          "Supervise works",
+          "Enter into contracts on behalf of users",
+          "Guarantee workmanship outcomes"
+        ],
+        "paragraphs3": [
+          "All agreements are formed directly between the client (Asker) and the professional (Tasker)."
+        ]
+      },
+      {
+        "title": "2. User Accounts",
+        "bullets": [
+          "You must provide accurate and complete registration information.",
+          "You are responsible for maintaining the security of your account.",
+          "You must not share your login credentials with others.",
+          "You must be at least 18 years old to create an account."
+        ]
+      },
+      {
+        "title": "3. Posting Jobs",
+        "paragraphs": [
+          "Clients (Askers) may post job requests describing the work they need. Job descriptions must be accurate, lawful, and related to construction, property, or trade services. We reserve the right to remove listings that violate these terms."
+        ]
+      },
+      {
+        "title": "4. Professional Obligations",
+        "paragraphs": [
+          "Professionals (Taskers) listed on the platform represent that they have the necessary skills, qualifications, and where applicable, licences to perform the services they offer. Any agreements, pricing, and timelines are between the client (Asker) and professional (Tasker) directly."
+        ]
+      },
+      {
+        "title": "5. Payments",
+        "paragraphs": [
+          "Payments processed through the platform are facilitated via Stripe.",
+          "Pending funds may be held in accordance with platform rules and are subject to temporary freeze during active dispute review.",
+          "{{company}} does not guarantee recovery of funds already released prior to dispute initiation."
+        ]
+      },
+      {
+        "title": "6. Dispute Facilitation",
+        "paragraphs": [
+          "{{company}} provides a structured 28-day dispute facilitation framework as described in our Dispute Policy.",
+          "You can read the full policy here: <disputeLink>/dispute-policy</disputeLink>.",
+          "The platform may:"
+        ],
+        "bullets": [
+          "Review documentation",
+          "Summarise submitted evidence",
+          "Provide non-binding recommendations",
+          "Moderate communications"
+        ],
+        "paragraphs2": [
+          "The platform does not act as an arbitrator or legally binding adjudicator."
+        ]
+      },
+      {
+        "title": "7. Prohibited Conduct",
+        "bullets": [
+          "Posting false, misleading, or fraudulent content",
+          "Harassing, threatening, or abusing other users",
+          "Attempting to circumvent platform security measures",
+          "Using the platform for services unrelated to construction and trades",
+          "Spamming or sending unsolicited promotional messages"
+        ]
+      },
+      {
+        "title": "8. Standards & Suspension",
+        "paragraphs": [
+          "We reserve the right to suspend or remove accounts that:"
+        ],
+        "bullets": [
+          "Repeatedly deliver demonstrably substandard work",
+          "Engage in fraudulent behaviour",
+          "Abuse the dispute process",
+          "Withhold payment without documented justification"
+        ],
+        "paragraphs2": [
+          "Account removal decisions are made at the platform's discretion to maintain marketplace integrity."
+        ]
+      },
+      {
+        "title": "9. Limitation of Liability",
+        "paragraphs": [
+          "{{company}}'s liability is limited to platform functionality and governance.",
+          "We are not liable for:"
+        ],
+        "bullets": [
+          "Construction defects",
+          "Worksite injuries",
+          "Project delays",
+          "Contractual breaches between users"
+        ],
+        "paragraphs2": [
+          "Users remain solely responsible for their agreements and compliance with applicable laws."
+        ]
+      },
+      {
+        "title": "10. Modifications and Contact",
+        "paragraphs": [
+          "We may update these Terms from time to time. Continued use of the platform after changes constitutes acceptance of the updated Terms. Material changes will be communicated via email or platform notification.",
+          "If you have questions about these Terms, please reach out via our <contactLink>contact page</contactLink> or email us at <emailLink>{{email}}</emailLink>."
+        ]
+      }
+    ],
+    "email": "constructivesolutionsibiza@gmail.com"
+  },
+
+  "dispute": {
+    "title": "28-Day Fair Resolution & Payment Protection Policy",
+    "date": "19 February 2026",
+    "intro": "This policy applies to jobs arranged through {{company}} between clients (Askers) and professionals (Taskers).",
+    "sections": [
+      {
+        "title": "1. Purpose of This Policy",
+        "paragraphs": [
+          "{{company}} provides a structured and neutral dispute facilitation process for construction projects arranged through the platform.",
+          "This policy is designed to:"
+        ],
+        "bullets": [
+          "Protect client payments",
+          "Protect professional earnings",
+          "Encourage fair outcomes",
+          "Reduce escalation",
+          "Promote constructive resolution"
+        ],
+        "paragraphs2": [
+          "{{company}} does not perform construction work, supervise works, or act as a court or arbitrator. Our role is limited to platform-based facilitation and governance."
+        ]
+      },
+      {
+        "title": "2. Payment Protection Framework",
+        "paragraphs": [
+          "Payments processed through the platform are handled via Stripe's secure payment infrastructure.",
+          "Where funds are pending release:"
+        ],
+        "bullets": [
+          "Funds may be temporarily held or frozen in accordance with platform rules.",
+          "Funds are not released while an active dispute is under review.",
+          "Release of funds occurs only in accordance with agreed resolution terms."
+        ],
+        "paragraphs2": [
+          "{{company}} does not guarantee recovery of funds already released prior to a dispute."
+        ]
+      },
+      {
+        "title": "3. Pre-Dispute Communication Stage",
+        "paragraphs": [
+          "Before opening a formal dispute, parties are encouraged to:"
+        ],
+        "bullets": [
+          "Clarify expectations",
+          "Share updated photos or documentation",
+          "Confirm scope alignment",
+          "Attempt direct resolution"
+        ],
+        "paragraphs2": [
+          "A 24-hour cooling-off period is recommended before escalation.",
+          "Many misunderstandings resolve at this stage."
+        ]
+      },
+      {
+        "title": "4. The 28-Day Resolution Pathway",
+        "paragraphs": [
+          "All disputes follow a structured five-stage process."
+        ],
+        "stages": [
+          {
+            "title": "Stage 1 — Issue Notification (Days 1–3)",
+            "paragraphs": [
+              "Either party may submit a dispute including:"
+            ],
+            "bullets1": [
+              "Description of the issue",
+              "Original expectations or scope",
+              "Supporting documentation"
+            ],
+            "paragraphs2": [
+              "The platform confirms:"
+            ],
+            "bullets2": [
+              "Receipt of dispute",
+              "Payment status",
+              "Next procedural steps"
+            ],
+            "paragraphs3": [
+              "All pending funds remain protected during this stage."
+            ]
+          },
+          {
+            "title": "Stage 2 — Evidence Submission (Days 4–10)",
+            "paragraphs": [
+              "Both parties may submit:"
+            ],
+            "bullets1": [
+              "Photographs or videos",
+              "Plans, drawings, or specifications",
+              "Written communication",
+              "Invoices or receipts"
+            ],
+            "paragraphs2": [
+              "Evidence is submitted independently. The platform prepares a neutral factual summary outlining:"
+            ],
+            "bullets2": [
+              "Agreed facts",
+              "Disputed issues",
+              "Relevant scope references"
+            ],
+            "paragraphs3": [
+              "This summary is non-binding and provided solely for facilitation purposes."
+            ]
+          },
+          {
+            "title": "Stage 3 — Platform Review (Days 11–17)",
+            "paragraphs": [
+              "{{company}} reviews submitted documentation in relation to:"
+            ],
+            "bullets": [
+              "The documented scope of work",
+              "Communication records",
+              "Industry-standard expectations",
+              "Common construction variables in Ibiza (e.g., weather delays, material availability)"
+            ],
+            "paragraphs2": [
+              "Where appropriate, either party may request an independent third-party specialist review. Such review is optional and subject to availability and cost allocation agreement.",
+              "The platform may issue a non-binding recommendation to assist resolution."
+            ]
+          },
+          {
+            "title": "Stage 4 — Resolution Options (Days 18–24)",
+            "paragraphs": [
+              "Parties may agree to one of the following:"
+            ],
+            "bullets": [
+              "A. Corrective Work",
+              "B. Partial or Full Fund Release",
+              "C. Refund or Reallocation",
+              "D. Shared Responsibility Adjustment"
+            ],
+            "paragraphs2": [
+              "Any agreement must be confirmed in writing within the platform before fund release."
+            ]
+          },
+          {
+            "title": "Stage 5 — Finalisation (Days 25–28)",
+            "paragraphs": [
+              "Upon mutual confirmation:"
+            ],
+            "bullets": [
+              "Funds are released in accordance with the agreed outcome",
+              "The dispute is formally closed"
+            ],
+            "paragraphs2": [
+              "A limited procedural review may be requested within five (5) days only where new material evidence becomes available."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "5. Participation Requirements",
+        "paragraphs": [
+          "To maintain efficiency:"
+        ],
+        "bullets": [
+          "Parties are expected to respond within 48 hours to platform requests",
+          "After 72 hours of non-response, the platform may proceed based on available information"
+        ],
+        "paragraphs2": [
+          "Non-response does not automatically determine outcome but may limit that party's contribution."
+        ]
+      },
+      {
+        "title": "6. Professional Reputation Protection",
+        "paragraphs": [
+          "Where a dispute is resolved in favour of the professional (Tasker):"
+        ],
+        "bullets": [
+          "Reviews directly contradicting documented findings may be moderated",
+          "Repeated unfounded disputes by clients (Askers) may result in warnings or suspension"
+        ],
+        "paragraphs2": [
+          "Completion metrics are not penalised for unsubstantiated claims."
+        ]
+      },
+      {
+        "title": "7. Client Protection",
+        "paragraphs": [
+          "Clients (Askers) are protected through:"
+        ],
+        "bullets": [
+          "Documented review rights",
+          "Payment protection during disputes",
+          "Structured evidence submission",
+          "Transparent procedural steps"
+        ],
+        "paragraphs2": [
+          "No pending funds are released during active dispute review."
+        ]
+      },
+      {
+        "title": "8. Construction Reality Guidance",
+        "paragraphs": [
+          "Users are reminded that normal construction variables may include:"
+        ],
+        "bullets": [
+          "Minor colour or material variations",
+          "Weather-related delays",
+          "Supply chain disruptions",
+          "Settlement cracks after plastering"
+        ],
+        "paragraphs2": [
+          "These factors are considered during review."
+        ]
+      },
+      {
+        "title": "9. Platform Role Clarification",
+        "paragraphs": [
+          "{{company}}:"
+        ],
+        "bullets": [
+          "Does not act as a court or arbitrator",
+          "Does not provide legal advice",
+          "Does not certify construction quality",
+          "Does not supervise works"
+        ],
+        "paragraphs2": [
+          "All contractual responsibility remains between client and professional.",
+          "Platform recommendations are non-binding unless mutually accepted."
+        ]
+      },
+      {
+        "title": "10. Objective",
+        "paragraphs": [
+          "The objective of this framework is not to assign blame, but to provide a fair, structured, and transparent pathway toward resolution."
+        ]
+      }
+    ]
+  }
+}
