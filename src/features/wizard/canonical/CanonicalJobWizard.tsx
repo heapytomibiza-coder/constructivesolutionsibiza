@@ -1051,6 +1051,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               isAuthenticated={isAuthenticated}
             />
           )}
+            </>
+          )}
         </CardContent>
       </Card>
 
