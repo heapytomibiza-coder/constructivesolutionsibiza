@@ -110,11 +110,11 @@ export default function ServiceListingEditor() {
         if (gallery.length < 3) {
           setGallery(prev => [...prev, publicUrl]);
         } else {
-          toast.error('Maximum 3 gallery images');
+          toast.error(t('listingEditor.maxGallery'));
         }
       }
     } catch (err) {
-      toast.error('Upload failed');
+      toast.error(t('listingEditor.uploadFailed'));
     } finally {
       setUploading(false);
       e.target.value = '';
