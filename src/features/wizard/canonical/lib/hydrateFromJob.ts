@@ -37,7 +37,7 @@ export async function hydrateFromJob(jobId: string): Promise<{
 } | null> {
   const { data: job, error } = await supabase
     .from('jobs')
-    .select('id, title, category, subcategory, micro_slug, answers, status, user_id')
+    .select('id, title, category, subcategory, micro_slug, answers, status, user_id, is_custom_request')
     .eq('id', jobId)
     .single();
 
