@@ -226,10 +226,30 @@ function mapLocationToArea(location?: string, customLocation?: string): string |
 }
 
 /**
+ * Budget preset map — converts wizard keys to min/max values
+ */
+const BUDGET_PRESETS: Record<string, { min: number | null; max: number | null }> = {
+  under_500: { min: 0, max: 500 },
+  '500_1000': { min: 500, max: 1000 },
+  '1000_2500': { min: 1000, max: 2500 },
+  '2500_5000': { min: 2500, max: 5000 },
+  over_5000: { min: 5000, max: null },
+  need_quote: { min: null, max: null },
+};
+
+/**
  * Determine budget type from wizard input
  */
 function determineBudgetType(budgetRange?: string | null): string {
   if (!budgetRange) return 'tbd';
+  if (budgetRange === 'need_quote') return 'tbd';
+  const preset = BUDGET_PRESETS[budgetRange];
+  if (preset) {
+    const { min, max } = preset;
+    if (min != null && max != null && min !== max) return 'range';
+    if (min != null || max != null) return 'fixed';
+    return 'tbd';
+  }
   const { min, max } = parseBudgetRange(budgetRange);
   if (min !== null && max !== null && min !== max) return 'range';
   if (min !== null || max !== null) return 'fixed';
