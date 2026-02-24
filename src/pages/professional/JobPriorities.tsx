@@ -163,7 +163,7 @@ export default function JobPriorities() {
                 {showSaved && (
                   <Badge variant="secondary" className="bg-primary/15 text-primary animate-fade-in text-sm">
                     <Check className="h-4 w-4 mr-1" />
-                    Saved
+                    {t('priorities.saved')}
                   </Badge>
                 )}
               </div>
