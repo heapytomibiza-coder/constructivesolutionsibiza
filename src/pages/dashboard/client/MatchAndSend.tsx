@@ -173,14 +173,14 @@ export default function MatchAndSend() {
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
-                No matching professionals found yet. Try posting to the job board instead.
+                {t('matchAndSend.noMatch')}
               </p>
               <Button
                 variant="outline"
                 className="mt-4"
                 onClick={() => navigate(`/dashboard/jobs/${jobId}`)}
               >
-                Back to Job
+                {t('matchAndSend.backToJob')}
               </Button>
             </CardContent>
           </Card>
