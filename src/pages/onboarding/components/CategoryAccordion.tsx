@@ -5,9 +5,12 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ChevronRight, Check } from 'lucide-react';
 import { getCategoryIconByName } from '@/lib/categoryIcons';
+import { txCategory, txSubcategory } from '@/i18n/taxonomyTranslations';
+import { SUBCATEGORY_KEYS } from '@/i18n/taxonomyTranslations';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MicroToggleTile } from './MicroToggleTile';

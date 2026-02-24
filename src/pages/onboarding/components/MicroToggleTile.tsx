@@ -51,7 +51,7 @@ export function MicroToggleTile({
         isSelected && 'border-primary bg-primary/15 shadow-md'
       )}
     >
-      <span className="flex-1 truncate pr-3">{micro.name}</span>
+      <span className="flex-1 truncate pr-3">{txMicro(micro.slug, t, micro.name)}</span>
       
       {/* Slot for edit-mode preference pill etc */}
       {rightAccessory ? (
