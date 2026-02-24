@@ -86,6 +86,12 @@ export interface JobPack {
   flags: string[];
   inspectionBias: string | null;
   safety: string | null;
+  
+  // i18n translations
+  sourceLang: string | null;
+  titleI18n: Record<string, string> | null;
+  teaserI18n: Record<string, string> | null;
+  descriptionI18n: Record<string, string> | null;
 }
 
 /** Optional translation function passed from React callers */
