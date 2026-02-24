@@ -252,7 +252,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
               onClick={() => setShowCompletionModal(true)}
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Complete
+              {t('client.complete')}
             </Button>
           )}
           <Button variant="outline" size="sm" asChild>
