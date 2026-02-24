@@ -36,11 +36,12 @@ export function ReviewStep({
   onEdit,
   isAuthenticated,
 }: ReviewStepProps) {
-  const { t } = useTranslation(['wizard', 'jobs']);
+  const { t } = useTranslation(['wizard', 'jobs', 'common', 'micros']);
   const {
     mainCategory,
     subcategory,
     microNames,
+    microSlugs,
     logistics,
     extras,
   } = wizardState;
