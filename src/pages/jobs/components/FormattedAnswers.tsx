@@ -32,19 +32,23 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
 
   /** Translate an answer value using rawValue (snake_case DB key) first, falling back to displayValue */
   const translateValue = (rawValue: string | string[], displayValue: string): string => {
+    // Try key, then lowercase fallback
+    const tryTranslate = (v: string): string => {
+      const byExact = t(`options.${v}`, { defaultValue: '' });
+      if (byExact) return byExact;
+      const byLower = t(`options.${v.toLowerCase()}`, { defaultValue: '' });
+      return byLower || '';
+    };
     // Handle arrays (checkbox answers)
     if (Array.isArray(rawValue)) {
-      return rawValue.map(v => {
-        const translated = t(`options.${v}`, { defaultValue: '' });
-        return translated || v;
-      }).join(', ');
+      return rawValue.map(v => tryTranslate(v) || v).join(', ');
     }
     // Single value — look up by raw snake_case key
-    const byRaw = t(`options.${rawValue}`, { defaultValue: '' });
+    const byRaw = tryTranslate(rawValue);
     if (byRaw) return byRaw;
     // Fallback to normalized displayValue
     const key = norm(displayValue);
-    const byDisplay = t(`options.${key}`, { defaultValue: '' });
+    const byDisplay = tryTranslate(key);
     return byDisplay || displayValue;
   };
 

@@ -60,7 +60,8 @@
     "selectAll": "Select all that apply",
     "continueToNext": "Continue to next step",
     "uploadsAfterPost": "(uploads after job is posted)",
-    "selectedFiles": "Selected: {{files}}"
+    "selectedFiles": "Selected: {{files}}",
+    "dedupNote": "We've combined overlapping questions so you only answer once."
   },
   "logistics": {
     "whereTitle": "Where is the work?",
