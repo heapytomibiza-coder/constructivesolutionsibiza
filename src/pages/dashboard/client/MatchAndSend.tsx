@@ -228,7 +228,7 @@ export default function MatchAndSend() {
                           size="sm"
                           onClick={() => setSelectedProId(pro.user_id)}
                         >
-                          View Profile
+                          {t('matchAndSend.viewProfile')}
                         </Button>
                         
                         {isInvited ? (
