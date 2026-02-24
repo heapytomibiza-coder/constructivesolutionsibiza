@@ -228,7 +228,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         {/* Status message for open jobs */}
         {job.status === 'open' && !job.assigned_professional_id && (
           <p className="text-xs text-muted-foreground mb-3">
-            No professionals have messaged yet
+            {t('client.noProMessaged')}
           </p>
         )}
         
