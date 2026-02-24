@@ -238,16 +238,18 @@ function PriorityRow({
   name,
   currentPref,
   onChange,
+  options,
 }: {
   name: string;
   currentPref: Preference;
   onChange: (pref: Preference) => void;
+  options: ReturnType<typeof usePriorityOptions>;
 }) {
   return (
     <div className="flex items-center justify-between gap-3 py-2 px-1">
       <span className="text-base font-medium text-foreground flex-1 min-w-0 truncate">{name}</span>
       <div className="flex gap-1.5 shrink-0">
-        {PRIORITY_OPTIONS.map((opt) => {
+        {options.map((opt) => {
           const Icon = opt.icon;
           const isActive = currentPref === opt.value;
           return (
