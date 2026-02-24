@@ -64,8 +64,11 @@ export default function SubcategorySelector({
   }
 
   const getSubcategoryLabel = (sub: Subcategory): string => {
-    const translated = t(`common:subcategories.${sub.slug}`, { defaultValue: '' });
-    return translated || sub.name;
+    const key = `common:subcategories.${sub.slug}`;
+    const translated = t(key, { defaultValue: '' });
+    if (translated && translated !== key) return translated;
+    // Humanize slug as fallback so new DB subcategories never show English DB name
+    return sub.slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   };
 
   const filtered = allowedSubcategoryIds

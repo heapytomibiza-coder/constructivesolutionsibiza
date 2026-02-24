@@ -134,19 +134,27 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
     return translated || label;
   };
 
+  /** Normalize an option value to a stable i18n key (snake_case, lowercase) */
+  const normalizeOptionKey = (v: string): string =>
+    v.trim().toLowerCase().replace(/[^\w]+/g, '_');
+
   /** Translate an option label using the questions namespace (value-first strategy) */
   const tOptionLabel = (opt: { value: string; label: string }): string => {
     const valueKey = norm(opt.value);
-    const labelKey = norm(opt.label);
-    // Try exact value key first, then lowercase, then label key, then lowercase label
+    const normalizedKey = normalizeOptionKey(opt.value);
+    // Try exact value key, then normalized snake_case key
     const byValue = t(`questions:options.${valueKey}`, { defaultValue: '' });
     if (byValue) return byValue;
-    const byValueLower = t(`questions:options.${valueKey.toLowerCase()}`, { defaultValue: '' });
-    if (byValueLower) return byValueLower;
+    if (normalizedKey !== valueKey) {
+      const byNorm = t(`questions:options.${normalizedKey}`, { defaultValue: '' });
+      if (byNorm) return byNorm;
+    }
+    // Fallback to label-based key
+    const labelKey = norm(opt.label);
     const byLabel = t(`questions:options.${labelKey}`, { defaultValue: '' });
     if (byLabel) return byLabel;
-    const byLabelLower = t(`questions:options.${labelKey.toLowerCase()}`, { defaultValue: '' });
-    return byLabelLower || opt.label;
+    const byLabelNorm = t(`questions:options.${normalizeOptionKey(opt.label)}`, { defaultValue: '' });
+    return byLabelNorm || opt.label;
   };
   const [packs, setPacks] = useState<QuestionPack[]>([]);
   const [loading, setLoading] = useState(true);
