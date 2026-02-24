@@ -438,7 +438,7 @@ function PricingItemRow({
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Input
-          placeholder="Item label"
+          placeholder={t('listingEditor.itemLabelPlaceholder')}
           value={label}
           onChange={e => { setLabel(e.target.value); markDirty(); }}
           onBlur={handleBlur}
