@@ -101,7 +101,7 @@ export function JobFiltersPanel({
                   }))
                 }
               >
-                {c}
+                {txCategory(c, t)}
               </Button>
             );
           })}
