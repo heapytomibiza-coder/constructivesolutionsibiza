@@ -430,8 +430,8 @@ export function validateWizardState(state: WizardState): { valid: boolean; error
   }
 
   // Step 5 required fields (single source of truth)
-  const step5 = isStep5Complete(state.logistics);
-  const step5 = isStep5Complete(state.logistics);
+  const logisticsCheck = isStep5Complete(state.logistics);
+  errors.push(...logisticsCheck.errors);
   errors.push(...step5.errors);
 
   // Custom location validation
