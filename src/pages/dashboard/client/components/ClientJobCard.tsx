@@ -215,7 +215,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         <p className="text-sm text-muted-foreground mb-3">
           {job.category && job.subcategory 
             ? `${job.category} → ${job.subcategory}` 
-            : 'Uncategorized'}
+            : t('client.uncategorized')}
         </p>
         
         {/* Status message for saved jobs */}
