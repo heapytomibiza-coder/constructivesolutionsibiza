@@ -188,7 +188,7 @@ export function JobDetailsModal({
           ) : isError ? (
             <div className="space-y-3">
               <div className="text-sm text-destructive">
-                {t('detail.loadError', { error: (error as Error)?.message ?? "Unknown error" })}
+                {t('detail.loadError', { error: (error as Error)?.message ?? t('detail.unknownError') })}
               </div>
               <Button variant="outline" onClick={() => refetch()}>
                 {t('detail.retry')}
