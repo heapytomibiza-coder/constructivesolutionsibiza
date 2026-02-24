@@ -68,11 +68,16 @@ export function useMyListings() {
         }
       });
 
-      return listings.map(l => ({
-        ...l,
-        micro_name: microMap.get(l.micro_id) ?? 'Service',
-        starting_price: priceMap.get(l.id) ?? null,
-      })) as MyListing[];
+      return listings.map(l => {
+        const micro = microMap.get(l.micro_id);
+        return {
+          ...l,
+          display_title_i18n: (l as any).display_title_i18n ?? null,
+          micro_name: micro?.name ?? 'Service',
+          micro_slug: micro?.slug ?? undefined,
+          starting_price: priceMap.get(l.id) ?? null,
+        };
+      }) as MyListing[];
     },
   });
 }
