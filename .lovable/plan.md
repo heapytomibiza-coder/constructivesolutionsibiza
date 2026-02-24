@@ -1,71 +1,107 @@
 
 
-# Spanish Translation Audit — Findings and Fix Plan
+# Spanish Translation Audit — Remaining Hardcoded English
 
-## Issues Found
+## Current Status
 
-### 1. Footer: "Dispute Policy" hardcoded in English
-**File:** `src/shared/components/layout/PublicFooter.tsx` line 45
-**Problem:** The link text `Dispute Policy` is a raw string, not using `t()`.
-**Fix:** Add `footer.disputePolicy` key to both locale files and use `t('footer.disputePolicy')`.
+The **public-facing pages** (Homepage, How It Works, About, Contact, Jobs Board, Privacy, Terms, Dispute Policy) are now fully translated. The recent work fixed the legal pages, job board, and wizard renderer.
 
-### 2. How It Works: "Why this matters" hardcoded in English
-**File:** `src/pages/public/HowItWorks.tsx` line 301
-**Problem:** The label `Why this matters` in every StepCard is a raw string.
-**Fix:** Add `howItWorks.whyThisMatters` key to both locale files and use `t('howItWorks.whyThisMatters')`. The `StepCard` component needs access to the `t` function (pass it as a prop or use `useTranslation` inside the component).
+However, a significant number of **authenticated/internal pages** still have zero or partial i18n coverage. These pages were never wired up with `useTranslation` at all, so every string is hardcoded English.
 
-### 3. Privacy Policy page — entirely hardcoded English
-**File:** `src/pages/public/Privacy.tsx`
-**Problem:** The entire page (title, date, all 7 sections) is raw English strings with zero `t()` calls. Unlike Terms and Dispute Policy (which have a comment saying "Legal pages are intentionally hardcoded in English for precision"), the Privacy page has no such note and should follow the same pattern as the others OR be translated.
-**Decision needed:** Are legal pages (Privacy, Terms, Dispute Policy) intentionally English-only? If yes, no change needed for these three. If they should be bilingual, all three need full translation.
+## Scope of Remaining Work
 
-### 4. Terms of Service page — entirely hardcoded English
-**File:** `src/pages/public/Terms.tsx`
-**Same situation as Privacy.** Also references "Dispute Policy" as hardcoded text on line 87.
+### Tier 1 — User-Facing (High Priority)
 
-### 5. Dispute Policy page — entirely hardcoded English
-**File:** `src/pages/public/DisputePolicy.tsx`
-**Same situation.** Has a comment on line 3: `// NOTE: Legal pages are intentionally hardcoded in English for precision.`
+These pages are seen by every authenticated user:
 
-### 6. Admin DrilldownTable — "No results" / "Showing X–Y" hardcoded
-**File:** `src/pages/admin/components/DrilldownTable.tsx` line 86-87
-**Low priority** — admin-only page, but still English when in ES mode.
+**1. PostJob.tsx** — "Cancel" button (1 string)
+- Line 46: `Cancel` → needs `t('wizard:buttons.cancel')`
 
----
+**2. CanonicalJobWizard.tsx** — 3 hardcoded strings
+- Line 736: `'Job posted! View it on the job board.'` toast
+- Line 968: `Get Matched` button label
+- Line 973: `Sign in & Get Matched` button label
 
-## What's Already Working Well
-- Homepage: fully translated
-- Nav and footer links (except "Dispute Policy"): translated
-- How It Works page: all content translated (except "Why this matters" label)
-- About page: fully translated
-- Auth page: fully translated
-- Contact page: fully translated
-- Categories and subcategories: fully translated
-- Search bar, trust badges, CTAs: all translated
+**3. Settings.tsx** — Entire page (~30+ strings, zero `useTranslation`)
+- "Settings", "Account", "Your account information", "Email", "Not available"
+- "Current Mode", "Tasker", "Asker", `Switched to ${label} mode`
+- "Admin Panel", "Security", "Change your password", "New password", "Min. 6 characters"
+- "Confirm password", "Re-enter password", "Updating…", "Update Password"
+- "Notifications", "Control which emails you receive", "New messages", "Job matches"
+- "Email digest", "Receive a summary of activity", "Digest frequency", "Daily", "Weekly"
+- "Sign Out"
 
----
+**4. Messages pages** — Zero `useTranslation` across all 3 files
+- `ConversationList.tsx`: "Search conversations…", "No conversations yet", "No matching conversations", "Start by posting a job…"
+- `ConversationThread.tsx`: "No messages yet. Start the conversation!", "Type a message…", "Send"
+- `Messages.tsx`: "Messages", "Select a conversation", layout text
+
+**5. Onboarding pages** — Zero `useTranslation` (6+ files)
+- `ProfessionalOnboarding.tsx` and all step components
+- `ServiceUnlockStep.tsx`: "No jobs selected yet", "You've picked X jobs", "No jobs found for..."
+- `BasicInfoStep.tsx`, `ReviewStep.tsx`, `ServiceAreaStep.tsx`
+
+### Tier 2 — Role-Specific (Medium Priority)
+
+**6. Professional pages** — Partial i18n (some files have it, some don't)
+- `JobPriorities.tsx`: "Choose Your Jobs", "No job types unlocked yet"
+- `ServiceListingEditor.tsx`: "No pricing items yet", many form labels
+
+**7. Dashboard pages** — `ClientDashboard.tsx` has `useTranslation` but several child components don't:
+- `ClientJobCard.tsx`: "Cancel" in AlertDialog
+- `ProProfileDrawer.tsx`: likely hardcoded
+- `MatchAndSend.tsx`: likely hardcoded
+
+**8. Forum pages** — Partial (some translated, some not)
+- `ForumNewPost.tsx`: form buttons/labels
+- `ForumPost.tsx`: reply form
+
+### Tier 3 — Admin-Only (Low Priority)
+
+Admin pages (DrilldownTable, UserDetailDrawer, JobDetailDrawer, SupportInbox, all insights pages) — all hardcoded English. Since these are internal tools, they can wait.
 
 ## Implementation Plan
 
-### Quick wins (code changes only)
+### Phase 1: Fix the 4 quick strings in wizard/post (5 min)
+- Add `cancel`, `getMatched`, `signInGetMatched` to `wizard` namespace (EN + ES)
+- Add `toasts.postSuccess` key
+- Update `PostJob.tsx` line 46 and `CanonicalJobWizard.tsx` lines 736, 968, 973
 
-**A. PublicFooter.tsx — add `t()` for Dispute Policy link**
-- Add `"disputePolicy": "Dispute Policy"` to `public/locales/en/common.json` under `footer`
-- Add `"disputePolicy": "Política de Disputas"` to `public/locales/es/common.json` under `footer`
-- Replace hardcoded string with `{t('footer.disputePolicy')}`
+### Phase 2: Settings page (create `settings` namespace)
+- Create `public/locales/en/settings.json` and `es/settings.json` with ~35 keys
+- Add `useTranslation('settings')` to Settings.tsx
+- Replace all hardcoded strings
 
-**B. HowItWorks.tsx — translate "Why this matters"**
-- Add `"whyThisMatters": "Why this matters"` to `public/locales/en/common.json` under `howItWorks`
-- Add `"whyThisMatters": "Por qué es importante"` to `public/locales/es/common.json` under `howItWorks`
-- Add `useTranslation` inside the `StepCard` component (or pass `t` as a prop) and replace the hardcoded string
+### Phase 3: Messages pages (create `messages` namespace)
+- Create `public/locales/en/messages.json` and `es/messages.json`
+- Wire up `useTranslation` in ConversationList, ConversationThread, Messages
+- Already have a `public/locales/en/dashboard.json` with some message-related keys — check for reuse
 
-### Decision required: Legal pages
+### Phase 4: Onboarding pages (expand `onboarding` namespace)
+- The `onboarding` namespace already exists with some keys
+- Add missing keys for all step components
+- Wire up `useTranslation` in ProfessionalOnboarding and all steps
 
-The three legal pages (Privacy, Terms, Dispute Policy) are **all** hardcoded English. The Dispute Policy file has an explicit comment saying this is intentional. The question is whether you want them bilingual or English-only.
+### Phase 5: Professional + Dashboard child components
+- Expand `dashboard` namespace for remaining components
+- Fix `ClientJobCard.tsx` "Cancel" and similar
 
-- **If English-only is fine:** No changes needed for these three pages. Just fix the footer link label (item A above).
-- **If bilingual:** Each page needs a full Spanish translation added to locale files and the components rewritten to use `t()`. This is ~100+ translation keys across the three pages.
+### Each phase follows the same pattern:
+1. Add EN keys (extract from current hardcoded strings)
+2. Add ES translations
+3. Add `useTranslation` import + replace strings
+4. Bump cache version
 
-### Bump cache version
-After changes, bump `queryStringParams: { v: '...' }` in `src/i18n/index.ts`.
+## Estimated Effort
+
+| Phase | Files | Keys | Priority |
+|-------|-------|------|----------|
+| 1. Wizard quick fixes | 2 | 4 | Immediate |
+| 2. Settings | 1 | ~35 | High |
+| 3. Messages | 3 | ~20 | High |
+| 4. Onboarding | 6 | ~40 | Medium |
+| 5. Pro + Dashboard | 5+ | ~30 | Medium |
+| 6. Admin (optional) | 15+ | ~80 | Low |
+
+I recommend starting with Phases 1-3 (wizard fixes + Settings + Messages) as these are the pages most users see daily.
 
