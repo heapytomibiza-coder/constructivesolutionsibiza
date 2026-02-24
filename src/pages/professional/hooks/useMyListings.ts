@@ -34,7 +34,7 @@ export function useMyListings() {
       const { data: listings, error } = await supabase
         .from('service_listings')
         .select(`
-          id, micro_id, display_title, short_description, hero_image_url,
+          id, micro_id, display_title, display_title_i18n, short_description, hero_image_url,
           status, location_base, pricing_summary, view_count, published_at,
           created_at, updated_at
         `)
