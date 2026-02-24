@@ -204,7 +204,7 @@ export default function ServiceListingEditor() {
             <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
               <Link to="/professional/listings"><ArrowLeft className="h-4 w-4" /></Link>
             </Button>
-            <h1 className="font-display text-lg font-semibold truncate">Edit Listing</h1>
+            <h1 className="font-display text-lg font-semibold truncate">{t('listingEditor.editListing')}</h1>
           </div>
           <div className="flex items-center gap-2">
             <Button
