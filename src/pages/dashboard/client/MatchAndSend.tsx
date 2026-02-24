@@ -143,7 +143,7 @@ export default function MatchAndSend() {
                 <MapPin className="h-3 w-3" /> {area}
               </span>
               <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" /> {job.start_timing || 'Flexible'}
+                <Calendar className="h-3 w-3" /> {job.start_timing || t('matchAndSend.flexible')}
               </span>
               {(job.budget_min || job.budget_max) && (
                 <span className="flex items-center gap-1">
