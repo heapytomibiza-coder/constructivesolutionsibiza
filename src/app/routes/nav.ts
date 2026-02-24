@@ -9,7 +9,7 @@ import type { NavSection, RouteConfig, AccessRule } from './rules';
 import { getNavBySection } from './match';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
 import { isRolloutActive } from '@/domain/rollout';
-import { isAdminEmail } from '@/domain/adminAllowlist';
+
 
 /**
  * Section render order for nav menus
@@ -117,8 +117,8 @@ function checkAccess(access: AccessRule, ctx: {
       return isAuthenticated && roles.includes('professional');
     case 'proReady':
       return isAuthenticated && roles.includes('professional');
-    case 'admin2FA':
-      return isAuthenticated && roles.includes('admin') && isAdminEmail(userEmail);
+    case 'admin':
+      return isAuthenticated && roles.includes('admin');
     default:
       return false;
   }

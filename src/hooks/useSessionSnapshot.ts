@@ -190,12 +190,10 @@ export function useSessionSnapshot(): SessionSnapshot {
     }
 
     try {
-      const { error: updateError } = await supabase
-        .from('user_roles')
-        .update({ active_role: newRole })
-        .eq('user_id', user.id);
+      const { error: rpcError } = await supabase
+        .rpc('switch_active_role', { p_new_role: newRole });
 
-      if (updateError) throw updateError;
+      if (rpcError) throw rpcError;
 
       setActiveRole(newRole);
     } catch (err) {

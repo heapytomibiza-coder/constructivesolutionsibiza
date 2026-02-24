@@ -10,7 +10,7 @@
  * - role:client: Requires client role
  * - role:professional: Requires professional role
  * - proReady: Professional with verified + onboarding complete + active service
- * - admin2FA: Admin role with 2FA verified
+ * - admin: Admin role (DB-level is_admin_email() enforces real security)
  */
 
 export type AccessRule =
@@ -19,7 +19,7 @@ export type AccessRule =
   | 'role:client'
   | 'role:professional'
   | 'proReady'
-  | 'admin2FA';
+  | 'admin';
 
 /**
  * Lane = "clear pathways" + "where they meet"
