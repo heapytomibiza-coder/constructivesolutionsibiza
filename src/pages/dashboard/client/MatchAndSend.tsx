@@ -216,7 +216,7 @@ export default function MatchAndSend() {
                           )}
                           {pro.coverage > 0 && (
                             <Badge variant="outline" className="text-xs">
-                              {Math.round(pro.coverage * 100)}% match
+                              {t('matchAndSend.match', { percent: Math.round(pro.coverage * 100) })}
                             </Badge>
                           )}
                         </div>
