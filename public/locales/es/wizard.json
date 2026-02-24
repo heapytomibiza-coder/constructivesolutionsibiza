@@ -127,5 +127,24 @@
   "scope": {
     "showingServicesFor": "Mostrando servicios ofrecidos por {{name}}",
     "noServices": "Este profesional aún no ha configurado sus servicios"
+  },
+  "review": {
+    "edit": "Editar",
+    "category": "Categoría",
+    "whatYouNeed": "Lo que necesitas",
+    "noTasks": "No hay tareas seleccionadas",
+    "where": "Dónde",
+    "when": "Cuándo",
+    "budget": "Presupuesto",
+    "photosCount": "{{count}} foto",
+    "photosCount_plural": "{{count}} fotos",
+    "notesAdded": "Notas añadidas",
+    "noObligation": "No te comprometes a contratar a nadie",
+    "noObligationDesc": "Tu trabajo será emparejado con profesionales locales. Puedes editar, cancelar o ignorar respuestas en cualquier momento — sin compromiso.",
+    "authNotice": "Necesitarás iniciar sesión para guardar este trabajo. Tu progreso se guardará.",
+    "toBeDiscussed": "A discutir",
+    "notSpecified": "No especificado",
+    "customLocation": "Ubicación personalizada",
+    "startingDate": "A partir del {{date}}"
   }
 }
