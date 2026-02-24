@@ -45,7 +45,7 @@ const PostJob = () => {
             </Link>
             
             <Button variant="ghost" asChild>
-              <Link to="/">Cancel</Link>
+              <Link to="/">{t('buttons.cancel')}</Link>
             </Button>
           </div>
         </nav>

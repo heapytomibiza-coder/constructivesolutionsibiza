@@ -965,12 +965,12 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               </>
             ) : isAuthenticated ? (
               <>
-                Get Matched
+                {t('buttons.getMatched')}
                 <ArrowRight className="h-4 w-4" />
               </>
             ) : (
               <>
-                Sign in & Get Matched
+                {t('buttons.signInGetMatched')}
                 <ArrowRight className="h-4 w-4" />
               </>
             )}

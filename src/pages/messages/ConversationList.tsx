@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useConversations, type Conversation } from "./hooks";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ interface ConversationListProps {
 }
 
 export function ConversationList({ userId, selectedId, onSelect }: ConversationListProps) {
+  const { t } = useTranslation('messages');
   const { data: conversations, isLoading, isError, error } = useConversations(userId);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -38,7 +40,7 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
   if (isError) {
     return (
       <div className="p-4 text-center text-sm text-destructive">
-        Failed to load conversations: {(error as Error)?.message ?? "Unknown error"}
+        {t('thread.loadFailed', { error: (error as Error)?.message ?? t('thread.unknownError') })}
       </div>
     );
   }
@@ -50,10 +52,10 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
           <MessageSquare className="h-6 w-6 text-muted-foreground" />
         </div>
         <p className="text-sm text-muted-foreground">
-          No conversations yet
+          {t('list.noConversations')}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Start by messaging a professional on a job
+          {t('list.noConversationsHint')}
         </p>
       </div>
     );
@@ -70,7 +72,7 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
             autoComplete="off"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search conversations..."
+            placeholder={t('list.searchPlaceholder')}
             className="pl-9"
           />
         </div>
@@ -79,7 +81,7 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
       {/* Conversation List */}
       {filteredConversations.length === 0 && searchQuery ? (
         <div className="py-8 px-4 text-center">
-          <p className="text-sm text-muted-foreground">No matching conversations</p>
+          <p className="text-sm text-muted-foreground">{t('list.noMatches')}</p>
         </div>
       ) : (
         <div className="divide-y divide-border">
@@ -109,9 +111,9 @@ function ConversationItem({
   isSelected: boolean;
   onClick: () => void;
 }) {
-  // Determine if current user is client or pro
+  const { t } = useTranslation('messages');
   const isClient = conversation.client_id === currentUserId;
-  const roleLabel = isClient ? "You're the client" : "You're responding";
+  const roleLabel = isClient ? t('list.youAreClient') : t('list.youAreResponding');
   const hasUnread = conversation.unread_count > 0 && !isSelected;
 
   return (
