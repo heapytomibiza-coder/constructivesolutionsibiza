@@ -234,7 +234,7 @@ export default function ServiceListingEditor() {
         {/* Listing Details */}
         <Card className="border-border/70">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Listing Details</CardTitle>
+            <CardTitle className="text-base">{t('listingEditor.listingDetails')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
