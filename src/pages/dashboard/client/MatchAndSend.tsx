@@ -234,7 +234,7 @@ export default function MatchAndSend() {
                         {isInvited ? (
                           <Button size="sm" variant="secondary" disabled className="gap-1.5">
                             <UserCheck className="h-3.5 w-3.5" />
-                            Invited
+                            {t('matchAndSend.invited')}
                           </Button>
                         ) : (
                           <Button
