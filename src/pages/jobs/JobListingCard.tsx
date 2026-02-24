@@ -83,6 +83,10 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
   };
 
   const formatHighlight = (highlight: string): string => {
+    // Strip leading emoji for matching
+    const stripped = highlight.replace(/^[\p{Emoji_Presentation}\p{Emoji}\uFE0F]+\s*/u, '').trim();
+
+    // Budget highlights
     const HIGHLIGHT_BUDGET: Record<string, string> = {
       'under_500': t('card.under500'),
       '500_1000': t('card.500_1000'),
@@ -91,15 +95,56 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
       'over_5000': t('card.over5000'),
       'need_quote': t('card.quoteNeeded'),
     };
-    const stripped = highlight.replace(/^[\p{Emoji_Presentation}\p{Emoji}\uFE0F]+\s*/u, '').trim();
     if (HIGHLIGHT_BUDGET[stripped]) return HIGHLIGHT_BUDGET[stripped];
     if (HIGHLIGHT_BUDGET[highlight]) return HIGHLIGHT_BUDGET[highlight];
+
+    // Timing highlights
+    const TIMING: Record<string, string> = {
+      'ASAP': t('board.asap'),
+      'This week': t('card.thisWeek'),
+      'This month': t('card.thisMonth'),
+    };
+    if (TIMING[stripped]) return TIMING[stripped];
+
+    // Access / logistics highlights
+    const ACCESS: Record<string, string> = {
+      'Site visit needed': t('card.siteVisitNeeded'),
+      'Video call available': t('card.videoCallAvailable'),
+      'Parking available': t('card.parkingAvailable'),
+      'Stairs only': t('card.stairsOnly'),
+      'Elevator access': t('card.elevatorAccess'),
+      'Gated property': t('card.gatedProperty'),
+      'Key pickup required': t('card.keyPickupRequired'),
+    };
+    if (ACCESS[stripped]) return ACCESS[stripped];
+
+    // Permits
+    if (stripped === 'Permits may be needed') return t('card.permitsMayBeNeeded');
+
+    // Photos: "2 photos" / "1 photo"
+    const photoMatch = stripped.match(/^(\d+)\s+photos?$/i);
+    if (photoMatch) return t('card.photosCount', { count: parseInt(photoMatch[1], 10) });
+
+    // Quantity: "Qty: 5"
+    const qtyMatch = stripped.match(/^Qty:\s*(\d+)$/i);
+    if (qtyMatch) return t('card.quantity', { count: parseInt(qtyMatch[1], 10) });
+
+    // Date highlights (already localized date strings, or "Start: date")
+    const startMatch = stripped.match(/^Start:\s*(.+)$/i);
+    if (startMatch) return t('card.start', { date: startMatch[1] });
+
+    // Budget range numeric patterns
     const budgetRangeMatch = stripped.match(/^(\d+)_(\d+)$/);
     if (budgetRangeMatch) {
       const min = parseInt(budgetRangeMatch[1], 10);
       const max = parseInt(budgetRangeMatch[2], 10);
       return `${min.toLocaleString()}–${max.toLocaleString()} €`;
     }
+
+    // Measurements (keep as-is)
+    if (/^\d+m²$/.test(stripped)) return highlight;
+
+    // Fallback: humanize underscored strings
     if (stripped.includes("_") && !stripped.includes(" ")) {
       return stripped.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
     }
