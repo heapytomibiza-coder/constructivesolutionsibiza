@@ -19,9 +19,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-
+  let body: TranslateRequest = { entity: "jobs", id: "", fields: {} };
   try {
-    const body: TranslateRequest = await req.json();
+    body = await req.json();
     const { entity, id, fields } = body;
 
     if (!entity || !id || !fields || Object.keys(fields).length === 0) {
