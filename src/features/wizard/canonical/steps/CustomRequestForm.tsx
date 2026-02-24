@@ -39,6 +39,7 @@ export function CustomRequestForm({
   onSubmit,
 }: CustomRequestFormProps) {
   const { t } = useTranslation('wizard');
+  const { t: tCommon } = useTranslation('common');
 
   // Fetch categories for dropdown
   const { data: categories = [] } = useQuery({
