@@ -1,9 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PLATFORM } from '@/domain/scope';
+import { BuildStamp } from '@/shared/components/layout/BuildStamp';
+import { ReportProblemButton } from '@/shared/components/ReportProblemButton';
+import { useSession } from '@/contexts/SessionContext';
 
 export function PublicFooter() {
   const { t } = useTranslation('common');
+  const { user, activeRole } = useSession();
 
   return (
     <footer className="border-t border-border bg-card py-12 mt-auto">
@@ -46,9 +50,15 @@ export function PublicFooter() {
             </Link>
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} {PLATFORM.name}
-          </p>
+          <div className="flex flex-col items-end gap-1">
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} {PLATFORM.name}
+            </p>
+            <div className="flex items-center gap-3">
+              <BuildStamp />
+              <ReportProblemButton userId={user?.id} activeRole={activeRole} />
+            </div>
+          </div>
         </div>
       </div>
     </footer>
