@@ -186,10 +186,10 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
     });
 
     if (result.success) {
-      toast.success('Thanks for your rating!');
+      toast.success(t('client.ratingSuccess'));
       setShowRatingModal(false);
     } else {
-      toast.error(result.error || 'Failed to submit rating');
+      toast.error(result.error || t('client.ratingFailed'));
     }
   };
 
