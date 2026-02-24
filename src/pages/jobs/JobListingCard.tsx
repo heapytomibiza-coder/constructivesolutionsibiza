@@ -89,14 +89,20 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
     // Strip leading emoji for matching
     const stripped = highlight.replace(/^[^\p{L}\p{N}]+/u, '').trim();
 
-    // Budget highlights
+    // Budget highlights (slug keys + display text variants)
     const HIGHLIGHT_BUDGET: Record<string, string> = {
       'under_500': t('card.under500'),
+      'Under 500 €': t('card.under500'),
       '500_1000': t('card.500_1000'),
+      '500–1,000 €': t('card.500_1000'),
       '1000_2500': t('card.1000_2500'),
+      '1,000–2,500 €': t('card.1000_2500'),
       '2500_5000': t('card.2500_5000'),
+      '2,500–5,000 €': t('card.2500_5000'),
       'over_5000': t('card.over5000'),
+      'Over 5,000 €': t('card.over5000'),
       'need_quote': t('card.quoteNeeded'),
+      'Quote needed': t('card.quoteNeeded'),
     };
     if (HIGHLIGHT_BUDGET[stripped]) return HIGHLIGHT_BUDGET[stripped];
     if (HIGHLIGHT_BUDGET[highlight]) return HIGHLIGHT_BUDGET[highlight];
