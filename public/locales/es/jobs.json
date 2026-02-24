@@ -102,7 +102,10 @@
   "flags": {
     "emergency": "Emergencia",
     "urgent": "Urgente",
-    "quoteSubjectToInspection": "Presupuesto sujeto a inspección"
+    "quoteSubjectToInspection": "Presupuesto sujeto a inspección",
+    "permitsMayBeNeeded": "Puede que se necesiten permisos",
+    "siteVisitNeeded": "Se necesita visita al sitio",
+    "clientHasPermitConcerns": "El cliente tiene dudas sobre permisos"
   },
   "wizard": {
     "stepCategory": "Categoría",
