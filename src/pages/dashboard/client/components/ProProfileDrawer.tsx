@@ -160,7 +160,7 @@ export default function ProProfileDrawer({
             {services.length > 0 && (
               <section>
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Services ({services.length})
+                  {t('proProfile.services', { count: services.length })}
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {services.map((s) => {
