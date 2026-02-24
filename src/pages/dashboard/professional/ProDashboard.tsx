@@ -24,10 +24,12 @@ import {
   Store
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { getDateLocale } from '@/lib/dateLocale';
 import { PendingReviewsCard } from '@/pages/dashboard/shared/components/PendingReviewsCard';
 import { cn } from '@/lib/utils';
 import { QuickActionTile } from '@/pages/dashboard/shared/components/QuickActionTile';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, DollarSign } from 'lucide-react';
+import { txCategory } from '@/i18n/taxonomyTranslations';
 
 /**
  * PROFESSIONAL DASHBOARD
