@@ -292,7 +292,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
             {jobPack.services.map((s) => (
               <li key={s.slug} className="flex items-start gap-2">
                 <span className="mt-1 text-primary/60">•</span>
-                <span>{s.title}</span>
+                <span>{txMicro(s.slug, t, s.title)}</span>
               </li>
             ))}
           </ul>
