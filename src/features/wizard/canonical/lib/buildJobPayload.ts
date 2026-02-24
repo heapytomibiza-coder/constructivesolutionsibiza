@@ -293,11 +293,9 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
       ? extras.notes.trim().slice(0, 200)
       : `${title} in ${area || 'Ibiza'}`;
 
-  // Full description
+  // Full description — store raw description only, specs kept in answers.custom
   const customDesc = isCustom && state.customRequest
-    ? (state.customRequest.specs?.trim()
-        ? `${state.customRequest.description}\n\nSpecific specs:\n${state.customRequest.specs}`
-        : state.customRequest.description)
+    ? state.customRequest.description
     : null;
 
   const description = customDesc
