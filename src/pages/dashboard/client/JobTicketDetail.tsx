@@ -112,7 +112,7 @@ export default function JobTicketDetail() {
     try {
       const { error } = await supabase
         .from('jobs')
-        .update({ status: 'closed' })
+        .update({ status: 'cancelled' })
         .eq('id', jobId);
       if (error) throw error;
       toast.success(t('jobTicket.jobClosed'));
