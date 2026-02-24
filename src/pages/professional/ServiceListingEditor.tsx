@@ -293,7 +293,7 @@ export default function ServiceListingEditor() {
 
             {/* Gallery */}
             <div className="space-y-2">
-              <Label>Gallery (up to 3)</Label>
+              <Label>{t('listingEditor.gallery')}</Label>
               <div className="grid grid-cols-3 gap-2">
                 {gallery.map((url, idx) => (
                   <div key={idx} className="relative aspect-square rounded-md overflow-hidden border border-border">
