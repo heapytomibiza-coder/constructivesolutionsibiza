@@ -466,6 +466,11 @@
     "ctaPost": "Publica Tu Proyecto",
     "ctaHow": "Descubre Cómo Funciona"
   },
+  "debug": {
+    "reportProblem": "Reportar un problema",
+    "reportCopied": "Info de depuración copiada",
+    "buildInfo": "Info de compilación"
+  },
   "universalSearch": {
     "placeholder": "¿Qué podemos ayudarte a encontrar?",
     "noResults": "Sin resultados para \"{{query}}\"",
