@@ -39,6 +39,7 @@ export function CustomRequestForm({
   onSubmit,
 }: CustomRequestFormProps) {
   const { t } = useTranslation('wizard');
+  const { t: tCommon } = useTranslation('common');
 
   // Fetch categories for dropdown
   const { data: categories = [] } = useQuery({
@@ -103,7 +104,7 @@ export function CustomRequestForm({
           <SelectContent>
             {categories.map(c => (
               <SelectItem key={c.id} value={c.id}>
-                {txCategory(c.name, t) || c.name}
+                {txCategory(c.name, tCommon) || c.name}
               </SelectItem>
             ))}
           </SelectContent>
