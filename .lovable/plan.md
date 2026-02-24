@@ -1,159 +1,154 @@
 
 
-# Final i18n Leak Fixes — buildJobPack + Status Prettifiers + Alt Text
+# Auto-Translation for User-Generated Content + buildJobPayload Highlights Fix
 
 ## Problem
 
-After all the component-level i18n work, there are still English strings leaking through because **the data layer itself produces English display strings**. Three root causes:
+Two distinct issues remain:
 
-### Root Cause 1: `buildJobPack.ts` produces hardcoded English
+### Issue 1: `buildJobPayload.ts` stores hardcoded English in the database
 
-This file generates all `.display` strings consumed by JobDetailsModal, JobListingCard, etc. It contains:
+The `buildHighlights()` function writes English strings directly into the `highlights` column:
+- `"⚡ ASAP"`, `"📅 This week"`, `"📅 This month"`
+- `"Under 500 €"`, `"Quote needed"`, etc.
+- `"🏠 Site visit needed"`, `"📹 Video call available"`
+- `"🅿️ Parking available"`, `"🪜 Stairs only"`, `"🔑 Key pickup required"`
+- `"📋 Permits may be needed"`
+- `"📸 2 photos"`
 
-- `BUDGET_DISPLAY` map: `"Under 500 €"`, `"Quote needed"`, `"To be discussed"` (line 92-99, 119)
-- `formatTiming()`: `"ASAP"`, `"This week"`, `"This month"`, `"Flexible"`, `"Specific: ..."`, `"Start: ..."` (lines 125-135)
-- `formatLocationDisplay()`: `"Custom location"`, fallback `"Ibiza"` (lines 140-167)
+These are **stored in the DB** and displayed on cards. Since `buildHighlights` runs server-side at insert time (no React context), it cannot use `useTranslation`. The `JobListingCard` already has `formatHighlight()` that translates budget ranges, but the other highlight types (timing, access, permits, photos) still leak English.
 
-Since `buildJobPack` is a pure utility (no React hooks), it cannot call `useTranslation`. Two options:
-1. **Pass a `t` function in** — cleanest, used elsewhere in the codebase
-2. **Return enum keys instead of display strings, translate at render time** — more structural change
+**Fix**: Store only data keys in highlights (e.g. `"timing:asap"`, `"access:parking"`, `"permits:concern"`), then translate at render time in `formatHighlight()`. This is a breaking change for existing stored highlights though.
 
-**Recommendation: Option 1** — pass `t` into `buildJobPack()` as a parameter. The callers (`JobDetailsModal`, `JobListingCard`, `JobsMarketplace`) already have `t` available. This is a minimal diff.
+**Pragmatic alternative**: Keep storing emoji+English as-is (they're machine-readable enough), but expand `formatHighlight()` in `JobListingCard.tsx` to recognize and translate ALL highlight patterns, not just budgets.
 
-### Root Cause 2: `prettyStatus()` in JobDetailsModal + JobListingCard
+### Issue 2: User-generated text (title, teaser, description, notes) is single-language
 
-Both files have a `prettyStatus()` function that converts `"in_progress"` → `"In Progress"` (English). These should use a status translation map instead.
+When someone writes a job in Spanish, English-speaking viewers see Spanish text and vice versa. This requires:
+1. Schema changes: add `title_i18n`, `teaser_i18n`, `description_i18n` (JSONB) columns + `source_lang` column
+2. A translation edge function that auto-detects language and translates
+3. UI helper to pick the right language version at render time
 
-**Fix**: Replace `prettyStatus(status)` with `t('status.${status}')` using a status key map. The `dashboard.json` already has `status.open`, `status.draft`, `status.in_progress`, `status.completed` keys — but those are in the `dashboard` namespace. We need equivalent keys in the `jobs` namespace (or share via a common approach). Simplest: add a `status` section to `jobs.json`.
+## Implementation Plan
 
-### Root Cause 3: Minor hardcoded alt text and error fallbacks
+### Phase A: Fix highlight rendering (no schema change needed)
 
-- `alt={`Photo ${i + 1} of ${photos.length}`}` — two places in JobDetailsModal (lines 111, 342)
-- `"Unknown error"` fallback — lines 181 (JobDetailsModal), 155 (JobsMarketplace), 40 (messageJob.action.ts)
+Expand `formatHighlight()` in `JobListingCard.tsx` to translate all known highlight patterns:
 
-## Changes Required
-
-### 1. `src/pages/jobs/lib/buildJobPack.ts`
-
-**Add `t` parameter to `buildJobPack()`**:
 ```text
-export function buildJobPack(
-  row: JobDetailsRow,
-  packs: QuestionPack[],
-  t?: (key: string, opts?: any) => string
-): JobPack
+// Timing highlights
+"⚡ ASAP" → t('board.asap')
+"📅 This week" → t('card.thisWeek')
+"📅 This month" → t('card.thisMonth')
+"📅 ${date}" → t('card.start', { date })
+
+// Access highlights  
+"🏠 Site visit needed" → t('card.siteVisitNeeded')
+"📹 Video call available" → t('card.videoCallAvailable')
+"🅿️ Parking available" → t('card.parkingAvailable')
+"🪜 Stairs only" → t('card.stairsOnly')
+"🛗 Elevator access" → t('card.elevatorAccess')
+"🚪 Gated property" → t('card.gatedProperty')
+"🔑 Key pickup required" → t('card.keyPickupRequired')
+
+// Other
+"📋 Permits may be needed" → t('card.permitsMayBeNeeded')
+"📸 X photo(s)" → t('card.photosCount', { count: X })
+"📏 Qty: X" → t('card.quantity', { count: X })
+"📐 Xm²" → keep as-is (measurement)
 ```
 
-Update `formatBudget()` to accept and use `t`:
-- `'Under 500 €'` → `t?.('card.under500') ?? 'Under 500 €'`
-- `'Quote needed'` → `t?.('card.quoteNeeded') ?? 'Quote needed'`
-- `'To be discussed'` → `t?.('card.tbd') ?? 'TBD'`
+Add these ~15 new keys to `en/jobs.json` and `es/jobs.json`.
 
-Update `formatTiming()` to accept and use `t`:
-- `"ASAP"` → `t?.('board.asap') ?? 'ASAP'`
-- `"This week"` → `t?.('card.thisWeek') ?? 'This week'`
-- `"This month"` → `t?.('card.thisMonth') ?? 'This month'`
-- `"Flexible"` → `t?.('card.flexible') ?? 'Flexible'`
-- `"Specific: ${date}"` / `"Start: ${date}"` → `t?.('card.start', { date }) ?? \`Start: ${date}\``
+### Phase B: Auto-translation schema (migration)
 
-Update `formatLocationDisplay()`:
-- `"Custom location"` → `t?.('detail.customLocation') ?? 'Custom location'`
-- `"Ibiza"` fallback stays as-is (proper noun)
+Add columns to `jobs` table:
 
-### 2. All callers of `buildJobPack()` — pass `t`
+```sql
+ALTER TABLE public.jobs
+  ADD COLUMN source_lang text,
+  ADD COLUMN title_i18n jsonb DEFAULT '{}',
+  ADD COLUMN teaser_i18n jsonb DEFAULT '{}',
+  ADD COLUMN description_i18n jsonb DEFAULT '{}',
+  ADD COLUMN translation_status text DEFAULT 'pending';
+```
 
-- `JobDetailsModal.tsx` line 160: `buildJobPack(row, packs ?? [], t)`
-- `JobListingCard.tsx` (if it calls buildJobPack — check) or its parent
-- `JobsMarketplace.tsx` / `JobBoardPage.tsx` (check if they call it)
+Add same to `service_listings`:
 
-### 3. `JobDetailsModal.tsx` — remaining fixes
+```sql
+ALTER TABLE public.service_listings
+  ADD COLUMN source_lang text,
+  ADD COLUMN display_title_i18n jsonb DEFAULT '{}',
+  ADD COLUMN short_description_i18n jsonb DEFAULT '{}',
+  ADD COLUMN translation_status text DEFAULT 'pending';
+```
 
-- **Line 47-49**: Replace `prettyStatus()` with a translated status:
-  ```text
-  const STATUS_KEYS: Record<string, string> = {
-    open: 'status.open', draft: 'status.draft',
-    in_progress: 'status.inProgress', completed: 'status.completed',
-    cancelled: 'status.cancelled', ready: 'status.ready',
-  };
-  ```
-  Then: `t(STATUS_KEYS[status] ?? status)`
+Update the `job_details` and `jobs_board` views to include the new columns.
 
-- **Line 111**: `alt={`Photo ${i + 1} of ${photos.length}`}` → `alt={t('detail.lightbox.photo', { current: i + 1, total: photos.length })}`
+### Phase C: Translation edge function
 
-- **Line 181**: `"Unknown error"` → `t('detail.unknownError')`
+Create `supabase/functions/translate-content/index.ts`:
 
-- **Line 342**: `alt={`Job photo ${idx + 1}`}` → `alt={t('detail.lightbox.photo', { current: idx + 1, total: jobPack.photos.length })}`
+- Accepts `{ entity: "jobs"|"service_listings", id: string, fields: Record<string, string> }`
+- Uses Lovable AI (Gemini Flash) to detect language and translate
+- Updates the `*_i18n` JSONB columns and sets `source_lang` + `translation_status = 'complete'`
+- Idempotent: skips if content hasn't changed (compare against stored original)
 
-### 4. `JobListingCard.tsx` — remaining fixes
+### Phase D: Trigger translation on create/update
 
-- **Line 37-39**: Replace `prettyStatus()` with the same translated status map
-- **Line 161**: `prettyStatus(job.status)` → translated version
+In `CanonicalJobWizard.tsx`, after successful insert/update, call:
+```typescript
+supabase.functions.invoke('translate-content', {
+  body: { entity: 'jobs', id: jobId, fields: { title, teaser, description } }
+});
+```
 
-### 5. `JobsMarketplace.tsx` — minor
+Fire-and-forget (don't block the user). Translation status starts as `pending`, becomes `complete` when the edge function finishes.
 
-- **Line 155**: `"Unknown error"` → `t('board.unknownError')` or reuse existing key
+Same pattern in `ServiceListingEditor.tsx` after save.
 
-### 6. `messageJob.action.ts` — minor
+### Phase E: UI rendering helper
 
-- **Line 40**: `"Unknown error"` — this is internal error handling, not UI-facing. Low priority but can add `unknownError` key.
+Create `src/lib/i18nContent.ts`:
 
-### 7. Locale file additions
-
-**EN `jobs.json`** — add:
-```json
-{
-  "status": {
-    "open": "Open",
-    "draft": "Draft",
-    "ready": "Saved",
-    "in_progress": "In Progress",
-    "completed": "Completed",
-    "cancelled": "Cancelled"
-  },
-  "detail": {
-    "unknownError": "Unknown error",
-    "customLocation": "Custom location",
-    "lightbox": {
-      "photo": "Photo {{current}} of {{total}}"
-    }
-  }
+```typescript
+export function getI18nField(
+  original: string | null | undefined,
+  i18nMap: Record<string, string> | null | undefined,
+  lang: "en" | "es"
+): string {
+  if (i18nMap && typeof i18nMap === "object" && i18nMap[lang]) return i18nMap[lang];
+  return original ?? "";
 }
 ```
 
-**ES `jobs.json`** — add:
-```json
-{
-  "status": {
-    "open": "Abierto",
-    "draft": "Borrador",
-    "ready": "Guardado",
-    "in_progress": "En Progreso",
-    "completed": "Completado",
-    "cancelled": "Cancelado"
-  },
-  "detail": {
-    "unknownError": "Error desconocido",
-    "customLocation": "Ubicación personalizada",
-    "lightbox": {
-      "photo": "Foto {{current}} de {{total}}"
-    }
-  }
-}
-```
+Update `JobDetailsModal`, `JobListingCard`, `ServiceListingCard` to use this helper for title/teaser/description, falling back to original when translation isn't ready.
 
-## Files Modified
+### Phase F: Messages (separate pattern)
 
-| File | Change |
-|------|--------|
-| `src/pages/jobs/lib/buildJobPack.ts` | Add `t` parameter, translate budget/timing/location display strings |
-| `src/pages/jobs/JobDetailsModal.tsx` | Pass `t` to buildJobPack, replace prettyStatus with translated map, fix alt text + unknownError |
-| `src/pages/jobs/JobListingCard.tsx` | Replace prettyStatus with translated map |
-| `src/pages/jobs/JobsMarketplace.tsx` | Fix "Unknown error" fallback |
-| `public/locales/en/jobs.json` | Add `status.*`, `detail.unknownError`, `detail.customLocation`, `detail.lightbox.photo` |
-| `public/locales/es/jobs.json` | Same keys in Spanish |
-| `src/i18n/index.ts` | Bump cache version |
+Messages should NOT be auto-translated. Instead:
+- Add a "Translate" button per message bubble
+- On click, call the translate edge function for that single message
+- Cache translation in a `message_translations` table or in message metadata JSONB
 
-## Impact
+This is lower priority and can be done later.
 
-This eliminates the **last category of English leaks**: data-layer display strings that flow through to every component that renders budget, timing, status, or location. After this, switching to Spanish will show fully translated content everywhere.
+## File Changes Summary
+
+| Phase | Files | Type |
+|-------|-------|------|
+| A | `JobListingCard.tsx`, `en/jobs.json`, `es/jobs.json` | Code + locale |
+| B | SQL migration (2 ALTER TABLEs + view updates) | Schema |
+| C | `supabase/functions/translate-content/index.ts` | New edge function |
+| D | `CanonicalJobWizard.tsx`, `ServiceListingEditor.tsx` | Code |
+| E | `src/lib/i18nContent.ts` (new), `JobDetailsModal.tsx`, `JobListingCard.tsx`, `ServiceListingCard.tsx` | Code |
+| F | Future phase | — |
+
+## Recommended Order
+
+Start with **Phase A** (highlight translations) since it's pure frontend, no migration needed, and fixes visible English leaks immediately.
+
+Then **Phases B+C+D+E** together as the auto-translation feature — this is a proper feature that needs schema + edge function + UI all working together.
+
+Phase F (messages) can wait.
 
