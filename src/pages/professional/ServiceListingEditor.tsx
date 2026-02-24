@@ -319,10 +319,10 @@ export default function ServiceListingEditor() {
 
             {/* Location */}
             <div className="space-y-2">
-              <Label>Location Base</Label>
+              <Label>{t('listingEditor.locationBase')}</Label>
               <Select value={locationBase} onValueChange={setLocationBase}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select zone" />
+                  <SelectValue placeholder={t('listingEditor.selectZone')} />
                 </SelectTrigger>
                 <SelectContent>
                   {IBIZA_ZONES.map(group => (
