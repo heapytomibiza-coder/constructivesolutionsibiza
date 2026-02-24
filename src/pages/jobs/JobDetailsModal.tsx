@@ -220,6 +220,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
   const { t, i18n } = useTranslation("jobs");
   const isEs = i18n.language?.startsWith("es");
   const dateLocale = isEs ? { locale: es } : undefined;
+  const contentLang = getContentLang(i18n.language);
 
   const getSpecBadge = (jp: JobPack): { label: string; variant: "success" | "secondary" | "outline" } => {
     const score = (jp.services?.length ?? 0) + (jp.hasPhotos ? 2 : 0) + (jp.budget?.display && jp.budget?.type !== 'tbd' ? 1 : 0);
