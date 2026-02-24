@@ -7,6 +7,7 @@ import { useSession } from '@/contexts/SessionContext';
 
 export function PublicFooter() {
   const { t } = useTranslation('common');
+  const { user, activeRole } = useSession();
 
   return (
     <footer className="border-t border-border bg-card py-12 mt-auto">
