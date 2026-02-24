@@ -24,6 +24,7 @@ import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones
 export default function ServiceListingEditor() {
   const { listingId } = useParams<{ listingId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('professional');
   const { user } = useSession();
   const { data: listing, isLoading } = useListingDetail(listingId);
   const updateListing = useUpdateListing();
