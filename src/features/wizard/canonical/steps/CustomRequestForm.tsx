@@ -103,7 +103,7 @@ export function CustomRequestForm({
           <SelectContent>
             {categories.map(c => (
               <SelectItem key={c.id} value={c.id}>
-                {c.name}
+                {txCategory(c.name, t) || c.name}
               </SelectItem>
             ))}
           </SelectContent>

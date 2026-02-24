@@ -100,7 +100,7 @@ export function ReviewStep({
                 {customRequest.specs && (
                   <div className="mt-2 p-3 rounded-md bg-muted/50 border border-border">
                     <p className="text-xs font-medium text-muted-foreground mb-1">
-                      {t('wizard:custom.specsLabel')}
+                      {t('wizard:custom.specsSectionLabel', 'Specific specs')}
                     </p>
                     <p className="text-sm whitespace-pre-line">{customRequest.specs}</p>
                   </div>

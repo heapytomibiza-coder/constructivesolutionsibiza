@@ -427,7 +427,12 @@ export function validateWizardState(state: WizardState): { valid: boolean; error
     if (!state.microIds.length) errors.push("Please select at least one task");
   }
 
-  if (!state.logistics.location) errors.push("Please provide a location");
+  // Step 5 required fields (single source of truth via isStep5Complete)
+  const { isStep5Complete } = require('./stepValidation');
+  const step5 = isStep5Complete(state.logistics);
+  errors.push(...step5.errors);
+
+  // Custom location validation
   if (state.logistics.location === "other" && !state.logistics.customLocation?.trim()) {
     errors.push("Please specify the location");
   }

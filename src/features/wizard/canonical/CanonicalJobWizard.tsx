@@ -680,6 +680,21 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
         const draft = JSON.parse(stored) as WizardState;
+        // Rehydrate dates from strings (JSON.parse returns strings for Date objects)
+        if (draft.logistics) {
+          const rehydrateDate = (v: unknown): Date | undefined => {
+            if (!v) return undefined;
+            if (v instanceof Date) return v;
+            if (typeof v === 'string') {
+              const d = new Date(v);
+              return Number.isNaN(d.getTime()) ? undefined : d;
+            }
+            return undefined;
+          };
+          draft.logistics.startDate = rehydrateDate(draft.logistics.startDate);
+          draft.logistics.completionDate = rehydrateDate(draft.logistics.completionDate);
+          draft.logistics.consultationDate = rehydrateDate(draft.logistics.consultationDate);
+        }
         setWizardState(draft);
         setCurrentStep(deriveStepFromState(draft));
       }

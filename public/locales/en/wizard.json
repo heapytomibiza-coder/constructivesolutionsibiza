@@ -162,7 +162,8 @@
     "descriptionHelp": "Include location context, scale, and what \"done\" looks like.",
     "specsLabel": "Specific specs (optional)",
     "specsPlaceholder": "Measurements, materials, brand preferences, deadlines...",
-    "badge": "Custom Request"
+    "badge": "Custom Request",
+    "specsSectionLabel": "Specific specs"
   },
   "review": {
     "edit": "Edit",

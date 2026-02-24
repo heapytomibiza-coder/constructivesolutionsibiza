@@ -272,16 +272,20 @@ export function validateWizardForSubmission(state: WizardState): WizardValidatio
 
 // === STEP NAVIGATION GUARDS ===
 export function canLeaveStep(step: string, state: WizardState): { allowed: boolean; errors: string[] } {
+  const isCustom = state.wizardMode === 'custom';
+
   switch (step) {
     case 'category':
       return isCategoryComplete(state) 
         ? { allowed: true, errors: [] }
         : { allowed: false, errors: ['Please select a category'] };
     case 'subcategory':
+      if (isCustom) return { allowed: true, errors: [] };
       return isSubcategoryComplete(state)
         ? { allowed: true, errors: [] }
         : { allowed: false, errors: ['Please select a service type'] };
     case 'micro':
+      if (isCustom) return { allowed: true, errors: [] };
       return isMicroComplete(state)
         ? { allowed: true, errors: [] }
         : { allowed: false, errors: ['Please select at least one task'] };
