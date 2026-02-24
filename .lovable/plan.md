@@ -1,58 +1,67 @@
 
 
-## Root cause
+## Translation-Status Guard
 
-**`FormattedAnswers.tsx` translates the wrong field.** It runs `translateValue(answer.displayValue)` where `displayValue` is already the English label (e.g. `"Villa / House"`). The i18n key for that is `options.villa_house`, but `norm("Villa / House")` produces `"Villa / House"` — no match, so English falls through.
+### Root Cause
+The migration (`20260224124257`) sets `translation_status text DEFAULT 'pending'` on both `jobs` and `service_listings`. Every new row starts as `'pending'` whether or not the edge function is ever invoked. If invocation fails or is skipped, the row stays `'pending'` forever.
 
-The `rawValue` field (e.g. `"villa_house"`) is the stable snake_case key that matches the locale JSON, but it's never used for translation.
+Additionally, the edge function's `catch` block returns a 500 but never writes `translation_status = 'failed'` to the database, so even invoked-but-crashed translations stay `'pending'`.
 
-**`ReviewStep.tsx` also renders `mainCategory`, `subcategory`, and `microNames` as raw strings** with no taxonomy translation calls.
+### Fix (3 changes)
 
-## Fix (2 files)
+**1. Database migration — change default from `'pending'` to `NULL`**
 
-### 1. `src/pages/jobs/components/FormattedAnswers.tsx`
+```sql
+ALTER TABLE public.jobs
+  ALTER COLUMN translation_status SET DEFAULT NULL;
 
-Change `translateValue` to look up `answer.rawValue` (snake_case DB key) first, falling back to `displayValue`:
+ALTER TABLE public.service_listings
+  ALTER COLUMN translation_status SET DEFAULT NULL;
+
+-- Clean up existing stuck rows
+UPDATE public.jobs
+SET translation_status = NULL
+WHERE translation_status = 'pending'
+  AND (source_lang IS NULL OR title_i18n = '{}'::jsonb);
+
+UPDATE public.service_listings
+SET translation_status = NULL
+WHERE translation_status = 'pending'
+  AND source_lang IS NULL;
+```
+
+New rows will have `translation_status = NULL` (meaning "not yet attempted"). The edge function writes `'complete'` on success.
+
+**2. Edge function — write `'failed'` on error**
+
+In `supabase/functions/translate-content/index.ts`, inside the `catch` block (before returning the 500 response), add a best-effort DB update:
 
 ```ts
-const translateValue = (rawValue: string | string[], displayValue: string): string => {
-  // Handle arrays (checkbox answers)
-  if (Array.isArray(rawValue)) {
-    return rawValue.map(v => {
-      const translated = t(`options.${v}`, { defaultValue: '' });
-      return translated || v;
-    }).join(', ');
-  }
-  // Single value — look up by raw snake_case key
-  const byRaw = t(`options.${rawValue}`, { defaultValue: '' });
-  if (byRaw) return byRaw;
-  // Fallback to normalized displayValue
-  const key = norm(displayValue);
-  const byDisplay = t(`options.${key}`, { defaultValue: '' });
-  return byDisplay || displayValue;
-};
+// Best-effort: mark translation as failed so it doesn't stay pending
+try {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const sb = createClient(supabaseUrl, supabaseKey);
+  await sb.from(body.entity).update({ translation_status: "failed" }).eq("id", body.id);
+} catch (_) { /* ignore */ }
 ```
 
-Update the render call from:
-```tsx
-{translateValue(answer.displayValue)}
+Also add `translation_status: 'pending'` to the update payload at the **start** of the function (before calling the AI gateway), so "pending" only exists while translation is actively in progress.
+
+**3. No client-side changes needed**
+
+Both `CanonicalJobWizard.tsx` and `ServiceListingEditor.tsx` already use fire-and-forget invocation without setting `translation_status`. This is correct — the edge function owns the status lifecycle entirely.
+
+### Status lifecycle after fix
+
+```text
+NULL  →  (edge function invoked)  →  'pending'  →  'complete'
+                                                 →  'failed'
+NULL  →  (never invoked / no text)  →  stays NULL
 ```
-to:
-```tsx
-{translateValue(answer.rawValue, answer.displayValue)}
-```
 
-### 2. `src/features/wizard/canonical/steps/ReviewStep.tsx`
-
-Import taxonomy helpers and wrap the raw category/micro strings:
-
-- `mainCategory` → `txCategory(mainCategory, t)`
-- `subcategory` → `txSubcategory(subcategory, t)`
-- Each `microName` → `txMicro(microSlugs[i], t, name)` (requires passing `microSlugs` alongside `microNames`)
-
-This ensures the Review step (step 7) also shows translated taxonomy labels.
-
-## No new locale keys needed
-
-The `rawValue` keys (`villa_house`, `apartment`, `asap`, etc.) already exist in `es/questions.json` from the previous round of work.
+No row can ever be stuck in `'pending'` because:
+- Default is `NULL`, not `'pending'`
+- Only the edge function sets `'pending'` (at start of processing)
+- Edge function always exits with `'complete'` or `'failed'`
 
