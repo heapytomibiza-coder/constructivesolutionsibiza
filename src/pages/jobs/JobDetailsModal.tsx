@@ -19,6 +19,7 @@ import { useJobDetails, useQuestionPacks } from "./queries";
 import { startConversation } from "./actions";
 import { buildJobPack, type JobPack } from "./lib/buildJobPack";
 import { extractMicroAnswers } from "./lib/answerResolver";
+import { getI18nField, getContentLang } from "@/lib/i18nContent";
 import { FormattedAnswers } from "./components/FormattedAnswers";
 import { isUserError } from "@/shared/lib/userError";
 import { useListingsForJob } from "./hooks/useListingsForJob";
