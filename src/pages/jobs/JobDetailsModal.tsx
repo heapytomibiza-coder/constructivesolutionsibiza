@@ -20,6 +20,7 @@ import { startConversation } from "./actions";
 import { buildJobPack, type JobPack } from "./lib/buildJobPack";
 import { extractMicroAnswers } from "./lib/answerResolver";
 import { getI18nField, getContentLang } from "@/lib/i18nContent";
+import { txCategory, txSubcategory } from "@/i18n/taxonomyTranslations";
 import { FormattedAnswers } from "./components/FormattedAnswers";
 import { isUserError } from "@/shared/lib/userError";
 import { useListingsForJob } from "./hooks/useListingsForJob";
@@ -237,8 +238,8 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
       {/* Header */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          {jobPack.category && <Badge variant="secondary">{jobPack.category}</Badge>}
-          {jobPack.subcategory && <Badge variant="outline">{jobPack.subcategory}</Badge>}
+          {jobPack.category && <Badge variant="secondary">{txCategory(jobPack.category, t)}</Badge>}
+          {jobPack.subcategory && <Badge variant="outline">{txSubcategory(jobPack.subcategory, t)}</Badge>}
           {jobPack.status && <Badge variant={statusVariant(jobPack.status)}>{translateStatus(jobPack.status, t)}</Badge>}
           {jobPack.isOwner && <Badge variant="outline">{t('card.yourJob')}</Badge>}
           {isAsap && <Badge variant="accent">{t('board.asap')}</Badge>}
@@ -296,7 +297,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
             ))}
           </ul>
         ) : (
-          <div className="text-sm text-muted-foreground">{jobPack.subcategory ?? jobPack.category ?? "—"}</div>
+          <div className="text-sm text-muted-foreground">{txSubcategory(jobPack.subcategory, t) ?? txCategory(jobPack.category, t) ?? "—"}</div>
         )}
       </section>
 

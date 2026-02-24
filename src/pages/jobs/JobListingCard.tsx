@@ -14,6 +14,7 @@ import { useSession } from "@/contexts/SessionContext";
 import { startConversation } from "@/pages/jobs/actions/messageJob.action";
 import { toast } from "sonner";
 import { getI18nField, getContentLang } from "@/lib/i18nContent";
+import { txCategory, txSubcategory } from "@/i18n/taxonomyTranslations";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 
 interface JobListingCardProps {
@@ -213,8 +214,8 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1.5 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                {job.category && <Badge variant="secondary">{job.category}</Badge>}
-                {job.subcategory && <Badge variant="outline">{job.subcategory}</Badge>}
+                {job.category && <Badge variant="secondary">{txCategory(job.category, t)}</Badge>}
+                {job.subcategory && <Badge variant="outline">{txSubcategory(job.subcategory, t)}</Badge>}
                 {job.status && <Badge variant={statusVariant(job.status)}>{translateStatus(job.status, t)}</Badge>}
                 {isMatched && <Badge variant="accent">{t('card.matched')}</Badge>}
                 {job.start_timing === "asap" && <Badge variant="accent">{t('board.asap')}</Badge>}
