@@ -144,6 +144,8 @@
   "status": {
     "open": "Abierto",
     "draft": "Borrador",
+    "live": "Activo",
+    "paused": "Pausado",
     "in_progress": "En Progreso",
     "completed": "Completado"
   },

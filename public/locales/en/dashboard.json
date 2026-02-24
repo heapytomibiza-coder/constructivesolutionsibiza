@@ -143,6 +143,8 @@
   "status": {
     "open": "Open",
     "draft": "Draft",
+    "live": "Live",
+    "paused": "Paused",
     "in_progress": "In Progress",
     "completed": "Completed"
   },
