@@ -126,7 +126,7 @@ export default function ProProfileDrawer({
               </div>
               <div>
                 <h3 className="font-display text-lg font-semibold">
-                  {profile.display_name || 'Professional'}
+                  {profile.display_name || t('proProfile.professional')}
                 </h3>
                 {profile.tagline && (
                   <p className="text-sm text-muted-foreground">{profile.tagline}</p>
