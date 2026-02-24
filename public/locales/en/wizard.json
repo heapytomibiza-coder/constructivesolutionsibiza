@@ -8,6 +8,19 @@
     "extras": "Photos & Notes",
     "review": "Review & Post"
   },
+  "extras": {
+    "title": "Photos & Additional Details",
+    "subtitle": "Everything here is optional — skip ahead if you prefer.",
+    "photosLabel": "Photos",
+    "photosOptional": "optional",
+    "photosHelp": "Add photos to help professionals understand the job better",
+    "addPhoto": "Add Photo",
+    "adding": "Adding...",
+    "notesLabel": "Additional notes (optional)",
+    "notesPlaceholder": "Any other details you'd like to share...",
+    "permitsLabel": "I'm unsure if permits are needed",
+    "permitsHelp": "Check this if you'd like the professional to advise on permit requirements"
+  },
   "draft": {
     "title": "Resume your draft?",
     "description": "We found an unfinished job posting. Would you like to continue where you left off?",
