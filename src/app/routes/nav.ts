@@ -9,7 +9,7 @@ import type { NavSection, RouteConfig, AccessRule } from './rules';
 import { getNavBySection } from './match';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
 import { isRolloutActive } from '@/domain/rollout';
-import { isAdminEmail } from '@/domain/adminAllowlist';
+
 
 /**
  * Section render order for nav menus
