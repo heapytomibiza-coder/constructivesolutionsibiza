@@ -209,6 +209,12 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
 
     // Fallback to label-based key (legacy)
     const byLabel = t(`questions:options.${labelKey}`, { defaultValue: '' });
+
+    if (import.meta.env.DEV && !(byValue || byLabel)) {
+      // eslint-disable-next-line no-console
+      console.warn('[i18n missing option]', { valueKey, labelKey });
+    }
+
     return byLabel || opt.label;
   };
 
