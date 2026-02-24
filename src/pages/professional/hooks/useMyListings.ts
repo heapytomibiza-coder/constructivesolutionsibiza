@@ -47,10 +47,10 @@ export function useMyListings() {
       const microIds = [...new Set(listings.map(l => l.micro_id))];
       const { data: micros } = await supabase
         .from('service_micro_categories')
-        .select('id, name')
+        .select('id, name, slug')
         .in('id', microIds);
 
-      const microMap = new Map(micros?.map(m => [m.id, m.name]) ?? []);
+      const microMap = new Map(micros?.map(m => [m.id, { name: m.name, slug: m.slug }]) ?? []);
 
       // Fetch starting prices
       const listingIds = listings.map(l => l.id);
