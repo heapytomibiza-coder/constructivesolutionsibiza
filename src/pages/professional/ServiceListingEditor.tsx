@@ -15,18 +15,11 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Globe, ImagePlus, Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, usePublishListing, type PricingItem } from './hooks/useListingEditor';
 import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones';
-
-const UNIT_OPTIONS = [
-  { value: 'hour', label: 'Per hour' },
-  { value: 'day', label: 'Per day' },
-  { value: 'sqm', label: 'Per m²' },
-  { value: 'job', label: 'Per job' },
-  { value: 'item', label: 'Per item' },
-];
 
 export default function ServiceListingEditor() {
   const { listingId } = useParams<{ listingId: string }>();
