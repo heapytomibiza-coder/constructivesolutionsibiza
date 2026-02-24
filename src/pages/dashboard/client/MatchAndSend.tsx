@@ -98,10 +98,10 @@ export default function MatchAndSend() {
         }
         throw error;
       }
-      toast.success('Invite sent!');
+      toast.success(t('matchAndSend.inviteSent'));
       queryClient.invalidateQueries({ queryKey: ['job_invites', jobId] });
     } catch {
-      toast.error('Failed to send invite.');
+      toast.error(t('matchAndSend.inviteFailed'));
     } finally {
       setSendingTo(null);
     }
