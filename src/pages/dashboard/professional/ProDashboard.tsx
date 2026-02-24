@@ -260,31 +260,65 @@ const ProDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {matchedJobs.slice(0, 5).map((job) => (
-                    <Link
-                      key={job.id}
-                      to={`/jobs/${job.id}`}
-                      className="flex items-center justify-between p-3 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-                          {job.title}
-                        </h3>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                          {job.area && (
-                            <span className="flex items-center gap-0.5">
-                              <MapPin className="h-3 w-3" />
-                              {job.area}
-                            </span>
+                  {matchedJobs.slice(0, 5).map((job) => {
+                    const budgetLabel = job.budget_min && job.budget_max
+                      ? `€${job.budget_min}–€${job.budget_max}`
+                      : job.budget_value
+                        ? `€${job.budget_value}`
+                        : job.budget_type === 'tbd'
+                          ? t('client.budgetTbd', 'Quote-based')
+                          : null;
+
+                    return (
+                      <Link
+                        key={job.id}
+                        to={`/jobs/${job.id}`}
+                        className="flex items-center justify-between p-3 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <h3 className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                              {job.title}
+                            </h3>
+                          </div>
+                          {job.teaser && (
+                            <p className="text-xs text-muted-foreground truncate mb-1">
+                              {job.teaser.length > 100 ? job.teaser.slice(0, 100) + '…' : job.teaser}
+                            </p>
                           )}
-                          <span>
-                            {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
-                          </span>
+                          <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                            {job.category && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                                {txCategory(job.category, t) ?? job.category}
+                              </Badge>
+                            )}
+                            {job.area && (
+                              <span className="flex items-center gap-0.5">
+                                <MapPin className="h-3 w-3" />
+                                {job.area}
+                              </span>
+                            )}
+                            {budgetLabel && (
+                              <span className="flex items-center gap-0.5">
+                                <DollarSign className="h-3 w-3" />
+                                {budgetLabel}
+                              </span>
+                            )}
+                            {job.start_timing && (
+                              <span className="flex items-center gap-0.5">
+                                <Clock className="h-3 w-3" />
+                                {job.start_timing.replace(/_/g, ' ')}
+                              </span>
+                            )}
+                            <span>
+                              {formatDistanceToNow(new Date(job.created_at), { addSuffix: true, locale: getDateLocale() })}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
-                    </Link>
-                  ))}
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
