@@ -297,7 +297,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
             ))}
           </ul>
         ) : (
-          <div className="text-sm text-muted-foreground">{jobPack.subcategory ?? jobPack.category ?? "—"}</div>
+          <div className="text-sm text-muted-foreground">{txSubcategory(jobPack.subcategory, t) ?? txCategory(jobPack.category, t) ?? "—"}</div>
         )}
       </section>
 
