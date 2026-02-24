@@ -20,6 +20,13 @@ interface Job {
   is_publicly_listed: boolean;
   assigned_professional_id: string | null;
   answers?: unknown;
+  area: string | null;
+  budget_type: string | null;
+  budget_value: number | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  start_timing: string | null;
+  conversation_count?: number;
 }
 
 export function useClientStats() {
