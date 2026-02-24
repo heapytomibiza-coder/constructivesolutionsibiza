@@ -566,7 +566,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
                       isSelected ? 'text-foreground' : 'text-muted-foreground'
                     )}
                   >
-                    {option.label}
+                    {tOptionLabel(option)}
                   </span>
                 </button>
               );
