@@ -249,31 +249,41 @@ function mapStartTiming(preset?: string | null): string {
  */
 export function buildJobInsert(userId: string, state: WizardState): JobInsert {
   const { mainCategory, subcategory, microNames, microIds, microSlugs, answers, logistics, extras } = state;
+  const isCustom = state.wizardMode === 'custom';
 
-  // Title: concatenate micro names or fall back to subcategory/category
-  const title =
-    microNames.length > 0
+  // Title: custom title or concatenate micro names or fall back to subcategory/category
+  const title = isCustom && state.customRequest?.jobTitle
+    ? state.customRequest.jobTitle
+    : microNames.length > 0
       ? microNames.join(" + ")
       : subcategory
         ? `${subcategory} - ${mainCategory}`
         : mainCategory;
 
-  // Teaser: short description for cards (first 200 chars of notes or auto-generated)
+  // Area
   const area = mapLocationToArea(logistics.location, logistics.customLocation);
-  const teaser = extras.notes?.trim()
-    ? extras.notes.trim().slice(0, 200)
-    : `${title} in ${area || 'Ibiza'}`;
+
+  // Teaser
+  const teaser = isCustom && state.customRequest?.description
+    ? state.customRequest.description.slice(0, 200)
+    : extras.notes?.trim()
+      ? extras.notes.trim().slice(0, 200)
+      : `${title} in ${area || 'Ibiza'}`;
 
   // Full description
-  const description =
-    (extras.notes?.trim() ? extras.notes.trim() : null) ??
-    `${title} - ${mainCategory}${subcategory ? ` / ${subcategory}` : ""}`;
+  const customDesc = isCustom && state.customRequest
+    ? (state.customRequest.specs?.trim()
+        ? `${state.customRequest.description}\n\nSpecific specs:\n${state.customRequest.specs}`
+        : state.customRequest.description)
+    : null;
+
+  const description = customDesc
+    ?? (extras.notes?.trim() ? extras.notes.trim() : null)
+    ?? `${title} - ${mainCategory}${subcategory ? ` / ${subcategory}` : ""}`;
 
   // Budget parsing
   const { min, max } = parseBudgetRange(logistics.budgetRange);
   const budgetType = determineBudgetType(logistics.budgetRange);
-  
-  // For fixed budget, use min as the value
   const budgetValue = budgetType === 'fixed' ? min : null;
 
   // Start timing
@@ -283,8 +293,8 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
   // Photos check
   const hasPhotos = (extras.photos?.length ?? 0) > 0;
 
-  // Primary micro slug (first selected)
-  const primaryMicroSlug = microSlugs.length > 0 ? microSlugs[0] : null;
+  // Primary micro slug (first selected, null for custom)
+  const primaryMicroSlug = isCustom ? null : (microSlugs.length > 0 ? microSlugs[0] : null);
 
   // Build highlights for card display
   const highlights = buildHighlights(state);
@@ -292,7 +302,7 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
   // Build proper location JSON (area-safe, no addresses)
   const locationPayload = buildLocationJson(logistics);
 
-  // Canonical answers container (QuestionsStep expects answers.microAnswers)
+  // Canonical answers container
   const answersObj = (answers && typeof answers === 'object') ? (answers as Record<string, unknown>) : {};
   const microAnswers =
     (answersObj.microAnswers && typeof answersObj.microAnswers === 'object')
@@ -303,10 +313,10 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
   const answersPayload: Json = {
     selected: {
       mainCategory,
-      subcategory,
-      microNames,
-      microIds,
-      microSlugs,
+      subcategory: isCustom ? null : subcategory,
+      microNames: isCustom ? [] : microNames,
+      microIds: isCustom ? [] : microIds,
+      microSlugs: isCustom ? [] : microSlugs,
     },
     microAnswers,
     logistics: {
@@ -330,6 +340,14 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     _pack_source: (packTracking?._pack_source as string) ?? null,
     _pack_slug: (packTracking?._pack_slug as string) ?? null,
     _pack_missing: (packTracking?._pack_missing as boolean) ?? false,
+    // Custom request data for traceability
+    ...(isCustom && state.customRequest ? {
+      custom: {
+        jobTitle: state.customRequest.jobTitle,
+        description: state.customRequest.description,
+        specs: state.customRequest.specs ?? null,
+      },
+    } : {}),
   };
 
   // Attribution data from landing session
@@ -341,7 +359,7 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     title,
     description,
     category: mainCategory || null,
-    subcategory: subcategory || null,
+    subcategory: isCustom ? null : (subcategory || null),
     micro_slug: primaryMicroSlug,
     area,
     teaser,
@@ -358,6 +376,7 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     attribution,
     status: "open",
     is_publicly_listed: true,
+    is_custom_request: isCustom,
   } as JobInsert;
 }
 
