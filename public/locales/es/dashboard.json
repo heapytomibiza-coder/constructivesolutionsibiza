@@ -177,8 +177,8 @@
     "inviteSpecific": "Invitar profesionales específicos",
     "inviteSpecificDesc": "Busca profesionales compatibles, ve sus perfiles y envíales el trabajo",
     "invitesSent": "Invitaciones enviadas ({{count}})",
-    "budgetUpTo": "Hasta €{{max}}",
-    "budgetFrom": "Desde €{{min}}",
+    "budgetUpTo": "Hasta {{amount}}",
+    "budgetFrom": "Desde {{amount}}",
     "inviteStatus": {
       "sent": "Enviada",
       "viewed": "Vista",

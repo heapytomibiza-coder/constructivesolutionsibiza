@@ -314,7 +314,7 @@ export default function JobTicketDetail() {
                       <div>
                         <p className="text-sm font-medium">{name}</p>
                         <p className="text-xs text-muted-foreground capitalize">
-                          {t(`jobTicket.inviteStatus.${invite.status}`, { defaultValue: invite.status })}
+                          {t(`jobTicket.inviteStatus.${String(invite.status).toLowerCase()}`, { defaultValue: invite.status })}
                         </p>
                       </div>
                     </div>
