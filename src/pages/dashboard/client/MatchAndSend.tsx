@@ -121,7 +121,7 @@ export default function MatchAndSend() {
   if (!job) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Job not found.</p>
+        <p className="text-muted-foreground">{t('matchAndSend.notFound')}</p>
       </div>
     );
   }
