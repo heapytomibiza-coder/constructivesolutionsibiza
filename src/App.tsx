@@ -114,6 +114,7 @@ const App = () => {
       <Sonner />
       <BrowserRouter>
         <SessionProvider>
+           <UrlNormalizer />
            <ScrollToTop />
           <Routes>
             {/* ============================================
