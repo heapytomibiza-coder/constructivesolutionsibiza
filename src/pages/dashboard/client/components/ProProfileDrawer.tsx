@@ -204,7 +204,7 @@ export default function ProProfileDrawer({
             {reviews.length > 0 && (
               <section>
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Reviews ({reviews.length})
+                  {t('proProfile.reviews', { count: reviews.length })}
                 </h4>
                 <div className="space-y-3">
                   {reviews.map((r, i) => (
