@@ -238,15 +238,18 @@ export default function JobPriorities() {
 /* ── PriorityRow - Single micro with segmented priority buttons ── */
 function PriorityRow({
   name,
+  slug,
   currentPref,
   onChange,
   options,
 }: {
   name: string;
+  slug: string;
   currentPref: Preference;
   onChange: (pref: Preference) => void;
   options: ReturnType<typeof usePriorityOptions>;
 }) {
+  const { t } = useTranslation('professional');
   return (
     <div className="flex items-center justify-between gap-3 py-2 px-1">
       <span className="text-base font-medium text-foreground flex-1 min-w-0 truncate">{txMicro(slug, t, name)}</span>
