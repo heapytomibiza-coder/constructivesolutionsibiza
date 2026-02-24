@@ -15,6 +15,10 @@ const norm = (s: string): string =>
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"');
 
+/** Normalize an option value to a stable i18n key (snake_case, lowercase) */
+const normalizeOptionKey = (v: string): string =>
+  v.trim().toLowerCase().replace(/[^\w]+/g, '_');
+
 /**
  * Pure component that renders resolved service packs with human-readable labels.
  * Translates question labels and answer values using the questions namespace.
@@ -32,12 +36,17 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
 
   /** Translate an answer value using rawValue (snake_case DB key) first, falling back to displayValue */
   const translateValue = (rawValue: string | string[], displayValue: string): string => {
-    // Try key, then lowercase fallback
     const tryTranslate = (v: string): string => {
+      // Exact key
       const byExact = t(`options.${v}`, { defaultValue: '' });
       if (byExact) return byExact;
-      const byLower = t(`options.${v.toLowerCase()}`, { defaultValue: '' });
-      return byLower || '';
+      // Normalized snake_case key
+      const normalized = normalizeOptionKey(v);
+      if (normalized !== v) {
+        const byNorm = t(`options.${normalized}`, { defaultValue: '' });
+        if (byNorm) return byNorm;
+      }
+      return '';
     };
     // Handle arrays (checkbox answers)
     if (Array.isArray(rawValue)) {
