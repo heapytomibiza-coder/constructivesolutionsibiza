@@ -44,6 +44,16 @@
     "ratingSuccess": "Thanks for your rating!",
     "ratingFailed": "Failed to submit rating",
     "uncategorized": "Uncategorized",
+    "budgetTbd": "Quote-based",
+    "replies": "{{count}} replies",
+    "replies_one": "{{count}} reply",
+    "timing": {
+      "asap": "ASAP",
+      "this_week": "This week",
+      "this_month": "This month",
+      "flexible": "Flexible",
+      "date": "Specific date"
+    },
     "status": {
       "ready": "Saved",
       "open": "Live",
@@ -133,6 +143,39 @@
     "notFound": "Job not found.",
     "services": "{{count}} services",
     "match": "{{percent}}% match"
+  },
+  "reviews": {
+    "rateExperience": "Rate your experience",
+    "rateClientPrivate": "Rate client (private)",
+    "rateProfessional": "Rate professional",
+    "rate": "Rate"
+  },
+  "jobTicket": {
+    "notSharedYet": "Saved — Not shared yet",
+    "liveOnBoard": "Live on Job Board",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "closed": "Closed",
+    "closeJob": "Close Job",
+    "closeConfirm": "Are you sure you want to close this job?",
+    "jobClosed": "Job closed.",
+    "closeFailed": "Failed to close job.",
+    "jobNotFound": "Job not found.",
+    "whatYouNeed": "What you need",
+    "where": "Where",
+    "when": "When",
+    "budget": "Budget",
+    "flexible": "Flexible",
+    "savedBanner": "Saved — you can invite professionals or post publicly anytime.",
+    "shareTitle": "How would you like to share this job?",
+    "postToBoard": "Post to Job Board",
+    "postToBoardDesc": "All professionals in this category can see and respond",
+    "alreadyPosted": "Already posted — professionals can see and respond",
+    "jobPosted": "Job posted to the job board!",
+    "postFailed": "Failed to post job. Please try again.",
+    "inviteSpecific": "Invite Specific Professionals",
+    "inviteSpecificDesc": "Browse matching professionals, view profiles, and send this job directly",
+    "invitesSent": "Invites Sent ({{count}})"
   },
   "stats": {
     "jobs": "Jobs",
