@@ -1056,7 +1056,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         </CardContent>
       </Card>
 
-      {/* Navigation Buttons - Sticky on mobile */}
+      {/* Navigation Buttons - Hidden when custom form is shown (it has its own buttons) */}
+      {!showCustomForm && (
       <div className="
         mt-6 md:static md:bg-transparent md:border-0 md:p-0 md:pb-0 md:backdrop-blur-none
         fixed bottom-0 left-0 right-0 z-40
