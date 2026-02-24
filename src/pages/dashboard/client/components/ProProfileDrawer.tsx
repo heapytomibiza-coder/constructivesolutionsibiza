@@ -99,7 +99,7 @@ export default function ProProfileDrawer({
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader className="pb-4">
-          <SheetTitle className="font-display">Professional Profile</SheetTitle>
+          <SheetTitle className="font-display">{t('proProfile.title')}</SheetTitle>
         </SheetHeader>
 
         {isLoading ? (
