@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { JobListingCard } from "@/pages/jobs/JobListingCard";
 import { Loader2, Filter, Search } from "lucide-react";
@@ -34,26 +35,21 @@ function applyFilters(jobs: JobsBoardRow[], f: Filters): JobsBoardRow[] {
       const hay = `${j.title ?? ""} ${j.teaser ?? ""}`.toLowerCase();
       if (!hay.includes(needle)) return false;
     }
-
     if (f.categories.length) {
       if (!j.category || !f.categories.includes(j.category)) return false;
     }
-
     if (locNeedle) {
       const area = (j.area ?? j.location?.area ?? "").toLowerCase();
       const town = (j.location?.town ?? "").toLowerCase();
       if (!area.includes(locNeedle) && !town.includes(locNeedle)) return false;
     }
-
     const b = budgetProxy(j);
     const [minB, maxB] = f.budgetRange;
     if (b < minB || b > maxB) return false;
-
     if (f.hasPhotos && !j.has_photos) return false;
     if (f.highBudget && b < 500) return false;
     if (f.newToday && !isNewToday(j.created_at)) return false;
     if (f.asapOnly && j.start_timing !== "asap") return false;
-
     return true;
   });
 }
@@ -66,25 +62,20 @@ export function JobsMarketplace() {
   const [filters, setFilters] = React.useState<Filters>(EMPTY_FILTERS);
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeRole } = useSession();
+  const { t } = useTranslation("jobs");
   
-  // Check if matched filter is active from URL
   const showMatchedOnly = searchParams.get("matched") === "true";
   const isProfessional = activeRole === "professional";
 
-  // Fetch all jobs using the query hook
   const { data: allJobs, isLoading: allJobsLoading, isError: allJobsError, error: allJobsErrorData, refetch: refetchAllJobs } = useJobsBoard();
-
-  // Fetch matched jobs for professionals
   const { matchedJobs, isLoading: matchedJobsLoading, isError: matchedJobsError, error: matchedJobsErrorData, refetch: refetchMatchedJobs } = useMatchedJobs();
 
-  // Determine which jobs to display
   const isLoading = showMatchedOnly && isProfessional ? matchedJobsLoading : allJobsLoading;
   const isError = showMatchedOnly && isProfessional ? matchedJobsError : allJobsError;
   const error = showMatchedOnly && isProfessional ? matchedJobsErrorData : allJobsErrorData;
   const jobs = showMatchedOnly && isProfessional ? matchedJobs : allJobs;
   const refetch = showMatchedOnly && isProfessional ? refetchMatchedJobs : refetchAllJobs;
 
-  // Toggle matched filter
   const toggleMatchedFilter = React.useCallback(() => {
     if (showMatchedOnly) {
       searchParams.delete("matched");
@@ -94,56 +85,35 @@ export function JobsMarketplace() {
     setSearchParams(searchParams);
   }, [showMatchedOnly, searchParams, setSearchParams]);
 
-  // Extract categories
   const categories = React.useMemo(() => {
     const set = new Set<string>();
     (jobs ?? []).forEach((j) => j.category && set.add(j.category));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [jobs]);
 
-  // Apply filters
   const filtered = React.useMemo(() => applyFilters(jobs ?? [], filters), [jobs, filters]);
 
-  // Compute stats from filtered jobs (so stats match what user sees)
   const activeJobs = filtered.length;
-  const todayJobs = React.useMemo(
-    () => filtered.filter((j) => isNewToday(j.created_at)).length,
-    [filtered]
-  );
-  const totalBudget = React.useMemo(
-    () => filtered.reduce((sum, j) => sum + budgetProxy(j), 0),
-    [filtered]
-  );
+  const todayJobs = React.useMemo(() => filtered.filter((j) => isNewToday(j.created_at)).length, [filtered]);
+  const totalBudget = React.useMemo(() => filtered.reduce((sum, j) => sum + budgetProxy(j), 0), [filtered]);
 
-  // Featured vs regular
   const featured = React.useMemo(() => filtered.filter(featuredPredicate).slice(0, 3), [filtered]);
   const featuredIds = React.useMemo(() => new Set(featured.map((j) => j.id)), [featured]);
-  const regular = React.useMemo(
-    () => filtered.filter((j) => !featuredIds.has(j.id)),
-    [filtered, featuredIds]
-  );
+  const regular = React.useMemo(() => filtered.filter((j) => !featuredIds.has(j.id)), [filtered, featuredIds]);
 
-  // Hero toggle handler
   const handleToggle = React.useCallback((key: keyof HeroToggles) => {
     setFilters((p) => {
       const newValue = !p[key];
-      // Sync highBudget with budgetRange minimum
       if (key === "highBudget") {
-        return {
-          ...p,
-          highBudget: newValue,
-          budgetRange: newValue ? [500, p.budgetRange[1]] : [0, p.budgetRange[1]],
-        };
+        return { ...p, highBudget: newValue, budgetRange: newValue ? [500, p.budgetRange[1]] : [0, p.budgetRange[1]] };
       }
       return { ...p, [key]: newValue };
     });
   }, []);
 
-  const clearFilters = React.useCallback(() => {
-    setFilters(EMPTY_FILTERS);
-  }, []);
+  const clearFilters = React.useCallback(() => setFilters(EMPTY_FILTERS), []);
 
-  // Highlight newly posted job from wizard (React Router aware)
+  // Highlight newly posted job
   const location = useLocation();
   const highlightId = React.useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -152,38 +122,28 @@ export function JobsMarketplace() {
 
   React.useEffect(() => {
     if (!highlightId || isLoading) return;
-
     const selector = `[data-job-id="${CSS.escape(highlightId)}"]`;
     const start = Date.now();
     let timeoutId: number | undefined;
-
     const tick = () => {
       const el = document.querySelector(selector) as HTMLElement | null;
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
         el.classList.add("ring-2", "ring-primary");
-        timeoutId = window.setTimeout(() => {
-          el.classList.remove("ring-2", "ring-primary");
-        }, 3000);
+        timeoutId = window.setTimeout(() => el.classList.remove("ring-2", "ring-primary"), 3000);
         return;
       }
-      if (Date.now() - start < 1000) {
-        requestAnimationFrame(tick);
-      }
+      if (Date.now() - start < 1000) requestAnimationFrame(tick);
     };
-
     tick();
-
-    return () => {
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-    };
+    return () => { if (timeoutId !== undefined) window.clearTimeout(timeoutId); };
   }, [highlightId, isLoading, jobs]);
 
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground py-12 justify-center">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Loading jobs…
+        {t('board.loading')}
       </div>
     );
   }
@@ -192,10 +152,10 @@ export function JobsMarketplace() {
     return (
       <div className="space-y-3 py-12 text-center">
         <div className="text-sm text-destructive">
-          Failed to load jobs: {(error as Error)?.message ?? "Unknown error"}
+          {t('board.loadError', { error: (error as Error)?.message ?? "Unknown error" })}
         </div>
         <Button variant="outline" onClick={() => refetch()}>
-          Retry
+          {t('board.retry')}
         </Button>
       </div>
     );
@@ -203,51 +163,34 @@ export function JobsMarketplace() {
 
   return (
     <div className="space-y-6">
-      {/* Hero with search and quick toggles */}
       <JobBoardHeroSection
         search={filters.search}
         onSearchChange={(v) => setFilters((p) => ({ ...p, search: v }))}
-        toggles={{
-          newToday: filters.newToday,
-          highBudget: filters.highBudget,
-          hasPhotos: filters.hasPhotos,
-          asapOnly: filters.asapOnly,
-        }}
+        toggles={{ newToday: filters.newToday, highBudget: filters.highBudget, hasPhotos: filters.hasPhotos, asapOnly: filters.asapOnly }}
         onToggle={handleToggle}
       />
 
-      {/* Matched Jobs Toggle for Professionals */}
       {isProfessional && (
         <div className="flex items-center gap-2">
-          <Button
-            variant={showMatchedOnly ? "default" : "outline"}
-            size="sm"
-            onClick={toggleMatchedFilter}
-            className="gap-2"
-          >
+          <Button variant={showMatchedOnly ? "default" : "outline"} size="sm" onClick={toggleMatchedFilter} className="gap-2">
             <Filter className="h-4 w-4" />
-            {showMatchedOnly ? "Showing Matched Jobs" : "Show Matched Only"}
+            {showMatchedOnly ? t('board.showingMatched') : t('board.showMatchedOnly')}
           </Button>
           {showMatchedOnly && (
-            <span className="text-sm text-muted-foreground">
-              Showing jobs that match your services
-            </span>
+            <span className="text-sm text-muted-foreground">{t('board.showingMatchedHint')}</span>
           )}
         </div>
       )}
 
-      {/* Stats bar */}
       <JobBoardStatsBar activeJobs={activeJobs} todayJobs={todayJobs} totalBudget={totalBudget} />
 
-      {/* Main grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-        {/* Jobs column */}
         <div className="space-y-6">
           {featured.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Featured</h2>
-                <Badge variant="secondary">Top {featured.length}</Badge>
+                <h2 className="text-lg font-semibold">{t('board.featured')}</h2>
+                <Badge variant="secondary">{t('board.top', { count: featured.length })}</Badge>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {featured.map((job) => (
@@ -260,9 +203,9 @@ export function JobsMarketplace() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">
-                {showMatchedOnly && isProfessional ? "Matched Jobs" : "Jobs"}
+                {showMatchedOnly && isProfessional ? t('board.matchedJobs') : t('board.jobs')}
               </h2>
-              <Badge variant="secondary">{regular.length} results</Badge>
+              <Badge variant="secondary">{t('board.results', { count: regular.length })}</Badge>
             </div>
 
             {regular.length === 0 ? (
@@ -270,17 +213,17 @@ export function JobsMarketplace() {
                 icon={<Search className="h-8 w-8" />}
                 message={
                   showMatchedOnly && isProfessional
-                    ? "No matched jobs found."
-                    : "No jobs match your filters. Try removing some filters or searching a broader term."
+                    ? t('board.noMatchedJobs')
+                    : t('board.noJobsFiltered')
                 }
                 action={
                   showMatchedOnly && isProfessional ? (
                     <Button variant="link" className="p-0 h-auto" onClick={toggleMatchedFilter}>
-                      View all jobs
+                      {t('board.viewAllJobs')}
                     </Button>
                   ) : (
                     <Button variant="outline" onClick={clearFilters}>
-                      Clear filters
+                      {t('board.clearFilters')}
                     </Button>
                   )
                 }
@@ -295,13 +238,7 @@ export function JobsMarketplace() {
           </div>
         </div>
 
-        {/* Filters sidebar */}
-        <JobFiltersPanel
-          categories={categories}
-          filters={filters}
-          setFilters={setFilters}
-          onClear={clearFilters}
-        />
+        <JobFiltersPanel categories={categories} filters={filters} setFilters={setFilters} onClear={clearFilters} />
       </div>
     </div>
   );

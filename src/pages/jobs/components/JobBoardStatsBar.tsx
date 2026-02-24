@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { StatTile } from "@/shared/components/StatTile";
 import { Briefcase, Clock, Euro } from "lucide-react";
 
@@ -12,25 +13,27 @@ export function JobBoardStatsBar({
   todayJobs,
   totalBudget,
 }: JobBoardStatsBarProps) {
+  const { t } = useTranslation("jobs");
+
   return (
     <div className="grid grid-cols-3 gap-3 mb-6">
       <StatTile
         icon={<Briefcase className="h-5 w-5 text-primary" />}
         iconClassName="bg-primary/10"
-        label="Active jobs"
+        label={t('stats.activeJobs')}
         value={activeJobs}
       />
       <StatTile
         icon={<Clock className="h-5 w-5 text-amber-500" />}
         iconClassName="bg-amber-500/10"
-        label="Posted today"
+        label={t('stats.postedToday')}
         value={todayJobs}
         isNew={todayJobs > 0}
       />
       <StatTile
         icon={<Euro className="h-5 w-5 text-green-500" />}
         iconClassName="bg-green-500/10"
-        label="Total budget"
+        label={t('stats.totalBudget')}
         value={`€${Math.round(totalBudget).toLocaleString()}`}
       />
     </div>

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -51,35 +52,36 @@ export function JobFiltersPanel({
   setFilters,
   onClear,
 }: JobFiltersPanelProps) {
+  const { t } = useTranslation("jobs");
   const count = activeFilterCount(filters);
 
   return (
     <aside className="space-y-4 rounded-xl border p-4 h-fit">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="text-sm font-semibold">Filters</div>
+          <div className="text-sm font-semibold">{t('filters.title')}</div>
           {count > 0 && (
             <Badge variant="secondary" className="h-5 px-1.5 text-xs">
               {count}
             </Badge>
           )}
         </div>
-        <Button variant="ghost" size="icon" onClick={onClear} title="Clear filters">
+        <Button variant="ghost" size="icon" onClick={onClear} title={t('filters.clearFilters')}>
           <FilterX className="h-4 w-4" />
         </Button>
       </div>
 
       <div className="space-y-2">
-        <div className="text-xs font-medium text-muted-foreground">Location</div>
+        <div className="text-xs font-medium text-muted-foreground">{t('filters.location')}</div>
         <Input
-          placeholder="e.g. San Antonio"
+          placeholder={t('filters.locationPlaceholder')}
           value={filters.location}
           onChange={(e) => setFilters((p) => ({ ...p, location: e.target.value }))}
         />
       </div>
 
       <div className="space-y-2">
-        <div className="text-xs font-medium text-muted-foreground">Categories</div>
+        <div className="text-xs font-medium text-muted-foreground">{t('filters.categories')}</div>
         <div className="flex flex-wrap gap-2">
           {categories.map((c) => {
             const active = filters.categories.includes(c);
@@ -103,17 +105,17 @@ export function JobFiltersPanel({
             );
           })}
           {categories.length === 0 && (
-            <div className="text-xs text-muted-foreground">No categories found.</div>
+            <div className="text-xs text-muted-foreground">{t('filters.noCategories')}</div>
           )}
         </div>
       </div>
 
       <div className="space-y-2">
-        <div className="text-xs font-medium text-muted-foreground">Budget range (€)</div>
+        <div className="text-xs font-medium text-muted-foreground">{t('filters.budgetRange')}</div>
         <div className="flex items-center gap-2">
           <Input
             type="number"
-            placeholder="Min"
+            placeholder={t('filters.min')}
             value={filters.budgetRange[0] || ""}
             onChange={(e) =>
               setFilters((p) => ({
@@ -122,10 +124,10 @@ export function JobFiltersPanel({
               }))
             }
           />
-          <span className="text-xs text-muted-foreground">to</span>
+          <span className="text-xs text-muted-foreground">{t('filters.to')}</span>
           <Input
             type="number"
-            placeholder="Max"
+            placeholder={t('filters.max')}
             value={filters.budgetRange[1] || ""}
             onChange={(e) =>
               setFilters((p) => ({

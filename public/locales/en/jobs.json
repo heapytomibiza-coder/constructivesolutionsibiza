@@ -1,26 +1,119 @@
- {
-   "board": {
-     "title": "Job Board",
-     "subtitle": "Browse open jobs with full specs from the guided process",
-     "findWork": "Find work fast",
-     "realScope": "Real scope, real answers, less back-and-forth.",
-     "searchPlaceholder": "Search jobs (e.g. plumbing, shelves, leak)…",
-     "asap": "ASAP",
-     "highBudget": "High budget",
-     "photos": "Photos",
-     "newToday": "New today",
-     "noJobs": "No jobs found matching your criteria"
-   },
-   "wizard": {
-     "stepCategory": "Category",
-     "stepSubcategory": "Subcategory",
-     "stepMicro": "Service Type",
-     "stepQuestions": "Professional Briefing",
-     "stepLogistics": "Timing & Budget",
-     "stepExtras": "Photos",
-     "stepReview": "Review & Post",
-     "next": "Continue",
-     "back": "Back",
+{
+  "board": {
+    "title": "Job Board",
+    "subtitle": "Browse open jobs with full specs from the guided process",
+    "findWork": "Find work fast",
+    "realScope": "Real scope, real answers, less back-and-forth.",
+    "searchPlaceholder": "Search jobs (e.g. plumbing, shelves, leak)…",
+    "asap": "ASAP",
+    "highBudget": "High budget",
+    "photos": "Photos",
+    "newToday": "New today",
+    "noJobs": "No jobs found matching your criteria",
+    "jobs": "Jobs",
+    "matchedJobs": "Matched Jobs",
+    "featured": "Featured",
+    "top": "Top {{count}}",
+    "results": "{{count}} results",
+    "loading": "Loading jobs…",
+    "loadError": "Failed to load jobs: {{error}}",
+    "retry": "Retry",
+    "showMatchedOnly": "Show Matched Only",
+    "showingMatched": "Showing Matched Jobs",
+    "showingMatchedHint": "Showing jobs that match your services",
+    "noMatchedJobs": "No matched jobs found.",
+    "noJobsFiltered": "No jobs match your filters. Try removing some filters or searching a broader term.",
+    "viewAllJobs": "View all jobs",
+    "clearFilters": "Clear filters"
+  },
+  "filters": {
+    "title": "Filters",
+    "location": "Location",
+    "locationPlaceholder": "e.g. San Antonio",
+    "categories": "Categories",
+    "noCategories": "No categories found.",
+    "budgetRange": "Budget range (€)",
+    "min": "Min",
+    "max": "Max",
+    "to": "to",
+    "clearFilters": "Clear filters"
+  },
+  "stats": {
+    "activeJobs": "Active jobs",
+    "postedToday": "Posted today",
+    "totalBudget": "Total budget"
+  },
+  "card": {
+    "view": "View",
+    "viewDetails": "View details",
+    "viewApply": "View & Apply",
+    "message": "Message",
+    "opening": "Opening...",
+    "signInToRespond": "Sign in to respond",
+    "addServicesToApply": "Add services to apply",
+    "completeOnboarding": "Complete onboarding to apply",
+    "setupProfile": "Set up profile to apply",
+    "matched": "Matched",
+    "yourJob": "Your job",
+    "posted": "Posted {{time}}",
+    "goodSpec": "Good spec",
+    "basicSpec": "Basic spec",
+    "needsDetail": "Needs detail",
+    "tbd": "TBD",
+    "start": "Start: {{date}}",
+    "thisWeek": "This week",
+    "thisMonth": "This month",
+    "flexible": "Flexible",
+    "under500": "Under 500 €",
+    "500_1000": "500–1,000 €",
+    "1000_2500": "1,000–2,500 €",
+    "2500_5000": "2,500–5,000 €",
+    "over5000": "Over 5,000 €",
+    "quoteNeeded": "Quote needed"
+  },
+  "detail": {
+    "title": "Job Details",
+    "area": "Area",
+    "budget": "Budget",
+    "timing": "Timing",
+    "services": "Services",
+    "scope": "Scope & Specifications",
+    "logistics": "Logistics",
+    "location": "Location",
+    "startTiming": "Start timing",
+    "startDate": "Start date",
+    "extras": "Extras",
+    "notes": "Notes",
+    "photos": "Photos ({{count}})",
+    "photosLabel": "Photos",
+    "permitConcerns": "Client has permit concerns",
+    "noExtras": "No extras provided.",
+    "compareProviders": "Compare Service Providers",
+    "viewAllMarketplace": "View all on Marketplace →",
+    "signInToRespond": "Sign in to respond",
+    "message": "Message",
+    "startingChat": "Starting chat...",
+    "share": "Share",
+    "completeSetup": "Complete setup to message",
+    "loadingDetails": "Loading details…",
+    "loadError": "Failed to load details: {{error}}",
+    "retry": "Retry"
+  },
+  "flags": {
+    "emergency": "Emergency",
+    "urgent": "Urgent",
+    "quoteSubjectToInspection": "Quote subject to inspection"
+  },
+  "wizard": {
+    "stepCategory": "Category",
+    "stepSubcategory": "Subcategory",
+    "stepMicro": "Service Type",
+    "stepQuestions": "Professional Briefing",
+    "stepLogistics": "Timing & Budget",
+    "stepExtras": "Photos",
+    "stepReview": "Review & Post",
+    "next": "Continue",
+    "back": "Back",
     "submit": "Post Job",
     "dispatchTitle": "How would you like to send this job?",
     "broadcastTitle": "Post to job board",
@@ -31,22 +124,22 @@
     "changePro": "Change",
     "choosePro": "Choose a Professional"
   },
-   "completion": {
-     "title": "Mark job as completed?",
-     "description": "Confirm that the work for \"{{jobTitle}}\" has been completed. You'll be asked to rate your experience next.",
-     "confirm": "Yes, Complete"
-   },
-   "details": {
-     "postedBy": "Posted by",
-     "location": "Location",
-     "budget": "Budget",
-     "timing": "Timing",
-     "photos": "Photos"
-   },
-   "actions": {
-     "message": "Message",
-     "assign": "Assign Professional",
-     "complete": "Mark Complete",
-     "viewDetails": "View Details"
-   }
- }
+  "completion": {
+    "title": "Mark job as completed?",
+    "description": "Confirm that the work for \"{{jobTitle}}\" has been completed. You'll be asked to rate your experience next.",
+    "confirm": "Yes, Complete"
+  },
+  "details": {
+    "postedBy": "Posted by",
+    "location": "Location",
+    "budget": "Budget",
+    "timing": "Timing",
+    "photos": "Photos"
+  },
+  "actions": {
+    "message": "Message",
+    "assign": "Assign Professional",
+    "complete": "Mark Complete",
+    "viewDetails": "View Details"
+  }
+}
