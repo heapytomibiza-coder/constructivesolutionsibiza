@@ -551,6 +551,29 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     setQuestionPacks(packs);
   }, []);
 
+  // === CUSTOM REQUEST HANDLER ===
+  const handleCustomRequestSubmit = useCallback((request: CustomRequest, categoryId: string, categoryName: string) => {
+    flushSync(() => {
+      setWizardState(prev => ({
+        ...prev,
+        wizardMode: 'custom',
+        customRequest: request,
+        mainCategory: categoryName,
+        mainCategoryId: categoryId,
+        // Clear structured fields
+        subcategory: '',
+        subcategoryId: '',
+        microNames: [],
+        microIds: [],
+        microSlugs: [],
+        answers: { microAnswers: {} },
+      }));
+    });
+    setShowCustomForm(false);
+    setCurrentStep(WizardStep.Logistics);
+    trackEvent('custom_request_submitted', 'client', { category: categoryName });
+  }, []);
+
   // === NAVIGATION ===
   
   const canAdvance = useCallback((): boolean => {
