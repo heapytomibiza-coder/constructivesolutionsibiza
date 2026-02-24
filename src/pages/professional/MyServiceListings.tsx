@@ -9,10 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Plus, Wrench } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench } from 'lucide-react';
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
 import { useTranslation } from 'react-i18next';
+import { txMicro } from '@/i18n/taxonomyTranslations';
 
 /** Calculate profile completeness for a listing */
 function getCompleteness(listing: MyListing): number {
@@ -25,17 +26,19 @@ function getCompleteness(listing: MyListing): number {
   return score;
 }
 
-function statusBadge(status: string) {
-  switch (status) {
-    case 'live': return <Badge variant="default" className="bg-success text-success-foreground">Live</Badge>;
-    case 'draft': return <Badge variant="secondary">Draft</Badge>;
-    case 'paused': return <Badge variant="outline">Paused</Badge>;
-    default: return <Badge variant="outline">{status}</Badge>;
+/** Get localized display title, preferring i18n map then falling back to raw */
+function getDisplayTitle(listing: MyListing, lang: string): string {
+  if (listing.display_title_i18n && typeof listing.display_title_i18n === 'object') {
+    const translated = (listing.display_title_i18n as Record<string, string>)[lang];
+    if (translated?.trim()) return translated;
   }
+  return listing.display_title || '';
 }
 
 function ListingCard({ listing }: { listing: MyListing }) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation('dashboard');
+  const { t: tAll } = useTranslation(['common', 'micros']);
   const publish = usePublishListing();
   const pause = usePauseListing();
   const unpause = useUnpauseListing();
@@ -45,6 +48,12 @@ function ListingCard({ listing }: { listing: MyListing }) {
     listing.short_description?.trim() &&
     listing.hero_image_url;
 
+  const microLabel = txMicro(listing.micro_slug ?? null, tAll, listing.micro_name);
+  const title = getDisplayTitle(listing, i18n.language) || t('pro.untitled', 'Untitled');
+
+  const statusKey = listing.status as 'live' | 'draft' | 'paused';
+  const statusLabel = t(`status.${statusKey}`, listing.status);
+
   return (
     <Card className="border-border/70 overflow-hidden">
       <div className="flex gap-0">
@@ -53,12 +62,12 @@ function ListingCard({ listing }: { listing: MyListing }) {
           {listing.hero_image_url ? (
             <img
               src={listing.hero_image_url}
-              alt={listing.display_title}
+              alt={title}
               className="w-full h-full object-cover aspect-square"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs aspect-square">
-              No image
+              {t('pro.noImage', 'No image')}
             </div>
           )}
         </div>
@@ -66,15 +75,21 @@ function ListingCard({ listing }: { listing: MyListing }) {
         <CardContent className="flex-1 p-3 sm:p-4 flex flex-col justify-between gap-2">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              {statusBadge(listing.status)}
-              <span className="text-xs text-muted-foreground">{listing.micro_name}</span>
+              {statusKey === 'live' ? (
+                <Badge variant="default" className="bg-success text-success-foreground">{statusLabel}</Badge>
+              ) : statusKey === 'draft' ? (
+                <Badge variant="secondary">{statusLabel}</Badge>
+              ) : (
+                <Badge variant="outline">{statusLabel}</Badge>
+              )}
+              <span className="text-xs text-muted-foreground">{microLabel}</span>
             </div>
             <h3 className="font-semibold text-sm sm:text-base leading-tight line-clamp-1">
-              {listing.display_title || 'Untitled'}
+              {title}
             </h3>
             {listing.starting_price && (
               <p className="text-xs text-primary font-medium mt-0.5">
-                From {listing.starting_price} €
+                {t('pro.fromPrice', 'From {{price}} €', { price: listing.starting_price })}
               </p>
             )}
             {listing.status === 'draft' && (() => {
@@ -91,7 +106,7 @@ function ListingCard({ listing }: { listing: MyListing }) {
           <div className="flex items-center gap-2 flex-wrap">
             <Button variant="outline" size="sm" className="h-8 gap-1.5" asChild>
               <Link to={`/professional/listings/${listing.id}/edit`}>
-                <Edit className="h-3.5 w-3.5" /> Edit
+                <Edit className="h-3.5 w-3.5" /> {t('common.edit', 'Edit')}
               </Link>
             </Button>
 
@@ -102,7 +117,7 @@ function ListingCard({ listing }: { listing: MyListing }) {
                 disabled={!canPublish || publish.isPending}
                 onClick={() => publish.mutate(listing.id)}
               >
-                <Globe className="h-3.5 w-3.5" /> Publish
+                <Globe className="h-3.5 w-3.5" /> {t('pro.publish', 'Publish')}
               </Button>
             )}
 
@@ -115,11 +130,11 @@ function ListingCard({ listing }: { listing: MyListing }) {
                   onClick={() => pause.mutate(listing.id)}
                   disabled={pause.isPending}
                 >
-                  <Pause className="h-3.5 w-3.5" /> Pause
+                  <Pause className="h-3.5 w-3.5" /> {t('pro.pause', 'Pause')}
                 </Button>
                 <Button variant="ghost" size="sm" className="h-8 gap-1.5" asChild>
                   <Link to={`/services/listing/${listing.id}`}>
-                    <Eye className="h-3.5 w-3.5" /> View
+                    <Eye className="h-3.5 w-3.5" /> {t('pro.view', 'View')}
                   </Link>
                 </Button>
               </>
@@ -132,7 +147,7 @@ function ListingCard({ listing }: { listing: MyListing }) {
                 onClick={() => unpause.mutate(listing.id)}
                 disabled={unpause.isPending}
               >
-                <Play className="h-3.5 w-3.5" /> Unpause
+                <Play className="h-3.5 w-3.5" /> {t('pro.unpause', 'Unpause')}
               </Button>
             )}
           </div>
@@ -164,7 +179,6 @@ export default function MyServiceListings() {
       </nav>
 
       <div className="container py-5 sm:py-8">
-        {/* Hub header with hint + Add/Remove Categories */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-5">
           <p className="text-sm text-muted-foreground">
             {t('pro.manageListingsPageHint', 'Edit and publish your services to appear on the platform.')}
@@ -179,9 +193,9 @@ export default function MyServiceListings() {
 
         <Tabs defaultValue="draft">
           <TabsList className="mb-4">
-            <TabsTrigger value="draft">Draft ({drafts.length})</TabsTrigger>
-            <TabsTrigger value="live">Live ({live.length})</TabsTrigger>
-            <TabsTrigger value="paused">Paused ({paused.length})</TabsTrigger>
+            <TabsTrigger value="draft">{t('status.draft', 'Draft')} ({drafts.length})</TabsTrigger>
+            <TabsTrigger value="live">{t('status.live', 'Live')} ({live.length})</TabsTrigger>
+            <TabsTrigger value="paused">{t('status.paused', 'Paused')} ({paused.length})</TabsTrigger>
           </TabsList>
 
           {isLoading ? (
