@@ -167,7 +167,7 @@ export function JobDetailsModal({
 
   const jobPack = React.useMemo(() => {
     if (!row) return null;
-    return buildJobPack(row, packs ?? []);
+    return buildJobPack(row, packs ?? [], t);
   }, [row, packs]);
 
   return (
