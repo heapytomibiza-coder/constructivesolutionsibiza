@@ -111,6 +111,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // Draft modal
   const [showDraftModal, setShowDraftModal] = useState(false);
   
+  // Custom request form toggle
+  const [showCustomForm, setShowCustomForm] = useState(false);
+  
   // Deep-link processing ref
   const deepLinkProcessedRef = useRef(false);
   
