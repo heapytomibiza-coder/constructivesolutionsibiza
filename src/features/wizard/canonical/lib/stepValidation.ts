@@ -239,11 +239,24 @@ export type WizardValidation = {
 
 export function validateWizardForSubmission(state: WizardState): WizardValidation {
   const errors: string[] = [];
+  const isCustom = state.wizardMode === 'custom';
 
-  // Category selection
+  // Category selection (required for both modes)
   if (!isCategoryComplete(state)) errors.push("Please select a category");
-  if (!isSubcategoryComplete(state)) errors.push("Please select a service type");
-  if (!isMicroComplete(state)) errors.push("Please select at least one task");
+
+  if (isCustom) {
+    // Custom mode: validate custom request fields
+    if (!state.customRequest?.jobTitle || state.customRequest.jobTitle.trim().length < 4) {
+      errors.push("Please provide a job title (at least 4 characters)");
+    }
+    if (!state.customRequest?.description || state.customRequest.description.trim().length < 20) {
+      errors.push("Please provide a job description (at least 20 characters)");
+    }
+  } else {
+    // Structured mode: require subcategory + micro
+    if (!isSubcategoryComplete(state)) errors.push("Please select a service type");
+    if (!isMicroComplete(state)) errors.push("Please select at least one task");
+  }
 
   // Logistics (Step 5) - all required fields
   const step5 = isStep5Complete(state.logistics);

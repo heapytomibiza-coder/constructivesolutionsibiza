@@ -385,10 +385,21 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
  */
 export function validateWizardState(state: WizardState): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
+  const isCustom = state.wizardMode === 'custom';
 
   if (!state.mainCategoryId) errors.push("Please select a category");
-  if (!state.subcategoryId) errors.push("Please select a service type");
-  if (!state.microIds.length) errors.push("Please select at least one task");
+
+  if (isCustom) {
+    if (!state.customRequest?.jobTitle || state.customRequest.jobTitle.trim().length < 4) {
+      errors.push("Please provide a job title");
+    }
+    if (!state.customRequest?.description || state.customRequest.description.trim().length < 20) {
+      errors.push("Please provide a job description");
+    }
+  } else {
+    if (!state.subcategoryId) errors.push("Please select a service type");
+    if (!state.microIds.length) errors.push("Please select at least one task");
+  }
 
   if (!state.logistics.location) errors.push("Please provide a location");
   if (state.logistics.location === "other" && !state.logistics.customLocation?.trim()) {
