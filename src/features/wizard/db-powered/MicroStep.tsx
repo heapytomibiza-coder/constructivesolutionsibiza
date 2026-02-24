@@ -119,11 +119,7 @@ export default function MicroStep({
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="font-medium">{getMicroLabel(micro)}</p>
-                    {micro.description && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {micro.description}
-                      </p>
-                    )}
+                    {/* Description hidden: DB values are English-only, micro name is translated */}
                   </div>
                   {isSelected && (
                     <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-3 shrink-0">
