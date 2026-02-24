@@ -30,11 +30,22 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
     );
   }
 
-  /** Translate a display value (answer) using value-first strategy */
-  const translateValue = (displayValue: string): string => {
+  /** Translate an answer value using rawValue (snake_case DB key) first, falling back to displayValue */
+  const translateValue = (rawValue: string | string[], displayValue: string): string => {
+    // Handle arrays (checkbox answers)
+    if (Array.isArray(rawValue)) {
+      return rawValue.map(v => {
+        const translated = t(`options.${v}`, { defaultValue: '' });
+        return translated || v;
+      }).join(', ');
+    }
+    // Single value — look up by raw snake_case key
+    const byRaw = t(`options.${rawValue}`, { defaultValue: '' });
+    if (byRaw) return byRaw;
+    // Fallback to normalized displayValue
     const key = norm(displayValue);
-    const translated = t(`options.${key}`, { defaultValue: '' });
-    return translated || displayValue;
+    const byDisplay = t(`options.${key}`, { defaultValue: '' });
+    return byDisplay || displayValue;
   };
 
   /** Translate a question label */
@@ -62,7 +73,7 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
                 <span className="mt-0.5 text-primary/60">•</span>
                 <div className="flex-1">
                   <span className="text-muted-foreground">{translateLabel(answer.questionLabel)}:</span>{" "}
-                  <span className="font-medium">{translateValue(answer.displayValue)}</span>
+                  <span className="font-medium">{translateValue(answer.rawValue, answer.displayValue)}</span>
                 </div>
               </li>
             ))}

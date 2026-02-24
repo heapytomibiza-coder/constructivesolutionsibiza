@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Pencil, Camera, FileText, Save } from 'lucide-react';
 import { WizardState, WizardStep } from '../types';
 import { formatBudgetRange, formatLocationDisplay, formatTiming } from '../lib/formatDisplay';
+import { txCategory, txSubcategory, txMicro } from '@/i18n/taxonomyTranslations';
 
 interface ReviewStepProps {
   wizardState: WizardState;
@@ -35,11 +36,12 @@ export function ReviewStep({
   onEdit,
   isAuthenticated,
 }: ReviewStepProps) {
-  const { t } = useTranslation(['wizard', 'jobs']);
+  const { t } = useTranslation(['wizard', 'jobs', 'common', 'micros']);
   const {
     mainCategory,
     subcategory,
     microNames,
+    microSlugs,
     logistics,
     extras,
   } = wizardState;
@@ -66,10 +68,10 @@ export function ReviewStep({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="font-medium">
-                {mainCategory || t('wizard:review.category', 'Category')}
+                {txCategory(mainCategory, t) || t('wizard:review.category', 'Category')}
               </Badge>
               {subcategory && (
-                <span className="text-sm text-muted-foreground">→ {subcategory}</span>
+                <span className="text-sm text-muted-foreground">→ {txSubcategory(subcategory, t)}</span>
               )}
             </div>
             <EditLink onClick={() => onEdit(WizardStep.Category)} label={editLabel} />
@@ -88,7 +90,7 @@ export function ReviewStep({
                 {microNames.map((name, i) => (
                   <li key={i} className="font-medium flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    {name}
+                    {txMicro(microSlugs[i], t, name)}
                   </li>
                 ))}
               </ul>
