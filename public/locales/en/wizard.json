@@ -127,5 +127,24 @@
   "scope": {
     "showingServicesFor": "Showing services offered by {{name}}",
     "noServices": "This professional hasn't set up their services yet"
+  },
+  "review": {
+    "edit": "Edit",
+    "category": "Category",
+    "whatYouNeed": "What you need",
+    "noTasks": "No tasks selected",
+    "where": "Where",
+    "when": "When",
+    "budget": "Budget",
+    "photosCount": "{{count}} photo",
+    "photosCount_plural": "{{count}} photos",
+    "notesAdded": "Notes added",
+    "noObligation": "You're not committing to hire anyone",
+    "noObligationDesc": "Your job will be matched with local professionals. You can edit, cancel, or ignore replies anytime — no obligation.",
+    "authNotice": "You'll need to sign in to save this job. Your progress will be saved.",
+    "toBeDiscussed": "To be discussed",
+    "notSpecified": "Not specified",
+    "customLocation": "Custom location",
+    "startingDate": "Starting {{date}}"
   }
 }
