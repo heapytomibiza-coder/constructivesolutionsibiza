@@ -30,11 +30,22 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
     );
   }
 
-  /** Translate a display value (answer) using value-first strategy */
-  const translateValue = (displayValue: string): string => {
+  /** Translate an answer value using rawValue (snake_case DB key) first, falling back to displayValue */
+  const translateValue = (rawValue: string | string[], displayValue: string): string => {
+    // Handle arrays (checkbox answers)
+    if (Array.isArray(rawValue)) {
+      return rawValue.map(v => {
+        const translated = t(`options.${v}`, { defaultValue: '' });
+        return translated || v;
+      }).join(', ');
+    }
+    // Single value — look up by raw snake_case key
+    const byRaw = t(`options.${rawValue}`, { defaultValue: '' });
+    if (byRaw) return byRaw;
+    // Fallback to normalized displayValue
     const key = norm(displayValue);
-    const translated = t(`options.${key}`, { defaultValue: '' });
-    return translated || displayValue;
+    const byDisplay = t(`options.${key}`, { defaultValue: '' });
+    return byDisplay || displayValue;
   };
 
   /** Translate a question label */
