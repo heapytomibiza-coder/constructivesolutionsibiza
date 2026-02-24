@@ -44,6 +44,16 @@
     "ratingSuccess": "¡Gracias por tu valoración!",
     "ratingFailed": "No se pudo enviar la valoración",
     "uncategorized": "Sin categoría",
+    "budgetTbd": "Por presupuesto",
+    "replies": "{{count}} respuestas",
+    "replies_one": "{{count}} respuesta",
+    "timing": {
+      "asap": "Urgente",
+      "this_week": "Esta semana",
+      "this_month": "Este mes",
+      "flexible": "Flexible",
+      "date": "Fecha específica"
+    },
     "status": {
       "ready": "Guardado",
       "open": "Activo",
@@ -134,6 +144,39 @@
     "notFound": "Trabajo no encontrado.",
     "services": "{{count}} servicios",
     "match": "{{percent}}% coincidencia"
+  },
+  "reviews": {
+    "rateExperience": "Valora tu experiencia",
+    "rateClientPrivate": "Valorar cliente (privado)",
+    "rateProfessional": "Valorar profesional",
+    "rate": "Valorar"
+  },
+  "jobTicket": {
+    "notSharedYet": "Guardado — Aún no compartido",
+    "liveOnBoard": "Publicado en la bolsa de trabajo",
+    "inProgress": "En progreso",
+    "completed": "Completado",
+    "closed": "Cerrado",
+    "closeJob": "Cerrar trabajo",
+    "closeConfirm": "¿Seguro que quieres cerrar este trabajo?",
+    "jobClosed": "Trabajo cerrado.",
+    "closeFailed": "No se pudo cerrar el trabajo.",
+    "jobNotFound": "Trabajo no encontrado.",
+    "whatYouNeed": "Lo que necesitas",
+    "where": "Dónde",
+    "when": "Cuándo",
+    "budget": "Presupuesto",
+    "flexible": "Flexible",
+    "savedBanner": "Guardado — puedes invitar profesionales o publicar en cualquier momento.",
+    "shareTitle": "¿Cómo quieres compartir este trabajo?",
+    "postToBoard": "Publicar en la bolsa de trabajo",
+    "postToBoardDesc": "Todos los profesionales de esta categoría pueden ver y responder",
+    "alreadyPosted": "Ya publicado — los profesionales pueden ver y responder",
+    "jobPosted": "¡Trabajo publicado en la bolsa!",
+    "postFailed": "No se pudo publicar. Inténtalo de nuevo.",
+    "inviteSpecific": "Invitar profesionales específicos",
+    "inviteSpecificDesc": "Busca profesionales compatibles, ve sus perfiles y envíales el trabajo",
+    "invitesSent": "Invitaciones enviadas ({{count}})"
   },
   "stats": {
     "jobs": "Trabajos",

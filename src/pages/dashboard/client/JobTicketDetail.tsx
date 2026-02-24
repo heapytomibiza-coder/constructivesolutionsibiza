@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Globe,
@@ -26,22 +27,22 @@ import {
   XCircle,
 } from 'lucide-react';
 
-const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
-  ready: { label: 'Saved — Not shared yet', variant: 'secondary' },
-  open: { label: 'Live on Job Board', variant: 'default' },
-  in_progress: { label: 'In Progress', variant: 'outline' },
-  completed: { label: 'Completed', variant: 'default' },
-  closed: { label: 'Closed', variant: 'destructive' },
-};
-
 export default function JobTicketDetail() {
+  const { t } = useTranslation('dashboard');
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const { user } = useSession();
   const queryClient = useQueryClient();
   const [isPublishing, setIsPublishing] = useState(false);
 
-  // Fetch job details
+  const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
+    ready: { label: t('jobTicket.notSharedYet'), variant: 'secondary' },
+    open: { label: t('jobTicket.liveOnBoard'), variant: 'default' },
+    in_progress: { label: t('jobTicket.inProgress'), variant: 'outline' },
+    completed: { label: t('jobTicket.completed'), variant: 'default' },
+    closed: { label: t('jobTicket.closed'), variant: 'destructive' },
+  };
+
   const { data: job, isLoading } = useQuery({
     queryKey: ['job_ticket', jobId],
     queryFn: async () => {
@@ -56,7 +57,6 @@ export default function JobTicketDetail() {
     enabled: !!jobId && !!user,
   });
 
-  // Fetch invites for this job
   const { data: invites = [] } = useQuery({
     queryKey: ['job_invites', jobId],
     queryFn: async () => {
@@ -71,7 +71,6 @@ export default function JobTicketDetail() {
     enabled: !!jobId && !!user,
   });
 
-  // Fetch professional names for invites
   const { data: inviteProfiles = [] } = useQuery({
     queryKey: ['invite_profiles', invites.map(i => i.professional_id)],
     queryFn: async () => {
@@ -87,7 +86,7 @@ export default function JobTicketDetail() {
     enabled: invites.length > 0,
   });
 
-  const proNameMap = new Map(inviteProfiles.map(p => [p.user_id, p.display_name || 'Professional']));
+  const proNameMap = new Map(inviteProfiles.map(p => [p.user_id, p.display_name || t('client.professionalFallback')]));
 
   const handlePostToBoard = async () => {
     if (!jobId) return;
@@ -98,28 +97,28 @@ export default function JobTicketDetail() {
         .update({ status: 'open', is_publicly_listed: true })
         .eq('id', jobId);
       if (error) throw error;
-      toast.success('Job posted to the job board!');
+      toast.success(t('jobTicket.jobPosted'));
       queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });
       queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
     } catch {
-      toast.error('Failed to post job. Please try again.');
+      toast.error(t('jobTicket.postFailed'));
     } finally {
       setIsPublishing(false);
     }
   };
 
   const handleClose = async () => {
-    if (!jobId || !confirm('Are you sure you want to close this job?')) return;
+    if (!jobId || !confirm(t('jobTicket.closeConfirm'))) return;
     try {
       const { error } = await supabase
         .from('jobs')
         .update({ status: 'closed' })
         .eq('id', jobId);
       if (error) throw error;
-      toast.success('Job closed.');
+      toast.success(t('jobTicket.jobClosed'));
       navigate('/dashboard/client');
     } catch {
-      toast.error('Failed to close job.');
+      toast.error(t('jobTicket.closeFailed'));
     }
   };
 
@@ -134,7 +133,7 @@ export default function JobTicketDetail() {
   if (!job) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Job not found.</p>
+        <p className="text-muted-foreground">{t('jobTicket.jobNotFound')}</p>
       </div>
     );
   }
@@ -148,7 +147,6 @@ export default function JobTicketDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Nav */}
       <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
         <div className="container flex h-14 items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/client')}>
@@ -169,7 +167,7 @@ export default function JobTicketDetail() {
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" className="gap-1.5 text-destructive" onClick={handleClose}>
               <XCircle className="h-3.5 w-3.5" />
-              Close Job
+              {t('jobTicket.closeJob')}
             </Button>
           </div>
         </div>
@@ -179,7 +177,7 @@ export default function JobTicketDetail() {
           <div className="bg-primary/5 px-5 py-3 border-b border-border">
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="font-medium">
-                {job.category || 'Category'}
+                {job.category || t('client.uncategorized')}
               </Badge>
               {job.subcategory && (
                 <span className="text-sm text-muted-foreground">→ {job.subcategory}</span>
@@ -188,9 +186,8 @@ export default function JobTicketDetail() {
           </div>
 
           <CardContent className="p-5 space-y-4">
-            {/* What you need */}
             <section>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">What you need</h4>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">{t('jobTicket.whatYouNeed')}</h4>
               {microNames.length > 0 ? (
                 <ul className="space-y-1">
                   {microNames.map((name, i) => (
@@ -205,27 +202,26 @@ export default function JobTicketDetail() {
               )}
             </section>
 
-            {/* Details Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-border">
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
-                  <span className="text-xs text-muted-foreground block">Where</span>
+                  <span className="text-xs text-muted-foreground block">{t('jobTicket.where')}</span>
                   <p className="text-sm font-medium">{area}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
-                  <span className="text-xs text-muted-foreground block">When</span>
-                  <p className="text-sm font-medium capitalize">{job.start_timing || 'Flexible'}</p>
+                  <span className="text-xs text-muted-foreground block">{t('jobTicket.when')}</span>
+                  <p className="text-sm font-medium capitalize">{job.start_timing || t('jobTicket.flexible')}</p>
                 </div>
               </div>
               {(job.budget_min || job.budget_max) && (
                 <div className="flex items-start gap-2">
                   <DollarSign className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
-                    <span className="text-xs text-muted-foreground block">Budget</span>
+                    <span className="text-xs text-muted-foreground block">{t('jobTicket.budget')}</span>
                     <p className="text-sm font-medium text-primary">
                       {job.budget_min && job.budget_max
                         ? `€${job.budget_min}–€${job.budget_max}`
@@ -240,20 +236,18 @@ export default function JobTicketDetail() {
           </CardContent>
         </Card>
 
-        {/* Fix 5: Saved banner */}
         {job.status === 'ready' && (
           <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <p className="text-sm font-medium">Saved — you can invite professionals or post publicly anytime.</p>
+            <p className="text-sm font-medium">{t('jobTicket.savedBanner')}</p>
           </div>
         )}
 
         {/* Distribution Actions */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-display">How would you like to share this job?</CardTitle>
+            <CardTitle className="text-base font-display">{t('jobTicket.shareTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Post to Job Board */}
             <button
               onClick={handlePostToBoard}
               disabled={isPublishing || job.status === 'open'}
@@ -263,11 +257,11 @@ export default function JobTicketDetail() {
                 <Globe className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-foreground">Post to Job Board</p>
+                <p className="font-medium text-foreground">{t('jobTicket.postToBoard')}</p>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {job.status === 'open'
-                    ? 'Already posted — professionals can see and respond'
-                    : 'All professionals in this category can see and respond'}
+                    ? t('jobTicket.alreadyPosted')
+                    : t('jobTicket.postToBoardDesc')}
                 </p>
               </div>
               {job.status === 'open' && (
@@ -275,7 +269,6 @@ export default function JobTicketDetail() {
               )}
             </button>
 
-            {/* Invite Specific Professionals */}
             <Link
               to={`/dashboard/jobs/${jobId}/invite`}
               className="w-full flex items-start gap-4 p-4 rounded-xl border-2 border-border hover:border-primary/40 transition-all text-left block"
@@ -284,24 +277,23 @@ export default function JobTicketDetail() {
                 <UserPlus className="h-5 w-5 text-accent" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-foreground">Invite Specific Professionals</p>
+                <p className="font-medium text-foreground">{t('jobTicket.inviteSpecific')}</p>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  Browse matching professionals, view profiles, and send this job directly
+                  {t('jobTicket.inviteSpecificDesc')}
                 </p>
               </div>
             </Link>
           </CardContent>
         </Card>
 
-        {/* Activity / Invites */}
         {invites.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-display">Invites Sent ({invites.length})</CardTitle>
+              <CardTitle className="text-base font-display">{t('jobTicket.invitesSent', { count: invites.length })}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {invites.map((invite) => {
-                const name = proNameMap.get(invite.professional_id) || 'Professional';
+                const name = proNameMap.get(invite.professional_id) || t('client.professionalFallback');
                 const statusIcon = {
                   sent: <Clock className="h-4 w-4 text-muted-foreground" />,
                   viewed: <Eye className="h-4 w-4 text-accent" />,

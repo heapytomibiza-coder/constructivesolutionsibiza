@@ -10,7 +10,7 @@ interface ClientStats {
   inProgressJobs: number;
 }
 
-interface Job {
+export interface ClientJob {
   id: string;
   title: string;
   status: string;
@@ -20,6 +20,13 @@ interface Job {
   is_publicly_listed: boolean;
   assigned_professional_id: string | null;
   answers?: unknown;
+  area: string | null;
+  budget_type: string | null;
+  budget_value: number | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  start_timing: string | null;
+  conversation_count: number;
 }
 
 export function useClientStats() {
@@ -32,7 +39,6 @@ export function useClientStats() {
         return { activeJobs: 0, draftJobs: 0, totalJobs: 0, unreadMessages: 0, inProgressJobs: 0 };
       }
 
-      // Fetch jobs count by status
       const { data: jobs, error: jobsError } = await supabase
         .from('jobs')
         .select('id, status')
@@ -45,7 +51,6 @@ export function useClientStats() {
       const inProgressJobs = jobs?.filter(j => j.status === 'in_progress').length || 0;
       const totalJobs = jobs?.length || 0;
 
-      // Fetch unread messages using RPC
       const { data: conversations, error: convError } = await supabase
         .rpc('get_conversations_with_unread');
 
@@ -53,32 +58,44 @@ export function useClientStats() {
 
       const unreadMessages = conversations?.reduce((sum, c) => sum + (c.unread_count || 0), 0) || 0;
 
-      return {
-        activeJobs,
-        draftJobs,
-        totalJobs,
-        unreadMessages,
-        inProgressJobs,
-      };
+      return { activeJobs, draftJobs, totalJobs, unreadMessages, inProgressJobs };
     },
     enabled: !!user?.id,
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000,
   });
 
   const jobsQuery = useQuery({
     queryKey: ['client_jobs', user?.id],
-    queryFn: async (): Promise<Job[]> => {
+    queryFn: async (): Promise<ClientJob[]> => {
       if (!user?.id) return [];
 
-      const { data, error } = await supabase
+      // Fetch jobs with extra fields
+      const { data: jobs, error } = await supabase
         .from('jobs')
-        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id, answers')
+        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id, answers, area, budget_type, budget_value, budget_min, budget_max, start_timing')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(20);
 
       if (error) throw error;
-      return data || [];
+      if (!jobs?.length) return [];
+
+      // Fetch conversation counts per job in one query
+      const jobIds = jobs.map(j => j.id);
+      const { data: convCounts } = await supabase
+        .from('conversations')
+        .select('job_id')
+        .in('job_id', jobIds);
+
+      const countMap = new Map<string, number>();
+      convCounts?.forEach(c => {
+        countMap.set(c.job_id, (countMap.get(c.job_id) || 0) + 1);
+      });
+
+      return jobs.map(j => ({
+        ...j,
+        conversation_count: countMap.get(j.id) || 0,
+      }));
     },
     enabled: !!user?.id,
   });

@@ -7,8 +7,10 @@ import { RatingModal } from '@/pages/jobs/components/RatingModal';
 import { submitReview } from '@/pages/jobs/actions/submitReview.action';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 export const PendingReviewsCard = () => {
+  const { t } = useTranslation('dashboard');
   const { data: pendingReviews = [], isLoading } = usePendingReviews();
   const [selectedReview, setSelectedReview] = useState<typeof pendingReviews[0] | null>(null);
   const queryClient = useQueryClient();
@@ -25,11 +27,11 @@ export const PendingReviewsCard = () => {
     });
 
     if (result.success) {
-      toast.success('Thanks for your rating!');
+      toast.success(t('client.ratingSuccess', 'Thanks for your rating!'));
       setSelectedReview(null);
       queryClient.invalidateQueries({ queryKey: ['pending-reviews'] });
     } else {
-      toast.error(result.error || 'Failed to submit rating');
+      toast.error(result.error || t('client.ratingFailed', 'Failed to submit rating'));
     }
   };
 
@@ -37,7 +39,7 @@ export const PendingReviewsCard = () => {
     return (
       <Card className="border-border/70">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('client.pendingReviews', 'Pending Reviews')}</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center py-4">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -56,10 +58,10 @@ export const PendingReviewsCard = () => {
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Star className="h-4 w-4 text-accent" />
-            Pending Reviews
+            {t('client.pendingReviews', 'Pending Reviews')}
           </CardTitle>
           <CardDescription>
-            Rate your experience with clients
+            {t('reviews.rateExperience', 'Rate your experience')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -71,7 +73,9 @@ export const PendingReviewsCard = () => {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium truncate">{review.jobTitle}</p>
                 <p className="text-xs text-muted-foreground">
-                  {review.reviewerRole === 'professional' ? 'Rate client (private)' : 'Rate professional'}
+                  {review.reviewerRole === 'professional'
+                    ? t('reviews.rateClientPrivate', 'Rate client (private)')
+                    : t('reviews.rateProfessional', 'Rate professional')}
                 </p>
               </div>
               <Button 
@@ -79,7 +83,7 @@ export const PendingReviewsCard = () => {
                 variant="outline"
                 onClick={() => setSelectedReview(review)}
               >
-                Rate
+                {t('reviews.rate', 'Rate')}
               </Button>
             </div>
           ))}

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2, Pencil, Copy, X } from 'lucide-react';
+import { CheckCircle2, Pencil, Copy, X, MapPin, Clock, MessageSquare, DollarSign } from 'lucide-react';
 import { CompletionModal, RatingModal } from '@/pages/jobs/components';
 import { completeJob } from '@/pages/jobs/actions/completeJob.action';
 import { submitReview } from '@/pages/jobs/actions/submitReview.action';
@@ -12,6 +12,8 @@ import { AssignProSelector } from '@/pages/dashboard/shared/components/AssignPro
 import { useTranslation } from 'react-i18next';
 import { txCategory, txSubcategory } from '@/i18n/taxonomyTranslations';
 import { supabase } from '@/integrations/supabase/client';
+import { getDateLocale } from '@/lib/dateLocale';
+import type { ClientJob } from '../hooks/useClientStats';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,39 +26,20 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-interface Job {
-  id: string;
-  title: string;
-  status: string;
-  category: string | null;
-  subcategory: string | null;
-  created_at: string;
-  is_publicly_listed: boolean;
-  assigned_professional_id: string | null;
-  answers?: unknown;
-}
-
 interface ClientJobCardProps {
-  job: Job;
+  job: ClientJob;
   onJobUpdated: () => void;
 }
 
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
-    case 'open':
-      return 'default';
-    case 'draft':
-      return 'secondary';
-    case 'ready':
-      return 'secondary';
-    case 'in_progress':
-      return 'outline';
-    case 'completed':
-      return 'success' as const;
-    case 'cancelled':
-      return 'destructive' as const;
-    default:
-      return 'secondary';
+    case 'open': return 'default';
+    case 'draft': return 'secondary';
+    case 'ready': return 'secondary';
+    case 'in_progress': return 'outline';
+    case 'completed': return 'success' as const;
+    case 'cancelled': return 'destructive' as const;
+    default: return 'secondary';
   }
 };
 
@@ -66,12 +49,25 @@ const getStatusLabel = (status: string, t: (key: string) => string) => {
   return translated !== key ? translated : status;
 };
 
-/** Which actions are available per status */
 function getActions(status: string) {
   const canEdit = ['draft', 'ready', 'open'].includes(status);
   const canDuplicate = ['draft', 'ready', 'open', 'in_progress', 'completed'].includes(status);
   const canClose = ['draft', 'ready', 'open', 'in_progress'].includes(status);
   return { canEdit, canDuplicate, canClose };
+}
+
+function formatBudgetLabel(job: ClientJob, t: (key: string, options?: Record<string, unknown>) => string): string | null {
+  if (job.budget_min && job.budget_max) return `€${job.budget_min}–€${job.budget_max}`;
+  if (job.budget_value) return `€${job.budget_value}`;
+  if (job.budget_type === 'tbd') return t('client.budgetTbd', { defaultValue: 'Quote-based' });
+  return null;
+}
+
+function formatTimingLabel(timing: string | null, t: (key: string, options?: Record<string, unknown>) => string): string | null {
+  if (!timing) return null;
+  const key = `client.timing.${timing}`;
+  const translated = t(key);
+  return translated !== key ? translated : timing.replace(/_/g, ' ');
 }
 
 export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
@@ -84,13 +80,13 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
 
   const canComplete = job.status === 'in_progress' && job.assigned_professional_id;
   const { canEdit, canDuplicate, canClose } = getActions(job.status);
+  const budgetLabel = formatBudgetLabel(job, t);
+  const timingLabel = formatTimingLabel(job.start_timing, t);
+  const dateLocale = getDateLocale();
 
-  const handleEdit = () => {
-    navigate(`/post?edit=${job.id}`);
-  };
+  const handleEdit = () => navigate(`/post?edit=${job.id}`);
 
   const handleDuplicate = () => {
-    // Store the job's answers in sessionStorage so wizard picks it up as a draft
     if (job.answers) {
       const answers = job.answers as Record<string, unknown>;
       const selected = (answers.selected ?? {}) as Record<string, unknown>;
@@ -103,7 +99,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
 
       const draftState = {
         mainCategory: selected.mainCategory || job.category || '',
-        mainCategoryId: '', // Will need lookup — wizard handles empty gracefully
+        mainCategoryId: '',
         subcategory: selected.subcategory || job.subcategory || '',
         subcategoryId: '',
         microNames: (selected.microNames as string[]) || [],
@@ -131,7 +127,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
       };
 
       sessionStorage.setItem('wizardState', JSON.stringify(draftState));
-      sessionStorage.setItem('wizardDraftChecked', '1'); // Skip draft prompt
+      sessionStorage.setItem('wizardDraftChecked', '1');
     }
 
     toast.success(t('client.duplicateCreated', 'Draft created from copy'));
@@ -163,9 +159,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
       if (result.success) {
         toast.success(t('client.completedSuccess'));
         setShowCompletionModal(false);
-        if (job.assigned_professional_id) {
-          setShowRatingModal(true);
-        }
+        if (job.assigned_professional_id) setShowRatingModal(true);
         onJobUpdated();
       } else {
         toast.error(result.error || t('client.completeFailed'));
@@ -177,7 +171,6 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
 
   const handleRatingSubmit = async (rating: number, comment: string) => {
     if (!job.assigned_professional_id) return;
-    
     const result = await submitReview({
       jobId: job.id,
       revieweeId: job.assigned_professional_id,
@@ -203,7 +196,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             {getStatusLabel(job.status, t)}
           </Badge>
           <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+            {formatDistanceToNow(new Date(job.created_at), { addSuffix: true, locale: dateLocale })}
           </span>
         </div>
         
@@ -213,21 +206,48 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         </h3>
         
         {/* Category */}
-        <p className="text-sm text-muted-foreground mb-3">
+        <p className="text-sm text-muted-foreground mb-2">
           {job.category && job.subcategory 
             ? `${txCategory(job.category, t) ?? job.category} → ${txSubcategory(job.subcategory, t) ?? job.subcategory}` 
             : t('client.uncategorized')}
         </p>
+
+        {/* Meta row: area, budget, timing, replies */}
+        <div className="flex items-center gap-3 flex-wrap text-xs text-muted-foreground mb-3">
+          {job.area && (
+            <span className="flex items-center gap-0.5">
+              <MapPin className="h-3 w-3" />
+              {job.area}
+            </span>
+          )}
+          {budgetLabel && (
+            <span className="flex items-center gap-0.5">
+              <DollarSign className="h-3 w-3" />
+              {budgetLabel}
+            </span>
+          )}
+          {timingLabel && (
+            <span className="flex items-center gap-0.5">
+              <Clock className="h-3 w-3" />
+              {timingLabel}
+            </span>
+          )}
+          {job.conversation_count > 0 && (
+            <span className="flex items-center gap-0.5 text-primary font-medium">
+              <MessageSquare className="h-3 w-3" />
+              {t('client.replies', '{{count}} replies', { count: job.conversation_count })}
+            </span>
+          )}
+        </div>
         
-        {/* Status message for saved jobs */}
+        {/* Status hints */}
         {job.status === 'ready' && (
           <p className="text-xs text-muted-foreground mb-3">
             {t('client.savedHint')}
           </p>
         )}
         
-        {/* Status message for open jobs */}
-        {job.status === 'open' && !job.assigned_professional_id && (
+        {job.status === 'open' && !job.assigned_professional_id && job.conversation_count === 0 && (
           <p className="text-xs text-muted-foreground mb-3">
             {t('client.noProMessaged')}
           </p>
@@ -260,7 +280,6 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             <Link to={job.status === 'ready' ? `/dashboard/jobs/${job.id}` : `/jobs/${job.id}`}>{t('client.view')}</Link>
           </Button>
 
-          {/* Edit */}
           {canEdit && (
             <Button variant="ghost" size="sm" className="gap-1" onClick={handleEdit}>
               <Pencil className="h-3.5 w-3.5" />
@@ -268,7 +287,6 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             </Button>
           )}
 
-          {/* Duplicate */}
           {canDuplicate && (
             <Button variant="ghost" size="sm" className="gap-1" onClick={handleDuplicate}>
               <Copy className="h-3.5 w-3.5" />
@@ -276,7 +294,6 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             </Button>
           )}
 
-          {/* Close */}
           {canClose && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
