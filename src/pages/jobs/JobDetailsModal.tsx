@@ -20,7 +20,7 @@ import { startConversation } from "./actions";
 import { buildJobPack, type JobPack } from "./lib/buildJobPack";
 import { extractMicroAnswers } from "./lib/answerResolver";
 import { getI18nField, getContentLang } from "@/lib/i18nContent";
-import { txCategory, txSubcategory } from "@/i18n/taxonomyTranslations";
+import { txCategory, txSubcategory, txMicro } from "@/i18n/taxonomyTranslations";
 import { FormattedAnswers } from "./components/FormattedAnswers";
 import { isUserError } from "@/shared/lib/userError";
 import { useListingsForJob } from "./hooks/useListingsForJob";
