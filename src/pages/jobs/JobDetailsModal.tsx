@@ -424,7 +424,7 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
           toast.error(err.message);
         }
       } else {
-        toast.error("Failed to start conversation");
+        toast.error(t('detail.startConversationFailed'));
         console.error("Message error:", err);
       }
     } finally {

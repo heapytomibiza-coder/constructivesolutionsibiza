@@ -54,12 +54,20 @@ export function JobFlagBadges({
     "EMERGENCY", "URGENT",
     "INSPECTION_MANDATORY", "INSPECTION_REQUIRED", "QUOTE_SUBJECT_TO_INSPECTION"
   ];
+
+  const EXTRA_FLAG_KEYS: Record<string, string> = {
+    PERMITS_MAY_BE_NEEDED: 'flags.permitsMayBeNeeded',
+    SITE_VISIT_NEEDED: 'flags.siteVisitNeeded',
+    CLIENT_HAS_PERMIT_CONCERNS: 'flags.clientHasPermitConcerns',
+  };
+
   const interestingFlags = flagArray.filter(f => !handledFlags.includes(f));
   
   interestingFlags.slice(0, 2).forEach((flag, i) => {
+    const translationKey = EXTRA_FLAG_KEYS[flag];
     badges.push(
       <Badge key={`flag-${i}`} variant="outline" className="text-xs">
-        {flag.replace(/_/g, " ").toLowerCase()}
+        {translationKey ? t(translationKey) : flag.replace(/_/g, " ").toLowerCase()}
       </Badge>
     );
   });
