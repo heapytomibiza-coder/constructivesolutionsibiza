@@ -72,6 +72,7 @@ function PhotoLightbox({
   index: number;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("jobs");
   const [i, setI] = React.useState(index);
 
   React.useEffect(() => setI(index), [index]);
