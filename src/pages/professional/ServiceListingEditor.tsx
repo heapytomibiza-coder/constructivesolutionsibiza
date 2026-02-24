@@ -67,9 +67,9 @@ export default function ServiceListingEditor() {
         location_base: locationBase || null,
         pricing_summary: pricingSummary || null,
       });
-      toast.success('Listing saved');
+      toast.success(t('listingEditor.listingSaved'));
     } catch (err) {
-      toast.error('Failed to save listing');
+      toast.error(t('listingEditor.saveFailed'));
     }
   };
 
