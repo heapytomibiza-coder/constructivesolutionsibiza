@@ -23,7 +23,10 @@
     "jobPriorities": "Job Priorities",
     "proProfile": "Edit Profile",
     "myListings": "My Listings",
-    "myServices": "My Services"
+    "myServices": "My Services",
+    "notifications": "Notifications",
+    "noNotifications": "No new notifications",
+    "viewAllMessages": "View all messages"
   },
   "lanes": {
     "discover": "Discover",
