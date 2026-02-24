@@ -232,8 +232,8 @@ export default function JobTicketDetail() {
                       {job.budget_min && job.budget_max
                         ? `€${job.budget_min}–€${job.budget_max}`
                         : job.budget_min
-                          ? t('jobTicket.budgetFrom', { min: job.budget_min })
-                          : t('jobTicket.budgetUpTo', { max: job.budget_max })}
+                          ? t('jobTicket.budgetFrom', { amount: `€${job.budget_min}` })
+                          : t('jobTicket.budgetUpTo', { amount: `€${job.budget_max}` })}
                     </p>
                   </div>
                 </div>
