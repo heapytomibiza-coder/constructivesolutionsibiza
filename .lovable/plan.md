@@ -1,144 +1,159 @@
 
 
-# Phase 4+5: Translate Onboarding, Professional, and Dashboard Components
+# Final i18n Leak Fixes — buildJobPack + Status Prettifiers + Alt Text
 
-## Scope
+## Problem
 
-This covers all remaining hardcoded English in authenticated pages across three groups:
+After all the component-level i18n work, there are still English strings leaking through because **the data layer itself produces English display strings**. Three root causes:
 
-### Group A: Onboarding (5 files, ~60 keys)
+### Root Cause 1: `buildJobPack.ts` produces hardcoded English
 
-**ProfessionalOnboarding.tsx** — Step labels, headers, tracker text:
-- `STEPS` array labels: "About You", "Where You Work", "The Work You Do", "Go Live"
-- Step headers: "Step 1: About You", "Edit your professional profile", etc.
-- Tracker: "Your progress", "X of Y done", "Edit", "Start"
-- "Back to Dashboard", "Back to Overview", "Loading..."
+This file generates all `.display` strings consumed by JobDetailsModal, JobListingCard, etc. It contains:
 
-**BasicInfoStep.tsx** — Form labels and messages (~15 keys):
-- "Tell us about yourself", "This is what clients will see..."
-- "Your Name", "Phone Number", "Business Name", "Tagline", "About You"
-- Placeholders: "e.g. Juan García", "+34 600 000 000"
-- Helper text: "We'll send you WhatsApp notifications...", "A short headline..."
-- Buttons/toasts: "Next Step", "Saved!", "Please enter your name", "Something went wrong..."
+- `BUDGET_DISPLAY` map: `"Under 500 €"`, `"Quote needed"`, `"To be discussed"` (line 92-99, 119)
+- `formatTiming()`: `"ASAP"`, `"This week"`, `"This month"`, `"Flexible"`, `"Specific: ..."`, `"Start: ..."` (lines 125-135)
+- `formatLocationDisplay()`: `"Custom location"`, fallback `"Ibiza"` (lines 140-167)
 
-**ServiceAreaStep.tsx** — Zone selection (~10 keys):
-- "Where do you work?", "Tap the areas of Ibiza..."
-- "Select all", "Deselect all"
-- "Great! You'll receive jobs from across Ibiza", "X areas selected"
-- "Please select at least one area", "Go Back", "Next Step"
+Since `buildJobPack` is a pure utility (no React hooks), it cannot call `useTranslation`. Two options:
+1. **Pass a `t` function in** — cleanest, used elsewhere in the codebase
+2. **Return enum keys instead of display strings, translate at render time** — more structural change
 
-**ServiceUnlockStep.tsx** — Service picker (~15 keys):
-- "Which jobs do you want?", "Tap any job you're happy to do..."
-- "Saved", "No jobs selected yet", "You've picked X jobs", "Great selection!"
-- "Most professionals pick 5–15 jobs", "You don't need to select everything"
-- "Search jobs...", "No jobs found for...", "Clear search"
-- "Go Back", "Continue", "Saving...", "Select at least 1 job to continue"
-- "You can always add more jobs later..."
+**Recommendation: Option 1** — pass `t` into `buildJobPack()` as a parameter. The callers (`JobDetailsModal`, `JobListingCard`, `JobsMarketplace`) already have `t` available. This is a minimal diff.
 
-**ReviewStep.tsx** — Go-live checklist (~15 keys):
-- "You're ready to go live!", "Almost there..."
-- "Your profile checklist", "About you", "Where you work", "Jobs selected"
-- "We'll only send you jobs for:", "You can change this anytime..."
-- "Go Live", "Go Back", "Complete all checklist items to go live"
-- Toast: "You're live! Time to start receiving work.", "Please complete all steps first"
+### Root Cause 2: `prettyStatus()` in JobDetailsModal + JobListingCard
 
-### Group B: Professional pages (2 files, ~30 keys)
+Both files have a `prettyStatus()` function that converts `"in_progress"` → `"In Progress"` (English). These should use a status translation map instead.
 
-**JobPriorities.tsx** — Priority settings:
-- "Set Your Job Priorities", "Tell us which jobs to send you first..."
-- Priority labels: "Priority"/"Send these first", "Standard"/"Happy to receive", "Low priority"/"Only if nothing else"
-- "Saved", "You haven't selected any jobs yet", "Choose Your Jobs", "Done"
-- "Back to Dashboard"
+**Fix**: Replace `prettyStatus(status)` with `t('status.${status}')` using a status key map. The `dashboard.json` already has `status.open`, `status.draft`, `status.in_progress`, `status.completed` keys — but those are in the `dashboard` namespace. We need equivalent keys in the `jobs` namespace (or share via a common approach). Simplest: add a `status` section to `jobs.json`.
 
-**ServiceListingEditor.tsx** — Listing form (~20 keys):
-- "Edit Listing", "Listing Details", "Display Title", "Short Description"
-- "Hero Image", "Gallery (up to 3)", "Location Base", "Pricing Summary"
-- "Pricing Menu", "Add Item", "No pricing items yet..."
-- Unit labels: "Per hour", "Per day", "Per m²", "Per job", "Per item"
-- "Save", "Publish", "Change", "Upload hero image", "Maximum 3 gallery images"
-- "Listing saved", "Failed to save listing", "Listing not found"
-- Publish validation: "Please fill in title, description, and upload a hero image..."
+### Root Cause 3: Minor hardcoded alt text and error fallbacks
 
-### Group C: Dashboard child components (3 files, ~25 keys)
+- `alt={`Photo ${i + 1} of ${photos.length}`}` — two places in JobDetailsModal (lines 111, 342)
+- `"Unknown error"` fallback — lines 181 (JobDetailsModal), 155 (JobsMarketplace), 40 (messageJob.action.ts)
 
-**ClientJobCard.tsx** — Remaining hardcoded strings:
-- Status labels: "Saved", "Live", "In Progress", "Completed", "Closed", "Draft"
-- Status messages: "Saved — choose how to share...", "No professionals have messaged yet"
-- Buttons: "Share Job", "Complete", "View", "Cancel", "Closing..."
-- Toasts: "Job marked as completed!", "Failed to complete job", "Thanks for your rating!", "Failed to submit rating"
+## Changes Required
 
-**ProProfileDrawer.tsx** — Profile drawer (~12 keys):
-- "Professional Profile", "About", "Services (X)", "Areas Covered"
-- "Typical lead time:", "Reviews (X)", "Already Invited", "Invite with this job"
-- "Verified", "Island-wide", "Professional" (fallback name), "Profile not found."
+### 1. `src/pages/jobs/lib/buildJobPack.ts`
 
-**MatchAndSend.tsx** — Match & send page (~10 keys):
-- "Sending: ...", "Professionals matching your job", "X professionals found"
-- "No matching professionals found yet...", "Back to Job"
-- "View Profile", "Invited", "Invite", "Invite sent!", "Failed to send invite"
-- "Already invited this professional", "Flexible"
-- "Job not found."
-
-### Group D: Remaining leaks in job detail (4 targeted fixes)
-
-1. **PhotoLightbox sr-only strings**: "Close", "Previous", "Next" — add `detail.lightbox.*` keys
-2. **"Failed to start conversation"** hardcoded toast — use `t('detail.startConversationFailed')`
-3. **`"To be discussed"` string comparison** in `getSpecBadge` — replace with data-driven check (`jp.budget?.type !== 'tbd'`)
-4. **Flag prettifier** in `JobFlagBadges.tsx` — add `EXTRA_FLAG_KEYS` mapping for known flags
-
-## Implementation Approach
-
-### Locale files strategy
-
-- **Onboarding**: Expand existing `public/locales/[en|es]/onboarding.json` with new sections: `wizard.*` (step labels/headers), `basicInfo.*`, `serviceArea.*`, `serviceUnlock.*`, `review.*`
-- **Professional**: Create new `public/locales/[en|es]/professional.json` namespace with `priorities.*`, `listingEditor.*`
-- **Dashboard**: Expand existing `public/locales/[en|es]/dashboard.json` with `client.status.*`, `client.card.*`, `proProfile.*`, `matchAndSend.*`
-- **Jobs**: Add `detail.lightbox.*`, `detail.startConversationFailed`, `flags.permitsMayBeNeeded`, `flags.siteVisitNeeded` to existing `jobs.json`
-
-### i18n config changes
-
-- Add `professional` to the `ns` array in `src/i18n/index.ts`
-- Add `professional` to `src/i18n/namespaces.ts`
-- Bump cache version to `2026022405`
-
-### Code changes per file
-
-Each file gets `useTranslation('<namespace>')` added and all hardcoded strings replaced with `t('key')`. The pattern is identical across all files:
-
-1. Add `import { useTranslation } from 'react-i18next'`
-2. Add `const { t } = useTranslation('<ns>')` in the component
-3. Replace every English string literal with `t('section.key')`
-4. For dynamic strings with interpolation: `t('key', { count: n })` or `t('key', { name: val })`
-
-### JobFlagBadges structural fix
-
-Add a translation mapping for known extra flags:
+**Add `t` parameter to `buildJobPack()`**:
 ```text
-const EXTRA_FLAG_KEYS: Record<string, string> = {
-  PERMITS_MAY_BE_NEEDED: 'flags.permitsMayBeNeeded',
-  SITE_VISIT_NEEDED: 'flags.siteVisitNeeded',
-  CLIENT_HAS_PERMIT_CONCERNS: 'flags.clientHasPermitConcerns',
-};
+export function buildJobPack(
+  row: JobDetailsRow,
+  packs: QuestionPack[],
+  t?: (key: string, opts?: any) => string
+): JobPack
 ```
-Use `t(EXTRA_FLAG_KEYS[flag])` when available, fallback to prettifier only for truly unknown flags.
 
-### JobDetailsModal "To be discussed" fix
+Update `formatBudget()` to accept and use `t`:
+- `'Under 500 €'` → `t?.('card.under500') ?? 'Under 500 €'`
+- `'Quote needed'` → `t?.('card.quoteNeeded') ?? 'Quote needed'`
+- `'To be discussed'` → `t?.('card.tbd') ?? 'TBD'`
 
-Replace string comparison:
-```text
-// Before: jp.budget.display !== "To be discussed"
-// After:  jp.budget?.type !== 'tbd'
+Update `formatTiming()` to accept and use `t`:
+- `"ASAP"` → `t?.('board.asap') ?? 'ASAP'`
+- `"This week"` → `t?.('card.thisWeek') ?? 'This week'`
+- `"This month"` → `t?.('card.thisMonth') ?? 'This month'`
+- `"Flexible"` → `t?.('card.flexible') ?? 'Flexible'`
+- `"Specific: ${date}"` / `"Start: ${date}"` → `t?.('card.start', { date }) ?? \`Start: ${date}\``
+
+Update `formatLocationDisplay()`:
+- `"Custom location"` → `t?.('detail.customLocation') ?? 'Custom location'`
+- `"Ibiza"` fallback stays as-is (proper noun)
+
+### 2. All callers of `buildJobPack()` — pass `t`
+
+- `JobDetailsModal.tsx` line 160: `buildJobPack(row, packs ?? [], t)`
+- `JobListingCard.tsx` (if it calls buildJobPack — check) or its parent
+- `JobsMarketplace.tsx` / `JobBoardPage.tsx` (check if they call it)
+
+### 3. `JobDetailsModal.tsx` — remaining fixes
+
+- **Line 47-49**: Replace `prettyStatus()` with a translated status:
+  ```text
+  const STATUS_KEYS: Record<string, string> = {
+    open: 'status.open', draft: 'status.draft',
+    in_progress: 'status.inProgress', completed: 'status.completed',
+    cancelled: 'status.cancelled', ready: 'status.ready',
+  };
+  ```
+  Then: `t(STATUS_KEYS[status] ?? status)`
+
+- **Line 111**: `alt={`Photo ${i + 1} of ${photos.length}`}` → `alt={t('detail.lightbox.photo', { current: i + 1, total: photos.length })}`
+
+- **Line 181**: `"Unknown error"` → `t('detail.unknownError')`
+
+- **Line 342**: `alt={`Job photo ${idx + 1}`}` → `alt={t('detail.lightbox.photo', { current: idx + 1, total: jobPack.photos.length })}`
+
+### 4. `JobListingCard.tsx` — remaining fixes
+
+- **Line 37-39**: Replace `prettyStatus()` with the same translated status map
+- **Line 161**: `prettyStatus(job.status)` → translated version
+
+### 5. `JobsMarketplace.tsx` — minor
+
+- **Line 155**: `"Unknown error"` → `t('board.unknownError')` or reuse existing key
+
+### 6. `messageJob.action.ts` — minor
+
+- **Line 40**: `"Unknown error"` — this is internal error handling, not UI-facing. Low priority but can add `unknownError` key.
+
+### 7. Locale file additions
+
+**EN `jobs.json`** — add:
+```json
+{
+  "status": {
+    "open": "Open",
+    "draft": "Draft",
+    "ready": "Saved",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "detail": {
+    "unknownError": "Unknown error",
+    "customLocation": "Custom location",
+    "lightbox": {
+      "photo": "Photo {{current}} of {{total}}"
+    }
+  }
+}
 ```
-This is data-driven and language-agnostic.
 
-## Estimated changes
+**ES `jobs.json`** — add:
+```json
+{
+  "status": {
+    "open": "Abierto",
+    "draft": "Borrador",
+    "ready": "Guardado",
+    "in_progress": "En Progreso",
+    "completed": "Completado",
+    "cancelled": "Cancelado"
+  },
+  "detail": {
+    "unknownError": "Error desconocido",
+    "customLocation": "Ubicación personalizada",
+    "lightbox": {
+      "photo": "Foto {{current}} de {{total}}"
+    }
+  }
+}
+```
 
-| Area | Files modified | New keys (EN+ES) |
-|------|---------------|-----------------|
-| Onboarding | 5 TSX + 2 JSON | ~60 |
-| Professional | 2 TSX + 2 JSON (new) | ~30 |
-| Dashboard | 3 TSX + 2 JSON | ~25 |
-| Jobs fixes | 3 TSX + 2 JSON | ~8 |
-| i18n config | 2 TS | — |
-| **Total** | **15 TSX + 10 JSON + 2 TS** | **~123 keys** |
+## Files Modified
+
+| File | Change |
+|------|--------|
+| `src/pages/jobs/lib/buildJobPack.ts` | Add `t` parameter, translate budget/timing/location display strings |
+| `src/pages/jobs/JobDetailsModal.tsx` | Pass `t` to buildJobPack, replace prettyStatus with translated map, fix alt text + unknownError |
+| `src/pages/jobs/JobListingCard.tsx` | Replace prettyStatus with translated map |
+| `src/pages/jobs/JobsMarketplace.tsx` | Fix "Unknown error" fallback |
+| `public/locales/en/jobs.json` | Add `status.*`, `detail.unknownError`, `detail.customLocation`, `detail.lightbox.photo` |
+| `public/locales/es/jobs.json` | Same keys in Spanish |
+| `src/i18n/index.ts` | Bump cache version |
+
+## Impact
+
+This eliminates the **last category of English leaks**: data-layer display strings that flow through to every component that renders budget, timing, status, or location. After this, switching to Spanish will show fully translated content everywhere.
 
