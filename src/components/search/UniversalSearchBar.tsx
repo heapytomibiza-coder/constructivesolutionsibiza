@@ -303,7 +303,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
                       )}
                     </div>
                     <Badge variant="secondary" className="text-xs shrink-0">
-                      {getHitTypeLabel(hit.type)}
+                      {t(getHitTypeLabelKey(hit.type), { defaultValue: hit.type })}
                     </Badge>
                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </CommandItem>
@@ -335,7 +335,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
                         )}
                       </div>
                       <Badge variant="secondary" className="text-xs shrink-0">
-                        {getHitTypeLabel(hit.type)}
+                        {t(getHitTypeLabelKey(hit.type), { defaultValue: hit.type })}
                       </Badge>
                       <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     </CommandItem>
@@ -363,7 +363,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
                         <p className="font-medium truncate">{hit.label}</p>
                       </div>
                       <Badge variant="secondary" className="text-xs shrink-0">
-                        {getHitTypeLabel(hit.type)}
+                        {t(getHitTypeLabelKey(hit.type), { defaultValue: hit.type })}
                       </Badge>
                       <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     </CommandItem>
