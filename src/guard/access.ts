@@ -6,7 +6,6 @@
  */
 
 import type { AccessRule } from '@/app/routes';
-import { isAdminEmail } from '@/domain/adminAllowlist';
 
 export type Role = 'client' | 'professional' | 'admin';
 
