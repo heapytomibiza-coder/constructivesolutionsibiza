@@ -15,22 +15,16 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Globe, ImagePlus, Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, usePublishListing, type PricingItem } from './hooks/useListingEditor';
 import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones';
 
-const UNIT_OPTIONS = [
-  { value: 'hour', label: 'Per hour' },
-  { value: 'day', label: 'Per day' },
-  { value: 'sqm', label: 'Per m²' },
-  { value: 'job', label: 'Per job' },
-  { value: 'item', label: 'Per item' },
-];
-
 export default function ServiceListingEditor() {
   const { listingId } = useParams<{ listingId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('professional');
   const { user } = useSession();
   const { data: listing, isLoading } = useListingDetail(listingId);
   const updateListing = useUpdateListing();
@@ -73,16 +67,16 @@ export default function ServiceListingEditor() {
         location_base: locationBase || null,
         pricing_summary: pricingSummary || null,
       });
-      toast.success('Listing saved');
+      toast.success(t('listingEditor.listingSaved'));
     } catch (err) {
-      toast.error('Failed to save listing');
+      toast.error(t('listingEditor.saveFailed'));
     }
   };
 
   const handlePublish = async () => {
     if (!listingId) return;
     if (!title.trim() || !description.trim() || !heroUrl) {
-      toast.error('Please fill in title, description, and upload a hero image before publishing');
+      toast.error(t('listingEditor.publishValidation'));
       return;
     }
     // Save first, then publish
@@ -116,11 +110,11 @@ export default function ServiceListingEditor() {
         if (gallery.length < 3) {
           setGallery(prev => [...prev, publicUrl]);
         } else {
-          toast.error('Maximum 3 gallery images');
+          toast.error(t('listingEditor.maxGallery'));
         }
       }
     } catch (err) {
-      toast.error('Upload failed');
+      toast.error(t('listingEditor.uploadFailed'));
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -197,7 +191,7 @@ export default function ServiceListingEditor() {
   if (!listing) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Listing not found</p>
+        <p className="text-muted-foreground">{t('listingEditor.notFound')}</p>
       </div>
     );
   }
@@ -210,7 +204,7 @@ export default function ServiceListingEditor() {
             <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
               <Link to="/professional/listings"><ArrowLeft className="h-4 w-4" /></Link>
             </Button>
-            <h1 className="font-display text-lg font-semibold truncate">Edit Listing</h1>
+            <h1 className="font-display text-lg font-semibold truncate">{t('listingEditor.editListing')}</h1>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -220,7 +214,7 @@ export default function ServiceListingEditor() {
               disabled={updateListing.isPending}
             >
               {updateListing.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
-              Save
+              {t('listingEditor.save')}
             </Button>
             {listing.status === 'draft' && (
               <Button
@@ -229,7 +223,7 @@ export default function ServiceListingEditor() {
                 disabled={!canPublish || publishListing.isPending}
               >
                 {publishListing.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4 mr-1.5" />}
-                Publish
+                {t('listingEditor.publish')}
               </Button>
             )}
           </div>
@@ -240,27 +234,27 @@ export default function ServiceListingEditor() {
         {/* Listing Details */}
         <Card className="border-border/70">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Listing Details</CardTitle>
+            <CardTitle className="text-base">{t('listingEditor.listingDetails')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Display Title *</Label>
+              <Label htmlFor="title">{t('listingEditor.displayTitle')} *</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                placeholder="e.g. Professional Plumbing Services"
+                placeholder={t('listingEditor.displayTitlePlaceholder')}
                 maxLength={100}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="desc">Short Description *</Label>
+              <Label htmlFor="desc">{t('listingEditor.shortDescription')} *</Label>
               <Textarea
                 id="desc"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Briefly describe your service (max 200 chars)"
+                placeholder={t('listingEditor.shortDescPlaceholder')}
                 maxLength={200}
                 rows={3}
               />
@@ -269,7 +263,7 @@ export default function ServiceListingEditor() {
 
             {/* Hero Image */}
             <div className="space-y-2">
-              <Label>Hero Image *</Label>
+              <Label>{t('listingEditor.heroImage')} *</Label>
               {heroUrl ? (
                 <div className="relative aspect-video rounded-lg overflow-hidden border border-border">
                   <img src={heroUrl} alt="Hero" className="w-full h-full object-cover" />
@@ -279,7 +273,7 @@ export default function ServiceListingEditor() {
                     className="absolute bottom-2 right-2"
                     onClick={() => setHeroUrl(null)}
                   >
-                    Change
+                    {t('listingEditor.change')}
                   </Button>
                 </div>
               ) : (
@@ -289,7 +283,7 @@ export default function ServiceListingEditor() {
                   ) : (
                     <>
                       <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
-                      <span className="text-sm text-muted-foreground">Upload hero image</span>
+                      <span className="text-sm text-muted-foreground">{t('listingEditor.heroImageUpload')}</span>
                     </>
                   )}
                   <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e, 'hero')} />
@@ -299,7 +293,7 @@ export default function ServiceListingEditor() {
 
             {/* Gallery */}
             <div className="space-y-2">
-              <Label>Gallery (up to 3)</Label>
+              <Label>{t('listingEditor.gallery')}</Label>
               <div className="grid grid-cols-3 gap-2">
                 {gallery.map((url, idx) => (
                   <div key={idx} className="relative aspect-square rounded-md overflow-hidden border border-border">
@@ -325,10 +319,10 @@ export default function ServiceListingEditor() {
 
             {/* Location */}
             <div className="space-y-2">
-              <Label>Location Base</Label>
+              <Label>{t('listingEditor.locationBase')}</Label>
               <Select value={locationBase} onValueChange={setLocationBase}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select zone" />
+                  <SelectValue placeholder={t('listingEditor.selectZone')} />
                 </SelectTrigger>
                 <SelectContent>
                   {IBIZA_ZONES.map(group => (
@@ -342,11 +336,11 @@ export default function ServiceListingEditor() {
 
             {/* Pricing Summary */}
             <div className="space-y-2">
-              <Label>Pricing Summary</Label>
+              <Label>{t('listingEditor.pricingSummary')}</Label>
               <Input
                 value={pricingSummary}
                 onChange={e => setPricingSummary(e.target.value)}
-                placeholder="e.g. Starting at 40 EUR/hr"
+                placeholder={t('listingEditor.pricingSummaryPlaceholder')}
               />
             </div>
           </CardContent>
@@ -355,14 +349,14 @@ export default function ServiceListingEditor() {
         {/* Pricing Items */}
         <Card className="border-border/70">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Pricing Menu</CardTitle>
+            <CardTitle className="text-base">{t('listingEditor.pricingMenu')}</CardTitle>
             <Button variant="outline" size="sm" onClick={handleAddPricingItem} disabled={upsertPricing.isPending}>
-              <Plus className="h-4 w-4 mr-1.5" /> Add Item
+              <Plus className="h-4 w-4 mr-1.5" /> {t('listingEditor.addItem')}
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {pricingItems.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No pricing items yet. Add your first one above.</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t('listingEditor.noPricingItems')}</p>
             ) : (
               pricingItems.map((item, idx) => (
                 <PricingItemRow
@@ -398,6 +392,7 @@ function PricingItemRow({
   onDelete: (id: string) => void;
   onMove: (idx: number, dir: 'up' | 'down') => void;
 }) {
+  const { t } = useTranslation('professional');
   const [label, setLabel] = useState(item.label);
   const [price, setPrice] = useState(item.price_amount?.toString() ?? '');
   const [unit, setUnit] = useState(item.unit);
@@ -444,7 +439,7 @@ function PricingItemRow({
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Input
-          placeholder="Item label"
+          placeholder={t('listingEditor.itemLabelPlaceholder')}
           value={label}
           onChange={e => { setLabel(e.target.value); markDirty(); }}
           onBlur={handleBlur}
@@ -453,7 +448,7 @@ function PricingItemRow({
         <div className="flex gap-2">
           <Input
             type="number"
-            placeholder="Price"
+            placeholder={t('listingEditor.pricePlaceholder')}
             value={price}
             onChange={e => { setPrice(e.target.value); markDirty(); }}
             onBlur={handleBlur}
@@ -464,8 +459,8 @@ function PricingItemRow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {UNIT_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              {(['hour', 'day', 'sqm', 'job', 'item'] as const).map(u => (
+                <SelectItem key={u} value={u}>{t(`listingEditor.units.${u}`)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -473,7 +468,7 @@ function PricingItemRow({
       </div>
 
       <Input
-        placeholder="Info / description (optional)"
+        placeholder={t('listingEditor.infoPlaceholder')}
         value={info}
         onChange={e => { setInfo(e.target.value); markDirty(); }}
         onBlur={handleBlur}

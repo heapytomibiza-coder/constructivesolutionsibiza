@@ -5,6 +5,7 @@
 
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ import ProProfileDrawer from './components/ProProfileDrawer';
 export default function MatchAndSend() {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
   const { user } = useSession();
   const queryClient = useQueryClient();
   const [selectedProId, setSelectedProId] = useState<string | null>(null);
@@ -91,15 +93,15 @@ export default function MatchAndSend() {
         });
       if (error) {
         if (error.code === '23505') {
-          toast.info('Already invited this professional.');
+          toast.info(t('matchAndSend.alreadyInvited'));
           return;
         }
         throw error;
       }
-      toast.success('Invite sent!');
+      toast.success(t('matchAndSend.inviteSent'));
       queryClient.invalidateQueries({ queryKey: ['job_invites', jobId] });
     } catch {
-      toast.error('Failed to send invite.');
+      toast.error(t('matchAndSend.inviteFailed'));
     } finally {
       setSendingTo(null);
     }
@@ -119,7 +121,7 @@ export default function MatchAndSend() {
   if (!job) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Job not found.</p>
+        <p className="text-muted-foreground">{t('matchAndSend.notFound')}</p>
       </div>
     );
   }
@@ -134,14 +136,14 @@ export default function MatchAndSend() {
           </Button>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground truncate">
-              Sending: {job.category} → {job.subcategory || job.title}
+              {t('matchAndSend.sending', { category: job.category, subcategory: job.subcategory || job.title })}
             </p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
               <span className="flex items-center gap-1">
                 <MapPin className="h-3 w-3" /> {area}
               </span>
               <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" /> {job.start_timing || 'Flexible'}
+                <Calendar className="h-3 w-3" /> {job.start_timing || t('matchAndSend.flexible')}
               </span>
               {(job.budget_min || job.budget_max) && (
                 <span className="flex items-center gap-1">
@@ -157,10 +159,10 @@ export default function MatchAndSend() {
       </div>
 
       <div className="container max-w-4xl py-6">
-        <h2 className="font-display text-xl font-bold mb-1">Professionals matching your job</h2>
+        <h2 className="font-display text-xl font-bold mb-1">{t('matchAndSend.matchingTitle')}</h2>
         <p className="text-sm text-muted-foreground mb-6">
-          {matchedPros.length} professional{matchedPros.length !== 1 ? 's' : ''} found
-          {microNames.length > 0 && ` for ${microNames.join(', ')}`}
+          {t('matchAndSend.found', { count: matchedPros.length })}
+          {microNames.length > 0 && ` ${t('matchAndSend.forServices', { services: microNames.join(', ') })}`}
         </p>
 
         {prosLoading ? (
@@ -171,14 +173,14 @@ export default function MatchAndSend() {
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
-                No matching professionals found yet. Try posting to the job board instead.
+                {t('matchAndSend.noMatch')}
               </p>
               <Button
                 variant="outline"
                 className="mt-4"
                 onClick={() => navigate(`/dashboard/jobs/${jobId}`)}
               >
-                Back to Job
+                {t('matchAndSend.backToJob')}
               </Button>
             </CardContent>
           </Card>
@@ -195,7 +197,7 @@ export default function MatchAndSend() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-medium text-foreground truncate">
-                            {pro.display_name || 'Professional'}
+                            {pro.display_name || t('proProfile.professional')}
                           </p>
                           {pro.verification_status === 'verified' && (
                             <ShieldCheck className="h-4 w-4 text-primary flex-shrink-0" />
@@ -210,11 +212,11 @@ export default function MatchAndSend() {
                             </span>
                           )}
                           {pro.services_count && (
-                            <span>{pro.services_count} services</span>
+                            <span>{t('matchAndSend.services', { count: pro.services_count })}</span>
                           )}
                           {pro.coverage > 0 && (
                             <Badge variant="outline" className="text-xs">
-                              {Math.round(pro.coverage * 100)}% match
+                              {t('matchAndSend.match', { percent: Math.round(pro.coverage * 100) })}
                             </Badge>
                           )}
                         </div>
@@ -226,13 +228,13 @@ export default function MatchAndSend() {
                           size="sm"
                           onClick={() => setSelectedProId(pro.user_id)}
                         >
-                          View Profile
+                          {t('matchAndSend.viewProfile')}
                         </Button>
                         
                         {isInvited ? (
                           <Button size="sm" variant="secondary" disabled className="gap-1.5">
                             <UserCheck className="h-3.5 w-3.5" />
-                            Invited
+                            {t('matchAndSend.invited')}
                           </Button>
                         ) : (
                           <Button
@@ -246,7 +248,7 @@ export default function MatchAndSend() {
                             ) : (
                               <Send className="h-3.5 w-3.5" />
                             )}
-                            Invite
+                            {t('matchAndSend.invite')}
                           </Button>
                         )}
                       </div>

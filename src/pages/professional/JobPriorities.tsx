@@ -6,6 +6,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,44 +20,42 @@ import { useMicroPreferences } from '@/pages/onboarding/hooks/useMicroPreference
 import { PLATFORM } from '@/domain/scope';
 import type { Preference } from '@/pages/onboarding/types/preferences';
 
-/* ── Priority option config (no emojis — icons only) ── */
-const PRIORITY_OPTIONS: {
-  value: Preference;
-  label: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  activeClass: string;
-  inactiveClass: string;
-}[] = [
-  {
-    value: 'love',
-    label: 'Priority',
-    description: 'Send these first',
-    icon: Star,
-    activeClass: 'bg-primary text-primary-foreground border-primary shadow-sm',
-    inactiveClass: 'border-border text-muted-foreground hover:border-primary/40 hover:text-primary',
-  },
-  {
-    value: 'like',
-    label: 'Standard',
-    description: 'Happy to receive',
-    icon: ThumbsUp,
-    activeClass: 'bg-secondary text-foreground border-border shadow-sm',
-    inactiveClass: 'border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground',
-  },
-  {
-    value: 'neutral',
-    label: 'Low priority',
-    description: 'Only if nothing else',
-    icon: Minus,
-    activeClass: 'bg-muted text-muted-foreground border-border',
-    inactiveClass: 'border-border text-muted-foreground/60 hover:border-muted-foreground/40',
-  },
-];
+/* ── Priority option config ── */
+function usePriorityOptions() {
+  const { t } = useTranslation('professional');
+  return useMemo(() => [
+    {
+      value: 'love' as Preference,
+      label: t('priorities.priority'),
+      description: t('priorities.priorityDesc'),
+      icon: Star,
+      activeClass: 'bg-primary text-primary-foreground border-primary shadow-sm',
+      inactiveClass: 'border-border text-muted-foreground hover:border-primary/40 hover:text-primary',
+    },
+    {
+      value: 'like' as Preference,
+      label: t('priorities.standard'),
+      description: t('priorities.standardDesc'),
+      icon: ThumbsUp,
+      activeClass: 'bg-secondary text-foreground border-border shadow-sm',
+      inactiveClass: 'border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground',
+    },
+    {
+      value: 'neutral' as Preference,
+      label: t('priorities.lowPriority'),
+      description: t('priorities.lowPriorityDesc'),
+      icon: Minus,
+      activeClass: 'bg-muted text-muted-foreground border-border',
+      inactiveClass: 'border-border text-muted-foreground/60 hover:border-muted-foreground/40',
+    },
+  ], [t]);
+}
 
 export default function JobPriorities() {
   const navigate = useNavigate();
+  const { t } = useTranslation('professional');
   const { user } = useSession();
+  const PRIORITY_OPTIONS = usePriorityOptions();
 
   const { data: categories = [], isLoading: loadingTaxonomy } = useServiceTaxonomy();
   const { selectedMicroIds, isLoading: loadingServices } = useProfessionalServices();
@@ -122,7 +121,7 @@ export default function JobPriorities() {
           </Link>
           <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/pro')}>
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Dashboard
+            {t('priorities.backToDashboard')}
           </Button>
         </div>
       </nav>
@@ -132,10 +131,10 @@ export default function JobPriorities() {
           {/* Header */}
           <div className="text-center animate-fade-in">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-              Set Your Job Priorities
+              {t('priorities.title')}
             </h1>
             <p className="text-lg text-muted-foreground">
-              Tell us which jobs to send you first. Your choices update instantly.
+              {t('priorities.subtitle')}
             </p>
           </div>
 
@@ -164,7 +163,7 @@ export default function JobPriorities() {
                 {showSaved && (
                   <Badge variant="secondary" className="bg-primary/15 text-primary animate-fade-in text-sm">
                     <Check className="h-4 w-4 mr-1" />
-                    Saved
+                    {t('priorities.saved')}
                   </Badge>
                 )}
               </div>
@@ -181,10 +180,10 @@ export default function JobPriorities() {
             <Card className="card-grounded">
               <CardContent className="py-12 text-center">
                 <p className="text-lg text-muted-foreground mb-4">
-                  You haven't selected any jobs yet.
+                  {t('priorities.noJobs')}
                 </p>
                 <Button asChild>
-                  <Link to="/onboarding/professional?edit=1&step=services">Choose Your Jobs</Link>
+                  <Link to="/onboarding/professional?edit=1&step=services">{t('priorities.chooseJobs')}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -211,6 +210,7 @@ export default function JobPriorities() {
                           name={micro.name}
                           currentPref={currentPref}
                           onChange={(pref) => handlePriorityChange(micro.id, pref)}
+                          options={PRIORITY_OPTIONS}
                         />
                       );
                     })}
@@ -224,7 +224,7 @@ export default function JobPriorities() {
           {groupedMicros.length > 0 && (
             <div className="flex justify-center pt-2 pb-8">
               <Button variant="outline" onClick={() => navigate('/dashboard/pro')}>
-                Done
+                {t('priorities.done')}
               </Button>
             </div>
           )}
@@ -239,16 +239,18 @@ function PriorityRow({
   name,
   currentPref,
   onChange,
+  options,
 }: {
   name: string;
   currentPref: Preference;
   onChange: (pref: Preference) => void;
+  options: ReturnType<typeof usePriorityOptions>;
 }) {
   return (
     <div className="flex items-center justify-between gap-3 py-2 px-1">
       <span className="text-base font-medium text-foreground flex-1 min-w-0 truncate">{name}</span>
       <div className="flex gap-1.5 shrink-0">
-        {PRIORITY_OPTIONS.map((opt) => {
+        {options.map((opt) => {
           const Icon = opt.icon;
           const isActive = currentPref === opt.value;
           return (

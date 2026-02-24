@@ -4,6 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Sheet,
@@ -39,6 +40,7 @@ export default function ProProfileDrawer({
   onInvite,
   isInvited,
 }: ProProfileDrawerProps) {
+  const { t } = useTranslation('dashboard');
   // Fetch professional profile
   const { data: profile, isLoading } = useQuery({
     queryKey: ['pro_profile_detail', proUserId],
@@ -97,7 +99,7 @@ export default function ProProfileDrawer({
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader className="pb-4">
-          <SheetTitle className="font-display">Professional Profile</SheetTitle>
+          <SheetTitle className="font-display">{t('proProfile.title')}</SheetTitle>
         </SheetHeader>
 
         {isLoading ? (
@@ -124,7 +126,7 @@ export default function ProProfileDrawer({
               </div>
               <div>
                 <h3 className="font-display text-lg font-semibold">
-                  {profile.display_name || 'Professional'}
+                  {profile.display_name || t('proProfile.professional')}
                 </h3>
                 {profile.tagline && (
                   <p className="text-sm text-muted-foreground">{profile.tagline}</p>
@@ -133,7 +135,7 @@ export default function ProProfileDrawer({
                   {profile.verification_status === 'verified' && (
                     <Badge variant="outline" className="gap-1 text-xs">
                       <ShieldCheck className="h-3 w-3" />
-                      Verified
+                      {t('proProfile.verified')}
                     </Badge>
                   )}
                   {avgRating && (
@@ -149,7 +151,7 @@ export default function ProProfileDrawer({
             {/* Bio */}
             {profile.bio && (
               <section>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">About</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">{t('proProfile.about')}</h4>
                 <p className="text-sm text-foreground leading-relaxed">{profile.bio}</p>
               </section>
             )}
@@ -158,7 +160,7 @@ export default function ProProfileDrawer({
             {services.length > 0 && (
               <section>
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Services ({services.length})
+                  {t('proProfile.services', { count: services.length })}
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {services.map((s) => {
@@ -176,14 +178,14 @@ export default function ProProfileDrawer({
             {/* Service Area */}
             {(profile.service_zones?.length || profile.service_area_type) && (
               <section>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">Areas Covered</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">{t('proProfile.areasCovered')}</h4>
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <p className="text-sm">
                     {profile.service_zones?.length
                       ? profile.service_zones.join(', ')
                       : profile.service_area_type === 'island_wide'
-                        ? 'Island-wide'
+                        ? t('proProfile.islandWide')
                         : 'Ibiza'}
                   </p>
                 </div>
@@ -194,7 +196,7 @@ export default function ProProfileDrawer({
             {profile.typical_lead_time && (
               <section className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>Typical lead time: {profile.typical_lead_time.replace('_', ' ')}</span>
+                <span>{t('proProfile.typicalLeadTime')} {profile.typical_lead_time.replace('_', ' ')}</span>
               </section>
             )}
 
@@ -202,7 +204,7 @@ export default function ProProfileDrawer({
             {reviews.length > 0 && (
               <section>
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Reviews ({reviews.length})
+                  {t('proProfile.reviews', { count: reviews.length })}
                 </h4>
                 <div className="space-y-3">
                   {reviews.map((r, i) => (
@@ -229,18 +231,18 @@ export default function ProProfileDrawer({
               {isInvited ? (
                 <Button className="w-full gap-2" variant="secondary" disabled>
                   <UserCheck className="h-4 w-4" />
-                  Already Invited
+                  {t('proProfile.alreadyInvited')}
                 </Button>
               ) : onInvite ? (
                 <Button className="w-full gap-2" onClick={onInvite}>
                   <Send className="h-4 w-4" />
-                  Invite with this job
+                  {t('proProfile.inviteWithJob')}
                 </Button>
               ) : null}
             </div>
           </div>
         ) : (
-          <p className="text-muted-foreground">Profile not found.</p>
+          <p className="text-muted-foreground">{t('proProfile.notFound')}</p>
         )}
       </SheetContent>
     </Sheet>

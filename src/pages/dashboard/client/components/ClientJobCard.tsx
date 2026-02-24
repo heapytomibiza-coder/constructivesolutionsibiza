@@ -59,16 +59,10 @@ const getStatusBadgeVariant = (status: string) => {
   }
 };
 
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'ready': return 'Saved';
-    case 'open': return 'Live';
-    case 'in_progress': return 'In Progress';
-    case 'completed': return 'Completed';
-    case 'cancelled': return 'Closed';
-    case 'draft': return 'Draft';
-    default: return status;
-  }
+const getStatusLabel = (status: string, t: (key: string) => string) => {
+  const key = `client.status.${status}`;
+  const translated = t(key);
+  return translated !== key ? translated : status;
 };
 
 /** Which actions are available per status */
@@ -166,14 +160,14 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
     try {
       const result = await completeJob(job.id);
       if (result.success) {
-        toast.success('Job marked as completed!');
+        toast.success(t('client.completedSuccess'));
         setShowCompletionModal(false);
         if (job.assigned_professional_id) {
           setShowRatingModal(true);
         }
         onJobUpdated();
       } else {
-        toast.error(result.error || 'Failed to complete job');
+        toast.error(result.error || t('client.completeFailed'));
       }
     } finally {
       setIsCompleting(false);
@@ -192,10 +186,10 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
     });
 
     if (result.success) {
-      toast.success('Thanks for your rating!');
+      toast.success(t('client.ratingSuccess'));
       setShowRatingModal(false);
     } else {
-      toast.error(result.error || 'Failed to submit rating');
+      toast.error(result.error || t('client.ratingFailed'));
     }
   };
 
@@ -205,7 +199,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         {/* Header row: Badge + timestamp */}
         <div className="flex items-center justify-between gap-2 mb-2">
           <Badge variant={getStatusBadgeVariant(job.status)}>
-            {getStatusLabel(job.status)}
+            {getStatusLabel(job.status, t)}
           </Badge>
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
@@ -221,20 +215,20 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         <p className="text-sm text-muted-foreground mb-3">
           {job.category && job.subcategory 
             ? `${job.category} → ${job.subcategory}` 
-            : 'Uncategorized'}
+            : t('client.uncategorized')}
         </p>
         
         {/* Status message for saved jobs */}
         {job.status === 'ready' && (
           <p className="text-xs text-muted-foreground mb-3">
-            Saved — choose how to share from the job page
+            {t('client.savedHint')}
           </p>
         )}
         
         {/* Status message for open jobs */}
         {job.status === 'open' && !job.assigned_professional_id && (
           <p className="text-xs text-muted-foreground mb-3">
-            No professionals have messaged yet
+            {t('client.noProMessaged')}
           </p>
         )}
         
@@ -243,7 +237,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
           {job.status === 'ready' && (
             <Button variant="default" size="sm" className="gap-1" asChild>
               <Link to={`/dashboard/jobs/${job.id}`}>
-                Share Job
+                {t('client.shareJob')}
               </Link>
             </Button>
           )}
@@ -258,11 +252,11 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
               onClick={() => setShowCompletionModal(true)}
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Complete
+              {t('client.complete')}
             </Button>
           )}
           <Button variant="outline" size="sm" asChild>
-            <Link to={job.status === 'ready' ? `/dashboard/jobs/${job.id}` : `/jobs/${job.id}`}>View</Link>
+            <Link to={job.status === 'ready' ? `/dashboard/jobs/${job.id}` : `/jobs/${job.id}`}>{t('client.view')}</Link>
           </Button>
 
           {/* Edit */}
@@ -298,13 +292,13 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('client.cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleClose}
                     disabled={isClosing}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    {isClosing ? 'Closing...' : t('client.closeJob')}
+                    {isClosing ? t('client.closing') : t('client.closeJob')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

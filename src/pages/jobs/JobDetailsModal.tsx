@@ -72,6 +72,7 @@ function PhotoLightbox({
   index: number;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("jobs");
   const [i, setI] = React.useState(index);
 
   React.useEffect(() => setI(index), [index]);
@@ -109,15 +110,15 @@ function PhotoLightbox({
       <div className="relative w-full max-w-5xl">
         <img src={src} alt={`Photo ${i + 1} of ${photos.length}`} className="max-h-[85vh] w-full rounded-lg object-contain" draggable={false} />
         <Button variant="secondary" size="icon" onClick={onClose} className="absolute right-2 top-2">
-          <X className="h-4 w-4" /><span className="sr-only">Close</span>
+          <X className="h-4 w-4" /><span className="sr-only">{t('detail.lightbox.close')}</span>
         </Button>
         {hasMany && (
           <>
             <Button variant="secondary" size="icon" onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2">
-              <ChevronLeft className="h-5 w-5" /><span className="sr-only">Previous</span>
+              <ChevronLeft className="h-5 w-5" /><span className="sr-only">{t('detail.lightbox.previous')}</span>
             </Button>
             <Button variant="secondary" size="icon" onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2">
-              <ChevronRight className="h-5 w-5" /><span className="sr-only">Next</span>
+              <ChevronRight className="h-5 w-5" /><span className="sr-only">{t('detail.lightbox.next')}</span>
             </Button>
             <div className="mt-3 text-center text-sm text-white/80">{i + 1} / {photos.length}</div>
           </>
@@ -210,7 +211,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
   const dateLocale = isEs ? { locale: es } : undefined;
 
   const getSpecBadge = (jp: JobPack): { label: string; variant: "success" | "secondary" | "outline" } => {
-    const score = (jp.services?.length ?? 0) + (jp.hasPhotos ? 2 : 0) + (jp.budget?.display && jp.budget.display !== "To be discussed" ? 1 : 0);
+    const score = (jp.services?.length ?? 0) + (jp.hasPhotos ? 2 : 0) + (jp.budget?.display && jp.budget?.type !== 'tbd' ? 1 : 0);
     if (score >= 4) return { label: t('card.goodSpec'), variant: "success" };
     if (score >= 2) return { label: t('card.basicSpec'), variant: "secondary" };
     return { label: t('card.needsDetail'), variant: "outline" };
@@ -423,7 +424,7 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
           toast.error(err.message);
         }
       } else {
-        toast.error("Failed to start conversation");
+        toast.error(t('detail.startConversationFailed'));
         console.error("Message error:", err);
       }
     } finally {
