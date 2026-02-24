@@ -117,7 +117,7 @@ export function CategoryAccordion({
           <div className="flex items-center gap-4">
             {(() => { const CatIcon = getCategoryIconByName(category.name); return <CatIcon className="h-7 w-7 text-primary" />; })()}
             <div className="text-left">
-              <h3 className="text-lg font-semibold text-foreground">{category.name}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{txCategory(category.name, t)}</h3>
               <p className="text-base text-muted-foreground">
                 {totalMicros} jobs available
               </p>
