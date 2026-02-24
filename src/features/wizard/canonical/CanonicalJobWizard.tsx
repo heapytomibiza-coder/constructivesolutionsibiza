@@ -733,7 +733,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
         queryClient.invalidateQueries({ queryKey: ['client_stats'] });
         trackEvent('job_posted', 'client', { jobId: data.id, category: wizardState.mainCategory });
-        toast.success('Job posted! View it on the job board.');
+        toast.success(t('toasts.postSuccess'));
         navigate('/jobs');
       }
     } catch (error) {
@@ -965,12 +965,12 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               </>
             ) : isAuthenticated ? (
               <>
-                Get Matched
+                {t('buttons.getMatched')}
                 <ArrowRight className="h-4 w-4" />
               </>
             ) : (
               <>
-                Sign in & Get Matched
+                {t('buttons.signInGetMatched')}
                 <ArrowRight className="h-4 w-4" />
               </>
             )}

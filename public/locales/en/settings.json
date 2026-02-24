@@ -1,0 +1,47 @@
+{
+  "title": "Settings",
+  "backToDashboard": "Back to dashboard",
+  "account": {
+    "title": "Account",
+    "description": "Your account information",
+    "email": "Email",
+    "notAvailable": "Not available",
+    "currentMode": "Current Mode",
+    "tasker": "Tasker",
+    "asker": "Asker",
+    "switchedTo": "Switched to {{label}} mode",
+    "adminPanel": "Admin Panel"
+  },
+  "security": {
+    "title": "Security",
+    "description": "Change your password",
+    "newPassword": "New password",
+    "minChars": "Min. 6 characters",
+    "confirmPassword": "Confirm password",
+    "reEnter": "Re-enter password",
+    "updating": "Updating…",
+    "updatePassword": "Update Password",
+    "tooShort": "Password must be at least 6 characters",
+    "mismatch": "Passwords do not match",
+    "success": "Password updated successfully",
+    "hidePassword": "Hide password",
+    "showPassword": "Show password"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Control which emails you receive",
+    "newMessages": "New messages",
+    "newMessagesDesc": "Email me when I receive a new message",
+    "jobMatches": "Job matches",
+    "jobMatchesDesc": "Email me when a job matches my services",
+    "emailDigest": "Email digest",
+    "emailDigestDesc": "Receive a summary of activity",
+    "digestFrequency": "Digest frequency",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "updateFailed": "Failed to update preference"
+  },
+  "signOut": "Sign Out",
+  "signOutSuccess": "Signed out successfully",
+  "signOutFailed": "Failed to sign out"
+}

@@ -1,11 +1,13 @@
 import * as React from "react";
 import { useRef, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMessages, useSendMessage, type Message } from "./hooks";
 import { RequestSupportButton, SystemMessage } from "./components";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface ConversationThreadProps {
@@ -27,6 +29,7 @@ export function ConversationThread({
   onBack,
   onNewMessage,
 }: ConversationThreadProps) {
+  const { t, i18n } = useTranslation('messages');
   const userRole = currentUserId === clientId ? 'client' : 'professional';
   const { data: messages, isLoading, isError, error } = useMessages(conversationId);
   const { send, isSending } = useSendMessage(conversationId, currentUserId);
@@ -34,15 +37,11 @@ export function ConversationThread({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef<number>(0);
 
-  // Auto-scroll to bottom and mark read when new incoming messages arrive
+  const dateFnsLocale = i18n.language?.startsWith('es') ? es : undefined;
+
   useEffect(() => {
     const currentCount = messages?.length ?? 0;
     const lastMessage = messages?.[messages.length - 1];
-    
-    // Only mark read if:
-    // 1. New messages arrived (count increased)
-    // 2. We had messages before (not initial load)
-    // 3. The last message is from the other user (not our own send)
     if (
       currentCount > prevMessageCountRef.current &&
       prevMessageCountRef.current > 0 &&
@@ -51,7 +50,6 @@ export function ConversationThread({
     ) {
       onNewMessage?.();
     }
-    
     prevMessageCountRef.current = currentCount;
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, currentUserId, onNewMessage]);
@@ -65,7 +63,7 @@ export function ConversationThread({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Enter") return;
-    if (e.shiftKey) return; // Shift+Enter = newline, always
+    if (e.shiftKey) return;
     e.preventDefault();
     handleSend();
   };
@@ -81,7 +79,7 @@ export function ConversationThread({
         )}
         <div className="min-w-0 flex-1">
           <h2 className="font-semibold text-sm text-foreground truncate">
-            {jobTitle ?? "Conversation"}
+            {jobTitle ?? t('thread.conversation')}
           </h2>
         </div>
         <RequestSupportButton
@@ -99,7 +97,7 @@ export function ConversationThread({
           </div>
         ) : isError ? (
           <div className="text-center py-8 text-destructive text-sm">
-            Failed to load messages: {(error as Error)?.message ?? "Unknown error"}
+            {t('thread.loadFailed', { error: (error as Error)?.message ?? t('thread.unknownError') })}
           </div>
         ) : messages && messages.length > 0 ? (
           <>
@@ -111,6 +109,7 @@ export function ConversationThread({
                   key={msg.id}
                   message={msg}
                   isOwn={msg.sender_id === currentUserId}
+                  locale={dateFnsLocale}
                 />
               )
             ))}
@@ -118,7 +117,7 @@ export function ConversationThread({
           </>
         ) : (
           <div className="text-center py-8 text-muted-foreground text-sm">
-            No messages yet. Start the conversation!
+            {t('thread.noMessages')}
           </div>
         )}
       </div>
@@ -130,7 +129,7 @@ export function ConversationThread({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder={t('thread.placeholder')}
             className="resize-none min-h-[40px] !min-h-[40px] max-h-28 text-sm py-2 rounded-xl"
             rows={1}
             disabled={isSending}
@@ -149,21 +148,16 @@ export function ConversationThread({
           </Button>
         </div>
         <p className="text-[11px] text-muted-foreground mt-1 hidden sm:block">
-          Enter to send · Shift+Enter for new line
+          {t('thread.sendHint')}
         </p>
       </div>
     </div>
   );
 }
 
-function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean }) {
+function MessageBubble({ message, isOwn, locale }: { message: Message; isOwn: boolean; locale?: Parameters<typeof formatDistanceToNow>[1]['locale'] }) {
   return (
-    <div
-      className={cn(
-        "flex",
-        isOwn ? "justify-end" : "justify-start"
-      )}
-    >
+    <div className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
       <div
         className={cn(
           "max-w-[80%] sm:max-w-[70%] rounded-2xl px-3 py-1.5",
@@ -179,7 +173,7 @@ function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean })
             isOwn ? "text-primary-foreground" : "text-muted-foreground"
           )}
         >
-          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true, locale })}
         </p>
       </div>
     </div>

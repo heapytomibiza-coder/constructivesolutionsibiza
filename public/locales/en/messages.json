@@ -1,0 +1,23 @@
+{
+  "title": "Messages",
+  "loading": "Loading...",
+  "signInRequired": "Please sign in to view messages.",
+  "selectConversation": "Select a conversation to view messages",
+  "dashboard": "Dashboard",
+  "list": {
+    "searchPlaceholder": "Search conversations...",
+    "noConversations": "No conversations yet",
+    "noConversationsHint": "Start by messaging a professional on a job",
+    "noMatches": "No matching conversations",
+    "youAreClient": "You're the client",
+    "youAreResponding": "You're responding"
+  },
+  "thread": {
+    "conversation": "Conversation",
+    "noMessages": "No messages yet. Start the conversation!",
+    "placeholder": "Type a message...",
+    "sendHint": "Enter to send · Shift+Enter for new line",
+    "loadFailed": "Failed to load messages: {{error}}",
+    "unknownError": "Unknown error"
+  }
+}

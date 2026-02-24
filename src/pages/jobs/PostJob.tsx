@@ -9,12 +9,14 @@
  */
 
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { CanonicalJobWizard } from '@/features/wizard/canonical/CanonicalJobWizard';
 import { PLATFORM } from '@/domain/scope';
 import heroPost from '@/assets/heroes/hero-post.jpg';
 
 const PostJob = () => {
+  const { t } = useTranslation('wizard');
   return (
     <div className="min-h-screen relative">
       {/* Background Image */}
@@ -43,7 +45,7 @@ const PostJob = () => {
             </Link>
             
             <Button variant="ghost" asChild>
-              <Link to="/">Cancel</Link>
+              <Link to="/">{t('buttons.cancel')}</Link>
             </Button>
           </div>
         </nav>

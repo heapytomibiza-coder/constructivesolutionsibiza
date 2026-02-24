@@ -1,0 +1,47 @@
+{
+  "title": "Configuración",
+  "backToDashboard": "Volver al panel",
+  "account": {
+    "title": "Cuenta",
+    "description": "Información de tu cuenta",
+    "email": "Correo electrónico",
+    "notAvailable": "No disponible",
+    "currentMode": "Modo actual",
+    "tasker": "Tasker",
+    "asker": "Asker",
+    "switchedTo": "Cambiado a modo {{label}}",
+    "adminPanel": "Panel de Administración"
+  },
+  "security": {
+    "title": "Seguridad",
+    "description": "Cambia tu contraseña",
+    "newPassword": "Nueva contraseña",
+    "minChars": "Mín. 6 caracteres",
+    "confirmPassword": "Confirmar contraseña",
+    "reEnter": "Repite la contraseña",
+    "updating": "Actualizando…",
+    "updatePassword": "Actualizar Contraseña",
+    "tooShort": "La contraseña debe tener al menos 6 caracteres",
+    "mismatch": "Las contraseñas no coinciden",
+    "success": "Contraseña actualizada correctamente",
+    "hidePassword": "Ocultar contraseña",
+    "showPassword": "Mostrar contraseña"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "description": "Controla qué correos recibes",
+    "newMessages": "Nuevos mensajes",
+    "newMessagesDesc": "Avísame cuando reciba un nuevo mensaje",
+    "jobMatches": "Trabajos compatibles",
+    "jobMatchesDesc": "Avísame cuando un trabajo coincida con mis servicios",
+    "emailDigest": "Resumen por email",
+    "emailDigestDesc": "Recibe un resumen de la actividad",
+    "digestFrequency": "Frecuencia del resumen",
+    "daily": "Diario",
+    "weekly": "Semanal",
+    "updateFailed": "No se pudo actualizar la preferencia"
+  },
+  "signOut": "Cerrar Sesión",
+  "signOutSuccess": "Sesión cerrada correctamente",
+  "signOutFailed": "No se pudo cerrar sesión"
+}

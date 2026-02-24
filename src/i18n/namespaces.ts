@@ -13,6 +13,8 @@ export const NS = {
   micros: "micros",
   questions: "questions",
   legal: "legal",
+  settings: "settings",
+  messages: "messages",
 } as const;
 
 export type Namespace = (typeof NS)[keyof typeof NS];

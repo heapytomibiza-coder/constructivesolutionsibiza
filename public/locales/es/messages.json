@@ -1,0 +1,23 @@
+{
+  "title": "Mensajes",
+  "loading": "Cargando...",
+  "signInRequired": "Inicia sesión para ver tus mensajes.",
+  "selectConversation": "Selecciona una conversación para ver los mensajes",
+  "dashboard": "Panel",
+  "list": {
+    "searchPlaceholder": "Buscar conversaciones...",
+    "noConversations": "Aún no hay conversaciones",
+    "noConversationsHint": "Empieza enviando un mensaje a un profesional en un trabajo",
+    "noMatches": "No se encontraron conversaciones",
+    "youAreClient": "Eres el cliente",
+    "youAreResponding": "Estás respondiendo"
+  },
+  "thread": {
+    "conversation": "Conversación",
+    "noMessages": "Aún no hay mensajes. ¡Inicia la conversación!",
+    "placeholder": "Escribe un mensaje...",
+    "sendHint": "Enter para enviar · Shift+Enter para nueva línea",
+    "loadFailed": "No se pudieron cargar los mensajes: {{error}}",
+    "unknownError": "Error desconocido"
+  }
+}

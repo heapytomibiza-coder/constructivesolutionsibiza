@@ -93,7 +93,10 @@
     "continue": "Continue",
     "submit": "Post Job",
     "signInToSubmit": "Sign In to Post",
-    "saveChanges": "Save Changes"
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel",
+    "getMatched": "Get Matched",
+    "signInGetMatched": "Sign in & Get Matched"
   },
   "ui": {
     "submitting": "Submitting...",
@@ -104,6 +107,7 @@
     "convoFailed": "Job saved but could not start conversation",
     "directSuccess": "Job sent to professional!",
     "broadcastSuccess": "Job posted to marketplace!",
+    "postSuccess": "Job posted! View it on the job board.",
     "submitFailed": "Failed to post job. Please try again.",
     "updateSuccess": "Job updated!",
     "duplicateCreated": "Draft created from copy",
