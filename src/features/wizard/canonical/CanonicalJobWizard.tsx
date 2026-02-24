@@ -880,7 +880,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           {currentStep === WizardStep.Subcategory && (
             <div className="space-y-4">
               <h3 className="font-display text-lg font-semibold">
-                {t('subcategory.headline', { category: (txCategory(wizardState.mainCategory, t) ?? wizardState.mainCategory).toLowerCase() })}
+                {t('subcategory.headline', { category: txCategory(wizardState.mainCategory, t) ?? wizardState.mainCategory })}
               </h3>
               <SubcategorySelector
                 categoryId={wizardState.mainCategoryId}

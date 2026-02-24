@@ -198,21 +198,32 @@ export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }
     return translated || label;
   };
 
+  /** Normalize an option value to a stable i18n key (snake_case, lowercase) */
+  const normalizeOptionKey = (v: string): string =>
+    v.trim().toLowerCase().replace(/[^\w]+/g, '_');
+
   /** Translate an option using value-first strategy (stable), fallback to label */
   const tOption = (opt: QuestionOption): string => {
     const valueKey = norm(opt.value);
-    const labelKey = norm(opt.label);
+    const normalizedKey = normalizeOptionKey(opt.value);
 
     // Prefer stable value-based key
     const byValue = t(`questions:options.${valueKey}`, { defaultValue: '' });
     if (byValue) return byValue;
 
+    // Try normalized snake_case key
+    if (normalizedKey !== valueKey) {
+      const byNorm = t(`questions:options.${normalizedKey}`, { defaultValue: '' });
+      if (byNorm) return byNorm;
+    }
+
     // Fallback to label-based key (legacy)
+    const labelKey = norm(opt.label);
     const byLabel = t(`questions:options.${labelKey}`, { defaultValue: '' });
 
     if (import.meta.env.DEV && !(byValue || byLabel)) {
       // eslint-disable-next-line no-console
-      console.warn('[i18n missing option]', { valueKey, labelKey });
+      console.warn('[i18n missing option]', { valueKey, normalizedKey, labelKey });
     }
 
     return byLabel || opt.label;
