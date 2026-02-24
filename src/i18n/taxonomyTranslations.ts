@@ -93,7 +93,7 @@ export const SUBCATEGORY_KEYS: Record<string, string> = {
   "Landscaping": "landscaping",
   "Tree Surgery": "tree-surgery",
   "Outdoor Living Spaces": "outdoor-living-spaces",
-  "Maintenance": "garden-maintenance",
+  // Note: "Maintenance" maps to hvac-maintenance above; garden-maintenance uses slug lookup
   // Pool & Spa
   "Pool Construction": "pool-construction",
   "Pool Maintenance": "pool-maintenance",
