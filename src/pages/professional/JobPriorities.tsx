@@ -209,6 +209,7 @@ export default function JobPriorities() {
                         <PriorityRow
                           key={micro.id}
                           name={micro.name}
+                          slug={micro.slug}
                           currentPref={currentPref}
                           onChange={(pref) => handlePriorityChange(micro.id, pref)}
                           options={PRIORITY_OPTIONS}
