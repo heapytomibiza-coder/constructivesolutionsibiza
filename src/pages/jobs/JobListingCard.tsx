@@ -56,6 +56,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("jobs");
   const isEs = i18n.language?.startsWith("es");
+  const contentLang = getContentLang(i18n.language);
 
   const getSpecBadge = (j: JobsBoardRow): { label: string; variant: "success" | "secondary" | "outline" } => {
     const score = (j.highlights?.length ?? 0) + (j.has_photos ? 2 : 0) + (budgetProxy(j) > 0 ? 1 : 0);
