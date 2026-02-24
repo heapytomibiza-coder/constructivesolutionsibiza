@@ -181,10 +181,12 @@ function parseBudgetRange(input?: string | null): { min: number | null; max: num
 }
 
 /**
- * Format date to ISO string or null
+ * Format date to ISO string or null — tolerates string inputs (draft resume safety)
  */
-function formatDate(date?: Date): string | null {
-  return date ? date.toISOString() : null;
+function formatDate(date?: Date | string): string | null {
+  if (!date) return null;
+  if (typeof date === 'string') return date;
+  return date.toISOString();
 }
 
 /**
