@@ -465,6 +465,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         microIds: [],
         microSlugs: [],
         answers: { microAnswers: {} },
+        // Reset custom mode when picking structured
+        wizardMode: 'structured',
+        customRequest: undefined,
       }));
     });
     setCurrentStep(WizardStep.Micro);
