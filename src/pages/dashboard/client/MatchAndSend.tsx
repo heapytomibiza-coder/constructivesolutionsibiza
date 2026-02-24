@@ -212,7 +212,7 @@ export default function MatchAndSend() {
                             </span>
                           )}
                           {pro.services_count && (
-                            <span>{pro.services_count} services</span>
+                            <span>{t('matchAndSend.services', { count: pro.services_count })}</span>
                           )}
                           {pro.coverage > 0 && (
                             <Badge variant="outline" className="text-xs">
