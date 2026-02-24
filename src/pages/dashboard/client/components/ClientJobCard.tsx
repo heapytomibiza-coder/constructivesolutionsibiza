@@ -221,7 +221,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         {/* Status message for saved jobs */}
         {job.status === 'ready' && (
           <p className="text-xs text-muted-foreground mb-3">
-            Saved — choose how to share from the job page
+            {t('client.savedHint')}
           </p>
         )}
         
