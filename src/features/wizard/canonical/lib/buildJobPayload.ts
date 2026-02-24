@@ -302,8 +302,9 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
     ?? (extras.notes?.trim() ? extras.notes.trim() : null)
     ?? `${title} - ${mainCategory}${subcategory ? ` / ${subcategory}` : ""}`;
 
-  // Budget parsing
-  const { min, max } = parseBudgetRange(logistics.budgetRange);
+  // Budget parsing — prefer preset map, fall back to string parsing
+  const presetBudget = logistics.budgetRange ? BUDGET_PRESETS[logistics.budgetRange] : undefined;
+  const { min, max } = presetBudget ?? parseBudgetRange(logistics.budgetRange);
   const budgetType = determineBudgetType(logistics.budgetRange);
   const budgetValue = budgetType === 'fixed' ? min : null;
 
