@@ -76,7 +76,7 @@ export default function ServiceListingEditor() {
   const handlePublish = async () => {
     if (!listingId) return;
     if (!title.trim() || !description.trim() || !heroUrl) {
-      toast.error('Please fill in title, description, and upload a hero image before publishing');
+      toast.error(t('listingEditor.publishValidation'));
       return;
     }
     // Save first, then publish
