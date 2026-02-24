@@ -308,9 +308,13 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
   const budgetType = determineBudgetType(logistics.budgetRange);
   const budgetValue = budgetType === 'fixed' ? min : null;
 
-  // Start timing
+  // Start timing — tolerate string dates (draft resume)
   const startTiming = mapStartTiming(logistics.startDatePreset);
-  const startDate = logistics.startDate ? logistics.startDate.toISOString().split('T')[0] : null;
+  const startDate = typeof logistics.startDate === 'string'
+    ? logistics.startDate.split('T')[0]
+    : logistics.startDate
+      ? logistics.startDate.toISOString().split('T')[0]
+      : null;
 
   // Photos check
   const hasPhotos = (extras.photos?.length ?? 0) > 0;
