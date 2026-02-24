@@ -30,6 +30,7 @@ import ProProfileDrawer from './components/ProProfileDrawer';
 export default function MatchAndSend() {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
   const { user } = useSession();
   const queryClient = useQueryClient();
   const [selectedProId, setSelectedProId] = useState<string | null>(null);
