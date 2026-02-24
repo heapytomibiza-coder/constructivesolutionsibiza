@@ -152,7 +152,7 @@ export function JobsMarketplace() {
     return (
       <div className="space-y-3 py-12 text-center">
         <div className="text-sm text-destructive">
-          {t('board.loadError', { error: (error as Error)?.message ?? "Unknown error" })}
+          {t('board.loadError', { error: (error as Error)?.message ?? t('detail.unknownError') })}
         </div>
         <Button variant="outline" onClick={() => refetch()}>
           {t('board.retry')}

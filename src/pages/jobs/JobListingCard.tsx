@@ -34,9 +34,19 @@ function statusVariant(status?: string | null): "default" | "warning" | "success
   }
 }
 
-function prettyStatus(s: string | null): string {
+const STATUS_KEYS: Record<string, string> = {
+  open: 'status.open',
+  draft: 'status.draft',
+  ready: 'status.ready',
+  in_progress: 'status.inProgress',
+  completed: 'status.completed',
+  cancelled: 'status.cancelled',
+};
+
+function translateStatus(s: string | null, t: (k: string) => string): string {
   if (!s) return "";
-  return s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+  const key = STATUS_KEYS[s];
+  return key ? t(key) : s.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 }
 
 export function JobListingCard({ job, isMatched }: JobListingCardProps) {
@@ -158,7 +168,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
               <div className="flex flex-wrap items-center gap-2">
                 {job.category && <Badge variant="secondary">{job.category}</Badge>}
                 {job.subcategory && <Badge variant="outline">{job.subcategory}</Badge>}
-                {job.status && <Badge variant={statusVariant(job.status)}>{prettyStatus(job.status)}</Badge>}
+                {job.status && <Badge variant={statusVariant(job.status)}>{translateStatus(job.status, t)}</Badge>}
                 {isMatched && <Badge variant="accent">{t('card.matched')}</Badge>}
                 {job.start_timing === "asap" && <Badge variant="accent">{t('board.asap')}</Badge>}
                 <Badge variant={specBadge.variant}>{specBadge.label}</Badge>

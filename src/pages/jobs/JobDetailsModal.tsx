@@ -44,9 +44,19 @@ function statusVariant(
   }
 }
 
-function prettyStatus(s: string | null | undefined): string {
+const STATUS_KEYS: Record<string, string> = {
+  open: 'status.open',
+  draft: 'status.draft',
+  ready: 'status.ready',
+  in_progress: 'status.inProgress',
+  completed: 'status.completed',
+  cancelled: 'status.cancelled',
+};
+
+function translateStatus(s: string | null | undefined, t: (k: string) => string): string {
   if (!s) return "";
-  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const key = STATUS_KEYS[s];
+  return key ? t(key) : s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
@@ -108,7 +118,7 @@ function PhotoLightbox({
       onMouseDown={(e) => { if (e.currentTarget === e.target) onClose(); }}
     >
       <div className="relative w-full max-w-5xl">
-        <img src={src} alt={`Photo ${i + 1} of ${photos.length}`} className="max-h-[85vh] w-full rounded-lg object-contain" draggable={false} />
+        <img src={src} alt={t('detail.lightbox.photo', { current: i + 1, total: photos.length })} className="max-h-[85vh] w-full rounded-lg object-contain" draggable={false} />
         <Button variant="secondary" size="icon" onClick={onClose} className="absolute right-2 top-2">
           <X className="h-4 w-4" /><span className="sr-only">{t('detail.lightbox.close')}</span>
         </Button>
@@ -157,7 +167,7 @@ export function JobDetailsModal({
 
   const jobPack = React.useMemo(() => {
     if (!row) return null;
-    return buildJobPack(row, packs ?? []);
+    return buildJobPack(row, packs ?? [], t);
   }, [row, packs]);
 
   return (
@@ -178,7 +188,7 @@ export function JobDetailsModal({
           ) : isError ? (
             <div className="space-y-3">
               <div className="text-sm text-destructive">
-                {t('detail.loadError', { error: (error as Error)?.message ?? "Unknown error" })}
+                {t('detail.loadError', { error: (error as Error)?.message ?? t('detail.unknownError') })}
               </div>
               <Button variant="outline" onClick={() => refetch()}>
                 {t('detail.retry')}
@@ -227,7 +237,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         <div className="flex flex-wrap items-center gap-2">
           {jobPack.category && <Badge variant="secondary">{jobPack.category}</Badge>}
           {jobPack.subcategory && <Badge variant="outline">{jobPack.subcategory}</Badge>}
-          {jobPack.status && <Badge variant={statusVariant(jobPack.status)}>{prettyStatus(jobPack.status)}</Badge>}
+          {jobPack.status && <Badge variant={statusVariant(jobPack.status)}>{translateStatus(jobPack.status, t)}</Badge>}
           {jobPack.isOwner && <Badge variant="outline">{t('card.yourJob')}</Badge>}
           {isAsap && <Badge variant="accent">{t('board.asap')}</Badge>}
           <Badge variant={specBadge.variant}>{specBadge.label}</Badge>
@@ -339,7 +349,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
                 <div className="grid grid-cols-3 gap-2">
                   {jobPack.photos.slice(0, 6).map((url, idx) => (
                     <button key={url} type="button" className="aspect-square overflow-hidden rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" onClick={() => setLightboxIndex(idx)}>
-                      <img src={url} alt={`Job photo ${idx + 1}`} className="h-full w-full object-cover transition-transform hover:scale-105" loading="lazy" />
+                      <img src={url} alt={t('detail.lightbox.photo', { current: idx + 1, total: jobPack.photos.length })} className="h-full w-full object-cover transition-transform hover:scale-105" loading="lazy" />
                     </button>
                   ))}
                 </div>

@@ -88,6 +88,9 @@ export interface JobPack {
   safety: string | null;
 }
 
+/** Optional translation function passed from React callers */
+type TFn = (key: string, opts?: Record<string, unknown>) => string;
+
 // Budget range display mapping
 const BUDGET_DISPLAY: Record<string, string> = {
   'under_500': 'Under 500 €',
@@ -101,7 +104,7 @@ const BUDGET_DISPLAY: Record<string, string> = {
 /**
  * Format budget for display.
  */
-function formatBudget(row: JobDetailsRow, answers: JobAnswers | null): string {
+function formatBudget(row: JobDetailsRow, answers: JobAnswers | null, t?: TFn): string {
   // First check if we have structured budget data
   if (row.budget_type === "fixed" && row.budget_value != null) {
     return `${row.budget_value.toLocaleString()} €`;
@@ -113,25 +116,47 @@ function formatBudget(row: JobDetailsRow, answers: JobAnswers | null): string {
   // Check for budget range from wizard answers and humanize it
   if (answers?.logistics?.budgetRange) {
     const raw = answers.logistics.budgetRange;
-    return BUDGET_DISPLAY[raw] || raw.replace(/_/g, ' ');
+    const BUDGET_KEYS: Record<string, string> = {
+      'under_500': 'card.under500',
+      '500_1000': 'card.500_1000',
+      '1000_2500': 'card.1000_2500',
+      '2500_5000': 'card.2500_5000',
+      'over_5000': 'card.over5000',
+      'need_quote': 'card.quoteNeeded',
+    };
+    const key = BUDGET_KEYS[raw];
+    if (key && t) return t(key);
+    if (key) {
+      // Fallback English labels when t is not available
+      const BUDGET_FALLBACK: Record<string, string> = {
+        'under_500': 'Under 500 €',
+        '500_1000': '500–1,000 €',
+        '1000_2500': '1,000–2,500 €',
+        '2500_5000': '2,500–5,000 €',
+        'over_5000': 'Over 5,000 €',
+        'need_quote': 'Quote needed',
+      };
+      return BUDGET_FALLBACK[raw] ?? raw.replace(/_/g, ' ');
+    }
+    return raw.replace(/_/g, ' ');
   }
   
-  return "To be discussed";
+  return t?.('card.tbd') ?? 'TBD';
 }
 
 /**
  * Format timing for display.
  */
-function formatTiming(preset: string | null, date: string | null): string {
-  if (preset === "asap") return "ASAP";
-  if (preset === "this_week") return "This week";
-  if (preset === "this_month") return "This month";
-  if (preset === "flexible") return "Flexible";
+function formatTiming(preset: string | null, date: string | null, t?: TFn): string {
+  if (preset === "asap") return t?.('board.asap') ?? 'ASAP';
+  if (preset === "this_week") return t?.('card.thisWeek') ?? 'This week';
+  if (preset === "this_month") return t?.('card.thisMonth') ?? 'This month';
+  if (preset === "flexible") return t?.('card.flexible') ?? 'Flexible';
   if ((preset === "specific" || preset === "date") && date) {
-    return `Specific: ${date}`;
+    return t?.('card.start', { date }) ?? `Start: ${date}`;
   }
-  if (date) return `Start: ${date}`;
-  return preset ?? "Flexible";
+  if (date) return t?.('card.start', { date }) ?? `Start: ${date}`;
+  return t?.('card.flexible') ?? 'Flexible';
 }
 
 /**
@@ -140,12 +165,15 @@ function formatTiming(preset: string | null, date: string | null): string {
 function formatLocationDisplay(
   location: JobLocation | null,
   logistics: JobAnswers["logistics"] | null,
-  area: string | null
+  area: string | null,
+  t?: TFn
 ): string {
+  const customLabel = t?.('detail.customLocation') ?? 'Custom location';
+
   // Try logistics location first (wizard data)
   if (logistics?.location) {
     if (logistics.location === "other") {
-      return logistics.customLocation || "Custom location";
+      return logistics.customLocation || customLabel;
     }
     return LOCATION_LABELS[logistics.location] || logistics.location;
   }
@@ -153,7 +181,7 @@ function formatLocationDisplay(
   // Fall back to location object
   if (location?.preset) {
     if (location.preset === "other") {
-      return location.custom || "Custom location";
+      return location.custom || customLabel;
     }
     return LOCATION_LABELS[location.preset] || location.preset;
   }
@@ -205,15 +233,11 @@ function buildFallbackServicePacks(
 
 /**
  * Resolve micro answers to service packs using question pack definitions.
- * This is the core function that converts raw answers + packs into display-ready data.
- * 
- * If packs are not provided or empty, returns fallback packs with raw labels.
  */
 export function resolveServicePacks(
   microAnswers: Record<string, Record<string, unknown>>,
   packs: QuestionPack[]
 ): ResolvedServicePack[] {
-  // Fallback mode: show answers with raw labels when packs aren't loaded
   if (!packs.length) {
     return buildFallbackServicePacks(microAnswers);
   }
@@ -231,7 +255,6 @@ export function resolveServicePacks(
     
     const resolvedAnswers: ResolvedAnswer[] = [];
     
-    // Sort entries for deterministic UI ordering
     const entries = Object.entries(answers)
       .filter(([k]) => !k.startsWith("_"))
       .sort(([a], [b]) => a.localeCompare(b));
@@ -267,9 +290,10 @@ export function resolveServicePacks(
  * 
  * @param row - The raw job details from the database
  * @param packs - Question pack definitions for resolving answer labels
+ * @param t - Optional i18n translation function for localized display strings
  * @returns A fully resolved JobPack ready for UI rendering
  */
-export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = []): JobPack {
+export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = [], t?: TFn): JobPack {
   const answers = safeAnswers(row.answers);
   const logistics = answers?.logistics ?? null;
   const extras = answers?.extras ?? null;
@@ -296,13 +320,13 @@ export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = []): Jo
     location: {
       area: location?.area ?? row.area ?? "Ibiza",
       town: location?.town ?? null,
-      display: formatLocationDisplay(location, logistics, row.area),
+      display: formatLocationDisplay(location, logistics, row.area, t),
     },
     
     timing: {
       preset: timingPreset,
       date: timingDate,
-      display: formatTiming(timingPreset, timingDate),
+      display: formatTiming(timingPreset, timingDate, t),
     },
     
     budget: {
@@ -310,7 +334,7 @@ export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = []): Jo
       value: row.budget_value ?? null,
       min: row.budget_min ?? null,
       max: row.budget_max ?? null,
-      display: formatBudget(row, answers),
+      display: formatBudget(row, answers, t),
     },
     
     photos: extras?.photos ?? [],
