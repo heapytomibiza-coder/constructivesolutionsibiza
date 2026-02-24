@@ -33,6 +33,7 @@ export function MicroToggleTile({
   isFirstSelection = false,
   rightAccessory,
 }: MicroToggleTileProps) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
