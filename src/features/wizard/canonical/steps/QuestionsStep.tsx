@@ -138,10 +138,15 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
   const tOptionLabel = (opt: { value: string; label: string }): string => {
     const valueKey = norm(opt.value);
     const labelKey = norm(opt.label);
+    // Try exact value key first, then lowercase, then label key, then lowercase label
     const byValue = t(`questions:options.${valueKey}`, { defaultValue: '' });
     if (byValue) return byValue;
+    const byValueLower = t(`questions:options.${valueKey.toLowerCase()}`, { defaultValue: '' });
+    if (byValueLower) return byValueLower;
     const byLabel = t(`questions:options.${labelKey}`, { defaultValue: '' });
-    return byLabel || opt.label;
+    if (byLabel) return byLabel;
+    const byLabelLower = t(`questions:options.${labelKey.toLowerCase()}`, { defaultValue: '' });
+    return byLabelLower || opt.label;
   };
   const [packs, setPacks] = useState<QuestionPack[]>([]);
   const [loading, setLoading] = useState(true);
