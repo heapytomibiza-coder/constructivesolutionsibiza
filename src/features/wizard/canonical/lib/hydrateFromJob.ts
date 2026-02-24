@@ -51,6 +51,12 @@ export async function hydrateFromJob(jobId: string): Promise<{
   const rawMicroAnswers = (answers.microAnswers ?? {}) as Record<string, Record<string, unknown>>;
   const logistics = (answers.logistics ?? {}) as Record<string, unknown>;
   const extras = (answers.extras ?? {}) as Record<string, unknown>;
+  const custom = (answers.custom ?? {}) as Record<string, unknown>;
+
+  // Detect custom request mode
+  const isCustom =
+    Boolean((job as any).is_custom_request) ||
+    (typeof custom.jobTitle === 'string' && custom.jobTitle.trim().length > 0);
 
   // Look up category/subcategory IDs by name
   let mainCategoryId = '';
