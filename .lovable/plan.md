@@ -1,67 +1,141 @@
 
 
-## Translation-Status Guard
+## Plan: "Can't Find What You Need?" Custom Request Fallback
 
-### Root Cause
-The migration (`20260224124257`) sets `translation_status text DEFAULT 'pending'` on both `jobs` and `service_listings`. Every new row starts as `'pending'` whether or not the edge function is ever invoked. If invocation fails or is skipped, the row stays `'pending'` forever.
+### Problem
+When a user can't find their service in the structured taxonomy (Steps 1-3), they have no escape route. They leave, post in the wrong category, or think the platform is limited. This is especially important for Ibiza where hybrid/unusual services are common.
 
-Additionally, the edge function's `catch` block returns a 500 but never writes `translation_status = 'failed'` to the database, so even invoked-but-crashed translations stay `'pending'`.
+### Architecture Decision: Wizard Mode, Not a New Step
 
-### Fix (3 changes)
+Rather than adding a new step to `STEP_ORDER` (which would break URL sync, progress bars, step indices, and validation), we add a **wizard mode** (`structured` | `custom`) that:
+- Activates from a CTA at the bottom of Category, Subcategory, and Micro steps
+- Opens a **CustomRequestForm** component rendered _inside_ the existing Card area (replaces the current step content)
+- On submit, populates `wizardState` with synthetic values and jumps to **Logistics** (Step 5) — not directly to Review, because location/budget/timing are still needed for the job card to be useful
+- Questions step is skipped (no pack exists for custom requests)
+- Review step renders custom title/description instead of micro names
 
-**1. Database migration — change default from `'pending'` to `NULL`**
+### Database Changes
+
+**Migration: Add `is_custom_request` column to `jobs` table**
 
 ```sql
 ALTER TABLE public.jobs
-  ALTER COLUMN translation_status SET DEFAULT NULL;
-
-ALTER TABLE public.service_listings
-  ALTER COLUMN translation_status SET DEFAULT NULL;
-
--- Clean up existing stuck rows
-UPDATE public.jobs
-SET translation_status = NULL
-WHERE translation_status = 'pending'
-  AND (source_lang IS NULL OR title_i18n = '{}'::jsonb);
-
-UPDATE public.service_listings
-SET translation_status = NULL
-WHERE translation_status = 'pending'
-  AND source_lang IS NULL;
+  ADD COLUMN is_custom_request boolean NOT NULL DEFAULT false;
 ```
 
-New rows will have `translation_status = NULL` (meaning "not yet attempted"). The edge function writes `'complete'` on success.
+No new tables needed. Custom requests store into the same `jobs` table with:
+- `is_custom_request = true`
+- `category` = selected parent category  
+- `micro_slug = NULL`
+- `title` = user-provided job title
+- `description` = user-provided description + specs merged
+- `answers` = `{ selected: {...}, microAnswers: {}, custom: { title, description, specs } }` — keeps the custom data in the canonical answers container for traceability
 
-**2. Edge function — write `'failed'` on error**
+### Type Changes (`types.ts`)
 
-In `supabase/functions/translate-content/index.ts`, inside the `catch` block (before returning the 500 response), add a best-effort DB update:
+Add to `WizardState`:
 
 ```ts
-// Best-effort: mark translation as failed so it doesn't stay pending
-try {
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const sb = createClient(supabaseUrl, supabaseKey);
-  await sb.from(body.entity).update({ translation_status: "failed" }).eq("id", body.id);
-} catch (_) { /* ignore */ }
+// Wizard mode: structured (normal) or custom (fallback)
+wizardMode: 'structured' | 'custom';
+
+// Custom request fields (only used when wizardMode === 'custom')
+customRequest?: {
+  jobTitle: string;
+  description: string;
+  specs?: string;
+};
 ```
 
-Also add `translation_status: 'pending'` to the update payload at the **start** of the function (before calling the AI gateway), so "pending" only exists while translation is actively in progress.
+Update `EMPTY_WIZARD_STATE` with `wizardMode: 'structured'`.
 
-**3. No client-side changes needed**
+### New Component: `CustomRequestForm.tsx`
 
-Both `CanonicalJobWizard.tsx` and `ServiceListingEditor.tsx` already use fire-and-forget invocation without setting `translation_status`. This is correct — the edge function owns the status lifecycle entirely.
+Location: `src/features/wizard/canonical/steps/CustomRequestForm.tsx`
 
-### Status lifecycle after fix
+Fields (all i18n-ready with `wizard` namespace keys):
+1. **Category** — dropdown of 9 parent categories (re-uses existing category data, pre-filled if already selected)
+2. **Job Title** — required, min 4 chars
+3. **Job Description** — required, min 20 chars, textarea
+4. **Specific Specs** — optional textarea
+
+On submit → sets `wizardMode: 'custom'`, populates `customRequest`, sets `mainCategory`/`mainCategoryId` from dropdown, then jumps to **Logistics** step (skipping Subcategory, Micro, and Questions).
+
+### Wizard Routing Changes (`CanonicalJobWizard.tsx`)
+
+1. **New state**: `wizardMode` tracked in `wizardState` (persisted in draft)
+2. **New state**: `showCustomForm` boolean to toggle the form overlay
+3. **CTA**: "Can't find what you need?" link at bottom of Category, Subcategory, and Micro step renders
+4. **Custom form submit handler**: Sets mode + state, jumps to `WizardStep.Logistics`
+5. **`handleNext`**: When `wizardMode === 'custom'`, skip from wherever we are straight to Logistics (bypasses Subcategory → Micro → Questions chain)
+6. **Progress bar**: When in custom mode, show simplified progress (e.g., "Custom Request → Details → Review")
+
+### Validation Changes (`stepValidation.ts`)
+
+- `validateWizardState` and `validateWizardForSubmission`: When `wizardMode === 'custom'`, skip subcategory/micro checks, require `customRequest.jobTitle` and `customRequest.description` instead
+
+### Payload Changes (`buildJobPayload.ts`)
+
+When `wizardMode === 'custom'`:
+- `title` = `customRequest.jobTitle`
+- `description` = merged description + specs
+- `teaser` = first 200 chars of description
+- `micro_slug` = `null`
+- `subcategory` = `null` (or "custom-request")
+- `is_custom_request` = `true`
+- `answers.custom` = `{ jobTitle, description, specs }` for traceability
+
+### Review Step Changes (`ReviewStep.tsx`)
+
+When `wizardState.wizardMode === 'custom'`:
+- Header shows category badge + "Custom Request" label
+- "What you need" section shows the custom title + description instead of micro names
+- Specs shown if provided
+- Everything else (location, budget, photos) renders normally
+
+### i18n Keys (both `en/wizard.json` and `es/wizard.json`)
+
+```json
+"custom": {
+  "cta": "Can't find what you need?",
+  "ctaDescription": "Post a custom request — we'll format it into a proper job card.",
+  "ctaButton": "Post Custom Request",
+  "headline": "Describe what you need",
+  "subtitle": "Tell us what you need. We'll turn it into a clear job card for professionals.",
+  "categoryLabel": "Main category",
+  "categoryPlaceholder": "Select a category",
+  "titleLabel": "Job title",
+  "titlePlaceholder": "e.g. Build a pergola with integrated LED strips",
+  "titleHelp": "Be specific — this becomes the headline.",
+  "descriptionLabel": "Job description",
+  "descriptionPlaceholder": "What needs doing? Where? Any constraints?",
+  "descriptionHelp": "Include location context, scale, and what \"done\" looks like.",
+  "specsLabel": "Specific specs (optional)",
+  "specsPlaceholder": "Measurements, materials, brand preferences, deadlines...",
+  "badge": "Custom Request"
+}
+```
+
+### Files to Create
+1. `src/features/wizard/canonical/steps/CustomRequestForm.tsx`
+
+### Files to Modify
+1. `src/features/wizard/canonical/types.ts` — add `wizardMode`, `customRequest` to state + empty defaults
+2. `src/features/wizard/canonical/CanonicalJobWizard.tsx` — add custom form toggle, CTA in steps 1-3, routing logic
+3. `src/features/wizard/canonical/lib/buildJobPayload.ts` — handle custom mode in `buildJobInsert` and `validateWizardState`
+4. `src/features/wizard/canonical/lib/stepValidation.ts` — relax subcategory/micro checks when custom
+5. `src/features/wizard/canonical/steps/ReviewStep.tsx` — render custom request data
+6. `public/locales/en/wizard.json` — add `custom.*` keys
+7. `public/locales/es/wizard.json` — add `custom.*` keys (Spanish)
+8. DB migration — add `is_custom_request` column
+
+### Flow Summary
 
 ```text
-NULL  →  (edge function invoked)  →  'pending'  →  'complete'
-                                                 →  'failed'
-NULL  →  (never invoked / no text)  →  stays NULL
+Normal:     Category → Subcategory → Micro → Questions → Logistics → Extras → Review
+Custom:     Category (CTA click) → CustomRequestForm → Logistics → Extras → Review
 ```
 
-No row can ever be stuck in `'pending'` because:
-- Default is `NULL`, not `'pending'`
-- Only the edge function sets `'pending'` (at start of processing)
-- Edge function always exits with `'complete'` or `'failed'`
+### Strategic Benefit
+Every custom request becomes a data signal. You can later query `SELECT category, title, description FROM jobs WHERE is_custom_request = true` to identify patterns and convert them into new structured microservices — evolving taxonomy from real demand.
 
