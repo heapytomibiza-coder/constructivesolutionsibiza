@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { txCategory } from '@/i18n/taxonomyTranslations';
 import type { CustomRequest } from '../types';
 
 interface CustomRequestFormProps {
@@ -102,7 +103,7 @@ export function CustomRequestForm({
           <SelectContent>
             {categories.map(c => (
               <SelectItem key={c.id} value={c.id}>
-                {c.name}
+                {txCategory(c.name, t) || c.name}
               </SelectItem>
             ))}
           </SelectContent>

@@ -17,6 +17,7 @@ interface JobRow {
   answers: Json | null;
   status: string;
   user_id: string;
+  is_custom_request?: boolean | null;
 }
 
 /** Statuses that allow editing */
@@ -36,7 +37,7 @@ export async function hydrateFromJob(jobId: string): Promise<{
 } | null> {
   const { data: job, error } = await supabase
     .from('jobs')
-    .select('id, title, category, subcategory, micro_slug, answers, status, user_id')
+    .select('id, title, category, subcategory, micro_slug, answers, status, user_id, is_custom_request')
     .eq('id', jobId)
     .single();
 
@@ -50,6 +51,12 @@ export async function hydrateFromJob(jobId: string): Promise<{
   const rawMicroAnswers = (answers.microAnswers ?? {}) as Record<string, Record<string, unknown>>;
   const logistics = (answers.logistics ?? {}) as Record<string, unknown>;
   const extras = (answers.extras ?? {}) as Record<string, unknown>;
+  const custom = (answers.custom ?? {}) as Record<string, unknown>;
+
+  // Detect custom request mode
+  const isCustom =
+    Boolean((job as any).is_custom_request) ||
+    (typeof custom.jobTitle === 'string' && custom.jobTitle.trim().length > 0);
 
   // Look up category/subcategory IDs by name
   let mainCategoryId = '';
@@ -109,21 +116,34 @@ export async function hydrateFromJob(jobId: string): Promise<{
     return Number.isNaN(d.getTime()) ? undefined : d;
   };
 
+  const toStringArray = (v: unknown): string[] =>
+    Array.isArray(v) ? v.map(String).filter(Boolean) : [];
+
   const state: WizardState = {
     ...EMPTY_WIZARD_STATE,
     mainCategory: catName,
     mainCategoryId,
-    subcategory: subName,
-    subcategoryId,
-    microNames,
-    microIds,
-    microSlugs,
+    subcategory: isCustom ? '' : subName,
+    subcategoryId: isCustom ? '' : subcategoryId,
+    microNames: isCustom ? [] : microNames,
+    microIds: isCustom ? [] : microIds,
+    microSlugs: isCustom ? [] : microSlugs,
+
+    // Wizard mode
+    wizardMode: isCustom ? 'custom' : 'structured',
+    customRequest: isCustom ? {
+      jobTitle: (custom.jobTitle as string) || job.title || '',
+      description: (custom.description as string) || '',
+      specs: (custom.specs as string) || undefined,
+    } : undefined,
+
     // Canonical answers container
     answers: {
       microAnswers: rawMicroAnswers,
       _pack_source: (answers._pack_source as any) ?? undefined,
       _pack_slug: (answers._pack_slug as any) ?? undefined,
       _pack_missing: (answers._pack_missing as any) ?? undefined,
+      ...(isCustom ? { custom } : {}),
     },
     logistics: {
       location: (logistics.location as string) || '',
@@ -135,10 +155,10 @@ export async function hydrateFromJob(jobId: string): Promise<{
       consultationDate: parseDate(logistics.consultationDate),
       consultationTime: (logistics.consultationTime as string) || undefined,
       budgetRange: (logistics.budgetRange as string) || undefined,
-      accessDetails: (logistics.accessDetails as string[]) || [],
+      accessDetails: toStringArray(logistics.accessDetails),
     },
     extras: {
-      photos: (extras.photos as string[]) || [],
+      photos: toStringArray(extras.photos),
       notes: (extras.notes as string) || undefined,
       permitsConcern: (extras.permitsConcern as boolean) || undefined,
     },

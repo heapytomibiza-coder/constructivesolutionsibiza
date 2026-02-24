@@ -42,7 +42,7 @@ import { useWizardUrlStep } from './hooks/useWizardUrlStep';
 import { useProServiceScope } from './hooks/useProServiceScope';
 import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
 import { hydrateFromJob, canEditJob } from './lib/hydrateFromJob';
-import { validateAllPacks, type ValidationErrorMap } from './lib/stepValidation';
+import { validateAllPacks, isStep5Complete, type ValidationErrorMap } from './lib/stepValidation';
 import {
   resolveWizardMode,
   applySearchResult,
@@ -446,6 +446,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         microIds: [],
         microSlugs: [],
         answers: { microAnswers: {} },
+        // Reset custom mode when picking structured
+        wizardMode: 'structured',
+        customRequest: undefined,
       }));
     });
     setCurrentStep(WizardStep.Subcategory);
@@ -462,6 +465,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         microIds: [],
         microSlugs: [],
         answers: { microAnswers: {} },
+        // Reset custom mode when picking structured
+        wizardMode: 'structured',
+        customRequest: undefined,
       }));
     });
     setCurrentStep(WizardStep.Micro);
@@ -586,13 +592,14 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         return wizardState.microIds.length > 0;
       case WizardStep.Questions:
         return true; // Questions are optional - can always continue
-      case WizardStep.Logistics:
-        // Location required, and if "other" then customLocation must be filled
-        if (!wizardState.logistics.location) return false;
+      case WizardStep.Logistics: {
+        const step5 = isStep5Complete(wizardState.logistics);
+        if (!step5.ok) return false;
         if (wizardState.logistics.location === 'other' && !wizardState.logistics.customLocation?.trim()) {
           return false;
         }
         return true;
+      }
       case WizardStep.Extras:
         return true; // Extras are optional
       case WizardStep.Review:
@@ -671,6 +678,21 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
         const draft = JSON.parse(stored) as WizardState;
+        // Rehydrate dates from strings (JSON.parse returns strings for Date objects)
+        if (draft.logistics) {
+          const rehydrateDate = (v: unknown): Date | undefined => {
+            if (!v) return undefined;
+            if (v instanceof Date) return v;
+            if (typeof v === 'string') {
+              const d = new Date(v);
+              return Number.isNaN(d.getTime()) ? undefined : d;
+            }
+            return undefined;
+          };
+          draft.logistics.startDate = rehydrateDate(draft.logistics.startDate);
+          draft.logistics.completionDate = rehydrateDate(draft.logistics.completionDate);
+          draft.logistics.consultationDate = rehydrateDate(draft.logistics.consultationDate);
+        }
         setWizardState(draft);
         setCurrentStep(deriveStepFromState(draft));
       }

@@ -8,6 +8,7 @@ import type { TablesInsert, Json } from '@/integrations/supabase/types';
 import type { WizardState } from '../types';
 import { getZoneByIdSafe } from '@/shared/components/professional/zones';
 import { getLeanAttribution } from '@/lib/attribution';
+import { isStep5Complete } from './stepValidation';
 
 type JobInsert = TablesInsert<"jobs">;
 
@@ -84,7 +85,8 @@ function buildHighlights(state: WizardState): string[] {
   } else if (logistics.startDatePreset === "this_month") {
     highlights.push("📅 This month");
   } else if (logistics.startDate) {
-    highlights.push(`📅 ${logistics.startDate.toLocaleDateString()}`);
+    const d = logistics.startDate;
+    highlights.push(`📅 ${typeof d === 'string' ? d : d.toLocaleDateString()}`);
   }
 
   // Budget highlight - format human-readable
@@ -181,10 +183,12 @@ function parseBudgetRange(input?: string | null): { min: number | null; max: num
 }
 
 /**
- * Format date to ISO string or null
+ * Format date to ISO string or null — tolerates string inputs (draft resume safety)
  */
-function formatDate(date?: Date): string | null {
-  return date ? date.toISOString() : null;
+function formatDate(date?: Date | string): string | null {
+  if (!date) return null;
+  if (typeof date === 'string') return date;
+  return date.toISOString();
 }
 
 /**
@@ -223,10 +227,30 @@ function mapLocationToArea(location?: string, customLocation?: string): string |
 }
 
 /**
+ * Budget preset map — converts wizard keys to min/max values
+ */
+const BUDGET_PRESETS: Record<string, { min: number | null; max: number | null }> = {
+  under_500: { min: 0, max: 500 },
+  '500_1000': { min: 500, max: 1000 },
+  '1000_2500': { min: 1000, max: 2500 },
+  '2500_5000': { min: 2500, max: 5000 },
+  over_5000: { min: 5000, max: null },
+  need_quote: { min: null, max: null },
+};
+
+/**
  * Determine budget type from wizard input
  */
 function determineBudgetType(budgetRange?: string | null): string {
   if (!budgetRange) return 'tbd';
+  if (budgetRange === 'need_quote') return 'tbd';
+  const preset = BUDGET_PRESETS[budgetRange];
+  if (preset) {
+    const { min, max } = preset;
+    if (min != null && max != null && min !== max) return 'range';
+    if (min != null || max != null) return 'fixed';
+    return 'tbd';
+  }
   const { min, max } = parseBudgetRange(budgetRange);
   if (min !== null && max !== null && min !== max) return 'range';
   if (min !== null || max !== null) return 'fixed';
@@ -270,25 +294,29 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
       ? extras.notes.trim().slice(0, 200)
       : `${title} in ${area || 'Ibiza'}`;
 
-  // Full description
+  // Full description — store raw description only, specs kept in answers.custom
   const customDesc = isCustom && state.customRequest
-    ? (state.customRequest.specs?.trim()
-        ? `${state.customRequest.description}\n\nSpecific specs:\n${state.customRequest.specs}`
-        : state.customRequest.description)
+    ? state.customRequest.description
     : null;
 
   const description = customDesc
     ?? (extras.notes?.trim() ? extras.notes.trim() : null)
     ?? `${title} - ${mainCategory}${subcategory ? ` / ${subcategory}` : ""}`;
 
-  // Budget parsing
-  const { min, max } = parseBudgetRange(logistics.budgetRange);
+  // Budget parsing — prefer preset map, fall back to string parsing
+  const presetBudget = logistics.budgetRange ? BUDGET_PRESETS[logistics.budgetRange] : undefined;
+  const { min, max } = presetBudget ?? parseBudgetRange(logistics.budgetRange);
   const budgetType = determineBudgetType(logistics.budgetRange);
   const budgetValue = budgetType === 'fixed' ? min : null;
 
-  // Start timing
+  // Start timing — tolerate string dates (draft resume)
   const startTiming = mapStartTiming(logistics.startDatePreset);
-  const startDate = logistics.startDate ? logistics.startDate.toISOString().split('T')[0] : null;
+  const rawDate = logistics.startDate as Date | string | undefined;
+  const startDate = typeof rawDate === 'string'
+    ? rawDate.split('T')[0]
+    : rawDate
+      ? rawDate.toISOString().split('T')[0]
+      : null;
 
   // Photos check
   const hasPhotos = (extras.photos?.length ?? 0) > 0;
@@ -401,7 +429,11 @@ export function validateWizardState(state: WizardState): { valid: boolean; error
     if (!state.microIds.length) errors.push("Please select at least one task");
   }
 
-  if (!state.logistics.location) errors.push("Please provide a location");
+  // Step 5 required fields (single source of truth)
+  const logisticsCheck = isStep5Complete(state.logistics);
+  errors.push(...logisticsCheck.errors);
+
+  // Custom location validation
   if (state.logistics.location === "other" && !state.logistics.customLocation?.trim()) {
     errors.push("Please specify the location");
   }
