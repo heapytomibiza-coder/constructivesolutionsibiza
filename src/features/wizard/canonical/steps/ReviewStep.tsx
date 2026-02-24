@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Pencil, Camera, FileText, Save } from 'lucide-react';
 import { WizardState, WizardStep } from '../types';
 import { formatBudgetRange, formatLocationDisplay, formatTiming } from '../lib/formatDisplay';
+import { txCategory, txSubcategory, txMicro } from '@/i18n/taxonomyTranslations';
 
 interface ReviewStepProps {
   wizardState: WizardState;
