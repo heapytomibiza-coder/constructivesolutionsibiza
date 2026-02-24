@@ -680,6 +680,7 @@ export type Database = {
           computed_safety: string | null
           created_at: string
           description: string | null
+          description_i18n: Json | null
           edit_version: number
           flags: string[] | null
           has_photos: boolean | null
@@ -688,12 +689,16 @@ export type Database = {
           is_publicly_listed: boolean
           location: Json | null
           micro_slug: string | null
+          source_lang: string | null
           start_date: string | null
           start_timing: string | null
           status: string
           subcategory: string | null
           teaser: string | null
+          teaser_i18n: Json | null
           title: string
+          title_i18n: Json | null
+          translation_status: string | null
           updated_at: string
           user_id: string
         }
@@ -712,6 +717,7 @@ export type Database = {
           computed_safety?: string | null
           created_at?: string
           description?: string | null
+          description_i18n?: Json | null
           edit_version?: number
           flags?: string[] | null
           has_photos?: boolean | null
@@ -720,12 +726,16 @@ export type Database = {
           is_publicly_listed?: boolean
           location?: Json | null
           micro_slug?: string | null
+          source_lang?: string | null
           start_date?: string | null
           start_timing?: string | null
           status?: string
           subcategory?: string | null
           teaser?: string | null
+          teaser_i18n?: Json | null
           title: string
+          title_i18n?: Json | null
+          translation_status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -744,6 +754,7 @@ export type Database = {
           computed_safety?: string | null
           created_at?: string
           description?: string | null
+          description_i18n?: Json | null
           edit_version?: number
           flags?: string[] | null
           has_photos?: boolean | null
@@ -752,12 +763,16 @@ export type Database = {
           is_publicly_listed?: boolean
           location?: Json | null
           micro_slug?: string | null
+          source_lang?: string | null
           start_date?: string | null
           start_timing?: string | null
           status?: string
           subcategory?: string | null
           teaser?: string | null
+          teaser_i18n?: Json | null
           title?: string
+          title_i18n?: Json | null
+          translation_status?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1261,6 +1276,7 @@ export type Database = {
         Row: {
           created_at: string
           display_title: string
+          display_title_i18n: Json | null
           gallery: string[] | null
           hero_image_url: string | null
           id: string
@@ -1270,13 +1286,17 @@ export type Database = {
           provider_id: string
           published_at: string | null
           short_description: string | null
+          short_description_i18n: Json | null
+          source_lang: string | null
           status: string
+          translation_status: string | null
           updated_at: string
           view_count: number
         }
         Insert: {
           created_at?: string
           display_title?: string
+          display_title_i18n?: Json | null
           gallery?: string[] | null
           hero_image_url?: string | null
           id?: string
@@ -1286,13 +1306,17 @@ export type Database = {
           provider_id: string
           published_at?: string | null
           short_description?: string | null
+          short_description_i18n?: Json | null
+          source_lang?: string | null
           status?: string
+          translation_status?: string | null
           updated_at?: string
           view_count?: number
         }
         Update: {
           created_at?: string
           display_title?: string
+          display_title_i18n?: Json | null
           gallery?: string[] | null
           hero_image_url?: string | null
           id?: string
@@ -1302,7 +1326,10 @@ export type Database = {
           provider_id?: string
           published_at?: string | null
           short_description?: string | null
+          short_description_i18n?: Json | null
+          source_lang?: string | null
           status?: string
+          translation_status?: string | null
           updated_at?: string
           view_count?: number
         }
@@ -1806,6 +1833,7 @@ export type Database = {
           computed_safety: string | null
           created_at: string | null
           description: string | null
+          description_i18n: Json | null
           flags: string[] | null
           has_photos: boolean | null
           highlights: string[] | null
@@ -1814,12 +1842,15 @@ export type Database = {
           is_publicly_listed: boolean | null
           location: Json | null
           micro_slug: string | null
+          source_lang: string | null
           start_date: string | null
           start_timing: string | null
           status: string | null
           subcategory: string | null
           teaser: string | null
+          teaser_i18n: Json | null
           title: string | null
+          title_i18n: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -1834,6 +1865,7 @@ export type Database = {
           computed_safety?: string | null
           created_at?: string | null
           description?: string | null
+          description_i18n?: Json | null
           flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[] | null
@@ -1842,12 +1874,15 @@ export type Database = {
           is_publicly_listed?: boolean | null
           location?: Json | null
           micro_slug?: string | null
+          source_lang?: string | null
           start_date?: string | null
           start_timing?: string | null
           status?: string | null
           subcategory?: string | null
           teaser?: string | null
+          teaser_i18n?: Json | null
           title?: string | null
+          title_i18n?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -1862,6 +1897,7 @@ export type Database = {
           computed_safety?: string | null
           created_at?: string | null
           description?: string | null
+          description_i18n?: Json | null
           flags?: string[] | null
           has_photos?: boolean | null
           highlights?: string[] | null
@@ -1870,12 +1906,15 @@ export type Database = {
           is_publicly_listed?: boolean | null
           location?: Json | null
           micro_slug?: string | null
+          source_lang?: string | null
           start_date?: string | null
           start_timing?: string | null
           status?: string | null
           subcategory?: string | null
           teaser?: string | null
+          teaser_i18n?: Json | null
           title?: string | null
+          title_i18n?: Json | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1898,12 +1937,15 @@ export type Database = {
           is_publicly_listed: boolean | null
           location: Json | null
           micro_slug: string | null
+          source_lang: string | null
           start_date: string | null
           start_timing: string | null
           status: string | null
           subcategory: string | null
           teaser: string | null
+          teaser_i18n: Json | null
           title: string | null
+          title_i18n: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -1923,12 +1965,15 @@ export type Database = {
           is_publicly_listed?: boolean | null
           location?: Json | null
           micro_slug?: string | null
+          source_lang?: string | null
           start_date?: string | null
           start_timing?: string | null
           status?: string | null
           subcategory?: string | null
           teaser?: string | null
+          teaser_i18n?: Json | null
           title?: string | null
+          title_i18n?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -1948,12 +1993,15 @@ export type Database = {
           is_publicly_listed?: boolean | null
           location?: Json | null
           micro_slug?: string | null
+          source_lang?: string | null
           start_date?: string | null
           start_timing?: string | null
           status?: string | null
           subcategory?: string | null
           teaser?: string | null
+          teaser_i18n?: Json | null
           title?: string | null
+          title_i18n?: Json | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1977,12 +2025,15 @@ export type Database = {
           location: Json | null
           micro_slug: string | null
           professional_user_id: string | null
+          source_lang: string | null
           start_date: string | null
           start_timing: string | null
           status: string | null
           subcategory: string | null
           teaser: string | null
+          teaser_i18n: Json | null
           title: string | null
+          title_i18n: Json | null
           updated_at: string | null
         }
         Relationships: []
@@ -2195,6 +2246,7 @@ export type Database = {
         Returns: {
           created_at: string
           display_title: string
+          display_title_i18n: Json | null
           gallery: string[] | null
           hero_image_url: string | null
           id: string
@@ -2204,7 +2256,10 @@ export type Database = {
           provider_id: string
           published_at: string | null
           short_description: string | null
+          short_description_i18n: Json | null
+          source_lang: string | null
           status: string
+          translation_status: string | null
           updated_at: string
           view_count: number
         }[]
