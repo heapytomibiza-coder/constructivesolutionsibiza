@@ -40,7 +40,7 @@ export default function JobTicketDetail() {
     open: { label: t('jobTicket.liveOnBoard'), variant: 'default' },
     in_progress: { label: t('jobTicket.inProgress'), variant: 'outline' },
     completed: { label: t('jobTicket.completed'), variant: 'default' },
-    closed: { label: t('jobTicket.closed'), variant: 'destructive' },
+    cancelled: { label: t('jobTicket.closed'), variant: 'destructive' },
   };
 
   const { data: job, isLoading } = useQuery({
