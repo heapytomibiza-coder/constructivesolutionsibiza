@@ -182,15 +182,25 @@ function OptionCard({
 export function QuestionPackRenderer({ pack, getAnswer, onAnswerChange, errors }: Props) {
   const { t } = useTranslation(['wizard', 'questions']);
 
+  /** Normalize a key string to avoid misses from dash/quote/spacing differences */
+  const norm = (s: string): string =>
+    s
+      .trim()
+      .replace(/\s+/g, ' ')
+      .replace(/[–—]/g, '-')
+      .replace(/['']/g, "'");
+
   /** Translate a question label using the questions namespace */
   const tLabel = (label: string): string => {
-    const translated = t(`questions:labels.${label}`, { defaultValue: '' });
+    const key = norm(label);
+    const translated = t(`questions:labels.${key}`, { defaultValue: '' });
     return translated || label;
   };
 
   /** Translate an option label using the questions namespace */
   const tOption = (label: string): string => {
-    const translated = t(`questions:options.${label}`, { defaultValue: '' });
+    const key = norm(label);
+    const translated = t(`questions:options.${key}`, { defaultValue: '' });
     return translated || label;
   };
 
