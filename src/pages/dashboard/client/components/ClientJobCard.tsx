@@ -160,14 +160,14 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
     try {
       const result = await completeJob(job.id);
       if (result.success) {
-        toast.success('Job marked as completed!');
+        toast.success(t('client.completedSuccess'));
         setShowCompletionModal(false);
         if (job.assigned_professional_id) {
           setShowRatingModal(true);
         }
         onJobUpdated();
       } else {
-        toast.error(result.error || 'Failed to complete job');
+        toast.error(result.error || t('client.completeFailed'));
       }
     } finally {
       setIsCompleting(false);
