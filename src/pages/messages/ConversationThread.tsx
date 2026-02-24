@@ -155,7 +155,7 @@ export function ConversationThread({
   );
 }
 
-function MessageBubble({ message, isOwn, locale }: { message: Message; isOwn: boolean; locale?: Locale }) {
+function MessageBubble({ message, isOwn, locale }: { message: Message; isOwn: boolean; locale?: Parameters<typeof formatDistanceToNow>[1]['locale'] }) {
   return (
     <div className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
       <div
