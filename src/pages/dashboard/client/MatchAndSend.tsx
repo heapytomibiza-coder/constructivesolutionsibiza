@@ -248,7 +248,7 @@ export default function MatchAndSend() {
                             ) : (
                               <Send className="h-3.5 w-3.5" />
                             )}
-                            Invite
+                            {t('matchAndSend.invite')}
                           </Button>
                         )}
                       </div>
