@@ -64,6 +64,10 @@ export type JobsBoardRow = {
   flags: string[] | null;
   computed_inspection_bias: string | null;
   computed_safety: string | null;
+  // i18n columns
+  source_lang: string | null;
+  title_i18n: Record<string, string> | null;
+  teaser_i18n: Record<string, string> | null;
 };
 
 export type JobDetailsRow = JobsBoardRow & {
