@@ -2570,6 +2570,21 @@
     "Traditional": "Tradicional",
     "Contemporary": "Contemporáneo",
     "Rustic": "Rústico",
-    "Minimalist": "Minimalista"
+    "Minimalist": "Minimalista",
+    "living": "Salón",
+    "bedroom": "Dormitorio",
+    "kitchen": "Cocina",
+    "bathroom": "Baño",
+    "front": "Frente de la propiedad",
+    "rear": "Jardín trasero",
+    "driveway": "Entrada de vehículos",
+    "pool": "Zona de piscina / terraza",
+    "apartment": "Apartamento",
+    "house": "Casa",
+    "villa": "Villa",
+    "villa_house": "Villa / Casa",
+    "commercial": "Propiedad comercial",
+    "exterior_garden": "Exterior/Jardín",
+    "other": "Otro"
   }
 }

@@ -8,6 +8,19 @@
     "extras": "Fotos y Notas",
     "review": "Revisar y Publicar"
   },
+  "extras": {
+    "title": "Fotos y Detalles Adicionales",
+    "subtitle": "Todo aquí es opcional — puedes saltar si lo prefieres.",
+    "photosLabel": "Fotos",
+    "photosOptional": "opcional",
+    "photosHelp": "Añade fotos para ayudar a los profesionales a entender el trabajo",
+    "addPhoto": "Añadir Foto",
+    "adding": "Añadiendo...",
+    "notesLabel": "Notas adicionales (opcional)",
+    "notesPlaceholder": "Cualquier otro detalle que quieras compartir...",
+    "permitsLabel": "No estoy seguro si se necesitan permisos",
+    "permitsHelp": "Marca esto si quieres que el profesional asesore sobre permisos"
+  },
   "draft": {
     "title": "¿Reanudar tu borrador?",
     "description": "Hemos encontrado un trabajo sin terminar. ¿Quieres continuar donde lo dejaste?",
@@ -47,7 +60,8 @@
     "selectAll": "Selecciona todas las que correspondan",
     "continueToNext": "Continuar al siguiente paso",
     "uploadsAfterPost": "(se subirán después de publicar)",
-    "selectedFiles": "Seleccionados: {{files}}"
+    "selectedFiles": "Seleccionados: {{files}}",
+    "dedupNote": "Hemos combinado preguntas similares para que solo respondas una vez."
   },
   "logistics": {
     "whereTitle": "¿Dónde está el trabajo?",

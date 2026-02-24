@@ -4,6 +4,7 @@
  */
 
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,6 +18,7 @@ interface ExtrasStepProps {
 }
 
 export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
+  const { t } = useTranslation('wizard');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -29,7 +31,6 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
     const newPhotos: string[] = [];
     
     for (const file of Array.from(files)) {
-      // Convert to base64
       const reader = new FileReader();
       await new Promise<void>((resolve) => {
         reader.onload = () => {
@@ -45,7 +46,6 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
     onChange({ photos: [...extras.photos, ...newPhotos] });
     setUploading(false);
     
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -59,17 +59,20 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
   return (
     <div className="space-y-6">
       <h3 className="font-display text-lg font-semibold">
-        Photos & Additional Details
+        {t('extras.title')}
       </h3>
       <p className="text-sm text-muted-foreground -mt-2">
-        Everything here is optional — skip ahead if you prefer.
+        {t('extras.subtitle')}
       </p>
 
       {/* Photos */}
       <div className="space-y-2">
-        <Label className="font-normal">Photos <span className="text-muted-foreground">(optional)</span></Label>
+        <Label className="font-normal">
+          {t('extras.photosLabel')}{' '}
+          <span className="text-muted-foreground">({t('extras.photosOptional')})</span>
+        </Label>
         <p className="text-xs text-muted-foreground mb-3">
-          Add photos to help professionals understand the job better
+          {t('extras.photosHelp')}
         </p>
         
         <input
@@ -81,13 +84,12 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
           onChange={handleFileSelect}
         />
 
-        {/* 2-col on mobile, 3-col on larger screens */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {extras.photos.map((photo, index) => (
             <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-border">
               <img 
                 src={photo} 
-                alt={`Photo ${index + 1}`}
+                alt={`${t('extras.photosLabel')} ${index + 1}`}
                 className="w-full h-full object-cover"
               />
               <button
@@ -110,7 +112,7 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
             >
               <Camera className="h-6 w-6 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">
-                {uploading ? 'Adding...' : 'Add Photo'}
+                {uploading ? t('extras.adding') : t('extras.addPhoto')}
               </span>
             </Button>
           )}
@@ -119,17 +121,17 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
 
       {/* Notes */}
       <div className="space-y-2">
-        <Label htmlFor="notes">Additional notes (optional)</Label>
+        <Label htmlFor="notes">{t('extras.notesLabel')}</Label>
         <Textarea
           id="notes"
           value={extras.notes || ''}
           onChange={(e) => onChange({ notes: e.target.value })}
-          placeholder="Any other details you'd like to share..."
+          placeholder={t('extras.notesPlaceholder')}
           rows={4}
         />
       </div>
 
-      {/* Permits concern - larger touch target on mobile */}
+      {/* Permits concern */}
       <div className="flex items-start gap-3 p-4 rounded-lg border border-border bg-muted/30 min-h-[64px] md:min-h-0">
         <Checkbox
           id="permits"
@@ -141,10 +143,10 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
         />
         <div className="space-y-1 flex-1">
           <Label htmlFor="permits" className="cursor-pointer">
-            I'm unsure if permits are needed
+            {t('extras.permitsLabel')}
           </Label>
           <p className="text-xs text-muted-foreground">
-            Check this if you'd like the professional to advise on permit requirements
+            {t('extras.permitsHelp')}
           </p>
         </div>
       </div>

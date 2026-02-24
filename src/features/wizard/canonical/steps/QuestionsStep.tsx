@@ -480,7 +480,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
       {/* Fix 6: dedup helper note */}
       {packs.length > 1 && totalRawCount > visibleQuestions.length && (
         <p className="text-xs text-muted-foreground mb-2">
-          We've combined overlapping questions so you only answer once.
+          {t('questions.dedupNote', { defaultValue: "We've combined overlapping questions so you only answer once." })}
         </p>
       )}
 
