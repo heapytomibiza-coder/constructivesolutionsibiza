@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { buildSearchOrClause } from "@/features/search/lib/searchSynonyms";
+import { txCategory, txMicro, txSubcategory } from "@/i18n/taxonomyTranslations";
 import { useGlobalSearchShortcut } from "@/hooks/useGlobalSearchShortcut";
 import {
   type SearchHit,
@@ -24,7 +25,7 @@ import {
   buildWizardUrlFromHit,
   buildForumUrl,
   isServiceHit,
-  getHitTypeLabel,
+  getHitTypeLabelKey,
   getHitBreadcrumb,
 } from "./types";
 
@@ -203,12 +204,38 @@ export function UniversalSearchBar({ className }: { className?: string }) {
     staleTime: 30000,
   });
 
-  // Filter results by type for grouped display
-  const taskHits = serviceResults.filter((h) => h.type === "micro");
-  const subHits = serviceResults.filter((h) => h.type === "subcategory");
-  const catHits = serviceResults.filter((h) => h.type === "category");
+  const localizedServiceResults = useMemo(() => {
+    return serviceResults.map((hit): SearchHit => {
+      if (hit.type === "micro") {
+        return {
+          ...hit,
+          label: txMicro(hit.microSlug, t, hit.label),
+          categoryName: txCategory(hit.categoryName, t) ?? hit.categoryName,
+          subcategoryName: txSubcategory(hit.subcategoryName, t) ?? hit.subcategoryName,
+        };
+      }
 
-  const hasResults = serviceResults.length > 0 || forumResults.length > 0;
+      if (hit.type === "subcategory") {
+        return {
+          ...hit,
+          label: txSubcategory(hit.label, t) ?? hit.label,
+          categoryName: txCategory(hit.categoryName, t) ?? hit.categoryName,
+        };
+      }
+
+      return {
+        ...hit,
+        label: txCategory(hit.label, t) ?? hit.label,
+      };
+    });
+  }, [serviceResults, t]);
+
+  // Filter results by type for grouped display
+  const taskHits = localizedServiceResults.filter((h) => h.type === "micro");
+  const subHits = localizedServiceResults.filter((h) => h.type === "subcategory");
+  const catHits = localizedServiceResults.filter((h) => h.type === "category");
+
+  const hasResults = localizedServiceResults.length > 0 || forumResults.length > 0;
   const showEmpty = debouncedQuery.length >= 2 && !hasResults;
 
   /**
@@ -276,7 +303,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
                       )}
                     </div>
                     <Badge variant="secondary" className="text-xs shrink-0">
-                      {getHitTypeLabel(hit.type)}
+                      {t(getHitTypeLabelKey(hit.type), { defaultValue: hit.type })}
                     </Badge>
                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </CommandItem>
@@ -308,7 +335,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
                         )}
                       </div>
                       <Badge variant="secondary" className="text-xs shrink-0">
-                        {getHitTypeLabel(hit.type)}
+                        {t(getHitTypeLabelKey(hit.type), { defaultValue: hit.type })}
                       </Badge>
                       <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     </CommandItem>
@@ -336,7 +363,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
                         <p className="font-medium truncate">{hit.label}</p>
                       </div>
                       <Badge variant="secondary" className="text-xs shrink-0">
-                        {getHitTypeLabel(hit.type)}
+                        {t(getHitTypeLabelKey(hit.type), { defaultValue: hit.type })}
                       </Badge>
                       <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     </CommandItem>
