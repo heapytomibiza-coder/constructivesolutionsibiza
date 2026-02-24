@@ -215,7 +215,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         {/* Category */}
         <p className="text-sm text-muted-foreground mb-3">
           {job.category && job.subcategory 
-            ? `${job.category} → ${job.subcategory}` 
+            ? `${txCategory(job.category, t) ?? job.category} → ${txSubcategory(job.subcategory, t) ?? job.subcategory}` 
             : t('client.uncategorized')}
         </p>
         
