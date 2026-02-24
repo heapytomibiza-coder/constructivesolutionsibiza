@@ -43,7 +43,6 @@ import { useProServiceScope } from './hooks/useProServiceScope';
 import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
 import { hydrateFromJob, canEditJob } from './lib/hydrateFromJob';
 import { validateAllPacks, isStep5Complete, type ValidationErrorMap } from './lib/stepValidation';
-import { validateAllPacks, type ValidationErrorMap } from './lib/stepValidation';
 import {
   resolveWizardMode,
   applySearchResult,
