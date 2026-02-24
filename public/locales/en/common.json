@@ -69,7 +69,8 @@
     "about": "About",
     "contact": "Contact",
     "privacy": "Privacy",
-    "terms": "Terms"
+    "terms": "Terms",
+    "disputePolicy": "Dispute Policy"
   },
   "buttons": {
     "cancel": "Cancel",
@@ -339,6 +340,7 @@
     "standardsVerify3": "Positive feedback",
     "standardsVerify4": "Consistent standards",
     "standardsClosing": "Trust is built through action.",
+    "whyThisMatters": "Why this matters",
 
     "faqTitle": "Frequently Asked Questions",
     "faq": {

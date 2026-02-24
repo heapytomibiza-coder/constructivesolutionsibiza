@@ -285,6 +285,8 @@ function StepCard({
   why: string;
   children?: React.ReactNode;
 }) {
+  const { t } = useTranslation('common');
+
   return (
     <Card className="relative card-grounded hover:border-accent/50 transition-colors">
       <CardContent className="pt-8 pb-6 px-5">
@@ -298,7 +300,7 @@ function StepCard({
         <p className="text-sm text-muted-foreground">{description}</p>
         {children}
         <div className="mt-3 pt-3 border-t border-border/50">
-          <p className="text-xs font-medium text-primary/80 mb-0.5">Why this matters</p>
+          <p className="text-xs font-medium text-primary/80 mb-0.5">{t('howItWorks.whyThisMatters')}</p>
           <p className="text-xs text-muted-foreground">{why}</p>
         </div>
       </CardContent>
