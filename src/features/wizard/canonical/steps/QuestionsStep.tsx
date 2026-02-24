@@ -116,7 +116,33 @@ interface Props {
 }
 
 export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, onComplete, errors }: Props) {
-  const { t } = useTranslation('wizard');
+  const { t } = useTranslation(['wizard', 'questions']);
+
+  /** Normalize a key string to avoid misses from dash/quote/spacing differences */
+  const norm = (s: string): string =>
+    (s || '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .replace(/[–—]/g, '-')
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"');
+
+  /** Translate a question label using the questions namespace */
+  const tLabel = (label: string): string => {
+    const key = norm(label);
+    const translated = t(`questions:labels.${key}`, { defaultValue: '' });
+    return translated || label;
+  };
+
+  /** Translate an option label using the questions namespace (value-first strategy) */
+  const tOptionLabel = (opt: { value: string; label: string }): string => {
+    const valueKey = norm(opt.value);
+    const labelKey = norm(opt.label);
+    const byValue = t(`questions:options.${valueKey}`, { defaultValue: '' });
+    if (byValue) return byValue;
+    const byLabel = t(`questions:options.${labelKey}`, { defaultValue: '' });
+    return byLabel || opt.label;
+  };
   const [packs, setPacks] = useState<QuestionPack[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -485,7 +511,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
       {/* Question */}
       <div className="flex-1 animate-fade-in" key={question.id}>
         <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-          {question.label}
+          {tLabel(question.label)}
           {question.required && <span className="text-destructive ml-1">*</span>}
         </h3>
         
@@ -540,7 +566,7 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
                       isSelected ? 'text-foreground' : 'text-muted-foreground'
                     )}
                   >
-                    {option.label}
+                    {tOptionLabel(option)}
                   </span>
                 </button>
               );
