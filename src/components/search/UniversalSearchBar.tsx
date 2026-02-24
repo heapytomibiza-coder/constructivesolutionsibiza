@@ -204,12 +204,38 @@ export function UniversalSearchBar({ className }: { className?: string }) {
     staleTime: 30000,
   });
 
-  // Filter results by type for grouped display
-  const taskHits = serviceResults.filter((h) => h.type === "micro");
-  const subHits = serviceResults.filter((h) => h.type === "subcategory");
-  const catHits = serviceResults.filter((h) => h.type === "category");
+  const localizedServiceResults = useMemo(() => {
+    return serviceResults.map((hit): SearchHit => {
+      if (hit.type === "micro") {
+        return {
+          ...hit,
+          label: txMicro(hit.microSlug, t, hit.label),
+          categoryName: txCategory(hit.categoryName, t) ?? hit.categoryName,
+          subcategoryName: txSubcategory(hit.subcategoryName, t) ?? hit.subcategoryName,
+        };
+      }
 
-  const hasResults = serviceResults.length > 0 || forumResults.length > 0;
+      if (hit.type === "subcategory") {
+        return {
+          ...hit,
+          label: txSubcategory(hit.label, t) ?? hit.label,
+          categoryName: txCategory(hit.categoryName, t) ?? hit.categoryName,
+        };
+      }
+
+      return {
+        ...hit,
+        label: txCategory(hit.label, t) ?? hit.label,
+      };
+    });
+  }, [serviceResults, t]);
+
+  // Filter results by type for grouped display
+  const taskHits = localizedServiceResults.filter((h) => h.type === "micro");
+  const subHits = localizedServiceResults.filter((h) => h.type === "subcategory");
+  const catHits = localizedServiceResults.filter((h) => h.type === "category");
+
+  const hasResults = localizedServiceResults.length > 0 || forumResults.length > 0;
   const showEmpty = debouncedQuery.length >= 2 && !hasResults;
 
   /**
