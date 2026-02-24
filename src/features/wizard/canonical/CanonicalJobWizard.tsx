@@ -733,6 +733,20 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
         queryClient.invalidateQueries({ queryKey: ['client_stats'] });
         trackEvent('job_posted', 'client', { jobId: data.id, category: wizardState.mainCategory });
+
+        // Fire-and-forget: translate user-generated content
+        supabase.functions.invoke('translate-content', {
+          body: {
+            entity: 'jobs',
+            id: data.id,
+            fields: {
+              title: payload.title,
+              teaser: payload.teaser ?? '',
+              description: payload.description ?? '',
+            },
+          },
+        }).catch(() => { /* translation is best-effort */ });
+
         toast.success(t('toasts.postSuccess'));
         navigate('/jobs');
       }
