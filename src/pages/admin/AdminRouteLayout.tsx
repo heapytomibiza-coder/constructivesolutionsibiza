@@ -1,8 +1,9 @@
+import { forwardRef } from "react";
 import { Outlet } from "react-router-dom";
 import { AdminDrawerProvider } from "./context/AdminDrawerContext";
 import { JobDetailDrawer, UserDetailDrawer } from "./components";
 
-export default function AdminRouteLayout() {
+const AdminRouteLayout = forwardRef<HTMLDivElement>(function AdminRouteLayout(_props, _ref) {
   return (
     <AdminDrawerProvider>
       <Outlet />
@@ -10,4 +11,6 @@ export default function AdminRouteLayout() {
       <UserDetailDrawer />
     </AdminDrawerProvider>
   );
-}
+});
+
+export default AdminRouteLayout;
