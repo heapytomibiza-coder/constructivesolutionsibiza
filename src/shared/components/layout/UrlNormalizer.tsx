@@ -1,12 +1,11 @@
-import { useEffect } from 'react';
+import { forwardRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 /**
  * Normalizes malformed URLs (duplicate slashes and accidental trailing dots).
- * Examples: //jobs/abc → /jobs/abc, /dashboard/admin/monitoring.. → /dashboard/admin/monitoring
- * Must be placed inside <BrowserRouter>.
+ * Wrapped in forwardRef to silence React Router ref warnings.
  */
-export function UrlNormalizer() {
+export const UrlNormalizer = forwardRef<HTMLDivElement>(function UrlNormalizer(_props, _ref) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -20,4 +19,4 @@ export function UrlNormalizer() {
   }, [location.pathname, location.search, location.hash, navigate]);
 
   return null;
-}
+});

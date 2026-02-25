@@ -5,6 +5,7 @@
  * from the Lighthouse Monitor telemetry tables.
  */
 
+import { forwardRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -106,12 +107,12 @@ function useBrokenPages() {
 /*  Components                                                         */
 /* ------------------------------------------------------------------ */
 
-function StatCard({ label, value, icon: Icon, variant = "default" }: {
+const StatCard = forwardRef<HTMLDivElement, {
   label: string;
   value: number;
   icon: React.ElementType;
   variant?: "default" | "warning" | "danger";
-}) {
+}>(function StatCard({ label, value, icon: Icon, variant = "default" }, ref) {
   const colors = {
     default: "text-muted-foreground",
     warning: "text-yellow-600",
@@ -119,7 +120,7 @@ function StatCard({ label, value, icon: Icon, variant = "default" }: {
   };
 
   return (
-    <Card>
+    <Card ref={ref}>
       <CardContent className="flex items-center gap-4 p-5">
         <div className={`rounded-lg bg-muted p-2.5 ${colors[variant]}`}>
           <Icon className="h-5 w-5" />
@@ -131,7 +132,7 @@ function StatCard({ label, value, icon: Icon, variant = "default" }: {
       </CardContent>
     </Card>
   );
-}
+});
 
 const errorTypeBadge: Record<string, string> = {
   runtime: "bg-red-100 text-red-800",
@@ -150,7 +151,7 @@ const reportStatusBadge: Record<string, string> = {
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-export default function MonitoringPage() {
+const MonitoringPage = forwardRef<HTMLDivElement>(function MonitoringPage(_props, ref) {
   const stats = useErrorStats();
   const errors = useRecentErrors();
   const reports = useRecentReports();
@@ -164,7 +165,7 @@ export default function MonitoringPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={ref} className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container flex items-center justify-between py-5">
@@ -334,4 +335,6 @@ export default function MonitoringPage() {
       </div>
     </div>
   );
-}
+});
+
+export default MonitoringPage;
