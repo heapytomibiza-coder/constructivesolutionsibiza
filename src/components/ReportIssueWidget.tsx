@@ -68,64 +68,74 @@ export function ReportIssueWidget() {
 
   return (
     <>
-      {/* Floating trigger button */}
+      {/* Floating trigger */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring"
+          className="fixed bottom-5 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-destructive/90 text-destructive-foreground shadow-md transition-all duration-200 hover:bg-destructive hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           aria-label="Report an issue"
         >
-          <Bug className="h-5 w-5" />
+          <Bug className="h-4 w-4" />
         </button>
       )}
 
-      {/* Slide-up panel */}
+      {/* Panel */}
       {open && (
-        <div className="fixed bottom-0 right-0 z-50 w-full max-w-sm rounded-tl-xl border border-border bg-background p-4 shadow-2xl sm:bottom-6 sm:right-6 sm:rounded-xl">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">Report an Issue</h3>
+        <div className="fixed bottom-0 right-0 z-50 w-full max-w-[340px] border border-border bg-background shadow-xl sm:bottom-5 sm:right-5 sm:rounded-xl">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Bug className="h-4 w-4 text-destructive" />
+              <h3 className="text-sm font-semibold text-foreground">Report an Issue</h3>
+            </div>
             <button
               onClick={() => setOpen(false)}
-              className="text-muted-foreground hover:text-foreground"
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <Textarea
-            placeholder="What went wrong?"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mb-3 min-h-[80px] text-sm"
-            maxLength={2000}
-          />
+          <div className="space-y-3 p-4">
+            <Textarea
+              placeholder="Describe what went wrong…"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="min-h-[90px] resize-none text-sm"
+              maxLength={2000}
+            />
 
-          {/* Context summary */}
-          {ctx && (
-            <div className="mb-3 rounded-md bg-muted p-2 text-xs text-muted-foreground">
-              <p className="font-medium">Auto-attached context:</p>
-              <p>Page: {ctx.page.slice(0, 60)}</p>
-              <p>Browser: {ctx.browser.slice(0, 40)}…</p>
-              <p>Errors: {ctx.recentErrors.length} · Requests: {ctx.recentRequests.length} · Console: {ctx.recentConsole.length}</p>
-            </div>
-          )}
-
-          <Button
-            onClick={handleSubmit}
-            disabled={submitting || !description.trim()}
-            size="sm"
-            className="w-full"
-          >
-            {submitting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <Send className="h-4 w-4" />
-                Submit Report
-              </>
+            {/* Context */}
+            {ctx && (
+              <details className="rounded-lg border border-border bg-muted/50 text-xs text-muted-foreground">
+                <summary className="cursor-pointer select-none px-3 py-2 font-medium hover:text-foreground">
+                  Context auto-attached
+                </summary>
+                <div className="space-y-0.5 border-t border-border px-3 py-2">
+                  <p className="truncate">Page: {ctx.page}</p>
+                  <p className="truncate">Browser: {ctx.browser.slice(0, 50)}</p>
+                  <p>Errors: {ctx.recentErrors.length} · Requests: {ctx.recentRequests.length} · Console: {ctx.recentConsole.length}</p>
+                </div>
+              </details>
             )}
-          </Button>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting || !description.trim()}
+              size="sm"
+              className="w-full"
+            >
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Submit
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       )}
     </>
