@@ -76,6 +76,7 @@ import {
   ProPerformancePage, PricingPage, TrendRadarPage,
   UnansweredJobsPage, RepeatWorkPage, OnboardingFunnelPage, TopSourcesPage,
 } from "./pages/admin/insights";
+import { MonitoringPage } from "./pages/admin/monitoring";
 
 // Launch Checklist
 import LaunchChecklist from "./pages/LaunchChecklist";
@@ -206,6 +207,7 @@ const App = () => {
                 <Route path="insights/onboarding-funnel" element={<OnboardingFunnelPage />} />
                 <Route path="insights/top-sources" element={<TopSourcesPage />} />
                 <Route path="insights/:metricKey" element={<MetricInsightPage />} />
+                <Route path="monitoring" element={<MonitoringPage />} />
               </Route>
             </Route>
 
