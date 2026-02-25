@@ -1,70 +1,67 @@
 
 
-## Plan: Fix Status Mismatch, Timing Labels, and Remaining Hardcoded Strings
+## Plan: Implement Lighthouse Monitor (Steps 1–3)
 
-This batch addresses the 8 gotchas raised in the review. All changes are low-risk surface fixes.
+The uploaded PDF is an install guide for a "Lighthouse Monitor" system. It references 3 code files that "Rob will send" — but those files were not uploaded. I have enough detail from the guide to build all 3 steps directly.
 
----
-
-### 1. Standardize job closure status to `cancelled`
-
-The domain model (`src/domain/models.ts` line 77) defines the canonical status as `cancelled`. `ClientJobCard` already uses `cancelled`. `JobTicketDetail` incorrectly uses `closed`.
-
-**Edit: `src/pages/dashboard/client/JobTicketDetail.tsx`**
-- Line 43: Change STATUS_CONFIG key from `closed` to `cancelled` (keep the label as `t('jobTicket.closed')` since "Closed" is the user-facing term).
-- Line 115: Change `status: 'closed'` to `status: 'cancelled'`.
+Your app already has partial observability (`debugContext.ts`, `ReportProblemButton`, `handleSupabaseError`). This adds a more comprehensive layer: automatic JS error capture, network failure tracking, page view telemetry, and a tester-facing "Report Issue" widget.
 
 ---
 
-### 2. Fix hardcoded English in JobTicketDetail
+### Step 1: Create 4 Database Tables (Migration)
 
-**Edit: `src/pages/dashboard/client/JobTicketDetail.tsx`**
-- Line 230: Replace `Up to €${job.budget_max}` with a translated string using a new i18n key `jobTicket.budgetUpTo`.
-- Line 310: Replace raw `{invite.status}` with a translated invite status using new i18n keys under `jobTicket.inviteStatus`.
-- Line 217: The raw `job.start_timing` display should use the same timing translation keys already defined at `client.timing.*`.
+Create tables with RLS: authenticated users can INSERT their own events, only admins can SELECT.
 
----
+**`error_events`** — JS errors, unhandled rejections, console.error
+- `id`, `user_id`, `error_type` (runtime | network | console | promise), `message`, `stack`, `url`, `route`, `browser`, `viewport`, `metadata` (jsonb), `created_at`
 
-### 3. Translate timing labels on Tasker dashboard
+**`tester_reports`** — Bug reports from the widget
+- `id`, `user_id`, `description`, `url`, `route`, `browser`, `viewport`, `context` (jsonb — last errors, network requests, console messages), `status` (open | reviewed | resolved), `created_at`
 
-**Edit: `src/pages/dashboard/professional/ProDashboard.tsx`**
-- Line 311: Replace `job.start_timing.replace(/_/g, ' ')` with a translated lookup using the same `client.timing.*` keys (they're shared timing concepts, not role-specific).
+**`page_views`** — Route visits with load time
+- `id`, `user_id`, `url`, `route`, `load_time_ms`, `browser`, `viewport`, `created_at`
 
----
+**`network_failures`** — Failed fetch requests
+- `id`, `user_id`, `request_url`, `method`, `status_code`, `error_message`, `route`, `browser`, `created_at`
 
-### 4. Add missing i18n keys
-
-**Edit: `public/locales/en/dashboard.json`**
-- Add `jobTicket.budgetUpTo`: `"Up to €{{max}}"`
-- Add `jobTicket.budgetFrom`: `"From €{{min}}"`
-- Add `jobTicket.inviteStatus.sent`: `"Sent"`
-- Add `jobTicket.inviteStatus.viewed`: `"Viewed"`
-- Add `jobTicket.inviteStatus.accepted`: `"Accepted"`
-- Add `jobTicket.inviteStatus.declined`: `"Declined"`
-
-**Edit: `public/locales/es/dashboard.json`**
-- Add `jobTicket.budgetUpTo`: `"Hasta €{{max}}"`
-- Add `jobTicket.budgetFrom`: `"Desde €{{min}}"`
-- Add `jobTicket.inviteStatus.sent`: `"Enviada"`
-- Add `jobTicket.inviteStatus.viewed`: `"Vista"`
-- Add `jobTicket.inviteStatus.accepted`: `"Aceptada"`
-- Add `jobTicket.inviteStatus.declined`: `"Rechazada"`
+RLS policies:
+- All 4 tables: `INSERT` where `auth.uid() = user_id`
+- All 4 tables: `SELECT` where `has_role(auth.uid(), 'admin') AND is_admin_email()`
 
 ---
 
-### 5. Fix pluralization pattern for replies
+### Step 2: Create `src/lib/lighthouse-monitor.ts`
 
-The JSON already has `replies_one` and `replies` (which acts as `replies_other`). The current `t()` call in `ClientJobCard` passes a default value string as second arg which can interfere with plural resolution.
+A single file that:
+- Hooks `window.onerror` and `window.onunhandledrejection` for JS errors
+- Monkey-patches `window.fetch` to detect failed requests (status >= 400, timeouts, network errors)
+- Hooks `console.error` to capture console-level errors
+- Uses the Performance API (`PerformanceNavigationTiming`) to capture page load times
+- Tracks route changes via a `setInterval` polling `window.location.pathname`
+- Buffers events and flushes to the database in batches (every 5 seconds or 10 events)
+- Stores recent errors/requests in memory so the Report widget can attach context
+- Exports `initMonitor({ supabase })` and `getMonitorContext()` (for the widget)
 
-**Edit: `src/pages/dashboard/client/components/ClientJobCard.tsx`**
-- Change `t('client.replies', '{{count}} replies', { count: ... })` to `t('client.replies', { count: ... })` (remove the default value string so i18next plural resolution works correctly).
+Wire into `src/main.tsx`: import and call `initMonitor({ supabase })` before `createRoot`.
 
 ---
 
-### 6. Bump i18n cache version
+### Step 3: Create `src/components/ReportIssueWidget.tsx`
 
-**Edit: `src/i18n/index.ts`**
-- Increment queryStringParams version to force fresh translation fetch.
+A floating button (bottom-right, red) that:
+- Opens a slide-up panel with a textarea ("What went wrong?")
+- Shows auto-attached context summary (page, browser, error count, request count)
+- On submit: writes to `tester_reports` with the description + full context JSON (last 5 errors, last 10 network requests, last 10 console messages)
+- Shows success/error toast via Sonner
+- Uses existing UI primitives (Button, Sheet or custom panel)
+
+Wire into `src/App.tsx`: render `<ReportIssueWidget />` just before `</BrowserRouter>` so it appears on every page.
+
+---
+
+### Step 4: Dashboard (external HTML — not implemented here)
+
+The guide's Step 4 is an external HTML dashboard file opened locally in a browser. This is outside Lovable's scope — Rob would provide that file separately. However, once tables exist, any admin can query them directly via Lovable Cloud.
 
 ---
 
@@ -72,12 +69,11 @@ The JSON already has `replies_one` and `replies` (which acts as `replies_other`)
 
 | File | Change |
 |------|--------|
-| `src/pages/dashboard/client/JobTicketDetail.tsx` | Fix status to `cancelled`, translate budget/timing/invite labels |
-| `src/pages/dashboard/professional/ProDashboard.tsx` | Translate timing label |
-| `src/pages/dashboard/client/components/ClientJobCard.tsx` | Fix pluralization call |
-| `public/locales/en/dashboard.json` | Add budget + invite status keys |
-| `public/locales/es/dashboard.json` | Add budget + invite status keys |
-| `src/i18n/index.ts` | Bump cache version |
+| New migration | Create 4 tables + RLS policies |
+| `src/lib/lighthouse-monitor.ts` | New — error tracking engine |
+| `src/components/ReportIssueWidget.tsx` | New — floating report button |
+| `src/main.tsx` | Add `initMonitor()` call |
+| `src/App.tsx` | Add `<ReportIssueWidget />` |
 
-No database changes. No edge function changes. No breaking changes.
+No changes to existing business logic. The monitor is passive (no UI impact). The widget is additive (floating button, doesn't touch existing layout).
 
