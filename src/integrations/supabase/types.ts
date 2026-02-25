@@ -276,6 +276,48 @@ export type Database = {
         }
         Relationships: []
       }
+      error_events: {
+        Row: {
+          browser: string | null
+          created_at: string
+          error_type: string
+          id: string
+          message: string
+          metadata: Json | null
+          route: string | null
+          stack: string | null
+          url: string | null
+          user_id: string
+          viewport: string | null
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          error_type: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          route?: string | null
+          stack?: string | null
+          url?: string | null
+          user_id: string
+          viewport?: string | null
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          error_type?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          route?: string | null
+          stack?: string | null
+          url?: string | null
+          user_id?: string
+          viewport?: string | null
+        }
+        Relationships: []
+      }
       forum_categories: {
         Row: {
           created_at: string | null
@@ -819,6 +861,42 @@ export type Database = {
           },
         ]
       }
+      network_failures: {
+        Row: {
+          browser: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          method: string | null
+          request_url: string | null
+          route: string | null
+          status_code: number | null
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          method?: string | null
+          request_url?: string | null
+          route?: string | null
+          status_code?: number | null
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          method?: string | null
+          request_url?: string | null
+          route?: string | null
+          status_code?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           digest_frequency: string
@@ -843,6 +921,39 @@ export type Database = {
           email_messages?: boolean
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      page_views: {
+        Row: {
+          browser: string | null
+          created_at: string
+          id: string
+          load_time_ms: number | null
+          route: string | null
+          url: string | null
+          user_id: string
+          viewport: string | null
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          id?: string
+          load_time_ms?: number | null
+          route?: string | null
+          url?: string | null
+          user_id: string
+          viewport?: string | null
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          id?: string
+          load_time_ms?: number | null
+          route?: string | null
+          url?: string | null
+          user_id?: string
+          viewport?: string | null
         }
         Relationships: []
       }
@@ -1688,6 +1799,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tester_reports: {
+        Row: {
+          browser: string | null
+          context: Json | null
+          created_at: string
+          description: string
+          id: string
+          route: string | null
+          status: string
+          url: string | null
+          user_id: string
+          viewport: string | null
+        }
+        Insert: {
+          browser?: string | null
+          context?: Json | null
+          created_at?: string
+          description: string
+          id?: string
+          route?: string | null
+          status?: string
+          url?: string | null
+          user_id: string
+          viewport?: string | null
+        }
+        Update: {
+          browser?: string | null
+          context?: Json | null
+          created_at?: string
+          description?: string
+          id?: string
+          route?: string | null
+          status?: string
+          url?: string | null
+          user_id?: string
+          viewport?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

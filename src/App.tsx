@@ -79,6 +79,7 @@ import {
 
 // Launch Checklist
 import LaunchChecklist from "./pages/LaunchChecklist";
+import { ReportIssueWidget } from "./components/ReportIssueWidget";
 
 const queryClient = new QueryClient();
 
@@ -213,6 +214,7 @@ const App = () => {
                 ============================================ */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <ReportIssueWidget />
         </SessionProvider>
       </BrowserRouter>
     </TooltipProvider>

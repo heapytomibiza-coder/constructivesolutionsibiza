@@ -4,6 +4,11 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
+import { initMonitor } from "./lib/lighthouse-monitor";
+import { supabase } from "./integrations/supabase/client";
+
+// Start error monitoring before React renders
+initMonitor({ supabase });
 
 // Subtle loading indicator instead of blank screen
 const LoadingFallback = () => (
