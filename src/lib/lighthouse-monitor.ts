@@ -192,10 +192,25 @@ function hookErrors() {
   });
 }
 
+// React dev-mode warnings we want to ignore (not real errors)
+const IGNORED_PATTERNS = [
+  'Function components cannot be given refs',
+  'Warning: React does not recognize',
+  'Warning: Each child in a list should have a unique',
+  'Warning: validateDOMNesting',
+];
+
 function hookConsole() {
   const originalError = console.error;
   console.error = (...args: unknown[]) => {
     const msg = args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ');
+
+    // Skip known React dev warnings — they're not real errors
+    if (IGNORED_PATTERNS.some((p) => msg.includes(p))) {
+      originalError.apply(console, args);
+      return;
+    }
+
     const evt: ErrorEvent = {
       error_type: 'console',
       message: msg.slice(0, 2000),
