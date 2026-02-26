@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, Check, User, Phone, FileText, Eye, Store } from "lu
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Mail } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
