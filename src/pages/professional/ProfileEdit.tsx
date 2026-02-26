@@ -428,8 +428,23 @@ export default function ProfileEdit() {
                         }
                         setIsUpdatingEmail(true);
                         try {
-                          const { error } = await supabase.auth.updateUser({ email: newEmail });
-                          if (error) throw error;
+                          const { data: { session } } = await supabase.auth.getSession();
+                          if (!session) throw new Error('Not authenticated');
+
+                          const res = await fetch(
+                            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-user-email`,
+                            {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${session.access_token}`,
+                              },
+                              body: JSON.stringify({ newEmail }),
+                            }
+                          );
+                          const result = await res.json();
+                          if (!res.ok) throw new Error(result.error || 'Failed to update email');
+
                           toast.success('Email updated successfully');
                           setNewEmail('');
                           await refresh();
