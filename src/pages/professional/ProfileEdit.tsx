@@ -53,6 +53,8 @@ export default function ProfileEdit() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [newEmail, setNewEmail] = useState('');
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
 
   // Quiet autosave state
   const [isSaving, setIsSaving] = useState(false);
