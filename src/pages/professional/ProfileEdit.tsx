@@ -398,7 +398,60 @@ export default function ProfileEdit() {
                   description="Make it easy for clients to reach you."
                 />
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                {/* Change Email */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <label className="text-base font-medium">Email</label>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Current: <span className="font-medium text-foreground">{user?.email ?? '—'}</span>
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="new@email.com"
+                      className="h-12 text-base flex-1"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!newEmail || isUpdatingEmail}
+                      className="h-12 px-5"
+                      onClick={async () => {
+                        if (!newEmail.includes('@')) {
+                          toast.error('Please enter a valid email');
+                          return;
+                        }
+                        setIsUpdatingEmail(true);
+                        try {
+                          const { error } = await supabase.auth.updateUser({ email: newEmail });
+                          if (error) throw error;
+                          toast.success('Email updated successfully');
+                          setNewEmail('');
+                          await refresh();
+                        } catch (err: unknown) {
+                          const msg = err instanceof Error ? err.message : 'Failed to update email';
+                          toast.error(msg);
+                        } finally {
+                          setIsUpdatingEmail(false);
+                        }
+                      }}
+                    >
+                      {isUpdatingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update'}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Enter your correct email address if you need to change it.
+                  </p>
+                </div>
+
+                <div className="border-t border-border" />
+
+                {/* Phone */}
                 <FormField
                   control={form.control}
                   name="phone"
