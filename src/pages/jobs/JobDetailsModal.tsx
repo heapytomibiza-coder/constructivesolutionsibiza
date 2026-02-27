@@ -416,7 +416,7 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
   const handleMessage = async () => {
     if (!user) {
       onClose();
-      navigate(`/auth?returnTo=/jobs`);
+      navigate(`/auth?returnUrl=/jobs`);
       return;
     }
     setIsMessaging(true);

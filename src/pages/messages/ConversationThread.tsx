@@ -30,7 +30,9 @@ export function ConversationThread({
   onNewMessage,
 }: ConversationThreadProps) {
   const { t, i18n } = useTranslation('messages');
-  const userRole = currentUserId === clientId ? 'client' : 'professional';
+  const userRole = clientId === undefined
+    ? 'client'
+    : currentUserId === clientId ? 'client' : 'professional';
   const { data: messages, isLoading, isError, error } = useMessages(conversationId);
   const { send, isSending } = useSendMessage(conversationId, currentUserId);
   const [draft, setDraft] = useState("");
