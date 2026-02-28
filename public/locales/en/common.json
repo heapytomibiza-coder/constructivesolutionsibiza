@@ -460,7 +460,7 @@
     "buildInfo": "Build info"
   },
   "universalSearch": {
-    "placeholder": "What can we help you find?",
+    "placeholder": "How can we help?",
     "noResults": "No results for \"{{query}}\"",
     "tasks": "Tasks",
     "subcategories": "Services",
