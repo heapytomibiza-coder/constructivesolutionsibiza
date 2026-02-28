@@ -450,6 +450,21 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
     }
   }, [loading, visibleQuestions.length, onComplete]);
 
+  // Build per-pack question ranges for the task progress indicator
+  const packRanges = useMemo(() => {
+    const ranges: { slug: string; title: string; startIdx: number; endIdx: number }[] = [];
+    let currentSlug = '';
+    visibleQuestions.forEach((vq, idx) => {
+      if (vq.pack.micro_slug !== currentSlug) {
+        currentSlug = vq.pack.micro_slug;
+        ranges.push({ slug: currentSlug, title: vq.pack.title, startIdx: idx, endIdx: idx });
+      } else {
+        ranges[ranges.length - 1].endIdx = idx;
+      }
+    });
+    return ranges;
+  }, [visibleQuestions]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
@@ -471,7 +486,6 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
             {t('questions.noQuestionsNeeded')}
           </p>
         </div>
-        {/* Manual continue button as fallback */}
         <Button onClick={onComplete} className="mt-4">
           {t('buttons.continue')}
         </Button>
@@ -488,21 +502,6 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
     ? (Array.isArray(currentValue) ? currentValue as string[] : [])
     : (currentValue as string) || '';
   const hasAnswer = isNumber ? currentValue != null && currentValue !== '' : isMulti ? selectedValues.length > 0 : !!selectedValues;
-
-  // Build per-pack question ranges for the task progress indicator
-  const packRanges = useMemo(() => {
-    const ranges: { slug: string; title: string; startIdx: number; endIdx: number }[] = [];
-    let currentSlug = '';
-    visibleQuestions.forEach((vq, idx) => {
-      if (vq.pack.micro_slug !== currentSlug) {
-        currentSlug = vq.pack.micro_slug;
-        ranges.push({ slug: currentSlug, title: vq.pack.title, startIdx: idx, endIdx: idx });
-      } else {
-        ranges[ranges.length - 1].endIdx = idx;
-      }
-    });
-    return ranges;
-  }, [visibleQuestions]);
 
   const currentPackRange = packRanges.find(
     r => currentIndex >= r.startIdx && currentIndex <= r.endIdx
