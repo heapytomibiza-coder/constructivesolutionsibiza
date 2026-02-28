@@ -7,9 +7,10 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, Check, ChevronLeft } from 'lucide-react';
+import { AlertCircle, Check, ChevronLeft, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { txMicro } from '@/i18n/taxonomyTranslations';
 import type { WizardState } from '../types';
 
 // Question definition from the pack
