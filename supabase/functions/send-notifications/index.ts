@@ -379,7 +379,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         // Build email
         const payload = item.payload || {};
-        let email: { subject: string; html: string; whatsapp?: string };
+        let email: { subject: string; html: string; whatsapp?: string; telegram?: string };
 
         switch (item.event_type) {
           case "new_message":
