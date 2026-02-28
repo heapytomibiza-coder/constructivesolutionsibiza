@@ -166,6 +166,10 @@
     "badge": "Custom Request",
     "specsSectionLabel": "Specific specs"
   },
+  "breadcrumbs": {
+    "tasksSelected": "{{count}} task selected",
+    "tasksSelected_plural": "{{count}} tasks selected"
+  },
   "review": {
     "edit": "Edit",
     "category": "Category",

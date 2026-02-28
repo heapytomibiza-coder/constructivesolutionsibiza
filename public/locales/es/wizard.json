@@ -166,6 +166,10 @@
     "badge": "Solicitud personalizada",
     "specsSectionLabel": "Especificaciones"
   },
+  "breadcrumbs": {
+    "tasksSelected": "{{count}} tarea seleccionada",
+    "tasksSelected_plural": "{{count}} tareas seleccionadas"
+  },
   "review": {
     "edit": "Editar",
     "category": "Categoría",

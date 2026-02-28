@@ -902,6 +902,13 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         </p>
       </div>
 
+      {/* Breadcrumb tags */}
+      <WizardBreadcrumbs
+        wizardState={wizardState}
+        currentStep={currentStep}
+        onStepClick={(step) => setCurrentStep(step)}
+      />
+
       {/* Step Content */}
       <Card className="border-border/70">
         <CardContent className="pt-6">
