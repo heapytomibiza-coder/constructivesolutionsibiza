@@ -64,6 +64,7 @@ import { ExtrasStep } from './steps/ExtrasStep';
 import { ReviewStep } from './steps/ReviewStep';
 import { QuestionsStep } from './steps/QuestionsStep';
 import { CustomRequestForm } from './steps/CustomRequestForm';
+import { WizardBreadcrumbs } from './components/WizardBreadcrumbs';
 
 // Constants
 const STORAGE_KEY = 'wizardState';
