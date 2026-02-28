@@ -397,6 +397,9 @@ const handler = async (req: Request): Promise<Response> => {
           case "forum_post":
             email = buildForumPostEmail(payload, siteUrl);
             break;
+          case "bug_report":
+            email = buildBugReportEmail(payload, siteUrl);
+            break;
           default:
             await supabaseAdmin
               .from("email_notifications_queue")
