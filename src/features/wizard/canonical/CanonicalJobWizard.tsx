@@ -64,6 +64,7 @@ import { ExtrasStep } from './steps/ExtrasStep';
 import { ReviewStep } from './steps/ReviewStep';
 import { QuestionsStep } from './steps/QuestionsStep';
 import { CustomRequestForm } from './steps/CustomRequestForm';
+import { WizardBreadcrumbs } from './components/WizardBreadcrumbs';
 
 // Constants
 const STORAGE_KEY = 'wizardState';
@@ -900,6 +901,13 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           {t('progress.helper')}
         </p>
       </div>
+
+      {/* Breadcrumb tags */}
+      <WizardBreadcrumbs
+        wizardState={wizardState}
+        currentStep={currentStep}
+        onStepClick={(step) => setCurrentStep(step)}
+      />
 
       {/* Step Content */}
       <Card className="border-border/70">
