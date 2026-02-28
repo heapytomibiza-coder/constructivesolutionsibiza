@@ -61,7 +61,8 @@
     "continueToNext": "Continuar al siguiente paso",
     "uploadsAfterPost": "(se subirán después de publicar)",
     "selectedFiles": "Seleccionados: {{files}}",
-    "dedupNote": "Hemos combinado preguntas similares para que solo respondas una vez."
+    "dedupNote": "Hemos combinado preguntas similares para que solo respondas una vez.",
+    "taskProgress": "Tarea {{current}} de {{total}}"
   },
   "logistics": {
     "whereTitle": "¿Dónde está el trabajo?",
