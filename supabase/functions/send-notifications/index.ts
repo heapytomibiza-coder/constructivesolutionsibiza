@@ -109,6 +109,36 @@ async function sendWhatsApp(message: string): Promise<void> {
 }
 
 // ============================================
+// TELEGRAM SENDER
+// ============================================
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+}
+
+async function sendTelegram(message: string): Promise<void> {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    console.log("Telegram not configured, skipping");
+    return;
+  }
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: "HTML", disable_web_page_preview: true }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("Telegram sendMessage failed:", res.status, body);
+    } else {
+      await res.text(); // consume body
+    }
+  } catch (err) {
+    console.error("Telegram error:", err);
+  }
+}
+
+// ============================================
 // HELPERS
 // ============================================
 
