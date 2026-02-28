@@ -489,6 +489,26 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
     : (currentValue as string) || '';
   const hasAnswer = isNumber ? currentValue != null && currentValue !== '' : isMulti ? selectedValues.length > 0 : !!selectedValues;
 
+  // Build per-pack question ranges for the task progress indicator
+  const packRanges = useMemo(() => {
+    const ranges: { slug: string; title: string; startIdx: number; endIdx: number }[] = [];
+    let currentSlug = '';
+    visibleQuestions.forEach((vq, idx) => {
+      if (vq.pack.micro_slug !== currentSlug) {
+        currentSlug = vq.pack.micro_slug;
+        ranges.push({ slug: currentSlug, title: vq.pack.title, startIdx: idx, endIdx: idx });
+      } else {
+        ranges[ranges.length - 1].endIdx = idx;
+      }
+    });
+    return ranges;
+  }, [visibleQuestions]);
+
+  const currentPackRange = packRanges.find(
+    r => currentIndex >= r.startIdx && currentIndex <= r.endIdx
+  );
+  const currentPackIdx = currentPackRange ? packRanges.indexOf(currentPackRange) : 0;
+
   return (
     <div className="flex flex-col min-h-[400px]">
       {/* Fix 6: dedup helper note */}
@@ -496,6 +516,42 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
         <p className="text-xs text-muted-foreground mb-2">
           {t('questions.dedupNote', { defaultValue: "We've combined overlapping questions so you only answer once." })}
         </p>
+      )}
+
+      {/* Task context indicator — shown when multiple tasks were selected */}
+      {packRanges.length > 1 && currentPackRange && (
+        <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
+            <Layers className="w-4 h-4 text-primary" />
+            <span>
+              {t('questions.taskProgress', {
+                current: currentPackIdx + 1,
+                total: packRanges.length,
+                defaultValue: 'Task {{current}} of {{total}}'
+              })}
+            </span>
+          </div>
+          {/* Mini dots for each task */}
+          <div className="flex items-center gap-1.5">
+            {packRanges.map((range, idx) => (
+              <div key={range.slug} className="flex items-center gap-1.5">
+                <div
+                  className={cn(
+                    'h-2 rounded-full transition-all duration-300',
+                    idx === currentPackIdx
+                      ? 'bg-primary w-6'
+                      : idx < currentPackIdx
+                        ? 'bg-primary/40 w-2'
+                        : 'bg-muted-foreground/20 w-2'
+                  )}
+                />
+              </div>
+            ))}
+            <span className="ml-2 text-xs text-muted-foreground truncate max-w-[200px]">
+              {txMicro(currentPackRange.slug, t, currentPackRange.title)}
+            </span>
+          </div>
+        </div>
       )}
 
       {/* Progress bar */}
@@ -524,6 +580,12 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
 
       {/* Question */}
       <div className="flex-1 animate-fade-in" key={question.id}>
+        {/* Single-pack service label (when only 1 task but questions exist) */}
+        {packRanges.length === 1 && (
+          <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">
+            {txMicro(pack.micro_slug, t, pack.title)}
+          </p>
+        )}
         <h3 className="font-display text-xl font-semibold text-foreground mb-2">
           {tLabel(question.label)}
           {question.required && <span className="text-destructive ml-1">*</span>}
