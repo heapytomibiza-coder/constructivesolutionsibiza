@@ -72,7 +72,7 @@ export function ReportIssueWidget() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-destructive/90 text-destructive-foreground shadow-md transition-all duration-200 hover:bg-destructive hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="fixed bottom-20 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-destructive/90 text-destructive-foreground shadow-md transition-all duration-200 hover:bg-destructive hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 sm:bottom-5"
           aria-label="Report an issue"
         >
           <Bug className="h-4 w-4" />
