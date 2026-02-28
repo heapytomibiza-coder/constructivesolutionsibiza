@@ -12,6 +12,8 @@ const ADMIN_EMAIL = "heapytomibiza@gmail.com";
 const BRAND_NAME = "Constructive Solutions Ibiza";
 const ADMIN_WHATSAPP = Deno.env.get("ADMIN_WHATSAPP_NUMBER") ?? "";
 const WHATSAPP_API_KEY = Deno.env.get("WHATSAPP_CALLMEBOT_APIKEY") ?? "";
+const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
+const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID") ?? "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -103,6 +105,36 @@ async function sendWhatsApp(message: string): Promise<void> {
     console.log("WhatsApp sent:", res.status, body.substring(0, 100));
   } catch (err) {
     console.error("WhatsApp error:", err);
+  }
+}
+
+// ============================================
+// TELEGRAM SENDER
+// ============================================
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+}
+
+async function sendTelegram(message: string): Promise<void> {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    console.log("Telegram not configured, skipping");
+    return;
+  }
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: "HTML", disable_web_page_preview: true }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("Telegram sendMessage failed:", res.status, body);
+    } else {
+      await res.text(); // consume body
+    }
+  } catch (err) {
+    console.error("Telegram error:", err);
   }
 }
 
@@ -200,6 +232,26 @@ function buildForumPostEmail(payload: any, siteUrl: string) {
       <a href="${postUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Post →</a>`
     ),
     whatsapp: `New forum post: ${payload.title}\nBy: ${payload.author_display_name}\n${postUrl}`,
+    telegram: `💬 <b>NEW FORUM POST</b>\n<b>${escapeHtml(payload.title || "Untitled")}</b>\nBy: ${escapeHtml(payload.author_display_name || "Community Member")}\n\n<a href="${postUrl}">View Post</a>`,
+  };
+}
+
+function buildBugReportEmail(payload: any, siteUrl: string) {
+  return {
+    subject: `🐛 Bug Report: ${payload.route || payload.url || "Unknown page"}`,
+    html: emailShell(
+      "linear-gradient(135deg, #dc2626, #ef4444)",
+      "🐛 Bug Report",
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px; border-left: 3px solid #ef4444; padding-left: 12px;">${payload.description}</p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Page</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.route || "N/A"}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Viewport</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.viewport || "N/A"}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Browser</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.browser || "N/A"}</td></tr>
+      </table>
+      <a href="${siteUrl}/dashboard/admin?tab=support" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View in Admin →</a>`
+    ),
+    whatsapp: `🐛 Bug Report\n${payload.description?.substring(0, 120)}\nPage: ${payload.route || "N/A"}\nViewport: ${payload.viewport || "N/A"}`,
+    telegram: `🐛 <b>BUG REPORT</b>\n${escapeHtml(payload.description?.substring(0, 200) || "No description")}\n📍 ${escapeHtml(payload.route || "Unknown page")}\n📱 ${escapeHtml(payload.viewport || "N/A")}`,
   };
 }
 
@@ -283,7 +335,7 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         // Resolve recipient
         let recipientEmail: string | null = null;
-        const adminOnlyEvents = ["pro_signup", "support_ticket", "forum_post"];
+        const adminOnlyEvents = ["pro_signup", "support_ticket", "forum_post", "bug_report"];
         
         if (!item.recipient_user_id || adminOnlyEvents.includes(item.event_type)) {
           recipientEmail = ADMIN_EMAIL;
@@ -327,7 +379,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         // Build email
         const payload = item.payload || {};
-        let email: { subject: string; html: string; whatsapp?: string };
+        let email: { subject: string; html: string; whatsapp?: string; telegram?: string };
 
         switch (item.event_type) {
           case "new_message":
@@ -344,6 +396,9 @@ const handler = async (req: Request): Promise<Response> => {
             break;
           case "forum_post":
             email = buildForumPostEmail(payload, siteUrl);
+            break;
+          case "bug_report":
+            email = buildBugReportEmail(payload, siteUrl);
             break;
           default:
             await supabaseAdmin
@@ -371,6 +426,11 @@ const handler = async (req: Request): Promise<Response> => {
           // Also send WhatsApp for admin-targeted events
           if (email.whatsapp && adminOnlyEvents.includes(item.event_type)) {
             await sendWhatsApp(email.whatsapp);
+          }
+
+          // Send Telegram for key admin events
+          if (email.telegram && adminOnlyEvents.includes(item.event_type)) {
+            await sendTelegram(email.telegram);
           }
         }
       } catch (itemErr) {
