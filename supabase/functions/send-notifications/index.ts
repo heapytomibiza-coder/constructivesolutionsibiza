@@ -12,6 +12,8 @@ const ADMIN_EMAIL = "heapytomibiza@gmail.com";
 const BRAND_NAME = "Constructive Solutions Ibiza";
 const ADMIN_WHATSAPP = Deno.env.get("ADMIN_WHATSAPP_NUMBER") ?? "";
 const WHATSAPP_API_KEY = Deno.env.get("WHATSAPP_CALLMEBOT_APIKEY") ?? "";
+const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
+const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID") ?? "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
