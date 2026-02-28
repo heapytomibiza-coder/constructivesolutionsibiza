@@ -61,7 +61,8 @@
     "continueToNext": "Continue to next step",
     "uploadsAfterPost": "(uploads after job is posted)",
     "selectedFiles": "Selected: {{files}}",
-    "dedupNote": "We've combined overlapping questions so you only answer once."
+    "dedupNote": "We've combined overlapping questions so you only answer once.",
+    "taskProgress": "Task {{current}} of {{total}}"
   },
   "logistics": {
     "whereTitle": "Where is the work?",
