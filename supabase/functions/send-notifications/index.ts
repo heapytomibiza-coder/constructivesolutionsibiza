@@ -335,7 +335,7 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         // Resolve recipient
         let recipientEmail: string | null = null;
-        const adminOnlyEvents = ["pro_signup", "support_ticket", "forum_post"];
+        const adminOnlyEvents = ["pro_signup", "support_ticket", "forum_post", "bug_report"];
         
         if (!item.recipient_user_id || adminOnlyEvents.includes(item.event_type)) {
           recipientEmail = ADMIN_EMAIL;
