@@ -472,7 +472,7 @@
     "buildInfo": "Info de compilación"
   },
   "universalSearch": {
-    "placeholder": "¿Qué podemos ayudarte a encontrar?",
+    "placeholder": "¿En qué podemos ayudarte?",
     "noResults": "Sin resultados para \"{{query}}\"",
     "tasks": "Tareas",
     "subcategories": "Servicios",
