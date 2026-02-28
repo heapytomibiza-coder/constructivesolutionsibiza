@@ -235,6 +235,25 @@ function buildForumPostEmail(payload: any, siteUrl: string) {
   };
 }
 
+function buildBugReportEmail(payload: any, siteUrl: string) {
+  return {
+    subject: `🐛 Bug Report: ${payload.route || payload.url || "Unknown page"}`,
+    html: emailShell(
+      "linear-gradient(135deg, #dc2626, #ef4444)",
+      "🐛 Bug Report",
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px; border-left: 3px solid #ef4444; padding-left: 12px;">${payload.description}</p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Page</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.route || "N/A"}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Viewport</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.viewport || "N/A"}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Browser</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.browser || "N/A"}</td></tr>
+      </table>
+      <a href="${siteUrl}/dashboard/admin?tab=support" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View in Admin →</a>`
+    ),
+    whatsapp: `🐛 Bug Report\n${payload.description?.substring(0, 120)}\nPage: ${payload.route || "N/A"}\nViewport: ${payload.viewport || "N/A"}`,
+    telegram: `🐛 <b>BUG REPORT</b>\n${escapeHtml(payload.description?.substring(0, 200) || "No description")}\n📍 ${escapeHtml(payload.route || "Unknown page")}\n📱 ${escapeHtml(payload.viewport || "N/A")}`,
+  };
+}
+
 function buildJobMatchEmail(payload: any, siteUrl: string) {
   const jobUrl = `${siteUrl}/jobs/${payload.job_id}`;
   return {
