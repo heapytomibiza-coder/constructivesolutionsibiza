@@ -427,6 +427,11 @@ const handler = async (req: Request): Promise<Response> => {
           if (email.whatsapp && adminOnlyEvents.includes(item.event_type)) {
             await sendWhatsApp(email.whatsapp);
           }
+
+          // Send Telegram for key admin events
+          if (email.telegram && adminOnlyEvents.includes(item.event_type)) {
+            await sendTelegram(email.telegram);
+          }
         }
       } catch (itemErr) {
         console.error("Item error:", itemErr);
