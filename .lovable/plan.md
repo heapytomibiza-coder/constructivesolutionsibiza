@@ -1,48 +1,36 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+## Wizard Breadcrumb Tags
 
-## What's happening
+Add a persistent "selection breadcrumb" strip below the progress bar that accumulates tags as the user advances through the wizard. Each tag shows what was chosen in a previous step, giving clear context of the path taken.
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+### Behavior
 
-## Root cause
+- **Step 1 (Category):** No tags shown (nothing selected yet)
+- **Step 2 (Subcategory):** Shows category tag, e.g. `🔧 Painting & Decorating`
+- **Step 3 (Micro):** Shows category + subcategory tags
+- **Step 4+ (Questions, Logistics, Extras, Review):** Shows category + subcategory + micro count tag (e.g. "3 tasks selected"), all marked with a check icon
+- Tags are tappable — clicking one navigates back to that step
+- Completed tags get a subtle check/filled style; the "current step" tag is highlighted
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+### Visual Design
 
-## Affected components (7 files)
+- Horizontal scrollable row of `Badge` components (outline variant) sitting between the progress bar and the card
+- Small text, compact pills — no clutter
+- Uses existing `txCategory` / `txSubcategory` / `txMicro` for localized labels
+- On mobile: horizontal scroll with `overflow-x-auto` and hidden scrollbar
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+### Implementation
 
-## Implementation approach
+1. **Create `WizardBreadcrumbs` component** (`src/features/wizard/canonical/components/WizardBreadcrumbs.tsx`)
+   - Props: `wizardState`, `currentStep`, `onStepClick`
+   - Renders conditionally based on what's been selected (only show tags for completed prior steps)
+   - Each tag: icon + label, click handler calls `onStepClick(targetStep)`
 
-Each fix is the same 3-line pattern:
+2. **Mount in `CanonicalJobWizard.tsx`**
+   - Insert `<WizardBreadcrumbs>` between the progress bar div and the step content Card (~line 902)
+   - Pass `wizardState`, `currentStep`, and a step-click handler that validates backward navigation
 
-```tsx
-// Before
-function ScrollToTop() { ... }
-
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
-
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
-
-## What this does NOT change
-
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
-
-All 7 files will be edited in a single pass.
+3. **Add i18n keys** to `wizard.json` (EN/ES)
+   - `breadcrumbs.tasksSelected`: "{{count}} tasks" / "{{count}} tareas"
 
