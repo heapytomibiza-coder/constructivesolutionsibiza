@@ -45,7 +45,7 @@ export function useMyQuoteForJob(jobId: string | null, userId: string | null, en
       if (!jobId || !userId) return null;
       const { data, error } = await supabase
         .from("quotes")
-        .select("*")
+        .select("*, quote_line_items(*)")
         .eq("job_id", jobId)
         .eq("professional_id", userId)
         .order("revision_number", { ascending: false })
@@ -53,7 +53,8 @@ export function useMyQuoteForJob(jobId: string | null, userId: string | null, en
         .maybeSingle();
 
       if (error) throw error;
-      return (data as Quote) ?? null;
+      if (!data) return null;
+      return { ...data, line_items: (data as any).quote_line_items ?? [] } as Quote;
     },
     enabled: enabled && !!jobId && !!userId,
   });
