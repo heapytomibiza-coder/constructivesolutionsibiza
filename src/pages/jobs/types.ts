@@ -111,6 +111,7 @@ export type Quote = {
   subtotal: number | null;
   total: number | null;
   valid_until: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
   line_items?: QuoteLineItem[];

@@ -219,6 +219,7 @@
   },
   "proposal": {
     "title": "Create Proposal",
+    "reviseTitle": "Revise Proposal",
     "subtitle": "Add your items, set your price, and send a professional proposal.",
     "items": "Items & Services",
     "itemDescription": "e.g. Bathroom tiling — supply & fit",
@@ -232,6 +233,7 @@
     "vat": "VAT",
     "total": "Total",
     "send": "Send Proposal",
+    "sendRevision": "Send Revised Proposal",
     "itemRequired": "Add at least one item with a description and price"
   }
 }

@@ -162,6 +162,14 @@ export function QuoteCard({ quote, role, onRevise }: QuoteCardProps) {
           </div>
         )}
 
+        {/* Notes */}
+        {quote.notes && (
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-muted-foreground">{t("proposal.notes")}</div>
+            <p className="text-sm whitespace-pre-line text-muted-foreground">{quote.notes}</p>
+          </div>
+        )}
+
         {/* Timestamp */}
         <div className="text-xs text-muted-foreground">
           {formatDistanceToNow(new Date(quote.updated_at), { addSuffix: true, ...dateLocale })}

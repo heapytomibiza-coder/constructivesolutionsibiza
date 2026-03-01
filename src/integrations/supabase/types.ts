@@ -1398,6 +1398,7 @@ export type Database = {
           hourly_rate: number | null
           id: string
           job_id: string
+          notes: string | null
           price_fixed: number | null
           price_max: number | null
           price_min: number | null
@@ -1420,6 +1421,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           job_id: string
+          notes?: string | null
           price_fixed?: number | null
           price_max?: number | null
           price_min?: number | null
@@ -1442,6 +1444,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           job_id?: string
+          notes?: string | null
           price_fixed?: number | null
           price_max?: number | null
           price_min?: number | null
