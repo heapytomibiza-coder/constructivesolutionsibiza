@@ -81,7 +81,11 @@ export function QuotesTab({ jobId, isOwner }: QuotesTabProps) {
         {(!myQuote || showForm) && (
           <>
             {myQuote && <Separator className="bg-border/60" />}
-            <ProposalBuilder jobId={jobId} onSuccess={() => setShowForm(false)} />
+            <ProposalBuilder
+              jobId={jobId}
+              existingQuote={showForm ? myQuote : undefined}
+              onSuccess={() => setShowForm(false)}
+            />
           </>
         )}
       </section>

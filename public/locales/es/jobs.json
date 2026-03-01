@@ -219,6 +219,7 @@
   },
   "proposal": {
     "title": "Crear Propuesta",
+    "reviseTitle": "Revisar Propuesta",
     "subtitle": "Añade tus partidas, pon tu precio y envía una propuesta profesional.",
     "items": "Partidas y Servicios",
     "itemDescription": "ej. Alicatado baño — material e instalación",
@@ -232,6 +233,7 @@
     "vat": "IVA",
     "total": "Total",
     "send": "Enviar Propuesta",
+    "sendRevision": "Enviar Propuesta Revisada",
     "itemRequired": "Añade al menos una partida con descripción y precio"
   }
 }
