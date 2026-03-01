@@ -1,9 +1,10 @@
 /**
  * ProposalBuilder — Bookipi-style line-item proposal builder.
  * Mobile-first, minimal fields, sticky total footer.
+ * Revision-aware: prefills from existing quote when revising.
  */
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -12,11 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Send, Plus, Trash2, GripVertical } from "lucide-react";
+import { Loader2, Send, Plus, Trash2, GripVertical, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
 import { quoteKeys } from "../queries/quotes.query";
+import type { Quote } from "../types";
 
 interface LineItem {
   id: string;
@@ -27,6 +29,8 @@ interface LineItem {
 
 interface ProposalBuilderProps {
   jobId: string;
+  /** If provided, builder prefills from this quote and creates a revision on submit. */
+  existingQuote?: Quote | null;
   onSuccess?: () => void;
 }
 
@@ -34,17 +38,57 @@ function createItem(): LineItem {
   return { id: crypto.randomUUID(), description: "", quantity: 1, unitPrice: 0 };
 }
 
-export function ProposalBuilder({ jobId, onSuccess }: ProposalBuilderProps) {
+function hydrateItemsFromQuote(quote: Quote): LineItem[] {
+  if (quote.line_items && quote.line_items.length > 0) {
+    return quote.line_items
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map(li => ({
+        id: crypto.randomUUID(),
+        description: li.description,
+        quantity: li.quantity,
+        unitPrice: li.unit_price,
+      }));
+  }
+  // Fallback: single item from legacy scope_text
+  if (quote.price_fixed != null) {
+    return [{
+      id: crypto.randomUUID(),
+      description: quote.scope_text || "",
+      quantity: 1,
+      unitPrice: quote.price_fixed,
+    }];
+  }
+  return [createItem()];
+}
+
+export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBuilderProps) {
   const { t } = useTranslation("jobs");
   const queryClient = useQueryClient();
+  const isRevision = !!existingQuote;
 
-  const [items, setItems] = useState<LineItem[]>([createItem()]);
-  const [vatEnabled, setVatEnabled] = useState(false);
-  const [vatPercent, setVatPercent] = useState(21);
-  const [timeEstimateDays, setTimeEstimateDays] = useState("");
-  const [startDateEstimate, setStartDateEstimate] = useState("");
-  const [notes, setNotes] = useState("");
-  const [exclusions, setExclusions] = useState("");
+  const [items, setItems] = useState<LineItem[]>(() =>
+    existingQuote ? hydrateItemsFromQuote(existingQuote) : [createItem()]
+  );
+  const [vatEnabled, setVatEnabled] = useState(() =>
+    existingQuote ? (existingQuote.vat_percent ?? 0) > 0 : false
+  );
+  const [vatPercent, setVatPercent] = useState(() =>
+    existingQuote?.vat_percent && existingQuote.vat_percent > 0
+      ? existingQuote.vat_percent
+      : 21
+  );
+  const [timeEstimateDays, setTimeEstimateDays] = useState(() =>
+    existingQuote?.time_estimate_days?.toString() ?? ""
+  );
+  const [startDateEstimate, setStartDateEstimate] = useState(() =>
+    existingQuote?.start_date_estimate ?? ""
+  );
+  const [notes, setNotes] = useState(() =>
+    (existingQuote as any)?.notes ?? ""
+  );
+  const [exclusions, setExclusions] = useState(() =>
+    existingQuote?.exclusions_text ?? ""
+  );
   const [submitting, setSubmitting] = useState(false);
 
   const updateItem = useCallback((id: string, field: keyof LineItem, value: string | number) => {
@@ -85,13 +129,29 @@ export function ProposalBuilder({ jobId, onSuccess }: ProposalBuilderProps) {
       return;
     }
 
+    // If revising, mark old quote as revised first
+    if (isRevision && existingQuote) {
+      const { error: revErr } = await supabase
+        .from("quotes")
+        .update({ status: "revised" })
+        .eq("id", existingQuote.id)
+        .eq("professional_id", user.id);
+
+      if (revErr) {
+        console.error("Error marking quote revised:", revErr);
+        toast.error(t("quotes.submitFailed"));
+        setSubmitting(false);
+        return;
+      }
+    }
+
     // Build scope text from line items for backward compat
     const scopeText = items
       .filter(i => i.description.trim())
       .map(i => `${i.description} (×${i.quantity} @ €${i.unitPrice})`)
       .join("\n");
 
-    // Insert quote
+    // Insert new quote (or new revision)
     const { data: quote, error: quoteErr } = await supabase
       .from("quotes")
       .insert({
@@ -101,22 +161,22 @@ export function ProposalBuilder({ jobId, onSuccess }: ProposalBuilderProps) {
         price_fixed: total,
         scope_text: scopeText,
         exclusions_text: exclusions.trim() || null,
+        notes: notes.trim() || null,
         time_estimate_days: timeEstimateDays ? Number(timeEstimateDays) : null,
         start_date_estimate: startDateEstimate || null,
         vat_percent: vatEnabled ? vatPercent : 0,
         subtotal,
         total,
+        revision_number: isRevision && existingQuote
+          ? existingQuote.revision_number + 1
+          : 1,
       })
       .select("id")
       .single();
 
     if (quoteErr) {
       console.error("Error submitting proposal:", quoteErr);
-      if (quoteErr.message?.includes("duplicate key")) {
-        toast.error(t("quotes.submitFailed"));
-      } else {
-        toast.error(t("quotes.submitFailed"));
-      }
+      toast.error(t("quotes.submitFailed"));
       setSubmitting(false);
       return;
     }
@@ -138,11 +198,14 @@ export function ProposalBuilder({ jobId, onSuccess }: ProposalBuilderProps) {
 
       if (lineErr) {
         console.error("Error inserting line items:", lineErr);
-        // Quote still created, just without line items detail
       }
     }
 
-    trackEvent("quote_submitted", "professional", { jobId, type: "proposal_builder" });
+    trackEvent(
+      isRevision ? "quote_revised" : "quote_submitted",
+      "professional",
+      { jobId, type: "proposal_builder" }
+    );
 
     toast.success(t("quotes.submitted"));
     queryClient.invalidateQueries({ queryKey: quoteKeys.myQuote(jobId) });
@@ -155,7 +218,12 @@ export function ProposalBuilder({ jobId, onSuccess }: ProposalBuilderProps) {
     <div className="space-y-4 rounded-lg border border-border/70 bg-card">
       {/* Header */}
       <div className="px-4 pt-4">
-        <div className="text-sm font-semibold">{t("proposal.title")}</div>
+        <div className="flex items-center gap-2">
+          {isRevision && <RotateCcw className="h-4 w-4 text-muted-foreground" />}
+          <div className="text-sm font-semibold">
+            {isRevision ? t("proposal.reviseTitle") : t("proposal.title")}
+          </div>
+        </div>
         <p className="text-xs text-muted-foreground mt-0.5">{t("proposal.subtitle")}</p>
       </div>
 
@@ -167,7 +235,7 @@ export function ProposalBuilder({ jobId, onSuccess }: ProposalBuilderProps) {
           {t("proposal.items")}
         </Label>
 
-        {items.map((item, idx) => (
+        {items.map((item) => (
           <div key={item.id} className="rounded-md border border-border/60 bg-muted/30 p-3 space-y-2">
             <div className="flex items-start gap-2">
               <GripVertical className="h-4 w-4 text-muted-foreground/40 mt-2.5 shrink-0" />
@@ -331,7 +399,7 @@ export function ProposalBuilder({ jobId, onSuccess }: ProposalBuilderProps) {
           size="lg"
         >
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {t("proposal.send")}
+          {isRevision ? t("proposal.sendRevision") : t("proposal.send")}
         </Button>
       </div>
     </div>
