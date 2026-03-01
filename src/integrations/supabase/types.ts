@@ -1338,6 +1338,92 @@ export type Database = {
         }
         Relationships: []
       }
+      quotes: {
+        Row: {
+          created_at: string
+          exclusions_text: string | null
+          hourly_rate: number | null
+          id: string
+          job_id: string
+          price_fixed: number | null
+          price_max: number | null
+          price_min: number | null
+          price_type: string
+          professional_id: string
+          revision_number: number
+          scope_text: string
+          start_date_estimate: string | null
+          status: string
+          time_estimate_days: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          exclusions_text?: string | null
+          hourly_rate?: number | null
+          id?: string
+          job_id: string
+          price_fixed?: number | null
+          price_max?: number | null
+          price_min?: number | null
+          price_type?: string
+          professional_id: string
+          revision_number?: number
+          scope_text?: string
+          start_date_estimate?: string | null
+          status?: string
+          time_estimate_days?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          exclusions_text?: string | null
+          hourly_rate?: number | null
+          id?: string
+          job_id?: string
+          price_fixed?: number | null
+          price_max?: number | null
+          price_min?: number | null
+          price_type?: string
+          professional_id?: string
+          revision_number?: number
+          scope_text?: string
+          start_date_estimate?: string | null
+          status?: string
+          time_estimate_days?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_categories: {
         Row: {
           category_group: string | null
