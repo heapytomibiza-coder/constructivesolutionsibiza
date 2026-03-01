@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Loader2, FileText } from "lucide-react";
 import { useQuotesForJob, useMyQuoteForJob } from "../queries/quotes.query";
 import { QuoteCard } from "./QuoteCard";
-import { SubmitQuoteForm } from "./SubmitQuoteForm";
+import { ProposalBuilder } from "./ProposalBuilder";
 
 interface QuotesTabProps {
   jobId: string;
