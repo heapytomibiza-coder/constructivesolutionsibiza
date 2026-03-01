@@ -358,6 +358,8 @@ export type Database = {
           category_id: string
           content: string
           created_at: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           is_pinned: boolean | null
           photos: string[] | null
@@ -373,6 +375,8 @@ export type Database = {
           category_id: string
           content: string
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           is_pinned?: boolean | null
           photos?: string[] | null
@@ -388,6 +392,8 @@ export type Database = {
           category_id?: string
           content?: string
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           is_pinned?: boolean | null
           photos?: string[] | null
@@ -413,6 +419,8 @@ export type Database = {
           author_id: string
           content: string
           created_at: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           parent_reply_id: string | null
           post_id: string
@@ -423,6 +431,8 @@ export type Database = {
           author_id: string
           content: string
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           parent_reply_id?: string | null
           post_id: string
@@ -433,6 +443,8 @@ export type Database = {
           author_id?: string
           content?: string
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           parent_reply_id?: string | null
           post_id?: string
