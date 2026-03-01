@@ -5,3 +5,4 @@ export { FormattedAnswers } from "./FormattedAnswers";
 export { JobFlagBadges } from "./JobFlagBadges";
 export { RatingModal } from "./RatingModal";
 export { CompletionModal } from "./CompletionModal";
+export { ProposalBuilder } from "./ProposalBuilder";
