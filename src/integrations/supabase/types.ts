@@ -1350,6 +1350,47 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_line_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          line_total: number | null
+          quantity: number
+          quote_id: string
+          sort_order: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          line_total?: number | null
+          quantity?: number
+          quote_id: string
+          sort_order?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          line_total?: number | null
+          quantity?: number
+          quote_id?: string
+          sort_order?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_line_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           created_at: string
@@ -1366,8 +1407,12 @@ export type Database = {
           scope_text: string
           start_date_estimate: string | null
           status: string
+          subtotal: number | null
           time_estimate_days: number | null
+          total: number | null
           updated_at: string
+          valid_until: string | null
+          vat_percent: number | null
         }
         Insert: {
           created_at?: string
@@ -1384,8 +1429,12 @@ export type Database = {
           scope_text?: string
           start_date_estimate?: string | null
           status?: string
+          subtotal?: number | null
           time_estimate_days?: number | null
+          total?: number | null
           updated_at?: string
+          valid_until?: string | null
+          vat_percent?: number | null
         }
         Update: {
           created_at?: string
@@ -1402,8 +1451,12 @@ export type Database = {
           scope_text?: string
           start_date_estimate?: string | null
           status?: string
+          subtotal?: number | null
           time_estimate_days?: number | null
+          total?: number | null
           updated_at?: string
+          valid_until?: string | null
+          vat_percent?: number | null
         }
         Relationships: [
           {
