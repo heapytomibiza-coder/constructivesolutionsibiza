@@ -108,6 +108,7 @@ export async function fetchRepliesByPost(postId: string): Promise<ForumReply[]> 
     .from("forum_replies")
     .select("*")
     .eq("post_id", postId)
+    .is("deleted_at", null)
     .order("created_at", { ascending: true });
 
   if (error) throw error;

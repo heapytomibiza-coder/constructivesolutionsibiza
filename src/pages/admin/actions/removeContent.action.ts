@@ -30,16 +30,19 @@ export async function removeContent(
     return { success: false, error: "Admin access required" };
   }
 
-  // Delete content based on type
+  // Soft delete: set deleted_at instead of hard DELETE
   const table = contentType === "post" ? "forum_posts" : "forum_replies";
   
   const { error: deleteError } = await supabase
     .from(table)
-    .delete()
+    .update({
+      deleted_at: new Date().toISOString(),
+      deleted_by: user.id,
+    } as any)
     .eq("id", contentId);
 
   if (deleteError) {
-    console.error(`Error deleting ${contentType}:`, deleteError);
+    console.error(`Error soft-deleting ${contentType}:`, deleteError);
     return { success: false, error: "Failed to remove content. Please try again." };
   }
 
