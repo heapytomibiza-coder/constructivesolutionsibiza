@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Loader2, FileText } from "lucide-react";
 import { useQuotesForJob, useMyQuoteForJob } from "../queries/quotes.query";
 import { QuoteCard } from "./QuoteCard";
-import { SubmitQuoteForm } from "./SubmitQuoteForm";
+import { ProposalBuilder } from "./ProposalBuilder";
 
 interface QuotesTabProps {
   jobId: string;
@@ -81,7 +81,7 @@ export function QuotesTab({ jobId, isOwner }: QuotesTabProps) {
         {(!myQuote || showForm) && (
           <>
             {myQuote && <Separator className="bg-border/60" />}
-            <SubmitQuoteForm jobId={jobId} onSuccess={() => setShowForm(false)} />
+            <ProposalBuilder jobId={jobId} onSuccess={() => setShowForm(false)} />
           </>
         )}
       </section>

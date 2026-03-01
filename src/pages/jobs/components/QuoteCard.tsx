@@ -106,12 +106,52 @@ export function QuoteCard({ quote, role, onRevise }: QuoteCardProps) {
           )}
         </div>
 
-        {/* Scope */}
-        {quote.scope_text && (
-          <div className="space-y-1">
-            <div className="text-xs font-medium text-muted-foreground">{t("quotes.scope")}</div>
-            <p className="text-sm whitespace-pre-line">{quote.scope_text}</p>
+        {/* Line Items (Bookipi-style) */}
+        {quote.line_items && quote.line_items.length > 0 ? (
+          <div className="space-y-1.5">
+            <div className="text-xs font-medium text-muted-foreground">{t("proposal.items")}</div>
+            <div className="divide-y divide-border/40 rounded-md border border-border/50 bg-muted/20">
+              {quote.line_items
+                .sort((a, b) => a.sort_order - b.sort_order)
+                .map(item => (
+                  <div key={item.id} className="flex items-center justify-between px-3 py-2 text-sm">
+                    <div className="flex-1 min-w-0">
+                      <span className="truncate">{item.description}</span>
+                      {item.quantity > 1 && (
+                        <span className="ml-1 text-xs text-muted-foreground">×{item.quantity}</span>
+                      )}
+                    </div>
+                    <span className="ml-2 font-medium shrink-0">€{item.line_total.toFixed(2)}</span>
+                  </div>
+                ))}
+            </div>
+            {/* Subtotal / VAT / Total */}
+            {quote.subtotal != null && (
+              <div className="space-y-0.5 text-right text-sm">
+                <div className="text-muted-foreground">
+                  {t("proposal.subtotal")}: €{quote.subtotal.toFixed(2)}
+                </div>
+                {(quote.vat_percent ?? 0) > 0 && (
+                  <div className="text-muted-foreground">
+                    {t("proposal.vat")} ({quote.vat_percent}%): €{((quote.subtotal * (quote.vat_percent ?? 0)) / 100).toFixed(2)}
+                  </div>
+                )}
+                <div className="font-bold text-base">
+                  {t("proposal.total")}: €{(quote.total ?? quote.subtotal).toFixed(2)}
+                </div>
+              </div>
+            )}
           </div>
+        ) : (
+          <>
+            {/* Legacy scope text fallback */}
+            {quote.scope_text && (
+              <div className="space-y-1">
+                <div className="text-xs font-medium text-muted-foreground">{t("quotes.scope")}</div>
+                <p className="text-sm whitespace-pre-line">{quote.scope_text}</p>
+              </div>
+            )}
+          </>
         )}
 
         {/* Exclusions */}

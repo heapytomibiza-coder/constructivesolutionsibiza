@@ -216,5 +216,22 @@
       "rejected": "Rechazado",
       "withdrawn": "Retirado"
     }
+  },
+  "proposal": {
+    "title": "Crear Propuesta",
+    "subtitle": "Añade tus partidas, pon tu precio y envía una propuesta profesional.",
+    "items": "Partidas y Servicios",
+    "itemDescription": "ej. Alicatado baño — material e instalación",
+    "qty": "Cant",
+    "unitPrice": "Precio unitario (€)",
+    "addItem": "Añadir partida",
+    "includeVat": "Incluir IVA",
+    "notes": "Notas adicionales",
+    "notesPlaceholder": "Materiales incluidos, garantía, acceso…",
+    "subtotal": "Subtotal",
+    "vat": "IVA",
+    "total": "Total",
+    "send": "Enviar Propuesta",
+    "itemRequired": "Añade al menos una partida con descripción y precio"
   }
 }

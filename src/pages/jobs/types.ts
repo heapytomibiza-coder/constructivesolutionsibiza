@@ -82,6 +82,16 @@ export type JobDetailsRow = JobsBoardRow & {
 export type QuotePriceType = 'fixed' | 'estimate' | 'hourly';
 export type QuoteStatus = 'submitted' | 'revised' | 'accepted' | 'rejected' | 'withdrawn';
 
+export type QuoteLineItem = {
+  id: string;
+  quote_id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  sort_order: number;
+};
+
 export type Quote = {
   id: string;
   job_id: string;
@@ -97,6 +107,11 @@ export type Quote = {
   exclusions_text: string | null;
   status: QuoteStatus;
   revision_number: number;
+  vat_percent: number | null;
+  subtotal: number | null;
+  total: number | null;
+  valid_until: string | null;
   created_at: string;
   updated_at: string;
+  line_items?: QuoteLineItem[];
 };
