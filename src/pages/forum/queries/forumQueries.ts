@@ -93,6 +93,7 @@ export async function fetchPostById(postId: string): Promise<ForumPost | null> {
     .from("forum_posts")
     .select("*")
     .eq("id", postId)
+    .is("deleted_at", null)
     .single();
 
   if (error && error.code !== "PGRST116") throw error;
