@@ -77,6 +77,7 @@ export async function fetchPostsByCategory(categoryId: string): Promise<ForumPos
     .from("forum_posts")
     .select("*")
     .eq("category_id", categoryId)
+    .is("deleted_at", null)
     .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
