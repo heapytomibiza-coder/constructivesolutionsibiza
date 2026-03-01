@@ -21,12 +21,15 @@ export function useQuotesForJob(jobId: string | null, enabled = true) {
       if (!jobId) return [];
       const { data, error } = await supabase
         .from("quotes")
-        .select("*")
+        .select("*, quote_line_items(*)")
         .eq("job_id", jobId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return (data ?? []) as Quote[];
+      return (data ?? []).map((q: any) => ({
+        ...q,
+        line_items: q.quote_line_items ?? [],
+      })) as Quote[];
     },
     enabled: enabled && !!jobId,
   });
