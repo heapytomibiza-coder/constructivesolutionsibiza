@@ -216,5 +216,22 @@
       "rejected": "Rejected",
       "withdrawn": "Withdrawn"
     }
+  },
+  "proposal": {
+    "title": "Create Proposal",
+    "subtitle": "Add your items, set your price, and send a professional proposal.",
+    "items": "Items & Services",
+    "itemDescription": "e.g. Bathroom tiling — supply & fit",
+    "qty": "Qty",
+    "unitPrice": "Unit price (€)",
+    "addItem": "Add item",
+    "includeVat": "Include VAT",
+    "notes": "Additional notes",
+    "notesPlaceholder": "Materials included, warranty, access requirements…",
+    "subtotal": "Subtotal",
+    "vat": "VAT",
+    "total": "Total",
+    "send": "Send Proposal",
+    "itemRequired": "Add at least one item with a description and price"
   }
 }
