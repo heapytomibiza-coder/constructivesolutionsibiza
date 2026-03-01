@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, MessageSquare, Share2, Camera, FileText, AlertTriangle, LogIn, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { JobFlagBadges } from "./components/JobFlagBadges";
+import { QuotesTab } from "./components/QuotesTab";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -373,6 +374,10 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
           </CardContent>
         </Card>
       </section>
+
+      {/* Quotes Section */}
+      <Separator className="bg-border/60" />
+      <QuotesTab jobId={jobPack.id} isOwner={!!jobPack.isOwner} />
 
       {/* Compare Service Providers */}
       {matchedListings && matchedListings.length > 0 && (

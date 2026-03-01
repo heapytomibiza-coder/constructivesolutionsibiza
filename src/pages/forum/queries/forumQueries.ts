@@ -77,6 +77,7 @@ export async function fetchPostsByCategory(categoryId: string): Promise<ForumPos
     .from("forum_posts")
     .select("*")
     .eq("category_id", categoryId)
+    .is("deleted_at", null)
     .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -92,6 +93,7 @@ export async function fetchPostById(postId: string): Promise<ForumPost | null> {
     .from("forum_posts")
     .select("*")
     .eq("id", postId)
+    .is("deleted_at", null)
     .single();
 
   if (error && error.code !== "PGRST116") throw error;
@@ -106,6 +108,7 @@ export async function fetchRepliesByPost(postId: string): Promise<ForumReply[]> 
     .from("forum_replies")
     .select("*")
     .eq("post_id", postId)
+    .is("deleted_at", null)
     .order("created_at", { ascending: true });
 
   if (error) throw error;

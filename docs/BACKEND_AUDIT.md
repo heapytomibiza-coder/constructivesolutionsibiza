@@ -151,19 +151,16 @@
 
 ## ❌ WHAT WE DON'T HAVE (the blueprint gaps)
 
-### 1. Quotes System — NOT BUILT
-> Pros cannot formally submit quotes with pricing, scope, exclusions, and revision history.
+### 1. Quotes System — ✅ BUILT (Phase 4)
+> Pros can submit structured quotes with pricing (fixed/estimate/hourly), scope, exclusions, and revision history.
 
-**Current workaround:** Pros message clients directly. Pricing is informal.
-
-**Blueprint proposes:**
-- `quotes` table (price, deposit, time_estimate, scope, exclusions, status)
+**Implementation (2026-03-01):**
+- `quotes` table with RLS (pro insert/read/update own, client read/update on own jobs, admin full)
 - Quote statuses: submitted → revised → accepted → rejected → withdrawn
-- Client accepts quote → creates assignment
-
-**Do we need it?** 🟡 **DECISION NEEDED**
-- If CS Ibiza acts as a **lead-gen / matchmaker** (connect client to pro, they negotiate offline) → **Skip for now**
-- If CS Ibiza wants to be a **full marketplace** (quotes on-platform, payment through platform) → **Build it**
+- Client accepts quote → assigns pro + moves job to `in_progress`
+- Realtime enabled for live updates
+- Soft deletes added to `forum_posts` and `forum_replies` (deleted_at/deleted_by)
+- Full i18n (EN + ES) for all quote UI strings
 
 ---
 

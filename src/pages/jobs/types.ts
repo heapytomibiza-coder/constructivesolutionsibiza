@@ -76,3 +76,27 @@ export type JobDetailsRow = JobsBoardRow & {
   is_owner: boolean | null;
   description_i18n: Record<string, string> | null;
 };
+
+/* ── Quotes ────────────────────────────────── */
+
+export type QuotePriceType = 'fixed' | 'estimate' | 'hourly';
+export type QuoteStatus = 'submitted' | 'revised' | 'accepted' | 'rejected' | 'withdrawn';
+
+export type Quote = {
+  id: string;
+  job_id: string;
+  professional_id: string;
+  price_type: QuotePriceType;
+  price_fixed: number | null;
+  price_min: number | null;
+  price_max: number | null;
+  hourly_rate: number | null;
+  time_estimate_days: number | null;
+  start_date_estimate: string | null;
+  scope_text: string;
+  exclusions_text: string | null;
+  status: QuoteStatus;
+  revision_number: number;
+  created_at: string;
+  updated_at: string;
+};
