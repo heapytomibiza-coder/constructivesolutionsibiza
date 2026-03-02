@@ -72,8 +72,29 @@ export function ConversationThread({
     handleSend();
   };
 
+  // Lock the visual viewport height on mount to prevent iOS keyboard resize jumps
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    // Set explicit height from window.innerHeight (stable before keyboard opens)
+    const setHeight = () => {
+      el.style.height = `${window.innerHeight}px`;
+    };
+    setHeight();
+    // visualViewport resize is the reliable signal on iOS
+    const vv = window.visualViewport;
+    if (vv) {
+      const onResize = () => {
+        el.style.height = `${vv.height}px`;
+      };
+      vv.addEventListener('resize', onResize);
+      return () => vv.removeEventListener('resize', onResize);
+    }
+  }, []);
+
   return (
-    <div className="flex flex-col h-full">
+    <div ref={containerRef} className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-card shrink-0">
         {onBack && (
@@ -137,9 +158,11 @@ export function ConversationThread({
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('thread.placeholder')}
-            className="resize-none min-h-[40px] !min-h-[40px] max-h-28 text-sm py-2 rounded-xl"
+            className="resize-none min-h-[40px] max-h-28 text-sm py-2 rounded-xl"
             rows={1}
             disabled={isSending}
+            autoComplete="off"
+            autoCorrect="on"
           />
           <Button
             onClick={handleSend}
