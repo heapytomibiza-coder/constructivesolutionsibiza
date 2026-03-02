@@ -24,6 +24,7 @@ import { getI18nField, getContentLang } from "@/lib/i18nContent";
 import { txCategory, txSubcategory, txMicro } from "@/i18n/taxonomyTranslations";
 import { FormattedAnswers } from "./components/FormattedAnswers";
 import { isUserError } from "@/shared/lib/userError";
+import { isRolloutActive } from "@/domain/rollout";
 import { useListingsForJob } from "./hooks/useListingsForJob";
 import { ServiceListingCardComponent } from "@/pages/services/ServiceListingCard";
 import type { JobAnswers } from "./types";
@@ -375,9 +376,13 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         </Card>
       </section>
 
-      {/* Quotes Section */}
-      <Separator className="bg-border/60" />
-      <QuotesTab jobId={jobPack.id} isOwner={!!jobPack.isOwner} />
+      {/* Quotes Section — gated until founding-members */}
+      {isRolloutActive('founding-members') && (
+        <>
+          <Separator className="bg-border/60" />
+          <QuotesTab jobId={jobPack.id} isOwner={!!jobPack.isOwner} />
+        </>
+      )}
 
       {/* Compare Service Providers */}
       {matchedListings && matchedListings.length > 0 && (
