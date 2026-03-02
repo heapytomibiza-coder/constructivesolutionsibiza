@@ -80,6 +80,7 @@ const Messages = () => {
           clientId={selectedConversation?.client_id}
           jobId={selectedConversation?.job_id}
           jobTitle={selectedConversation?.job_title}
+          otherPartyName={selectedConversation?.other_party_name}
           onBack={handleBack}
           onNewMessage={handleNewMessage}
         />
@@ -163,6 +164,7 @@ const Messages = () => {
                 clientId={selectedConversation?.client_id}
                 jobId={selectedConversation?.job_id}
                 jobTitle={selectedConversation?.job_title}
+                otherPartyName={selectedConversation?.other_party_name}
                 onNewMessage={handleNewMessage}
               />
             ) : (

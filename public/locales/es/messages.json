@@ -10,6 +10,7 @@
     "noConversationsHint": "Empieza enviando un mensaje a un profesional en un trabajo",
     "noMatches": "No se encontraron conversaciones",
     "youAreClient": "Eres el cliente",
+    "unknownUser": "Usuario desconocido",
     "youAreResponding": "Estás respondiendo"
   },
   "thread": {
