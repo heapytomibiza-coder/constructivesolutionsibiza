@@ -124,6 +124,30 @@ function transformServiceResults(data: Array<{
   return [...topMicros, ...topSubs, ...topCats];
 }
 
+const ROTATING_EXAMPLES = [
+  "Fix a leaking tap...",
+  "Kitchen renovation...",
+  "Electrical rewiring...",
+  "Paint my living room...",
+  "Install air conditioning...",
+  "Build a garden wall...",
+  "Pool maintenance...",
+  "Fit new windows...",
+];
+
+function useRotatingPlaceholder(examples: string[], intervalMs = 3000) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setIndex((prev) => (prev + 1) % examples.length);
+    }, intervalMs);
+    return () => clearInterval(id);
+  }, [examples.length, intervalMs]);
+
+  return examples[index];
+}
+
 export function UniversalSearchBar({ className }: { className?: string }) {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
@@ -131,6 +155,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 300);
+  const rotatingExample = useRotatingPlaceholder(ROTATING_EXAMPLES);
 
   // Global ⌘K / Ctrl+K shortcut
   useGlobalSearchShortcut(() => {
