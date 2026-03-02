@@ -44,10 +44,13 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Bridging the gap between idea and build",
-    "subtitle": "We help you understand the scope, set your expectations, and connect you with the right professionals",
+    "title": "Ibiza builds better here.",
+    "subtitle": "The construction platform built from inside the industry. We structure the job before the first message — so professionals and clients start right.",
     "postJob": "Start Your Project",
-    "browsePros": "Browse Taskers"
+    "browsePros": "Browse Taskers",
+    "statJobs": "Jobs structured",
+    "statTrades": "Trade categories",
+    "statIsland": "100% Ibiza"
   },
   "trust": {
     "verified": "Verified trades",
