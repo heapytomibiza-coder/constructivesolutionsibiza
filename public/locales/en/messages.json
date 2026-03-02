@@ -10,6 +10,7 @@
     "noConversationsHint": "Start by messaging a professional on a job",
     "noMatches": "No matching conversations",
     "youAreClient": "You're the client",
+    "unknownUser": "Unknown user",
     "youAreResponding": "You're responding"
   },
   "thread": {

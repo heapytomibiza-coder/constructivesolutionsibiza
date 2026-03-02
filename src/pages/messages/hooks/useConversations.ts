@@ -16,6 +16,7 @@ export interface Conversation {
   unread_count: number;
   job_title?: string;
   job_category?: string;
+  other_party_name?: string;
 }
 
 interface ConversationRpcRow {
@@ -48,6 +49,7 @@ async function fetchConversations(): Promise<Conversation[]> {
     return conversations.map((c) => ({ ...c, unread_count: Number(c.unread_count) || 0 }));
   }
 
+  // Fetch job titles + category
   const { data: jobs, error: jobsError } = await supabase
     .from("jobs")
     .select("id, title, category")
@@ -57,12 +59,42 @@ async function fetchConversations(): Promise<Conversation[]> {
 
   const jobMap = new Map(jobs?.map((j) => [j.id, j]) ?? []);
 
-  return conversations.map((c) => ({
-    ...c,
-    unread_count: Number(c.unread_count) || 0,
-    job_title: jobMap.get(c.job_id)?.title ?? "Untitled Job",
-    job_category: jobMap.get(c.job_id)?.category ?? undefined,
-  }));
+  // Fetch display names for all participants
+  const allUserIds = [...new Set(conversations.flatMap((c) => [c.client_id, c.pro_id]))];
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id, display_name")
+    .in("user_id", allUserIds);
+
+  const { data: proProfiles } = await supabase
+    .from("professional_profiles")
+    .select("user_id, display_name, business_name")
+    .in("user_id", allUserIds);
+
+  const profileMap = new Map(profiles?.map((p) => [p.user_id, p.display_name]) ?? []);
+  const proProfileMap = new Map(
+    proProfiles?.map((p) => [p.user_id, p.display_name || p.business_name]) ?? []
+  );
+
+  // Get the current user to determine "other party"
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
+  const currentUserId = currentUser?.id;
+
+  return conversations.map((c) => {
+    const otherUserId = c.client_id === currentUserId ? c.pro_id : c.client_id;
+    const otherName =
+      proProfileMap.get(otherUserId) ||
+      profileMap.get(otherUserId) ||
+      undefined;
+
+    return {
+      ...c,
+      unread_count: Number(c.unread_count) || 0,
+      job_title: jobMap.get(c.job_id)?.title ?? "Untitled Job",
+      job_category: jobMap.get(c.job_id)?.category ?? undefined,
+      other_party_name: otherName,
+    };
+  });
 }
 
 export function useConversations(userId: string | undefined) {

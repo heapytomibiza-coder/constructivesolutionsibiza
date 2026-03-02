@@ -16,6 +16,7 @@ interface ConversationThreadProps {
   clientId?: string;
   jobId?: string | null;
   jobTitle?: string;
+  otherPartyName?: string;
   onBack?: () => void;
   onNewMessage?: () => void;
 }
@@ -26,6 +27,7 @@ export function ConversationThread({
   clientId,
   jobId,
   jobTitle,
+  otherPartyName,
   onBack,
   onNewMessage,
 }: ConversationThreadProps) {
@@ -81,8 +83,11 @@ export function ConversationThread({
         )}
         <div className="min-w-0 flex-1">
           <h2 className="font-semibold text-sm text-foreground truncate">
-            {jobTitle ?? t('thread.conversation')}
+            {otherPartyName ?? t('thread.conversation')}
           </h2>
+          {jobTitle && (
+            <p className="text-xs text-muted-foreground truncate">{jobTitle}</p>
+          )}
         </div>
         <RequestSupportButton
           conversationId={conversationId}

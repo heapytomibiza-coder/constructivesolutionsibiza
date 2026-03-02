@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useConversations, type Conversation } from "./hooks";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, MessageSquare, Search } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Loader2, MessageSquare, Search, User } from "lucide-react";
 import { formatMessageTime } from "@/lib/formatMessageTime";
 import { cn } from "@/lib/utils";
 
@@ -125,30 +126,39 @@ function ConversationItem({
         hasUnread && "bg-primary/5"
       )}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-3">
+        <Avatar className="h-9 w-9 shrink-0 mt-0.5">
+          <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
+            {conversation.other_party_name
+              ? conversation.other_party_name.slice(0, 2).toUpperCase()
+              : <User className="h-4 w-4" />}
+          </AvatarFallback>
+        </Avatar>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className={cn(
-              "font-medium text-sm text-foreground truncate",
-              hasUnread && "font-semibold"
-            )}>
-              {conversation.job_title ?? "Job"}
-            </p>
-            {hasUnread && (
-              <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4 shrink-0">
-                {conversation.unread_count > 99 ? "99+" : conversation.unread_count}
-              </Badge>
-            )}
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <p className={cn(
+                "font-medium text-sm text-foreground truncate",
+                hasUnread && "font-semibold"
+              )}>
+                {conversation.other_party_name ?? t('list.unknownUser')}
+              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground truncate">
+                  {conversation.job_title ?? "Job"}
+                </p>
+                {hasUnread && (
+                  <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4 shrink-0">
+                    {conversation.unread_count > 99 ? "99+" : conversation.unread_count}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <span className="text-xs text-muted-foreground shrink-0">
+              {formatMessageTime(conversation.last_message_at)}
+            </span>
           </div>
-          {conversation.job_category && (
-            <Badge variant="secondary" className="text-xs mt-1">
-              {conversation.job_category}
-            </Badge>
-          )}
         </div>
-        <span className="text-xs text-muted-foreground shrink-0">
-          {formatMessageTime(conversation.last_message_at)}
-        </span>
       </div>
 
       {conversation.last_message_preview && (
