@@ -44,10 +44,13 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Conectamos tu idea con la realidad",
-    "subtitle": "Te ayudamos a definir el alcance, alinear expectativas y encontrar al profesional adecuado",
+    "title": "Ibiza construye mejor aquí.",
+    "subtitle": "La plataforma de construcción creada desde dentro de la industria. Estructuramos el trabajo antes del primer mensaje — para que profesionales y clientes empiecen bien.",
     "postJob": "Empieza Tu Proyecto",
-    "browsePros": "Ver Taskers"
+    "browsePros": "Ver Taskers",
+    "statJobs": "Trabajos estructurados",
+    "statTrades": "Categorías de oficios",
+    "statIsland": "100% Ibiza"
   },
   "trust": {
     "verified": "Oficios verificados",
