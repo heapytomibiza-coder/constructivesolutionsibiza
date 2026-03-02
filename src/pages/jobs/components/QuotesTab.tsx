@@ -3,9 +3,10 @@
  * Client sees all quotes + can accept. Pro sees own quote or submit form.
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useSession } from "@/contexts/SessionContext";
+import { trackEvent } from "@/lib/trackEvent";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, FileText } from "lucide-react";
 import { useQuotesForJob, useMyQuoteForJob } from "../queries/quotes.query";
