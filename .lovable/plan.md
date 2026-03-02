@@ -1,48 +1,56 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+## Homepage Elevation Plan — Constructive Solutions Ibiza
 
-## What's happening
+The advisor's feedback is spot-on: the current homepage reads like a marketplace directory. For a construction firm, the page needs to project **authority, craftsmanship, and process control**. Here is the revised homepage structure and what changes.
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+---
 
-## Root cause
+### Revised Section Order
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
-
-## Affected components (7 files)
-
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
-
-## Implementation approach
-
-Each fix is the same 3-line pattern:
-
-```tsx
-// Before
-function ScrollToTop() { ... }
-
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
+```text
+1. HERO  (keep, refine copy)
+2. HOW WE WORK  (refine from 3 → 4 steps, construction tone)
+3. OUR SERVICES  (replace category grid with curated 6-item showcase)
+4. WHY CHOOSE US  (new — differentiator section vs WhatsApp/Facebook)
+5. SOCIAL PROOF  (new — stats + testimonial quotes)
+6. TRUST SIGNALS  (keep existing, minor copy tightening)
+7. CTA  (keep)
 ```
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+---
 
-## What this does NOT change
+### Section-by-Section Changes
 
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
+**1. Hero** — Strengthen the headline. Current: "Bridging the gap between idea and build." Proposed: keep the search bar and CTA, but update i18n copy to be more commanding. Add a second CTA "See How We Work" alongside "Start Your Project."
 
-All 7 files will be edited in a single pass.
+**2. How We Work** — Expand from 3 steps (Describe/Match/Build) to 4 steps: **Consult → Plan → Build → Deliver**. New icons: `MessageSquare`, `Ruler`, `HardHat`, `CheckCircle2`. Copy emphasises structured process, not marketplace matching. This signals project management capability.
+
+**3. Our Services** — Replace the 16-item flat grid with a curated 6-card showcase of service *groups*: Renovations, Structural Work, Bespoke Interiors, Project Management, Outdoor & Landscape, Specialist Trades. Each card gets a short description line. A "View all services" link leads to `/services`. This feels premium rather than directory-like.
+
+**4. Why Choose Us (NEW)** — A 2-column layout with icon+text rows contrasting "The Old Way" vs "The Constructive Way":
+- No verification → Verified professionals
+- Vague WhatsApp briefs → Structured project briefs  
+- No accountability → Rating & review system
+- Price guessing → Budget alignment from day one
+
+This is the psychological moat the advisor described.
+
+**5. Social Proof (NEW)** — A horizontal stats bar + 1-2 placeholder testimonial cards:
+- Stats: "1,000+ jobs created in Ibiza" · "16 trade categories" · "Ibiza-based team"
+- Testimonial cards with placeholder quotes (can be swapped for real ones later). Styled as a subtle dark-background band for visual rhythm.
+
+**6. Trust Signals** — Keep existing 3-column layout (Clarity First / Aligned Expectations / Trusted Connections). No changes needed.
+
+**7. CTA** — Keep as-is.
+
+---
+
+### Technical Details
+
+- All new copy added to `public/locales/en/common.json` and `public/locales/es/common.json` under new `home.*` keys.
+- All changes in `src/pages/Index.tsx` — no new components needed, just restructured JSX sections.
+- Icons from existing `lucide-react` dependency.
+- The curated 6 service cards link to `/services` or `/post?category=X` as appropriate.
+- No database changes required.
 
