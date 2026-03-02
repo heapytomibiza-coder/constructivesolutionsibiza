@@ -291,7 +291,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         onKeyDown={handleKeyDown}
       >
         <CommandInput
-          placeholder={t("universalSearch.placeholder", "What can we help you find?")}
+          placeholder={query ? "" : rotatingExample}
           value={query}
           onValueChange={setQuery}
           onFocus={() => setIsOpen(true)}
