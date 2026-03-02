@@ -116,9 +116,9 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
           <CardTitle className="text-lg font-semibold">{t('review.checklist')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <ChecklistItem icon={User} label={t('review.aboutYou')} description={t('review.aboutYouDesc')} isComplete={hasBasicInfo && hasPhone} onClick={!hasBasicInfo || !hasPhone ? () => onNavigate?.('basic_info') : undefined} />
-          <ChecklistItem icon={MapPin} label={t('review.whereYouWork')} description={t('review.whereYouWorkDesc')} isComplete={hasServiceArea} onClick={!hasServiceArea ? () => onNavigate?.('service_area') : undefined} />
-          <ChecklistItem icon={Briefcase} label={t('review.jobsSelected')} description={t('review.jobsSelectedDesc', { count: selectedMicroIds.size })} isComplete={hasServices} onClick={!hasServices ? () => onNavigate?.('services') : undefined} />
+          <ChecklistItem icon={User} label={t('review.aboutYou')} description={t('review.aboutYouDesc')} isComplete={hasBasicInfo && hasPhone} onClick={() => onNavigate?.('basic_info')} />
+          <ChecklistItem icon={MapPin} label={t('review.whereYouWork')} description={t('review.whereYouWorkDesc')} isComplete={hasServiceArea} onClick={() => onNavigate?.('service_area')} />
+          <ChecklistItem icon={Briefcase} label={t('review.jobsSelected')} description={t('review.jobsSelectedDesc', { count: selectedMicroIds.size })} isComplete={hasServices} onClick={() => onNavigate?.('services')} />
         </CardContent>
       </Card>
 
