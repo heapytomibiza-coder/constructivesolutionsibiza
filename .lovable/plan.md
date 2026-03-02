@@ -1,48 +1,72 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+## Three-Part Plan: Data Retention, Quote Funnel Tracking, and Tracking Gap Audit
 
-## What's happening
+### Part 1: Data Retention Policy (Auto-Purge)
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+Create a scheduled database function that purges old rows from high-volume observability tables. Retention windows:
 
-## Root cause
+| Table | Retention | Rationale |
+|---|---|---|
+| `page_views` | 30 days | Volume is highest; older views have no debugging value |
+| `error_events` | 60 days | Keep longer for trend analysis of recurring bugs |
+| `network_failures` | 60 days | Same as errors — useful for spotting regression patterns |
+| `analytics_events` | 365 days | Business KPIs; keep a full year |
+| `attribution_sessions` | 180 days | Marketing ROI needs longer window |
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+**Implementation:**
+1. Migration: create a `purge_stale_telemetry()` SECURITY DEFINER function that DELETEs rows older than each threshold
+2. Schedule via `pg_cron` (hourly or daily) calling this function directly (no edge function needed)
+3. Add an index on `created_at` for `page_views`, `error_events`, `network_failures` if not already present (speeds up deletes)
 
-## Affected components (7 files)
+---
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+### Part 2: Quote Funnel Metrics
 
-## Implementation approach
+Currently tracked: `quote_submitted`, `quote_revised`, `quote_accepted`, `quote_withdrawn`.
+Missing: **`quote_viewed`** (client opens/sees a quote).
 
-Each fix is the same 3-line pattern:
+**Implementation:**
+1. In `QuotesTab.tsx`: when the client view renders quotes, fire `trackEvent('quote_viewed', 'client', { jobId, quoteCount })` — guarded with a `useEffect` + ref to fire once per mount
+2. No new events needed for submitted/revised/accepted/withdrawn — already instrumented in their respective action files
 
-```tsx
-// Before
-function ScrollToTop() { ... }
+This completes the quote funnel: `quote_submitted → quote_viewed → quote_accepted` with `quote_revised` and `quote_withdrawn` as side branches.
 
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
+---
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+### Part 3: Tracking Gap Audit vs Pipe-Control KPIs
 
-## What this does NOT change
+**Pipe-control baseline KPIs** and their tracking status:
 
-- No behavior changes
+| KPI | Status | Gap |
+|---|---|---|
+| Jobs posted | Tracked (`job_posted`) | None |
+| Wizard started/abandoned | Tracked (`job_wizard_started`, `job_wizard_abandoned`, `job_wizard_step_viewed`) | None |
+| Auth signup/login success/failure | Tracked (`signup_started`, `login_started`, `signup_failed`, `login_failed`) | None |
+| Pro onboarding step progression | Tracked (`pro_onboarding_step_entered/completed`, `onboarding_step_failed`) | None |
+| Conversations started | Tracked (`conversation_started`) | None |
+| Quote funnel | Mostly tracked | **Gap: `quote_viewed`** (fix in Part 2) |
+| Messages sent | DB-level only (no `trackEvent`) | **Gap: no `message_sent` event** — needed for engagement velocity |
+| Job completion + review | `review_submitted` tracked; `job_completed` via `completeJob.action` | **Gap: no `job_completed` event** |
+| Search usage | Not tracked | **Gap: no `search_performed` event** — low priority for pipe-control |
+| Page views (engagement) | Tracked via Lighthouse (`page_views` table) | None |
+| Error rate | Tracked via Lighthouse (`error_events`) | None |
+
+**Additional events to add (2 gaps):**
+1. `job_completed` in `completeJob.action.ts` — fires when client marks job done
+2. `message_sent` in `ConversationThread.tsx` or wherever messages are sent — fires on each user message
+
+---
+
+### Summary of Changes
+
+**Database:**
+- 1 migration: `purge_stale_telemetry()` function
+- 1 cron job: schedule daily purge (via `pg_cron` + `pg_net`)
+
+**Frontend (4 files):**
+- `QuotesTab.tsx`: add `quote_viewed` event
+- `completeJob.action.ts`: add `job_completed` event
+- Message send handler: add `message_sent` event
 - No new dependencies
-- No database changes
-- No routing changes
-
-All 7 files will be edited in a single pass.
 
