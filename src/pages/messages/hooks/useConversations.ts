@@ -32,7 +32,7 @@ interface ConversationRpcRow {
   unread_count: number;
 }
 
-async function fetchConversations(): Promise<Conversation[]> {
+async function fetchConversations(currentUserId: string): Promise<Conversation[]> {
   // Use the RPC function that includes unread_count
   const { data, error } = await supabase.rpc("get_conversations_with_unread");
 
@@ -61,24 +61,15 @@ async function fetchConversations(): Promise<Conversation[]> {
 
   // Fetch display names for all participants
   const allUserIds = [...new Set(conversations.flatMap((c) => [c.client_id, c.pro_id]))];
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("user_id, display_name")
-    .in("user_id", allUserIds);
-
-  const { data: proProfiles } = await supabase
-    .from("professional_profiles")
-    .select("user_id, display_name, business_name")
-    .in("user_id", allUserIds);
+  const [{ data: profiles }, { data: proProfiles }] = await Promise.all([
+    supabase.from("profiles").select("user_id, display_name").in("user_id", allUserIds),
+    supabase.from("professional_profiles").select("user_id, display_name, business_name").in("user_id", allUserIds),
+  ]);
 
   const profileMap = new Map(profiles?.map((p) => [p.user_id, p.display_name]) ?? []);
   const proProfileMap = new Map(
     proProfiles?.map((p) => [p.user_id, p.display_name || p.business_name]) ?? []
   );
-
-  // Get the current user to determine "other party"
-  const { data: { user: currentUser } } = await supabase.auth.getUser();
-  const currentUserId = currentUser?.id;
 
   return conversations.map((c) => {
     const otherUserId = c.client_id === currentUserId ? c.pro_id : c.client_id;
@@ -90,7 +81,7 @@ async function fetchConversations(): Promise<Conversation[]> {
     return {
       ...c,
       unread_count: Number(c.unread_count) || 0,
-      job_title: jobMap.get(c.job_id)?.title ?? "Untitled Job",
+      job_title: jobMap.get(c.job_id)?.title ?? undefined,
       job_category: jobMap.get(c.job_id)?.category ?? undefined,
       other_party_name: otherName,
     };
@@ -100,7 +91,7 @@ async function fetchConversations(): Promise<Conversation[]> {
 export function useConversations(userId: string | undefined) {
   const query = useQuery({
     queryKey: ["conversations", userId],
-    queryFn: fetchConversations,
+    queryFn: () => fetchConversations(userId!),
     enabled: !!userId,
     staleTime: 30_000,
   });
