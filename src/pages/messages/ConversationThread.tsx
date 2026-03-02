@@ -158,9 +158,11 @@ export function ConversationThread({
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('thread.placeholder')}
-            className="resize-none min-h-[40px] !min-h-[40px] max-h-28 text-sm py-2 rounded-xl"
+            className="resize-none min-h-[40px] max-h-28 text-sm py-2 rounded-xl"
             rows={1}
             disabled={isSending}
+            autoComplete="off"
+            autoCorrect="on"
           />
           <Button
             onClick={handleSend}
