@@ -25,7 +25,7 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
     if (!needle) return conversations;
 
     return conversations.filter((c) => {
-      const hay = `${c.job_title ?? ""} ${c.last_message_preview ?? ""}`.toLowerCase();
+      const hay = `${c.other_party_name ?? ""} ${c.job_title ?? ""} ${c.last_message_preview ?? ""}`.toLowerCase();
       return hay.includes(needle);
     });
   }, [conversations, searchQuery]);
@@ -90,7 +90,6 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
             <ConversationItem
               key={conv.id}
               conversation={conv}
-              currentUserId={userId}
               isSelected={conv.id === selectedId}
               onClick={() => onSelect(conv)}
             />
@@ -103,18 +102,14 @@ export function ConversationList({ userId, selectedId, onSelect }: ConversationL
 
 function ConversationItem({
   conversation,
-  currentUserId,
   isSelected,
   onClick,
 }: {
   conversation: Conversation;
-  currentUserId: string;
   isSelected: boolean;
   onClick: () => void;
 }) {
   const { t } = useTranslation('messages');
-  const isClient = conversation.client_id === currentUserId;
-  const roleLabel = isClient ? t('list.youAreClient') : t('list.youAreResponding');
   const hasUnread = conversation.unread_count > 0 && !isSelected;
 
   return (
@@ -143,36 +138,32 @@ function ConversationItem({
               )}>
                 {conversation.other_party_name ?? t('list.unknownUser')}
               </p>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-muted-foreground truncate">
-                  {conversation.job_title ?? "Job"}
-                </p>
-                {hasUnread && (
-                  <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4 shrink-0">
-                    {conversation.unread_count > 99 ? "99+" : conversation.unread_count}
-                  </Badge>
-                )}
-              </div>
+              <p className="text-xs text-muted-foreground truncate">
+                {conversation.job_title ?? t('list.untitledJob')}
+              </p>
             </div>
-            <span className="text-xs text-muted-foreground shrink-0">
-              {formatMessageTime(conversation.last_message_at)}
-            </span>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <span className="text-xs text-muted-foreground">
+                {formatMessageTime(conversation.last_message_at)}
+              </span>
+              {hasUnread && (
+                <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4">
+                  {conversation.unread_count > 99 ? "99+" : conversation.unread_count}
+                </Badge>
+              )}
+            </div>
           </div>
+
+          {conversation.last_message_preview && (
+            <p className={cn(
+              "text-sm mt-1 line-clamp-1",
+              hasUnread ? "text-foreground" : "text-muted-foreground"
+            )}>
+              {conversation.last_message_preview}
+            </p>
+          )}
         </div>
       </div>
-
-      {conversation.last_message_preview && (
-        <p className={cn(
-          "text-sm mt-1 line-clamp-2",
-          hasUnread ? "text-foreground" : "text-muted-foreground"
-        )}>
-          {conversation.last_message_preview}
-        </p>
-      )}
-
-      <p className="text-xs text-muted-foreground mt-2">
-        {roleLabel}
-      </p>
     </button>
   );
 }
