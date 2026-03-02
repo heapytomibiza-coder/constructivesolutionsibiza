@@ -40,6 +40,15 @@ export function QuotesTab({ jobId, isOwner }: QuotesTabProps) {
     );
   }
 
+  // Track quote_viewed once per mount for client
+  const trackedRef = useRef(false);
+  useEffect(() => {
+    if (isOwner && allQuotes && allQuotes.length > 0 && !trackedRef.current) {
+      trackedRef.current = true;
+      trackEvent('quote_viewed', 'client', { jobId, quoteCount: allQuotes.length });
+    }
+  }, [isOwner, allQuotes, jobId]);
+
   // Client view
   if (isOwner) {
     const quotes = allQuotes ?? [];

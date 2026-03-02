@@ -122,6 +122,8 @@ export function useSendMessage(conversationId: string | undefined, senderId: str
       );
       // Also invalidate conversations to update preview
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      // Track message_sent for engagement velocity
+      trackEvent('message_sent', 'client', { conversationId });
     },
   });
 
