@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { trackEvent } from "@/lib/trackEvent";
 
 export interface Message {
   id: string;
@@ -121,6 +122,8 @@ export function useSendMessage(conversationId: string | undefined, senderId: str
       );
       // Also invalidate conversations to update preview
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      // Track message_sent for engagement velocity
+      trackEvent('message_sent', 'client', { conversationId });
     },
   });
 

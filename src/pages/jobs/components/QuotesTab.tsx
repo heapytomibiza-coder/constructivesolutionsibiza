@@ -3,9 +3,10 @@
  * Client sees all quotes + can accept. Pro sees own quote or submit form.
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useSession } from "@/contexts/SessionContext";
+import { trackEvent } from "@/lib/trackEvent";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, FileText } from "lucide-react";
 import { useQuotesForJob, useMyQuoteForJob } from "../queries/quotes.query";
@@ -27,6 +28,15 @@ export function QuotesTab({ jobId, isOwner }: QuotesTabProps) {
   const { data: myQuote, isLoading: loadingMine } = useMyQuoteForJob(jobId, user?.id ?? null, isPro && !isOwner);
 
   const [showForm, setShowForm] = useState(false);
+
+  // Track quote_viewed once per mount for client
+  const trackedRef = useRef(false);
+  useEffect(() => {
+    if (isOwner && allQuotes && allQuotes.length > 0 && !trackedRef.current) {
+      trackedRef.current = true;
+      trackEvent('quote_viewed', 'client', { jobId, quoteCount: allQuotes.length });
+    }
+  }, [isOwner, allQuotes, jobId]);
 
   const isLoading = isOwner ? loadingAll : loadingMine;
 
