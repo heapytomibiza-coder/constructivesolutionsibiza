@@ -375,9 +375,13 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         </Card>
       </section>
 
-      {/* Quotes Section */}
-      <Separator className="bg-border/60" />
-      <QuotesTab jobId={jobPack.id} isOwner={!!jobPack.isOwner} />
+      {/* Quotes Section — gated until founding-members */}
+      {isRolloutActive('founding-members') && (
+        <>
+          <Separator className="bg-border/60" />
+          <QuotesTab jobId={jobPack.id} isOwner={!!jobPack.isOwner} />
+        </>
+      )}
 
       {/* Compare Service Providers */}
       {matchedListings && matchedListings.length > 0 && (
