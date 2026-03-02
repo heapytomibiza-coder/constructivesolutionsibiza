@@ -102,7 +102,7 @@ export const PublicOnlyGuard = forwardRef<HTMLDivElement, RouteGuardProps>(funct
   if (isReady && !isLoading && isAuthenticated) {
     const dashboardPath = activeRole === 'professional' 
       ? '/dashboard/pro' 
-      : '/';
+      : '/post';
     return <Navigate to={dashboardPath} replace />;
   }
 

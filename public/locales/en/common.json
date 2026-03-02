@@ -44,13 +44,10 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Ibiza builds better here.",
-    "subtitle": "The construction platform built from inside the industry. We structure the job before the first message — so professionals and clients start right.",
+    "title": "Bridging the gap between idea and build",
+    "subtitle": "We help you understand the scope, set your expectations, and connect you with the right professionals",
     "postJob": "Start Your Project",
-    "browsePros": "Browse Taskers",
-    "statJobs": "Jobs structured",
-    "statTrades": "Trade categories",
-    "statIsland": "100% Ibiza"
+    "browsePros": "Browse Taskers"
   },
   "trust": {
     "verified": "Verified trades",
@@ -120,26 +117,18 @@
     "legalRegulatory": "Legal & Regulatory"
   },
   "home": {
-    "ourServices": "16 trades. One platform.",
-    "ourServicesDesc": "From foundation to finish — every construction and property trade on the island, structured and ready.",
-    "viewAllServices": "Explore All Services",
-    "verifiedTitle": "Structured from day one",
-    "verifiedDesc": "Trade-specific questions turn your idea into a build-ready brief before the first conversation",
-    "quickTitle": "No more WhatsApp chaos",
-    "quickDesc": "Scope, budget, and timing are defined upfront — professionals respond with clarity, not guesswork",
-    "qualityTitle": "Built on trust, not ads",
-    "qualityDesc": "Verification is earned through completed work, reliable communication, and consistent standards",
-    "ctaTitle": "Your project deserves a proper start.",
-    "ctaDesc": "Two minutes of guided questions replace hours of back-and-forth. Start with clarity.",
-    "ctaButton": "Start Your Project",
-    "howItWorksTitle": "How it works",
-    "step1Title": "Describe",
-    "step1Desc": "Choose your service and answer trade-specific questions. We build your brief.",
-    "step2Title": "Match",
-    "step2Desc": "Your structured job reaches the right professionals — filtered by skill, area, and preference.",
-    "step3Title": "Build",
-    "step3Desc": "Communicate directly, agree terms, and get it done. The relationship stays human.",
-    "categoryExplore": "Explore {{category}}"
+    "ourServices": "What Do You Need?",
+    "ourServicesDesc": "Tell us about your project — we help clarify the scope and connect you with the right trade",
+    "viewAllServices": "View All Services",
+    "verifiedTitle": "Clarity First",
+    "verifiedDesc": "Our guided questions translate your idea into a clear, build-ready brief",
+    "quickTitle": "Aligned Expectations",
+    "quickDesc": "Clients and professionals start on the same page from day one",
+    "qualityTitle": "Trusted Connections",
+    "qualityDesc": "Verified professionals who understand exactly what's required",
+    "ctaTitle": "Not sure where to start?",
+    "ctaDesc": "Answer a few quick questions and we'll help you define the scope.",
+    "ctaButton": "Get Started"
   },
   "services": {
     "title": "Our Services",
