@@ -4,52 +4,40 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { MobileFAB } from '@/components/MobileFAB';
-import { PLATFORM, MAIN_CATEGORIES } from '@/domain/scope';
+import { PLATFORM } from '@/domain/scope';
 import { UniversalSearchBar } from '@/components/search';
 import { 
-  Hammer, Wrench, Droplets, Zap, Wind, Paintbrush, 
-  Sparkles, TreePine, Waves, PenTool, Truck, 
-  ChefHat, DoorOpen, Settings, Building2, FileCheck,
   ArrowRight, Shield, Clock, Star, CheckCircle,
-  ClipboardList, Users, Handshake
+  MessageSquare, Ruler, HardHat, CheckCircle2,
+  Hammer, PenTool, Waves, TreePine, Zap, Building2,
+  XCircle, Quote
 } from 'lucide-react';
 import heroHome from '@/assets/heroes/hero-home.jpg';
-import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
 
-/**
- * HOMEPAGE - Construction & Trade Services
- * 
- * SCOPE: This platform is STRICTLY for construction and property services.
- * Do NOT add concierge, lifestyle, hospitality, or personal services.
- */
+const SERVICE_CARDS = [
+  { key: 'svc1', icon: Hammer, link: '/services' },
+  { key: 'svc2', icon: Building2, link: '/services' },
+  { key: 'svc3', icon: PenTool, link: '/services' },
+  { key: 'svc4', icon: Ruler, link: '/services' },
+  { key: 'svc5', icon: TreePine, link: '/services' },
+  { key: 'svc6', icon: Zap, link: '/services' },
+];
 
-const categoryIcons: Record<string, React.ReactNode> = {
-  'Construction': <Hammer className="h-6 w-6" />,
-  'Carpentry': <Wrench className="h-6 w-6" />,
-  'Plumbing': <Droplets className="h-6 w-6" />,
-  'Electrical': <Zap className="h-6 w-6" />,
-  'HVAC': <Wind className="h-6 w-6" />,
-  'Painting & Decorating': <Paintbrush className="h-6 w-6" />,
-  'Cleaning': <Sparkles className="h-6 w-6" />,
-  'Gardening & Landscaping': <TreePine className="h-6 w-6" />,
-  'Pool & Spa': <Waves className="h-6 w-6" />,
-  'Architects, Design & Management': <PenTool className="h-6 w-6" />,
-  'Transport & Logistics': <Truck className="h-6 w-6" />,
-  'Kitchen & Bathroom': <ChefHat className="h-6 w-6" />,
-  'Floors, Doors & Windows': <DoorOpen className="h-6 w-6" />,
-  'Handyman & General': <Settings className="h-6 w-6" />,
-  'Commercial & Industrial': <Building2 className="h-6 w-6" />,
-  'Legal & Regulatory': <FileCheck className="h-6 w-6" />,
-};
+const STEPS = [
+  { key: 'step1', icon: MessageSquare, delay: '0ms' },
+  { key: 'step2', icon: Ruler, delay: '100ms' },
+  { key: 'step3', icon: HardHat, delay: '200ms' },
+  { key: 'step4', icon: CheckCircle2, delay: '300ms' },
+];
 
-const CATEGORY_LIST = Object.keys(categoryIcons);
+const WHY_ROWS = ['why1', 'why2', 'why3', 'why4'];
 
 const Index = () => {
   const { t } = useTranslation('common');
 
   return (
     <PublicLayout>
-      {/* Hero Section */}
+      {/* ─── 1. HERO ─── */}
       <HeroBanner
         imageSrc={heroHome}
         title={t('hero.title')}
@@ -63,6 +51,11 @@ const Index = () => {
                 <Link to="/post">
                   {t('hero.postJob')}
                   <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
+                <Link to="#how-we-work">
+                  {t('home.seeHowWeWork')}
                 </Link>
               </Button>
             </div>
@@ -84,73 +77,41 @@ const Index = () => {
         </p>
       </HeroBanner>
 
-      {/* How It Works - 3-step visual flow */}
-      <section className="py-20 bg-background">
+      {/* ─── 2. HOW WE WORK — 4 steps ─── */}
+      <section id="how-we-work" className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground">
-              {t('home.howItWorksTitle', 'How it works')}
+              {t('home.howWeWorkTitle')}
             </h2>
             <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
-              {t('home.howItWorksSubtitle', 'From idea to build in three simple steps')}
+              {t('home.howWeWorkSubtitle')}
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
-            {/* Step 1 */}
-            <div className="group relative text-center animate-fade-in" style={{ animationDelay: '0ms' }}>
-              <div className="mx-auto h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 transition-transform group-hover:scale-105">
-                <ClipboardList className="h-9 w-9 text-primary" />
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
+            {STEPS.map(({ key, icon: Icon, delay }, i) => (
+              <div key={key} className="group relative text-center animate-fade-in" style={{ animationDelay: delay }}>
+                <div className="mx-auto h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 transition-transform group-hover:scale-105">
+                  <Icon className="h-9 w-9 text-primary" />
+                </div>
+                <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
+                  {i + 1}
+                </span>
+                <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                  {t(`home.${key}Title`)}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {t(`home.${key}Desc`)}
+                </p>
               </div>
-              <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-                1
-              </span>
-              <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                {t('home.step1Title', 'Describe')}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {t('home.step1Desc', 'Answer a few guided questions. We build a clear brief so professionals know exactly what you need.')}
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="group relative text-center animate-fade-in" style={{ animationDelay: '150ms' }}>
-              <div className="mx-auto h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 transition-transform group-hover:scale-105">
-                <Users className="h-9 w-9 text-primary" />
-              </div>
-              <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-                2
-              </span>
-              <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                {t('home.step2Title', 'Match')}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {t('home.step2Desc', 'We connect you with verified, Ibiza-based professionals who specialise in your type of project.')}
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="group relative text-center animate-fade-in" style={{ animationDelay: '300ms' }}>
-              <div className="mx-auto h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 transition-transform group-hover:scale-105">
-                <Handshake className="h-9 w-9 text-primary" />
-              </div>
-              <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-                3
-              </span>
-              <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                {t('home.step3Title', 'Build')}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {t('home.step3Desc', 'Compare quotes, chat directly, and hire with confidence. No obligation until you\'re ready.')}
-              </p>
-            </div>
+            ))}
           </div>
 
-          {/* Connecting line between steps on desktop */}
-          <div className="hidden md:flex justify-center mt-8">
+          <div className="flex justify-center mt-10">
             <Button size="lg" asChild>
               <Link to="/post">
-                {t('home.startProject', 'Start your project')}
+                {t('home.startProject')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -158,42 +119,144 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Browse by Category */}
+      {/* ─── 3. OUR SERVICES — Curated 6 cards ─── */}
       <section className="py-20 bg-gradient-concrete">
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground">
-              {t('home.categoriesTitle', 'Browse by trade')}
+              {t('home.servicesTitle')}
             </h2>
             <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
-              {t('home.categoriesSubtitle', 'Find the right professional for any project')}
+              {t('home.servicesSubtitle')}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
-            {CATEGORY_LIST.map((category) => (
-              <Link
-                key={category}
-                to={`/post?category=${encodeURIComponent(category)}`}
-                className="group"
-              >
-                <Card className="card-grounded h-full transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 active:scale-[0.98]">
-                  <CardContent className="flex items-center gap-3 p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-                      {categoryIcons[category]}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
+            {SERVICE_CARDS.map(({ key, icon: Icon, link }) => (
+              <Link key={key} to={link} className="group">
+                <Card className="card-grounded h-full transition-all duration-200 hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5">
+                  <CardContent className="flex items-start gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <span className="text-sm font-medium text-foreground leading-tight">
-                      {category}
-                    </span>
+                    <div>
+                      <h3 className="font-display text-lg font-semibold text-foreground mb-1">
+                        {t(`home.${key}Title`)}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {t(`home.${key}Desc`)}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
             ))}
           </div>
+
+          <div className="flex justify-center mt-10">
+            <Button variant="outline" size="lg" asChild>
+              <Link to="/services">
+                {t('home.viewAllServices')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
-      {/* Trust Signals */}
+      {/* ─── 4. WHY CHOOSE US — Comparison ─── */}
+      <section className="py-20 bg-background">
+        <div className="container">
+          <div className="text-center mb-14">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground">
+              {t('home.whyTitle')}
+            </h2>
+            <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
+              {t('home.whySubtitle')}
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            {/* Header row */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="text-center">
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                  <XCircle className="h-4 w-4 text-destructive" />
+                  {t('home.oldWay')}
+                </span>
+              </div>
+              <div className="text-center">
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary uppercase tracking-wider">
+                  <CheckCircle className="h-4 w-4" />
+                  {t('home.newWay')}
+                </span>
+              </div>
+            </div>
+
+            {/* Comparison rows */}
+            <div className="space-y-3">
+              {WHY_ROWS.map((key, i) => (
+                <div
+                  key={key}
+                  className="grid grid-cols-2 gap-4 animate-fade-in"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                >
+                  <div className="rounded-xl bg-destructive/5 border border-destructive/10 p-4 text-center">
+                    <p className="text-sm text-muted-foreground line-through decoration-destructive/40">
+                      {t(`home.${key}Old`)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-primary/5 border border-primary/15 p-4 text-center">
+                    <p className="text-sm font-medium text-foreground">
+                      {t(`home.${key}New`)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 5. SOCIAL PROOF — Stats + Testimonials ─── */}
+      <section className="py-20 bg-gradient-steel text-primary-foreground">
+        <div className="container">
+          {/* Stats bar */}
+          <div className="text-center mb-14">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold">
+              {t('home.proofTitle')}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mb-16">
+            {['stat1', 'stat2', 'stat3'].map((key) => (
+              <div key={key} className="text-center">
+                <p className="text-3xl sm:text-4xl font-bold">{t(`home.${key}Value`)}</p>
+                <p className="text-sm text-primary-foreground/75 mt-1">{t(`home.${key}Label`)}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Testimonials */}
+          <div className="grid gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
+            {['testimonial1', 'testimonial2'].map((key) => (
+              <Card key={key} className="bg-white/10 border-white/15 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <Quote className="h-6 w-6 text-primary-foreground/40 mb-3" />
+                  <p className="text-sm text-primary-foreground/90 leading-relaxed italic">
+                    "{t(`home.${key}`)}"
+                  </p>
+                  <p className="mt-4 text-xs font-semibold text-primary-foreground/60">
+                    — {t(`home.${key}Author`)}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 6. TRUST SIGNALS ─── */}
       <section className="py-16 bg-background">
         <div className="container">
           <div className="grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
@@ -234,7 +297,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* ─── 7. CTA ─── */}
       <section className="py-20 bg-gradient-clay text-accent-foreground">
         <div className="container text-center">
           <h2 className="font-display text-3xl font-bold">
@@ -249,7 +312,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Mobile FAB */}
       <MobileFAB />
     </PublicLayout>
   );
