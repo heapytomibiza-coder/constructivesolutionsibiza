@@ -29,6 +29,15 @@ export function QuotesTab({ jobId, isOwner }: QuotesTabProps) {
 
   const [showForm, setShowForm] = useState(false);
 
+  // Track quote_viewed once per mount for client
+  const trackedRef = useRef(false);
+  useEffect(() => {
+    if (isOwner && allQuotes && allQuotes.length > 0 && !trackedRef.current) {
+      trackedRef.current = true;
+      trackEvent('quote_viewed', 'client', { jobId, quoteCount: allQuotes.length });
+    }
+  }, [isOwner, allQuotes, jobId]);
+
   const isLoading = isOwner ? loadingAll : loadingMine;
 
   if (isLoading) {
@@ -39,15 +48,6 @@ export function QuotesTab({ jobId, isOwner }: QuotesTabProps) {
       </div>
     );
   }
-
-  // Track quote_viewed once per mount for client
-  const trackedRef = useRef(false);
-  useEffect(() => {
-    if (isOwner && allQuotes && allQuotes.length > 0 && !trackedRef.current) {
-      trackedRef.current = true;
-      trackEvent('quote_viewed', 'client', { jobId, quoteCount: allQuotes.length });
-    }
-  }, [isOwner, allQuotes, jobId]);
 
   // Client view
   if (isOwner) {
