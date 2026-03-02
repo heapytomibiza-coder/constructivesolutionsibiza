@@ -24,6 +24,7 @@ import { getI18nField, getContentLang } from "@/lib/i18nContent";
 import { txCategory, txSubcategory, txMicro } from "@/i18n/taxonomyTranslations";
 import { FormattedAnswers } from "./components/FormattedAnswers";
 import { isUserError } from "@/shared/lib/userError";
+import { isRolloutActive } from "@/domain/rollout";
 import { useListingsForJob } from "./hooks/useListingsForJob";
 import { ServiceListingCardComponent } from "@/pages/services/ServiceListingCard";
 import type { JobAnswers } from "./types";
