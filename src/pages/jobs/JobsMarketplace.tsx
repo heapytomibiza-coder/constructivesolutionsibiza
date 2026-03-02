@@ -54,10 +54,6 @@ function applyFilters(jobs: JobsBoardRow[], f: Filters): JobsBoardRow[] {
   });
 }
 
-function featuredPredicate(j: JobsBoardRow): boolean {
-  return isNewToday(j.created_at) && budgetProxy(j) >= 500 && !!j.has_photos;
-}
-
 export function JobsMarketplace() {
   const [filters, setFilters] = React.useState<Filters>(EMPTY_FILTERS);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -97,9 +93,7 @@ export function JobsMarketplace() {
   const todayJobs = React.useMemo(() => filtered.filter((j) => isNewToday(j.created_at)).length, [filtered]);
   const totalBudget = React.useMemo(() => filtered.reduce((sum, j) => sum + budgetProxy(j), 0), [filtered]);
 
-  const featured = React.useMemo(() => filtered.filter(featuredPredicate).slice(0, 3), [filtered]);
-  const featuredIds = React.useMemo(() => new Set(featured.map((j) => j.id)), [featured]);
-  const regular = React.useMemo(() => filtered.filter((j) => !featuredIds.has(j.id)), [filtered, featuredIds]);
+  const regular = filtered;
 
   const handleToggle = React.useCallback((key: keyof HeroToggles) => {
     setFilters((p) => {
@@ -186,20 +180,6 @@ export function JobsMarketplace() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-6">
-          {featured.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">{t('board.featured')}</h2>
-                <Badge variant="secondary">{t('board.top', { count: featured.length })}</Badge>
-              </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {featured.map((job) => (
-                  <JobListingCard key={job.id} job={job} isMatched={showMatchedOnly && isProfessional} />
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">
