@@ -32,6 +32,12 @@ const STEPS = [
 
 const WHY_ROWS = ['why1', 'why2', 'why3', 'why4'];
 
+const PORTFOLIO_ITEMS = [
+  { key: 'project1', accent: 'from-primary/80 to-primary/40' },
+  { key: 'project2', accent: 'from-accent/80 to-accent/40' },
+  { key: 'project3', accent: 'from-secondary/80 to-secondary/40' },
+];
+
 const Index = () => {
   const { t } = useTranslation('common');
 
