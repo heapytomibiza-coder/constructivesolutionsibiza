@@ -101,8 +101,9 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
  * - For routes like /auth that should redirect authenticated users away
  */
 export const PublicOnlyGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function PublicOnlyGuard({ children }, _ref) {
-  const { isAuthenticated, activeRole, isLoading, isReady } = useSession();
+  const { isAuthenticated, activeRole, hasRole, isLoading, isReady } = useSession();
   const [timedOut, setTimedOut] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     if (isReady && !isLoading) return;
@@ -114,7 +115,11 @@ export const PublicOnlyGuard = forwardRef<HTMLDivElement, RouteGuardProps>(funct
     return <LoadingSpinner />;
   }
 
-  if (isReady && !isLoading && isAuthenticated) {
+  // Allow admins to preview public-only pages with ?preview=1
+  const searchParams = new URLSearchParams(location.search);
+  const isAdminPreview = searchParams.get('preview') === '1' && isAuthenticated && hasRole('admin');
+
+  if (isReady && !isLoading && isAuthenticated && !isAdminPreview) {
     const dashboardPath = activeRole === 'professional' 
       ? '/dashboard/pro' 
       : '/';
