@@ -41,7 +41,7 @@ export function StatTile({
           {icon}
         </div>
         <div className="min-w-0 w-full">
-          <p className="text-[11px] sm:text-xs text-muted-foreground leading-tight">{label}</p>
+          <p className="text-[11px] sm:text-xs text-muted-foreground leading-tight line-clamp-2">{label}</p>
           <div className="flex items-center justify-center sm:justify-start gap-1.5">
             <p className="text-lg sm:text-xl font-bold truncate">{value}</p>
             {isNew && (
