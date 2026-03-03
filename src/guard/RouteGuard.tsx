@@ -103,7 +103,6 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
 export const PublicOnlyGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function PublicOnlyGuard({ children }, _ref) {
   const { isAuthenticated, activeRole, hasRole, isLoading, isReady } = useSession();
   const [timedOut, setTimedOut] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
     if (isReady && !isLoading) return;
