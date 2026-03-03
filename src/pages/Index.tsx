@@ -6,6 +6,7 @@ import { PublicLayout, HeroBanner } from '@/components/layout';
 import { MobileFAB } from '@/components/MobileFAB';
 import { PLATFORM } from '@/domain/scope';
 import { UniversalSearchBar } from '@/components/search';
+import { isRolloutActive } from '@/domain/rollout';
 import { 
   ArrowRight, Shield, Clock, Star, CheckCircle,
   MessageSquare, Ruler, HardHat, CheckCircle2,
