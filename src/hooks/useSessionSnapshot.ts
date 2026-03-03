@@ -234,7 +234,15 @@ export function useSessionSnapshot(): SessionSnapshot {
             setSession(newSession);
             setUser(newSession.user);
             // Use setTimeout to avoid potential deadlock with Supabase client
-            setTimeout(() => loadUserData(newSession.user.id), 0);
+            // On TOKEN_REFRESHED, load data but keep existing state on failure (graceful degradation)
+            setTimeout(() => {
+              loadUserData(newSession.user.id).catch((err) => {
+                if (event === 'TOKEN_REFRESHED') {
+                  console.warn('loadUserData failed during token refresh, keeping cached state:', err);
+                  // Don't reset state — keep stale data rather than breaking the UI
+                }
+              });
+            }, 0);
 
             // Fire-and-forget: bind attribution session → user via edge function
             if (event === 'SIGNED_IN') {

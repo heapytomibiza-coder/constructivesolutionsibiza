@@ -828,8 +828,14 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         toast.success(t('toasts.postSuccess'));
         navigate('/jobs');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Submit error:', error);
+      trackEvent('job_post_submit_fail', 'client', {
+        category: wizardState.mainCategory,
+        reason: error?.message || 'unknown',
+        code: error?.code || null,
+        mode: isEditMode ? 'edit' : 'new',
+      });
       toast.error(t('toasts.submitFailed'));
     } finally {
       setIsSubmitting(false);
