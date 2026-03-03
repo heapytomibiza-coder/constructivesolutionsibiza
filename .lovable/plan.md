@@ -1,48 +1,43 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+## Plan: Portfolio Section + Spanish Copy Polish
 
-## What's happening
+### 1. Add Portfolio / Featured Projects Section
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+Insert a new section between "Our Services" (section 3) and "Why Choose Us" (section 4) in `src/pages/Index.tsx`.
 
-## Root cause
+**Structure:** 3 placeholder project cards in a responsive grid, each showing:
+- Project type label (e.g. "Villa Renovation")
+- Location
+- Key stats: budget range, duration, trade categories involved
+- A short one-line result statement
+- Styled with a subtle gradient background and premium card treatment
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+Data array defined as a constant (`PORTFOLIO_ITEMS`) with 3 entries. Icons from lucide-react: `Camera`, `MapPin`, `Calendar`, `Euro`.
 
-## Affected components (7 files)
+No images yet — cards use a colored top band to feel visual without requiring photography.
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+### 2. i18n Keys
 
-## Implementation approach
+Add new keys under `home.portfolio*` and `home.project1*`, `home.project2*`, `home.project3*` to both EN and ES `common.json`.
 
-Each fix is the same 3-line pattern:
+**English examples:**
+- `portfolioTitle`: "Featured Projects"
+- `portfolioSubtitle`: "Real results from real builds across Ibiza"
+- `project1Type`: "Villa Renovation" / `project1Location`: "Santa Eulària" / `project1Budget`: "€180k–€250k" / `project1Duration`: "14 weeks" / `project1Trades`: "6 trades" / `project1Result`: "Delivered on time. Full interior and exterior transformation."
 
-```tsx
-// Before
-function ScrollToTop() { ... }
+### 3. Spanish Copy Polish
 
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
+Review and refine the existing `home.*` Spanish translations for premium construction tone. Key refinements:
+- `hero.title`: Strengthen from "Conectamos tu idea con la realidad" to something more commanding like "Construcción de precisión en Ibiza"
+- `hero.subtitle`: Tighten to feel authoritative rather than platform-like
+- Ensure all new portfolio keys have natural, premium Spanish copy
+- Minor tone adjustments across existing `home.*` keys where they still sound too "marketplace"
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+### Technical Details
 
-## What this does NOT change
-
-- No behavior changes
-- No new dependencies
+- **Files modified:** `src/pages/Index.tsx`, `public/locales/en/common.json`, `public/locales/es/common.json`
+- New section order becomes: Hero → How We Work → Services → **Portfolio** → Why Choose Us → Social Proof → Trust → CTA (8 sections)
+- No new components or dependencies needed
 - No database changes
-- No routing changes
-
-All 7 files will be edited in a single pass.
 
