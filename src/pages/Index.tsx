@@ -10,7 +10,7 @@ import {
   ArrowRight, Shield, Clock, Star, CheckCircle,
   MessageSquare, Ruler, HardHat, CheckCircle2,
   Hammer, PenTool, Waves, TreePine, Zap, Building2,
-  XCircle, Quote
+  XCircle, Quote, MapPin, Calendar, Euro, Wrench
 } from 'lucide-react';
 import heroHome from '@/assets/heroes/hero-home.jpg';
 
@@ -31,6 +31,12 @@ const STEPS = [
 ];
 
 const WHY_ROWS = ['why1', 'why2', 'why3', 'why4'];
+
+const PORTFOLIO_ITEMS = [
+  { key: 'project1', accent: 'from-primary/80 to-primary/40' },
+  { key: 'project2', accent: 'from-accent/80 to-accent/40' },
+  { key: 'project3', accent: 'from-secondary/80 to-secondary/40' },
+];
 
 const Index = () => {
   const { t } = useTranslation('common');
@@ -164,7 +170,57 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── 4. WHY CHOOSE US — Comparison ─── */}
+      {/* ─── 4. PORTFOLIO / FEATURED PROJECTS ─── */}
+      <section className="py-20 bg-background">
+        <div className="container">
+          <div className="text-center mb-14">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground">
+              {t('home.portfolioTitle')}
+            </h2>
+            <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
+              {t('home.portfolioSubtitle')}
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
+            {PORTFOLIO_ITEMS.map(({ key, accent }) => (
+              <Card key={key} className="card-grounded overflow-hidden group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+                <div className={`h-3 bg-gradient-to-r ${accent}`} />
+                <CardContent className="p-6">
+                  <span className="inline-block text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
+                    {t(`home.${key}Type`)}
+                  </span>
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {t(`home.${key}Location`)}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 mb-5">
+                    <div className="text-center p-2 rounded-lg bg-muted/50">
+                      <Euro className="h-4 w-4 mx-auto text-primary mb-1" />
+                      <p className="text-xs font-semibold text-foreground">{t(`home.${key}Budget`)}</p>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-muted/50">
+                      <Calendar className="h-4 w-4 mx-auto text-primary mb-1" />
+                      <p className="text-xs font-semibold text-foreground">{t(`home.${key}Duration`)}</p>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-muted/50">
+                      <Wrench className="h-4 w-4 mx-auto text-primary mb-1" />
+                      <p className="text-xs font-semibold text-foreground">{t(`home.${key}Trades`)}</p>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-muted-foreground leading-relaxed border-t border-border pt-4">
+                    {t(`home.${key}Result`)}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 5. WHY CHOOSE US — Comparison ─── */}
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">
