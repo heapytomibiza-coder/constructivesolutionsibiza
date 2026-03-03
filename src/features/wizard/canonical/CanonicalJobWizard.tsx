@@ -727,6 +727,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
     // Auth check
     if (!isAuthenticated || !user) {
+      trackEvent('job_post_submit_auth_redirect', 'client', { category: wizardState.mainCategory });
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(wizardState));
       sessionStorage.setItem('authRedirect', '/post?resume=true');
       navigate('/auth');
@@ -739,6 +740,13 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       validation.errors.forEach(err => toast.error(err));
       return;
     }
+
+    // Track submit attempt (after validation passes, before DB call)
+    trackEvent('job_post_submit_attempt', 'client', {
+      category: wizardState.mainCategory,
+      mode: isEditMode ? 'edit' : 'new',
+      wizardMode: wizardState.wizardMode,
+    });
 
     setIsSubmitting(true);
 
