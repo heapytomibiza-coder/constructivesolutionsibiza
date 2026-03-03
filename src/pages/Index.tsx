@@ -134,34 +134,54 @@ const Index = () => {
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
-            {SERVICE_CARDS.map(({ key, icon: Icon, link }) => (
-              <Link key={key} to={link} className="group">
-                <Card className="card-grounded h-full transition-all duration-200 hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5">
-                  <CardContent className="flex items-start gap-4 p-6">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-display text-lg font-semibold text-foreground mb-1">
-                        {t(`home.${key}Title`)}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {t(`home.${key}Desc`)}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+            {SERVICE_CARDS.map(({ key, icon: Icon, link }) => {
+              const servicesOpen = isRolloutActive('service-layer');
+              const Wrapper = servicesOpen ? Link : 'div';
+              const wrapperProps = servicesOpen ? { to: link, className: 'group' } : { className: 'group relative' };
+
+              return (
+                <Wrapper key={key} {...(wrapperProps as any)}>
+                  {!servicesOpen && (
+                    <span className="absolute top-3 right-3 z-10 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                      {t('home.comingSoon', 'Coming Soon')}
+                    </span>
+                  )}
+                  <Card className={`card-grounded h-full transition-all duration-200 ${servicesOpen ? 'hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5' : 'opacity-80'}`}>
+                    <CardContent className="flex items-start gap-4 p-6">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-display text-lg font-semibold text-foreground mb-1">
+                          {t(`home.${key}Title`)}
+                        </h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {t(`home.${key}Desc`)}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Wrapper>
+              );
+            })}
           </div>
 
           <div className="flex justify-center mt-10">
-            <Button variant="outline" size="lg" asChild>
-              <Link to="/services">
-                {t('home.viewAllServices')}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            {isRolloutActive('service-layer') ? (
+              <Button variant="outline" size="lg" asChild>
+                <Link to="/services">
+                  {t('home.viewAllServices')}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button size="lg" asChild>
+                <Link to="/post">
+                  {t('home.startProject')}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </section>
