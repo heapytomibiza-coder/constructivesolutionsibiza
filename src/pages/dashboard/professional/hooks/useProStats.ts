@@ -26,8 +26,8 @@ interface MatchedJob {
 }
 
 export function useProStats() {
-  const { user } = useSession();
-  const { servicesCount } = useProfessionalServices();
+  const { user, professionalProfile } = useSession();
+  const servicesCount = professionalProfile?.servicesCount ?? 0;
 
   const matchedJobsQuery = useQuery({
     queryKey: ['matched_jobs', user?.id],
@@ -45,6 +45,8 @@ export function useProStats() {
       return data || [];
     },
     enabled: !!user?.id,
+    staleTime: 60000,
+    placeholderData: keepPreviousData,
   });
 
   const unreadQuery = useQuery({
