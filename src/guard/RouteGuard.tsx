@@ -8,12 +8,14 @@
 import { useState, useEffect, forwardRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { useSession } from '@/contexts/SessionContext';
 import { getRouteConfig } from '@/app/routes';
 import { checkAccess } from '@/guard/access';
 import { buildRedirectUrl, buildReturnUrl } from '@/guard/redirects';
 import { isRolloutActive } from '@/domain/rollout';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface RouteGuardProps {
   children?: React.ReactNode;
