@@ -59,11 +59,6 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
-                <Link to="#how-we-work">
-                  {t('home.seeHowWeWork')}
-                </Link>
-              </Button>
             </div>
             <div className="hero-trust-badge mt-2">
               <CheckCircle className="h-4 w-4" />
