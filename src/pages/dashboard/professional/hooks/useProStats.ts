@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
-import { useProfessionalServices } from '@/hooks/useProfessionalServices';
 
 interface ProStats {
   servicesCount: number;
@@ -27,8 +26,8 @@ interface MatchedJob {
 }
 
 export function useProStats() {
-  const { user } = useSession();
-  const { servicesCount } = useProfessionalServices();
+  const { user, professionalProfile } = useSession();
+  const servicesCount = professionalProfile?.servicesCount ?? 0;
 
   const matchedJobsQuery = useQuery({
     queryKey: ['matched_jobs', user?.id],
@@ -46,6 +45,8 @@ export function useProStats() {
       return data || [];
     },
     enabled: !!user?.id,
+    staleTime: 60000,
+    placeholderData: keepPreviousData,
   });
 
   const unreadQuery = useQuery({
@@ -61,6 +62,7 @@ export function useProStats() {
     },
     enabled: !!user?.id,
     staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const stats: ProStats = {

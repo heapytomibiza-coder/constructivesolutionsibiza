@@ -52,7 +52,13 @@ export function useMyQuoteForJob(jobId: string | null, userId: string | null, en
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
+      // Treat 403 (RLS denial) as "no quote" instead of crashing
+      if (error) {
+        if (error.code === '42501' || error.message?.includes('permission denied')) {
+          return null;
+        }
+        throw error;
+      }
       if (!data) return null;
       return { ...data, line_items: (data as any).quote_line_items ?? [] } as Quote;
     },
