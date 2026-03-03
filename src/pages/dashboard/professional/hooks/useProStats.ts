@@ -62,6 +62,7 @@ export function useProStats() {
     },
     enabled: !!user?.id,
     staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const stats: ProStats = {
