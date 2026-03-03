@@ -115,11 +115,8 @@ export const PublicOnlyGuard = forwardRef<HTMLDivElement, RouteGuardProps>(funct
     return <LoadingSpinner />;
   }
 
-  // Allow admins to preview public-only pages with ?preview=1
-  const searchParams = new URLSearchParams(location.search);
-  const isAdminPreview = searchParams.get('preview') === '1' && isAuthenticated && hasRole('admin');
-
-  if (isReady && !isLoading && isAuthenticated && !isAdminPreview) {
+  // Admins can always view public-only pages (e.g. /auth) without redirect
+  if (isReady && !isLoading && isAuthenticated && !hasRole('admin')) {
     const dashboardPath = activeRole === 'professional' 
       ? '/dashboard/pro' 
       : '/';
