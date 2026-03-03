@@ -10,7 +10,7 @@ import {
   ArrowRight, Shield, Clock, Star, CheckCircle,
   MessageSquare, Ruler, HardHat, CheckCircle2,
   Hammer, PenTool, Waves, TreePine, Zap, Building2,
-  XCircle, Quote
+  XCircle, Quote, MapPin, Calendar, Euro, Wrench
 } from 'lucide-react';
 import heroHome from '@/assets/heroes/hero-home.jpg';
 
