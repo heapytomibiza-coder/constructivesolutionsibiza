@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORY_KEYS } from "@/i18n/categoryTranslations";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Category {
   id: string;
@@ -18,29 +20,41 @@ interface Props {
 
 export default function CategorySelector({ selectedCategory, onSelect, onNext, allowedCategoryIds }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
+  const { data: categories = [], isLoading, isError, refetch } = useQuery({
+    queryKey: ['service-categories-wizard'],
+    queryFn: async (): Promise<Category[]> => {
       const { data, error } = await supabase
         .from("service_categories")
         .select("id, name")
         .eq("is_active", true)
         .order("display_order");
 
-      if (!error && data) {
-        setCategories(data);
-      }
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 3,
+  });
 
-      setLoading(false);
-    };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
-    fetchCategories();
-  }, []);
-
-  if (loading) {
-    return <p className="text-muted-foreground">{t('wizard:category.loading')}</p>;
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-8 text-center">
+        <AlertCircle className="h-6 w-6 text-destructive" />
+        <p className="text-sm text-muted-foreground">{t('wizard:category.loadError', 'Could not load categories')}</p>
+        <Button variant="outline" size="sm" onClick={() => refetch()}>
+          {t('common:actions.retry', 'Try again')}
+        </Button>
+      </div>
+    );
   }
 
   const getCategoryLabel = (name: string): string => {
