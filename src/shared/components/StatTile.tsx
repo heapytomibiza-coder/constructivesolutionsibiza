@@ -31,19 +31,19 @@ export function StatTile({
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4 flex items-center gap-3">
+      <CardContent className="p-3 sm:p-4 flex flex-col items-center text-center gap-2 sm:flex-row sm:text-left sm:gap-3">
         <div
           className={cn(
-            "h-10 w-10 rounded-sm flex items-center justify-center",
+            "h-10 w-10 shrink-0 rounded-sm flex items-center justify-center",
             iconClassName ?? "bg-primary/10"
           )}
         >
           {icon}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-muted-foreground truncate">{label}</p>
-          <div className="flex items-center gap-2">
-            <p className="text-xl font-bold">{value}</p>
+        <div className="min-w-0 w-full">
+          <p className="text-[11px] sm:text-xs text-muted-foreground leading-tight">{label}</p>
+          <div className="flex items-center justify-center sm:justify-start gap-1.5">
+            <p className="text-lg sm:text-xl font-bold truncate">{value}</p>
             {isNew && (
               <Badge variant="accent" className="text-[10px] px-1.5 py-0">
                 New
