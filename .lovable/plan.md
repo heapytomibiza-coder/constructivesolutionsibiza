@@ -1,48 +1,50 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+## Admin Security Audit — Current State
 
-## What's happening
+### What is already locked down (strong)
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+**1. Database-level dual-gate (the real security)**
+Every admin RLS policy requires BOTH checks:
+- `has_role(auth.uid(), 'admin')` — user must have the admin role in `user_roles`
+- `is_admin_email()` — user's email must appear in the `admin_allowlist` table
 
-## Root cause
+This means even if someone somehow gets the `admin` role injected, their email must also be on the allowlist. The allowlist currently contains 3 emails and has no INSERT/UPDATE/DELETE policies, so it cannot be modified via the API.
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+**2. Frontend route gating**
+All `/dashboard/admin/*` routes use `access: 'admin'` in the registry. The `RouteGuard` checks `hasRole('admin')` from the session context before rendering. Non-admins are redirected to `/auth`.
 
-## Affected components (7 files)
+**3. Admin RPCs**
+Functions like `admin_verify_professional` check `has_role(auth.uid(), 'admin')` inside the RPC body and raise exceptions if unauthorized.
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+**4. No hardcoded emails in frontend**
+`adminAllowlist.ts` is a no-op stub. Admin status is purely DB-driven.
 
-## Implementation approach
+**5. Admin actions logged**
+All administrative interventions write to `admin_actions_log` for auditability.
 
-Each fix is the same 3-line pattern:
+---
 
-```tsx
-// Before
-function ScrollToTop() { ... }
+### What could be tightened (minor gaps)
 
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
+**1. Leaked password protection is disabled** (flagged by linter)
+- This is a backend auth setting, not admin-specific, but affects all accounts including admin ones.
+- Enabling it would check passwords against known breach databases.
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+**2. Settings page shows "Admin Panel" link based on client-side role check**
+- Line 130 in `Settings.tsx`: `const isAdmin = roles.includes('admin')` — this is fine for UX gating (showing/hiding the button), and the real guard is at the route + RLS level. No action needed, but worth noting the distinction.
 
-## What this does NOT change
+**3. `professional_documents` storage policy uses only `has_role()` without `is_admin_email()`**
+- One early migration (Feb 14) created admin policies on `professional_documents` and its storage bucket using only `has_role(auth.uid(), 'admin')` without the `is_admin_email()` double-check that was added later (Feb 19). This is a minor inconsistency.
 
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
+**4. No rate limiting on admin actions**
+- The `rate_limit_events` system exists for user actions but admin operations (verify pro, archive job, etc.) are not rate-limited. Low risk since admin access is tightly controlled, but worth noting.
 
-All 7 files will be edited in a single pass.
+---
+
+### Verdict
+
+Your admin security is solid. The dual-gate pattern (`has_role` + `is_admin_email`) across all admin RLS policies is the correct approach, and the allowlist table being read-only via API is a strong design. The only actionable item is the `professional_documents` policy inconsistency — adding `is_admin_email()` to those 2 older policies would make the pattern fully consistent.
+
+No plan needed — this is a research/audit answer. No code changes required unless you want the `professional_documents` policy fix applied.
 
