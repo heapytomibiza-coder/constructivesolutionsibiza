@@ -53,8 +53,12 @@ export const SEARCH_SYNONYMS: Record<string, string[]> = {
   // === GENERAL ===
   handyman: ["odd jobs", "diy", "general repairs", "maintenance"],
   emergency: ["urgent", "asap", "24h", "same day"],
-  repair: ["fix", "mend", "broken"],
+  repair: ["fix", "mend", "broken", "replace", "replaced", "replacement"],
+  replace: ["replacement", "replaced", "swap", "change"],
+  replaced: ["replace", "replacement", "swap", "change"],
   install: ["installation", "fit", "fitting", "mount"],
+  kitchen: ["cocina", "kitchen fitting", "kitchen installation"],
+  bathroom: ["baño", "bathroom fitting", "bathroom installation"],
 };
 
 // === EXPANSION SAFEGUARDS ===
