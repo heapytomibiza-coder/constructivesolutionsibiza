@@ -117,6 +117,7 @@ export const SUBCATEGORY_KEYS: Record<string, string> = {
   // Floors, Doors & Windows
   "Flooring": "flooring",
   "Flooring Installation": "flooring-installation",
+  "Floor & Surface Finishes": "floor-surface-finishes",
   "Door Installation": "door-installation",
   "Window Installation": "window-installation",
   "Windows": "windows",
