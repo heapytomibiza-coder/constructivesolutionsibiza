@@ -53,8 +53,12 @@ export const SEARCH_SYNONYMS: Record<string, string[]> = {
   // === GENERAL ===
   handyman: ["odd jobs", "diy", "general repairs", "maintenance"],
   emergency: ["urgent", "asap", "24h", "same day"],
-  repair: ["fix", "mend", "broken"],
+  repair: ["fix", "mend", "broken", "replace", "replaced", "replacement"],
+  replace: ["replacement", "replaced", "swap", "change"],
+  replaced: ["replace", "replacement", "swap", "change"],
   install: ["installation", "fit", "fitting", "mount"],
+  kitchen: ["cocina", "kitchen fitting", "kitchen installation"],
+  bathroom: ["baño", "bathroom fitting", "bathroom installation"],
 };
 
 // === EXPANSION SAFEGUARDS ===
@@ -69,25 +73,37 @@ export function expandQuery(query: string): string[] {
   const normalized = query.trim().toLowerCase();
   if (!normalized || normalized.length < MIN_TERM_LENGTH) return [];
   
-  const expansions = new Set<string>([normalized]);
+  const expansions = new Set<string>();
 
-  for (const [key, values] of Object.entries(SEARCH_SYNONYMS)) {
-    // If query contains the key, add all synonyms
-    if (normalized.includes(key)) {
-      expansions.add(key);
-      values.forEach(v => {
-        if (v.length >= MIN_TERM_LENGTH) expansions.add(v);
-      });
-    }
-    
-    // If query matches any synonym, add the key and other synonyms
-    for (const synonym of values) {
-      if (normalized.includes(synonym)) {
+  // Split into individual words so multi-word queries match per-word synonyms
+  const words = normalized.split(/\s+/).filter(w => w.length >= MIN_TERM_LENGTH);
+  
+  // Add each individual word as a search term
+  words.forEach(w => expansions.add(w));
+
+  // Also add the full phrase for exact-phrase matching
+  if (words.length > 1) {
+    expansions.add(normalized);
+  }
+
+  // Expand each word through synonyms
+  for (const word of words) {
+    for (const [key, values] of Object.entries(SEARCH_SYNONYMS)) {
+      if (word === key || word.includes(key)) {
         expansions.add(key);
         values.forEach(v => {
           if (v.length >= MIN_TERM_LENGTH) expansions.add(v);
         });
-        break;
+      }
+      
+      for (const synonym of values) {
+        if (word === synonym || word.includes(synonym)) {
+          expansions.add(key);
+          values.forEach(v => {
+            if (v.length >= MIN_TERM_LENGTH) expansions.add(v);
+          });
+          break;
+        }
       }
     }
   }
