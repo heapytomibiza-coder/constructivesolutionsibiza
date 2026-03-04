@@ -107,8 +107,12 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
 
   const hasAnySearchResults = useMemo(() => {
     if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return categories.some((c) => c.subcategories.some((s) => s.micros.some((m) => m.name.toLowerCase().includes(q) || m.slug.toLowerCase().includes(q))));
+    const terms = expandQuery(searchQuery);
+    return categories.some((c) => c.subcategories.some((s) => s.micros.some((m) => {
+      const name = m.name.toLowerCase();
+      const slug = m.slug.toLowerCase();
+      return terms.some(term => name.includes(term) || slug.includes(term));
+    })));
   }, [categories, searchQuery]);
 
   const handleContinue = async () => {
