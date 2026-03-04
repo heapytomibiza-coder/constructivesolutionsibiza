@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { metricRegistry, allMetricKeys } from "../lib/metricRegistry";
 import {
   Map, BarChart3, Users, DollarSign, Zap, AlertTriangle, Repeat, UserCheck, Globe,
+  MessageSquare,
 } from "lucide-react";
 
 const LEADER_PAGES = [
