@@ -5,6 +5,7 @@
  */
 
 import { useMemo } from 'react';
+import { expandQuery } from '@/features/search/lib/searchSynonyms';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ChevronRight, Check } from 'lucide-react';
