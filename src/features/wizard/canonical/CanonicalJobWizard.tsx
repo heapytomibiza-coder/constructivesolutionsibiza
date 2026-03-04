@@ -122,8 +122,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const proScope = useProServiceScope(wizardState.targetProfessionalId);
   const isDirectMode = wizardState.dispatchMode === 'direct' && !!wizardState.targetProfessionalId;
   
-  // URL sync (only after initialization)
-  useWizardUrlStep(currentStep, setCurrentStep);
+  // URL sync (only after initialization — prevents overwriting deep-link params)
+  useWizardUrlStep(currentStep, setCurrentStep, isInitialized);
   
   // === EDIT MODE DETECTION (highest priority) ===
   useEffect(() => {
