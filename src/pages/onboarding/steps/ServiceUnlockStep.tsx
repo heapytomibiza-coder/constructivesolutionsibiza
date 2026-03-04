@@ -57,8 +57,12 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
 
   const firstMatchingCategoryId = useMemo(() => {
     if (!searchQuery) return null;
-    const q = searchQuery.toLowerCase();
-    const match = categories.find((c) => c.subcategories.some((s) => s.micros.some((m) => m.name.toLowerCase().includes(q) || m.slug.toLowerCase().includes(q))));
+    const terms = expandQuery(searchQuery);
+    const match = categories.find((c) => c.subcategories.some((s) => s.micros.some((m) => {
+      const name = m.name.toLowerCase();
+      const slug = m.slug.toLowerCase();
+      return terms.some(term => name.includes(term) || slug.includes(term));
+    })));
     return match?.id ?? null;
   }, [categories, searchQuery]);
 
