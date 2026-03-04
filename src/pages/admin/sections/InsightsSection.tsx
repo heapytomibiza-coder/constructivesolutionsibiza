@@ -62,6 +62,12 @@ const LEADER_PAGES = [
     description: "Where users come from — WhatsApp, Instagram, ads, direct",
     icon: Globe,
   },
+  {
+    path: "/dashboard/admin/insights/messaging-pulse",
+    label: "Messaging Pulse",
+    description: "Response times, message flow, stale threads — your messaging health",
+    icon: MessageSquare,
+  },
 ];
 
 export default function InsightsSection() {
