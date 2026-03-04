@@ -341,10 +341,6 @@ const handler = async (req: Request): Promise<Response> => {
           recipientEmail = ADMIN_EMAIL;
         } else {
           recipientEmail = await getUserEmail(item.recipient_user_id);
-          // Route all to admin until domain verified
-          if (recipientEmail && recipientEmail !== ADMIN_EMAIL) {
-            recipientEmail = ADMIN_EMAIL;
-          }
         }
 
         if (!recipientEmail) {
