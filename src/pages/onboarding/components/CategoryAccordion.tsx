@@ -5,6 +5,7 @@
  */
 
 import { useMemo } from 'react';
+import { expandQuery } from '@/features/search/lib/searchSynonyms';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ChevronRight, Check } from 'lucide-react';
@@ -74,14 +75,15 @@ export function CategoryAccordion({
   const filteredSubcategories = useMemo(() => {
     if (!searchQuery) return category.subcategories;
     
-    const lowerQuery = searchQuery.toLowerCase();
+    const terms = expandQuery(searchQuery);
     return category.subcategories
       .map(sub => ({
         ...sub,
-        micros: sub.micros.filter(m => 
-          m.name.toLowerCase().includes(lowerQuery) ||
-          m.slug.toLowerCase().includes(lowerQuery)
-        )
+        micros: sub.micros.filter(m => {
+          const name = m.name.toLowerCase();
+          const slug = m.slug.toLowerCase();
+          return terms.some(term => name.includes(term) || slug.includes(term));
+        })
       }))
       .filter(sub => sub.micros.length > 0);
   }, [category.subcategories, searchQuery]);

@@ -21,6 +21,7 @@ import { ServiceSearchBar } from '../components/ServiceSearchBar';
 import { useServiceTaxonomy } from '../hooks/useServiceTaxonomy';
 import { useProfessionalServices } from '../hooks/useProfessionalServices';
 import { useMicroPreferences } from '../hooks/useMicroPreferences';
+import { expandQuery } from '@/features/search/lib/searchSynonyms';
 import type { Preference } from '../types/preferences';
 
 interface ServiceUnlockStepProps {
@@ -56,8 +57,12 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
 
   const firstMatchingCategoryId = useMemo(() => {
     if (!searchQuery) return null;
-    const q = searchQuery.toLowerCase();
-    const match = categories.find((c) => c.subcategories.some((s) => s.micros.some((m) => m.name.toLowerCase().includes(q) || m.slug.toLowerCase().includes(q))));
+    const terms = expandQuery(searchQuery);
+    const match = categories.find((c) => c.subcategories.some((s) => s.micros.some((m) => {
+      const name = m.name.toLowerCase();
+      const slug = m.slug.toLowerCase();
+      return terms.some(term => name.includes(term) || slug.includes(term));
+    })));
     return match?.id ?? null;
   }, [categories, searchQuery]);
 
@@ -102,8 +107,12 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
 
   const hasAnySearchResults = useMemo(() => {
     if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return categories.some((c) => c.subcategories.some((s) => s.micros.some((m) => m.name.toLowerCase().includes(q) || m.slug.toLowerCase().includes(q))));
+    const terms = expandQuery(searchQuery);
+    return categories.some((c) => c.subcategories.some((s) => s.micros.some((m) => {
+      const name = m.name.toLowerCase();
+      const slug = m.slug.toLowerCase();
+      return terms.some(term => name.includes(term) || slug.includes(term));
+    })));
   }, [categories, searchQuery]);
 
   const handleContinue = async () => {
