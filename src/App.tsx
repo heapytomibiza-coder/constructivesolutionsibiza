@@ -75,6 +75,7 @@ import {
   MetricInsightPage, MarketGapPage, FunnelsPage,
   ProPerformancePage, PricingPage, TrendRadarPage,
   UnansweredJobsPage, RepeatWorkPage, OnboardingFunnelPage, TopSourcesPage,
+  MessagingPulsePage,
 } from "./pages/admin/insights";
 import { MonitoringPage } from "./pages/admin/monitoring";
 
