@@ -2489,6 +2489,10 @@ export type Database = {
         Args: { p_from_ts?: string; p_to_ts?: string }
         Returns: Json
       }
+      admin_messaging_pulse: {
+        Args: { p_from_ts?: string; p_to_ts?: string }
+        Returns: Json
+      }
       admin_metric_drilldown: {
         Args: {
           p_area_filter?: string

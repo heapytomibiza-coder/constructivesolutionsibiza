@@ -8,3 +8,4 @@ export { default as UnansweredJobsPage } from "./UnansweredJobsPage";
 export { default as RepeatWorkPage } from "./RepeatWorkPage";
 export { default as OnboardingFunnelPage } from "./OnboardingFunnelPage";
 export { default as TopSourcesPage } from "./TopSourcesPage";
+export { default as MessagingPulsePage } from "./MessagingPulsePage";

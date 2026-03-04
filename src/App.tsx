@@ -75,6 +75,7 @@ import {
   MetricInsightPage, MarketGapPage, FunnelsPage,
   ProPerformancePage, PricingPage, TrendRadarPage,
   UnansweredJobsPage, RepeatWorkPage, OnboardingFunnelPage, TopSourcesPage,
+  MessagingPulsePage,
 } from "./pages/admin/insights";
 import { MonitoringPage } from "./pages/admin/monitoring";
 
@@ -206,6 +207,7 @@ const App = () => {
                 <Route path="insights/repeat-work" element={<RepeatWorkPage />} />
                 <Route path="insights/onboarding-funnel" element={<OnboardingFunnelPage />} />
                 <Route path="insights/top-sources" element={<TopSourcesPage />} />
+                <Route path="insights/messaging-pulse" element={<MessagingPulsePage />} />
                 <Route path="insights/:metricKey" element={<MetricInsightPage />} />
                 <Route path="monitoring" element={<MonitoringPage />} />
               </Route>
