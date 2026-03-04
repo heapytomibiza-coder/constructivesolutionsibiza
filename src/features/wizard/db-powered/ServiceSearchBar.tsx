@@ -158,18 +158,18 @@ export function ServiceSearchBar({
     queryFn: async () => {
       if (!debouncedQuery || debouncedQuery.length < 2) return [];
 
-      // Build search pattern - split words for flexible matching
+      // Build search with synonym expansion (handles typos like "mirco" → "microcement")
+      const orClause = buildSearchOrClause(debouncedQuery);
+      if (!orClause) return [];
+
+      // Also build a simple word-join pattern for multi-word intent queries
       const words = debouncedQuery.toLowerCase().trim().split(/\s+/)
         .filter(w => w.length >= 2 && !['need', 'want', 'looking', 'for', 'the', 'a', 'an', 'my'].includes(w));
-      
-      if (words.length === 0) return [];
-      
-      const pattern = `%${words.join('%')}%`;
 
       const { data, error } = await supabase
         .from('service_search_index')
         .select('*')
-        .ilike('search_text', pattern)
+        .or(orClause)
         .limit(15);
 
       if (error) {

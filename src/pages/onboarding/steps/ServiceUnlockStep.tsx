@@ -21,6 +21,7 @@ import { ServiceSearchBar } from '../components/ServiceSearchBar';
 import { useServiceTaxonomy } from '../hooks/useServiceTaxonomy';
 import { useProfessionalServices } from '../hooks/useProfessionalServices';
 import { useMicroPreferences } from '../hooks/useMicroPreferences';
+import { expandQuery } from '@/features/search/lib/searchSynonyms';
 import type { Preference } from '../types/preferences';
 
 interface ServiceUnlockStepProps {
