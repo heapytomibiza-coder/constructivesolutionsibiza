@@ -86,7 +86,7 @@ export function ConversationThread({
   }, []);
 
   return (
-    <div ref={containerRef} className="flex flex-col h-full">
+    <div className="flex flex-col h-[100dvh] max-h-[100dvh]">
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-card shrink-0">
         {onBack && (
