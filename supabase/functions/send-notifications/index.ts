@@ -172,15 +172,16 @@ function buildMessageEmail(payload: any, siteUrl: string) {
   const preview = payload.message_preview || "New message";
   const convUrl = `${siteUrl}/messages/${payload.conversation_id}`;
   return {
-    subject: `You have a new message — ${BRAND_NAME}`,
+    subject: `A professional replied to your job — respond now`,
     html: emailShell(
-      "linear-gradient(135deg, #374151, #4b5563)",
-      "New Message",
-      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 6px; font-style: italic; border-left: 3px solid #e5e7eb; padding-left: 12px;">"${preview}"</p>
-      <p style="color: #9ca3af; font-size: 13px; margin: 0 0 20px;">Reply to keep the conversation going.</p>
-      <a href="${convUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Conversation →</a>`
+      "linear-gradient(135deg, #059669, #10b981)",
+      "You Have a Reply!",
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 6px; font-style: italic; border-left: 3px solid #10b981; padding-left: 12px;">"${preview}"</p>
+      <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px;">A professional is waiting for your reply. Responding quickly helps you get the best service.</p>
+      <a href="${convUrl}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">Reply Now →</a>
+      <p style="color: #9ca3af; font-size: 12px; margin: 16px 0 0; text-align: center;">Tip: Quick replies get better quotes and faster service</p>`
     ),
-    whatsapp: `New message on ${BRAND_NAME}:\n"${preview.substring(0, 80)}"\n${convUrl}`,
+    whatsapp: `A professional replied to your job on ${BRAND_NAME}:\n"${preview.substring(0, 80)}"\nReply now: ${convUrl}`,
   };
 }
 
