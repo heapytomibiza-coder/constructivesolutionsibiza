@@ -175,6 +175,10 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
         </CardContent>
       </Card>
 
+      <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+        {t('serviceUnlock.whyThisMatters')}
+      </div>
+
       <p className="text-center text-base text-muted-foreground px-4">
         {t('serviceUnlock.recommendedHint', { min: RECOMMENDED_MIN, max: RECOMMENDED_MAX })}
         <span className="block text-sm mt-1 opacity-80">{t('serviceUnlock.noNeedAll')}</span>
