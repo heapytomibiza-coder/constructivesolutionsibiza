@@ -1,34 +1,48 @@
 
 
-## Constructive Solutions Ibiza -- Architecture Pack
+# Fix forwardRef Warnings — Cleanup Plan
 
-This is a documentation deliverable, not a code change. I will create a single comprehensive architecture document at `docs/ARCHITECTURE_PACK.md` that serves as the master blueprint.
+## What's happening
 
-### What it covers (5 sections)
+React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
 
-**Section 1 -- Swimlane User Journeys**
-Four lanes: Public, Client (Asker), Professional (Tasker), System. Traces every journey from landing to completion using the actual routes and components that exist today. Clearly marks what is live now (`pipe-control`) versus gated behind future rollout phases.
+## Root cause
 
-**Section 2 -- Route Map by Lane**
-Every route from `App.tsx` and `registry.ts`, tagged with: lane, access rule, guard, rollout gate, and entry points. Grouped by Public / Auth / Client / Professional / Admin / Shared.
+The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
 
-**Section 3 -- Feature-to-Page Matrix**
-The missing piece. A table mapping every page to: the feature systems it uses, the DB tables/views it touches, and what data it creates or changes. Built from actual component imports and query files.
+## Affected components (7 files)
 
-**Section 4 -- Job Lifecycle State Machine**
-Formal state machine using the canonical statuses from `job-status-state-machine` memory: `draft` -> `posted` -> `in_review` -> `live` -> `locked` -> `in_progress` -> `completed` -> `cancelled` -> `disputed`. Plus quote states and who controls each transition.
+| File | Component | Fix |
+|------|-----------|-----|
+| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
+| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
+| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
+| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
+| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
+| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
 
-**Section 5 -- Data Spine**
-Core tables grouped by system (Identity, Taxonomy, Jobs, Messaging, Quotes, Reviews, Admin), showing relationships through `job_id`, `user_id`, `professional_id`.
+## Implementation approach
 
-### Rollout awareness
-Each section clearly marks items as:
-- **LIVE** (pipe-control phase)
-- **GATED** (founding-members, service-layer, etc.)
-- **PLANNED** (not yet built: payments, escrow, disputes)
+Each fix is the same 3-line pattern:
 
-### File created
-- `docs/ARCHITECTURE_PACK.md` -- single source of truth, versioned in repo
+```tsx
+// Before
+function ScrollToTop() { ... }
 
-This is a Markdown document with ASCII tables and text diagrams. No code changes to the application.
+// After
+const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
+  // ... same body, ignore ref since there's no DOM node
+});
+```
+
+For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+
+## What this does NOT change
+
+- No behavior changes
+- No new dependencies
+- No database changes
+- No routing changes
+
+All 7 files will be edited in a single pass.
 
