@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Menu, LogOut, MessageSquare } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useConversations } from '@/pages/messages/hooks';
 
 import type { NavSection, RouteConfig } from '@/app/routes';
 import { 
