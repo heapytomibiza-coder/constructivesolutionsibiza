@@ -17,6 +17,7 @@
   "thread": {
     "conversation": "Conversation",
     "noMessages": "No messages yet. Start the conversation!",
+    "replyPrompt": "Say hello — they're waiting to hear from you",
     "placeholder": "Type a message...",
     "sendHint": "Enter to send · Shift+Enter for new line",
     "loadFailed": "Failed to load messages: {{error}}",
