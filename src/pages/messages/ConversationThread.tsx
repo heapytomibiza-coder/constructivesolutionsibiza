@@ -1,11 +1,10 @@
 import * as React from "react";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useMessages, useSendMessage, type Message } from "./hooks";
 import { RequestSupportButton, SystemMessage } from "./components";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send, ArrowLeft } from "lucide-react";
+import { Loader2, Send, ArrowLeft, CheckCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -39,9 +38,19 @@ export function ConversationThread({
   const { send, isSending } = useSendMessage(conversationId, currentUserId);
   const [draft, setDraft] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const prevMessageCountRef = useRef<number>(0);
 
   const dateFnsLocale = i18n.language?.startsWith('es') ? es : undefined;
+
+  // Scroll to bottom when messages change
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    // Use requestAnimationFrame to ensure DOM has updated
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior });
+    });
+  }, []);
 
   useEffect(() => {
     const currentCount = messages?.length ?? 0;
@@ -55,13 +64,15 @@ export function ConversationThread({
       onNewMessage?.();
     }
     prevMessageCountRef.current = currentCount;
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, currentUserId, onNewMessage]);
+    scrollToBottom(currentCount <= 1 ? 'instant' : 'smooth');
+  }, [messages, currentUserId, onNewMessage, scrollToBottom]);
 
   const handleSend = () => {
     if (draft.trim() && !isSending) {
       send(draft);
       setDraft("");
+      // Re-focus input after send for quick follow-up
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
   };
 
@@ -72,21 +83,28 @@ export function ConversationThread({
     handleSend();
   };
 
-  // Scroll compose area into view when keyboard opens (mobile)
-  const composeRef = useRef<HTMLDivElement>(null);
+  // Keep compose bar visible when mobile keyboard opens
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
+
+    let prevHeight = vv.height;
     const onResize = () => {
-      // When keyboard opens, scroll the compose bar into view
-      composeRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+      const delta = prevHeight - vv.height;
+      prevHeight = vv.height;
+      // Keyboard opened (height decreased significantly)
+      if (delta > 100) {
+        scrollToBottom('smooth');
+      }
     };
+
     vv.addEventListener('resize', onResize);
     return () => vv.removeEventListener('resize', onResize);
-  }, []);
+  }, [scrollToBottom]);
 
   return (
-    <div className="flex flex-col h-[100dvh] max-h-[100dvh]">
+    // Use h-full to inherit from parent — parent (Messages.tsx) controls the viewport height
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-card shrink-0">
         {onBack && (
@@ -109,8 +127,8 @@ export function ConversationThread({
         />
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+      {/* Messages area */}
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 space-y-2">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -133,34 +151,44 @@ export function ConversationThread({
                 />
               )
             ))}
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} className="h-1" />
           </>
         ) : (
-          <div className="text-center py-8 text-muted-foreground text-sm">
-            {t('thread.noMessages')}
+          <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <Send className="h-5 w-5 text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {t('thread.noMessages')}
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              {t('thread.replyPrompt')}
+            </p>
           </div>
         )}
       </div>
 
-      {/* Compose */}
-      <div ref={composeRef} className="px-3 py-2 border-t border-border bg-card shrink-0 pb-[env(safe-area-inset-bottom,8px)]">
-        <div className="flex gap-2 items-end">
-          <Textarea
+      {/* Compose — pinned to bottom */}
+      <div className="px-3 py-2 border-t border-border bg-card shrink-0 pb-[max(env(safe-area-inset-bottom),8px)]">
+        <div className="flex gap-2 items-center">
+          <input
+            ref={inputRef}
+            type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('thread.placeholder')}
-            className="resize-none min-h-[40px] max-h-28 text-sm py-2 rounded-xl"
-            rows={1}
+            className="flex-1 h-10 px-4 rounded-full border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
             disabled={isSending}
             autoComplete="off"
             autoCorrect="on"
+            enterKeyHint="send"
           />
           <Button
             onClick={handleSend}
             disabled={!draft.trim() || isSending}
             size="icon"
-            className="shrink-0 h-9 w-9"
+            className="shrink-0 h-10 w-10 rounded-full"
           >
             {isSending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -169,9 +197,6 @@ export function ConversationThread({
             )}
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-1 hidden sm:block">
-          {t('thread.sendHint')}
-        </p>
       </div>
     </div>
   );
@@ -189,14 +214,17 @@ function MessageBubble({ message, isOwn, locale }: { message: Message; isOwn: bo
         )}
       >
         <p className="text-[14px] leading-snug whitespace-pre-wrap break-words">{message.body}</p>
-        <p
-          className={cn(
-            "text-[10px] mt-0.5 opacity-70",
-            isOwn ? "text-primary-foreground" : "text-muted-foreground"
+        <div className={cn(
+          "flex items-center gap-1 mt-0.5 justify-end",
+          isOwn ? "text-primary-foreground" : "text-muted-foreground"
+        )}>
+          <span className="text-[10px] opacity-70">
+            {formatDistanceToNow(new Date(message.created_at), { addSuffix: true, locale })}
+          </span>
+          {isOwn && (
+            <CheckCheck className="h-3 w-3 opacity-70" />
           )}
-        >
-          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true, locale })}
-        </p>
+        </div>
       </div>
     </div>
   );

@@ -17,6 +17,7 @@
   "thread": {
     "conversation": "Conversación",
     "noMessages": "Aún no hay mensajes. ¡Inicia la conversación!",
+    "replyPrompt": "Saluda — están esperando tu respuesta",
     "placeholder": "Escribe un mensaje...",
     "sendHint": "Enter para enviar · Shift+Enter para nueva línea",
     "loadFailed": "No se pudieron cargar los mensajes: {{error}}",
