@@ -98,20 +98,33 @@ const ProDashboard = () => {
           </Button>
         </div>
 
-        {/* Service Setup Alert */}
+        {/* Services-First Guidance — prominent when no services */}
         {needsServiceSetup && (
-          <Card className="mb-5 border-accent bg-accent/5">
-            <CardContent className="py-4 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-semibold text-accent">{t('pro.completeSetup')}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">{t('pro.setupDescription')}</p>
+          <Card className="mb-5 border-primary bg-primary/5 shadow-md">
+            <CardContent className="py-5 px-5">
+              <div className="flex items-start gap-4">
+                <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+                  <Wrench className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display text-base font-bold text-foreground mb-1">
+                    {t('pro.servicesFirstTitle', 'Start with your services — it\'s how you get work')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {t('pro.servicesFirstDesc', 'Your services are how we match you to real job requests from clients on the island. No services = no matched jobs landing in your dashboard.')}
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {t('pro.servicesFirstWhy', 'Your profile matters too, but services come first — they\'re the engine that drives leads to you. You can polish your profile later.')}
+                  </p>
+                  <Button asChild size="default">
+                    <Link to="/onboarding/professional?step=services">
+                      <Wrench className="h-4 w-4 mr-2" />
+                      {t('pro.chooseServices', 'Choose Your Services')}
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
-              <Button variant="accent" size="sm" asChild className="shrink-0">
-                <Link to="/professional/listings">
-                  <Wrench className="h-4 w-4 mr-1.5" />
-                  {t('pro.addCategories', 'Add Categories')}
-                </Link>
-              </Button>
             </CardContent>
           </Card>
         )}
