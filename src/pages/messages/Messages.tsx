@@ -73,7 +73,7 @@ const Messages = () => {
   // Mobile: full-screen thread
   if (isMobile && conversationId) {
     return (
-      <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
+      <div className="fixed inset-0 bg-background flex flex-col overflow-hidden z-50">
         <ConversationThread
           conversationId={conversationId}
           currentUserId={user.id}
