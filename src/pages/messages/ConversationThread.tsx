@@ -143,7 +143,7 @@ export function ConversationThread({
       </div>
 
       {/* Compose */}
-      <div className="px-3 py-2 border-t border-border bg-card shrink-0">
+      <div ref={composeRef} className="px-3 py-2 border-t border-border bg-card shrink-0 pb-[env(safe-area-inset-bottom,8px)]">
         <div className="flex gap-2 items-end">
           <Textarea
             value={draft}
