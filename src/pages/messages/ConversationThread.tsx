@@ -72,25 +72,17 @@ export function ConversationThread({
     handleSend();
   };
 
-  // Lock the visual viewport height on mount to prevent iOS keyboard resize jumps
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Scroll compose area into view when keyboard opens (mobile)
+  const composeRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    // Set explicit height from window.innerHeight (stable before keyboard opens)
-    const setHeight = () => {
-      el.style.height = `${window.innerHeight}px`;
-    };
-    setHeight();
-    // visualViewport resize is the reliable signal on iOS
     const vv = window.visualViewport;
-    if (vv) {
-      const onResize = () => {
-        el.style.height = `${vv.height}px`;
-      };
-      vv.addEventListener('resize', onResize);
-      return () => vv.removeEventListener('resize', onResize);
-    }
+    if (!vv) return;
+    const onResize = () => {
+      // When keyboard opens, scroll the compose bar into view
+      composeRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
   }, []);
 
   return (
