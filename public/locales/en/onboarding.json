@@ -155,8 +155,9 @@
   "review": {
     "readyTitle": "You're ready to go live!",
     "almostTitle": "Almost there...",
-    "readyDescription": "Check everything looks good, then hit the button.",
+    "readyDescription": "Everything looks good. Hit the button and you'll start getting real job leads.",
     "almostDescription": "Complete the items below to go live.",
+    "whyThisMatters": "💡 Once you're live, clients posting jobs in your categories will land in your dashboard automatically. No cold calling needed.",
     "checklist": "Your profile checklist",
     "aboutYou": "About you",
     "aboutYouDesc": "Name and contact details",
@@ -166,11 +167,11 @@
     "jobsSelectedDesc": "{{count}} job type picked",
     "jobsSelectedDesc_plural": "{{count}} job types picked",
     "sendJobsFor": "We'll only send you jobs for:",
-    "changeAnytime": "You can change this anytime from your dashboard.",
+    "changeAnytime": "You can change all of this anytime from your dashboard — nothing is set in stone.",
     "goBack": "Go Back",
     "goLive": "Go Live",
     "completeAll": "Complete all checklist items to go live",
-    "liveSuccess": "🎉 You're live! Time to start receiving work.",
+    "liveSuccess": "🎉 You're live! Sit back — when a client posts a matching job, it'll appear in your dashboard.",
     "completeFirst": "Please complete all steps first",
     "goLiveFailed": "Failed to go live. Please try again."
   }
