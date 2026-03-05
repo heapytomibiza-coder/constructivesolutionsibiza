@@ -1,73 +1,84 @@
-# Welcome to your Lovable project
+# Constructive Solutions Ibiza
 
-## Project info
+Construction job platform connecting clients with trusted tradespeople in Ibiza.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Clients post construction jobs, professionals send structured quotes, and work is completed with real-time messaging, project tracking, and reviews.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Quick Start
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone <REPO_URL>
+cd constructive-solutions-ibiza
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Opens at `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## First-Time Code Review
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Start here: **[docs/START_HERE.md](docs/START_HERE.md)**
 
-## What technologies are used for this project?
+A 10-minute guided walkthrough covering routing, matching, messaging, quotes, and database security.
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Architecture
 
-## How can I deploy this project?
+Full system blueprint: **[docs/ARCHITECTURE_PACK.md](docs/ARCHITECTURE_PACK.md)**
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Includes user journeys, route map, job lifecycle state machine, feature-page matrix, and data spine.
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## Backend Security
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+All schema migrations and Row-Level Security policies are versioned in `supabase/migrations/` (93+ migration files).
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Security functions include `has_role()` (SECURITY DEFINER), `is_admin_email()`, and `switch_active_role()`.
+
+Full audit: **[docs/BACKEND_AUDIT.md](docs/BACKEND_AUDIT.md)**
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18 · TypeScript · Vite · Tailwind · shadcn-ui |
+| Backend | Supabase (Postgres · Realtime · Auth · Edge Functions) |
+| i18n | i18next (EN / ES) |
+| Testing | Vitest · ESLint |
+
+---
+
+## Platform Scope
+
+Construction and property services only. Categories include:
+
+- Construction & renovation
+- Electrical · Plumbing · HVAC
+- Carpentry · Kitchens & bathrooms
+- Floors · Doors · Windows
+- Painting & decorating
+- Gardening & landscaping
+- Pools & spas
+- Smart home · Testing & certification
+
+Lifestyle, concierge, and general freelance services are intentionally excluded.
+
+---
+
+## Contributing
+
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for code standards and conventions.
+
+---
+
+## Documentation
+
+See **[docs/README.md](docs/README.md)** for a full index of all project documentation.
