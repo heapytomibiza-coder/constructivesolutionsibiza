@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Menu, LogOut, MessageSquare } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useConversations } from '@/pages/messages/hooks';
 
 import type { NavSection, RouteConfig } from '@/app/routes';
 import { 
@@ -65,6 +66,11 @@ export function MobileNav() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isAuthenticated, activeRole, roles, user } = useSession();
+  const { data: conversations } = useConversations(user?.id);
+  const totalUnread = useMemo(
+    () => (conversations ?? []).reduce((sum, c) => sum + (c.unread_count ?? 0), 0),
+    [conversations]
+  );
 
   // Get visible nav from registry
   const navModel = useMemo(
@@ -153,6 +159,11 @@ export function MobileNav() {
               >
                 <MessageSquare className="h-4 w-4" />
                 {t('nav.messages')}
+                {totalUnread > 0 && (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-bold text-destructive-foreground">
+                    {totalUnread > 99 ? '99+' : totalUnread}
+                  </span>
+                )}
               </Link>
             </div>
 

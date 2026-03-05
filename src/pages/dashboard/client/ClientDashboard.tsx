@@ -73,6 +73,29 @@ const ClientDashboard = () => {
       </nav>
 
       <div className="container py-8">
+        {/* Unread Messages Banner */}
+        {stats.unreadMessages > 0 && (
+          <Link
+            to="/messages"
+            className="flex items-center gap-3 mb-6 p-4 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors group"
+          >
+            <div className="h-10 w-10 shrink-0 rounded-full bg-primary/20 flex items-center justify-center">
+              <MessageSquare className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                {stats.unreadMessages === 1
+                  ? t('client.unreadBannerSingle', 'A professional has replied to your job — tap to view')
+                  : t('client.unreadBannerPlural', 'You have {{count}} unread messages from professionals', { count: stats.unreadMessages })}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t('client.unreadBannerHint', 'Reply to keep the conversation going')}
+              </p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-primary shrink-0 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        )}
+
         {/* Header */}
         <div className="flex items-start justify-between mb-8 gap-3">
           <div className="min-w-0">
