@@ -91,7 +91,7 @@ const Messages = () => {
   // Mobile: conversation list
   if (isMobile) {
     return (
-      <div className="h-[100svh] bg-background flex flex-col overflow-hidden">
+      <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
         <nav className="border-b border-border bg-card shrink-0">
           <div className="px-4 flex h-14 items-center gap-3">
             <Link to={dashboardPath} className="text-muted-foreground hover:text-foreground">
