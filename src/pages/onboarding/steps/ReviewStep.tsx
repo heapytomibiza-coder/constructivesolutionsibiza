@@ -111,6 +111,10 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
         </CardHeader>
       </Card>
 
+      <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+        {t('review.whyThisMatters')}
+      </div>
+
       <Card className="card-grounded">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold">{t('review.checklist')}</CardTitle>

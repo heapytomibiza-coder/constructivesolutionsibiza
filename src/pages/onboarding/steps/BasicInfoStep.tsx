@@ -141,6 +141,9 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
             <CardDescription className="text-base">{t('basicInfo.description')}</CardDescription>
           </div>
         </div>
+        <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 mt-4">
+          {t('basicInfo.whyThisMatters')}
+        </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-7">

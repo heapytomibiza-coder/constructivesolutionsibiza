@@ -125,6 +125,9 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
           title={t('serviceArea.title')}
           description={t('serviceArea.description')}
         />
+        <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 mt-4">
+          {t('serviceArea.whyThisMatters')}
+        </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-7">
