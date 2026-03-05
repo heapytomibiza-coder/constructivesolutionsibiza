@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useMessages, useSendMessage, type Message } from "./hooks";
 import { RequestSupportButton, SystemMessage } from "./components";
@@ -40,73 +40,98 @@ export function ConversationThread({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const prevMessageCountRef = useRef<number>(0);
+  // Track last known message id to only scroll on genuinely new messages
+  const lastMessageIdRef = useRef<string | null>(null);
+  const initialScrollDoneRef = useRef(false);
 
   const dateFnsLocale = i18n.language?.startsWith('es') ? es : undefined;
 
-  // Scroll to bottom when messages change
+  // Stable scroll helper — uses the scroll container, not scrollIntoView (which causes page-level jumps)
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
-    // Use requestAnimationFrame to ensure DOM has updated
+    const container = scrollContainerRef.current;
+    if (!container) return;
     requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior });
+      container.scrollTo({ top: container.scrollHeight, behavior });
     });
   }, []);
 
+  // Only scroll when a truly new message arrives (not on refetch / cache rewrite)
   useEffect(() => {
-    const currentCount = messages?.length ?? 0;
-    const lastMessage = messages?.[messages.length - 1];
-    if (
-      currentCount > prevMessageCountRef.current &&
-      prevMessageCountRef.current > 0 &&
-      lastMessage &&
-      lastMessage.sender_id !== currentUserId
-    ) {
-      onNewMessage?.();
+    if (!messages || messages.length === 0) return;
+
+    const lastMsg = messages[messages.length - 1];
+    const isNewMessage = lastMsg.id !== lastMessageIdRef.current;
+
+    if (!initialScrollDoneRef.current) {
+      // First paint — jump instantly, no animation
+      scrollToBottom('instant');
+      initialScrollDoneRef.current = true;
+    } else if (isNewMessage) {
+      // New message from either party — smooth scroll
+      scrollToBottom('smooth');
+      // Notify parent for read-marking only if from other party
+      if (lastMsg.sender_id !== currentUserId) {
+        onNewMessage?.();
+      }
     }
-    prevMessageCountRef.current = currentCount;
-    scrollToBottom(currentCount <= 1 ? 'instant' : 'smooth');
+
+    lastMessageIdRef.current = lastMsg.id;
   }, [messages, currentUserId, onNewMessage, scrollToBottom]);
 
-  const handleSend = () => {
+  // Reset scroll tracking when conversation changes
+  useEffect(() => {
+    initialScrollDoneRef.current = false;
+    lastMessageIdRef.current = null;
+  }, [conversationId]);
+
+  const handleSend = useCallback(() => {
     if (draft.trim() && !isSending) {
       send(draft);
       setDraft("");
       // Re-focus input after send for quick follow-up
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  };
+  }, [draft, isSending, send]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key !== "Enter") return;
     if (e.shiftKey) return;
     e.preventDefault();
     handleSend();
-  };
+  }, [handleSend]);
 
   // Keep compose bar visible when mobile keyboard opens
+  // Use the scroll container approach instead of scrollIntoView to avoid page jumps
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
 
     let prevHeight = vv.height;
+    let rafId: number | null = null;
+
     const onResize = () => {
-      const delta = prevHeight - vv.height;
-      prevHeight = vv.height;
-      // Keyboard opened (height decreased significantly)
-      if (delta > 100) {
-        scrollToBottom('smooth');
-      }
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const delta = prevHeight - vv.height;
+        prevHeight = vv.height;
+        // Keyboard opened (height decreased significantly)
+        if (delta > 80) {
+          scrollToBottom('instant');
+        }
+      });
     };
 
     vv.addEventListener('resize', onResize);
-    return () => vv.removeEventListener('resize', onResize);
+    return () => {
+      vv.removeEventListener('resize', onResize);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [scrollToBottom]);
 
   return (
-    // Use h-full to inherit from parent — parent (Messages.tsx) controls the viewport height
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-card shrink-0">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Header — fixed height, never scrolls */}
+      <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-card shrink-0 z-10">
         {onBack && (
           <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
@@ -127,8 +152,12 @@ export function ConversationThread({
         />
       </div>
 
-      {/* Messages area */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 space-y-2">
+      {/* Messages area — this is the ONLY scrollable region */}
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 space-y-2"
+        style={{ overflowAnchor: 'none' }}
+      >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -151,7 +180,7 @@ export function ConversationThread({
                 />
               )
             ))}
-            <div ref={messagesEndRef} className="h-1" />
+            <div ref={messagesEndRef} className="h-px" />
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
@@ -168,7 +197,7 @@ export function ConversationThread({
         )}
       </div>
 
-      {/* Compose — pinned to bottom */}
+      {/* Compose — pinned to bottom, never moves */}
       <div className="px-3 py-2 border-t border-border bg-card shrink-0 pb-[max(env(safe-area-inset-bottom),8px)]">
         <div className="flex gap-2 items-center">
           <input
