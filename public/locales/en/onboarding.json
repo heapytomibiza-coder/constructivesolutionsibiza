@@ -119,6 +119,7 @@
   "serviceArea": {
     "title": "Where do you work?",
     "description": "Tap the areas of Ibiza where you're happy to take jobs.",
+    "whyThisMatters": "💡 We only send you jobs in YOUR areas — no wasted time driving across the island for nothing.",
     "selectAll": "Select all",
     "deselectAll": "Deselect all",
     "islandWide": "Great! You'll receive jobs from across Ibiza",
