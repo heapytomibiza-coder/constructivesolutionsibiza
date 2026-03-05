@@ -1,48 +1,58 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+## Plan: Create `docs/START_HERE.md` + add to Fevzi's workspace
 
-## What's happening
+A single investor-facing quick-start guide pointing to the 10 key files/folders, plus placing a copy in `docs/dev/` for Fevzi.
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+### File: `docs/START_HERE.md`
 
-## Root cause
+Structure (concise, ~150 lines):
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+**1. What is this?**
+One-liner: Constructive Solutions Ibiza — construction job platform connecting clients with tradespeople in Ibiza.
 
-## Affected components (7 files)
+**2. Architecture overview (5 files)**
+- `docs/ARCHITECTURE_PACK.md` — master blueprint (routes, state machine, data spine)
+- `src/App.tsx` — all routes, guards, rollout gates
+- `src/app/routes/registry.ts` — route registry with lanes + access rules
+- `src/guard/access.ts` + `RouteGuard.tsx` — auth + role enforcement
+- `src/domain/rollout.ts` + `scope.ts` — feature gating + platform scope lock
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+**3. Core flow trace (Post → Match → Message → Quote → Complete → Review)**
+- Job Wizard: `src/features/wizard/canonical/`
+- Job Board: `src/pages/jobs/queries/jobBoard.query.ts`
+- Matching: `src/pages/jobs/queries/matchedJobs.query.ts`
+- Messaging: `src/pages/messages/` (realtime thread, conversation list)
+- Quotes: `src/pages/jobs/actions/submitQuote.action.ts`, `acceptQuote.action.ts`, `reviseQuote.action.ts`
+- Completion: `src/pages/jobs/actions/completeJob.action.ts`
+- Reviews: `src/pages/jobs/actions/submitReview.action.ts`
 
-## Implementation approach
+**4. Database security**
+- 93 migrations in `supabase/migrations/` (versioned, in-repo)
+- RLS policies on all tables (documented in `docs/BACKEND_AUDIT.md`)
+- Security functions: `has_role()`, `is_admin_email()`, `switch_active_role()`
+- Admin dual-gate: role check + `admin_allowlist` table
 
-Each fix is the same 3-line pattern:
+**5. Edge functions**
+- `supabase/functions/` — 11 deployed functions (notifications, translations, attribution, auth emails)
 
-```tsx
-// Before
-function ScrollToTop() { ... }
+**6. Admin tooling**
+- `src/pages/admin/` — full ops dashboard with insights, monitoring, support
+- DB-powered analytics RPCs: `admin_health_snapshot()`, `admin_operator_alerts()`, `admin_market_gap()`, etc.
 
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
+**7. Code quality signals**
+- TypeScript strict throughout
+- ESLint configured
+- Tests in `src/test/`
+- i18n with `i18next` (EN/ES)
+- Feature-based file organisation
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+**8. Where to go deeper**
+Links to `ARCHITECTURE_PACK.md`, `BACKEND_AUDIT.md`, `docs/dev/FEVZI_WORKSPACE.md`
 
-## What this does NOT change
+### Changes
+1. Create `docs/START_HERE.md`
+2. Create `docs/dev/START_HERE.md` (same file, copied into Fevzi's workspace)
 
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
-
-All 7 files will be edited in a single pass.
+No application code changes.
 
