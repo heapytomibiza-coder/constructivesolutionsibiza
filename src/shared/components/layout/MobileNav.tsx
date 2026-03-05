@@ -66,6 +66,11 @@ export function MobileNav() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isAuthenticated, activeRole, roles, user } = useSession();
+  const { data: conversations } = useConversations(user?.id);
+  const totalUnread = useMemo(
+    () => (conversations ?? []).reduce((sum, c) => sum + (c.unread_count ?? 0), 0),
+    [conversations]
+  );
 
   // Get visible nav from registry
   const navModel = useMemo(
