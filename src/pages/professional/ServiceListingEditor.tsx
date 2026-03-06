@@ -295,17 +295,28 @@ export default function ServiceListingEditor() {
                   </Button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center aspect-video rounded-lg border-2 border-dashed border-border cursor-pointer hover:border-primary/50 transition-colors">
-                  {uploading ? (
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  ) : (
-                    <>
-                      <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
-                      <span className="text-sm text-muted-foreground">{t('listingEditor.heroImageUpload')}</span>
-                    </>
-                  )}
-                  <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e, 'hero')} />
-                </label>
+                <div className="space-y-2">
+                  <label className="flex flex-col items-center justify-center aspect-video rounded-lg border-2 border-dashed border-border cursor-pointer hover:border-primary/50 transition-colors">
+                    {uploading ? (
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    ) : (
+                      <>
+                        <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
+                        <span className="text-sm text-muted-foreground">{t('listingEditor.heroImageUpload')}</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e, 'hero')} />
+                  </label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-1.5"
+                    onClick={() => { setStockPickerTarget('hero'); setStockPickerOpen(true); }}
+                  >
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    {t('listingEditor.browseStockPhotos', 'Browse Stock Photos')}
+                  </Button>
+                </div>
               )}
             </div>
 
