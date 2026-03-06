@@ -1155,8 +1155,20 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           // Show Continue button for Micro step and later
           currentStep !== WizardStep.Category && currentStep !== WizardStep.Subcategory && (
             <Button
-              onClick={handleNext}
-              disabled={!canAdvance()}
+              onClick={() => {
+                if (!canAdvance() && currentStep === WizardStep.Logistics) {
+                  setLogisticsAttempted(true);
+                  const step5 = isStep5Complete(wizardState.logistics);
+                  if (step5.errors.length > 0) {
+                    toast.error(step5.errors[0]);
+                    // Scroll to first missing section
+                    const firstMissing = document.querySelector('[class*="ring-destructive"]');
+                    firstMissing?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                  return;
+                }
+                handleNext();
+              }}
               className="gap-2 min-h-[48px] md:min-h-0"
             >
               {t('buttons.continue')}
