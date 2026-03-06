@@ -230,10 +230,11 @@ export function LogisticsStep({ logistics, onChange, showValidation = false }: L
       </section>
 
       {/* Section 4: CONTACT PREFERENCE */}
-      <section className="space-y-3">
+      <section className={cn("space-y-3 rounded-lg p-3 -mx-3 transition-colors", missingContact && "bg-destructive/5 ring-1 ring-destructive/30")}>
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-primary" />
+          <MessageSquare className={cn("h-4 w-4", missingContact ? "text-destructive" : "text-primary")} />
           <Label className="text-sm font-semibold">{t('logistics.contactTitle')}</Label>
+          {missingContact && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
         <div className="grid grid-cols-3 gap-2">
           {CONTACT_OPTIONS.map((opt) => (
