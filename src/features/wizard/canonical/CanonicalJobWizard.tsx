@@ -396,6 +396,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
   useEffect(() => {
     if (!isInitialized) return;
+    // Reset logistics validation when leaving the step
+    if (currentStep !== WizardStep.Logistics) {
+      setLogisticsAttempted(false);
+    }
     trackEvent('job_wizard_step_viewed', 'client', {
       step: currentStep,
       stepIndex: getStepIndex(currentStep),
