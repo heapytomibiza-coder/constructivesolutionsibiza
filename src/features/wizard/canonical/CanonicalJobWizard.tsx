@@ -115,6 +115,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // Custom request form toggle
   const [showCustomForm, setShowCustomForm] = useState(false);
   
+  // Logistics validation attempt tracking
+  const [logisticsAttempted, setLogisticsAttempted] = useState(false);
+  
   // Deep-link processing ref
   const deepLinkProcessedRef = useRef(false);
   
