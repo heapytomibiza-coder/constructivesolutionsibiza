@@ -36,6 +36,7 @@ import { getMainZones, getPopularZones, OTHER_LOCATION } from '@/shared/componen
 interface LogisticsStepProps {
   logistics: WizardState['logistics'];
   onChange: (logistics: Partial<WizardState['logistics']>) => void;
+  showValidation?: boolean;
 }
 
 // Budget option keys for i18n lookup
