@@ -93,10 +93,11 @@ export function LogisticsStep({ logistics, onChange, showValidation = false }: L
   return (
     <div className="space-y-6">
       {/* Section 1: LOCATION */}
-      <section className="space-y-3">
+      <section className={cn("space-y-3 rounded-lg p-3 -mx-3 transition-colors", missingLocation && "bg-destructive/5 ring-1 ring-destructive/30")}>
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-primary" />
+          <MapPin className={cn("h-4 w-4", missingLocation ? "text-destructive" : "text-primary")} />
           <Label className="text-sm font-semibold">{t('logistics.whereTitle')}</Label>
+          {missingLocation && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
         <Select
           value={logistics.location}
