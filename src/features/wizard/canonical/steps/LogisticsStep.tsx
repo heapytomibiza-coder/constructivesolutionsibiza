@@ -193,10 +193,11 @@ export function LogisticsStep({ logistics, onChange, showValidation = false }: L
       </section>
 
       {/* Section 3: BUDGET - Quick chips + radio fallback */}
-      <section className="space-y-3">
+      <section className={cn("space-y-3 rounded-lg p-3 -mx-3 transition-colors", missingBudget && "bg-destructive/5 ring-1 ring-destructive/30")}>
         <div className="flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-primary" />
+          <Wallet className={cn("h-4 w-4", missingBudget ? "text-destructive" : "text-primary")} />
           <Label className="text-sm font-semibold">{t('logistics.budgetTitle')}</Label>
+          {missingBudget && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
 
         {/* Quick-select budget chips */}
