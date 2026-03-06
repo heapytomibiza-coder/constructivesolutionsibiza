@@ -14,12 +14,31 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      let session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session'] = null;
+
+      // Try getSession first; if null, wait briefly for onAuthStateChange to deliver it
+      const { data, error } = await supabase.auth.getSession();
       
       if (error) {
         console.error('Auth callback error:', error);
         navigate('/auth?error=callback_failed');
         return;
+      }
+
+      session = data.session;
+
+      // Race condition guard: session may not be ready yet after signInWithPassword + navigate
+      if (!session) {
+        session = await new Promise<typeof session>((resolve) => {
+          const timeout = setTimeout(() => resolve(null), 3000);
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+            if (s) {
+              clearTimeout(timeout);
+              subscription.unsubscribe();
+              resolve(s);
+            }
+          });
+        });
       }
 
       if (!session) {

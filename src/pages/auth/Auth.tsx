@@ -61,6 +61,7 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     trackEvent('login_started', 'client', { method: 'email' });
 
     try {
