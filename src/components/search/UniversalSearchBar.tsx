@@ -124,7 +124,7 @@ function transformServiceResults(data: Array<{
   return [...topMicros, ...topSubs, ...topCats];
 }
 
-const ROTATING_EXAMPLES = [
+const ROTATING_EXAMPLES_EN = [
   "Fix a leaking tap...",
   "Kitchen renovation...",
   "Electrical rewiring...",
@@ -133,6 +133,17 @@ const ROTATING_EXAMPLES = [
   "Build a garden wall...",
   "Pool maintenance...",
   "Fit new windows...",
+];
+
+const ROTATING_EXAMPLES_ES = [
+  "Reparar un grifo...",
+  "Reforma de cocina...",
+  "Instalación eléctrica...",
+  "Pintar mi salón...",
+  "Instalar aire acondicionado...",
+  "Construir un muro de jardín...",
+  "Mantenimiento de piscina...",
+  "Instalar ventanas nuevas...",
 ];
 
 function useRotatingPlaceholder(examples: string[], intervalMs = 3000) {
@@ -149,13 +160,14 @@ function useRotatingPlaceholder(examples: string[], intervalMs = 3000) {
 }
 
 export function UniversalSearchBar({ className }: { className?: string }) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 300);
-  const rotatingExample = useRotatingPlaceholder(ROTATING_EXAMPLES);
+  const examples = i18n.language?.startsWith("es") ? ROTATING_EXAMPLES_ES : ROTATING_EXAMPLES_EN;
+  const rotatingExample = useRotatingPlaceholder(examples);
 
   // Global ⌘K / Ctrl+K shortcut
   useGlobalSearchShortcut(() => {
