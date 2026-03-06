@@ -1081,6 +1081,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             <LogisticsStep
               logistics={wizardState.logistics}
               onChange={handleLogisticsChange}
+              showValidation={logisticsAttempted}
             />
           )}
 
