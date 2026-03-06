@@ -160,13 +160,14 @@ function useRotatingPlaceholder(examples: string[], intervalMs = 3000) {
 }
 
 export function UniversalSearchBar({ className }: { className?: string }) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 300);
-  const rotatingExample = useRotatingPlaceholder(ROTATING_EXAMPLES);
+  const examples = i18n.language?.startsWith("es") ? ROTATING_EXAMPLES_ES : ROTATING_EXAMPLES_EN;
+  const rotatingExample = useRotatingPlaceholder(examples);
 
   // Global ⌘K / Ctrl+K shortcut
   useGlobalSearchShortcut(() => {
