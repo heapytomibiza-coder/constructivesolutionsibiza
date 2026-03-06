@@ -65,7 +65,7 @@ const Auth = () => {
     trackEvent('login_started', 'client', { method: 'email' });
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -73,16 +73,53 @@ const Auth = () => {
       if (error) throw error;
 
       toast.success(t('toast.welcomeBack'));
-      // Let AuthCallback handle role-based routing if no explicit returnUrl
-      navigate(returnUrl || '/auth/callback');
+
+      // If there's an explicit returnUrl, go there directly
+      if (returnUrl) {
+        navigate(returnUrl);
+        return;
+      }
+
+      // Check for pending redirect (e.g., from wizard auth checkpoint)
+      const pendingRedirect = sessionStorage.getItem('authRedirect');
+      if (pendingRedirect) {
+        sessionStorage.removeItem('authRedirect');
+        navigate(pendingRedirect);
+        return;
+      }
+
+      // Role-based routing inline (avoids AuthCallback race condition on mobile)
+      const userId = data.session?.user?.id;
+      if (userId) {
+        const { data: rolesData } = await supabase
+          .from('user_roles')
+          .select('active_role')
+          .eq('user_id', userId)
+          .single();
+
+        const activeRole = rolesData?.active_role || 'client';
+
+        if (activeRole === 'professional') {
+          const { data: profileData } = await supabase
+            .from('professional_profiles')
+            .select('onboarding_phase')
+            .eq('user_id', userId)
+            .single();
+
+          const phase = profileData?.onboarding_phase || 'not_started';
+          navigate(phase === 'complete' ? '/dashboard/pro' : '/onboarding/professional');
+        } else {
+          navigate('/');
+        }
+      } else {
+        navigate('/auth/callback');
+      }
     } catch (error: any) {
       const message = error?.message || t('toast.signInFailed');
       const code = error?.code;
 
       trackEvent('login_failed', 'client', { error: message, code });
 
-      // If the user exists but hasn't confirmed their email yet,
-      // show the confirmation UI so they can resend the email.
       if (code === 'email_not_confirmed' || /email.*not.*confirmed/i.test(message)) {
         setConfirmationEmail(email);
         setShowConfirmationSent(true);
