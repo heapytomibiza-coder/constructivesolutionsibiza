@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Globe, ImagePlus, Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowLeft, Globe, ImagePlus, Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, ImageIcon } from 'lucide-react';
+import { StockPhotoPicker } from './components/StockPhotoPicker';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
