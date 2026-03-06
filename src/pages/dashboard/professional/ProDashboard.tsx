@@ -147,8 +147,8 @@ const ProDashboard = () => {
                 ) : (
                   <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.servicesCount}</p>
                 )}
-                <p className="text-xs text-muted-foreground mt-0.5">{t('pro.serviceCategories', 'Service Categories')}</p>
-                <p className="text-[11px] text-muted-foreground/70 mt-0.5 leading-tight hidden sm:block">{t('pro.serviceCategoriesHint', 'Used to match you to jobs')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('pro.myServices', 'My Services')}</p>
+                <p className="text-[11px] text-muted-foreground/70 mt-0.5 leading-tight hidden sm:block">{t('pro.myServicesHint', 'Types of work you accept')}</p>
               </CardContent>
             </Card>
           </Link>

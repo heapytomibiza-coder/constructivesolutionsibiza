@@ -401,6 +401,21 @@ export default function ServiceListingEditor() {
             )}
           </CardContent>
         </Card>
+        {/* Stock Photo Picker */}
+        <StockPhotoPicker
+          open={stockPickerOpen}
+          onOpenChange={setStockPickerOpen}
+          defaultSearch={title || ''}
+          onSelect={(url) => {
+            if (stockPickerTarget === 'hero') {
+              setHeroUrl(url);
+            } else {
+              if (gallery.length < 3) {
+                setGallery(prev => [...prev, url]);
+              }
+            }
+          }}
+        />
       </div>
     </div>
   );

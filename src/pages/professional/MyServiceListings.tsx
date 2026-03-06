@@ -183,7 +183,7 @@ export default function MyServiceListings() {
           <p className="text-sm text-muted-foreground">
             {t('pro.manageListingsPageHint', 'Edit and publish your services to appear on the platform.')}
           </p>
-          <Button variant="outline" size="sm" asChild className="shrink-0 gap-1.5">
+          <Button size="sm" asChild className="shrink-0 gap-1.5">
             <Link to="/onboarding/professional?edit=1&step=services">
               <Wrench className="h-3.5 w-3.5" />
               {t('pro.addRemoveCategories', 'Add / Remove Categories')}
