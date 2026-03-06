@@ -1163,11 +1163,16 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                 if (!canAdvance() && currentStep === WizardStep.Logistics) {
                   setLogisticsAttempted(true);
                   const step5 = isStep5Complete(wizardState.logistics);
-                  if (step5.errors.length > 0) {
-                    toast.error(step5.errors[0]);
-                    // Scroll to first missing section
-                    const firstMissing = document.querySelector('[class*="ring-destructive"]');
-                    firstMissing?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  const errors = [...step5.errors];
+                  if (wizardState.logistics.location === 'other' && !wizardState.logistics.customLocation?.trim()) {
+                    errors.push(t('logistics.specifyLocation', 'Please specify your location'));
+                  }
+                  if (errors.length > 0) {
+                    toast.error(errors[0]);
+                    requestAnimationFrame(() => {
+                      const firstMissing = document.querySelector('[class*="ring-destructive"]');
+                      firstMissing?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
                   }
                   return;
                 }
