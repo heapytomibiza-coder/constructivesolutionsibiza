@@ -54,14 +54,24 @@ async function sendTelegramAlert(job: any, siteUrl: string) {
 
   const budget = formatBudget(job);
   const jobUrl = `${siteUrl}/jobs/${job.id}`;
+  const boardUrl = `https://www.constructivesolutionsibiza.com/jobs`;
+
+  // Build trade line: Category › Subcategory › Micro
+  const tradeParts = [job.category, job.subcategory, job.micro_slug?.replace(/-/g, " ")].filter(Boolean);
+  const tradeLine = tradeParts.length > 0 ? tradeParts.join(" › ") : "General";
+
   const text = [
     `🚨 <b>NEW JOB POSTED</b>`,
-    `<b>${escapeHtml(job.title || "Untitled")}</b>`,
-    `📍 ${escapeHtml(job.area || "Ibiza")} · ${escapeHtml(job.category || "General")}`,
-    `💶 ${escapeHtml(budget)}`,
-    `⏱️ ${escapeHtml(job.start_timing || "Flexible")}`,
     ``,
-    `<a href="${jobUrl}">View Job</a>`,
+    `📌 <b>${escapeHtml(job.title || "Untitled")}</b>`,
+    ``,
+    `🔧 <b>Trade:</b> ${escapeHtml(tradeLine)}`,
+    `📍 <b>Area:</b> ${escapeHtml(job.area || "Ibiza")}`,
+    `💶 <b>Budget:</b> ${escapeHtml(budget)}`,
+    `⏱️ <b>When:</b> ${escapeHtml(job.start_timing || "Flexible")}`,
+    ``,
+    `👉 <a href="${jobUrl}">View Job Details</a>`,
+    `📋 <a href="${boardUrl}">Browse All Jobs</a>`,
   ].join("\n");
 
   try {
