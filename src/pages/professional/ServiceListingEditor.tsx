@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Globe, ImagePlus, Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowLeft, Globe, ImagePlus, Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, ImageIcon } from 'lucide-react';
+import { StockPhotoPicker } from './components/StockPhotoPicker';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,6 +42,8 @@ export default function ServiceListingEditor() {
   const [pricingSummary, setPricingSummary] = useState('');
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [stockPickerOpen, setStockPickerOpen] = useState(false);
+  const [stockPickerTarget, setStockPickerTarget] = useState<'hero' | 'gallery'>('hero');
 
   // Sync form state from loaded data
   useEffect(() => {
@@ -292,17 +295,28 @@ export default function ServiceListingEditor() {
                   </Button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center aspect-video rounded-lg border-2 border-dashed border-border cursor-pointer hover:border-primary/50 transition-colors">
-                  {uploading ? (
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  ) : (
-                    <>
-                      <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
-                      <span className="text-sm text-muted-foreground">{t('listingEditor.heroImageUpload')}</span>
-                    </>
-                  )}
-                  <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e, 'hero')} />
-                </label>
+                <div className="space-y-2">
+                  <label className="flex flex-col items-center justify-center aspect-video rounded-lg border-2 border-dashed border-border cursor-pointer hover:border-primary/50 transition-colors">
+                    {uploading ? (
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    ) : (
+                      <>
+                        <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
+                        <span className="text-sm text-muted-foreground">{t('listingEditor.heroImageUpload')}</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e, 'hero')} />
+                  </label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-1.5"
+                    onClick={() => { setStockPickerTarget('hero'); setStockPickerOpen(true); }}
+                  >
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    {t('listingEditor.browseStockPhotos', 'Browse Stock Photos')}
+                  </Button>
+                </div>
               )}
             </div>
 
@@ -387,6 +401,21 @@ export default function ServiceListingEditor() {
             )}
           </CardContent>
         </Card>
+        {/* Stock Photo Picker */}
+        <StockPhotoPicker
+          open={stockPickerOpen}
+          onOpenChange={setStockPickerOpen}
+          defaultSearch={title || ''}
+          onSelect={(url) => {
+            if (stockPickerTarget === 'hero') {
+              setHeroUrl(url);
+            } else {
+              if (gallery.length < 3) {
+                setGallery(prev => [...prev, url]);
+              }
+            }
+          }}
+        />
       </div>
     </div>
   );
