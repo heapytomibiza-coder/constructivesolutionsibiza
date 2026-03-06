@@ -1,48 +1,59 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+## Plan: Improve Tasker Dashboard & Listing Editor
 
-## What's happening
+Three improvements based on user feedback:
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+---
 
-## Root cause
+### 1. Add Unsplash Stock Photo Picker in Listing Editor
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+**Problem:** Professionals must upload their own images. Many don't have good photos for generic services like "Wooden Worktops."
 
-## Affected components (7 files)
+**Solution:** Add a "Choose Stock Photo" button alongside the upload area in `ServiceListingEditor.tsx`. This will use the Unsplash API (free tier, 50 req/hr) via a backend function to search for relevant construction/trade images.
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+**Implementation:**
+- Create a new edge function `supabase/functions/search-stock-photos/index.ts` that proxies Unsplash API calls (requires `UNSPLASH_ACCESS_KEY` secret)
+- Add a `StockPhotoPicker` component — a dialog with a search bar and grid of thumbnails. When selected, the image URL is set as `heroUrl` or added to gallery
+- Integrate into `ServiceListingEditor.tsx` hero image and gallery sections with a secondary "Browse Stock Photos" button
+- Use Unsplash's free hotlinking (required by their terms) — no need to re-upload to storage
 
-## Implementation approach
+**Alternative (no API key needed):** Use curated, pre-selected images bundled per service category. Less flexible but zero external dependency. 
 
-Each fix is the same 3-line pattern:
+**I recommend asking the user which approach they prefer before proceeding.**
 
-```tsx
-// Before
-function ScrollToTop() { ... }
+---
 
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
+### 2. Reorder Tasker Dashboard — Actions First, Clearer Wording
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+**Problem:** The dashboard leads with stats and matched jobs. The user wants the "Manage Your Work" actions to be more prominent. Wording is unclear.
 
-## What this does NOT change
+**Changes to `ProDashboard.tsx`:**
+- **Desktop layout:** Swap columns — put "Manage Your Work" card on the LEFT (primary), matched jobs on the RIGHT
+- **Mobile layout:** Move the quick-action grid ABOVE the stats row so actions come first
+- **Add an "Edit My Services" button** directly in the quick actions grid (currently only accessible via Manage Listings → Add/Remove Categories, which is buried)
+- **Clearer labels:**
+  - "Service Categories" → "My Services" with hint "Types of work you accept"
+  - "Manage Listings" → "My Public Ads" with hint "What clients see when browsing"
+  - Add a new tile: "Edit My Services" → links to `/onboarding/professional?edit=1&step=services` with hint "Add or remove the jobs you accept"
 
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
+---
 
-All 7 files will be edited in a single pass.
+### 3. Surface "Edit Services" (Category/Sub/Micro) More Clearly
+
+**Problem:** The path to edit onboarding selections (category → subcategory → micro) is hidden behind Manage Listings → small "Add / Remove Categories" button. User couldn't find it.
+
+**Changes:**
+- Add a dedicated **"Edit My Services"** quick-action tile on `ProDashboard.tsx` (both mobile grid and desktop sidebar), linking to `/onboarding/professional?edit=1&step=services`
+- Use a distinct icon (e.g., `Settings2` or `ListChecks`) and clear hint text: "Add or remove the types of jobs you want to receive"
+- In `MyServiceListings.tsx`, make the existing "Add / Remove Categories" button more prominent — upgrade from outline to primary variant and add descriptive hint text below it
+
+---
+
+### Files to modify:
+1. `src/pages/dashboard/professional/ProDashboard.tsx` — reorder layout, add "Edit My Services" tile, update labels
+2. `src/pages/professional/ServiceListingEditor.tsx` — add stock photo picker UI
+3. `src/pages/professional/MyServiceListings.tsx` — make "Add / Remove Categories" more prominent
+4. `supabase/functions/search-stock-photos/index.ts` — new edge function (if Unsplash route chosen)
+5. `public/locales/en/dashboard.json` + `es/dashboard.json` — new/updated translation keys
 
