@@ -143,10 +143,11 @@ export function LogisticsStep({ logistics, onChange, showValidation = false }: L
       </section>
 
       {/* Section 2: TIMING */}
-      <section className="space-y-3">
+      <section className={cn("space-y-3 rounded-lg p-3 -mx-3 transition-colors", missingTiming && "bg-destructive/5 ring-1 ring-destructive/30")}>
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-primary" />
+          <Clock className={cn("h-4 w-4", missingTiming ? "text-destructive" : "text-primary")} />
           <Label className="text-sm font-semibold">{t('logistics.whenTitle')}</Label>
+          {missingTiming && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {TIMING_OPTIONS.map((opt) => (
