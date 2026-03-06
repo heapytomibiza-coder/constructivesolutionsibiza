@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   Eye,
   XCircle,
+  Pencil,
 } from 'lucide-react';
 
 export default function JobTicketDetail() {
