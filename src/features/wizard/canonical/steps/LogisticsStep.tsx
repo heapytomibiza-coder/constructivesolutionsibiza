@@ -36,6 +36,7 @@ import { getMainZones, getPopularZones, OTHER_LOCATION } from '@/shared/componen
 interface LogisticsStepProps {
   logistics: WizardState['logistics'];
   onChange: (logistics: Partial<WizardState['logistics']>) => void;
+  showValidation?: boolean;
 }
 
 // Budget option keys for i18n lookup
@@ -48,9 +49,15 @@ const BUDGET_KEYS = [
   { value: 'need_quote', labelKey: 'logistics.budget.needQuote', hintKey: 'logistics.budget.needQuoteHint' },
 ] as const;
 
-export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
+export function LogisticsStep({ logistics, onChange, showValidation = false }: LogisticsStepProps) {
   const { t } = useTranslation('wizard');
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // Validation state for highlighting missing fields
+  const missingLocation = showValidation && !logistics.location?.trim();
+  const missingTiming = showValidation && !logistics.startDatePreset?.trim() && !logistics.startDate;
+  const missingBudget = showValidation && !logistics.budgetRange?.trim();
+  const missingContact = showValidation && !logistics.consultationType?.trim();
 
   // Derive location options from centralized zones
   const mainLocations = useMemo(() => 
@@ -86,10 +93,11 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
   return (
     <div className="space-y-6">
       {/* Section 1: LOCATION */}
-      <section className="space-y-3">
+      <section className={cn("space-y-3 rounded-lg p-3 -mx-3 transition-colors", missingLocation && "bg-destructive/5 ring-1 ring-destructive/30")}>
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-primary" />
+          <MapPin className={cn("h-4 w-4", missingLocation ? "text-destructive" : "text-primary")} />
           <Label className="text-sm font-semibold">{t('logistics.whereTitle')}</Label>
+          {missingLocation && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
         <Select
           value={logistics.location}
@@ -135,10 +143,11 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
       </section>
 
       {/* Section 2: TIMING */}
-      <section className="space-y-3">
+      <section className={cn("space-y-3 rounded-lg p-3 -mx-3 transition-colors", missingTiming && "bg-destructive/5 ring-1 ring-destructive/30")}>
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-primary" />
+          <Clock className={cn("h-4 w-4", missingTiming ? "text-destructive" : "text-primary")} />
           <Label className="text-sm font-semibold">{t('logistics.whenTitle')}</Label>
+          {missingTiming && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {TIMING_OPTIONS.map((opt) => (
@@ -184,10 +193,11 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
       </section>
 
       {/* Section 3: BUDGET - Quick chips + radio fallback */}
-      <section className="space-y-3">
+      <section className={cn("space-y-3 rounded-lg p-3 -mx-3 transition-colors", missingBudget && "bg-destructive/5 ring-1 ring-destructive/30")}>
         <div className="flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-primary" />
+          <Wallet className={cn("h-4 w-4", missingBudget ? "text-destructive" : "text-primary")} />
           <Label className="text-sm font-semibold">{t('logistics.budgetTitle')}</Label>
+          {missingBudget && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
 
         {/* Quick-select budget chips */}
@@ -220,10 +230,11 @@ export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
       </section>
 
       {/* Section 4: CONTACT PREFERENCE */}
-      <section className="space-y-3">
+      <section className={cn("space-y-3 rounded-lg p-3 -mx-3 transition-colors", missingContact && "bg-destructive/5 ring-1 ring-destructive/30")}>
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-primary" />
+          <MessageSquare className={cn("h-4 w-4", missingContact ? "text-destructive" : "text-primary")} />
           <Label className="text-sm font-semibold">{t('logistics.contactTitle')}</Label>
+          {missingContact && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
         <div className="grid grid-cols-3 gap-2">
           {CONTACT_OPTIONS.map((opt) => (

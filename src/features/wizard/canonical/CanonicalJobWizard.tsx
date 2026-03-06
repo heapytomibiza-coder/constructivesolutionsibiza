@@ -115,6 +115,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // Custom request form toggle
   const [showCustomForm, setShowCustomForm] = useState(false);
   
+  // Logistics validation attempt tracking
+  const [logisticsAttempted, setLogisticsAttempted] = useState(false);
+  
   // Deep-link processing ref
   const deepLinkProcessedRef = useRef(false);
   
@@ -393,6 +396,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
   useEffect(() => {
     if (!isInitialized) return;
+    // Reset logistics validation when leaving the step
+    if (currentStep !== WizardStep.Logistics) {
+      setLogisticsAttempted(false);
+    }
     trackEvent('job_wizard_step_viewed', 'client', {
       step: currentStep,
       stepIndex: getStepIndex(currentStep),
@@ -1078,6 +1085,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             <LogisticsStep
               logistics={wizardState.logistics}
               onChange={handleLogisticsChange}
+              showValidation={logisticsAttempted}
             />
           )}
 
@@ -1151,8 +1159,20 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           // Show Continue button for Micro step and later
           currentStep !== WizardStep.Category && currentStep !== WizardStep.Subcategory && (
             <Button
-              onClick={handleNext}
-              disabled={!canAdvance()}
+              onClick={() => {
+                if (!canAdvance() && currentStep === WizardStep.Logistics) {
+                  setLogisticsAttempted(true);
+                  const step5 = isStep5Complete(wizardState.logistics);
+                  if (step5.errors.length > 0) {
+                    toast.error(step5.errors[0]);
+                    // Scroll to first missing section
+                    const firstMissing = document.querySelector('[class*="ring-destructive"]');
+                    firstMissing?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                  return;
+                }
+                handleNext();
+              }}
               className="gap-2 min-h-[48px] md:min-h-0"
             >
               {t('buttons.continue')}
