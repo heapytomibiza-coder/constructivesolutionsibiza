@@ -193,10 +193,16 @@ const ProDashboard = () => {
         {/* Quick Actions — visible on mobile before matched jobs */}
         <div className="grid grid-cols-2 gap-2 mb-5 sm:hidden">
           <QuickActionTile
+            to="/onboarding/professional?edit=1&step=services"
+            icon={ListChecks}
+            label={t('pro.editMyServices', 'Edit My Services')}
+            hint={t('pro.editMyServicesHint', 'Add or remove the jobs you accept')}
+          />
+          <QuickActionTile
             to="/professional/listings"
             icon={Store}
-            label={t('pro.manageListings', 'Manage Listings')}
-            hint={t('pro.manageListingsHint', 'Edit prices, photos and details')}
+            label={t('pro.myPublicAds', 'My Public Ads')}
+            hint={t('pro.myPublicAdsHint', 'What clients see when browsing')}
           />
           <QuickActionTile
             to="/professional/priorities"
