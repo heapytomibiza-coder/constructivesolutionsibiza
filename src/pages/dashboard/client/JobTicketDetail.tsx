@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   Eye,
   XCircle,
+  Pencil,
 } from 'lucide-react';
 
 export default function JobTicketDetail() {
@@ -165,6 +166,17 @@ export default function JobTicketDetail() {
             {statusConfig.label}
           </Badge>
           <div className="flex items-center gap-2">
+            {['ready', 'open', 'posted'].includes(job.status) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => navigate(`/post?edit=${jobId}`)}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                {t('jobTicket.editJob', 'Edit Job')}
+              </Button>
+            )}
             <Button variant="ghost" size="sm" className="gap-1.5 text-destructive" onClick={handleClose}>
               <XCircle className="h-3.5 w-3.5" />
               {t('jobTicket.closeJob')}
