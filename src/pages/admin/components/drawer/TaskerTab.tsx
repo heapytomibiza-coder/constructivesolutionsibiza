@@ -1,0 +1,169 @@
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Shield, MapPin, Briefcase, Store, FileText, MessageSquare,
+  Eye, Clock,
+} from "lucide-react";
+import type { AdminUserDetails, ProServiceEntry, ServiceListingSummary } from "../../queries/adminUserDetails.query";
+
+export function TaskerTab({ user }: { user: AdminUserDetails }) {
+  const pro = user.pro!;
+
+  return (
+    <div className="space-y-5">
+      {/* Profile Summary */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Professional Profile
+        </h3>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <ProfileField label="Display Name" value={pro.display_name ?? "—"} />
+          <ProfileField label="Business" value={pro.business_name ?? "—"} />
+          <ProfileField label="Verification" value={pro.verification_status} capitalize />
+          <ProfileField label="Onboarding" value={pro.onboarding_phase.replace(/_/g, " ")} capitalize />
+          <ProfileField label="Listed" value={pro.is_publicly_listed ? "Yes" : "No"} />
+          <ProfileField label="Documents" value={String(user.documents_count)} />
+        </div>
+        {pro.tagline && (
+          <p className="text-xs italic text-muted-foreground border-l-2 border-primary/30 pl-2 mt-2">
+            "{pro.tagline}"
+          </p>
+        )}
+        {pro.bio && (
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{pro.bio}</p>
+        )}
+      </div>
+
+      {/* Service Zones */}
+      {pro.service_zones && pro.service_zones.length > 0 && (
+        <>
+          <Separator />
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5" /> Service Zones
+            </h3>
+            <div className="flex flex-wrap gap-1">
+              {pro.service_zones.map((z) => (
+                <Badge key={z} variant="outline" className="text-xs">{z}</Badge>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      <Separator />
+
+      {/* Activity */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-lg border p-3 text-center">
+          <MessageSquare className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
+          <p className="text-lg font-bold">{user.tasker_conversations_count}</p>
+          <p className="text-[10px] text-muted-foreground">Conversations</p>
+        </div>
+        <div className="rounded-lg border p-3 text-center">
+          <Briefcase className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
+          <p className="text-lg font-bold">{pro.services_count}</p>
+          <p className="text-[10px] text-muted-foreground">Services</p>
+        </div>
+        <div className="rounded-lg border p-3 text-center">
+          <Store className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
+          <p className="text-lg font-bold">{user.service_listings.length}</p>
+          <p className="text-[10px] text-muted-foreground">Listings</p>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Selected Services */}
+      <ServicesSection services={user.pro_services} />
+
+      {/* Service Listings */}
+      {user.service_listings.length > 0 && (
+        <>
+          <Separator />
+          <ListingsSection listings={user.service_listings} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function ProfileField({ label, value, capitalize }: { label: string; value: string; capitalize?: boolean }) {
+  return (
+    <div>
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className={`font-medium text-sm ${capitalize ? "capitalize" : ""}`}>{value}</p>
+    </div>
+  );
+}
+
+function ServicesSection({ services }: { services: ProServiceEntry[] }) {
+  if (services.length === 0) {
+    return (
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+          <Briefcase className="h-3.5 w-3.5" /> Selected Services
+        </h3>
+        <p className="text-sm text-muted-foreground py-2 text-center">No services selected</p>
+      </div>
+    );
+  }
+
+  const grouped = services.reduce<Record<string, ProServiceEntry[]>>((acc, s) => {
+    const key = s.category_name || "Uncategorised";
+    (acc[key] ??= []).push(s);
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-2">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+        <Briefcase className="h-3.5 w-3.5" /> Selected Services ({services.length})
+      </h3>
+      <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1">
+        {Object.entries(grouped).map(([cat, items]) => (
+          <div key={cat} className="space-y-1">
+            <p className="text-[11px] font-medium text-muted-foreground">{cat}</p>
+            <div className="flex flex-wrap gap-1">
+              {items.map((s) => (
+                <Badge key={s.micro_id} variant="outline" className="text-xs">
+                  {s.micro_name}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ListingsSection({ listings }: { listings: ServiceListingSummary[] }) {
+  return (
+    <div className="space-y-2">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+        <Store className="h-3.5 w-3.5" /> Service Listings ({listings.length})
+      </h3>
+      <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+        {listings.map((l) => (
+          <div key={l.id} className="rounded-lg border p-3 space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-medium truncate">{l.display_title || "Untitled"}</span>
+              <Badge
+                variant={l.status === "live" ? "default" : "secondary"}
+                className="text-[10px] capitalize shrink-0"
+              >
+                {l.status}
+              </Badge>
+            </div>
+            <div className="flex gap-3 text-[11px] text-muted-foreground">
+              <span>{l.has_hero ? "✓ Image" : "✗ No image"}</span>
+              <span>{l.has_description ? "✓ Description" : "✗ No desc"}</span>
+              <span>{l.pricing_summary ? "✓ Pricing" : "✗ No pricing"}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

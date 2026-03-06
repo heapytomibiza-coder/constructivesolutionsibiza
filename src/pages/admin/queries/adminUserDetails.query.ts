@@ -24,6 +24,15 @@ export interface ProfileCompleteness {
   checks: { label: string; done: boolean }[];
 }
 
+export interface AskerJobSummary {
+  id: string;
+  title: string;
+  status: string;
+  category: string | null;
+  area: string | null;
+  created_at: string;
+}
+
 export interface AdminUserDetails {
   user_id: string;
   display_name: string | null;
@@ -52,7 +61,12 @@ export interface AdminUserDetails {
   service_listings: ServiceListingSummary[];
   documents_count: number;
   completeness: ProfileCompleteness | null;
-  // Activity counts
+  // Asker data
+  asker_jobs: AskerJobSummary[];
+  asker_conversations_count: number;
+  // Tasker conversations (as pro)
+  tasker_conversations_count: number;
+  // Activity counts (total)
   jobs_count: number;
   conversations_count: number;
   support_tickets_count: number;
@@ -63,12 +77,13 @@ function calcCompleteness(user: Omit<AdminUserDetails, 'completeness'>): Profile
     { label: "Display name", done: !!user.pro?.display_name },
     { label: "Phone number", done: !!user.phone },
     { label: "Business name", done: !!user.pro?.business_name },
-    { label: "Bio", done: !!user.pro?.bio },
-    { label: "Tagline", done: !!user.pro?.tagline },
+    { label: "Bio written", done: !!user.pro?.bio },
+    { label: "Tagline set", done: !!user.pro?.tagline },
     { label: "Avatar photo", done: !!user.pro?.avatar_url },
-    { label: "Service zones", done: (user.pro?.service_zones?.length ?? 0) > 0 },
+    { label: "Service zones configured", done: (user.pro?.service_zones?.length ?? 0) > 0 },
     { label: "At least 1 service selected", done: user.pro_services.length > 0 },
     { label: "Service listing created", done: user.service_listings.length > 0 },
+    { label: "Publicly listed", done: !!user.pro?.is_publicly_listed },
     { label: "Documents uploaded", done: user.documents_count > 0 },
   ];
   const done = checks.filter((c) => c.done).length;
@@ -76,18 +91,23 @@ function calcCompleteness(user: Omit<AdminUserDetails, 'completeness'>): Profile
 }
 
 async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> {
-  const [profileRes, rolesRes, proRes, jobsCountRes, convosCountRes, ticketsCountRes, servicesRes, listingsRes, docsCountRes] = await Promise.all([
+  const [
+    profileRes, rolesRes, proRes,
+    jobsRes, clientConvosRes, proConvosRes,
+    ticketsCountRes, servicesRes, listingsRes, docsCountRes,
+  ] = await Promise.all([
     supabase.from("profiles").select("display_name, phone, created_at").eq("user_id", userId).single(),
     supabase.from("user_roles").select("roles, active_role, suspended_at, suspension_reason").eq("user_id", userId).single(),
     supabase.from("professional_profiles").select("display_name, business_name, verification_status, onboarding_phase, services_count, is_publicly_listed, service_zones, tagline, bio, avatar_url").eq("user_id", userId).maybeSingle(),
-    supabase.from("jobs").select("id", { count: "exact", head: true }).eq("user_id", userId),
-    supabase.from("conversations").select("id", { count: "exact", head: true }).or(`client_id.eq.${userId},pro_id.eq.${userId}`),
+    // Asker: recent jobs (up to 20)
+    supabase.from("jobs").select("id, title, status, category, area, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(20),
+    // Conversations as client
+    supabase.from("conversations").select("id", { count: "exact", head: true }).eq("client_id", userId),
+    // Conversations as pro
+    supabase.from("conversations").select("id", { count: "exact", head: true }).eq("pro_id", userId),
     supabase.from("support_requests").select("id", { count: "exact", head: true }).eq("created_by_user_id", userId),
-    // Fetch professional services with taxonomy join via service_search_index
     supabase.from("professional_services").select("micro_id, status").eq("user_id", userId),
-    // Fetch service listings
     supabase.from("service_listings").select("id, display_title, status, hero_image_url, short_description, pricing_summary").eq("provider_id", userId),
-    // Documents count
     supabase.from("professional_documents").select("id", { count: "exact", head: true }).eq("user_id", userId),
   ]);
 
@@ -124,6 +144,18 @@ async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> 
     pricing_summary: l.pricing_summary,
   }));
 
+  const askerJobs: AskerJobSummary[] = (jobsRes.data ?? []).map((j) => ({
+    id: j.id,
+    title: j.title,
+    status: j.status,
+    category: j.category,
+    area: j.area,
+    created_at: j.created_at,
+  }));
+
+  const clientConvos = clientConvosRes.count ?? 0;
+  const proConvos = proConvosRes.count ?? 0;
+
   const base: Omit<AdminUserDetails, 'completeness'> = {
     user_id: userId,
     display_name: profileRes.data.display_name,
@@ -140,8 +172,11 @@ async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> 
     pro_services: proServices,
     service_listings: serviceListings,
     documents_count: docsCountRes.count ?? 0,
-    jobs_count: jobsCountRes.count ?? 0,
-    conversations_count: convosCountRes.count ?? 0,
+    asker_jobs: askerJobs,
+    asker_conversations_count: clientConvos,
+    tasker_conversations_count: proConvos,
+    jobs_count: askerJobs.length,
+    conversations_count: clientConvos + proConvos,
     support_tickets_count: ticketsCountRes.count ?? 0,
   };
 
