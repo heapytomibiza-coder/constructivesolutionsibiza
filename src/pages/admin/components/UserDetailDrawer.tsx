@@ -37,7 +37,7 @@ function CompletenessCard({ completeness }: { completeness: ProfileCompleteness 
         {completeness.checks.map((c) => (
           <div key={c.label} className="flex items-center gap-2 text-xs">
             {c.done ? (
-              <CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" />
+              <CheckCircle className="h-3.5 w-3.5 text-primary shrink-0" />
             ) : (
               <Circle className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
             )}
