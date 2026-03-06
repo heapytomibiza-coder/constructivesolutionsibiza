@@ -230,9 +230,93 @@ const ProDashboard = () => {
           />
         </div>
 
-        {/* Two-Column Layout */}
-        <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
-          {/* Left Column: Matched Jobs */}
+        {/* Two-Column Layout — Actions first (left), Matched Jobs second (right) */}
+        <div className="grid gap-5 lg:grid-cols-[1fr_1.6fr]">
+          {/* Left Column: Quick Actions (desktop) + Status + Pending Reviews */}
+          <div className="space-y-4 hidden sm:block">
+            {/* Pending Reviews */}
+            <PendingReviewsCard />
+            
+            {/* Quick Actions — desktop only */}
+            <Card className="border-border/70">
+              <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="text-sm font-medium">{t('pro.manageYourWork', 'Manage Your Work')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1.5 px-4 pb-4">
+                <Button className="w-full justify-start gap-2 h-10" asChild>
+                  <Link to="/onboarding/professional?edit=1&step=services">
+                    <ListChecks className="h-4 w-4" />
+                    {t('pro.editMyServices', 'Edit My Services')}
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
+                  <Link to="/professional/listings">
+                    <Store className="h-4 w-4" />
+                    {t('pro.myPublicAds', 'My Public Ads')}
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
+                  <Link to="/professional/priorities">
+                    <Star className="h-4 w-4" />
+                    {t('pro.jobPriorities', 'Job Priorities')}
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
+                  <Link to="/professional/profile">
+                    <User className="h-4 w-4" />
+                    {t('pro.editProfile')}
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
+                  <Link to="/messages">
+                    <MessageSquare className="h-4 w-4" />
+                    {t('pro.viewMessages')}
+                    {stats.unreadMessages > 0 && (
+                      <Badge variant="destructive" className="ml-auto text-xs">
+                        {stats.unreadMessages}
+                      </Badge>
+                    )}
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
+                  <Link to="/forum">
+                    <MessageCircle className="h-4 w-4" />
+                    {t('pro.communityForum', 'Community Forum')}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Profile Status */}
+            <Card className="border-border/70">
+              <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="text-sm font-medium">{t('pro.profileStatus')}</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{t('pro.servicesAdded')}</span>
+                    <span className="font-medium">{stats.servicesCount > 0 ? '✓' : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{t('pro.profileDetails')}</span>
+                    <span className="font-medium text-muted-foreground">—</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{t('pro.publiclyVisible')}</span>
+                    <span className="font-medium">{professionalProfile?.isPubliclyListed ? '✓' : '—'}</span>
+                  </div>
+                </div>
+                {(stats.servicesCount === 0 || !professionalProfile?.isPubliclyListed) && (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {t('pro.addServicesHint')}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: Matched Jobs */}
           <Card className="border-border/70">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 pt-4">
               <div>
@@ -346,84 +430,6 @@ const ProDashboard = () => {
               )}
             </CardContent>
           </Card>
-
-          {/* Right Column: Quick Actions (desktop) + Status + Pending Reviews */}
-          <div className="space-y-4">
-            {/* Pending Reviews */}
-            <PendingReviewsCard />
-            
-            {/* Quick Actions — desktop only */}
-            <Card className="border-border/70 hidden sm:block">
-              <CardHeader className="pb-2 pt-4 px-4">
-                <CardTitle className="text-sm font-medium">{t('pro.manageYourWork', 'Manage Your Work')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1.5 px-4 pb-4">
-                <Button className="w-full justify-start gap-2 h-10" asChild>
-                  <Link to="/professional/listings">
-                    <Store className="h-4 w-4" />
-                    {t('pro.manageListings', 'Manage Listings')}
-                  </Link>
-                </Button>
-                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
-                  <Link to="/professional/priorities">
-                    <Star className="h-4 w-4" />
-                    {t('pro.jobPriorities', 'Job Priorities')}
-                  </Link>
-                </Button>
-                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
-                  <Link to="/professional/profile">
-                    <User className="h-4 w-4" />
-                    {t('pro.editProfile')}
-                  </Link>
-                </Button>
-                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
-                  <Link to="/messages">
-                    <MessageSquare className="h-4 w-4" />
-                    {t('pro.viewMessages')}
-                    {stats.unreadMessages > 0 && (
-                      <Badge variant="destructive" className="ml-auto text-xs">
-                        {stats.unreadMessages}
-                      </Badge>
-                    )}
-                  </Link>
-                </Button>
-                <Button variant="outline" className="w-full justify-start gap-2 h-10" asChild>
-                  <Link to="/forum">
-                    <MessageCircle className="h-4 w-4" />
-                    {t('pro.communityForum', 'Community Forum')}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Profile Status */}
-            <Card className="border-border/70">
-              <CardHeader className="pb-2 pt-4 px-4">
-                <CardTitle className="text-sm font-medium">{t('pro.profileStatus')}</CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t('pro.servicesAdded')}</span>
-                    <span className="font-medium">{stats.servicesCount > 0 ? '✓' : '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t('pro.profileDetails')}</span>
-                    <span className="font-medium text-muted-foreground">—</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t('pro.publiclyVisible')}</span>
-                    <span className="font-medium">{professionalProfile?.isPubliclyListed ? '✓' : '—'}</span>
-                  </div>
-                </div>
-                {(stats.servicesCount === 0 || !professionalProfile?.isPubliclyListed) && (
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    {t('pro.addServicesHint')}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>
