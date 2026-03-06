@@ -54,7 +54,7 @@ export function LogisticsStep({ logistics, onChange, showValidation = false }: L
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Validation state for highlighting missing fields
-  const missingLocation = showValidation && !logistics.location?.trim();
+  const missingLocation = showValidation && (!logistics.location?.trim() || (logistics.location === 'other' && !logistics.customLocation?.trim()));
   const missingTiming = showValidation && !logistics.startDatePreset?.trim() && !logistics.startDate;
   const missingBudget = showValidation && !logistics.budgetRange?.trim();
   const missingContact = showValidation && !logistics.consultationType?.trim();
