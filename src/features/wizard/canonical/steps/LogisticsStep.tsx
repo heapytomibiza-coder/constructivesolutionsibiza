@@ -49,9 +49,15 @@ const BUDGET_KEYS = [
   { value: 'need_quote', labelKey: 'logistics.budget.needQuote', hintKey: 'logistics.budget.needQuoteHint' },
 ] as const;
 
-export function LogisticsStep({ logistics, onChange }: LogisticsStepProps) {
+export function LogisticsStep({ logistics, onChange, showValidation = false }: LogisticsStepProps) {
   const { t } = useTranslation('wizard');
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // Validation state for highlighting missing fields
+  const missingLocation = showValidation && !logistics.location?.trim();
+  const missingTiming = showValidation && !logistics.startDatePreset?.trim() && !logistics.startDate;
+  const missingBudget = showValidation && !logistics.budgetRange?.trim();
+  const missingContact = showValidation && !logistics.consultationType?.trim();
 
   // Derive location options from centralized zones
   const mainLocations = useMemo(() => 
