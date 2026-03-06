@@ -22,7 +22,8 @@ import {
   Star,
   ChevronRight,
   Store,
-  Clock
+  Clock,
+  ListChecks
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { getDateLocale } from '@/lib/dateLocale';
