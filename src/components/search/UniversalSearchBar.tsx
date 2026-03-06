@@ -124,7 +124,7 @@ function transformServiceResults(data: Array<{
   return [...topMicros, ...topSubs, ...topCats];
 }
 
-const ROTATING_EXAMPLES = [
+const ROTATING_EXAMPLES_EN = [
   "Fix a leaking tap...",
   "Kitchen renovation...",
   "Electrical rewiring...",
@@ -133,6 +133,17 @@ const ROTATING_EXAMPLES = [
   "Build a garden wall...",
   "Pool maintenance...",
   "Fit new windows...",
+];
+
+const ROTATING_EXAMPLES_ES = [
+  "Reparar un grifo...",
+  "Reforma de cocina...",
+  "Instalación eléctrica...",
+  "Pintar mi salón...",
+  "Instalar aire acondicionado...",
+  "Construir un muro de jardín...",
+  "Mantenimiento de piscina...",
+  "Instalar ventanas nuevas...",
 ];
 
 function useRotatingPlaceholder(examples: string[], intervalMs = 3000) {
