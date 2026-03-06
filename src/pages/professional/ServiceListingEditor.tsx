@@ -42,6 +42,8 @@ export default function ServiceListingEditor() {
   const [pricingSummary, setPricingSummary] = useState('');
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [stockPickerOpen, setStockPickerOpen] = useState(false);
+  const [stockPickerTarget, setStockPickerTarget] = useState<'hero' | 'gallery'>('hero');
 
   // Sync form state from loaded data
   useEffect(() => {
