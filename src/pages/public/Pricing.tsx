@@ -83,24 +83,29 @@ const Pricing = () => {
 
       <div className="container py-12 space-y-16">
         {/* ── Billing Toggle ── */}
-        <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={() => setIsAnnual(false)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              !isAnnual ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {t('pricing.toggle.monthly')}
-          </button>
-          <button
-            onClick={() => setIsAnnual(true)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              isAnnual ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {t('pricing.toggle.annual')}
-            <span className="ml-1 text-xs opacity-80">{t('pricing.toggle.save')}</span>
-          </button>
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsAnnual(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                !isAnnual ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t('pricing.toggle.monthly')}
+            </button>
+            <button
+              onClick={() => setIsAnnual(true)}
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                isAnnual ? 'bg-primary text-primary-foreground shadow-md' : 'bg-muted text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t('pricing.toggle.annual')}
+              <span className="ml-1.5 text-xs bg-primary-foreground/20 px-1.5 py-0.5 rounded">{t('pricing.toggle.save')}</span>
+            </button>
+          </div>
+          {!isAnnual && (
+            <p className="text-xs text-muted-foreground">{t('pricing.toggle.annualHint')}</p>
+          )}
         </div>
 
         {/* ── Plan Cards ── */}

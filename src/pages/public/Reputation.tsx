@@ -173,6 +173,33 @@ const Reputation = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* ── Score Over Time ── */}
+          <section className="bg-muted rounded-2xl p-6 md:p-8 space-y-4">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-6 w-6 text-primary" />
+              <h3 className="text-lg font-semibold text-foreground">{t('reputation.growth.title')}</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">{t('reputation.growth.desc')}</p>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="bg-card rounded-lg p-4 border border-border text-center">
+                <p className="text-xs text-muted-foreground mb-1">{t('reputation.growth.early')}</p>
+                <p className="text-2xl font-bold text-foreground">4.2</p>
+                <p className="text-xs text-muted-foreground">{t('reputation.growth.earlyJobs')}</p>
+              </div>
+              <div className="bg-card rounded-lg p-4 border border-border text-center">
+                <p className="text-xs text-muted-foreground mb-1">{t('reputation.growth.growing')}</p>
+                <p className="text-2xl font-bold text-foreground">4.6</p>
+                <p className="text-xs text-muted-foreground">{t('reputation.growth.growingJobs')}</p>
+              </div>
+              <div className="bg-card rounded-lg p-4 border border-primary/30 text-center">
+                <p className="text-xs text-primary font-medium mb-1">{t('reputation.growth.established')}</p>
+                <p className="text-2xl font-bold text-primary">4.85</p>
+                <p className="text-xs text-muted-foreground">{t('reputation.growth.establishedJobs')}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground italic">{t('reputation.growth.tip')}</p>
+          </section>
         </section>
 
         {/* ── Reputation Ladder ── */}

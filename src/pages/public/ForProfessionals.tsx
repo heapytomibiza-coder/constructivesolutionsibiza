@@ -174,6 +174,9 @@ const ForProfessionals = () => {
           <p className="text-center text-muted-foreground text-sm">
             {t('forPros.valueStack.compare')}
           </p>
+          <p className="text-center text-muted-foreground text-xs italic">
+            {t('forPros.valueStack.disclaimer')}
+          </p>
         </section>
 
         {/* ── 6. Reputation Ladder ── */}
