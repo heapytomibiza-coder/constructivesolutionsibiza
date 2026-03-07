@@ -119,6 +119,13 @@ export const clientRoutes: RouteConfig[] = [
     nav: { section: 'hiring', labelKey: 'nav.clientDashboard', order: 2, hideWhenPublic: true },
     titleKey: 'nav.clientDashboard',
   },
+  {
+    path: '/dashboard/client/jobs',
+    access: 'role:client',
+    redirectTo: '/auth',
+    lane: 'client',
+    titleKey: 'nav.clientJobs',
+  },
   
   // Shared hub routes
   { 
