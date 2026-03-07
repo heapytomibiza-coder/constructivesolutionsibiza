@@ -16,6 +16,7 @@ import type { ClientJob } from './hooks/useClientStats';
 export default function ClientJobsList() {
   const { t } = useTranslation('dashboard');
   const { user } = useSession();
+  const queryKey = ['client_jobs_list', user?.id];
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ['client_jobs_list', user?.id],
