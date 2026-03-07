@@ -4,6 +4,7 @@
     "welcomeBack": "Bienvenido de nuevo, {{email}}",
     "postJob": "Publicar Trabajo",
     "yourJobs": "Tus Trabajos",
+    "yourJobsHint": "Seguimiento de progreso y presupuestos",
     "activeJobs": "Trabajos Activos",
     "inProgress": "En Progreso",
     "draftJobs": "Borradores",
@@ -26,6 +27,9 @@
     "settingsHint": "Cuenta y preferencias",
     "postJobHint": "Describe lo que necesitas",
     "messagesHint": "Chatea con Taskers",
+    "sectionJobs": "Tus Trabajos",
+    "sectionComms": "Comunicación",
+    "sectionAccount": "Cuenta",
     "editJob": "Editar",
     "duplicateJob": "Duplicar",
     "closeJob": "Cerrar",
@@ -67,6 +71,7 @@
     "title": "Panel del Tasker",
     "welcomeBack": "Bienvenido de nuevo, {{email}}",
     "browseAllJobs": "Ver Todos los Trabajos",
+    "browseJobsHint": "Encuentra trabajo que coincida con tus habilidades",
     "completeSetup": "Completa tu Configuración",
     "setupDescription": "Añade tus servicios para empezar a recibir oportunidades de trabajo.",
     "servicesFirstTitle": "Empieza con tus servicios — así es como consigues trabajo",
@@ -91,8 +96,12 @@
     "jobPrioritiesHint": "Recibe más del trabajo que quieres",
     "editProfile": "Editar perfil",
     "editProfileHint": "Actualiza tu perfil de Tasker",
+    "settingsHint": "Cuenta y preferencias",
     "messages": "Mensajes",
     "messagesHint": "Habla con solicitantes",
+    "sectionWork": "Mi Trabajo",
+    "sectionComms": "Comunicación",
+    "sectionAccount": "Perfil y Cuenta",
     "addCategories": "Añadir categorías",
     "addRemoveCategories": "Añadir / Quitar categorías",
     "emptyDrafts": "No hay borradores. Añade categorías para crear borradores.",
@@ -213,6 +222,7 @@
     "signedOut": "Sesión cerrada"
   },
   "common": {
-    "edit": "Editar"
+    "edit": "Editar",
+    "settings": "Ajustes"
   }
 }

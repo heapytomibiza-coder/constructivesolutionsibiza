@@ -4,6 +4,7 @@
     "welcomeBack": "Welcome back, {{email}}",
     "postJob": "Post a Job",
     "yourJobs": "Your Jobs",
+    "yourJobsHint": "Track progress and quotes",
     "activeJobs": "Active Jobs",
     "inProgress": "In Progress",
     "draftJobs": "Draft Jobs",
@@ -26,6 +27,9 @@
     "settingsHint": "Account and preferences",
     "postJobHint": "Describe what you need done",
     "messagesHint": "Chat with Taskers",
+    "sectionJobs": "Your Jobs",
+    "sectionComms": "Communication",
+    "sectionAccount": "Account",
     "editJob": "Edit",
     "duplicateJob": "Duplicate",
     "closeJob": "Close",
@@ -67,6 +71,7 @@
     "title": "Tasker Dashboard",
     "welcomeBack": "Welcome back, {{email}}",
     "browseAllJobs": "Browse All Jobs",
+    "browseJobsHint": "Find work that matches your skills",
     "completeSetup": "Complete Your Setup",
     "setupDescription": "Add your services to start receiving matched job opportunities.",
     "servicesFirstTitle": "Start with your services — it's how you get work",
@@ -91,8 +96,12 @@
     "jobPrioritiesHint": "Get more of the work you want",
     "editProfile": "Edit Profile",
     "editProfileHint": "Update your Tasker profile",
+    "settingsHint": "Account and preferences",
     "messages": "Messages",
     "messagesHint": "Chat with Askers",
+    "sectionWork": "My Work",
+    "sectionComms": "Communication",
+    "sectionAccount": "Profile & Account",
     "addCategories": "Add Categories",
     "addRemoveCategories": "Add / Remove Categories",
     "emptyDrafts": "No draft listings. Add categories to create drafts.",
@@ -213,6 +222,7 @@
     "signedOut": "Signed out"
   },
   "common": {
-    "edit": "Edit"
+    "edit": "Edit",
+    "settings": "Settings"
   }
 }
