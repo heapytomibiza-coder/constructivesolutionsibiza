@@ -51,6 +51,11 @@ export default function ProfileEdit() {
   const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
   const { user, refresh } = useSession();
+  const { selectedMicroIds, isLoading: loadingServices } = useProfessionalServices();
+  const { preferences } = useMicroPreferences();
+
+  // Track which step of the edit flow we're on
+  const [editStep, setEditStep] = useState<'profile' | 'services' | 'priorities'>('profile');
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
