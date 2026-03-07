@@ -46,6 +46,7 @@ import JobDetailsPage from "./pages/jobs/JobDetailsPage";
 
 // Dashboards
 import ClientDashboard from "./pages/dashboard/client/ClientDashboard";
+import ClientJobsList from "./pages/dashboard/client/ClientJobsList";
 import JobTicketDetail from "./pages/dashboard/client/JobTicketDetail";
 import MatchAndSend from "./pages/dashboard/client/MatchAndSend";
 import ProDashboard from "./pages/dashboard/professional/ProDashboard";
@@ -61,6 +62,7 @@ import ProfileEdit from "./pages/professional/ProfileEdit";
 import JobPriorities from "./pages/professional/JobPriorities";
 import MyServiceListings from "./pages/professional/MyServiceListings";
 import ServiceListingEditor from "./pages/professional/ServiceListingEditor";
+import ProInsights from "./pages/professional/ProInsights";
 
 // Settings
 import { Settings } from "./pages/settings";
@@ -169,6 +171,7 @@ const App = () => {
 
               {/* Client Routes */}
               <Route path="/dashboard/client" element={<ClientDashboard />} />
+              <Route path="/dashboard/client/jobs" element={<ClientJobsList />} />
               <Route path="/dashboard/jobs/:jobId" element={<JobTicketDetail />} />
               <Route path="/dashboard/jobs/:jobId/invite" element={<MatchAndSend />} />
               
@@ -188,6 +191,7 @@ const App = () => {
               <Route path="/professional/portfolio" element={<Navigate to="/dashboard/pro" replace />} />
               <Route path="/professional/listings" element={<MyServiceListings />} />
               <Route path="/professional/listings/:listingId/edit" element={<ServiceListingEditor />} />
+              <Route path="/professional/insights" element={<ProInsights />} />
 
               {/* Forum - New Post (requires auth) */}
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
