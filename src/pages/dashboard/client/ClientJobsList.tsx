@@ -104,7 +104,7 @@ export default function ClientJobsList() {
                 </h2>
                 <div className="space-y-2">
                   {completedJobs.map(job => (
-                    <ClientJobCard key={job.id} job={job} />
+                    <ClientJobCard key={job.id} job={job} onJobUpdated={handleJobUpdated} />
                   ))}
                 </div>
               </section>
