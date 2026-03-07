@@ -1,11 +1,11 @@
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PublicLayout, HeroBanner } from '@/components/layout';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Shield, Store } from 'lucide-react';
 import heroServices from '@/assets/heroes/hero-services.jpg';
 import { useServiceListingsBrowse } from './queries/serviceListings.query';
 import { ServiceListingCardComponent } from './ServiceListingCard';
+import { CardSkeleton } from '@/components/CardSkeleton';
 import { EmptyState } from '@/shared/components';
 
 /**
