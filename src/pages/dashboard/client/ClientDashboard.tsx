@@ -147,7 +147,7 @@ const ClientDashboard = () => {
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
             {t('client.sectionAccount', 'Account')}
           </h2>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <QuickActionTile
               to="/settings"
               icon={Settings}
