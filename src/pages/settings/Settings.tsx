@@ -16,6 +16,10 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useSession } from '@/contexts/SessionContext';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
 import { supabase } from '@/integrations/supabase/client';
@@ -83,8 +87,33 @@ export default function Settings() {
     },
   });
 
+  // Re-enable confirmation state
+  const [confirmDialog, setConfirmDialog] = useState<{ key: keyof NotificationPrefs; label: string } | null>(null);
+
+  const labelForKey = (key: keyof NotificationPrefs): string => {
+    const map: Record<string, string> = {
+      email_messages: t('notifications.newMessages'),
+      email_job_matches: t('notifications.jobMatches'),
+      email_digests: t('notifications.emailDigest'),
+    };
+    return map[key] ?? key;
+  };
+
   const handleToggle = (key: keyof NotificationPrefs, value: boolean) => {
-    updatePrefsMutation.mutate({ [key]: value });
+    if (value) {
+      // Re-enabling → require confirmation
+      setConfirmDialog({ key, label: labelForKey(key) });
+    } else {
+      // Turning off → instant
+      updatePrefsMutation.mutate({ [key]: value });
+    }
+  };
+
+  const confirmReEnable = () => {
+    if (confirmDialog) {
+      updatePrefsMutation.mutate({ [confirmDialog.key]: true });
+      setConfirmDialog(null);
+    }
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -364,6 +393,19 @@ export default function Settings() {
           </CardContent>
         </Card>
       </main>
+      {/* Re-enable confirmation dialog */}
+      <AlertDialog open={!!confirmDialog} onOpenChange={(open) => !open && setConfirmDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('notifications.confirmReEnable', { name: confirmDialog?.label })}</AlertDialogTitle>
+            <AlertDialogDescription>{t('notifications.confirmReEnableDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('notifications.confirmCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReEnable}>{t('notifications.confirmYes')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

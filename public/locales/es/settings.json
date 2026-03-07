@@ -39,7 +39,11 @@
     "digestFrequency": "Frecuencia del resumen",
     "daily": "Diario",
     "weekly": "Semanal",
-    "updateFailed": "No se pudo actualizar la preferencia"
+    "updateFailed": "No se pudo actualizar la preferencia",
+    "confirmReEnable": "¿Activar {{name}}?",
+    "confirmReEnableDesc": "Volverás a recibir estas alertas. Puedes desactivarlas en cualquier momento.",
+    "confirmYes": "Sí, activar",
+    "confirmCancel": "Cancelar"
   },
   "signOut": "Cerrar Sesión",
   "signOutSuccess": "Sesión cerrada correctamente",
