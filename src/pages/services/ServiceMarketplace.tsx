@@ -36,9 +36,7 @@ const ServiceMarketplace = () => {
       <div className="container py-10">
         {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-72 rounded-lg" />
-            ))}
+            <CardSkeleton count={8} />
           </div>
         ) : !listings?.length ? (
           <EmptyState
