@@ -326,7 +326,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const siteUrl = Deno.env.get("SITE_URL") || "https://constructivesolutionsibiza.com";
+    const siteUrl = Deno.env.get("SITE_URL") || "https://constructivesolutionsibiza.lovable.app";
     let sent = 0;
 
     for (let i = 0; i < queue.length; i++) {

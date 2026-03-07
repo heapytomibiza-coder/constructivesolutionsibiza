@@ -174,7 +174,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const origin = req.headers.get("origin") || req.headers.get("referer")?.split("/").slice(0, 3).join("/");
-    const siteUrl = Deno.env.get("PUBLIC_SITE_ORIGIN") || Deno.env.get("SITE_URL") || origin || "https://constructivesolutionsibiza.com";
+    const siteUrl = Deno.env.get("PUBLIC_SITE_ORIGIN") || Deno.env.get("SITE_URL") || origin || "https://constructivesolutionsibiza.lovable.app";
 
     let sent = 0;
     for (let i = 0; i < queue.length; i++) {
