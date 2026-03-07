@@ -21,6 +21,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   // Activate realtime message notifications (toast + browser + sound) for logged-in users
   useMessageNotifications(snapshot.user?.id ?? null);
+  useJobAlerts(snapshot.user?.id ?? null, snapshot.activeRole);
   return (
     <SessionContext.Provider value={snapshot}>
       {children}

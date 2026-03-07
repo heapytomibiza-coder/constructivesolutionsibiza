@@ -39,7 +39,11 @@
     "digestFrequency": "Digest frequency",
     "daily": "Daily",
     "weekly": "Weekly",
-    "updateFailed": "Failed to update preference"
+    "updateFailed": "Failed to update preference",
+    "confirmReEnable": "Turn on {{name}}?",
+    "confirmReEnableDesc": "You'll start receiving these alerts again. You can turn them off at any time.",
+    "confirmYes": "Yes, turn on",
+    "confirmCancel": "Cancel"
   },
   "signOut": "Sign Out",
   "signOutSuccess": "Signed out successfully",

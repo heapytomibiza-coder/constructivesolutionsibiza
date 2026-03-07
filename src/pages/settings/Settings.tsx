@@ -393,6 +393,19 @@ export default function Settings() {
           </CardContent>
         </Card>
       </main>
+      {/* Re-enable confirmation dialog */}
+      <AlertDialog open={!!confirmDialog} onOpenChange={(open) => !open && setConfirmDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('notifications.confirmReEnable', { name: confirmDialog?.label })}</AlertDialogTitle>
+            <AlertDialogDescription>{t('notifications.confirmReEnableDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('notifications.confirmCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReEnable}>{t('notifications.confirmYes')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
