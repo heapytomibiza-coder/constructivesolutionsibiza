@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
 import { 
   Briefcase, 
   Wrench,
@@ -19,15 +20,50 @@ import {
   User,
   Star,
   Store,
-  ListChecks
+  ListChecks,
+  ChevronRight
 } from 'lucide-react';
-import { QuickActionTile } from '@/pages/dashboard/shared/components/QuickActionTile';
+import { Badge } from '@/components/ui/badge';
 
 /**
  * PROFESSIONAL DASHBOARD
  * 
- * Clean navigation hub — action tiles only, no stats or job lists.
+ * Clean navigation hub — flat menu, easy to scan.
  */
+
+interface MenuItemProps {
+  to: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  primary?: boolean;
+  badge?: number;
+}
+
+function MenuItem({ to, icon: Icon, label, primary, badge }: MenuItemProps) {
+  return (
+    <Link
+      to={to}
+      className={cn(
+        'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150',
+        primary
+          ? 'bg-primary text-primary-foreground shadow-md hover:opacity-90 active:scale-[0.98]'
+          : 'bg-card border border-border/50 hover:border-primary/20 hover:bg-muted/30 active:scale-[0.98]'
+      )}
+    >
+      <Icon className={cn('h-5 w-5 shrink-0', primary ? 'text-primary-foreground' : 'text-primary')} />
+      <span className={cn('text-sm font-medium flex-1', primary ? 'text-primary-foreground' : 'text-foreground')}>
+        {label}
+      </span>
+      {badge != null && badge > 0 && (
+        <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 shrink-0">
+          {badge}
+        </Badge>
+      )}
+      <ChevronRight className={cn('h-4 w-4 shrink-0', primary ? 'text-primary-foreground/60' : 'text-muted-foreground/40')} />
+    </Link>
+  );
+}
+
 const ProDashboard = () => {
   const { t } = useTranslation('dashboard');
   const { user, roles } = useSession();
@@ -72,7 +108,7 @@ const ProDashboard = () => {
         </div>
       </nav>
 
-      <div className="container py-5 sm:py-8 max-w-2xl">
+      <div className="container py-5 sm:py-8 max-w-lg">
         {/* Header */}
         <div className="mb-5">
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
@@ -86,108 +122,34 @@ const ProDashboard = () => {
         {/* Services-First Guidance — only when no services */}
         {needsServiceSetup && (
           <Card className="mb-5 border-primary bg-primary/5 shadow-md">
-            <CardContent className="py-5 px-5">
-              <div className="flex items-start gap-4">
-                <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-                  <Wrench className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display text-base font-bold text-foreground mb-1">
-                    {t('pro.servicesFirstTitle', 'Start with your services — it\'s how you get work')}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {t('pro.servicesFirstDesc')}
-                  </p>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {t('pro.servicesFirstWhy')}
-                  </p>
-                  <Button asChild size="default">
-                    <Link to="/onboarding/professional?step=services">
-                      <Wrench className="h-4 w-4 mr-2" />
-                      {t('pro.chooseServices', 'Choose Your Services')}
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
+            <CardContent className="py-4 px-4">
+              <h3 className="font-display text-sm font-bold text-foreground mb-1">
+                {t('pro.servicesFirstTitle', 'Start with your services — it\'s how you get work')}
+              </h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                {t('pro.servicesFirstDesc')}
+              </p>
+              <Button asChild size="sm">
+                <Link to="/onboarding/professional?step=services">
+                  <Wrench className="h-4 w-4 mr-2" />
+                  {t('pro.chooseServices', 'Choose Your Services')}
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         )}
 
-        {/* MY WORK */}
-        <div className="mb-5">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            {t('pro.sectionWork', 'My Work')}
-          </h2>
-           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <QuickActionTile
-              to="/onboarding/professional?edit=1&step=services"
-              icon={ListChecks}
-              label={t('pro.editMyServices', 'Edit My Services')}
-              hint={t('pro.editMyServicesHint', 'Add or remove the jobs you accept')}
-            />
-            <QuickActionTile
-              to="/professional/listings"
-              icon={Store}
-              label={t('pro.createServicePages', 'Create Your Service Pages')}
-              hint={t('pro.createServicePagesHint', 'Build the pages clients see when browsing')}
-            />
-            <QuickActionTile
-              to="/professional/priorities"
-              icon={Star}
-              label={t('pro.jobPriorities', 'Job Priorities')}
-              hint={t('pro.jobPrioritiesHint', 'Get more of the work you want')}
-            />
-            <QuickActionTile
-              to="/jobs"
-              icon={Briefcase}
-              label={t('pro.browseAllJobs')}
-              hint={t('pro.browseJobsHint', 'Find work that matches your skills')}
-            />
-          </div>
-        </div>
-
-        {/* COMMUNICATION */}
-        <div className="mb-5">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            {t('pro.sectionComms', 'Communication')}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <QuickActionTile
-              to="/messages"
-              icon={MessageSquare}
-              label={t('pro.messages')}
-              hint={t('pro.messagesHint', 'Chat with Askers')}
-              badge={stats.unreadMessages}
-            />
-            <QuickActionTile
-              to="/forum"
-              icon={MessageCircle}
-              label={t('pro.communityForum', 'Community Forum')}
-              hint={t('pro.communityForumHint', 'Ask questions, get recommendations')}
-            />
-          </div>
-        </div>
-
-        {/* PROFILE & ACCOUNT */}
-        <div>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            {t('pro.sectionAccount', 'Profile & Account')}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <QuickActionTile
-              to="/professional/profile"
-              icon={User}
-              label={t('pro.editProfile')}
-              hint={t('pro.editProfileHint', 'Update your Tasker profile')}
-            />
-            <QuickActionTile
-              to="/settings"
-              icon={Settings}
-              label={t('common.settings', 'Settings')}
-              hint={t('pro.settingsHint', 'Account and preferences')}
-            />
-          </div>
+        {/* Menu */}
+        <div className="flex flex-col gap-2">
+          <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
+          <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
+          <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} />
+          <MenuItem to="/onboarding/professional?edit=1&step=services" icon={ListChecks} label={t('pro.addServices', 'Add Services')} />
+          <MenuItem to="/professional/listings" icon={Store} label={t('pro.createServicePages', 'Create Service Pages')} />
+          <MenuItem to="/professional/priorities" icon={Star} label={t('pro.jobPriorities', 'Job Priorities')} />
+          <MenuItem to="/settings" icon={Settings} label={t('common.settings', 'Settings')} />
+          <MenuItem to="/forum" icon={MessageCircle} label={t('pro.forumHelp', 'Community Forum & Help')} />
         </div>
       </div>
     </div>
