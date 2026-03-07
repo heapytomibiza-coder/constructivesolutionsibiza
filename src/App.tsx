@@ -191,6 +191,7 @@ const App = () => {
               <Route path="/professional/portfolio" element={<Navigate to="/dashboard/pro" replace />} />
               <Route path="/professional/listings" element={<MyServiceListings />} />
               <Route path="/professional/listings/:listingId/edit" element={<ServiceListingEditor />} />
+              <Route path="/professional/insights" element={<ProInsights />} />
 
               {/* Forum - New Post (requires auth) */}
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
