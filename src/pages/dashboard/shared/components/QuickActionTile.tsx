@@ -16,14 +16,14 @@ export function QuickActionTile({ to, icon: Icon, label, hint, badge }: QuickAct
     <Link
       to={to}
       className={cn(
-        'group flex items-center gap-3 p-3.5 rounded-xl border border-border/60 bg-card',
+        'group flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-border/60 bg-card',
         'shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]',
         'hover:border-primary/25 transition-all duration-200',
         'active:scale-[0.98]',
-        'min-h-[72px]'
+        'min-h-[56px]'
       )}
     >
-      <div className="h-10 w-10 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
+      <div className="h-9 w-9 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
         <Icon className="h-[18px] w-[18px] text-primary" />
       </div>
       <div className="min-w-0 flex-1">

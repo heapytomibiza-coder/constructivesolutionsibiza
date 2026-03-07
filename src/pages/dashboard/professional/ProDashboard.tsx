@@ -115,11 +115,11 @@ const ProDashboard = () => {
         )}
 
         {/* MY WORK */}
-        <div className="mb-6">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <div className="mb-5">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             {t('pro.sectionWork', 'My Work')}
           </h2>
-           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <QuickActionTile
               to="/onboarding/professional?edit=1&step=services"
               icon={ListChecks}
@@ -129,14 +129,8 @@ const ProDashboard = () => {
             <QuickActionTile
               to="/professional/listings"
               icon={Store}
-              label={t('pro.myPublicAds', 'My Public Ads')}
-              hint={t('pro.myPublicAdsHint', 'What clients see when browsing')}
-            />
-            <QuickActionTile
-              to="/jobs"
-              icon={Briefcase}
-              label={t('pro.browseAllJobs')}
-              hint={t('pro.browseJobsHint', 'Find work that matches your skills')}
+              label={t('pro.createServicePages', 'Create Your Service Pages')}
+              hint={t('pro.createServicePagesHint', 'Build the pages clients see when browsing')}
             />
             <QuickActionTile
               to="/professional/priorities"
@@ -144,15 +138,21 @@ const ProDashboard = () => {
               label={t('pro.jobPriorities', 'Job Priorities')}
               hint={t('pro.jobPrioritiesHint', 'Get more of the work you want')}
             />
+            <QuickActionTile
+              to="/jobs"
+              icon={Briefcase}
+              label={t('pro.browseAllJobs')}
+              hint={t('pro.browseJobsHint', 'Find work that matches your skills')}
+            />
           </div>
         </div>
 
         {/* COMMUNICATION */}
-        <div className="mb-6">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <div className="mb-5">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             {t('pro.sectionComms', 'Communication')}
           </h2>
-           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <QuickActionTile
               to="/messages"
               icon={MessageSquare}
@@ -171,10 +171,10 @@ const ProDashboard = () => {
 
         {/* PROFILE & ACCOUNT */}
         <div>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             {t('pro.sectionAccount', 'Profile & Account')}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <QuickActionTile
               to="/professional/profile"
               icon={User}
