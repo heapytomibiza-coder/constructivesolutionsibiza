@@ -255,7 +255,8 @@ export default function ProfileEdit() {
       await refresh();
 
       toast.success(t("pro.profile.saved", "Profile updated! Looking great."));
-      navigate("/dashboard/pro");
+      // Navigate to services editing step
+      navigate("/onboarding/professional?edit=1&step=services");
     } catch (err) {
       console.error("Error saving profile:", err);
       toast.error(t("pro.profile.saveError", "Failed to save profile"));
@@ -271,6 +272,9 @@ export default function ProfileEdit() {
       </div>
     );
   }
+
+  const servicesCount = selectedMicroIds.size;
+  const prioritiesSet = preferences.size;
 
   return (
     <div className="min-h-screen bg-gradient-hero bg-texture-concrete">
