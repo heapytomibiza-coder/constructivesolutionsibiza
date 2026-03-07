@@ -46,6 +46,7 @@ import JobDetailsPage from "./pages/jobs/JobDetailsPage";
 
 // Dashboards
 import ClientDashboard from "./pages/dashboard/client/ClientDashboard";
+import ClientJobsList from "./pages/dashboard/client/ClientJobsList";
 import JobTicketDetail from "./pages/dashboard/client/JobTicketDetail";
 import MatchAndSend from "./pages/dashboard/client/MatchAndSend";
 import ProDashboard from "./pages/dashboard/professional/ProDashboard";
