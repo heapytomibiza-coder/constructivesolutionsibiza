@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { PublicLayout, HeroBanner } from '@/components/layout';
-import { Skeleton } from '@/components/ui/skeleton';
+import { CardSkeleton } from '@/components/CardSkeleton';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Shield, Store, X } from 'lucide-react';
 import {
