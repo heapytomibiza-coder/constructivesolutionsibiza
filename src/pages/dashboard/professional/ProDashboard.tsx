@@ -10,7 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { 
-  Briefcase, 
+  Briefcase,
+  BarChart3, 
   Wrench,
   MessageSquare,
   MessageCircle,
