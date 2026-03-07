@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { PublicLayout, HeroBanner } from '@/components/layout';
-import { Skeleton } from '@/components/ui/skeleton';
+import { CardSkeleton } from '@/components/CardSkeleton';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Shield, Store, X } from 'lucide-react';
 import {
@@ -216,9 +216,7 @@ const Services = () => {
         {/* Listings Grid */}
         {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-72 rounded-lg" />
-            ))}
+            <CardSkeleton count={8} />
           </div>
         ) : filtered.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
