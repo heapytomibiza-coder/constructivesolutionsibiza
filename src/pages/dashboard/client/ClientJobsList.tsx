@@ -17,7 +17,9 @@ import { useCallback } from 'react';
 export default function ClientJobsList() {
   const { t } = useTranslation('dashboard');
   const { user } = useSession();
+  const qc = useQueryClient();
   const queryKey = ['client_jobs_list', user?.id];
+  const handleJobUpdated = useCallback(() => qc.invalidateQueries({ queryKey }), [qc, queryKey]);
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ['client_jobs_list', user?.id],
