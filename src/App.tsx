@@ -142,7 +142,7 @@ const App = () => {
             <Route path="/dispute-policy" element={<DisputePolicy />} />
             <Route path="/about" element={<About />} />
             <Route path="/for-professionals" element={<RolloutGate min="trust-engine"><ForProfessionals /></RolloutGate>} />
-            <Route path="/pricing" element={<RolloutGate min="trust-engine"><PricingPage /></RolloutGate>} />
+            <Route path="/pricing" element={<RolloutGate min="trust-engine"><PricingPublicPage /></RolloutGate>} />
             <Route path="/reputation" element={<RolloutGate min="trust-engine"><ReputationPage /></RolloutGate>} />
             <Route path="/services/listing/:listingId" element={<RolloutGate min="service-layer"><ServiceListingDetail /></RolloutGate>} />
             {/* Backward-compat redirects */}
