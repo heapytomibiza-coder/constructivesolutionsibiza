@@ -1,48 +1,37 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+## Plan: Notification Opt-in Confirmation + In-App Job Alerts
 
-## What's happening
+### What the user wants
+1. **Re-enable confirmation**: When a user turns OFF a notification toggle, turning it back ON requires a confirmation dialog (prevents accidental re-enabling).
+2. **In-app job alerts**: When the browser tab is open, professionals receive real-time in-app toast alerts about new matching jobs (no email needed — just an in-app notification).
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+### Changes
 
-## Root cause
+#### 1. Settings page — confirmation dialog on re-enable (`Settings.tsx`)
+- Import `AlertDialog` from radix
+- Wrap the `handleToggle` function: if the new value is `true` (re-enabling), show a confirmation dialog: "Turn on [notification name]? You'll start receiving these alerts again."
+- If confirmed, proceed with the mutation. If cancelled, do nothing (toggle stays off).
+- Turning OFF remains instant (no confirmation needed).
+- Add translation keys for the confirmation dialog text in `en/settings.json` and `es/settings.json`.
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+#### 2. New hook: `useJobAlerts.ts`
+- Subscribe to realtime `INSERT` events on the `jobs` table (where `status = 'open'` and `is_publicly_listed = true`).
+- When a new job is inserted, show an in-app toast: "New job: [title]" with a "View" action linking to `/jobs/[id]`.
+- Play the existing notification sound.
+- Only active for users with the `professional` role.
+- Respects the `email_job_matches` preference from `notification_preferences` — if the user has turned off job match notifications, no in-app alert either.
 
-## Affected components (7 files)
+#### 3. Mount `useJobAlerts` in `SessionContext.tsx`
+- Call `useJobAlerts(userId, activeRole)` alongside the existing `useMessageNotifications`.
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+#### 4. Localization updates
+- `en/settings.json`: Add `notifications.confirmReEnable`, `notifications.confirmReEnableDesc`, `notifications.confirmYes`, `notifications.confirmCancel`
+- `es/settings.json`: Same keys in Spanish
 
-## Implementation approach
-
-Each fix is the same 3-line pattern:
-
-```tsx
-// Before
-function ScrollToTop() { ... }
-
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
-
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
-
-## What this does NOT change
-
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
-
-All 7 files will be edited in a single pass.
+### Files to create/edit
+- **Edit**: `src/pages/settings/Settings.tsx` — add AlertDialog for re-enable confirmation
+- **Create**: `src/hooks/useJobAlerts.ts` — realtime job alert hook
+- **Edit**: `src/contexts/SessionContext.tsx` — mount the new hook
+- **Edit**: `public/locales/en/settings.json` + `es/settings.json` — new keys
 
