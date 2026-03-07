@@ -87,8 +87,33 @@ export default function Settings() {
     },
   });
 
+  // Re-enable confirmation state
+  const [confirmDialog, setConfirmDialog] = useState<{ key: keyof NotificationPrefs; label: string } | null>(null);
+
+  const labelForKey = (key: keyof NotificationPrefs): string => {
+    const map: Record<string, string> = {
+      email_messages: t('notifications.newMessages'),
+      email_job_matches: t('notifications.jobMatches'),
+      email_digests: t('notifications.emailDigest'),
+    };
+    return map[key] ?? key;
+  };
+
   const handleToggle = (key: keyof NotificationPrefs, value: boolean) => {
-    updatePrefsMutation.mutate({ [key]: value });
+    if (value) {
+      // Re-enabling → require confirmation
+      setConfirmDialog({ key, label: labelForKey(key) });
+    } else {
+      // Turning off → instant
+      updatePrefsMutation.mutate({ [key]: value });
+    }
+  };
+
+  const confirmReEnable = () => {
+    if (confirmDialog) {
+      updatePrefsMutation.mutate({ [confirmDialog.key]: true });
+      setConfirmDialog(null);
+    }
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
