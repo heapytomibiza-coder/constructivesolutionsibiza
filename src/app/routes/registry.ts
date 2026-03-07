@@ -88,6 +88,27 @@ export const publicRoutes: RouteConfig[] = [
   { path: '/forum/:categorySlug', access: 'public', lane: 'public' },
   { path: '/forum/post/:postId', access: 'public', lane: 'public' },
   { path: '/dispute-policy', access: 'public', lane: 'public' },
+  { 
+    path: '/for-professionals', 
+    access: 'public', 
+    lane: 'public', 
+    titleKey: 'nav.forProfessionals',
+    minRollout: 'trust-engine',
+  },
+  { 
+    path: '/pricing', 
+    access: 'public', 
+    lane: 'public', 
+    titleKey: 'nav.pricing',
+    minRollout: 'trust-engine',
+  },
+  { 
+    path: '/reputation', 
+    access: 'public', 
+    lane: 'public', 
+    titleKey: 'nav.reputation',
+    minRollout: 'trust-engine',
+  },
 ];
 
 // ============================================
