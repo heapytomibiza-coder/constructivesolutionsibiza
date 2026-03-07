@@ -62,6 +62,7 @@ import ProfileEdit from "./pages/professional/ProfileEdit";
 import JobPriorities from "./pages/professional/JobPriorities";
 import MyServiceListings from "./pages/professional/MyServiceListings";
 import ServiceListingEditor from "./pages/professional/ServiceListingEditor";
+import ProInsights from "./pages/professional/ProInsights";
 
 // Settings
 import { Settings } from "./pages/settings";
