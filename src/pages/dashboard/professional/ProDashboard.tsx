@@ -148,11 +148,11 @@ const ProDashboard = () => {
         </div>
 
         {/* COMMUNICATION */}
-        <div className="mb-6">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <div className="mb-5">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             {t('pro.sectionComms', 'Communication')}
           </h2>
-           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <QuickActionTile
               to="/messages"
               icon={MessageSquare}
