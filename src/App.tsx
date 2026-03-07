@@ -31,6 +31,9 @@ import Privacy from "./pages/public/Privacy";
 import Terms from "./pages/public/Terms";
 import DisputePolicy from "./pages/public/DisputePolicy";
 import About from "./pages/public/About";
+import ForProfessionals from "./pages/public/ForProfessionals";
+import PricingPublicPage from "./pages/public/Pricing";
+import ReputationPage from "./pages/public/Reputation";
 import { ServiceListingDetail } from "./pages/services";
 
 // Auth Pages
@@ -138,6 +141,9 @@ const App = () => {
             <Route path="/terms" element={<Terms />} />
             <Route path="/dispute-policy" element={<DisputePolicy />} />
             <Route path="/about" element={<About />} />
+            <Route path="/for-professionals" element={<RolloutGate min="trust-engine"><ForProfessionals /></RolloutGate>} />
+            <Route path="/pricing" element={<RolloutGate min="trust-engine"><PricingPublicPage /></RolloutGate>} />
+            <Route path="/reputation" element={<RolloutGate min="trust-engine"><ReputationPage /></RolloutGate>} />
             <Route path="/services/listing/:listingId" element={<RolloutGate min="service-layer"><ServiceListingDetail /></RolloutGate>} />
             {/* Backward-compat redirects */}
             <Route path="/marketplace" element={<Navigate to="/services" replace />} />

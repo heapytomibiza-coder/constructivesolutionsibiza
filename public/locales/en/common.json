@@ -544,5 +544,233 @@
       "service": "Service",
       "task": "Task"
     }
+  },
+  "nav.forProfessionals": "For Professionals",
+  "nav.pricing": "Pricing",
+  "nav.reputation": "Reputation",
+  "forPros": {
+    "hero": {
+      "title": "Run Your Trade Business With One Platform",
+      "subtitle": "Advertising, job opportunities, reputation, and project management — all in one place. Starting from €333 per year.",
+      "badge": "Built for tradespeople",
+      "cta": "Join as a Professional",
+      "ctaSecondary": "See How It Works"
+    },
+    "problem": {
+      "title": "Running a Trade Business Requires Multiple Tools",
+      "desc": "Most professionals rely on different services just to stay visible and organised.",
+      "total": "Total: ≈ €700+ per month"
+    },
+    "solution": {
+      "title": "Everything In One Professional Platform",
+      "valueLabel": "Value:"
+    },
+    "features": {
+      "profile": {
+        "title": "Professional Business Profile",
+        "desc": "Your profile works like a business website with services, portfolio, reviews and client contact."
+      },
+      "wizard": {
+        "title": "Structured Job Requests",
+        "desc": "Clients answer simple questions so you receive clear project details instead of vague enquiries."
+      },
+      "matching": {
+        "title": "Smart Job Matching",
+        "desc": "Our system connects the right professionals with the right projects. No endless searching."
+      },
+      "jobCards": {
+        "title": "Quote-Ready Job Cards",
+        "desc": "Each job request includes images, requirements, timeline and location — ready to quote."
+      },
+      "reviews": {
+        "title": "Reputation System",
+        "desc": "Build trust through verified client reviews after each completed project."
+      },
+      "notifications": {
+        "title": "Job Notifications",
+        "desc": "Receive alerts when new jobs appear in your service categories."
+      }
+    },
+    "timeSaved": {
+      "title": "Less Time Chasing Jobs. More Time Doing Them.",
+      "hoursWeek": "hours/week on enquiries",
+      "hourlyRate": "average trade hourly rate",
+      "monthlyLost": "/month in lost time",
+      "cta": "Constructive filters enquiries before they reach you."
+    },
+    "valueStack": {
+      "title": "The Tools Behind Your Business",
+      "total": "Total value",
+      "compare": "All of this starting from just €333 per year."
+    },
+    "reputation": {
+      "title": "Earn Your Status",
+      "desc": "Constructive is not a pay-to-win directory. Professionals rise through reliability, quality work and client satisfaction.",
+      "goldNote": "Gold status cannot be purchased. It is earned through consistent quality and strong client feedback.",
+      "learnMore": "How the reputation system works"
+    },
+    "pricing": {
+      "title": "Simple, Fair Plans",
+      "subtitle": "Upgrade plans to reduce commission and unlock greater exposure. Gold is earned, not bought.",
+      "mostPopular": "Most Popular",
+      "inviteOnly": "Invite Only",
+      "commission": "commission",
+      "upgradeNote": "Gold status is earned through exceptional service and reliability — not available for purchase."
+    },
+    "tiers": {
+      "bronze": { "tag": "Entry Level Professional" },
+      "silver": { "tag": "Verified Professional" },
+      "gold": { "tag": "Elite Reputation Status" },
+      "elite": { "tag": "Company & Teams" }
+    },
+    "tax": {
+      "title": "A Business Expense",
+      "desc": "Constructive membership is commonly classified as a business marketing cost. Many professionals include it as a tax-deductible expense.",
+      "disclaimer": "Always consult your accountant."
+    },
+    "cta": {
+      "title": "One Job Can Pay For Your Membership",
+      "desc": "Constructive connects professionals with real project opportunities.",
+      "button": "Join The Network"
+    }
+  },
+  "pricing": {
+    "hero": {
+      "title": "Plans That Work For You",
+      "subtitle": "All of this starting from just €33 per month. Reputation earns you more.",
+      "badge": "Reputation first"
+    },
+    "toggle": {
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "save": "(save 15%)"
+    },
+    "mostPopular": "Most Popular",
+    "inviteOnly": "Invite Only",
+    "commission": "commission",
+    "year": "year",
+    "month": "month",
+    "getStarted": "Get Started",
+    "plans": {
+      "bronze": {
+        "tag": "Entry Level Professional",
+        "f1": "Professional profile & portfolio",
+        "f2": "Client reviews",
+        "f3": "Job notifications",
+        "f4": "Basic directory listing"
+      },
+      "silver": {
+        "tag": "Verified Professional",
+        "f1": "Everything in Bronze",
+        "f2": "Priority job visibility",
+        "f3": "Stronger profile ranking",
+        "f4": "Reduced commission (12%)"
+      },
+      "gold": {
+        "tag": "Elite Reputation Status",
+        "f1": "Top search placement",
+        "f2": "Premium job opportunities",
+        "f3": "Advanced market insights",
+        "f4": "Lowest earned commission (9%)"
+      },
+      "elite": {
+        "tag": "Company & Teams",
+        "f1": "Everything in Silver",
+        "f2": "Company branding",
+        "f3": "Maximum exposure",
+        "f4": "Lowest commission (6%)"
+      }
+    },
+    "reputationFirst": {
+      "title": "Reputation Over Advertising",
+      "desc": "Constructive is not a pay-to-win directory. Professionals earn their position through quality work and client trust.",
+      "learnMore": "How our reputation system works"
+    },
+    "comparison": {
+      "title": "Feature Comparison",
+      "feature": "Feature"
+    },
+    "tax": {
+      "title": "A Business Expense",
+      "desc": "Constructive membership is commonly classified as a business marketing cost, which may be deductible as a business expense.",
+      "disclaimer": "Always consult your accountant."
+    },
+    "cta": {
+      "title": "Ready To Grow Your Business?",
+      "desc": "Join the platform built for tradespeople.",
+      "button": "Get Started"
+    }
+  },
+  "reputation": {
+    "hero": {
+      "title": "Reputation First. Always.",
+      "subtitle": "Professionals earn their position through proven work and verified client reviews.",
+      "badge": "Trust is earned"
+    },
+    "philosophy": {
+      "title": "Reputation Over Advertising",
+      "desc": "Constructive is not a pay-to-win directory. Professionals rise through reliability, quality and client satisfaction.",
+      "quote": "On Constructive, reputation outranks money."
+    },
+    "howItWorks": {
+      "title": "How Professionals Rise"
+    },
+    "steps": {
+      "s1": "Join the platform",
+      "s2": "Complete projects",
+      "s3": "Receive ratings",
+      "s4": "Build reputation",
+      "s5": "Earn higher status"
+    },
+    "score": {
+      "title": "Constructive Reputation Score",
+      "desc": "Each completed job generates a score based on four core metrics.",
+      "weight": "Weight",
+      "example": "Example Score",
+      "resultLabel": "Constructive Score"
+    },
+    "metrics": {
+      "quality": { "label": "Quality", "desc": "Client rating of workmanship" },
+      "reliability": { "label": "Reliability", "desc": "Punctuality, scheduling, and commitment" },
+      "communication": { "label": "Communication", "desc": "Responsiveness and professionalism" },
+      "completion": { "label": "Completion Rate", "desc": "Jobs completed without cancellation" }
+    },
+    "ladder": {
+      "title": "Status Ladder",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "inviteOnly": "Invite Only",
+      "bronze": {
+        "requirements": "Starting level. Complete your first jobs successfully.",
+        "benefits": "Professional profile, portfolio gallery, reviews, job notifications, basic exposure."
+      },
+      "silver": {
+        "requirements": "10+ completed jobs, rating above 4.5, no serious disputes.",
+        "benefits": "Higher job visibility, priority notifications, stronger trust badge, reduced commission."
+      },
+      "gold": {
+        "requirements": "40+ completed jobs, rating above 4.8, high completion rate, platform trust score.",
+        "benefits": "Top search placement, premium job opportunities, advanced data insights, reputation badge."
+      }
+    },
+    "gold": {
+      "title": "Gold Data Access",
+      "desc": "Gold professionals gain access to Constructive Market Data — insights that help grow your business.",
+      "insight1": "Most requested services in Ibiza",
+      "insight2": "Seasonal demand trends",
+      "insight3": "Average project value benchmarks",
+      "insight4": "Price comparison data"
+    },
+    "testimonials": {
+      "title": "What Builders Say",
+      "quote1": "Instead of spending hours answering messages, I now receive structured job requests with all the details I need to quote.",
+      "author1": "Local Contractor, Ibiza"
+    },
+    "cta": {
+      "title": "Start Building Your Reputation",
+      "desc": "Join the platform where quality work speaks louder than advertising budgets.",
+      "button": "Join The Network",
+      "viewPricing": "View Pricing"
+    }
   }
 }

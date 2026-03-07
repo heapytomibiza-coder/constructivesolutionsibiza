@@ -1,78 +1,48 @@
 
 
-## Plan: Create Hidden Value & Pricing Pages
+# Fix forwardRef Warnings — Cleanup Plan
 
-### What we're building
+## What's happening
 
-Three new pages, gated behind the rollout system so they exist in code but are **not publicly accessible or linked** until you're ready:
+React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
 
-1. **`/for-professionals`** — The scrollable value story (Sections 1–8 from your spec: problem → platform value → reputation ladder → pricing → CTA)
-2. **`/pricing`** — Focused pricing page with the reputation-first philosophy, annual plans (€333/€666/€2000), Gold invite-only messaging, tax-friendly note
-3. **`/reputation`** — The reputation score system explained (4 metrics, Bronze→Silver→Gold ladder, how Gold is earned not bought)
+## Root cause
 
-### How they stay hidden
+The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
 
-Each route gets `minRollout: 'trust-engine'` in the registry. Since `CURRENT_ROLLOUT` is `'pipe-control'`, these pages will be:
-- Not shown in navigation
-- Blocked by `RolloutGate` if someone guesses the URL
-- Zero impact on current site
+## Affected components (7 files)
 
-### Philosophy protection
+| File | Component | Fix |
+|------|-----------|-----|
+| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
+| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
+| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
+| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
+| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
+| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
 
-- **No "pay-to-win" language anywhere** — Gold is always "Invite Only / Earned"
-- Silver is positioned as "Most Popular" — the natural revenue driver
-- Elite is framed as "Company Scale" not "Premium Status"
-- Reputation Score section reinforces: Quality 35%, Reliability 30%, Communication 20%, Completion 15%
-- Tax-friendly section uses careful "may be deductible, consult your accountant" language
+## Implementation approach
 
-### Technical approach
+Each fix is the same 3-line pattern:
 
-**Files to create:**
-- `src/pages/public/ForProfessionals.tsx` — The full value story page (13 sections, icon-driven, short copy, value metrics per feature)
-- `src/pages/public/Pricing.tsx` — Clean pricing cards + annual plans + reputation philosophy
-- `src/pages/public/Reputation.tsx` — Score system, ladder visual, Gold criteria, data insights teaser
+```tsx
+// Before
+function ScrollToTop() { ... }
 
-**Files to edit:**
-- `src/app/routes/registry.ts` — Add 3 routes with `minRollout: 'trust-engine'`
-- `src/App.tsx` — Add imports and `<Route>` entries wrapped in `<RolloutGate>`
-- `public/locales/en/common.json` — Add all i18n keys for the three pages
+// After
+const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
+  // ... same body, ignore ref since there's no DOM node
+});
+```
 
-### Page structure (key sections)
+For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
 
-**For Professionals page:**
-1. Hero — "Run Your Trade Business With One Platform"
-2. The Problem — icons + typical monthly costs grid
-3. The Constructive Solution — 6 feature blocks (profile, wizard, matching, job cards, reviews, notifications) each with equivalent value
-4. Time Saved — €800/month in lost enquiry time
-5. Value Stack — total ≈€755/month equivalent
-6. Reputation Ladder — Bronze → Silver → Gold (earned)
-7. Pricing Cards — Bronze €333/yr, Silver €666/yr, Gold invite-only, Elite €2000/yr
-8. Tax Friendly note
-9. Final CTA — "One Job Can Pay For Your Membership"
+## What this does NOT change
 
-**Pricing page:**
-- Hero with strong number anchoring
-- Monthly vs Annual toggle (€33/€66/€199 monthly, €333/€666/€2000 annual)
-- Reputation-first messaging
-- Feature comparison table
-- FAQ section
-
-**Reputation page:**
-- Score formula with 4 weighted metrics
-- Visual ladder (Bronze → Silver → Gold)
-- Gold criteria and benefits (market data insights)
-- "What builders say" testimonial placeholders
-
-### What this does NOT change
-- No existing pages modified visually
-- No nav links added (rollout-gated)
-- No database changes needed
+- No behavior changes
 - No new dependencies
-- Existing homepage, HowItWorks, and all current pages untouched
+- No database changes
+- No routing changes
 
-### Implementation order
-1. Add routes to registry (rollout-gated)
-2. Create the three page components using existing `PublicLayout`, `HeroBanner`, `Card` components
-3. Add i18n keys
-4. Wire routes in App.tsx
+All 7 files will be edited in a single pass.
 
