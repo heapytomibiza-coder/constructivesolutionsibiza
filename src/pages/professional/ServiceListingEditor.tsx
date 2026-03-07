@@ -338,10 +338,21 @@ export default function ServiceListingEditor() {
                   </div>
                 ))}
                 {gallery.length < 3 && (
-                  <label className="flex items-center justify-center aspect-square rounded-md border-2 border-dashed border-border cursor-pointer hover:border-primary/50">
-                    {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5 text-muted-foreground" />}
-                    <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e, 'gallery')} />
-                  </label>
+                  <div className="flex flex-col gap-1">
+                    <label className="flex items-center justify-center aspect-square rounded-md border-2 border-dashed border-border cursor-pointer hover:border-primary/50">
+                      {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5 text-muted-foreground" />}
+                      <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e, 'gallery')} />
+                    </label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-1 text-xs h-7"
+                      onClick={() => { setStockPickerTarget('gallery'); setStockPickerOpen(true); }}
+                    >
+                      <ImageIcon className="h-3 w-3" />
+                      {t('listingEditor.stockPhoto', 'Stock')}
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
