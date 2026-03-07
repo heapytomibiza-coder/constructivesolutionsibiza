@@ -5,7 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Check, User, Phone, FileText, Eye, Store } from "lucide-react";
+import { ArrowLeft, Loader2, Check, User, Phone, FileText, Eye, Store, Wrench, Star, ChevronRight, SkipForward } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,8 @@ import {
 import { useSession } from "@/contexts/SessionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-
+import { useProfessionalServices } from "@/pages/onboarding/hooks/useProfessionalServices";
+import { useMicroPreferences } from "@/pages/onboarding/hooks/useMicroPreferences";
 // Phase 1 shared components
 import { GradientIconHeader, QuietSaveIndicator } from "@/shared/components/professional";
 
@@ -50,6 +51,11 @@ export default function ProfileEdit() {
   const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
   const { user, refresh } = useSession();
+  const { selectedMicroIds, isLoading: loadingServices } = useProfessionalServices();
+  const { preferences } = useMicroPreferences();
+
+  // Track which step of the edit flow we're on
+  const [editStep, setEditStep] = useState<'profile' | 'services' | 'priorities'>('profile');
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
@@ -249,7 +255,8 @@ export default function ProfileEdit() {
       await refresh();
 
       toast.success(t("pro.profile.saved", "Profile updated! Looking great."));
-      navigate("/dashboard/pro");
+      // Navigate to services editing step
+      navigate("/onboarding/professional?edit=1&step=services");
     } catch (err) {
       console.error("Error saving profile:", err);
       toast.error(t("pro.profile.saveError", "Failed to save profile"));
@@ -265,6 +272,9 @@ export default function ProfileEdit() {
       </div>
     );
   }
+
+  const servicesCount = selectedMicroIds.size;
+  const prioritiesSet = preferences.size;
 
   return (
     <div className="min-h-screen bg-gradient-hero bg-texture-concrete">
@@ -561,6 +571,37 @@ export default function ProfileEdit() {
               </CardContent>
             </Card>
 
+            {/* Quick Nav: Services & Priorities */}
+            <div className="space-y-3 pt-2">
+              <p className="text-sm font-medium text-muted-foreground px-1">Also manage:</p>
+              
+              <button
+                type="button"
+                onClick={() => navigate("/onboarding/professional?edit=1&step=services")}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 transition-all text-left"
+              >
+                <Wrench className="h-5 w-5 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-foreground">Edit Services</span>
+                  <span className="text-xs text-muted-foreground ml-2">{servicesCount} selected</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate("/professional/priorities")}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 transition-all text-left"
+              >
+                <Star className="h-5 w-5 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-foreground">Job Priorities</span>
+                  <span className="text-xs text-muted-foreground ml-2">{prioritiesSet} set</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <QuietSaveIndicator isSaving={isSaving} lastSaved={lastSaved} className="sm:hidden" />
@@ -577,7 +618,7 @@ export default function ProfileEdit() {
 
               <Button type="submit" size="lg" className="flex-1 gap-2 rounded-xl" disabled={isLoading}>
                 {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
-                Update Profile
+                Save & Edit Services
               </Button>
             </div>
           </form>
