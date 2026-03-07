@@ -203,6 +203,13 @@ export const proOnboardingRoutes: RouteConfig[] = [
     redirectTo: '/auth', 
     lane: 'professional',
   },
+  { 
+    path: '/professional/insights', 
+    access: 'role:professional', 
+    redirectTo: '/auth', 
+    lane: 'professional',
+    titleKey: 'nav.proInsights',
+  },
 ];
 
 export const proDashboardRoutes: RouteConfig[] = [
