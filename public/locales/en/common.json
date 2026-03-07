@@ -644,7 +644,8 @@
     "toggle": {
       "monthly": "Monthly",
       "annual": "Annual",
-      "save": "(save 15%)"
+      "save": "(save 15%)",
+      "annualHint": "Switch to annual to save 15%"
     },
     "mostPopular": "Most Popular",
     "inviteOnly": "Invite Only",
