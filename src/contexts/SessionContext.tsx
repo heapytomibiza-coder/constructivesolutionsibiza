@@ -8,6 +8,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { useSessionSnapshot, type SessionSnapshot } from '@/hooks/useSessionSnapshot';
 import { useMessageNotifications } from '@/hooks/useMessageNotifications';
+import { useJobAlerts } from '@/hooks/useJobAlerts';
 import { useAttribution } from '@/hooks/useAttribution';
 
 const SessionContext = createContext<SessionSnapshot | null>(null);
