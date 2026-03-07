@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { ChevronRight } from 'lucide-react';
 
 interface QuickActionTileProps {
   to: string;
@@ -15,18 +16,19 @@ export function QuickActionTile({ to, icon: Icon, label, hint, badge }: QuickAct
     <Link
       to={to}
       className={cn(
-        'flex items-start gap-2.5 p-3 rounded-lg border border-border/70 bg-card',
-        'hover:border-primary/30 hover:bg-muted/30 transition-colors',
-        'active:scale-[0.98] active:bg-muted/50',
-        'min-h-[56px]'
+        'group flex items-center gap-3 p-3.5 rounded-xl border border-border/60 bg-card',
+        'shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]',
+        'hover:border-primary/25 transition-all duration-200',
+        'active:scale-[0.98]',
+        'min-h-[72px]'
       )}
     >
-      <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="h-4 w-4 text-primary" />
+      <div className="h-10 w-10 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
+        <Icon className="h-[18px] w-[18px] text-primary" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <div className="text-sm font-medium text-foreground leading-tight">{label}</div>
+          <span className="text-sm font-semibold text-foreground leading-snug">{label}</span>
           {badge != null && badge > 0 && (
             <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 shrink-0">
               {badge}
@@ -34,9 +36,10 @@ export function QuickActionTile({ to, icon: Icon, label, hint, badge }: QuickAct
           )}
         </div>
         {hint && (
-          <div className="text-xs text-muted-foreground mt-0.5 leading-tight">{hint}</div>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{hint}</p>
         )}
       </div>
+      <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary/60 transition-colors shrink-0" />
     </Link>
   );
 }
