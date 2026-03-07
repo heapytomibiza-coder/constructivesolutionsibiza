@@ -571,6 +571,37 @@ export default function ProfileEdit() {
               </CardContent>
             </Card>
 
+            {/* Quick Nav: Services & Priorities */}
+            <div className="space-y-3 pt-2">
+              <p className="text-sm font-medium text-muted-foreground px-1">Also manage:</p>
+              
+              <button
+                type="button"
+                onClick={() => navigate("/onboarding/professional?edit=1&step=services")}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 transition-all text-left"
+              >
+                <Wrench className="h-5 w-5 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-foreground">Edit Services</span>
+                  <span className="text-xs text-muted-foreground ml-2">{servicesCount} selected</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate("/professional/priorities")}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 transition-all text-left"
+              >
+                <Star className="h-5 w-5 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-foreground">Job Priorities</span>
+                  <span className="text-xs text-muted-foreground ml-2">{prioritiesSet} set</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <QuietSaveIndicator isSaving={isSaving} lastSaved={lastSaved} className="sm:hidden" />
@@ -587,7 +618,7 @@ export default function ProfileEdit() {
 
               <Button type="submit" size="lg" className="flex-1 gap-2 rounded-xl" disabled={isLoading}>
                 {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
-                Update Profile
+                Save & Edit Services
               </Button>
             </div>
           </form>
