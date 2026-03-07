@@ -54,7 +54,7 @@ async function sendTelegramAlert(job: any, siteUrl: string) {
 
   const budget = formatBudget(job);
   const jobUrl = `${siteUrl}/jobs/${job.id}`;
-  const boardUrl = `https://www.constructivesolutionsibiza.com/jobs`;
+  const boardUrl = `${siteUrl}/jobs`;
 
   // Build trade line: Category › Subcategory › Micro
   const tradeParts = [job.category, job.subcategory, job.micro_slug?.replace(/-/g, " ")].filter(Boolean);
