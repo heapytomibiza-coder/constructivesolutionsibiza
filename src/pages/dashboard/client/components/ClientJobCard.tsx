@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2, Pencil, Copy, X, MapPin, Clock, MessageSquare, DollarSign } from 'lucide-react';
+import { CheckCircle2, Pencil, Copy, X, Clock, MessageSquare, DollarSign } from 'lucide-react';
+import { CategoryPlaceholder } from '@/components/CategoryPlaceholder';
+import { getCategoryIconByName } from '@/lib/categoryIcons';
 import { CompletionModal, RatingModal } from '@/pages/jobs/components';
 import { completeJob } from '@/pages/jobs/actions/completeJob.action';
 import { submitReview } from '@/pages/jobs/actions/submitReview.action';
@@ -31,23 +33,22 @@ interface ClientJobCardProps {
   onJobUpdated: () => void;
 }
 
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case 'open': return 'default';
-    case 'draft': return 'secondary';
-    case 'ready': return 'secondary';
-    case 'in_progress': return 'outline';
-    case 'completed': return 'success' as const;
-    case 'cancelled': return 'destructive' as const;
-    default: return 'secondary';
-  }
+/* ─── helpers ─── */
+
+const STATUS_VARIANTS: Record<string, string> = {
+  open: 'default',
+  draft: 'secondary',
+  ready: 'secondary',
+  in_progress: 'outline',
+  completed: 'success',
+  cancelled: 'destructive',
 };
 
-const getStatusLabel = (status: string, t: (key: string) => string) => {
+function getStatusLabel(status: string, t: (key: string) => string) {
   const key = `client.status.${status}`;
   const translated = t(key);
   return translated !== key ? translated : status;
-};
+}
 
 function getActions(status: string) {
   const canEdit = ['draft', 'ready', 'open'].includes(status);
@@ -56,19 +57,27 @@ function getActions(status: string) {
   return { canEdit, canDuplicate, canClose };
 }
 
-function formatBudgetLabel(job: ClientJob, t: (key: string, options?: Record<string, unknown>) => string): string | null {
+function formatBudgetLabel(job: ClientJob, t: (key: string, opts?: Record<string, unknown>) => string): string | null {
   if (job.budget_min && job.budget_max) return `€${job.budget_min}–€${job.budget_max}`;
   if (job.budget_value) return `€${job.budget_value}`;
   if (job.budget_type === 'tbd') return t('client.budgetTbd', { defaultValue: 'Quote-based' });
   return null;
 }
 
-function formatTimingLabel(timing: string | null, t: (key: string, options?: Record<string, unknown>) => string): string | null {
+function formatTimingLabel(timing: string | null, t: (key: string, opts?: Record<string, unknown>) => string): string | null {
   if (!timing) return null;
   const key = `client.timing.${timing}`;
   const translated = t(key);
   return translated !== key ? translated : timing.replace(/_/g, ' ');
 }
+
+/* ─── category slug helper ─── */
+function categoryToSlug(name: string | null): string | null {
+  if (!name) return null;
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+/* ─── component ─── */
 
 export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
   const { t } = useTranslation('dashboard');
@@ -83,6 +92,8 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
   const budgetLabel = formatBudgetLabel(job, t);
   const timingLabel = formatTimingLabel(job.start_timing, t);
   const dateLocale = getDateLocale();
+  const catSlug = categoryToSlug(job.category);
+  const CategoryIcon = job.category ? getCategoryIconByName(job.category) : null;
 
   const handleEdit = () => navigate(`/post?edit=${job.id}`);
 
@@ -141,7 +152,6 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         .from('jobs')
         .update({ status: 'cancelled' })
         .eq('id', job.id);
-
       if (error) throw error;
       toast.success(t('client.jobClosed'));
       onJobUpdated();
@@ -178,7 +188,6 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
       rating,
       comment,
     });
-
     if (result.success) {
       toast.success(t('client.ratingSuccess'));
       setShowRatingModal(false);
@@ -189,139 +198,139 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
 
   return (
     <>
-      <div className="p-4 rounded-lg border border-border/70 bg-card hover:bg-muted/50 hover:border-accent/30 transition-all group">
-        {/* Header row: Badge + timestamp */}
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <Badge variant={getStatusBadgeVariant(job.status)}>
-            {getStatusLabel(job.status, t)}
-          </Badge>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {formatDistanceToNow(new Date(job.created_at), { addSuffix: true, locale: dateLocale })}
-          </span>
+      <div className="rounded-lg border border-border/70 bg-card hover:border-accent/30 transition-all group overflow-hidden flex flex-col sm:flex-row">
+        {/* Category visual strip — left on desktop, top on mobile */}
+        <div className="sm:w-32 sm:min-h-full aspect-[4/3] sm:aspect-auto shrink-0">
+          <CategoryPlaceholder
+            categorySlug={catSlug}
+            categoryName={job.category}
+            className="w-full h-full"
+            iconSize="h-8 w-8"
+          />
         </div>
-        
-        {/* Title */}
-        <h3 className="font-medium text-foreground group-hover:text-primary transition-colors mb-1">
-          {job.title}
-        </h3>
-        
-        {/* Category */}
-        <p className="text-sm text-muted-foreground mb-2">
-          {job.category && job.subcategory 
-            ? `${txCategory(job.category, t) ?? job.category} → ${txSubcategory(job.subcategory, t) ?? job.subcategory}` 
-            : t('client.uncategorized')}
-        </p>
 
-        {/* Meta row: area, budget, timing, replies */}
-        <div className="flex items-center gap-3 flex-wrap text-xs text-muted-foreground mb-3">
-          {job.area && (
-            <span className="flex items-center gap-0.5">
-              <MapPin className="h-3 w-3" />
-              {job.area}
+        {/* Content */}
+        <div className="p-4 flex-1 min-w-0 space-y-2">
+          {/* Header: badge + timestamp */}
+          <div className="flex items-center justify-between gap-2">
+            <Badge variant={(STATUS_VARIANTS[job.status] ?? 'secondary') as any}>
+              {getStatusLabel(job.status, t)}
+            </Badge>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              {formatDistanceToNow(new Date(job.created_at), { addSuffix: true, locale: dateLocale })}
             </span>
-          )}
-          {budgetLabel && (
-            <span className="flex items-center gap-0.5">
-              <DollarSign className="h-3 w-3" />
-              {budgetLabel}
-            </span>
-          )}
-          {timingLabel && (
-            <span className="flex items-center gap-0.5">
-              <Clock className="h-3 w-3" />
-              {timingLabel}
-            </span>
-          )}
-          {job.conversation_count > 0 && (
-            <span className="flex items-center gap-0.5 text-primary font-medium">
-              <MessageSquare className="h-3 w-3" />
-              {t('client.replies', { count: job.conversation_count })}
-            </span>
-          )}
-        </div>
-        
-        {/* Status hints */}
-        {job.status === 'ready' && (
-          <p className="text-xs text-muted-foreground mb-3">
-            {t('client.savedHint')}
-          </p>
-        )}
-        
-        {job.status === 'open' && !job.assigned_professional_id && job.conversation_count === 0 && (
-          <p className="text-xs text-muted-foreground mb-3">
-            {t('client.noProMessaged')}
-          </p>
-        )}
-        
-        {/* Actions row */}
-        <div className="flex items-center gap-2 flex-wrap">
+          </div>
+
+          {/* Title — clamped to 2 lines */}
+          <h3 className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+            {job.title}
+          </h3>
+
+          {/* Category context */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {job.category && (
+              <Badge variant="secondary" className="text-xs font-normal gap-1 px-2">
+                {CategoryIcon && <CategoryIcon className="h-3 w-3" />}
+                {txCategory(job.category, t) ?? job.category}
+              </Badge>
+            )}
+            {job.subcategory && (
+              <span className="text-xs text-muted-foreground">
+                {txSubcategory(job.subcategory, t) ?? job.subcategory}
+              </span>
+            )}
+          </div>
+
+          {/* Meta icons row */}
+          <div className="flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
+            {budgetLabel && (
+              <span className="flex items-center gap-1">
+                <DollarSign className="h-3.5 w-3.5" />
+                {budgetLabel}
+              </span>
+            )}
+            {timingLabel && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                {timingLabel}
+              </span>
+            )}
+            {job.conversation_count > 0 && (
+              <span className="flex items-center gap-1 text-primary font-medium">
+                <MessageSquare className="h-3.5 w-3.5" />
+                {t('client.replies', { count: job.conversation_count })}
+              </span>
+            )}
+          </div>
+
+          {/* Status hints */}
           {job.status === 'ready' && (
-            <Button variant="default" size="sm" className="gap-1" asChild>
-              <Link to={`/dashboard/jobs/${job.id}`}>
-                {t('client.shareJob')}
+            <p className="text-xs text-muted-foreground">{t('client.savedHint')}</p>
+          )}
+          {job.status === 'open' && !job.assigned_professional_id && job.conversation_count === 0 && (
+            <p className="text-xs text-muted-foreground">{t('client.noProMessaged')}</p>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 flex-wrap pt-1">
+            {job.status === 'ready' && (
+              <Button variant="default" size="sm" className="gap-1" asChild>
+                <Link to={`/dashboard/jobs/${job.id}`}>{t('client.shareJob')}</Link>
+              </Button>
+            )}
+            {job.status === 'open' && !job.assigned_professional_id && (
+              <AssignProSelector jobId={job.id} onAssigned={onJobUpdated} />
+            )}
+            {canComplete && (
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowCompletionModal(true)}>
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {t('client.complete')}
+              </Button>
+            )}
+            <Button variant="outline" size="sm" asChild>
+              <Link to={job.status === 'ready' ? `/dashboard/jobs/${job.id}` : `/jobs/${job.id}`}>
+                {t('client.view')}
               </Link>
             </Button>
-          )}
-          {job.status === 'open' && !job.assigned_professional_id && (
-            <AssignProSelector jobId={job.id} onAssigned={onJobUpdated} />
-          )}
-          {canComplete && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="gap-1"
-              onClick={() => setShowCompletionModal(true)}
-            >
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              {t('client.complete')}
-            </Button>
-          )}
-          <Button variant="outline" size="sm" asChild>
-            <Link to={job.status === 'ready' ? `/dashboard/jobs/${job.id}` : `/jobs/${job.id}`}>{t('client.view')}</Link>
-          </Button>
-
-          {canEdit && (
-            <Button variant="ghost" size="sm" className="gap-1" onClick={handleEdit}>
-              <Pencil className="h-3.5 w-3.5" />
-              {t('client.editJob')}
-            </Button>
-          )}
-
-          {canDuplicate && (
-            <Button variant="ghost" size="sm" className="gap-1" onClick={handleDuplicate}>
-              <Copy className="h-3.5 w-3.5" />
-              {t('client.duplicateJob')}
-            </Button>
-          )}
-
-          {canClose && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive">
-                  <X className="h-3.5 w-3.5" />
-                  {t('client.closeJob')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('client.closeJob')}</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t('client.closeConfirm')}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('client.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleClose}
-                    disabled={isClosing}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    {isClosing ? t('client.closing') : t('client.closeJob')}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+            {canEdit && (
+              <Button variant="ghost" size="sm" className="gap-1" onClick={handleEdit}>
+                <Pencil className="h-3.5 w-3.5" />
+                {t('client.editJob')}
+              </Button>
+            )}
+            {canDuplicate && (
+              <Button variant="ghost" size="sm" className="gap-1" onClick={handleDuplicate}>
+                <Copy className="h-3.5 w-3.5" />
+                {t('client.duplicateJob')}
+              </Button>
+            )}
+            {canClose && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive">
+                    <X className="h-3.5 w-3.5" />
+                    {t('client.closeJob')}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('client.closeJob')}</AlertDialogTitle>
+                    <AlertDialogDescription>{t('client.closeConfirm')}</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('client.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleClose}
+                      disabled={isClosing}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isClosing ? t('client.closing') : t('client.closeJob')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
       </div>
 
@@ -332,7 +341,6 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         onConfirm={handleComplete}
         isLoading={isCompleting}
       />
-
       <RatingModal
         open={showRatingModal}
         onOpenChange={setShowRatingModal}
