@@ -32,7 +32,7 @@ import Terms from "./pages/public/Terms";
 import DisputePolicy from "./pages/public/DisputePolicy";
 import About from "./pages/public/About";
 import ForProfessionals from "./pages/public/ForProfessionals";
-import PricingPage from "./pages/public/Pricing";
+import PricingPublicPage from "./pages/public/Pricing";
 import ReputationPage from "./pages/public/Reputation";
 import { ServiceListingDetail } from "./pages/services";
 
