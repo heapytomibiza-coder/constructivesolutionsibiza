@@ -146,9 +146,8 @@ const ProDashboard = () => {
           <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
           <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
           <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} />
-          <MenuItem to="/onboarding/professional?edit=1&step=services" icon={ListChecks} label={t('pro.addServices', 'Add Services')} />
           <MenuItem to="/professional/listings" icon={Store} label={t('pro.createServicePages', 'Create Service Pages')} />
-          <MenuItem to="/professional/priorities" icon={Star} label={t('pro.jobPriorities', 'Job Priorities')} />
+          <MenuItem to="/professional/insights" icon={BarChart3} label={t('pro.myInsights', 'My Insights')} />
           <MenuItem to="/settings" icon={Settings} label={t('common.settings', 'Settings')} />
           <MenuItem to="/forum" icon={MessageCircle} label={t('pro.forumHelp', 'Community Forum & Help')} />
         </div>
