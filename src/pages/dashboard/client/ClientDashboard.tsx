@@ -134,7 +134,7 @@ const ClientDashboard = () => {
         {/* Menu */}
         <div className="flex flex-col gap-2">
           <MenuItem to="/post" icon={Plus} label={t('client.postJob')} primary />
-          <MenuItem to="/dashboard/jobs" icon={Briefcase} label={t('client.yourJobs')} />
+          <MenuItem to="/dashboard/client/jobs" icon={Briefcase} label={t('client.yourJobs')} />
           <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
           <MenuItem to="/settings" icon={Settings} label={t('common.settings', 'Settings')} />
           <MenuItem to="/forum" icon={MessageCircle} label={t('client.forumHelp', 'Community Forum & Help')} />
