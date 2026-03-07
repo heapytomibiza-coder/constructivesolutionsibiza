@@ -25,7 +25,8 @@ import {
 import { useSession } from "@/contexts/SessionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-
+import { useProfessionalServices } from "@/pages/onboarding/hooks/useProfessionalServices";
+import { useMicroPreferences } from "@/pages/onboarding/hooks/useMicroPreferences";
 // Phase 1 shared components
 import { GradientIconHeader, QuietSaveIndicator } from "@/shared/components/professional";
 
