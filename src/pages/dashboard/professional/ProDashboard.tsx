@@ -79,7 +79,7 @@ const ProDashboard = () => {
             {t('pro.title')}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5 truncate">
-            {user?.email || ''}
+            {t('pro.welcomeBack', { email: user?.email || '' })}
           </p>
         </div>
 
