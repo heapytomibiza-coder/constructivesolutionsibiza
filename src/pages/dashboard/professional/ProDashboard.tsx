@@ -106,7 +106,8 @@ function StageCard({ icon, title, description, ctaLabel, ctaTo }: StageCardProps
   );
 }
 
-function getStageCard(stage: DashboardStage, t: (key: string, options?: Record<string, unknown>) => string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getStageCard(stage: DashboardStage, t: any) {
   switch (stage) {
     case 'needs_profile':
       return (
