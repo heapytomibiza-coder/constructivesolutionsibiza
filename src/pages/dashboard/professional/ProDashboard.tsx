@@ -2,16 +2,16 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSession } from '@/contexts/SessionContext';
-import { useProStats } from './hooks/useProStats';
+import { useProStats, type DashboardStage } from './hooks/useProStats';
 import { RoleSwitcher } from '@/shared/components/layout/RoleSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { 
+import {
   Briefcase,
-  BarChart3, 
+  BarChart3,
   Wrench,
   MessageSquare,
   MessageCircle,
@@ -19,17 +19,18 @@ import {
   Settings,
   ArrowRight,
   User,
-  Star,
   Store,
-  ListChecks,
-  ChevronRight
+  ChevronRight,
+  Eye,
+  CheckCircle2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 /**
  * PROFESSIONAL DASHBOARD
- * 
- * Clean navigation hub — flat menu, easy to scan.
+ *
+ * State-aware navigation hub — shows guidance card based on
+ * dashboardStage and groups menu items by relevance.
  */
 
 interface MenuItemProps {
@@ -65,10 +66,97 @@ function MenuItem({ to, icon: Icon, label, primary, badge }: MenuItemProps) {
   );
 }
 
+function MenuGroupLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1 pt-4 pb-1">
+      {children}
+    </p>
+  );
+}
+
+/* ── Stage guidance cards ── */
+
+interface StageCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  ctaLabel: string;
+  ctaTo: string;
+}
+
+function StageCard({ icon, title, description, ctaLabel, ctaTo }: StageCardProps) {
+  return (
+    <Card className="mb-5 border-primary/30 bg-primary/5 shadow-md">
+      <CardContent className="py-4 px-4">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-primary/10 p-2 shrink-0">{icon}</div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-display text-sm font-bold text-foreground mb-0.5">{title}</h3>
+            <p className="text-xs text-muted-foreground mb-3">{description}</p>
+            <Button asChild size="sm">
+              <Link to={ctaTo}>
+                {ctaLabel}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function getStageCard(stage: DashboardStage, t: (key: string, fallback?: string) => string) {
+  switch (stage) {
+    case 'needs_profile':
+      return (
+        <StageCard
+          icon={<User className="h-5 w-5 text-primary" />}
+          title={t('pro.stage.needsProfileTitle', 'Complete your profile')}
+          description={t('pro.stage.needsProfileDesc', 'Add your name and details so clients know who you are.')}
+          ctaLabel={t('pro.editProfile')}
+          ctaTo="/professional/profile"
+        />
+      );
+    case 'needs_services':
+      return (
+        <StageCard
+          icon={<Wrench className="h-5 w-5 text-primary" />}
+          title={t('pro.stage.needsServicesTitle', 'Choose your services')}
+          description={t('pro.stage.needsServicesDesc', 'Your services are how we match you to real job requests. No services = no matched jobs.')}
+          ctaLabel={t('pro.chooseServices', 'Choose Your Services')}
+          ctaTo="/onboarding/professional?step=services"
+        />
+      );
+    case 'needs_review':
+      return (
+        <StageCard
+          icon={<CheckCircle2 className="h-5 w-5 text-primary" />}
+          title={t('pro.stage.needsReviewTitle', 'Review and go live')}
+          description={t('pro.stage.needsReviewDesc', 'You\'re almost there — finish your setup to start receiving jobs.')}
+          ctaLabel={t('pro.stage.finishSetup', 'Finish Setup')}
+          ctaTo="/onboarding/professional"
+        />
+      );
+    case 'needs_visibility':
+      return (
+        <StageCard
+          icon={<Eye className="h-5 w-5 text-primary" />}
+          title={t('pro.stage.needsVisibilityTitle', 'Turn on visibility')}
+          description={t('pro.stage.needsVisibilityDesc', 'Your profile is ready but hidden. Toggle visibility so clients can find you.')}
+          ctaLabel={t('pro.stage.goVisible', 'Edit Visibility')}
+          ctaTo="/professional/profile"
+        />
+      );
+    case 'active':
+      return null; // No guidance needed — pro is fully live
+  }
+}
+
 const ProDashboard = () => {
   const { t } = useTranslation('dashboard');
   const { user, roles } = useSession();
-  const { stats } = useProStats();
+  const { stats, dashboardStage } = useProStats();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -77,7 +165,8 @@ const ProDashboard = () => {
     navigate('/');
   };
 
-  const needsServiceSetup = stats.servicesCount === 0;
+  const isSetupComplete = dashboardStage === 'active' || dashboardStage === 'needs_visibility';
+  const hasServices = stats.servicesCount > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,7 +181,7 @@ const ProDashboard = () => {
               CS Ibiza
             </span>
           </Link>
-          
+
           <div className="flex items-center gap-2">
             {roles.length > 1 && (
               <RoleSwitcher className="w-[140px]" />
@@ -120,36 +209,47 @@ const ProDashboard = () => {
           </p>
         </div>
 
-        {/* Services-First Guidance — only when no services */}
-        {needsServiceSetup && (
-          <Card className="mb-5 border-primary bg-primary/5 shadow-md">
-            <CardContent className="py-4 px-4">
-              <h3 className="font-display text-sm font-bold text-foreground mb-1">
-                {t('pro.servicesFirstTitle', 'Start with your services — it\'s how you get work')}
-              </h3>
-              <p className="text-xs text-muted-foreground mb-3">
-                {t('pro.servicesFirstDesc')}
-              </p>
-              <Button asChild size="sm">
-                <Link to="/onboarding/professional?step=services">
-                  <Wrench className="h-4 w-4 mr-2" />
-                  {t('pro.chooseServices', 'Choose Your Services')}
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        {/* Stage guidance card */}
+        {getStageCard(dashboardStage, t)}
 
-        {/* Menu */}
+        {/* Menu — grouped by context */}
         <div className="flex flex-col gap-2">
-          <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
-          <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
-          <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} />
-          <MenuItem to="/professional/listings" icon={Store} label={t('pro.createServicePages', 'Create Service Pages')} />
-          <MenuItem to="/professional/insights" icon={BarChart3} label={t('pro.myInsights', 'My Insights')} />
+          {/* Get Started — visible while setup is incomplete */}
+          {!isSetupComplete && (
+            <>
+              <MenuGroupLabel>{t('pro.menuGroup.getStarted', 'Get Started')}</MenuGroupLabel>
+              <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
+              {dashboardStage !== 'needs_profile' && (
+                <MenuItem to="/onboarding/professional?step=services" icon={Wrench} label={t('pro.chooseServices', 'Choose Your Services')} />
+              )}
+            </>
+          )}
+
+          {/* Your Work — visible once services exist */}
+          {hasServices && (
+            <>
+              <MenuGroupLabel>{t('pro.menuGroup.yourWork', 'Your Work')}</MenuGroupLabel>
+              {isSetupComplete && (
+                <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
+              )}
+              <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} />
+              <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
+              <MenuItem to="/professional/listings" icon={Store} label={t('pro.myListings', 'My Listings')} />
+            </>
+          )}
+
+          {/* Grow — visible once active */}
+          {isSetupComplete && (
+            <>
+              <MenuGroupLabel>{t('pro.menuGroup.grow', 'Grow')}</MenuGroupLabel>
+              <MenuItem to="/professional/insights" icon={BarChart3} label={t('pro.myInsights', 'My Insights')} />
+              <MenuItem to="/forum" icon={MessageCircle} label={t('pro.forumHelp', 'Community Forum & Help')} />
+            </>
+          )}
+
+          {/* Account — always visible */}
+          <MenuGroupLabel>{t('pro.menuGroup.account', 'Account')}</MenuGroupLabel>
           <MenuItem to="/settings" icon={Settings} label={t('common.settings', 'Settings')} />
-          <MenuItem to="/forum" icon={MessageCircle} label={t('pro.forumHelp', 'Community Forum & Help')} />
         </div>
       </div>
     </div>

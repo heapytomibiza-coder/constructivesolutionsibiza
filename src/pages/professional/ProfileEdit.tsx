@@ -617,7 +617,7 @@ export default function ProfileEdit() {
 
               <Button type="submit" size="lg" className="flex-1 gap-2 rounded-xl" disabled={isLoading}>
                 {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
-                Save & Edit Services
+                {t("pro.profile.saveProfile", "Save Profile")}
               </Button>
             </div>
           </form>

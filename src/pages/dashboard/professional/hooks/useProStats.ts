@@ -1,6 +1,17 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
+import { normalizePhase, phaseIndex, type CanonicalPhase } from '@/pages/onboarding/lib/phaseProgression';
+
+/**
+ * Dashboard stages — derived from session + stats, drives the hero card & menu gating.
+ */
+export type DashboardStage =
+  | 'needs_profile'    // no display name yet
+  | 'needs_services'   // profile exists but 0 services
+  | 'needs_review'     // services set but onboarding not complete
+  | 'needs_visibility' // complete but not publicly listed
+  | 'active';          // live and visible
 
 interface ProStats {
   servicesCount: number;
@@ -25,9 +36,30 @@ interface MatchedJob {
   highlights: string[] | null;
 }
 
+function deriveDashboardStage(
+  displayName: string | null | undefined,
+  servicesCount: number,
+  phase: string | null | undefined,
+  isPubliclyListed: boolean,
+): DashboardStage {
+  if (!displayName || displayName.trim().length === 0) return 'needs_profile';
+  if (servicesCount === 0) return 'needs_services';
+  const normalized = normalizePhase(phase);
+  if (phaseIndex(normalized) < phaseIndex('complete' as CanonicalPhase)) return 'needs_review';
+  if (!isPubliclyListed) return 'needs_visibility';
+  return 'active';
+}
+
 export function useProStats() {
   const { user, professionalProfile } = useSession();
   const servicesCount = professionalProfile?.servicesCount ?? 0;
+
+  const dashboardStage = deriveDashboardStage(
+    professionalProfile?.displayName,
+    servicesCount,
+    professionalProfile?.onboardingPhase,
+    professionalProfile?.isPubliclyListed ?? false,
+  );
 
   const matchedJobsQuery = useQuery({
     queryKey: ['matched_jobs', user?.id],
@@ -73,6 +105,7 @@ export function useProStats() {
 
   return {
     stats,
+    dashboardStage,
     matchedJobs: matchedJobsQuery.data || [],
     isLoading: matchedJobsQuery.isLoading || unreadQuery.isLoading,
     error: matchedJobsQuery.error || unreadQuery.error,
