@@ -137,7 +137,26 @@
     "view": "View",
     "noImage": "No image",
     "fromPrice": "From {{price}} €",
-    "untitled": "Untitled"
+    "untitled": "Untitled",
+    "menuGroup": {
+      "getStarted": "Get Started",
+      "yourWork": "Your Work",
+      "grow": "Grow",
+      "account": "Account"
+    },
+    "stage": {
+      "needsProfileTitle": "Complete your profile",
+      "needsProfileDesc": "Add your name and details so clients know who you are.",
+      "needsServicesTitle": "Choose your services",
+      "needsServicesDesc": "Your services are how we match you to real job requests. No services = no matched jobs.",
+      "needsReviewTitle": "Review and go live",
+      "needsReviewDesc": "You're almost there — finish your setup to start receiving jobs.",
+      "finishSetup": "Finish Setup",
+      "needsVisibilityTitle": "Turn on visibility",
+      "needsVisibilityDesc": "Your profile is ready but hidden. Toggle visibility so clients can find you.",
+      "goVisible": "Edit Visibility"
+    },
+    "myListings": "My Listings"
   },
   "proProfile": {
     "title": "Professional Profile",

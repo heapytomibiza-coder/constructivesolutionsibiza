@@ -255,8 +255,7 @@ export default function ProfileEdit() {
       await refresh();
 
       toast.success(t("pro.profile.saved", "Profile updated! Looking great."));
-      // Navigate to services editing step
-      navigate("/onboarding/professional?edit=1&step=services");
+      navigate("/dashboard/pro");
     } catch (err) {
       console.error("Error saving profile:", err);
       toast.error(t("pro.profile.saveError", "Failed to save profile"));
@@ -618,7 +617,7 @@ export default function ProfileEdit() {
 
               <Button type="submit" size="lg" className="flex-1 gap-2 rounded-xl" disabled={isLoading}>
                 {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
-                Save & Edit Services
+                {t("pro.profile.saveProfile", "Save Profile")}
               </Button>
             </div>
           </form>
