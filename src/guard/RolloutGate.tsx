@@ -16,10 +16,20 @@ interface RolloutGateProps {
 }
 
 export function RolloutGate({ min, children }: RolloutGateProps) {
-  const { hasRole } = useSession();
+  const { hasRole, isReady } = useSession();
 
-  // Admins can always preview gated pages
-  if (hasRole('admin') || isRolloutActive(min)) {
+  // If rollout phase is active, show immediately (no auth needed)
+  if (isRolloutActive(min)) {
+    return <>{children}</>;
+  }
+
+  // Phase not active — wait for session to check admin status
+  if (!isReady) {
+    return null;
+  }
+
+  // Admins can preview gated pages
+  if (hasRole('admin')) {
     return <>{children}</>;
   }
 
