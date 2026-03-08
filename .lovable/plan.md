@@ -1,48 +1,81 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+## Plan: Pro Dashboard Flow & Navigation Logic Fix
 
-## What's happening
+### Core problems
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+1. **Dashboard is state-blind** — only checks `servicesCount === 0`, then shows identical flat menu to all professionals regardless of completion state
+2. **ProfileEdit forces wrong redirect** — line 259 always navigates to `/onboarding/professional?edit=1&step=services` on save, trapping users in the onboarding wizard when they just wanted to update their bio
+3. **Menu shows everything at once** — Insights, Listings, Forum all visible to a brand-new pro with no services, creating confusion about what matters
+4. **No "where am I / what's next"** — no profile strength, no progression indicator, no contextual guidance after services are set up
 
-## Root cause
+### What we'll build
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+**A. State-aware dashboard hero** (`ProDashboard.tsx`)
 
-## Affected components (7 files)
+Derive a `dashboardStage` from existing session + stats data:
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
-
-## Implementation approach
-
-Each fix is the same 3-line pattern:
-
-```tsx
-// Before
-function ScrollToTop() { ... }
-
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
+```text
+if (!displayName)           → 'needs_profile'   → "Complete your profile"
+elif (servicesCount === 0)  → 'needs_services'   → "Choose your services"  
+elif (phase < complete)     → 'needs_review'     → "Review and go live"
+elif (!isPubliclyListed)    → 'needs_visibility' → "Turn on visibility"
+else                        → 'active'           → "You're live — check jobs"
 ```
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+Each stage shows a single guidance card with one clear CTA. Replaces the current `needsServiceSetup` card.
 
-## What this does NOT change
+**B. Fix ProfileEdit save flow** (`ProfileEdit.tsx`)
 
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
+- Change submit handler: save profile → toast success → navigate to `/dashboard/pro` (not the onboarding wizard)
+- Rename button from "Save & Edit Services" → "Save Profile"
+- Keep the "Edit Services" and "Job Priorities" shortcut buttons at the bottom as optional navigation — they already exist and work well as secondary actions
 
-All 7 files will be edited in a single pass.
+**C. Grouped menu with stage-based visibility** (`ProDashboard.tsx`)
+
+Split the flat menu into logical groups:
+
+```text
+── Get Started (visible when setup incomplete) ──
+   Edit Profile
+   Choose Services (links to onboarding wizard)
+
+── Your Work (always visible once services exist) ──
+   Browse Jobs
+   Messages [badge]
+   My Listings
+
+── Grow (visible once 'active') ──
+   Insights
+   Community Forum
+
+── Account (always visible) ──
+   Settings
+```
+
+Items in hidden groups simply don't render — no new routes or gating needed.
+
+**D. Enrich useProStats** (`useProStats.ts`)
+
+Add fields already available from session context (no new DB queries):
+- `profileComplete`: derived from `displayName` + `servicesCount > 0` + `phase`
+- `dashboardStage`: the computed stage string
+- `isPubliclyListed`: from `professionalProfile`
+
+### Files to edit
+
+| File | Change |
+|------|--------|
+| `src/pages/dashboard/professional/ProDashboard.tsx` | State-aware hero card, grouped menu |
+| `src/pages/professional/ProfileEdit.tsx` | Fix save redirect → dashboard, rename button |
+| `src/pages/dashboard/professional/hooks/useProStats.ts` | Add `dashboardStage` derivation |
+| `public/locales/en/dashboard.json` | Add i18n keys for stage guidance cards and menu group labels |
+
+### What stays unchanged
+
+- Onboarding wizard (`ProfessionalOnboarding.tsx`) — works correctly for first-time and edit flows
+- Route registry — no new routes needed
+- Database — no schema changes
+- MyServiceListings, JobPriorities, ProInsights — untouched
+- Session context — already provides all needed data via `professionalProfile`
 
