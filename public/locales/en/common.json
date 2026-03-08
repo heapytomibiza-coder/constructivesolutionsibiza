@@ -601,7 +601,8 @@
     "valueStack": {
       "title": "The Tools Behind Your Business",
       "total": "Total value",
-      "compare": "All of this starting from just €333 per year."
+      "compare": "All of this starting from just €333 per year.",
+      "disclaimer": "Estimated based on typical costs of equivalent individual tools and services. Actual savings vary."
     },
     "reputation": {
       "title": "Earn Your Status",
@@ -643,7 +644,8 @@
     "toggle": {
       "monthly": "Monthly",
       "annual": "Annual",
-      "save": "(save 15%)"
+      "save": "(save 15%)",
+      "annualHint": "Switch to annual to save 15%"
     },
     "mostPopular": "Most Popular",
     "inviteOnly": "Invite Only",
@@ -728,6 +730,17 @@
       "weight": "Weight",
       "example": "Example Score",
       "resultLabel": "Constructive Score"
+    },
+    "growth": {
+      "title": "How Your Score Improves Over Time",
+      "desc": "Your reputation score builds with every completed project. Consistency is key — each positive review strengthens your standing.",
+      "early": "Getting Started",
+      "earlyJobs": "First 5 jobs",
+      "growing": "Building Trust",
+      "growingJobs": "10–20 jobs",
+      "established": "Established Pro",
+      "establishedJobs": "40+ jobs",
+      "tip": "Tip: Focus on communication and reliability early — they have the fastest impact on your score."
     },
     "metrics": {
       "quality": { "label": "Quality", "desc": "Client rating of workmanship" },
