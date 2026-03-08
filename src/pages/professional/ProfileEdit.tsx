@@ -255,8 +255,7 @@ export default function ProfileEdit() {
       await refresh();
 
       toast.success(t("pro.profile.saved", "Profile updated! Looking great."));
-      // Navigate to services editing step
-      navigate("/onboarding/professional?edit=1&step=services");
+      navigate("/dashboard/pro");
     } catch (err) {
       console.error("Error saving profile:", err);
       toast.error(t("pro.profile.saveError", "Failed to save profile"));
