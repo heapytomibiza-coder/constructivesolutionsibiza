@@ -106,7 +106,7 @@ function StageCard({ icon, title, description, ctaLabel, ctaTo }: StageCardProps
   );
 }
 
-function getStageCard(stage: DashboardStage, t: (key: string, fallback?: string) => string) {
+function getStageCard(stage: DashboardStage, t: (key: string, options?: Record<string, unknown>) => string) {
   switch (stage) {
     case 'needs_profile':
       return (
