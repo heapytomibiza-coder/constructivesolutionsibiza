@@ -731,6 +731,17 @@
       "example": "Example Score",
       "resultLabel": "Constructive Score"
     },
+    "growth": {
+      "title": "How Your Score Improves Over Time",
+      "desc": "Your reputation score builds with every completed project. Consistency is key — each positive review strengthens your standing.",
+      "early": "Getting Started",
+      "earlyJobs": "First 5 jobs",
+      "growing": "Building Trust",
+      "growingJobs": "10–20 jobs",
+      "established": "Established Pro",
+      "establishedJobs": "40+ jobs",
+      "tip": "Tip: Focus on communication and reliability early — they have the fastest impact on your score."
+    },
     "metrics": {
       "quality": { "label": "Quality", "desc": "Client rating of workmanship" },
       "reliability": { "label": "Reliability", "desc": "Punctuality, scheduling, and commitment" },
