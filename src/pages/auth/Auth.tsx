@@ -81,9 +81,13 @@ const Auth = () => {
       }
 
       // Check for pending redirect (e.g., from wizard auth checkpoint)
-      const pendingRedirect = sessionStorage.getItem('authRedirect');
+      // Check both storages — localStorage survives cross-tab email confirmations
+      const pendingRedirect = sessionStorage.getItem('authRedirect')
+        || localStorage.getItem('authRedirect')
+        || returnUrl;
       if (pendingRedirect) {
         sessionStorage.removeItem('authRedirect');
+        try { localStorage.removeItem('authRedirect'); } catch {}
         navigate(pendingRedirect);
         return;
       }

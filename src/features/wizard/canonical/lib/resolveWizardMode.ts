@@ -149,7 +149,19 @@ const DRAFT_CHECKED_KEY = 'wizardDraftChecked';
 
 function getDraft(): WizardState | null {
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
+    // Check sessionStorage first (same tab), then localStorage (cross-tab auth redirect)
+    let stored = sessionStorage.getItem(STORAGE_KEY);
+
+    if (!stored) {
+      // Recover draft saved before auth redirect (email confirmation opens new tab)
+      stored = localStorage.getItem('wizardState_authDraft');
+      if (stored) {
+        // Migrate back to sessionStorage and clean up localStorage
+        sessionStorage.setItem(STORAGE_KEY, stored);
+        localStorage.removeItem('wizardState_authDraft');
+      }
+    }
+
     if (!stored) return null;
 
     const parsed = JSON.parse(stored) as WizardState;

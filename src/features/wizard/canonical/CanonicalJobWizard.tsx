@@ -732,12 +732,16 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   const handleSubmit = useCallback(async () => {
     trackEvent('review_post_clicked', 'client', { category: wizardState.mainCategory });
 
-    // Auth check
+    // Auth check — persist draft to BOTH storages so it survives
+    // new-tab email-confirmation flows (sessionStorage is tab-scoped)
     if (!isAuthenticated || !user) {
       trackEvent('job_post_submit_auth_redirect', 'client', { category: wizardState.mainCategory });
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(wizardState));
+      const draftJson = JSON.stringify(wizardState);
+      sessionStorage.setItem(STORAGE_KEY, draftJson);
+      try { localStorage.setItem('wizardState_authDraft', draftJson); } catch {}
       sessionStorage.setItem('authRedirect', '/post?resume=true');
-      navigate('/auth');
+      try { localStorage.setItem('authRedirect', '/post?resume=true'); } catch {}
+      navigate('/auth?returnUrl=' + encodeURIComponent('/post?resume=true'));
       return;
     }
 
