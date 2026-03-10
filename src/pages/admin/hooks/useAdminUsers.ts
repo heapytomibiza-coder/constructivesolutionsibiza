@@ -6,22 +6,7 @@ import type { AdminUser, UserStatusFilter } from "../types";
  * Fetch users for admin management
  */
 async function fetchAdminUsers(filter: UserStatusFilter, search: string): Promise<AdminUser[]> {
-  let query = supabase
-    .from("admin_users_list")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  // Apply status filter
-  if (filter === 'active') {
-    query = query.is('suspended_at', null).not('roles', 'cs', '{"professional"}');
-  } else if (filter === 'professionals') {
-    query = query.contains('roles', ['professional']);
-  } else if (filter === 'suspended') {
-    query = query.not('suspended_at', 'is', null);
-  }
-
-  const { data, error } = await query;
+  const { data, error } = await supabase.rpc("rpc_admin_users_list");
 
   if (error) {
     console.error("Error fetching admin users:", error);
@@ -30,7 +15,16 @@ async function fetchAdminUsers(filter: UserStatusFilter, search: string): Promis
 
   let users = (data ?? []) as AdminUser[];
 
-  // Client-side search (for display_name and phone)
+  // Client-side filtering (RPC returns all users, we filter here)
+  if (filter === 'active') {
+    users = users.filter(u => !u.suspended_at && !u.roles?.includes('professional'));
+  } else if (filter === 'professionals') {
+    users = users.filter(u => u.roles?.includes('professional'));
+  } else if (filter === 'suspended') {
+    users = users.filter(u => u.suspended_at !== null);
+  }
+
+  // Client-side search
   if (search.trim()) {
     const searchLower = search.toLowerCase();
     users = users.filter(u => 
@@ -40,7 +34,10 @@ async function fetchAdminUsers(filter: UserStatusFilter, search: string): Promis
     );
   }
 
-  return users;
+  // Sort by created_at descending
+  users.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  return users.slice(0, 100);
 }
 
 /**
