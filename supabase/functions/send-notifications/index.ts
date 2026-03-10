@@ -1,14 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 // ============================================
 // CONFIG
 // ============================================
 
-const GMAIL_USER = "heapytomibiza@gmail.com";
-const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD") ?? "";
-const ADMIN_EMAIL = "heapytomibiza@gmail.com";
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
+const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Constructive Solutions Ibiza <notifications@constructivesolutionsibiza.com>";
+const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "heapytomibiza@gmail.com";
 const BRAND_NAME = "Constructive Solutions Ibiza";
 const ADMIN_WHATSAPP = Deno.env.get("ADMIN_WHATSAPP_NUMBER") ?? "";
 const WHATSAPP_API_KEY = Deno.env.get("WHATSAPP_CALLMEBOT_APIKEY") ?? "";
@@ -53,37 +52,42 @@ function htmlToPlainText(html: string): string {
 }
 
 // ============================================
-// GMAIL SMTP SENDER
+// RESEND EMAIL SENDER
 // ============================================
 
 async function sendEmail(to: string, subject: string, html: string): Promise<{ error?: string }> {
+  if (!RESEND_API_KEY) {
+    return { error: "RESEND_API_KEY not configured" };
+  }
   try {
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.gmail.com",
-        port: 465,
-        tls: true,
-        auth: {
-          username: GMAIL_USER,
-          password: GMAIL_APP_PASSWORD,
-        },
-      },
-    });
-
     const plainText = htmlToPlainText(html);
 
-    await client.send({
-      from: `${BRAND_NAME} <${GMAIL_USER}>`,
-      to,
-      subject,
-      content: plainText,
-      html,
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM,
+        to: [to],
+        subject,
+        html,
+        text: plainText,
+      }),
     });
 
-    await client.close();
+    const body = await res.text();
+
+    if (!res.ok) {
+      console.error("Resend error:", res.status, body);
+      return { error: `Resend ${res.status}: ${body.substring(0, 200)}` };
+    }
+
+    console.log("Resend sent:", res.status, body.substring(0, 100));
     return {};
   } catch (err) {
-    console.error("SMTP error:", err);
+    console.error("Resend fetch error:", err);
     return { error: String(err) };
   }
 }
@@ -297,12 +301,12 @@ const handler = async (req: Request): Promise<Response> => {
       const testHtml = emailShell(
         "linear-gradient(135deg, #059669, #10b981)",
         "Email Format Test",
-        `<p style="color: #374151; font-size: 15px; line-height: 1.6;">This is a <strong>test email</strong> to verify multipart/alternative rendering.</p>
+        `<p style="color: #374151; font-size: 15px; line-height: 1.6;">This is a <strong>test email</strong> to verify Resend delivery.</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
           <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Location</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">Ibiza Town</td></tr>
           <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Budget</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">500 - 1,000 EUR</td></tr>
         </table>
-        <p style="color: #6b7280; font-size: 13px;">If you see this cleanly rendered, the MIME structure is correct.</p>`
+        <p style="color: #6b7280; font-size: 13px;">If you see this cleanly rendered, Resend is working correctly.</p>`
       );
       const result = await sendEmail(testTo, `Email Format Test - ${BRAND_NAME}`, testHtml);
       return new Response(
@@ -310,6 +314,7 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
     const { data: queue, error: queueError } = await supabaseAdmin
       .from("email_notifications_queue")
       .select("*")
@@ -331,7 +336,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     for (let i = 0; i < queue.length; i++) {
       const item = queue[i];
-      if (i > 0) await new Promise(r => setTimeout(r, 600));
+      // Resend free tier: 2 emails/sec; 100ms gap is safe
+      if (i > 0) await new Promise(r => setTimeout(r, 100));
       
       try {
         // Resolve recipient
@@ -405,7 +411,7 @@ const handler = async (req: Request): Promise<Response> => {
             continue;
         }
 
-        // Send email via Gmail SMTP
+        // Send email via Resend
         const result = await sendEmail(recipientEmail, email.subject, email.html);
 
         if (result.error) {
