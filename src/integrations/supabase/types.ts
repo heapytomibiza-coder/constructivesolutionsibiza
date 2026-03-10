@@ -2618,6 +2618,66 @@ export type Database = {
       }
       is_admin_email: { Args: never; Returns: boolean }
       purge_stale_telemetry: { Args: never; Returns: undefined }
+      rpc_admin_platform_stats: {
+        Args: never
+        Returns: {
+          active_jobs: number
+          active_professionals: number
+          completed_jobs: number
+          new_support_tickets: number
+          open_jobs: number
+          open_support_tickets: number
+          total_conversations: number
+          total_jobs: number
+          total_posts: number
+          total_professionals: number
+          total_users: number
+        }[]
+      }
+      rpc_admin_support_inbox: {
+        Args: never
+        Returns: {
+          age_hours: number
+          assigned_to: string
+          client_id: string
+          conversation_id: string
+          created_at: string
+          created_by_role: string
+          created_by_user_id: string
+          id: string
+          issue_type: string
+          job_category: string
+          job_id: string
+          job_title: string
+          last_message_at: string
+          last_message_preview: string
+          priority: string
+          pro_id: string
+          resolved_at: string
+          status: string
+          summary: string
+          ticket_number: string
+          updated_at: string
+        }[]
+      }
+      rpc_admin_users_list: {
+        Args: never
+        Returns: {
+          active_role: string
+          created_at: string
+          display_name: string
+          id: string
+          phone: string
+          pro_is_listed: boolean
+          pro_onboarding_phase: string
+          pro_services_count: number
+          pro_verification_status: string
+          roles: string[]
+          status: string
+          suspended_at: string
+          suspension_reason: string
+        }[]
+      }
       switch_active_role: { Args: { p_new_role: string }; Returns: undefined }
       track_event: {
         Args: { p_event_name: string; p_metadata?: Json; p_role?: string }
