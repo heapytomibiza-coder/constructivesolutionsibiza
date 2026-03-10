@@ -154,7 +154,8 @@ const App = () => {
         <SessionProvider>
            <UrlNormalizer />
            <ScrollToTop />
-          <Routes>
+           <Suspense fallback={<PageLoader />}>
+           <Routes>
             {/* ============================================
                 PUBLIC ROUTES - No auth required
                 ============================================ */}
