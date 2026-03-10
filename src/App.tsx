@@ -3,9 +3,16 @@
  * 
  * PLATFORM SCOPE: Construction & property services ONLY
  * Includes admin routes (protected by admin role).
+ * 
+ * CODE SPLITTING STRATEGY:
+ * - Landing page (Index), NotFound, Auth, and AuthCallback are EAGER — they are
+ *   critical-path pages that must render instantly on first load or redirect.
+ * - All other pages are LAZY-loaded to reduce the initial JS bundle.
+ * - Guards (RouteGuard, PublicOnlyGuard, RolloutGate) remain eager since they
+ *   wrap routes and must be available before lazy children resolve.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,77 +25,100 @@ import { RouteGuard, PublicOnlyGuard, RolloutGate } from "@/guard";
 import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
 import { Loader2 } from "lucide-react";
 
-// Public Pages
+// ─── EAGER IMPORTS ──────────────────────────────────────────────
+// These pages are on the critical path and must not be lazy-loaded:
+// - Index: landing page, first paint
+// - NotFound: catch-all, must render without network delay
+// - Auth + AuthCallback: auth flow must not flash a loading spinner
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import Services from "./pages/public/Services";
-import ServiceCategory from "./pages/public/ServiceCategory";
-import Professionals from "./pages/public/Professionals";
-import ProfessionalDetails from "./pages/public/ProfessionalDetails";
-import HowItWorks from "./pages/public/HowItWorks";
-import Contact from "./pages/public/Contact";
-import Privacy from "./pages/public/Privacy";
-import Terms from "./pages/public/Terms";
-import DisputePolicy from "./pages/public/DisputePolicy";
-import About from "./pages/public/About";
-import ForProfessionals from "./pages/public/ForProfessionals";
-import PricingPublicPage from "./pages/public/Pricing";
-import ReputationPage from "./pages/public/Reputation";
-import { ServiceListingDetail } from "./pages/services";
-
-// Auth Pages
 import Auth from "./pages/auth/Auth";
 import AuthCallback from "./pages/auth/AuthCallback";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
+
+// ─── LAZY IMPORTS ───────────────────────────────────────────────
+// Public pages
+const Services = lazy(() => import("./pages/public/Services"));
+const ServiceCategory = lazy(() => import("./pages/public/ServiceCategory"));
+const Professionals = lazy(() => import("./pages/public/Professionals"));
+const ProfessionalDetails = lazy(() => import("./pages/public/ProfessionalDetails"));
+const HowItWorks = lazy(() => import("./pages/public/HowItWorks"));
+const Contact = lazy(() => import("./pages/public/Contact"));
+const Privacy = lazy(() => import("./pages/public/Privacy"));
+const Terms = lazy(() => import("./pages/public/Terms"));
+const DisputePolicy = lazy(() => import("./pages/public/DisputePolicy"));
+const About = lazy(() => import("./pages/public/About"));
+const ForProfessionals = lazy(() => import("./pages/public/ForProfessionals"));
+const PricingPublicPage = lazy(() => import("./pages/public/Pricing"));
+const ReputationPage = lazy(() => import("./pages/public/Reputation"));
+const ServiceListingDetail = lazy(() => import("./pages/services/ServiceListingDetail"));
+
+// Auth pages (non-critical path)
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 
 // Job Wizard & Board
-import PostJob from "./pages/jobs/PostJob";
-import JobBoardPage from "./pages/jobs/JobBoardPage";
-import JobDetailsPage from "./pages/jobs/JobDetailsPage";
+const PostJob = lazy(() => import("./pages/jobs/PostJob"));
+const JobBoardPage = lazy(() => import("./pages/jobs/JobBoardPage"));
+const JobDetailsPage = lazy(() => import("./pages/jobs/JobDetailsPage"));
 
 // Dashboards
-import ClientDashboard from "./pages/dashboard/client/ClientDashboard";
-import ClientJobsList from "./pages/dashboard/client/ClientJobsList";
-import JobTicketDetail from "./pages/dashboard/client/JobTicketDetail";
-import MatchAndSend from "./pages/dashboard/client/MatchAndSend";
-import ProDashboard from "./pages/dashboard/professional/ProDashboard";
-import DashboardResolver from "./pages/dashboard/DashboardResolver";
+const ClientDashboard = lazy(() => import("./pages/dashboard/client/ClientDashboard"));
+const ClientJobsList = lazy(() => import("./pages/dashboard/client/ClientJobsList"));
+const JobTicketDetail = lazy(() => import("./pages/dashboard/client/JobTicketDetail"));
+const MatchAndSend = lazy(() => import("./pages/dashboard/client/MatchAndSend"));
+const ProDashboard = lazy(() => import("./pages/dashboard/professional/ProDashboard"));
+const DashboardResolver = lazy(() => import("./pages/dashboard/DashboardResolver"));
 
 // Messages
-import Messages from "./pages/messages/Messages";
+const Messages = lazy(() => import("./pages/messages/Messages"));
 
 // Professional Onboarding & Management
-import ProfessionalOnboarding from "./pages/onboarding/ProfessionalOnboarding";
-
-import ProfileEdit from "./pages/professional/ProfileEdit";
-import JobPriorities from "./pages/professional/JobPriorities";
-import MyServiceListings from "./pages/professional/MyServiceListings";
-import ServiceListingEditor from "./pages/professional/ServiceListingEditor";
-import ProInsights from "./pages/professional/ProInsights";
+const ProfessionalOnboarding = lazy(() => import("./pages/onboarding/ProfessionalOnboarding"));
+const ProfileEdit = lazy(() => import("./pages/professional/ProfileEdit"));
+const JobPriorities = lazy(() => import("./pages/professional/JobPriorities"));
+const MyServiceListings = lazy(() => import("./pages/professional/MyServiceListings"));
+const ServiceListingEditor = lazy(() => import("./pages/professional/ServiceListingEditor"));
+const ProInsights = lazy(() => import("./pages/professional/ProInsights"));
 
 // Settings
-import { Settings } from "./pages/settings";
+const Settings = lazy(() => import("./pages/settings/Settings"));
 
 // Forum
-import { ForumIndex, ForumCategory, ForumPost, ForumNewPost } from "./pages/forum";
+const ForumIndex = lazy(() => import("./pages/forum/ForumIndex"));
+const ForumCategory = lazy(() => import("./pages/forum/ForumCategory"));
+const ForumPost = lazy(() => import("./pages/forum/ForumPost"));
+const ForumNewPost = lazy(() => import("./pages/forum/ForumNewPost"));
 
-// Admin
-import { AdminDashboard } from "./pages/admin";
-import AdminRouteLayout from "./pages/admin/AdminRouteLayout";
-import {
-  MetricInsightPage, MarketGapPage, FunnelsPage,
-  ProPerformancePage, PricingPage, TrendRadarPage,
-  UnansweredJobsPage, RepeatWorkPage, OnboardingFunnelPage, TopSourcesPage,
-  MessagingPulsePage,
-} from "./pages/admin/insights";
-import { MonitoringPage } from "./pages/admin/monitoring";
+// Admin — import pages directly to avoid pulling the entire admin barrel (hooks, actions, types)
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminRouteLayout = lazy(() => import("./pages/admin/AdminRouteLayout"));
+const MetricInsightPage = lazy(() => import("./pages/admin/insights/MetricInsightPage"));
+const MarketGapPage = lazy(() => import("./pages/admin/insights/MarketGapPage"));
+const FunnelsPage = lazy(() => import("./pages/admin/insights/FunnelsPage"));
+const ProPerformancePage = lazy(() => import("./pages/admin/insights/ProPerformancePage"));
+const PricingPage = lazy(() => import("./pages/admin/insights/PricingPage"));
+const TrendRadarPage = lazy(() => import("./pages/admin/insights/TrendRadarPage"));
+const UnansweredJobsPage = lazy(() => import("./pages/admin/insights/UnansweredJobsPage"));
+const RepeatWorkPage = lazy(() => import("./pages/admin/insights/RepeatWorkPage"));
+const OnboardingFunnelPage = lazy(() => import("./pages/admin/insights/OnboardingFunnelPage"));
+const TopSourcesPage = lazy(() => import("./pages/admin/insights/TopSourcesPage"));
+const MessagingPulsePage = lazy(() => import("./pages/admin/insights/MessagingPulsePage"));
+const MonitoringPage = lazy(() => import("./pages/admin/monitoring/MonitoringPage"));
 
 // Launch Checklist
-import LaunchChecklist from "./pages/LaunchChecklist";
+const LaunchChecklist = lazy(() => import("./pages/LaunchChecklist"));
 import { ReportIssueWidget } from "./components/ReportIssueWidget";
 
 const queryClient = new QueryClient();
+
+/** Suspense fallback — minimal centered spinner matching the i18n loader */
+function PageLoader() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
 
 /** Redirect /marketplace/:listingId → /services/listing/:listingId */
 function MarketplaceListingRedirect() {
