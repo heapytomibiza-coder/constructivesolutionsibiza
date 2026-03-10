@@ -92,7 +92,13 @@ export function useSessionSnapshot(): SessionSnapshot {
 
   const loadUserData = useCallback(async (userId: string) => {
     try {
-      // Load user roles
+      // PARALLELIZATION STRATEGY:
+      // Query 1 (user_roles) MUST complete first — it determines whether to fetch
+      // the professional profile. This is a true data dependency.
+      // Query 2 (professional_profiles) and Query 3 (profiles/phone) are independent
+      // of each other and can run in parallel once we know the user has the 'professional' role.
+
+      // Step 1: Roles query — required first to gate professional data fetch
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('roles, active_role')
@@ -108,36 +114,40 @@ export function useSessionSnapshot(): SessionSnapshot {
         setActiveRole((rolesData.active_role as UserRole) || DEFAULT_ROLE);
       }
 
-      // Load professional profile if user has professional role
+      // Step 2: If professional, fetch pro profile + phone in parallel
+      // Safe to parallelize because:
+      // - professional_profiles and profiles are independent tables
+      // - Neither query depends on the other's result
+      // - Both only need userId which we already have
       const userRoles = rolesData?.roles || [DEFAULT_ROLE];
       if (userRoles.includes('professional')) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('professional_profiles')
-          .select('onboarding_phase, verification_status, services_count, is_publicly_listed, display_name, business_name, service_zones')
-          .eq('user_id', userId)
-          .single();
-
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Error loading professional profile:', profileError);
-        }
-
-        if (profileData) {
-          // Also fetch phone from profiles table
-          const { data: userProfile } = await supabase
+        const [proResult, phoneResult] = await Promise.all([
+          supabase
+            .from('professional_profiles')
+            .select('onboarding_phase, verification_status, services_count, is_publicly_listed, display_name, business_name, service_zones')
+            .eq('user_id', userId)
+            .single(),
+          supabase
             .from('profiles')
             .select('phone')
             .eq('user_id', userId)
-            .single();
+            .single(),
+        ]);
 
+        if (proResult.error && proResult.error.code !== 'PGRST116') {
+          console.error('Error loading professional profile:', proResult.error);
+        }
+
+        if (proResult.data) {
           setProfessionalProfile({
-            onboardingPhase: profileData.onboarding_phase as OnboardingPhase,
-            verificationStatus: profileData.verification_status as VerificationStatus,
-            servicesCount: profileData.services_count,
-            isPubliclyListed: profileData.is_publicly_listed,
-            displayName: profileData.display_name,
-            businessName: profileData.business_name,
-            phone: userProfile?.phone || null,
-            serviceZones: profileData.service_zones || [],
+            onboardingPhase: proResult.data.onboarding_phase as OnboardingPhase,
+            verificationStatus: proResult.data.verification_status as VerificationStatus,
+            servicesCount: proResult.data.services_count,
+            isPubliclyListed: proResult.data.is_publicly_listed,
+            displayName: proResult.data.display_name,
+            businessName: proResult.data.business_name,
+            phone: phoneResult.data?.phone || null,
+            serviceZones: proResult.data.service_zones || [],
           });
         }
       }
