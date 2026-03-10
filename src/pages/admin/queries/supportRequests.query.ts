@@ -5,37 +5,35 @@ import { supabase } from "@/integrations/supabase/client";
 import type { SupportRequest, SupportStatusFilter } from "../types";
 
 export async function fetchSupportRequests(filter: SupportStatusFilter = 'all'): Promise<SupportRequest[]> {
-  let query = supabase
-    .from("admin_support_inbox")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  // Apply status filter
-  if (filter === 'open') {
-    query = query.eq('status', 'open');
-  } else if (filter === 'triage') {
-    query = query.eq('status', 'triage');
-  } else if (filter === 'assigned') {
-    query = query.not('assigned_to', 'is', null);
-  } else if (filter === 'assigned_to_me') {
-    // Need to get current user - this filter is handled client-side via the hook
-    // Pass through here, the hook will handle it
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      query = query.eq('assigned_to', user.id);
-    }
-  } else if (filter === 'resolved') {
-    query = query.in('status', ['resolved', 'closed']);
-  } else if (filter === 'active') {
-    query = query.in('status', ['open', 'triage', 'joined']);
-  }
-
-  const { data, error } = await query.limit(100);
+  const { data, error } = await supabase.rpc("rpc_admin_support_inbox");
 
   if (error) {
     console.error("Error fetching support requests:", error);
     throw error;
   }
 
-  return (data ?? []) as SupportRequest[];
+  let tickets = (data ?? []) as SupportRequest[];
+
+  // Client-side filtering
+  if (filter === 'open') {
+    tickets = tickets.filter(t => t.status === 'open');
+  } else if (filter === 'triage') {
+    tickets = tickets.filter(t => t.status === 'triage');
+  } else if (filter === 'assigned') {
+    tickets = tickets.filter(t => t.assigned_to !== null);
+  } else if (filter === 'assigned_to_me') {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      tickets = tickets.filter(t => t.assigned_to === user.id);
+    }
+  } else if (filter === 'resolved') {
+    tickets = tickets.filter(t => t.status === 'resolved' || t.status === 'closed');
+  } else if (filter === 'active') {
+    tickets = tickets.filter(t => ['open', 'triage', 'joined'].includes(t.status));
+  }
+
+  // Sort by created_at descending
+  tickets.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  return tickets.slice(0, 100);
 }

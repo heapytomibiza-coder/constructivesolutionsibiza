@@ -22,18 +22,18 @@ export interface AdminPlatformStats {
  * Fetch platform-wide statistics for admin overview
  */
 async function fetchAdminStats(): Promise<AdminPlatformStats> {
-  // Query the admin_platform_stats view
-  const { data, error } = await supabase
-    .from("admin_platform_stats")
-    .select("*")
-    .single();
+  const { data, error } = await supabase.rpc("rpc_admin_platform_stats");
 
   if (error) {
     console.error("Error fetching admin stats:", error);
     throw error;
   }
 
-  return data as AdminPlatformStats;
+  // RPC returns an array; take first row
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) throw new Error("No stats returned — admin access denied");
+
+  return row as AdminPlatformStats;
 }
 
 /**
