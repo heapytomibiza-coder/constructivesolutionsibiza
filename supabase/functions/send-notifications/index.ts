@@ -298,6 +298,22 @@ const handler = async (req: Request): Promise<Response> => {
     const testTo = url.searchParams.get("to");
 
     if (testEmail === "1" && testTo) {
+      // Gate behind admin auth
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      }
+      const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
+      if (authError || !userData?.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      }
+      // Verify admin role
+      const { data: roleData } = await supabaseAdmin.from("user_roles").select("roles").eq("user_id", userData.user.id).maybeSingle();
+      const { data: allowData } = await supabaseAdmin.from("admin_allowlist").select("email").eq("email", userData.user.email?.toLowerCase() ?? "").maybeSingle();
+      if (!roleData?.roles?.includes("admin") || !allowData) {
+        return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      }
+
       const testHtml = emailShell(
         "linear-gradient(135deg, #059669, #10b981)",
         "Email Format Test",
