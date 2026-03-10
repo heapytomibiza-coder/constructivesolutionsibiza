@@ -258,7 +258,8 @@ const App = () => {
                 CATCH-ALL - 404
                 ============================================ */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
+           </Routes>
+           </Suspense>
           <ReportIssueWidget />
         </SessionProvider>
       </BrowserRouter>
