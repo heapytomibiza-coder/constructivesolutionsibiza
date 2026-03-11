@@ -810,7 +810,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         });
         if (rlErr) console.warn('Rate limit check failed:', rlErr);
         if (allowed === false) {
-          toast.error(t('toasts.rateLimited', 'You've reached the daily limit for posting jobs. Please try again tomorrow.'));
+          toast.error(t('toasts.rateLimited', "You've reached the daily limit for posting jobs. Please try again tomorrow."));
           return;
         }
 
