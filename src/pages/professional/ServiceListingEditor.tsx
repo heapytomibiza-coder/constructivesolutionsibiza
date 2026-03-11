@@ -39,7 +39,8 @@ export default function ServiceListingEditor() {
   const [heroUrl, setHeroUrl] = useState<string | null>(null);
   const [gallery, setGallery] = useState<string[]>([]);
   const [locationBase, setLocationBase] = useState<string>('');
-  const [pricingSummary, setPricingSummary] = useState('');
+  const [startingPrice, setStartingPrice] = useState('');
+  const [startingPriceUnit, setStartingPriceUnit] = useState('hour');
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [stockPickerOpen, setStockPickerOpen] = useState(false);
