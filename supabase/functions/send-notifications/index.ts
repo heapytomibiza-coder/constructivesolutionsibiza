@@ -40,33 +40,28 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ e
     return { error: "SMTP not configured (missing host, user, or password)" };
   }
   
-  const fromEmail = SMTP_FROM.trim();
-  const toEmail = to.trim();
-  console.log(`SMTP sending from="${fromEmail}" to="${toEmail}" host="${SMTP_HOST}:${SMTP_PORT}"`);
+  console.log(`SMTP sending to="${to}" host="${SMTP_HOST}:${SMTP_PORT}" user="${SMTP_USER}"`);
   
   try {
-    const client = new SMTPClient({
-      connection: {
-        hostname: SMTP_HOST,
-        port: SMTP_PORT,
-        tls: true,
-        auth: {
-          username: SMTP_USER,
-          password: SMTP_PASSWORD,
-        },
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: true,
+      auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASSWORD,
       },
     });
 
-    await client.send({
-      from: fromEmail,
-      to: toEmail,
+    await transporter.sendMail({
+      from: `"${BRAND_NAME}" <${SMTP_FROM}>`,
+      to,
       subject,
-      content: htmlToPlainText(html),
+      text: htmlToPlainText(html),
       html,
     });
 
-    await client.close();
-    console.log(`Email sent successfully to ${toEmail}: ${subject}`);
+    console.log(`Email sent successfully to ${to}: ${subject}`);
     return {};
   } catch (err) {
     console.error("SMTP send error:", err);
