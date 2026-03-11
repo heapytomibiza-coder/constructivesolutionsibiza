@@ -571,8 +571,9 @@ const handler = async (req: Request): Promise<Response> => {
         const result = await sendEmail(recipientEmail, email.subject, email.html);
 
         if (result.error) {
+          const newAttempts = item.attempts + 1;
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ attempts: item.attempts + 1, last_error: result.error })
+            .update({ attempts: newAttempts, last_error: result.error, ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
             .eq("id", item.id);
         } else {
           await supabaseAdmin.from("email_notifications_queue")
