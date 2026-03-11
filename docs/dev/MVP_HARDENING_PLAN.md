@@ -1,9 +1,32 @@
-# MVP Hardening Plan — From 6.5 to 8/10
+# MVP Hardening Plan — From 6.5 to 9/10
 
 **Created:** 2026-03-11  
 **Source:** Independent Technical Audit (MyCrewDev/Rafa, March 2026) + Internal Platform Audit  
-**Goal:** Push the platform from ~6.5 post-fixes to a strong ~8/10 MVP  
+**Goal:** Push the platform from ~6.5 post-fixes to a strong ~8/10 MVP with a clear path to 9/10  
 **Principle:** Extend, improve, replace gradually — never rebuild from scratch
+
+---
+
+## Executive Summary
+
+| Metric | Value |
+|--------|-------|
+| **Current maturity** | **6.5 / 10** (after critical fixes already applied) |
+| **Target** | **8 / 10** (strong, secure MVP) |
+| **Path to 9/10** | Defined but deferred until product-market fit confirmed |
+| **Architecture approach** | Incremental improvement (Strangler Fig pattern) |
+| **Rebuild required?** | **No** |
+| **Timeline** | 6–8 weeks (runs in parallel with feature development) |
+
+**Focus areas:**
+1. Security hardening
+2. Database optimisation
+3. Observability & operations
+4. Code cleanup & dead code removal
+5. Testing foundation
+6. Governance & drift prevention
+
+**This hardening work runs in parallel with feature development.** The platform must continue collecting marketplace data during improvements. We do not pause product work — we strengthen the foundation underneath it.
 
 ---
 
@@ -13,6 +36,24 @@
 2. **Security First** — Security fixes always take priority over features.
 3. **Data > Perfect Code** — The marketplace data we're collecting is more valuable than a clean codebase. Don't sacrifice data collection momentum.
 4. **One System** — We are building one coherent platform, not multiple disconnected prototypes. Every new component must integrate with existing data models and flows.
+5. **Extend → Improve → Replace** — Never rebuild from scratch. Gradually replace components while keeping the system running.
+
+---
+
+## Product-Market Validation Metrics
+
+The platform exists to answer these questions. Every engineering decision should support collecting this data faster and more reliably.
+
+| Metric | What It Tells Us |
+|--------|------------------|
+| **Job posts per week** | Is there demand for services? |
+| **Professional responses per job** | Is the supply side engaged? |
+| **Conversation start rate** | Are matches converting to engagement? |
+| **Job completion rate** | Does the marketplace deliver value? |
+| **Time to first response** | How healthy is the matching experience? |
+| **Repeat client rate** | Are we building trust and retention? |
+
+**Developers must understand:** we are not building software for its own sake. We are building a marketplace engine that collects intelligence. Every feature, every fix, every optimisation should serve this goal.
 
 ---
 
@@ -31,6 +72,7 @@
 | Route-level code splitting | ✅ DONE | `React.lazy` implemented for route splitting. |
 | Weekly KPI digest | ✅ DONE | `weekly-kpi-digest` edge function exists. |
 | Telemetry purging | ✅ DONE | `purge_stale_telemetry` function exists with retention policies. |
+| Feature rollout system | ✅ DONE | `RolloutGate` component + `canSeeRoute` + ordered phases (pipe-control → founding-members → scale-ready). |
 
 ### 🔴 REMAINING — Ordered by Priority
 
@@ -47,7 +89,7 @@
 **Audit ref:** S-MEDIUM — 7 functions have `verify_jwt = false`  
 **Current state in `config.toml`:**
 - `ping` — OK to keep open (health check)
-- `send-auth-email` — OK (called by Supabase Auth hooks, no user JWT available)
+- `send-auth-email` — OK (called by Auth hooks, no user JWT available)
 - `seedpacks` — ❌ MUST enable JWT + admin check
 - `send-job-notification` — ❌ Review: if called by DB trigger, needs service role; if by client, needs JWT
 - `send-notifications` — ❌ Add internal auth (service role or admin JWT)
@@ -105,7 +147,7 @@ ALTER TABLE conversations ADD CONSTRAINT uq_conversations_job_client_pro
 
 ### 3.1 Delete dead question pack files ⚡ P1
 **Audit ref:** Code-MEDIUM — 24 files deployed with every edge function  
-**Action:** Delete all V1 files + any V2 files that are already seeded into `question_packs` table:
+**Action:** Delete all V1 files already seeded into `question_packs` table:
 - `supabase/functions/_shared/carpentryQuestionPacks.ts` (V1)
 - `supabase/functions/_shared/constructionQuestionPacks.ts` (V1)
 - `supabase/functions/_shared/electricalQuestionPacks.ts` (V1)
@@ -217,6 +259,141 @@ DROP VIEW IF EXISTS admin_platform_stats;
 
 ---
 
+## Governance: Architecture Ownership
+
+All architectural changes must be reviewed before implementation.
+
+**What counts as an architectural change:**
+- Creating new database tables
+- Creating new services or API endpoints
+- Introducing new data models
+- Replacing existing flows
+- Adding external infrastructure or third-party services
+
+**Before implementing, the developer must document:**
+1. Why the existing system cannot support the change
+2. What part of the architecture is affected
+3. How the new component integrates with existing data models
+
+**Goal:** Prevent parallel systems or logic duplication. No one should be able to introduce new tables or services without explaining why the existing ones are insufficient.
+
+---
+
+## Governance: Database Migration Discipline
+
+All schema changes must occur through **tracked migrations**.
+
+**Rules:**
+- Never edit production tables manually
+- All structural changes must be committed as versioned migrations
+- Migrations must run successfully from a clean database
+
+**Before merging any schema change, confirm:**
+```
+supabase db reset
+supabase db push
+```
+works cleanly from scratch.
+
+**Goal:** Ensure any developer can recreate the entire database from the migration history alone. This is essential for onboarding new developers and disaster recovery.
+
+---
+
+## Governance: Feature Flags for Experimental Work
+
+The platform already has a rollout system (`RolloutGate` + `canSeeRoute` + ordered phases). New experimental features must use this system.
+
+**When to use feature flags:**
+- Beta features not ready for all users
+- Experimental AI-powered flows
+- Admin-only tools in development
+- A/B testing or gradual rollouts
+
+**Implementation:** Use the existing `rollout.ts` phase system. For finer control, add per-feature flags via the `feature_flags` pattern (database table or environment variable).
+
+**Goal:** Allow safe experimentation without breaking production flows. No experimental feature should be accessible to end users unless explicitly enabled.
+
+---
+
+## Governance: Backup & Recovery
+
+**Current state:** Lovable Cloud provides automated database backups.
+
+**Actions required:**
+1. Verify automated backup schedule is active
+2. Document the recovery procedure (who runs it, how, expected downtime)
+3. Define recovery targets:
+   - **RPO** (Recovery Point Objective): Maximum acceptable data loss → target: < 24 hours
+   - **RTO** (Recovery Time Objective): Maximum acceptable downtime → target: < 4 hours
+
+**Critical data to protect:**
+- Jobs, conversations, profiles (core marketplace data)
+- `analytics_events`, `attribution_sessions` (validation intelligence)
+- `admin_actions_log`, `job_status_history` (audit trail)
+
+**Goal:** If something goes catastrophically wrong, we can restore the platform and its data within hours, not days.
+
+---
+
+## Governance: Staging Environment
+
+**Current state:** All changes deploy directly to production.
+
+**Target state:**
+```
+Local Development → Staging (Test) → Production (Live)
+```
+
+Lovable Cloud already provides separate **Test** and **Live** environments. The team must treat them correctly:
+
+- **Test environment:** All development, schema changes, and edge function testing happen here first
+- **Live environment:** Only receives changes via publishing after verification in Test
+- **Schema changes:** Always test migrations in Test before publishing to Live
+- **Data:** Never assume Test data matches Live — they are independent
+
+**Goal:** Prevent production breakages from untested migrations or edge function changes.
+
+---
+
+## No-Drift Engineering Checklist
+
+These 10 rules prevent the most common engineering failure in early-stage startups: **developers creating new structures instead of extending existing ones**.
+
+### 1. Extend Before Creating
+Before creating any new table, endpoint, or service: check if an existing structure already supports the feature. Preferred order: **extend → improve → replace only if necessary**.
+
+### 2. No Duplicate Data Models
+A new table must not duplicate data already stored elsewhere.
+- ❌ Bad: `jobs`, `service_jobs`, `job_requests` (three overlapping models)
+- ✅ Good: `jobs`, `job_status_history`, `job_reviews` (one job model, extended)
+
+### 3. Respect the Existing Domain Model
+The platform has core domain objects: **users, professionals, services, jobs, conversations, analytics**. All new features must connect to these objects, not create alternatives.
+- New feature needs task tracking? → Extend `jobs` with a status, don't create `task_requests`.
+
+### 4. Database Changes Must Be Migrations
+All schema changes via versioned migrations. Never modify production schema manually. `supabase db reset && supabase db push` must succeed.
+
+### 5. No Logic Duplication
+If logic exists somewhere, reuse it. Permission checks, job validation, analytics tracking, notification sending — use shared functions, not copy-paste.
+
+### 6. Server Logic Over Client Logic
+Sensitive operations move toward edge functions, RPCs, and backend services. The frontend requests actions; the backend enforces rules.
+
+### 7. Feature Flags for Experiments
+Experimental features use the `RolloutGate` system or feature flags. No experimental code should be accessible to end users unless explicitly enabled.
+
+### 8. Architecture Changes Require Justification
+When introducing new architecture, document: (1) why existing architecture can't support it, (2) what problem it solves, (3) how it integrates with the current system.
+
+### 9. Maintain Clear Data Ownership
+Each core domain object has a clear owner. Other systems reference it rather than replicate its data. Jobs own job lifecycle, matching, conversations, and quotes.
+
+### 10. Maintain Observability
+All critical actions must be trackable via `analytics_events` or domain-specific history tables. If a feature creates data, it must also track that creation.
+
+---
+
 ## Architecture Evolution Path
 
 ```
@@ -230,6 +407,7 @@ Frontend → DB direct      Frontend → DB direct       Frontend → API → DB
                           + Indexes + constraints     + Staging env
                           + Basic test suite          + Full test coverage
                           + Monitoring alerts         + CI/CD pipeline
+                          + Governance rules          + Penetration testing
 ```
 
 **We are targeting the middle column.** The right column comes when we hit product-market fit and need to scale beyond 1,000 users.
@@ -245,6 +423,7 @@ Frontend → DB direct      Frontend → DB direct       Frontend → API → DB
 - ❌ Full GDPR compliance review (needed before scale, not now)
 - ❌ Switching away from Supabase
 - ❌ Creating parallel systems that duplicate existing logic
+- ❌ Pausing feature development — hardening runs alongside it
 
 ---
 
@@ -259,6 +438,7 @@ After completing Sprints 1-6, the platform should score:
 | Code Quality | C+ | **B** (dead code removed, tests on critical paths) |
 | Operations | D | **B-** (monitoring, alerting, scheduled maintenance) |
 | Data Collection | B+ | **B+** (unchanged — already strong) |
+| Governance | — | **B+** (ownership rules, migration discipline, feature flags) |
 | **Overall** | **~6.5** | **~8/10** |
 
 ---
@@ -274,7 +454,19 @@ After completing Sprints 1-6, the platform should score:
 | 5-6 | Performance | RPC optimisation, notification parallelisation |
 | 6-8 | Testing | 15 critical path tests |
 
-**Total estimated effort: 6-8 weeks of focused work.**
+**Total estimated effort: 6-8 weeks, running in parallel with feature development.**
+
+---
+
+## Final Principle
+
+The goal is not perfect software.
+
+The goal is a **trusted marketplace that solves real problems and collects valuable market data while it grows**.
+
+We improve the system by **extending → strengthening → refining** — never by rebuilding it.
+
+Every improvement should make the platform more secure, more reliable, and more capable of answering the core question: **does this marketplace create value?**
 
 ---
 
