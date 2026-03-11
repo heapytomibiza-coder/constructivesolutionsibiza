@@ -1,48 +1,80 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+# Implementation Plan: MVP Hardening Sprint 1 & 2
 
-## What's happening
+Based on a thorough review of the codebase against the hardening playbook, here's what's **already done**, what's **immediately actionable**, and the implementation order.
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+## Already Done (No Action Needed)
 
-## Root cause
+- **1.1 Gate `send-notifications` test endpoint** — Already has admin JWT + role + allowlist check (lines 458-471)
+- **Privilege escalation fix** — RLS on `user_roles` already locked down
+- **Admin views via SECURITY DEFINER RPCs** — Already implemented
+- **`isAdminEmail()` deprecated** — File exists but has zero imports; safe to delete
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+## Sprint 1: Security Hardening (This Session)
 
-## Affected components (7 files)
+### Task A — Remove hardcoded admin email from edge functions
+Two files still have `heapytomibiza@gmail.com` hardcoded:
+- `supabase/functions/send-job-notification/index.ts` (line 9) — Replace with `Deno.env.get("ADMIN_EMAIL")` with validation
+- `supabase/functions/weekly-kpi-digest/index.ts` (line 6) — Already uses env with hardcoded fallback; remove fallback, add startup check
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+### Task B — Add JWT/auth checks to vulnerable edge functions
+Update `supabase/config.toml` and add auth validation to:
+- **`seedpacks`** — Admin-only seeding tool, not called from frontend. Add service role or admin JWT check inside the function
+- **`search-stock-photos`** — Called from service listing editor. Enable `verify_jwt = true` in config.toml (only authenticated pros should use it)
+- **`send-job-notification`** — Appears to be legacy (superseded by `send-notifications` queue). Evaluate if it can be deleted; if kept, add internal auth
 
-## Implementation approach
+### Task C — Delete deprecated `isAdminEmail` shim
+- Delete `src/domain/adminAllowlist.ts` — confirmed zero imports remain
 
-Each fix is the same 3-line pattern:
+### Task D — Create rate limiting infrastructure
+Database migration to create:
+- `rate_limit_events` table (user_id, action, created_at)
+- `check_rate_limit(user_id, action, max_count, window_interval)` RPC function
+- Wire into job posting and conversation creation RPCs
 
-```tsx
-// Before
-function ScrollToTop() { ... }
+## Sprint 2: Database Integrity
 
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
+### Task E — Add performance indexes
+Six critical indexes on jobs, messages, analytics_events, service_views, and email_notifications_queue. Single migration.
+
+### Task F — Add unique constraint on conversations
+Prevent duplicate conversations for the same job+client+pro combination.
+
+### Task G — Dead-letter handling for notification queue
+Add `failed_at` column to `email_notifications_queue`. Update `send-notifications` to mark items as permanently failed after 3 attempts.
+
+## Sprint 3: Code Cleanup
+
+### Task H — Delete 12 legacy V1 question pack files
+All data is already in the `question_packs` table. These files ship with every edge function deploy unnecessarily:
+- All files in `_shared/` ending with `QuestionPacks.ts` (not V2)
+- `_shared/v1QuestionPacks.ts`
+
+## Implementation Order
+
+```text
+1. Delete adminAllowlist.ts (zero-risk cleanup)
+2. Fix hardcoded emails in 2 edge functions
+3. Add JWT to seedpacks + search-stock-photos
+4. Evaluate send-job-notification for deletion
+5. DB migration: indexes + conversations constraint
+6. DB migration: rate_limit_events + check_rate_limit function
+7. DB migration: failed_at on email queue
+8. Delete 12 V1 question pack files
+9. Update send-notifications for dead-letter marking
 ```
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+## What This Achieves
 
-## What this does NOT change
+| Area | Before | After |
+|------|--------|-------|
+| Exposed endpoints | 4 unprotected | 0 (all JWT-gated or deleted) |
+| Hardcoded secrets | 2 files | 0 (env-only) |
+| Dead code | ~24 legacy files + 1 deprecated shim | Removed |
+| DB performance | No indexes on hot paths | 6 critical indexes |
+| Rate limiting | None | Function + table ready |
+| Notification resilience | Failed items retry forever | Dead-letter after 3 attempts |
 
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
-
-All 7 files will be edited in a single pass.
+All changes **extend and harden existing systems** — no new architectures, no rebuilds, no drift.
 
