@@ -5,8 +5,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const PRIMARY_FROM = "CS Ibiza <noreply@csibiza.com>";
 const FALLBACK_FROM = "CS Ibiza <onboarding@resend.dev>";
-// Resend free tier only allows sending to the account owner's email
-const NOTIFY_EMAIL = "heapytomibiza@gmail.com";
+const NOTIFY_EMAIL = Deno.env.get("ADMIN_EMAIL");
+if (!NOTIFY_EMAIL) {
+  console.error("ADMIN_EMAIL secret is not configured");
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
