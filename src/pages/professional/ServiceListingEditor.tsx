@@ -204,7 +204,7 @@ export default function ServiceListingEditor() {
     handleSavePricingItem(newItems[swapIdx]);
   };
 
-  const canPublish = title.trim() && description.trim() && heroUrl;
+  const canPublish = title.trim() && description.trim() && heroUrl && startingPrice;
   const allZones = getAllZones();
 
   if (isLoading) {
