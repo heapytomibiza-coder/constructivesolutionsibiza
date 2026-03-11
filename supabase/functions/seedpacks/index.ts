@@ -11,11 +11,11 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth: require service_role key (admin-only seeding tool)
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  if (!authHeader.includes(serviceRoleKey) || !serviceRoleKey) {
-    return new Response(JSON.stringify({ error: "Unauthorized — service_role key required" }), {
+  // Auth: require dedicated internal secret (admin-only seeding tool)
+  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
+  const providedSecret = req.headers.get("x-internal-secret");
+  if (!internalSecret || providedSecret !== internalSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
