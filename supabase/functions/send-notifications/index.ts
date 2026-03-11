@@ -530,8 +530,9 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         if (!recipientEmail) {
+          const newAttempts = item.attempts + 1;
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ attempts: item.attempts + 1, last_error: "Could not resolve recipient email" })
+            .update({ attempts: newAttempts, last_error: "Could not resolve recipient email", ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
             .eq("id", item.id);
           continue;
         }
