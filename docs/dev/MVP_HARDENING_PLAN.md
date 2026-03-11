@@ -5,6 +5,8 @@
 **Goal:** Push the platform from ~6.5 post-fixes to a strong ~8/10 MVP with a clear path to 9/10  
 **Principle:** Extend, improve, replace gradually — never rebuild from scratch
 
+> **To the team:** This document is not about slowing development. It is about ensuring we build on a stable foundation while continuing to collect real marketplace data. Speed remains our priority — but speed on a shaky foundation creates rework. Speed on a solid foundation compounds.
+
 ---
 
 ## Executive Summary
