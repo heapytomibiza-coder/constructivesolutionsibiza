@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import nodemailer from "npm:nodemailer@6.9.12";
 
 // ============================================
 // CONFIG
@@ -36,31 +36,32 @@ const supabaseAdmin = createClient(
 
 async function sendEmail(to: string, subject: string, html: string): Promise<{ error?: string }> {
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
+    console.error("SMTP config check - HOST:", !!SMTP_HOST, "USER:", !!SMTP_USER, "PASS:", !!SMTP_PASSWORD, "FROM:", SMTP_FROM);
     return { error: "SMTP not configured (missing host, user, or password)" };
   }
+  
+  console.log(`SMTP sending to="${to}" host="${SMTP_HOST}:${SMTP_PORT}" user="${SMTP_USER}"`);
+  
   try {
-    const client = new SMTPClient({
-      connection: {
-        hostname: SMTP_HOST,
-        port: SMTP_PORT,
-        tls: true,
-        auth: {
-          username: SMTP_USER,
-          password: SMTP_PASSWORD,
-        },
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: true,
+      auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASSWORD,
       },
     });
 
-    await client.send({
-      from: { name: BRAND_NAME, mail: SMTP_FROM },
-      to: { mail: to },
+    await transporter.sendMail({
+      from: `"${BRAND_NAME}" <${SMTP_FROM}>`,
+      to,
       subject,
-      content: htmlToPlainText(html),
+      text: htmlToPlainText(html),
       html,
     });
 
-    await client.close();
-    console.log(`Email sent to ${to}: ${subject}`);
+    console.log(`Email sent successfully to ${to}: ${subject}`);
     return {};
   } catch (err) {
     console.error("SMTP send error:", err);
