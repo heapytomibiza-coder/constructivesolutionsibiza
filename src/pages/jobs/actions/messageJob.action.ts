@@ -31,6 +31,17 @@ export async function startConversation(
     requireProReady(profile);
   }
 
+  // Rate limit: 10 new conversations/day per user
+  const { data: allowed } = await supabase.rpc('check_rate_limit', {
+    p_user_id: user.id,
+    p_action: 'conversation_create',
+    p_max_count: 10,
+    p_window_interval: '24 hours',
+  });
+  if (allowed === false) {
+    throw new UserError("You've reached the daily conversation limit. Please try again tomorrow.", "RATE_LIMITED");
+  }
+
   const { data, error } = await supabase.rpc("get_or_create_conversation", {
     p_job_id: jobId,
     p_pro_id: user.id,
