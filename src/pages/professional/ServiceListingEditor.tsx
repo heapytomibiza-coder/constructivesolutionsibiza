@@ -391,14 +391,31 @@ export default function ServiceListingEditor() {
               </Select>
             </div>
 
-            {/* Pricing Summary */}
+            {/* Starting Price */}
             <div className="space-y-2">
-              <Label>{t('listingEditor.pricingSummary')}</Label>
-              <Input
-                value={pricingSummary}
-                onChange={e => setPricingSummary(e.target.value)}
-                placeholder={t('listingEditor.pricingSummaryPlaceholder')}
-              />
+              <Label>{t('listingEditor.startingPrice')}</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  value={startingPrice}
+                  onChange={e => setStartingPrice(e.target.value)}
+                  placeholder={t('listingEditor.startingPricePlaceholder')}
+                  className="w-28"
+                  min="0"
+                  step="0.01"
+                />
+                <span className="flex items-center text-sm text-muted-foreground font-medium">€</span>
+                <Select value={startingPriceUnit} onValueChange={setStartingPriceUnit}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(['hour', 'day', 'sqm', 'job', 'item'] as const).map(u => (
+                      <SelectItem key={u} value={u}>{t(`listingEditor.units.${u}`)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
