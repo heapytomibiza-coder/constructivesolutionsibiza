@@ -561,8 +561,9 @@ const handler = async (req: Request): Promise<Response> => {
         const email = buildEmail(item.event_type, item.payload || {}, siteUrl);
 
         if (!email) {
+          const newAttempts = item.attempts + 1;
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ attempts: item.attempts + 1, last_error: `Unknown event_type: ${item.event_type}` })
+            .update({ attempts: newAttempts, last_error: `Unknown event_type: ${item.event_type}`, ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
             .eq("id", item.id);
           continue;
         }
