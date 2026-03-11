@@ -248,6 +248,7 @@ export type Database = {
           attempts: number
           created_at: string
           event_type: string
+          failed_at: string | null
           id: string
           last_error: string | null
           payload: Json
@@ -258,6 +259,7 @@ export type Database = {
           attempts?: number
           created_at?: string
           event_type: string
+          failed_at?: string | null
           id?: string
           last_error?: string | null
           payload?: Json
@@ -268,6 +270,7 @@ export type Database = {
           attempts?: number
           created_at?: string
           event_type?: string
+          failed_at?: string | null
           id?: string
           last_error?: string | null
           payload?: Json
