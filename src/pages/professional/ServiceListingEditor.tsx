@@ -39,7 +39,8 @@ export default function ServiceListingEditor() {
   const [heroUrl, setHeroUrl] = useState<string | null>(null);
   const [gallery, setGallery] = useState<string[]>([]);
   const [locationBase, setLocationBase] = useState<string>('');
-  const [pricingSummary, setPricingSummary] = useState('');
+  const [startingPrice, setStartingPrice] = useState('');
+  const [startingPriceUnit, setStartingPriceUnit] = useState('hour');
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [stockPickerOpen, setStockPickerOpen] = useState(false);
@@ -53,7 +54,17 @@ export default function ServiceListingEditor() {
       setHeroUrl(listing.hero_image_url);
       setGallery(listing.gallery || []);
       setLocationBase(listing.location_base || '');
-      setPricingSummary(listing.pricing_summary || '');
+      // Parse pricing_summary back to structured values if possible
+      const summaryMatch = listing.pricing_summary?.match(/^From\s+([\d.]+)\s+€\/(.+)$/);
+      if (summaryMatch) {
+        setStartingPrice(summaryMatch[1]);
+        const unitMap: Record<string, string> = { 'hr': 'hour', 'day': 'day', 'm²': 'sqm', 'job': 'job', 'item': 'item' };
+        setStartingPriceUnit(unitMap[summaryMatch[2]] || 'hour');
+      } else if (listing.pricing_summary) {
+        // Try to extract just a number
+        const numMatch = listing.pricing_summary.match(/([\d.]+)/);
+        if (numMatch) setStartingPrice(numMatch[1]);
+      }
       setPricingItems(listing.pricing_items);
     }
   }, [listing]);
@@ -61,6 +72,12 @@ export default function ServiceListingEditor() {
   const handleSave = async () => {
     if (!listingId) return;
     try {
+      // Build pricing_summary from structured fields
+      const unitLabels: Record<string, string> = { hour: 'hr', day: 'day', sqm: 'm²', job: 'job', item: 'item' };
+      const pricingSummary = startingPrice
+        ? `From ${startingPrice} €/${unitLabels[startingPriceUnit] || startingPriceUnit}`
+        : null;
+
       await updateListing.mutateAsync({
         id: listingId,
         display_title: title,
@@ -68,7 +85,7 @@ export default function ServiceListingEditor() {
         hero_image_url: heroUrl,
         gallery,
         location_base: locationBase || null,
-        pricing_summary: pricingSummary || null,
+        pricing_summary: pricingSummary,
       });
 
       // Fire-and-forget: translate user-generated content
@@ -93,7 +110,7 @@ export default function ServiceListingEditor() {
 
   const handlePublish = async () => {
     if (!listingId) return;
-    if (!title.trim() || !description.trim() || !heroUrl) {
+    if (!title.trim() || !description.trim() || !heroUrl || !startingPrice) {
       toast.error(t('listingEditor.publishValidation'));
       return;
     }
@@ -187,7 +204,7 @@ export default function ServiceListingEditor() {
     handleSavePricingItem(newItems[swapIdx]);
   };
 
-  const canPublish = title.trim() && description.trim() && heroUrl;
+  const canPublish = title.trim() && description.trim() && heroUrl && startingPrice;
   const allZones = getAllZones();
 
   if (isLoading) {
@@ -374,14 +391,31 @@ export default function ServiceListingEditor() {
               </Select>
             </div>
 
-            {/* Pricing Summary */}
+            {/* Starting Price */}
             <div className="space-y-2">
-              <Label>{t('listingEditor.pricingSummary')}</Label>
-              <Input
-                value={pricingSummary}
-                onChange={e => setPricingSummary(e.target.value)}
-                placeholder={t('listingEditor.pricingSummaryPlaceholder')}
-              />
+              <Label>{t('listingEditor.startingPrice')}</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  value={startingPrice}
+                  onChange={e => setStartingPrice(e.target.value)}
+                  placeholder={t('listingEditor.startingPricePlaceholder')}
+                  className="w-28"
+                  min="0"
+                  step="0.01"
+                />
+                <span className="flex items-center text-sm text-muted-foreground font-medium">€</span>
+                <Select value={startingPriceUnit} onValueChange={setStartingPriceUnit}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(['hour', 'day', 'sqm', 'job', 'item'] as const).map(u => (
+                      <SelectItem key={u} value={u}>{t(`listingEditor.units.${u}`)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>

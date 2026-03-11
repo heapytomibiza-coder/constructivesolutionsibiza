@@ -124,7 +124,7 @@ const ServiceListingDetail = () => {
                           {item.price_amount ? (
                             <>{item.price_amount} €{formatUnit(item.unit)}</>
                           ) : (
-                            <span className="text-muted-foreground font-normal">Quote</span>
+                            <span className="text-muted-foreground font-normal">—</span>
                           )}
                         </div>
                       </div>
