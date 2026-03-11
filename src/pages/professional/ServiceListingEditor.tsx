@@ -72,6 +72,12 @@ export default function ServiceListingEditor() {
   const handleSave = async () => {
     if (!listingId) return;
     try {
+      // Build pricing_summary from structured fields
+      const unitLabels: Record<string, string> = { hour: 'hr', day: 'day', sqm: 'm²', job: 'job', item: 'item' };
+      const pricingSummary = startingPrice
+        ? `From ${startingPrice} €/${unitLabels[startingPriceUnit] || startingPriceUnit}`
+        : null;
+
       await updateListing.mutateAsync({
         id: listingId,
         display_title: title,
@@ -79,7 +85,7 @@ export default function ServiceListingEditor() {
         hero_image_url: heroUrl,
         gallery,
         location_base: locationBase || null,
-        pricing_summary: pricingSummary || null,
+        pricing_summary: pricingSummary,
       });
 
       // Fire-and-forget: translate user-generated content
