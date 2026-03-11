@@ -506,6 +506,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("email_notifications_queue")
       .select("*")
       .is("sent_at", null)
+      .is("failed_at", null)
       .lt("attempts", 3)
       .order("created_at", { ascending: true })
       .limit(20);
