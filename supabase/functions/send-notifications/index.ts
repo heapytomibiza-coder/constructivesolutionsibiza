@@ -36,8 +36,14 @@ const supabaseAdmin = createClient(
 
 async function sendEmail(to: string, subject: string, html: string): Promise<{ error?: string }> {
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
+    console.error("SMTP config check - HOST:", !!SMTP_HOST, "USER:", !!SMTP_USER, "PASS:", !!SMTP_PASSWORD, "FROM:", SMTP_FROM);
     return { error: "SMTP not configured (missing host, user, or password)" };
   }
+  
+  const fromEmail = SMTP_FROM.trim();
+  const toEmail = to.trim();
+  console.log(`SMTP sending from="${fromEmail}" to="${toEmail}" host="${SMTP_HOST}:${SMTP_PORT}"`);
+  
   try {
     const client = new SMTPClient({
       connection: {
@@ -52,15 +58,15 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ e
     });
 
     await client.send({
-      from: { name: BRAND_NAME, mail: SMTP_FROM },
-      to: { mail: to },
+      from: fromEmail,
+      to: toEmail,
       subject,
       content: htmlToPlainText(html),
       html,
     });
 
     await client.close();
-    console.log(`Email sent to ${to}: ${subject}`);
+    console.log(`Email sent successfully to ${toEmail}: ${subject}`);
     return {};
   } catch (err) {
     console.error("SMTP send error:", err);
