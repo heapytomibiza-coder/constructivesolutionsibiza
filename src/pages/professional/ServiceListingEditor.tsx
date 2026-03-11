@@ -54,7 +54,17 @@ export default function ServiceListingEditor() {
       setHeroUrl(listing.hero_image_url);
       setGallery(listing.gallery || []);
       setLocationBase(listing.location_base || '');
-      setPricingSummary(listing.pricing_summary || '');
+      // Parse pricing_summary back to structured values if possible
+      const summaryMatch = listing.pricing_summary?.match(/^From\s+([\d.]+)\s+€\/(.+)$/);
+      if (summaryMatch) {
+        setStartingPrice(summaryMatch[1]);
+        const unitMap: Record<string, string> = { 'hr': 'hour', 'day': 'day', 'm²': 'sqm', 'job': 'job', 'item': 'item' };
+        setStartingPriceUnit(unitMap[summaryMatch[2]] || 'hour');
+      } else if (listing.pricing_summary) {
+        // Try to extract just a number
+        const numMatch = listing.pricing_summary.match(/([\d.]+)/);
+        if (numMatch) setStartingPrice(numMatch[1]);
+      }
       setPricingItems(listing.pricing_items);
     }
   }, [listing]);
