@@ -373,6 +373,57 @@ Lovable Cloud already provides separate **Test** and **Live** environments. The 
 
 ---
 
+## Governance: Deployment Rollback Rule
+
+Every schema change or deployment must be **reversible**.
+
+**Developers must ensure:**
+- Migrations can be rolled back (write a corresponding `DOWN` migration or ensure the change is additive)
+- New features behind flags can be disabled without code deployment
+- Edge functions can be reverted to a previous version
+
+**Rollback priority order:**
+1. Disable feature flag (instant, no deploy needed)
+2. Revert edge function to previous version
+3. Revert code via Git
+4. Roll back migration (last resort — requires careful data handling)
+
+**Goal:** If a deployment breaks production, we can restore stability within minutes, not hours.
+
+---
+
+## Governance: Security Principle — Least Privilege
+
+All systems should operate with the **minimum permissions required**.
+
+**Rules:**
+- Edge functions should not use service role key unless absolutely necessary (prefer user JWT)
+- Client requests should only access resources permitted by RLS policies
+- Admin functionality must always require dual-gate verification (`has_role() + is_admin_email()`)
+- New RLS policies default to **deny** — explicitly grant access, never assume it
+
+**Goal:** Reduce the blast radius of any vulnerability. If one component is compromised, the damage is contained.
+
+---
+
+## Governance: Dependency Discipline
+
+New external libraries or services must be evaluated before introduction.
+
+**Before adding a dependency, developers must consider:**
+- Does existing functionality already cover this need?
+- What is the maintenance burden and last-updated status?
+- Does it introduce security risks or increase bundle size significantly?
+- Can the same result be achieved with simple code (< 50 lines)?
+
+**Rule of thumb:** If a dependency can be avoided with straightforward code, prefer the simpler solution.
+
+**Current stack is intentionally lean:** React, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query, Supabase. Adding to this list should be a deliberate decision, not a convenience choice.
+
+**Goal:** Prevent unnecessary complexity and supply-chain risk.
+
+---
+
 ## No-Drift Engineering Checklist
 
 These 10 rules prevent the most common engineering failure in early-stage startups: **developers creating new structures instead of extending existing ones**.
