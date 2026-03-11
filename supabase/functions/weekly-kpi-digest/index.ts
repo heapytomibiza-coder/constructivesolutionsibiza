@@ -3,7 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Constructive Solutions Ibiza <notifications@constructivesolutionsibiza.com>";
-const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "heapytomibiza@gmail.com";
+const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "";
+if (!ADMIN_EMAIL) {
+  console.error("ADMIN_EMAIL secret is not configured — digest will not send");
+}
 const BRAND_NAME = "Constructive Solutions Ibiza";
 const SITE_URL = Deno.env.get("SITE_URL") || "https://constructivesolutionsibiza.lovable.app";
 

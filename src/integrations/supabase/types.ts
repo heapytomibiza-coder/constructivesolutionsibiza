@@ -248,6 +248,7 @@ export type Database = {
           attempts: number
           created_at: string
           event_type: string
+          failed_at: string | null
           id: string
           last_error: string | null
           payload: Json
@@ -258,6 +259,7 @@ export type Database = {
           attempts?: number
           created_at?: string
           event_type: string
+          failed_at?: string | null
           id?: string
           last_error?: string | null
           payload?: Json
@@ -268,6 +270,7 @@ export type Database = {
           attempts?: number
           created_at?: string
           event_type?: string
+          failed_at?: string | null
           id?: string
           last_error?: string | null
           payload?: Json
@@ -1492,6 +1495,27 @@ export type Database = {
           },
         ]
       }
+      rate_limit_events: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       service_categories: {
         Row: {
           category_group: string | null
@@ -2547,6 +2571,15 @@ export type Database = {
           p_to_ts?: string
         }
         Returns: Json
+      }
+      check_rate_limit: {
+        Args: {
+          p_action: string
+          p_max_count: number
+          p_user_id: string
+          p_window_interval: string
+        }
+        Returns: boolean
       }
       create_direct_conversation: {
         Args: { p_client_id: string; p_job_id: string; p_pro_id: string }

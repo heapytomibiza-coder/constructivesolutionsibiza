@@ -506,6 +506,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("email_notifications_queue")
       .select("*")
       .is("sent_at", null)
+      .is("failed_at", null)
       .lt("attempts", 3)
       .order("created_at", { ascending: true })
       .limit(20);
@@ -530,8 +531,9 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         if (!recipientEmail) {
+          const newAttempts = item.attempts + 1;
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ attempts: item.attempts + 1, last_error: "Could not resolve recipient email" })
+            .update({ attempts: newAttempts, last_error: "Could not resolve recipient email", ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
             .eq("id", item.id);
           continue;
         }
@@ -560,8 +562,9 @@ const handler = async (req: Request): Promise<Response> => {
         const email = buildEmail(item.event_type, item.payload || {}, siteUrl);
 
         if (!email) {
+          const newAttempts = item.attempts + 1;
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ attempts: item.attempts + 1, last_error: `Unknown event_type: ${item.event_type}` })
+            .update({ attempts: newAttempts, last_error: `Unknown event_type: ${item.event_type}`, ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
             .eq("id", item.id);
           continue;
         }
@@ -569,8 +572,9 @@ const handler = async (req: Request): Promise<Response> => {
         const result = await sendEmail(recipientEmail, email.subject, email.html);
 
         if (result.error) {
+          const newAttempts = item.attempts + 1;
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ attempts: item.attempts + 1, last_error: result.error })
+            .update({ attempts: newAttempts, last_error: result.error, ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
             .eq("id", item.id);
         } else {
           await supabaseAdmin.from("email_notifications_queue")
@@ -586,8 +590,9 @@ const handler = async (req: Request): Promise<Response> => {
         }
       } catch (itemErr) {
         console.error("Item error:", itemErr);
+        const newAttempts = item.attempts + 1;
         await supabaseAdmin.from("email_notifications_queue")
-          .update({ attempts: item.attempts + 1, last_error: String(itemErr) })
+          .update({ attempts: newAttempts, last_error: String(itemErr), ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
           .eq("id", item.id);
       }
     }
