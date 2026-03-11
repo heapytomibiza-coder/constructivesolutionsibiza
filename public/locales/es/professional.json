@@ -42,7 +42,7 @@
     "saveFailed": "No se pudo guardar el anuncio",
     "uploadFailed": "Error al subir",
     "notFound": "Anuncio no encontrado",
-    "publishValidation": "Por favor, rellena el título, la descripción y sube una imagen principal antes de publicar",
+    "publishValidation": "Por favor, rellena el título, la descripción, el precio base y sube una imagen principal antes de publicar",
     "units": {
       "hour": "Por hora",
       "day": "Por día",

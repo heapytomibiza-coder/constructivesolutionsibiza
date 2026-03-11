@@ -110,7 +110,7 @@ export default function ServiceListingEditor() {
 
   const handlePublish = async () => {
     if (!listingId) return;
-    if (!title.trim() || !description.trim() || !heroUrl) {
+    if (!title.trim() || !description.trim() || !heroUrl || !startingPrice) {
       toast.error(t('listingEditor.publishValidation'));
       return;
     }
