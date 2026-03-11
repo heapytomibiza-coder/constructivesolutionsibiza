@@ -52,8 +52,8 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ e
     });
 
     await client.send({
-      from: `${BRAND_NAME} <${SMTP_FROM}>`,
-      to,
+      from: { name: BRAND_NAME, mail: SMTP_FROM },
+      to: { mail: to },
       subject,
       content: htmlToPlainText(html),
       html,
