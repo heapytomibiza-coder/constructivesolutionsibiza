@@ -589,8 +589,9 @@ const handler = async (req: Request): Promise<Response> => {
         }
       } catch (itemErr) {
         console.error("Item error:", itemErr);
+        const newAttempts = item.attempts + 1;
         await supabaseAdmin.from("email_notifications_queue")
-          .update({ attempts: item.attempts + 1, last_error: String(itemErr) })
+          .update({ attempts: newAttempts, last_error: String(itemErr), ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
           .eq("id", item.id);
       }
     }
