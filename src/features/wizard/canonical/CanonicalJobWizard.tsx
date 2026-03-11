@@ -801,7 +801,20 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         toast.success(t('toasts.updateSuccess'));
         navigate('/dashboard/client');
       } else {
-        // === NEW JOB: INSERT ===
+        // === NEW JOB: Rate limit check (5 posts/day) ===
+        const { data: allowed, error: rlErr } = await supabase.rpc('check_rate_limit', {
+          p_user_id: user.id,
+          p_action: 'job_post',
+          p_max_count: 5,
+          p_window_interval: '24 hours',
+        });
+        if (rlErr) console.warn('Rate limit check failed:', rlErr);
+        if (allowed === false) {
+          toast.error(t('toasts.rateLimited', 'You've reached the daily limit for posting jobs. Please try again tomorrow.'));
+          return;
+        }
+
+        // === INSERT ===
         const { data, error } = await supabase
           .from('jobs')
           .insert([payload])

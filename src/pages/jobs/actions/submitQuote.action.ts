@@ -26,6 +26,17 @@ export async function submitQuote(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
+  // Rate limit: 20 quotes/day per professional
+  const { data: allowed } = await supabase.rpc('check_rate_limit', {
+    p_user_id: user.id,
+    p_action: 'quote_submit',
+    p_max_count: 20,
+    p_window_interval: '24 hours',
+  });
+  if (allowed === false) {
+    return { success: false, error: "Daily quote limit reached. Please try again tomorrow." };
+  }
+
   const { error } = await supabase.from("quotes").insert({
     job_id: payload.jobId,
     professional_id: user.id,
