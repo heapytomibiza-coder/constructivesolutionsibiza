@@ -80,6 +80,22 @@ The platform exists to answer these questions. Every engineering decision should
 
 ---
 
+## Definition of Done (Engineering Standard)
+
+A sprint item is considered **complete** only when ALL of the following are true:
+
+- [ ] Code is implemented and builds without errors
+- [ ] Security checks pass (no new RLS gaps, no exposed secrets)
+- [ ] Database migrations run cleanly from scratch (`supabase db reset && supabase db push`)
+- [ ] Monitoring/logging exists for the change (if it creates data or handles user actions)
+- [ ] Tests exist where required (critical paths)
+- [ ] The change works in **Test environment before publishing to Live**
+- [ ] No architectural drift — change extends existing system, does not duplicate it
+
+This prevents the common situation where something is "technically done but not production safe."
+
+---
+
 ## Sprint 1: Security Hardening (Week 1-2)
 
 ### 1.1 Gate `send-notifications` test endpoint ⚡ P0
