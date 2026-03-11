@@ -157,6 +157,23 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Auth: require service_role key (internal cron/trigger only)
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!authHeader.includes(serviceRoleKey) || !serviceRoleKey) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (!NOTIFY_EMAIL) {
+    return new Response(JSON.stringify({ error: "ADMIN_EMAIL not configured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     // Fetch unsent notifications (max 20)
     const { data: queue, error: queueError } = await supabaseAdmin
