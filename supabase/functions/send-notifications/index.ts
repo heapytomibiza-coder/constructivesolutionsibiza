@@ -141,13 +141,18 @@ async function sendTelegramPhoto(photoUrl: string, caption: string): Promise<voi
     if (photoUrl.startsWith("data:")) {
       const match = photoUrl.match(/^data:image\/(\w+);base64,(.+)$/);
       if (!match) {
-        console.error("Telegram photo: invalid data URI format");
-        // Fall back to text-only
+        console.warn("Telegram photo: invalid data URI, falling back to text");
         await sendTelegram(caption);
         return;
       }
       const ext = match[1];
       const base64Data = match[2];
+      // Skip if base64 is too large (>8MB decoded ≈ >10.6MB base64 string)
+      if (base64Data.length > 10_600_000) {
+        console.warn("Telegram photo: base64 too large, falling back to text");
+        await sendTelegram(caption);
+        return;
+      }
       const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
 
       const formData = new FormData();
@@ -163,7 +168,6 @@ async function sendTelegramPhoto(photoUrl: string, caption: string): Promise<voi
       if (!res.ok) {
         const body = await res.text();
         console.error("Telegram sendPhoto (base64) failed:", res.status, body);
-        // Fall back to text-only
         await sendTelegram(caption);
       }
     } else {
