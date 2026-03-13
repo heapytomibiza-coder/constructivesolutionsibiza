@@ -77,11 +77,13 @@ function withForumTimeout<T>(promise: Promise<T>, timeoutMs = FORUM_REQUEST_TIME
  * Fetch all active forum categories
  */
 export async function fetchForumCategories(): Promise<ForumCategory[]> {
-  const { data, error } = await supabase
-    .from("forum_categories")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_categories")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+  );
 
   if (error) throw error;
   return data ?? [];
