@@ -435,7 +435,7 @@ function buildJobCompletedEmail(payload: any, siteUrl: string) {
 // EVENT → TEMPLATE ROUTER
 // ============================================
 
-type EmailResult = { subject: string; html: string; whatsapp?: string; telegram?: string };
+type EmailResult = { subject: string; html: string; whatsapp?: string; telegram?: string; telegram_photo?: string };
 
 const ADMIN_ONLY_EVENTS = [
   "admin_new_job", "admin_new_user", "pro_signup", "support_ticket",
