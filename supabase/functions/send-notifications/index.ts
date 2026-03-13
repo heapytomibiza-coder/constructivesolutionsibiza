@@ -304,6 +304,7 @@ function buildForumPostEmail(payload: any, siteUrl: string) {
     ),
     whatsapp: `New forum post: ${payload.title}\nBy: ${payload.author_display_name}`,
     telegram: `💬 <b>NEW FORUM POST</b>\n<b>${escapeHtml(payload.title || "Untitled")}</b>\nBy: ${escapeHtml(payload.author_display_name || "Community Member")}\n\n👉 ${siteUrl}/forum/post/${payload.post_id}`,
+    ...(payload._first_photo ? { telegram_photo: payload._first_photo } : {}),
   };
 }
 
