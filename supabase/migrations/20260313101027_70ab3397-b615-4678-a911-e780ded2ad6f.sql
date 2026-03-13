@@ -1,1 +1,0 @@
-UPDATE forum_categories SET description = 'Share and request recommendations, tips, and advice from the community' WHERE slug = 'recommendations';
