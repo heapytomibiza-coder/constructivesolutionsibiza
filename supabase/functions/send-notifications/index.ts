@@ -189,7 +189,7 @@ function buildAdminNewUserEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/admin" style="display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Users →</a>`
     ),
     whatsapp: `👤 New user: ${payload.display_name || payload.email || "Unknown"} (${payload.intent || "client"})`,
-    telegram: `👤 <b>NEW USER</b>\n${escapeHtml(payload.display_name || payload.email || "Unknown")}\nIntent: ${escapeHtml(payload.intent || "client")}`,
+    telegram: `👤 <b>NEW USER</b>\n${escapeHtml(payload.display_name || payload.email || "Unknown")}\nIntent: ${escapeHtml(payload.intent || "client")}\n\n👉 ${siteUrl}/dashboard/admin?tab=users`,
   };
 }
 
