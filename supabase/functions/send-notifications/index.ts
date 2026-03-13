@@ -263,7 +263,7 @@ function buildProSignupEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/admin" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">Review in Admin →</a>`
     ),
     whatsapp: `New pro signup: ${payload.display_name}`,
-    telegram: `🔧 <b>NEW PRO SIGNUP</b>\n${escapeHtml(payload.display_name)}`,
+    telegram: `🔧 <b>NEW PRO SIGNUP</b>\n${escapeHtml(payload.display_name)}\n\n👉 ${siteUrl}/dashboard/admin?tab=users`,
   };
 }
 
