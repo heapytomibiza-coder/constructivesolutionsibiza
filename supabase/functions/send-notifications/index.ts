@@ -227,7 +227,7 @@ function buildPlatformErrorEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/dashboard/admin?tab=health" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Health →</a>`
     ),
     whatsapp: `⚠️ Platform Error: ${payload.error_type || "Unknown"}\n${(payload.message || "").substring(0, 100)}`,
-    telegram: `⚠️ <b>PLATFORM ERROR</b>\n${escapeHtml(payload.error_type || "Unknown")}\n${escapeHtml((payload.message || "").substring(0, 150))}`,
+    telegram: `⚠️ <b>PLATFORM ERROR</b>\n${escapeHtml(payload.error_type || "Unknown")}\n${escapeHtml((payload.message || "").substring(0, 150))}\n\n👉 ${siteUrl}/dashboard/admin?tab=health`,
   };
 }
 
