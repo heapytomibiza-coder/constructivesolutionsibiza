@@ -97,7 +97,7 @@ export async function fetchPostById(postId: string): Promise<ForumPost | null> {
     .single();
 
   if (error && error.code !== "PGRST116") throw error;
-  return data;
+  return data ? normalizePost(data) : null;
 }
 
 /**
