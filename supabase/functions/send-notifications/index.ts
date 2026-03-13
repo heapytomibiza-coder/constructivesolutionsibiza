@@ -137,22 +137,62 @@ async function sendTelegram(message: string): Promise<void> {
 async function sendTelegramPhoto(photoUrl: string, caption: string): Promise<void> {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
   try {
-    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        photo: photoUrl,
-        caption,
-        parse_mode: "HTML",
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      console.error("Telegram sendPhoto failed:", res.status, body);
+    // If it's a base64 data URI, upload as multipart form data
+    if (photoUrl.startsWith("data:")) {
+      const match = photoUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+      if (!match) {
+        console.warn("Telegram photo: invalid data URI, falling back to text");
+        await sendTelegram(caption);
+        return;
+      }
+      const ext = match[1];
+      const base64Data = match[2];
+      // Skip if base64 is too large (>8MB decoded ≈ >10.6MB base64 string)
+      if (base64Data.length > 10_600_000) {
+        console.warn("Telegram photo: base64 too large, falling back to text");
+        await sendTelegram(caption);
+        return;
+      }
+      const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+
+      const formData = new FormData();
+      formData.append("chat_id", TELEGRAM_CHAT_ID);
+      formData.append("caption", caption);
+      formData.append("parse_mode", "HTML");
+      formData.append("photo", new Blob([binaryData], { type: `image/${ext}` }), `photo.${ext}`);
+
+      const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        console.error("Telegram sendPhoto (base64) failed:", res.status, body);
+        await sendTelegram(caption);
+      }
+    } else {
+      // Regular URL
+      const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          photo: photoUrl,
+          caption,
+          parse_mode: "HTML",
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        console.error("Telegram sendPhoto failed:", res.status, body);
+        // Fall back to text-only
+        await sendTelegram(caption);
+      }
     }
   } catch (err) {
     console.error("Telegram photo error:", err);
+    // Fall back to text-only
+    await sendTelegram(caption);
   }
 }
 
