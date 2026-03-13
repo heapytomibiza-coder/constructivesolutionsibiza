@@ -173,7 +173,7 @@ function buildAdminNewJobEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/admin" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View in Admin →</a>`
     ),
     whatsapp: `📋 New job: ${payload.title}\n${payload.category || ""} · ${payload.area || "Ibiza"}`,
-    telegram: `📋 <b>NEW JOB POSTED</b>\n<b>${escapeHtml(payload.title)}</b>\n${escapeHtml(payload.category || "")} · ${escapeHtml(payload.area || "Ibiza")}`,
+    telegram: `📋 <b>NEW JOB POSTED</b>\n<b>${escapeHtml(payload.title)}</b>\n${escapeHtml(payload.category || "")} · ${escapeHtml(payload.area || "Ibiza")}\n\n👉 ${siteUrl}/dashboard/admin`,
   };
 }
 
