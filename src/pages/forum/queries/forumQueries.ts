@@ -128,12 +128,14 @@ export async function fetchPostsByCategory(categoryId: string): Promise<ForumPos
  * Fetch a single post by ID
  */
 export async function fetchPostById(postId: string): Promise<ForumPost | null> {
-  const { data, error } = await supabase
-    .from("forum_posts")
-    .select("*")
-    .eq("id", postId)
-    .is("deleted_at", null)
-    .single();
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_posts")
+      .select("*")
+      .eq("id", postId)
+      .is("deleted_at", null)
+      .single()
+  );
 
   if (error && error.code !== "PGRST116") throw error;
   return data ? normalizePost(data) : null;
