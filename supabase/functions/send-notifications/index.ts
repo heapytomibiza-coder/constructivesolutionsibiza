@@ -134,6 +134,28 @@ async function sendTelegram(message: string): Promise<void> {
   }
 }
 
+async function sendTelegramPhoto(photoUrl: string, caption: string): Promise<void> {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        photo: photoUrl,
+        caption,
+        parse_mode: "HTML",
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("Telegram sendPhoto failed:", res.status, body);
+    }
+  } catch (err) {
+    console.error("Telegram photo error:", err);
+  }
+}
+
 // ============================================
 // EMAIL TEMPLATE SHELL
 // ============================================
