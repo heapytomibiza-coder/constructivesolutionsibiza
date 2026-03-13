@@ -145,12 +145,14 @@ export async function fetchPostById(postId: string): Promise<ForumPost | null> {
  * Fetch replies for a post
  */
 export async function fetchRepliesByPost(postId: string): Promise<ForumReply[]> {
-  const { data, error } = await supabase
-    .from("forum_replies")
-    .select("*")
-    .eq("post_id", postId)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: true });
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_replies")
+      .select("*")
+      .eq("post_id", postId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true })
+  );
 
   if (error) throw error;
   return data ?? [];
