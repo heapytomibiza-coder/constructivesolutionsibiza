@@ -53,15 +53,37 @@ function normalizePost(row: any): ForumPost {
   };
 }
 
+const FORUM_REQUEST_TIMEOUT_MS = 10000;
+
+function withForumTimeout<T>(promiseLike: PromiseLike<T>, timeoutMs = FORUM_REQUEST_TIMEOUT_MS): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error("Forum request timed out. Please try again."));
+    }, timeoutMs);
+
+    Promise.resolve(promiseLike)
+      .then((value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      })
+      .catch((error) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      });
+  });
+}
+
 /**
  * Fetch all active forum categories
  */
 export async function fetchForumCategories(): Promise<ForumCategory[]> {
-  const { data, error } = await supabase
-    .from("forum_categories")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_categories")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+  );
 
   if (error) throw error;
   return data ?? [];
@@ -71,12 +93,14 @@ export async function fetchForumCategories(): Promise<ForumCategory[]> {
  * Fetch a single category by slug
  */
 export async function fetchCategoryBySlug(slug: string): Promise<ForumCategory | null> {
-  const { data, error } = await supabase
-    .from("forum_categories")
-    .select("*")
-    .eq("slug", slug)
-    .eq("is_active", true)
-    .single();
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_categories")
+      .select("*")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .single()
+  );
 
   if (error && error.code !== "PGRST116") throw error;
   return data;
@@ -86,13 +110,15 @@ export async function fetchCategoryBySlug(slug: string): Promise<ForumCategory |
  * Fetch posts for a category
  */
 export async function fetchPostsByCategory(categoryId: string): Promise<ForumPost[]> {
-  const { data, error } = await supabase
-    .from("forum_posts")
-    .select("*")
-    .eq("category_id", categoryId)
-    .is("deleted_at", null)
-    .order("is_pinned", { ascending: false })
-    .order("created_at", { ascending: false });
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_posts")
+      .select("*")
+      .eq("category_id", categoryId)
+      .is("deleted_at", null)
+      .order("is_pinned", { ascending: false })
+      .order("created_at", { ascending: false })
+  );
 
   if (error) throw error;
   return (data ?? []).map(normalizePost);
@@ -102,12 +128,14 @@ export async function fetchPostsByCategory(categoryId: string): Promise<ForumPos
  * Fetch a single post by ID
  */
 export async function fetchPostById(postId: string): Promise<ForumPost | null> {
-  const { data, error } = await supabase
-    .from("forum_posts")
-    .select("*")
-    .eq("id", postId)
-    .is("deleted_at", null)
-    .single();
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_posts")
+      .select("*")
+      .eq("id", postId)
+      .is("deleted_at", null)
+      .single()
+  );
 
   if (error && error.code !== "PGRST116") throw error;
   return data ? normalizePost(data) : null;
@@ -117,12 +145,14 @@ export async function fetchPostById(postId: string): Promise<ForumPost | null> {
  * Fetch replies for a post
  */
 export async function fetchRepliesByPost(postId: string): Promise<ForumReply[]> {
-  const { data, error } = await supabase
-    .from("forum_replies")
-    .select("*")
-    .eq("post_id", postId)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: true });
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_replies")
+      .select("*")
+      .eq("post_id", postId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true })
+  );
 
   if (error) throw error;
   return data ?? [];
