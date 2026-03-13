@@ -607,7 +607,11 @@ const handler = async (req: Request): Promise<Response> => {
           // Also send WhatsApp/Telegram for admin events
           if (ADMIN_ONLY_EVENTS.includes(item.event_type)) {
             if (email.whatsapp) await sendWhatsApp(email.whatsapp);
-            if (email.telegram) await sendTelegram(email.telegram);
+            if (email.telegram_photo) {
+              await sendTelegramPhoto(email.telegram_photo, email.telegram || "");
+            } else if (email.telegram) {
+              await sendTelegram(email.telegram);
+            }
           }
         }
       } catch (itemErr) {
