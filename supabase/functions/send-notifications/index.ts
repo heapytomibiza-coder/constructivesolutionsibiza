@@ -280,7 +280,7 @@ function buildForumPostEmail(payload: any, siteUrl: string) {
       <a href="${postUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Post →</a>`
     ),
     whatsapp: `New forum post: ${payload.title}\nBy: ${payload.author_display_name}`,
-    telegram: `💬 <b>NEW FORUM POST</b>\n<b>${escapeHtml(payload.title || "Untitled")}</b>\nBy: ${escapeHtml(payload.author_display_name || "Community Member")}`,
+    telegram: `💬 <b>NEW FORUM POST</b>\n<b>${escapeHtml(payload.title || "Untitled")}</b>\nBy: ${escapeHtml(payload.author_display_name || "Community Member")}\n\n👉 ${siteUrl}/forum/post/${payload.post_id}`,
   };
 }
 
