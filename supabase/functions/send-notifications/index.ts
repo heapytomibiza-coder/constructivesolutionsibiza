@@ -126,7 +126,7 @@ async function sendTelegram(message: string): Promise<void> {
     const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: "HTML", disable_web_page_preview: true }),
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: "HTML", disable_web_page_preview: false }),
     });
     await res.text();
   } catch (err) {
@@ -173,7 +173,7 @@ function buildAdminNewJobEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/admin" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View in Admin →</a>`
     ),
     whatsapp: `📋 New job: ${payload.title}\n${payload.category || ""} · ${payload.area || "Ibiza"}`,
-    telegram: `📋 <b>NEW JOB POSTED</b>\n<b>${escapeHtml(payload.title)}</b>\n${escapeHtml(payload.category || "")} · ${escapeHtml(payload.area || "Ibiza")}`,
+    telegram: `📋 <b>NEW JOB POSTED</b>\n<b>${escapeHtml(payload.title)}</b>\n${escapeHtml(payload.category || "")} · ${escapeHtml(payload.area || "Ibiza")}\n\n👉 ${siteUrl}/dashboard/admin`,
   };
 }
 
@@ -189,7 +189,7 @@ function buildAdminNewUserEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/admin" style="display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Users →</a>`
     ),
     whatsapp: `👤 New user: ${payload.display_name || payload.email || "Unknown"} (${payload.intent || "client"})`,
-    telegram: `👤 <b>NEW USER</b>\n${escapeHtml(payload.display_name || payload.email || "Unknown")}\nIntent: ${escapeHtml(payload.intent || "client")}`,
+    telegram: `👤 <b>NEW USER</b>\n${escapeHtml(payload.display_name || payload.email || "Unknown")}\nIntent: ${escapeHtml(payload.intent || "client")}\n\n👉 ${siteUrl}/dashboard/admin?tab=users`,
   };
 }
 
@@ -208,7 +208,7 @@ function buildBugReportEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/dashboard/admin?tab=support" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View in Admin →</a>`
     ),
     whatsapp: `🐛 Bug Report\n${payload.description?.substring(0, 120)}\nPage: ${payload.route || "N/A"}`,
-    telegram: `🐛 <b>BUG REPORT</b>\n${escapeHtml(payload.description?.substring(0, 200) || "No description")}\n📍 ${escapeHtml(payload.route || "Unknown page")}`,
+    telegram: `🐛 <b>BUG REPORT</b>\n${escapeHtml(payload.description?.substring(0, 200) || "No description")}\n📍 ${escapeHtml(payload.route || "Unknown page")}\n\n👉 ${siteUrl}/dashboard/admin?tab=support`,
   };
 }
 
@@ -227,7 +227,7 @@ function buildPlatformErrorEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/dashboard/admin?tab=health" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Health →</a>`
     ),
     whatsapp: `⚠️ Platform Error: ${payload.error_type || "Unknown"}\n${(payload.message || "").substring(0, 100)}`,
-    telegram: `⚠️ <b>PLATFORM ERROR</b>\n${escapeHtml(payload.error_type || "Unknown")}\n${escapeHtml((payload.message || "").substring(0, 150))}`,
+    telegram: `⚠️ <b>PLATFORM ERROR</b>\n${escapeHtml(payload.error_type || "Unknown")}\n${escapeHtml((payload.message || "").substring(0, 150))}\n\n👉 ${siteUrl}/dashboard/admin?tab=health`,
   };
 }
 
@@ -248,7 +248,7 @@ function buildSupportTicketEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/admin" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">Open Support Inbox →</a>`
     ),
     whatsapp: `${priorityEmoji} Support ticket ${payload.ticket_number}\nIssue: ${payload.issue_type}\nPriority: ${payload.priority}`,
-    telegram: `${priorityEmoji} <b>SUPPORT TICKET</b>\n${escapeHtml(payload.ticket_number)}: ${escapeHtml(payload.issue_type)}`,
+    telegram: `${priorityEmoji} <b>SUPPORT TICKET</b>\n${escapeHtml(payload.ticket_number)}: ${escapeHtml(payload.issue_type)}\n\n👉 ${siteUrl}/dashboard/admin?tab=support`,
   };
 }
 
@@ -263,7 +263,7 @@ function buildProSignupEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/admin" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">Review in Admin →</a>`
     ),
     whatsapp: `New pro signup: ${payload.display_name}`,
-    telegram: `🔧 <b>NEW PRO SIGNUP</b>\n${escapeHtml(payload.display_name)}`,
+    telegram: `🔧 <b>NEW PRO SIGNUP</b>\n${escapeHtml(payload.display_name)}\n\n👉 ${siteUrl}/dashboard/admin?tab=users`,
   };
 }
 
@@ -280,7 +280,7 @@ function buildForumPostEmail(payload: any, siteUrl: string) {
       <a href="${postUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Post →</a>`
     ),
     whatsapp: `New forum post: ${payload.title}\nBy: ${payload.author_display_name}`,
-    telegram: `💬 <b>NEW FORUM POST</b>\n<b>${escapeHtml(payload.title || "Untitled")}</b>\nBy: ${escapeHtml(payload.author_display_name || "Community Member")}`,
+    telegram: `💬 <b>NEW FORUM POST</b>\n<b>${escapeHtml(payload.title || "Untitled")}</b>\nBy: ${escapeHtml(payload.author_display_name || "Community Member")}\n\n👉 ${siteUrl}/forum/post/${payload.post_id}`,
   };
 }
 
