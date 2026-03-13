@@ -134,6 +134,28 @@ async function sendTelegram(message: string): Promise<void> {
   }
 }
 
+async function sendTelegramPhoto(photoUrl: string, caption: string): Promise<void> {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        photo: photoUrl,
+        caption,
+        parse_mode: "HTML",
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("Telegram sendPhoto failed:", res.status, body);
+    }
+  } catch (err) {
+    console.error("Telegram photo error:", err);
+  }
+}
+
 // ============================================
 // EMAIL TEMPLATE SHELL
 // ============================================
@@ -174,6 +196,7 @@ function buildAdminNewJobEmail(payload: any, siteUrl: string) {
     ),
     whatsapp: `📋 New job: ${payload.title}\n${payload.category || ""} · ${payload.area || "Ibiza"}`,
     telegram: `📋 <b>NEW JOB POSTED</b>\n<b>${escapeHtml(payload.title)}</b>\n${escapeHtml(payload.category || "")} · ${escapeHtml(payload.area || "Ibiza")}\n\n👉 ${siteUrl}/dashboard/admin`,
+    ...(payload._first_photo ? { telegram_photo: payload._first_photo } : {}),
   };
 }
 
@@ -281,6 +304,7 @@ function buildForumPostEmail(payload: any, siteUrl: string) {
     ),
     whatsapp: `New forum post: ${payload.title}\nBy: ${payload.author_display_name}`,
     telegram: `💬 <b>NEW FORUM POST</b>\n<b>${escapeHtml(payload.title || "Untitled")}</b>\nBy: ${escapeHtml(payload.author_display_name || "Community Member")}\n\n👉 ${siteUrl}/forum/post/${payload.post_id}`,
+    ...(payload._first_photo ? { telegram_photo: payload._first_photo } : {}),
   };
 }
 
@@ -413,7 +437,7 @@ function buildJobCompletedEmail(payload: any, siteUrl: string) {
 // EVENT → TEMPLATE ROUTER
 // ============================================
 
-type EmailResult = { subject: string; html: string; whatsapp?: string; telegram?: string };
+type EmailResult = { subject: string; html: string; whatsapp?: string; telegram?: string; telegram_photo?: string };
 
 const ADMIN_ONLY_EVENTS = [
   "admin_new_job", "admin_new_user", "pro_signup", "support_ticket",
@@ -558,8 +582,38 @@ const handler = async (req: Request): Promise<Response> => {
           }
         }
 
+        // Enrich payload with photos for supported event types
+        const payload = { ...(item.payload || {}) } as any;
+        
+        if (item.event_type === "admin_new_job" && payload.job_id) {
+          try {
+            const { data: jobRow } = await supabaseAdmin
+              .from("jobs")
+              .select("answers")
+              .eq("id", payload.job_id)
+              .single();
+            const photos = (jobRow?.answers as any)?.extras?.photos;
+            if (Array.isArray(photos) && photos.length > 0) {
+              payload._first_photo = photos[0];
+            }
+          } catch (_) { /* ignore */ }
+        }
+
+        if (item.event_type === "forum_post" && payload.post_id) {
+          try {
+            const { data: postRow } = await supabaseAdmin
+              .from("forum_posts")
+              .select("photos")
+              .eq("id", payload.post_id)
+              .single();
+            if (Array.isArray(postRow?.photos) && postRow.photos.length > 0) {
+              payload._first_photo = postRow.photos[0];
+            }
+          } catch (_) { /* ignore */ }
+        }
+
         // Build and send
-        const email = buildEmail(item.event_type, item.payload || {}, siteUrl);
+        const email = buildEmail(item.event_type, payload, siteUrl);
 
         if (!email) {
           const newAttempts = item.attempts + 1;
@@ -585,7 +639,11 @@ const handler = async (req: Request): Promise<Response> => {
           // Also send WhatsApp/Telegram for admin events
           if (ADMIN_ONLY_EVENTS.includes(item.event_type)) {
             if (email.whatsapp) await sendWhatsApp(email.whatsapp);
-            if (email.telegram) await sendTelegram(email.telegram);
+            if (email.telegram_photo) {
+              await sendTelegramPhoto(email.telegram_photo, email.telegram || "");
+            } else if (email.telegram) {
+              await sendTelegram(email.telegram);
+            }
           }
         }
       } catch (itemErr) {
