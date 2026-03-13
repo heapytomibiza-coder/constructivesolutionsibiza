@@ -248,7 +248,7 @@ function buildSupportTicketEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/admin" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">Open Support Inbox →</a>`
     ),
     whatsapp: `${priorityEmoji} Support ticket ${payload.ticket_number}\nIssue: ${payload.issue_type}\nPriority: ${payload.priority}`,
-    telegram: `${priorityEmoji} <b>SUPPORT TICKET</b>\n${escapeHtml(payload.ticket_number)}: ${escapeHtml(payload.issue_type)}`,
+    telegram: `${priorityEmoji} <b>SUPPORT TICKET</b>\n${escapeHtml(payload.ticket_number)}: ${escapeHtml(payload.issue_type)}\n\n👉 ${siteUrl}/dashboard/admin?tab=support`,
   };
 }
 
