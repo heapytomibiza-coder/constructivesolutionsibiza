@@ -110,13 +110,15 @@ export async function fetchCategoryBySlug(slug: string): Promise<ForumCategory |
  * Fetch posts for a category
  */
 export async function fetchPostsByCategory(categoryId: string): Promise<ForumPost[]> {
-  const { data, error } = await supabase
-    .from("forum_posts")
-    .select("*")
-    .eq("category_id", categoryId)
-    .is("deleted_at", null)
-    .order("is_pinned", { ascending: false })
-    .order("created_at", { ascending: false });
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_posts")
+      .select("*")
+      .eq("category_id", categoryId)
+      .is("deleted_at", null)
+      .order("is_pinned", { ascending: false })
+      .order("created_at", { ascending: false })
+  );
 
   if (error) throw error;
   return (data ?? []).map(normalizePost);
