@@ -82,7 +82,7 @@ export async function fetchPostsByCategory(categoryId: string): Promise<ForumPos
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map(normalizePost);
 }
 
 /**
