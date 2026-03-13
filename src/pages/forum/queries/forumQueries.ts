@@ -55,13 +55,13 @@ function normalizePost(row: any): ForumPost {
 
 const FORUM_REQUEST_TIMEOUT_MS = 10000;
 
-function withForumTimeout<T>(promise: Promise<T>, timeoutMs = FORUM_REQUEST_TIMEOUT_MS): Promise<T> {
+function withForumTimeout<T>(promiseLike: PromiseLike<T>, timeoutMs = FORUM_REQUEST_TIMEOUT_MS): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timeoutId = window.setTimeout(() => {
       reject(new Error("Forum request timed out. Please try again."));
     }, timeoutMs);
 
-    promise
+    Promise.resolve(promiseLike)
       .then((value) => {
         window.clearTimeout(timeoutId);
         resolve(value);
