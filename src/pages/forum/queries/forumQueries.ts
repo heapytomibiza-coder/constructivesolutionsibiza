@@ -40,6 +40,19 @@ export interface ForumReply {
   updated_at: string;
 }
 
+/** Normalize nullable DB fields to safe defaults */
+function normalizePost(row: any): ForumPost {
+  return {
+    ...row,
+    tags: row.tags ?? [],
+    photos: row.photos ?? [],
+    is_pinned: row.is_pinned ?? false,
+    reply_count: row.reply_count ?? 0,
+    view_count: row.view_count ?? 0,
+    author_display_name: row.author_display_name ?? "Community Member",
+  };
+}
+
 /**
  * Fetch all active forum categories
  */
@@ -82,7 +95,7 @@ export async function fetchPostsByCategory(categoryId: string): Promise<ForumPos
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map(normalizePost);
 }
 
 /**
@@ -97,7 +110,7 @@ export async function fetchPostById(postId: string): Promise<ForumPost | null> {
     .single();
 
   if (error && error.code !== "PGRST116") throw error;
-  return data;
+  return data ? normalizePost(data) : null;
 }
 
 /**
