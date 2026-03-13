@@ -208,7 +208,7 @@ function buildBugReportEmail(payload: any, siteUrl: string) {
       <a href="${siteUrl}/dashboard/admin?tab=support" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View in Admin →</a>`
     ),
     whatsapp: `🐛 Bug Report\n${payload.description?.substring(0, 120)}\nPage: ${payload.route || "N/A"}`,
-    telegram: `🐛 <b>BUG REPORT</b>\n${escapeHtml(payload.description?.substring(0, 200) || "No description")}\n📍 ${escapeHtml(payload.route || "Unknown page")}`,
+    telegram: `🐛 <b>BUG REPORT</b>\n${escapeHtml(payload.description?.substring(0, 200) || "No description")}\n📍 ${escapeHtml(payload.route || "Unknown page")}\n\n👉 ${siteUrl}/dashboard/admin?tab=support`,
   };
 }
 
