@@ -580,8 +580,38 @@ const handler = async (req: Request): Promise<Response> => {
           }
         }
 
+        // Enrich payload with photos for supported event types
+        const payload = { ...(item.payload || {}) } as any;
+        
+        if (item.event_type === "admin_new_job" && payload.job_id) {
+          try {
+            const { data: jobRow } = await supabaseAdmin
+              .from("jobs")
+              .select("answers")
+              .eq("id", payload.job_id)
+              .single();
+            const photos = (jobRow?.answers as any)?.extras?.photos;
+            if (Array.isArray(photos) && photos.length > 0) {
+              payload._first_photo = photos[0];
+            }
+          } catch (_) { /* ignore */ }
+        }
+
+        if (item.event_type === "forum_post" && payload.post_id) {
+          try {
+            const { data: postRow } = await supabaseAdmin
+              .from("forum_posts")
+              .select("photos")
+              .eq("id", payload.post_id)
+              .single();
+            if (Array.isArray(postRow?.photos) && postRow.photos.length > 0) {
+              payload._first_photo = postRow.photos[0];
+            }
+          } catch (_) { /* ignore */ }
+        }
+
         // Build and send
-        const email = buildEmail(item.event_type, item.payload || {}, siteUrl);
+        const email = buildEmail(item.event_type, payload, siteUrl);
 
         if (!email) {
           const newAttempts = item.attempts + 1;
