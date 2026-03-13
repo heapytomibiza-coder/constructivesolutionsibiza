@@ -53,6 +53,26 @@ function normalizePost(row: any): ForumPost {
   };
 }
 
+const FORUM_REQUEST_TIMEOUT_MS = 10000;
+
+function withForumTimeout<T>(promise: Promise<T>, timeoutMs = FORUM_REQUEST_TIMEOUT_MS): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error("Forum request timed out. Please try again."));
+    }, timeoutMs);
+
+    promise
+      .then((value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      })
+      .catch((error) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      });
+  });
+}
+
 /**
  * Fetch all active forum categories
  */
