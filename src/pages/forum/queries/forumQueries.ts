@@ -93,12 +93,14 @@ export async function fetchForumCategories(): Promise<ForumCategory[]> {
  * Fetch a single category by slug
  */
 export async function fetchCategoryBySlug(slug: string): Promise<ForumCategory | null> {
-  const { data, error } = await supabase
-    .from("forum_categories")
-    .select("*")
-    .eq("slug", slug)
-    .eq("is_active", true)
-    .single();
+  const { data, error } = await withForumTimeout(
+    supabase
+      .from("forum_categories")
+      .select("*")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .single()
+  );
 
   if (error && error.code !== "PGRST116") throw error;
   return data;
