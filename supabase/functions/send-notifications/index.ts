@@ -196,6 +196,7 @@ function buildAdminNewJobEmail(payload: any, siteUrl: string) {
     ),
     whatsapp: `📋 New job: ${payload.title}\n${payload.category || ""} · ${payload.area || "Ibiza"}`,
     telegram: `📋 <b>NEW JOB POSTED</b>\n<b>${escapeHtml(payload.title)}</b>\n${escapeHtml(payload.category || "")} · ${escapeHtml(payload.area || "Ibiza")}\n\n👉 ${siteUrl}/dashboard/admin`,
+    ...(payload._first_photo ? { telegram_photo: payload._first_photo } : {}),
   };
 }
 
