@@ -74,6 +74,12 @@ const Auth = () => {
 
       toast.success(t('toast.welcomeBack'));
 
+      // Always clean up authRedirect from both storages to prevent stale redirects
+      const pendingRedirect = sessionStorage.getItem('authRedirect')
+        || localStorage.getItem('authRedirect');
+      sessionStorage.removeItem('authRedirect');
+      try { localStorage.removeItem('authRedirect'); } catch {}
+
       // If there's an explicit returnUrl, go there directly
       if (returnUrl) {
         navigate(returnUrl);
@@ -81,13 +87,7 @@ const Auth = () => {
       }
 
       // Check for pending redirect (e.g., from wizard auth checkpoint)
-      // Check both storages — localStorage survives cross-tab email confirmations
-      const pendingRedirect = sessionStorage.getItem('authRedirect')
-        || localStorage.getItem('authRedirect')
-        || returnUrl;
       if (pendingRedirect) {
-        sessionStorage.removeItem('authRedirect');
-        try { localStorage.removeItem('authRedirect'); } catch {}
         navigate(pendingRedirect);
         return;
       }

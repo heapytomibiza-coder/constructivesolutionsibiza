@@ -724,6 +724,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // === CLEAR SESSION (for post-submit) ===
   const clearSession = useCallback(() => {
     sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem('authRedirect');
     try { localStorage.removeItem('wizardState_authDraft'); localStorage.removeItem('authRedirect'); } catch {}
     clearDraftChecked();
   }, []);
