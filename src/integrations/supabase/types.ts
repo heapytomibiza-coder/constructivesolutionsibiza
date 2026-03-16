@@ -2055,22 +2055,6 @@ export type Database = {
       }
     }
     Views: {
-      admin_platform_stats: {
-        Row: {
-          active_jobs: number | null
-          active_professionals: number | null
-          completed_jobs: number | null
-          new_support_tickets: number | null
-          open_jobs: number | null
-          open_support_tickets: number | null
-          total_conversations: number | null
-          total_jobs: number | null
-          total_posts: number | null
-          total_professionals: number | null
-          total_users: number | null
-        }
-        Relationships: []
-      }
       admin_support_inbox: {
         Row: {
           age_hours: number | null
@@ -2132,24 +2116,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      admin_users_list: {
-        Row: {
-          active_role: string | null
-          created_at: string | null
-          display_name: string | null
-          id: string | null
-          phone: string | null
-          pro_is_listed: boolean | null
-          pro_onboarding_phase: string | null
-          pro_services_count: number | null
-          pro_verification_status: string | null
-          roles: string[] | null
-          status: string | null
-          suspended_at: string | null
-          suspension_reason: string | null
-        }
-        Relationships: []
       }
       job_details: {
         Row: {
