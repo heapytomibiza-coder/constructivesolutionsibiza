@@ -402,6 +402,61 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Browser Notifications Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <BellRing className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base">{t('notifications.browserTitle')}</CardTitle>
+              {browserPermission === 'granted' && (
+                <span className="ml-auto flex items-center gap-1 text-xs font-medium text-emerald-600">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {t('notifications.browserStatusAllowed')}
+                </span>
+              )}
+              {browserPermission === 'denied' && (
+                <span className="ml-auto flex items-center gap-1 text-xs font-medium text-destructive">
+                  <XCircle className="h-3.5 w-3.5" />
+                  {t('notifications.browserStatusBlocked')}
+                </span>
+              )}
+            </div>
+            <CardDescription>{t('notifications.browserDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {browserPermission === 'unsupported' ? (
+              <p className="text-sm text-muted-foreground">
+                Your browser does not support notifications.
+              </p>
+            ) : browserPermission === 'granted' ? (
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 p-3 space-y-2">
+                <p className="text-sm text-foreground">{t('notifications.browserGranted')}</p>
+              </div>
+            ) : browserPermission === 'denied' ? (
+              <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+                <p className="text-sm font-medium text-foreground">{t('notifications.browserBlocked')}</p>
+                <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
+                  <li>{t('notifications.browserBlockedStep1')}</li>
+                  <li>{t('notifications.browserBlockedStep2')}</li>
+                  <li>{t('notifications.browserBlockedStep3')}</li>
+                </ol>
+              </div>
+            ) : (
+              <Button onClick={requestBrowserPermission} variant="outline" className="w-full">
+                <BellRing className="h-4 w-4 mr-2" />
+                {t('notifications.browserEnable')}
+              </Button>
+            )}
+            <Separator />
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">{t('notifications.browserHowItWorks')}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('notifications.browserHowItWorksDesc')}</p>
+              </div>
+            </div>
+          </CardContent>
+
         {/* Sign Out */}
         <Card>
           <CardContent className="pt-6">
