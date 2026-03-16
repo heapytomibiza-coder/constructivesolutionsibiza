@@ -1,4 +1,4 @@
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { PublicLayout } from "@/shared/components/layout/PublicLayout";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,17 @@ import { Home, Search } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // If the path has double slashes, redirect to cleaned path instead of showing 404
+    const cleaned = location.pathname.replace(/\/{2,}/g, '/');
+    if (cleaned !== location.pathname) {
+      navigate(cleaned + location.search + location.hash, { replace: true });
+      return;
+    }
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
+  }, [location.pathname, location.search, location.hash, navigate]);
 
   return (
     <PublicLayout>

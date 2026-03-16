@@ -96,9 +96,10 @@ export function useServiceListingDetail(listingId: string | undefined) {
         .select('*')
         .eq('id', listingId!)
         .eq('status', 'live')
-        .single();
+        .maybeSingle();
 
       if (listingError) throw listingError;
+      if (!listing) throw new Error('Listing not found');
 
       // Fetch pricing items
       const { data: pricingItems, error: pricingError } = await supabase
