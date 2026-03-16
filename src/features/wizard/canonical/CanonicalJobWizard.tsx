@@ -364,9 +364,22 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     
     const timer = setTimeout(() => {
       try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(wizardState));
+        // Strip base64 photos before saving to avoid exceeding storage quota
+        const draftState = {
+          ...wizardState,
+          extras: {
+            ...wizardState.extras,
+            photos: wizardState.extras.photos.map(p =>
+              p.startsWith('data:') ? '[photo]' : p
+            ),
+          },
+        };
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draftState));
       } catch (e) {
-        // Draft save failed silently
+        // Quota exceeded — clear old drafts and retry once
+        try {
+          sessionStorage.removeItem(STORAGE_KEY);
+        } catch {}
       }
     }, 600);
     
