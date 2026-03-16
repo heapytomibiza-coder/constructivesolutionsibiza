@@ -48,7 +48,30 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [browserPermission, setBrowserPermission] = useState<NotificationPermission | 'unsupported'>('default');
   const queryClient = useQueryClient();
+
+  // Track browser notification permission state
+  useEffect(() => {
+    if (!('Notification' in window)) {
+      setBrowserPermission('unsupported');
+    } else {
+      setBrowserPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestBrowserPermission = useCallback(async () => {
+    if (!('Notification' in window)) return;
+    const result = await Notification.requestPermission();
+    setBrowserPermission(result);
+    if (result === 'granted') {
+      // Show a test notification
+      new Notification('✅ Notifications enabled!', {
+        body: 'You\'ll now receive alerts when someone messages you.',
+        icon: '/favicon.ico',
+      });
+    }
+  }, []);
 
   // Notification preferences
   const { data: prefs, isLoading: prefsLoading } = useQuery({
