@@ -5,10 +5,10 @@
  * Shows account info, role, notifications, and sign out option.
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, User, Bell, LogOut, Shield, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, Bell, BellRing, LogOut, Shield, Eye, EyeOff, Loader2, CheckCircle2, XCircle, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -48,7 +48,30 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [browserPermission, setBrowserPermission] = useState<NotificationPermission | 'unsupported'>('default');
   const queryClient = useQueryClient();
+
+  // Track browser notification permission state
+  useEffect(() => {
+    if (!('Notification' in window)) {
+      setBrowserPermission('unsupported');
+    } else {
+      setBrowserPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestBrowserPermission = useCallback(async () => {
+    if (!('Notification' in window)) return;
+    const result = await Notification.requestPermission();
+    setBrowserPermission(result);
+    if (result === 'granted') {
+      // Show a test notification
+      new Notification('✅ Notifications enabled!', {
+        body: 'You\'ll now receive alerts when someone messages you.',
+        icon: '/favicon.ico',
+      });
+    }
+  }, []);
 
   // Notification preferences
   const { data: prefs, isLoading: prefsLoading } = useQuery({
@@ -376,6 +399,62 @@ export default function Settings() {
                 )}
               </>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Browser Notifications Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <BellRing className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base">{t('notifications.browserTitle')}</CardTitle>
+              {browserPermission === 'granted' && (
+                <span className="ml-auto flex items-center gap-1 text-xs font-medium text-emerald-600">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {t('notifications.browserStatusAllowed')}
+                </span>
+              )}
+              {browserPermission === 'denied' && (
+                <span className="ml-auto flex items-center gap-1 text-xs font-medium text-destructive">
+                  <XCircle className="h-3.5 w-3.5" />
+                  {t('notifications.browserStatusBlocked')}
+                </span>
+              )}
+            </div>
+            <CardDescription>{t('notifications.browserDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {browserPermission === 'unsupported' ? (
+              <p className="text-sm text-muted-foreground">
+                Your browser does not support notifications.
+              </p>
+            ) : browserPermission === 'granted' ? (
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 p-3 space-y-2">
+                <p className="text-sm text-foreground">{t('notifications.browserGranted')}</p>
+              </div>
+            ) : browserPermission === 'denied' ? (
+              <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+                <p className="text-sm font-medium text-foreground">{t('notifications.browserBlocked')}</p>
+                <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
+                  <li>{t('notifications.browserBlockedStep1')}</li>
+                  <li>{t('notifications.browserBlockedStep2')}</li>
+                  <li>{t('notifications.browserBlockedStep3')}</li>
+                </ol>
+              </div>
+            ) : (
+              <Button onClick={requestBrowserPermission} variant="outline" className="w-full">
+                <BellRing className="h-4 w-4 mr-2" />
+                {t('notifications.browserEnable')}
+              </Button>
+            )}
+            <Separator />
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">{t('notifications.browserHowItWorks')}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('notifications.browserHowItWorksDesc')}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
