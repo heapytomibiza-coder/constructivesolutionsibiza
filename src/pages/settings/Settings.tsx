@@ -456,6 +456,7 @@ export default function Settings() {
               </div>
             </div>
           </CardContent>
+        </Card>
 
         {/* Sign Out */}
         <Card>
