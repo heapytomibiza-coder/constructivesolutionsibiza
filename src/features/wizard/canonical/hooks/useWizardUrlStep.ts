@@ -1,6 +1,10 @@
 /**
  * URL Step Sync Hook
  * V3: Gates URL writes behind isInitialized to prevent overwriting deep-link params
+ * 
+ * FIX: Reads searchParams inside the effect via window.location.search to avoid
+ * including the searchParams object in the dependency array, which caused an
+ * infinite re-render loop (setSearchParams → new searchParams ref → effect fires again).
  */
 
 import { useEffect } from 'react';
@@ -12,7 +16,7 @@ export function useWizardUrlStep(
   _setCurrentStep: (step: WizardStep) => void,
   isInitialized = true
 ) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
 
   // NOTE: We intentionally do NOT read step from URL on mount.
   // Mode resolution (resolveWizardMode) handles initial step determination
@@ -23,8 +27,10 @@ export function useWizardUrlStep(
   useEffect(() => {
     if (!isInitialized) return;
 
-    const newParams = new URLSearchParams(searchParams);
+    // Read current params from window.location to avoid dependency on searchParams object
+    const newParams = new URLSearchParams(window.location.search);
     newParams.set('step', currentStep);
     setSearchParams(newParams, { replace: true });
-  }, [currentStep, isInitialized, searchParams, setSearchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, isInitialized]);
 }
