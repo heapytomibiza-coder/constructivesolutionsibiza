@@ -751,8 +751,17 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     // new-tab email-confirmation flows (sessionStorage is tab-scoped)
     if (!isAuthenticated || !user) {
       trackEvent('job_post_submit_auth_redirect', 'client', { category: wizardState.mainCategory });
-      const draftJson = JSON.stringify(wizardState);
-      sessionStorage.setItem(STORAGE_KEY, draftJson);
+      const draftForStorage = {
+        ...wizardState,
+        extras: {
+          ...wizardState.extras,
+          photos: wizardState.extras.photos.map(p =>
+            p.startsWith('data:') ? '[photo]' : p
+          ),
+        },
+      };
+      const draftJson = JSON.stringify(draftForStorage);
+      try { sessionStorage.setItem(STORAGE_KEY, draftJson); } catch {}
       try { localStorage.setItem('wizardState_authDraft', draftJson); } catch {}
       sessionStorage.setItem('authRedirect', '/post?resume=true');
       try { localStorage.setItem('authRedirect', '/post?resume=true'); } catch {}
