@@ -1,48 +1,54 @@
+Activate `founding-members` Rollout Phase
 
+## What's Happening
 
-# Fix forwardRef Warnings — Cleanup Plan
+You're at Week 3 since launch. The `pipe-control` phase (Wizard, Jobs, Forum, Messaging) has been live. Now it's time to flip the switch to `founding-members`, which unlocks:
 
-## What's happening
+1. **Professional Directory** (`/professionals`) -- fully built, includes search, category filtering, ranked results, and individual profile pages with "Start a Job" CTA
+2. **Professional Detail Pages** (`/professionals/:id`) -- fully built, shows bio, avatar, verification badge, and direct job creation link
+  &nbsp;
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+## What Needs to Change
 
-## Root cause
+**One-line code change:**
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+- `src/domain/rollout.ts` line 34: change `'pipe-control'` to `'founding-members'`
 
-## Affected components (7 files)
+That's it. The `RolloutGate` component and `canSeeRoute` nav logic will automatically:
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+- Show "Professionals" in the navigation menu
+- Allow public access to `/professionals` and `/professionals/:id`
+- Keep later-phase features (Services marketplace, Pricing, Reputation, quoting system) still hidden
 
-## Implementation approach
+## What's Already Ready
 
-Each fix is the same 3-line pattern:
+- Professional directory page with hero, search bar, category/subcategory filtering, ranked results
+- Professional detail page with avatar, bio, verification badge, "Start a Job" CTA, and "Send Message" placeholder
+- All i18n translations (EN + ES) for professional and quotes features
+- RLS policies and DB queries already in place
 
-```tsx
-// Before
-function ScrollToTop() { ... }
+## Draft WhatsApp Announcement
 
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
+Here's a message you can adapt:
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+---
 
-## What this does NOT change
+**Constructive Solutions Ibiza -- New Features Live**
 
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
+Hi everyone! Two weeks in and we're rolling out the next set of features:
 
-All 7 files will be edited in a single pass.
+**Professional Directory**  
+You can now browse verified professionals on the platform. Visit the "Professionals" tab to see who's available, filter by trade, and view their profiles. Each profile has a "Start a Job" button to send work directly to that person.
 
+These features are live now. Go check them out and let us know what you think!
+
+constructivesolutionsibiza.lovable.app
+
+---
+
+## Implementation Steps
+
+1. Update `CURRENT_ROLLOUT` from `'pipe-control'` to `'founding-members'` in `src/domain/rollout.ts`
+2. Verify the nav shows the "Professionals" link
+3. No database changes needed -- everything is already wired up.
+4. Hold back the quoting feature for another 2 weeks
