@@ -29,6 +29,7 @@ function formatUnit(unit: string): string {
 
 const ServiceListingDetail = () => {
   const { listingId } = useParams<{ listingId: string }>();
+  const { t } = useTranslation();
   const { data, isLoading, error } = useServiceListingDetail(listingId);
 
   if (isLoading) {
