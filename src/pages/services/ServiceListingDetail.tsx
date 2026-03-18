@@ -8,10 +8,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
-  ArrowLeft, Eye, MapPin, MessageCircle, Info, 
+  ArrowLeft, Briefcase, Eye, MapPin, MessageCircle, Info, 
   CheckCircle2, Clock 
 } from 'lucide-react';
 import { useServiceListingDetail } from './queries/serviceListings.query';
+import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 
 function formatUnit(unit: string): string {
   switch (unit) {
