@@ -376,8 +376,8 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         </Card>
       </section>
 
-      {/* Quotes Section — gated until founding-members */}
-      {isRolloutActive('founding-members') && (
+      {/* Quotes Section — gated until service-layer */}
+      {isRolloutActive('service-layer') && (
         <>
           <Separator className="bg-border/60" />
           <QuotesTab jobId={jobPack.id} isOwner={!!jobPack.isOwner} />
