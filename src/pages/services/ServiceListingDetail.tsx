@@ -98,6 +98,33 @@ const ServiceListingDetail = () => {
               </div>
             )}
 
+            {/* Taxonomy breadcrumbs */}
+            {(categoryName || subcategoryName || micro.name) && (
+              <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
+                {categoryName && (
+                  <Badge variant="outline" className="text-xs font-normal">
+                    {txCategory(categoryName, t) ?? categoryName}
+                  </Badge>
+                )}
+                {subcategoryName && (
+                  <>
+                    <span className="text-muted-foreground/50">›</span>
+                    <Badge variant="outline" className="text-xs font-normal">
+                      {txSubcategory(subcategoryName, t) ?? subcategoryName}
+                    </Badge>
+                  </>
+                )}
+                {micro.name && (
+                  <>
+                    <span className="text-muted-foreground/50">›</span>
+                    <Badge variant="secondary" className="text-xs font-normal">
+                      {txMicro(micro.slug, t, micro.name)}
+                    </Badge>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Title + description */}
             <div>
               <h1 className="font-display text-2xl font-bold mb-2">{listing.display_title}</h1>
