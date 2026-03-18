@@ -350,7 +350,7 @@ const ProfessionalDetails = () => {
         ) : (
           <div className="grid gap-6 lg:grid-cols-3">
             {/* ═══ LEFT COLUMN ═══ */}
-            <div className="lg:col-span-2 space-y-5">
+            <div className="lg:col-span-2 space-y-5 pb-20 lg:pb-0">
 
               {/* 1. Live Services */}
               {hasListings && isRolloutActive('service-layer') && (

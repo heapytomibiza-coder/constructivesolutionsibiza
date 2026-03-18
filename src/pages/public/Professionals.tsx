@@ -208,21 +208,6 @@ const Professionals = () => {
         }
       />
 
-      {/* Search Section - no border on mobile */}
-      <div className="md:border-b md:border-border bg-background py-6">
-        <div className="container">
-          <div className="flex gap-3 max-w-xl mx-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder={t('professionals.searchPlaceholder')} 
-                className="pl-10"
-              />
-            </div>
-            <Button>{t('professionals.searchButton')}</Button>
-          </div>
-        </div>
-      </div>
 
       {/* Filter Badges - no border on mobile */}
       {hasFilters && (
