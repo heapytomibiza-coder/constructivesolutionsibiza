@@ -118,12 +118,35 @@ export function useServiceListingDetail(listingId: string | undefined) {
         .eq('user_id', listing.provider_id)
         .single();
 
-      // Fetch micro info
+      // Fetch micro + taxonomy info
       const { data: micro } = await supabase
         .from('service_micro_categories')
-        .select('name, slug')
+        .select('name, slug, subcategory_id')
         .eq('id', listing.micro_id)
         .single();
+
+      let categoryName: string | null = null;
+      let subcategoryName: string | null = null;
+
+      if (micro?.subcategory_id) {
+        const { data: sub } = await supabase
+          .from('service_subcategories')
+          .select('name, category_id')
+          .eq('id', micro.subcategory_id)
+          .single();
+
+        if (sub) {
+          subcategoryName = sub.name;
+          if (sub.category_id) {
+            const { data: cat } = await supabase
+              .from('service_categories')
+              .select('name')
+              .eq('id', sub.category_id)
+              .single();
+            categoryName = cat?.name ?? null;
+          }
+        }
+      }
 
       // Record view
       supabase
