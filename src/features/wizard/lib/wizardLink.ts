@@ -20,6 +20,7 @@ export type WizardLinkParams =
   | { mode: "micro"; categoryId: string; subcategoryId: string; microSlug: string }
   | { mode: "microOnly"; microSlug: string }  // Micro-only: deep-link processor will hydrate parents
   | { mode: "direct"; professionalId: string }
+  | { mode: "directWithService"; professionalId: string; microSlug: string }
   | { mode: "resume" };
 
 // Helper for URL query params with encoding - drops empty values
