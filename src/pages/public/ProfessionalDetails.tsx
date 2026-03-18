@@ -313,10 +313,12 @@ const ProfessionalDetails = () => {
                 )}
 
                 <div className="flex items-center gap-4 mt-3 flex-wrap">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Shield className="h-3.5 w-3.5 text-primary" />
-                    <span>Verified Tasker profile</span>
-                  </div>
+                  {professional.verification_status === 'verified' && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Shield className="h-3.5 w-3.5 text-primary" />
+                      <span>Verified Tasker profile</span>
+                    </div>
+                  )}
                   {professional.accepts_emergency && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Zap className="h-3.5 w-3.5 text-warning" />
