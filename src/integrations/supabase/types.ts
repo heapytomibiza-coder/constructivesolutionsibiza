@@ -1322,33 +1322,57 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          last_validated_at: string | null
+          lint_warnings: Json | null
           metadata: Json | null
           micro_slug: string
+          owner: string | null
           questions: Json
+          reviewed_at: string | null
+          reviewed_by: string | null
+          schema_version: number
+          status: string
           title: string
           updated_at: string
+          validation_errors: Json | null
           version: number
         }
         Insert: {
           created_at?: string
           id?: string
           is_active?: boolean
+          last_validated_at?: string | null
+          lint_warnings?: Json | null
           metadata?: Json | null
           micro_slug: string
+          owner?: string | null
           questions?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          schema_version?: number
+          status?: string
           title: string
           updated_at?: string
+          validation_errors?: Json | null
           version?: number
         }
         Update: {
           created_at?: string
           id?: string
           is_active?: boolean
+          last_validated_at?: string | null
+          lint_warnings?: Json | null
           metadata?: Json | null
           micro_slug?: string
+          owner?: string | null
           questions?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          schema_version?: number
+          status?: string
           title?: string
           updated_at?: string
+          validation_errors?: Json | null
           version?: number
         }
         Relationships: []

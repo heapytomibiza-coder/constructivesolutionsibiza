@@ -1,6 +1,6 @@
 // Seed packs function - accepts POST body
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
+import { validateQuestionPack } from "../_shared/packValidation.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -57,88 +57,7 @@ Deno.serve(async (req: Request) => {
     };
 
     // === Quality Validation Constants ===
-    const BANNED_PHRASES = [
-      "briefly describe",
-      "describe your project",
-      "what do you need help with",
-      "any additional details",
-      "please describe",
-      "tell us about your project",
-    ];
-
-    const MIN_QUESTIONS = 5;
-    const OPTIMAL_QUESTIONS_MIN = 5;
-    const OPTIMAL_QUESTIONS_MAX = 8;
-
-    // === Deterministic ID generation (stable across re-seeds) ===
-    const slugify = (s: string): string =>
-      s.toLowerCase().trim()
-        .replace(/[^a-z0-9]+/g, "_")
-        .replace(/^_+|_+$/g, "")
-        .slice(0, 40);
-
-    const hash = (s: string): string =>
-      Array.from(new TextEncoder().encode(s))
-        .reduce((a, b) => (a * 31 + b) >>> 0, 7)
-        .toString(36);
-
-    const genId = (label: string): string => {
-      const base = slugify(label);
-      return base ? `${base}_${hash(label)}`.slice(0, 48) : `q_${hash(label)}`;
-    };
-
-    // === Quality Scoring ===
-    function scorePackQuality(questions: Record<string, unknown>[]): {
-      score: number;
-      tier: "STRONG" | "ACCEPTABLE" | "WEAK" | "FAILING";
-      warnings: string[];
-    } {
-      let score = 0;
-      const warnings: string[] = [];
-      const qCount = questions.length;
-
-      // Check for banned phrases in any question label
-      for (const q of questions) {
-        const label = String(q?.label ?? q?.question ?? "").toLowerCase();
-        for (const phrase of BANNED_PHRASES) {
-          if (label.includes(phrase)) {
-            score -= 5;
-            warnings.push(`Banned phrase detected: "${phrase}"`);
-            break;
-          }
-        }
-      }
-
-      // Question count scoring
-      if (qCount >= OPTIMAL_QUESTIONS_MIN && qCount <= OPTIMAL_QUESTIONS_MAX) {
-        score += 1;
-      } else if (qCount < MIN_QUESTIONS) {
-        warnings.push(`Only ${qCount} questions (minimum ${MIN_QUESTIONS})`);
-      }
-
-      // Multiple choice ratio
-      const mcCount = questions.filter(q => 
-        ["radio", "checkbox", "select", "single", "multi"].includes(String(q?.type ?? ""))
-      ).length;
-      if (qCount > 0 && mcCount / qCount >= 0.7) {
-        score += 1;
-      }
-
-      // Conditional logic bonus
-      const hasConditional = questions.some(q => q?.show_if || q?.dependsOn);
-      if (hasConditional) {
-        score += 2;
-      }
-
-      // Determine tier
-      let tier: "STRONG" | "ACCEPTABLE" | "WEAK" | "FAILING";
-      if (score < 0) tier = "FAILING";
-      else if (score <= 1) tier = "WEAK";
-      else if (score <= 4) tier = "ACCEPTABLE";
-      else tier = "STRONG";
-
-      return { score, tier, warnings };
-    }
+    // (Validation logic now in _shared/packValidation.ts)
 
     // Dedupe questions by id OR label (handles missing IDs)
     function dedupeQuestions(questions: Record<string, unknown>[]) {
@@ -189,13 +108,14 @@ Deno.serve(async (req: Request) => {
     // Check for strict mode (rejects FAILING quality packs)
     const strictMode = url.searchParams.get("strict") === "1";
 
-    // Normalize packs with quality scoring
+    // Normalize packs with quality scoring (using shared validation)
     const allDuplicates: Record<string, string[]> = {};
-    const qualityReport: Record<string, { tier: string; score: number; warnings: string[] }> = {};
+    const qualityReport: Record<string, { tier: string; score: number; warnings: string[]; status: string }> = {};
     const failingPacks: string[] = [];
 
-    const normalized: NormalizedPack[] = packs.map((p: Record<string, unknown>) => {
+    const normalized = packs.map((p: Record<string, unknown>) => {
       const microSlug = String(p.microSlug ?? p.slug ?? p.micro_slug ?? "").trim();
+      const titleStr = String(p.title ?? p.name ?? "").trim();
       const rawQuestions = (p.questions as Record<string, unknown>[]) || [];
       const { cleaned, duplicates } = dedupeQuestions(rawQuestions);
       
@@ -203,20 +123,31 @@ Deno.serve(async (req: Request) => {
         allDuplicates[microSlug] = duplicates;
       }
 
-      // Score quality
-      const quality = scorePackQuality(rawQuestions);
-      qualityReport[microSlug] = quality;
+      // Validate using shared engine
+      const validation = validateQuestionPack(microSlug, titleStr, cleaned);
+      qualityReport[microSlug] = {
+        tier: validation.qualityTier,
+        score: validation.score,
+        warnings: validation.lintWarnings.map(w => w.message),
+        status: validation.status,
+      };
       
-      if (quality.tier === "FAILING") {
+      if (validation.qualityTier === "FAILING") {
         failingPacks.push(microSlug);
       }
       
+      const report = qualityReport[microSlug];
       return {
         micro_slug: microSlug,
-        title: String(p.title ?? p.name ?? "").trim(),
+        title: titleStr,
         questions: cleaned,
         is_active: true,
         version: 1,
+        schema_version: 1,
+        status: report?.status ?? "valid",
+        last_validated_at: new Date().toISOString(),
+        validation_errors: validation.errors,
+        lint_warnings: validation.lintWarnings,
         metadata: p.metadata as Record<string, unknown> | undefined,
       };
     });
