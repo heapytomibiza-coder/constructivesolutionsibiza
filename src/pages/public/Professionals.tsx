@@ -361,6 +361,13 @@ const Professionals = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Cross-link to services marketplace */}
+        <div className="mt-8 text-center">
+          <Link to="/services" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            Or browse services →
+          </Link>
+        </div>
       </div>
     </PublicLayout>
   );

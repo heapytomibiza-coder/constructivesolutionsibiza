@@ -158,7 +158,9 @@ export function useServiceListingDetail(listingId: string | undefined) {
         listing: listing as ServiceListingDetail,
         pricingItems: (pricingItems ?? []) as ServicePricingItem[],
         provider: provider ?? { display_name: null, avatar_url: null, verification_status: null, bio: null, tagline: null, service_zones: [] },
-        micro: micro ?? { name: null, slug: null },
+        micro: micro ?? { name: null, slug: null, subcategory_id: null },
+        categoryName,
+        subcategoryName,
       };
     },
     staleTime: 60_000,

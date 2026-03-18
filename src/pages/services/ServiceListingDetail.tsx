@@ -207,10 +207,12 @@ const ServiceListingDetail = () => {
                       {listing.location_base}
                     </div>
                   )}
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    {listing.view_count} views
-                  </div>
+                  {listing.view_count >= 10 && (
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      {listing.view_count} views
+                    </div>
+                  )}
                   {listing.published_at && (
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
