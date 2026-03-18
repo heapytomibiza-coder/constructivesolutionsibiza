@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Shield, Users, X, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Shield, Users, X, CheckCircle2, ArrowLeft } from 'lucide-react';
 import heroProfessionals from '@/assets/heroes/hero-professionals.jpg';
 import { getRankedProfessionals, getMicroIdsForFilter, type RankedProfessional } from './queries/rankedProfessionals.query';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';

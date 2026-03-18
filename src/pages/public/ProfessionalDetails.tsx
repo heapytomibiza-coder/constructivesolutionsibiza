@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   ArrowLeft,
   BadgeCheck,
-  MessageSquare,
   Shield,
   Briefcase,
   MapPin,
