@@ -376,8 +376,8 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         </Card>
       </section>
 
-      {/* Quotes Section — gated until service-layer */}
-      {isRolloutActive('service-layer') && (
+      {/* Quotes Section — decoupled from service-layer; gated until escrow-beta */}
+      {isRolloutActive('escrow-beta') && (
         <>
           <Separator className="bg-border/60" />
           <QuotesTab jobId={jobPack.id} isOwner={!!jobPack.isOwner} />
