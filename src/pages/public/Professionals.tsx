@@ -4,12 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Shield, Users, X, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Shield, Users, X, CheckCircle2, ArrowLeft } from 'lucide-react';
 import heroProfessionals from '@/assets/heroes/hero-professionals.jpg';
 import { getRankedProfessionals, getMicroIdsForFilter, type RankedProfessional } from './queries/rankedProfessionals.query';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
@@ -208,21 +208,6 @@ const Professionals = () => {
         }
       />
 
-      {/* Search Section - no border on mobile */}
-      <div className="md:border-b md:border-border bg-background py-6">
-        <div className="container">
-          <div className="flex gap-3 max-w-xl mx-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder={t('professionals.searchPlaceholder')} 
-                className="pl-10"
-              />
-            </div>
-            <Button>{t('professionals.searchButton')}</Button>
-          </div>
-        </div>
-      </div>
 
       {/* Filter Badges - no border on mobile */}
       {hasFilters && (

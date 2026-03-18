@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   ArrowLeft,
   BadgeCheck,
-  MessageSquare,
   Shield,
   Briefcase,
   MapPin,
@@ -207,20 +206,29 @@ const ProfessionalDetails = () => {
     queryKey: ['professional_details', id],
     enabled: !!id,
     queryFn: async (): Promise<ProfessionalProfile | null> => {
-      const { data, error } = await supabase
+      const fields = 'id, user_id, display_name, avatar_url, bio, business_name, tagline, services_count, verification_status, service_zones, availability_status, typical_lead_time, accepts_emergency, pricing_model, hourly_rate_min, hourly_rate_max, day_rate, minimum_call_out';
+
+      // Try canonical profile row id first
+      const { data: byId, error: idErr } = await supabase
         .from('professional_profiles')
-        .select(
-          'id, user_id, display_name, avatar_url, bio, business_name, tagline, services_count, verification_status, service_zones, availability_status, typical_lead_time, accepts_emergency, pricing_model, hourly_rate_min, hourly_rate_max, day_rate, minimum_call_out'
-        )
+        .select(fields)
         .eq('id', id!)
         .eq('is_publicly_listed', true)
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        if (error.code === 'PGRST116') return null;
-        throw error;
-      }
-      return data as ProfessionalProfile;
+      if (idErr) throw idErr;
+      if (byId) return byId as ProfessionalProfile;
+
+      // Fallback: caller may have passed user_id (e.g. from service listings)
+      const { data: byUserId, error: uidErr } = await supabase
+        .from('professional_profiles')
+        .select(fields)
+        .eq('user_id', id!)
+        .eq('is_publicly_listed', true)
+        .maybeSingle();
+
+      if (uidErr) throw uidErr;
+      return (byUserId as ProfessionalProfile) ?? null;
     },
   });
 
@@ -341,7 +349,7 @@ const ProfessionalDetails = () => {
         ) : (
           <div className="grid gap-6 lg:grid-cols-3">
             {/* ═══ LEFT COLUMN ═══ */}
-            <div className="lg:col-span-2 space-y-5">
+            <div className="lg:col-span-2 space-y-5 pb-20 lg:pb-0">
 
               {/* 1. Live Services */}
               {hasListings && isRolloutActive('service-layer') && (
@@ -507,21 +515,6 @@ const ProfessionalDetails = () => {
                 </CardContent>
               </Card>
 
-              {/* Quick Message — hidden on mobile */}
-              <Card className="card-grounded hidden lg:block">
-                <CardHeader>
-                  <CardTitle className="font-display text-lg">Quick Message</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full gap-2" disabled>
-                    <MessageSquare className="h-4 w-4" />
-                    Send Message
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    Sign in required to send messages
-                  </p>
-                </CardContent>
-              </Card>
             </div>
           </div>
         )}

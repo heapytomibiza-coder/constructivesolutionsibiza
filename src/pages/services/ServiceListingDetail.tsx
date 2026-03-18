@@ -56,9 +56,15 @@ const ServiceListingDetail = () => {
 
   const { listing, pricingItems, provider, micro } = data;
 
+  const wizardUrl = buildWizardLink(
+    micro.slug
+      ? { mode: 'directWithService', professionalId: listing.provider_id, microSlug: micro.slug }
+      : { mode: 'direct', professionalId: listing.provider_id }
+  );
+
   return (
     <PublicLayout>
-      <div className="container py-8">
+      <div className="container py-8 pb-24 lg:pb-8">
         {/* Back link */}
         <Link to="/services" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="h-4 w-4" /> Back to Services
@@ -192,11 +198,7 @@ const ServiceListingDetail = () => {
 
                 {/* CTA — Start a Job with context */}
                 <Button className="w-full" size="lg" asChild>
-                  <Link to={buildWizardLink({
-                    mode: 'directWithService',
-                    professionalId: listing.provider_id,
-                    microSlug: micro.slug ?? '',
-                  })}>
+                  <Link to={wizardUrl}>
                     <Briefcase className="h-4 w-4 mr-2" />
                     Start a Job
                   </Link>
@@ -212,6 +214,16 @@ const ServiceListingDetail = () => {
             </Card>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Sticky Bottom CTA */}
+      <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur-sm p-3 lg:hidden">
+        <Button className="w-full gap-2" asChild>
+          <Link to={wizardUrl}>
+            <Briefcase className="h-4 w-4" />
+            Start a Job
+          </Link>
+        </Button>
       </div>
     </PublicLayout>
   );

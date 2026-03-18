@@ -81,9 +81,14 @@ export function buildWizardLink(params: WizardLinkParams): string {
       
     case "directWithService": {
       // Professional + service context (profile → job form with pre-selected service)
+      // If microSlug is empty, fall back to direct mode (pro-only)
+      const microParam = qp("micro", params.microSlug);
+      if (!microParam) {
+        return `${base}?${qp("pro", params.professionalId)}`;
+      }
       const qs = joinParams([
         qp("pro", params.professionalId),
-        qp("micro", params.microSlug),
+        microParam,
       ]);
       return `${base}?${qs}`;
     }
