@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useServiceListingDetail } from './queries/serviceListings.query';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
+import { txCategory, txSubcategory, txMicro } from '@/i18n/taxonomyTranslations';
 
 function formatUnit(unit: string): string {
   switch (unit) {
@@ -27,6 +28,7 @@ function formatUnit(unit: string): string {
 
 const ServiceListingDetail = () => {
   const { listingId } = useParams<{ listingId: string }>();
+  const { t } = useTranslation();
   const { data, isLoading, error } = useServiceListingDetail(listingId);
 
   if (isLoading) {
@@ -54,7 +56,7 @@ const ServiceListingDetail = () => {
     );
   }
 
-  const { listing, pricingItems, provider, micro } = data;
+  const { listing, pricingItems, provider, micro, categoryName, subcategoryName } = data;
 
   const wizardUrl = buildWizardLink(
     micro.slug
@@ -92,6 +94,33 @@ const ServiceListingDetail = () => {
                     <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Taxonomy breadcrumbs */}
+            {(categoryName || subcategoryName || micro.name) && (
+              <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
+                {categoryName && (
+                  <Badge variant="outline" className="text-xs font-normal">
+                    {txCategory(categoryName, t) ?? categoryName}
+                  </Badge>
+                )}
+                {subcategoryName && (
+                  <>
+                    <span className="text-muted-foreground/50">›</span>
+                    <Badge variant="outline" className="text-xs font-normal">
+                      {txSubcategory(subcategoryName, t) ?? subcategoryName}
+                    </Badge>
+                  </>
+                )}
+                {micro.name && (
+                  <>
+                    <span className="text-muted-foreground/50">›</span>
+                    <Badge variant="secondary" className="text-xs font-normal">
+                      {txMicro(micro.slug, t, micro.name)}
+                    </Badge>
+                  </>
+                )}
               </div>
             )}
 
@@ -177,10 +206,12 @@ const ServiceListingDetail = () => {
                       {listing.location_base}
                     </div>
                   )}
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    {listing.view_count} views
-                  </div>
+                  {listing.view_count >= 10 && (
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      {listing.view_count} views
+                    </div>
+                  )}
                   {listing.published_at && (
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />

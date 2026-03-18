@@ -366,6 +366,11 @@ const ProfessionalDetails = () => {
                         <ServiceCard key={l.id} listing={l} />
                       ))}
                     </div>
+                    <div className="mt-4 text-center">
+                      <Link to="/services" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                        Browse all services →
+                      </Link>
+                    </div>
                   </CardContent>
                 </Card>
               )}

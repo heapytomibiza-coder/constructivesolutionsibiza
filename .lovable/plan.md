@@ -1,29 +1,48 @@
 
 
-# Polish Pass: Service Detail and Cross-Links
+# Fix forwardRef Warnings — Cleanup Plan
 
-## Changes
+## What's happening
 
-### 1. Hide low view counts on service detail
-In `ServiceListingDetail.tsx`, conditionally render the view count row only when `listing.view_count >= 10`. Low single-digit counts damage credibility.
+React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
 
-### 2. Add category/micro context badges on service detail
-Above the title in `ServiceListingDetail.tsx`, add breadcrumb-style badges showing the taxonomy path (category > subcategory > micro). Data already exists — the query fetches `micro` but we also need category/subcategory. Extend the detail query to join `service_micro_categories → service_subcategories → service_categories` to get `category_name`, `subcategory_name`, and `micro_name`. Display as inline badges above the title.
+## Root cause
 
-### 3. Add cross-links between directory and marketplace
-- **Service detail page**: Already has "Back to Services" and "View Tasker Profile" — good.
-- **Professional profile page**: Add a subtle "Browse all services" link at the bottom of the Services section card, linking to `/services`. This gives users a way out to the broader marketplace.
-- **Professionals directory**: Add a small "Or browse services →" text link below the listings grid, linking to `/services`. Creates the bidirectional bridge.
+The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
 
-### 4. Clarify /services/:categorySlug purpose
-The `ServiceCategory.tsx` page is actually a wizard entry point (shows subcategories → navigates to `/post`), not a marketplace filter. No code change needed now — the page already has clear "What kind of work?" framing and links to `/professionals?category=...` as an alternative. This is architecturally fine as-is; renaming/restructuring is a future decision.
+## Affected components (7 files)
 
-## Files modified
+| File | Component | Fix |
+|------|-----------|-----|
+| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
+| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
+| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
+| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
+| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
+| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
 
-- `src/pages/services/ServiceListingDetail.tsx` — hide low views, add taxonomy badges
-- `src/pages/services/queries/serviceListings.query.ts` — extend detail query to fetch category/subcategory names
-- `src/pages/public/ProfessionalDetails.tsx` — add "Browse all services" cross-link
-- `src/pages/public/Professionals.tsx` — add "Browse services" cross-link
+## Implementation approach
 
-## No database changes needed
+Each fix is the same 3-line pattern:
+
+```tsx
+// Before
+function ScrollToTop() { ... }
+
+// After
+const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
+  // ... same body, ignore ref since there's no DOM node
+});
+```
+
+For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+
+## What this does NOT change
+
+- No behavior changes
+- No new dependencies
+- No database changes
+- No routing changes
+
+All 7 files will be edited in a single pass.
 
