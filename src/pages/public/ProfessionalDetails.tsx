@@ -16,6 +16,8 @@ import {
   Zap,
   Euro,
   Star,
+  ExternalLink,
+  ImageIcon,
 } from 'lucide-react';
 import { PublicLayout } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,12 +25,7 @@ import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 import { isRolloutActive } from '@/domain/rollout';
 import { getZoneByIdSafe } from '@/shared/components/professional/zones';
 
-/**
- * PROFESSIONAL DETAILS PAGE
- *
- * Public page — queries professional_profiles + specialisations.
- * No authentication required for viewing.
- */
+/* ─── Types ────────────────────────────────────────────────── */
 
 interface ProfessionalProfile {
   id: string;
@@ -57,7 +54,17 @@ interface Specialisation {
   preference: string;
 }
 
-// ─── Helpers ───────────────────────────────────────────────
+interface ServiceListing {
+  id: string;
+  display_title: string | null;
+  short_description: string | null;
+  hero_image_url: string | null;
+  pricing_summary: string | null;
+  location_base: string | null;
+  category_name: string | null;
+}
+
+/* ─── Helpers ──────────────────────────────────────────────── */
 
 const LEAD_TIME_LABELS: Record<string, string> = {
   same_day: 'Same day',
@@ -89,11 +96,113 @@ function formatPricing(pro: ProfessionalProfile): string {
   return 'Quote on request';
 }
 
-// ─── Component ─────────────────────────────────────────────
+/* ─── Sub-components ───────────────────────────────────────── */
+
+function ServiceCard({ listing }: { listing: ServiceListing }) {
+  return (
+    <Link to={`/services/listing/${listing.id}`} className="group block">
+      <Card className="card-grounded overflow-hidden transition-shadow hover:shadow-md">
+        {/* 4:3 image */}
+        <div className="relative aspect-[4/3] bg-muted">
+          {listing.hero_image_url ? (
+            <img
+              src={listing.hero_image_url}
+              alt={listing.display_title || 'Service'}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
+        <CardContent className="p-4 space-y-1.5">
+          <h3 className="font-display font-semibold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+            {listing.display_title || 'Service'}
+          </h3>
+          {listing.short_description && (
+            <p className="text-xs text-muted-foreground line-clamp-2">{listing.short_description}</p>
+          )}
+          <div className="flex items-center justify-between pt-1">
+            {listing.pricing_summary ? (
+              <span className="text-xs font-medium text-foreground">{listing.pricing_summary}</span>
+            ) : (
+              <span className="text-xs text-muted-foreground">Quote on request</span>
+            )}
+            <span className="text-xs text-primary font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              View <ExternalLink className="h-3 w-3" />
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
+function QuickFactRow({ icon: Icon, label, value, iconClassName }: { icon: typeof Clock; label: string; value: string; iconClassName?: string }) {
+  return (
+    <div className="flex items-center gap-3 text-sm">
+      <Icon className={`h-4 w-4 shrink-0 ${iconClassName || 'text-muted-foreground'}`} />
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium ml-auto text-right">{value}</span>
+    </div>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <div className="grid gap-6 lg:grid-cols-3">
+      <div className="lg:col-span-2 space-y-4">
+        <Card className="card-grounded">
+          <CardHeader>
+            <div className="flex items-start gap-4">
+              <Skeleton className="h-24 w-24 rounded-sm" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+        <Card className="card-grounded">
+          <CardContent className="pt-6">
+            <Skeleton className="h-20 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+      <div className="space-y-4">
+        <Card className="card-grounded">
+          <CardContent className="pt-6 space-y-3">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function NotFoundState() {
+  return (
+    <Card className="border-dashed card-grounded">
+      <CardContent className="py-12 text-center">
+        <p className="text-muted-foreground mb-4">Tasker not found or no longer available.</p>
+        <Button variant="outline" asChild>
+          <Link to="/professionals">Browse Taskers</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ─── Main Component ───────────────────────────────────────── */
 
 const ProfessionalDetails = () => {
   const { id } = useParams();
 
+  /* ── Professional profile query ── */
   const { data: professional, isLoading, error } = useQuery({
     queryKey: ['professional_details', id],
     enabled: !!id,
@@ -115,7 +224,7 @@ const ProfessionalDetails = () => {
     },
   });
 
-  // Fetch specialisations (micro-category names via preferences)
+  /* ── Specialisations query ── */
   const { data: specialisations } = useQuery({
     queryKey: ['professional_specialisations', professional?.user_id],
     enabled: !!professional?.user_id,
@@ -136,17 +245,35 @@ const ProfessionalDetails = () => {
     },
   });
 
-  // Resolve zone labels
+  /* ── Live service listings query ── */
+  const { data: listings } = useQuery({
+    queryKey: ['professional_listings', professional?.user_id],
+    enabled: !!professional?.user_id && isRolloutActive('service-layer'),
+    queryFn: async (): Promise<ServiceListing[]> => {
+      const { data, error } = await supabase
+        .from('service_listings_browse')
+        .select('id, display_title, short_description, hero_image_url, pricing_summary, location_base, category_name')
+        .eq('provider_id', professional!.user_id)
+        .limit(6);
+
+      if (error) throw error;
+      return (data || []) as ServiceListing[];
+    },
+  });
+
+  /* ── Derived values ── */
   const zoneLabels = (professional?.service_zones || [])
     .map((zoneId) => getZoneByIdSafe(zoneId))
     .filter(Boolean)
     .map((z) => z!.label);
 
   const availability = AVAILABILITY_CONFIG[professional?.availability_status || 'available'] ?? AVAILABILITY_CONFIG.available;
+  const firstName = professional?.display_name?.split(' ')[0] || 'them';
+  const hasListings = listings && listings.length > 0;
 
   return (
     <PublicLayout>
-      {/* Hero Section */}
+      {/* ── Hero Section ── */}
       <div className="border-b border-border bg-gradient-concrete bg-texture-concrete py-8">
         <div className="container">
           <Button variant="ghost" className="mb-4 gap-2" asChild>
@@ -156,15 +283,15 @@ const ProfessionalDetails = () => {
             </Link>
           </Button>
 
-          {/* Hero card */}
           {!isLoading && professional && (
             <div className="flex items-start gap-5">
-              <Avatar className="h-20 w-20 border-2 border-background shadow-md">
+              <Avatar className="h-24 w-24 border-2 border-background shadow-md">
                 <AvatarImage src={professional.avatar_url || undefined} alt={professional.display_name || 'Tasker'} />
-                <AvatarFallback className="text-lg bg-primary/10 text-primary rounded-sm">
+                <AvatarFallback className="text-xl bg-primary/10 text-primary rounded-sm">
                   {(professional.display_name || 'T').charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h1 className="font-display text-2xl font-bold tracking-tight">
@@ -177,15 +304,25 @@ const ProfessionalDetails = () => {
                     {availability.label}
                   </Badge>
                 </div>
+
                 {professional.business_name && (
-                  <p className="text-sm text-muted-foreground">{professional.business_name}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{professional.business_name}</p>
                 )}
                 {professional.tagline && (
                   <p className="text-sm text-foreground/80 mt-1">{professional.tagline}</p>
                 )}
-                <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                  <Shield className="h-3.5 w-3.5 text-primary" />
-                  <span>Verified Tasker profile</span>
+
+                <div className="flex items-center gap-4 mt-3 flex-wrap">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Shield className="h-3.5 w-3.5 text-primary" />
+                    <span>Verified Tasker profile</span>
+                  </div>
+                  {professional.accepts_emergency && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Zap className="h-3.5 w-3.5 text-warning" />
+                      <span>Emergency callouts</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -193,65 +330,51 @@ const ProfessionalDetails = () => {
         </div>
       </div>
 
+      {/* ── Body ── */}
       <div className="container py-8">
         {isLoading ? (
-          /* Loading skeleton */
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-4">
-              <Card className="card-grounded">
-                <CardHeader>
-                  <div className="flex items-start gap-4">
-                    <Skeleton className="h-20 w-20 rounded-sm" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-8 w-48" />
-                      <Skeleton className="h-4 w-32" />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-20 w-full" />
-                </CardContent>
-              </Card>
-            </div>
-            <div className="space-y-4">
-              <Card className="card-grounded">
-                <CardContent className="pt-6 space-y-3">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          <ProfileSkeleton />
         ) : error || !professional ? (
-          /* Not found */
-          <Card className="border-dashed card-grounded">
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">Tasker not found or no longer available.</p>
-              <Button variant="outline" asChild>
-                <Link to="/professionals">Browse Taskers</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <NotFoundState />
         ) : (
-          /* Main content */
           <div className="grid gap-6 lg:grid-cols-3">
-            {/* LEFT COLUMN */}
+            {/* ═══ LEFT COLUMN ═══ */}
             <div className="lg:col-span-2 space-y-5">
-              {/* About */}
+
+              {/* 1. Live Services */}
+              {hasListings && isRolloutActive('service-layer') && (
+                <Card className="card-grounded">
+                  <CardHeader>
+                    <CardTitle className="font-display text-lg flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-primary" />
+                      Services
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {listings!.map((l) => (
+                        <ServiceCard key={l.id} listing={l} />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* 2. About */}
               <Card className="card-grounded">
                 <CardHeader>
                   <CardTitle className="font-display text-lg">About</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {professional.bio ? (
-                    <p className="text-foreground leading-relaxed">{professional.bio}</p>
+                    <p className="text-foreground leading-relaxed whitespace-pre-line">{professional.bio}</p>
                   ) : (
                     <p className="text-muted-foreground">This Tasker hasn't added a bio yet.</p>
                   )}
                 </CardContent>
               </Card>
 
-              {/* Specialisations */}
+              {/* 3. Specialisations */}
               {specialisations && specialisations.length > 0 && (
                 <Card className="card-grounded">
                   <CardHeader>
@@ -272,7 +395,7 @@ const ProfessionalDetails = () => {
                 </Card>
               )}
 
-              {/* Service Area */}
+              {/* 4. Service Area */}
               {zoneLabels.length > 0 && (
                 <Card className="card-grounded">
                   <CardHeader>
@@ -293,7 +416,7 @@ const ProfessionalDetails = () => {
                 </Card>
               )}
 
-              {/* Reviews — gated to trust-engine */}
+              {/* 5. Reviews */}
               {isRolloutActive('trust-engine') ? (
                 <Card className="card-grounded">
                   <CardHeader>
@@ -310,14 +433,17 @@ const ProfessionalDetails = () => {
                 <Card className="card-grounded border-dashed">
                   <CardContent className="py-6 text-center">
                     <Star className="h-5 w-5 text-muted-foreground/40 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Reviews coming soon</p>
+                    <p className="text-sm text-muted-foreground">
+                      Client reviews will appear here as the trust system rolls out.
+                    </p>
                   </CardContent>
                 </Card>
               )}
             </div>
 
-            {/* RIGHT COLUMN */}
-            <div className="space-y-4">
+            {/* ═══ RIGHT COLUMN — Sticky Sidebar ═══ */}
+            <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+
               {/* Start a Job CTA */}
               <Card className="card-grounded">
                 <CardHeader>
@@ -327,7 +453,7 @@ const ProfessionalDetails = () => {
                   <Button className="w-full gap-2" asChild>
                     <Link to={buildWizardLink({ mode: 'direct', professionalId: professional.user_id })}>
                       <Briefcase className="h-4 w-4" />
-                      Start a Job with {professional.display_name?.split(' ')[0] || 'them'}
+                      Start a Job with {firstName}
                     </Link>
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
@@ -342,51 +468,45 @@ const ProfessionalDetails = () => {
                   <CardTitle className="font-display text-lg">Quick Facts</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {/* Lead time */}
-                  <div className="flex items-center gap-3 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">Lead time:</span>
-                    <span className="font-medium ml-auto">
-                      {LEAD_TIME_LABELS[professional.typical_lead_time || ''] || 'Flexible'}
-                    </span>
-                  </div>
+                  <QuickFactRow
+                    icon={Clock}
+                    label="Lead time:"
+                    value={LEAD_TIME_LABELS[professional.typical_lead_time || ''] || 'Flexible'}
+                  />
 
-                  {/* Emergency */}
                   {professional.accepts_emergency && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <Zap className="h-4 w-4 text-warning shrink-0" />
-                      <span className="text-muted-foreground">Emergency:</span>
-                      <span className="font-medium ml-auto">Yes ⚡</span>
-                    </div>
+                    <QuickFactRow
+                      icon={Zap}
+                      label="Emergency:"
+                      value="Yes ⚡"
+                      iconClassName="text-warning"
+                    />
                   )}
 
-                  {/* Pricing */}
-                  <div className="flex items-center gap-3 text-sm">
-                    <Euro className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">Pricing:</span>
-                    <span className="font-medium ml-auto">{formatPricing(professional)}</span>
-                  </div>
+                  <QuickFactRow
+                    icon={Euro}
+                    label="Pricing:"
+                    value={formatPricing(professional)}
+                  />
 
-                  {/* Services count */}
-                  <div className="flex items-center gap-3 text-sm">
-                    <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">Services:</span>
-                    <span className="font-medium ml-auto">{professional.services_count || 0} offered</span>
-                  </div>
+                  <QuickFactRow
+                    icon={Briefcase}
+                    label="Services:"
+                    value={`${professional.services_count || 0} offered`}
+                  />
 
-                  {/* Min call-out */}
                   {professional.minimum_call_out && professional.minimum_call_out > 0 && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <Euro className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-muted-foreground">Min call-out:</span>
-                      <span className="font-medium ml-auto">€{professional.minimum_call_out}</span>
-                    </div>
+                    <QuickFactRow
+                      icon={Euro}
+                      label="Min call-out:"
+                      value={`€${professional.minimum_call_out}`}
+                    />
                   )}
                 </CardContent>
               </Card>
 
-              {/* Quick Message */}
-              <Card className="card-grounded">
+              {/* Quick Message — hidden on mobile */}
+              <Card className="card-grounded hidden lg:block">
                 <CardHeader>
                   <CardTitle className="font-display text-lg">Quick Message</CardTitle>
                 </CardHeader>
@@ -404,6 +524,18 @@ const ProfessionalDetails = () => {
           </div>
         )}
       </div>
+
+      {/* ── Mobile Sticky Bottom CTA ── */}
+      {!isLoading && professional && (
+        <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur-sm p-3 lg:hidden">
+          <Button className="w-full gap-2" asChild>
+            <Link to={buildWizardLink({ mode: 'direct', professionalId: professional.user_id })}>
+              <Briefcase className="h-4 w-4" />
+              Start a Job with {firstName}
+            </Link>
+          </Button>
+        </div>
+      )}
     </PublicLayout>
   );
 };
