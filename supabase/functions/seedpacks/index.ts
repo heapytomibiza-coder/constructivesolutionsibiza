@@ -108,13 +108,14 @@ Deno.serve(async (req: Request) => {
     // Check for strict mode (rejects FAILING quality packs)
     const strictMode = url.searchParams.get("strict") === "1";
 
-    // Normalize packs with quality scoring
+    // Normalize packs with quality scoring (using shared validation)
     const allDuplicates: Record<string, string[]> = {};
-    const qualityReport: Record<string, { tier: string; score: number; warnings: string[] }> = {};
+    const qualityReport: Record<string, { tier: string; score: number; warnings: string[]; status: string }> = {};
     const failingPacks: string[] = [];
 
-    const normalized: NormalizedPack[] = packs.map((p: Record<string, unknown>) => {
+    const normalized = packs.map((p: Record<string, unknown>) => {
       const microSlug = String(p.microSlug ?? p.slug ?? p.micro_slug ?? "").trim();
+      const titleStr = String(p.title ?? p.name ?? "").trim();
       const rawQuestions = (p.questions as Record<string, unknown>[]) || [];
       const { cleaned, duplicates } = dedupeQuestions(rawQuestions);
       
@@ -122,11 +123,16 @@ Deno.serve(async (req: Request) => {
         allDuplicates[microSlug] = duplicates;
       }
 
-      // Score quality
-      const quality = scorePackQuality(rawQuestions);
-      qualityReport[microSlug] = quality;
+      // Validate using shared engine
+      const validation = validateQuestionPack(microSlug, titleStr, cleaned);
+      qualityReport[microSlug] = {
+        tier: validation.qualityTier,
+        score: validation.score,
+        warnings: validation.lintWarnings.map(w => w.message),
+        status: validation.status,
+      };
       
-      if (quality.tier === "FAILING") {
+      if (validation.qualityTier === "FAILING") {
         failingPacks.push(microSlug);
       }
       
