@@ -8,10 +8,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
-  ArrowLeft, Eye, MapPin, MessageCircle, Info, 
+  ArrowLeft, Briefcase, Eye, MapPin, MessageCircle, Info, 
   CheckCircle2, Clock 
 } from 'lucide-react';
 import { useServiceListingDetail } from './queries/serviceListings.query';
+import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 
 function formatUnit(unit: string): string {
   switch (unit) {
@@ -189,11 +190,22 @@ const ServiceListingDetail = () => {
                   </div>
                 )}
 
-                {/* CTA */}
+                {/* CTA — Start a Job with context */}
                 <Button className="w-full" size="lg" asChild>
+                  <Link to={buildWizardLink({
+                    mode: 'directWithService',
+                    professionalId: listing.provider_id,
+                    microSlug: micro.slug ?? '',
+                  })}>
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Start a Job
+                  </Link>
+                </Button>
+
+                {/* Secondary — View profile */}
+                <Button variant="outline" className="w-full" size="sm" asChild>
                   <Link to={`/professionals/${listing.provider_id}`}>
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Contact Tasker
+                    View Tasker Profile
                   </Link>
                 </Button>
               </CardContent>
