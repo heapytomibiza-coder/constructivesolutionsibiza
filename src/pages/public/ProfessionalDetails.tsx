@@ -207,20 +207,29 @@ const ProfessionalDetails = () => {
     queryKey: ['professional_details', id],
     enabled: !!id,
     queryFn: async (): Promise<ProfessionalProfile | null> => {
-      const { data, error } = await supabase
+      const fields = 'id, user_id, display_name, avatar_url, bio, business_name, tagline, services_count, verification_status, service_zones, availability_status, typical_lead_time, accepts_emergency, pricing_model, hourly_rate_min, hourly_rate_max, day_rate, minimum_call_out';
+
+      // Try canonical profile row id first
+      const { data: byId, error: idErr } = await supabase
         .from('professional_profiles')
-        .select(
-          'id, user_id, display_name, avatar_url, bio, business_name, tagline, services_count, verification_status, service_zones, availability_status, typical_lead_time, accepts_emergency, pricing_model, hourly_rate_min, hourly_rate_max, day_rate, minimum_call_out'
-        )
+        .select(fields)
         .eq('id', id!)
         .eq('is_publicly_listed', true)
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        if (error.code === 'PGRST116') return null;
-        throw error;
-      }
-      return data as ProfessionalProfile;
+      if (idErr) throw idErr;
+      if (byId) return byId as ProfessionalProfile;
+
+      // Fallback: caller may have passed user_id (e.g. from service listings)
+      const { data: byUserId, error: uidErr } = await supabase
+        .from('professional_profiles')
+        .select(fields)
+        .eq('user_id', id!)
+        .eq('is_publicly_listed', true)
+        .maybeSingle();
+
+      if (uidErr) throw uidErr;
+      return (byUserId as ProfessionalProfile) ?? null;
     },
   });
 
