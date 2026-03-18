@@ -516,21 +516,6 @@ const ProfessionalDetails = () => {
                 </CardContent>
               </Card>
 
-              {/* Quick Message — hidden on mobile */}
-              <Card className="card-grounded hidden lg:block">
-                <CardHeader>
-                  <CardTitle className="font-display text-lg">Quick Message</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full gap-2" disabled>
-                    <MessageSquare className="h-4 w-4" />
-                    Send Message
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    Sign in required to send messages
-                  </p>
-                </CardContent>
-              </Card>
             </div>
           </div>
         )}
