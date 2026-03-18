@@ -1,90 +1,48 @@
 
 
-# Plan: Hide Quotes, Services Timeline, and Profile Page Enrichment
+# Fix forwardRef Warnings — Cleanup Plan
 
-## Three questions answered
+## What's happening
 
-### 1. Hide Quotes
-Quotes are rendered in `JobDetailsModal.tsx` (line 380) behind a `founding-members` rollout gate. The simplest approach: **change the gate to `service-layer`** so quotes are hidden until the next rollout phase. This keeps the code intact and ready to re-enable with a single rollout bump.
+React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
 
-**File:** `src/pages/jobs/JobDetailsModal.tsx` line 380
-- Change `isRolloutActive('founding-members')` → `isRolloutActive('service-layer')`
+## Root cause
 
-### 2. Services Release Timeline
-The services marketplace (`/services`, service listings, browse view) is gated behind the **`service-layer`** rollout phase — the next phase after the current `founding-members`. Per your 12-week roadmap with 2-week phases, **services would release in approximately 2 weeks** when you bump `CURRENT_ROLLOUT` to `'service-layer'` in `src/domain/rollout.ts`. That is entirely your call — one line change when ready.
+The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
 
-### 3. Professional Profile Page — What's Missing and What to Add
+## Affected components (7 files)
 
-The current `ProfessionalDetails.tsx` page is minimal: avatar, name, bio, services count, verification badge, and two CTAs. But the database already has rich data that is not being surfaced.
+| File | Component | Fix |
+|------|-----------|-----|
+| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
+| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
+| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
+| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
+| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
+| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
 
-**Data already available in `professional_profiles`:**
-- `business_name`, `tagline`
-- `service_zones` (array of areas served)
-- `availability_status` (available / busy / unavailable)
-- `typical_lead_time` (same_day / same_week / next_week)
-- `accepts_emergency` (boolean)
-- `pricing_model`, `hourly_rate_min/max`, `day_rate`, `minimum_call_out`
-- `verification_status`
+## Implementation approach
 
-**Data available from related tables:**
-- `service_listings` → their active services (gated to service-layer, but structure exists)
-- `job_reviews` → public reviews with ratings (gated to trust-engine)
-- `professional_micro_preferences` → what micro-categories they specialise in
-- `professional_documents` → verification documents (admin-only, not public)
+Each fix is the same 3-line pattern:
 
-**Proposed enriched profile layout:**
+```tsx
+// Before
+function ScrollToTop() { ... }
 
-```text
-┌─────────────────────────────────────────┐
-│  HERO: Avatar + Name + Tagline          │
-│  Business name · Verified badge         │
-│  Availability pill (Available/Busy)     │
-├─────────────────────────────────────────┤
-│  LEFT COLUMN (2/3)                      │
-│  ┌─────────────────────────────────┐    │
-│  │ About (bio)                     │    │
-│  ├─────────────────────────────────┤    │
-│  │ Specialisations                 │    │
-│  │ (micro-category badges)         │    │
-│  ├─────────────────────────────────┤    │
-│  │ Service Area                    │    │
-│  │ (zone badges from service_zones)│    │
-│  ├─────────────────────────────────┤    │
-│  │ Reviews (trust-engine phase)    │    │
-│  │ Coming Soon placeholder         │    │
-│  └─────────────────────────────────┘    │
-│                                         │
-│  RIGHT COLUMN (1/3)                     │
-│  ┌─────────────────────────────────┐    │
-│  │ Start a Job CTA                 │    │
-│  ├─────────────────────────────────┤    │
-│  │ Quick Facts                     │    │
-│  │ • Lead time: Same week          │    │
-│  │ • Emergency: Yes ⚡             │    │
-│  │ • Pricing: From €X/hr           │    │
-│  │ • Services: N offered           │    │
-│  ├─────────────────────────────────┤    │
-│  │ Quick Message CTA               │    │
-│  └─────────────────────────────────┘    │
-└─────────────────────────────────────────┘
+// After
+const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
+  // ... same body, ignore ref since there's no DOM node
+});
 ```
 
-**Implementation steps:**
+For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
 
-1. **Hide quotes** — one line change in `JobDetailsModal.tsx`
-2. **Enrich the profile query** — expand the `professional_profiles` select to include `business_name`, `tagline`, `service_zones`, `availability_status`, `typical_lead_time`, `accepts_emergency`, `pricing_model`, `hourly_rate_min`, `hourly_rate_max`, `day_rate`, `minimum_call_out`
-3. **Fetch specialisations** — join or second query to `professional_micro_preferences` for micro-category names
-4. **Rebuild the page layout** — add the new sections (specialisations, service area, quick facts sidebar)
-5. **Availability pill** — coloured badge showing current status
-6. **Pricing display** — show rate range if `pricing_model` is not `quote_required`; otherwise show "Quote on request"
-7. **Reviews placeholder** — "Reviews coming soon" section, gated to `trust-engine` phase
+## What this does NOT change
 
-No database changes needed — all data already exists.
+- No behavior changes
+- No new dependencies
+- No database changes
+- No routing changes
 
-## Technical details
-
-- **Files modified:** `src/pages/jobs/JobDetailsModal.tsx` (1 line), `src/pages/public/ProfessionalDetails.tsx` (full rework)
-- **New queries:** `professional_micro_preferences` joined with `service_micro_categories` for specialisation names
-- **No migrations required**
-- **Rollout-aware:** reviews section only renders when `trust-engine` phase is active
+All 7 files will be edited in a single pass.
 
