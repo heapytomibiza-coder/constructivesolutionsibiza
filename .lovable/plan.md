@@ -1,48 +1,52 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+# Rebuild Public Professional Profile as Conversion-Focused Sales Page
 
-## What's happening
+## What changes
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+Rewrite `src/pages/public/ProfessionalDetails.tsx` to:
 
-## Root cause
+1. **Reorder sections** to lead with commercial content: Hero > Live Services > About > Specialisations > Service Area > Reviews/Trust
+2. **Add a Services section** querying `service_listings_browse` (the approved public-safe view) filtered by `provider_id`, displayed as cards with image, title, description, pricing, and a "View Service" link to `/services/listing/:id`
+3. **Make the sidebar sticky** on desktop (`lg:sticky lg:top-24`) with Quick Facts + CTAs
+4. **Add mobile sticky bottom CTA bar** (fixed bottom, visible below `lg` breakpoint) with "Start a Job" button
+5. **Improve reviews placeholder** copy from "Reviews coming soon" to "Client reviews will appear here as the trust system rolls out"
+6. **Remove "Member since"** (not in the current query, not worth adding a field for now)
+7. **No new data model** -- every field displayed maps directly to what exists in Edit Profile or `service_listings_browse`
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+## Edit Profile to Public Profile alignment
 
-## Affected components (7 files)
+| Edit Profile Section | Public Profile Section |
+|---|---|
+| Basic Info (name, tagline) | Hero |
+| Business (business_name) | Hero subtitle |
+| About (bio) | About card |
+| Contact (email, phone) | Not shown -- replaced by CTAs |
+| Visibility toggle | Not shown -- internal |
+| Quick-nav: Edit Services | **Services section** (live listings) |
+| Quick-nav: Job Priorities | Specialisations (micro-preference badges) |
+| -- | Service Area (from `service_zones`) |
+| -- | Quick Facts sidebar (availability, pricing, lead time) |
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+## Services section details
 
-## Implementation approach
+- Query `service_listings_browse` where `provider_id = professional.user_id`, limited to 6
+- Each card: hero image (4:3 fallback), title (2-line clamp), pricing summary, location
+- CTA per card: "View Service" linking to `/services/listing/:id`
+- Section only renders when results exist and `isRolloutActive('service-layer')`
+- Distinct from Specialisations: services = cards, specialisations = compact badges
 
-Each fix is the same 3-line pattern:
+## Sticky sidebar
 
-```tsx
-// Before
-function ScrollToTop() { ... }
+- Desktop: `lg:sticky lg:top-24` on right column div
+- Contains: "Start a Job" CTA, Quick Facts (lead time, emergency, pricing, services count, min call-out), "Send Message" CTA
+- Mobile: hide sidebar message card, add fixed bottom bar with primary CTA button
 
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
+## Files modified
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+- `src/pages/public/ProfessionalDetails.tsx` -- full rework (single file change)
 
-## What this does NOT change
+## No database changes needed
 
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
-
-All 7 files will be edited in a single pass.
+All data comes from existing tables/views with existing RLS policies.
 
