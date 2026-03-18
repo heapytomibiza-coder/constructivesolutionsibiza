@@ -31,7 +31,7 @@ const ORDER: RolloutPhase[] = [
 ];
 
 // ✅ Change ONE value to drip-feed features
-export const CURRENT_ROLLOUT: RolloutPhase = 'founding-members';
+export const CURRENT_ROLLOUT: RolloutPhase = 'service-layer';
 
 export function isRolloutActive(
   min: RolloutPhase,
