@@ -494,7 +494,7 @@ const ProfessionalDetails = () => {
                   <QuickFactRow
                     icon={Briefcase}
                     label="Services:"
-                    value={`${professional.services_count || 0} offered`}
+                    value={professional.services_count ? `${professional.services_count} offered` : 'Contact for details'}
                   />
 
                   {professional.minimum_call_out && professional.minimum_call_out > 0 && (
