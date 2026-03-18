@@ -136,12 +136,18 @@ Deno.serve(async (req: Request) => {
         failingPacks.push(microSlug);
       }
       
+      const report = qualityReport[microSlug];
       return {
         micro_slug: microSlug,
-        title: String(p.title ?? p.name ?? "").trim(),
+        title: titleStr,
         questions: cleaned,
         is_active: true,
         version: 1,
+        schema_version: 1,
+        status: report?.status ?? "valid",
+        last_validated_at: new Date().toISOString(),
+        validation_errors: validation.errors,
+        lint_warnings: validation.lintWarnings,
         metadata: p.metadata as Record<string, unknown> | undefined,
       };
     });
