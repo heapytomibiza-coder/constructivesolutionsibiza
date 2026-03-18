@@ -20,6 +20,7 @@ export type WizardLinkParams =
   | { mode: "micro"; categoryId: string; subcategoryId: string; microSlug: string }
   | { mode: "microOnly"; microSlug: string }  // Micro-only: deep-link processor will hydrate parents
   | { mode: "direct"; professionalId: string }
+  | { mode: "directWithService"; professionalId: string; microSlug: string }
   | { mode: "resume" };
 
 // Helper for URL query params with encoding - drops empty values
@@ -77,6 +78,15 @@ export function buildWizardLink(params: WizardLinkParams): string {
     case "direct":
       // Direct professional targeting (for "Request Quote" flows)
       return `${base}?${qp("pro", params.professionalId)}`;
+      
+    case "directWithService": {
+      // Professional + service context (profile → job form with pre-selected service)
+      const qs = joinParams([
+        qp("pro", params.professionalId),
+        qp("micro", params.microSlug),
+      ]);
+      return `${base}?${qs}`;
+    }
       
     case "resume":
       // Resume from saved draft

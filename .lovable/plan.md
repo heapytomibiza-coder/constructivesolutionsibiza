@@ -1,55 +1,48 @@
 
 
-# Tighten Profile Page Architecture — Context-Passing and Empty States
+# Fix forwardRef Warnings — Cleanup Plan
 
-## Current state (already correct)
+## What's happening
 
-The public profile is already a composed view pulling from the right sources:
-- Identity: `professional_profiles`
-- Services: `service_listings_browse` (public-safe view, rollout-gated)
-- Specialisations: `professional_micro_preferences` (badges, not cards)
-- Geography: `service_zones` via zone lookup
-- Trust: verification badge now, reviews gated to `trust-engine`
-- CTAs: `buildWizardLink` for job creation, disabled message button
-- Sticky sidebar on desktop, fixed bottom CTA on mobile
+React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
 
-Section ordering is already Hero > Services > About > Specialisations > Service Area > Reviews.
+## Root cause
 
-## What needs tightening
+The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
 
-### 1. Service card "Start Job" context-passing
+## Affected components (7 files)
 
-Currently service cards only link to `/services/listing/:id` (view only). The `buildWizardLink` only passes `professionalId`. To make the profile a proper marketplace funnel, the wizard link builder needs a new mode that carries both professional and service context.
+| File | Component | Fix |
+|------|-----------|-----|
+| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
+| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
+| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
+| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
+| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
+| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
 
-**Change in `wizardLink.ts`:** Add a `directWithService` mode:
+## Implementation approach
+
+Each fix is the same 3-line pattern:
+
+```tsx
+// Before
+function ScrollToTop() { ... }
+
+// After
+const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
+  // ... same body, ignore ref since there's no DOM node
+});
 ```
-| { mode: "directWithService"; professionalId: string; microSlug: string }
-```
-This generates `/post?pro=<id>&micro=<slug>`, so the wizard can pre-select both the professional and the service category.
 
-**No change to service cards yet** — this prepares the infrastructure. Service cards keep linking to the detail page. The detail page's own CTA can use this new mode.
+For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
 
-### 2. Empty state hardening
+## What this does NOT change
 
-Audit each section for graceful degradation when data is missing:
-- **Services**: already hidden when no listings — correct
-- **About**: shows "hasn't added a bio yet" — correct
-- **Specialisations**: hidden when empty — correct
-- **Service Area**: hidden when no zones — correct
-- **Quick Facts**: services count shows "0 offered" when empty — should show "Contact for details" instead
+- No behavior changes
+- No new dependencies
+- No database changes
+- No routing changes
 
-**Change in `ProfessionalDetails.tsx`:** Update the services count quick fact to show a friendlier empty state when `services_count` is 0.
-
-### 3. Verification badge logic tightening
-
-The hero currently shows "Verified Tasker profile" text even when `verification_status !== 'verified'`. This should be conditional — only show the shield + text when actually verified.
-
-**Change in `ProfessionalDetails.tsx`:** Wrap the "Verified Tasker profile" trust signal in a `verification_status === 'verified'` check.
-
-## Files modified
-
-- `src/features/wizard/lib/wizardLink.ts` — add `directWithService` mode
-- `src/pages/public/ProfessionalDetails.tsx` — empty state for services count, conditional verification text
-
-## No database changes needed
+All 7 files will be edited in a single pass.
 
