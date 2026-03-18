@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useServiceListingDetail } from './queries/serviceListings.query';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
+import { txCategory, txSubcategory, txMicro } from '@/i18n/taxonomyTranslations';
+import { useTranslation } from 'react-i18next';
 
 function formatUnit(unit: string): string {
   switch (unit) {
