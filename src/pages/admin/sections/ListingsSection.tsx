@@ -232,6 +232,7 @@ export default function ListingsSection() {
           )}
         </CardContent>
       </Card>
+      <ListingPreviewDrawer listingId={previewId} onClose={() => setPreviewId(null)} />
     </div>
   );
 }
