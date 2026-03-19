@@ -156,7 +156,10 @@
     "goBack": "Go Back",
     "continue": "Continue",
     "saving": "Saving...",
-    "selectMinimum": "Select at least 1 job to continue"
+    "selectMinimum": "Select at least 1 job to continue",
+    "jobsAvailable": "{{count}} jobs available",
+    "tapToSelect": "Tap any job you're happy to do",
+    "tapToPrioritise": "Tap a selected job to set priority"
   },
 
   "review": {
