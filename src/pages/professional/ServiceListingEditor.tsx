@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, usePublishListing, type PricingItem } from './hooks/useListingEditor';
 import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones';
+import { evaluateListingReadiness } from '@/lib/listingPublishRules';
 
 export default function ServiceListingEditor() {
   const { listingId } = useParams<{ listingId: string }>();
