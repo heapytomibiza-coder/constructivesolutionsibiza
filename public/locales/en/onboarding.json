@@ -161,7 +161,8 @@
     "selectMinimum": "Select at least 1 job to continue",
     "jobsAvailable": "{{count}} jobs available",
     "tapToSelect": "Tap any job you're happy to do",
-    "tapToPrioritise": "Tap a selected job to set priority"
+    "tapToPrioritise": "Tap a selected job to set priority",
+    "errorToggle": "Failed to update selection"
   },
 
   "review": {
