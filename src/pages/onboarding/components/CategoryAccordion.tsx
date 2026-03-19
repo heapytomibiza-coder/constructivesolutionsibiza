@@ -179,7 +179,7 @@ export function CategoryAccordion({
               {t('onboarding:actions.clear')}
             </Button>
             <span className="ml-auto text-sm text-muted-foreground">
-              {showPreferences ? "Tap a selected job to set priority" : "Tap any job you're happy to do"}
+              {showPreferences ? t('onboarding:serviceUnlock.tapToPrioritise') : t('onboarding:serviceUnlock.tapToSelect')}
             </span>
           </div>
 
