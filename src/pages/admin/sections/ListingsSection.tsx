@@ -171,6 +171,15 @@ export default function ListingsSection() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="gap-1"
+                            onClick={() => setPreviewId(listing.id)}
+                          >
+                            <Search className="h-3 w-3" />
+                            Review
+                          </Button>
                           {listing.status === "draft" && (
                             <Button
                               size="sm"
