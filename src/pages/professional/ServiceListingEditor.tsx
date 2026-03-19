@@ -432,14 +432,31 @@ export default function ServiceListingEditor() {
         {/* Pricing Items */}
         <Card className="border-border/70">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base">{t('listingEditor.pricingMenu')}</CardTitle>
+            <div>
+              <CardTitle className="text-base">{t('listingEditor.pricingMenu')} *</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t('listingEditor.pricingRequired', 'At least one price is required to publish')}
+              </p>
+            </div>
             <Button variant="outline" size="sm" onClick={handleAddPricingItem} disabled={upsertPricing.isPending}>
               <Plus className="h-4 w-4 mr-1.5" /> {t('listingEditor.addItem')}
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {pricingItems.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">{t('listingEditor.noPricingItems')}</p>
+              <button
+                type="button"
+                onClick={handleAddPricingItem}
+                className="w-full flex flex-col items-center justify-center py-8 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 hover:border-primary/50 hover:bg-primary/10 transition-colors cursor-pointer"
+              >
+                <Plus className="h-6 w-6 text-primary mb-2" />
+                <span className="text-sm font-medium text-primary">
+                  {t('listingEditor.addFirstPrice', 'Add your first price')}
+                </span>
+                <span className="text-xs text-muted-foreground mt-1">
+                  {t('listingEditor.addFirstPriceHint', 'e.g. "Standard clean — 25 €/hr"')}
+                </span>
+              </button>
             ) : (
               pricingItems.map((item, idx) => (
                 <PricingItemRow
