@@ -68,7 +68,7 @@ export function useProfessionalServices() {
     },
     onError: (error) => {
       console.error('Error toggling service:', error);
-      toast.error('Failed to update selection');
+      toast.error(i18next.t('onboarding:serviceUnlock.errorToggle', 'Failed to update selection'));
     },
   });
 
