@@ -79,7 +79,7 @@ export default function ListingsSection() {
     all: listings?.length ?? 0,
     draft: listings?.filter((l) => l.status === "draft").length ?? 0,
     live: listings?.filter((l) => l.status === "live").length ?? 0,
-    taken_down: listings?.filter((l) => l.status === "taken_down").length ?? 0,
+    paused: listings?.filter((l) => l.status === "paused").length ?? 0,
   };
 
   return (
