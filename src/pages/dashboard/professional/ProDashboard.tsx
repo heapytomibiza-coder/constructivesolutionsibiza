@@ -161,6 +161,23 @@ const ProDashboard = () => {
   const { stats, dashboardStage } = useProStats();
   const navigate = useNavigate();
 
+  // Fetch count of incomplete draft listings for nudge
+  const { data: draftCount } = useQuery({
+    queryKey: ['pro_draft_listings_count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count, error } = await supabase
+        .from('service_listings')
+        .select('id', { count: 'exact', head: true })
+        .eq('provider_id', user.id)
+        .eq('status', 'draft');
+      if (error) return 0;
+      return count ?? 0;
+    },
+    enabled: !!user?.id && (dashboardStage === 'active' || dashboardStage === 'needs_visibility'),
+    staleTime: 120000,
+  });
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success(t('auth.signedOut'));
