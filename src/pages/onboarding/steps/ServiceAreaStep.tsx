@@ -137,7 +137,7 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
             {IBIZA_ZONES.map((group) => (
               <div key={group.group} className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-base font-semibold text-foreground">{group.group}</h4>
+                  <h4 className="text-base font-semibold text-foreground">{t(`serviceArea.${group.group}`)}</h4>
                   <Button type="button" variant="ghost" size="sm" onClick={() => handleSelectGroup(group.zones)} className="text-sm text-primary hover:text-primary/80">
                     {group.zones.every(z => selectedZones.includes(z.id)) ? t('serviceArea.deselectAll') : t('serviceArea.selectAll')}
                   </Button>
