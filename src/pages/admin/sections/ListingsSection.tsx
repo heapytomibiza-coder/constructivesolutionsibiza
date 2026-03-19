@@ -10,12 +10,12 @@ import { Eye, ExternalLink, CheckCircle2, XCircle, Loader2, Image as ImageIcon }
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-type StatusFilter = "all" | "draft" | "live" | "taken_down";
+type StatusFilter = "all" | "draft" | "live" | "paused";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   live: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  taken_down: "bg-destructive/10 text-destructive",
+  paused: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
 };
 
 export default function ListingsSection() {
