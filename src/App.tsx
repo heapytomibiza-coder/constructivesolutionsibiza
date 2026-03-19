@@ -222,7 +222,7 @@ const App = () => {
 
               {/* Professional Onboarding */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
-              <Route path="/professional/services" element={<Navigate to="/dashboard/pro" replace />} />
+              <Route path="/professional/services" element={<ManageServices />} />
               <Route path="/professional/service-setup" element={<Navigate to="/professional/listings" replace />} />
               <Route path="/professional/profile" element={<ProfileEdit />} />
               <Route path="/professional/priorities" element={<JobPriorities />} />
