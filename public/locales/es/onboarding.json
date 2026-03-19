@@ -156,7 +156,10 @@
     "goBack": "Volver",
     "continue": "Continuar",
     "saving": "Guardando...",
-    "selectMinimum": "Selecciona al menos 1 trabajo para continuar"
+    "selectMinimum": "Selecciona al menos 1 trabajo para continuar",
+    "jobsAvailable": "{{count}} trabajos disponibles",
+    "tapToSelect": "Toca cualquier trabajo que estés dispuesto a hacer",
+    "tapToPrioritise": "Toca un trabajo seleccionado para establecer prioridad"
   },
 
   "review": {
