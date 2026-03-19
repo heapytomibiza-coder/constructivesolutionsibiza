@@ -121,7 +121,7 @@ function ListingCard({ listing }: { listing: MyListing }) {
               <Button
                 size="sm"
                 className="h-8 gap-1.5"
-                disabled={!canPublish || publish.isPending}
+                disabled={!canPublishNow || publish.isPending}
                 onClick={() => publish.mutate(listing.id)}
               >
                 <Globe className="h-3.5 w-3.5" /> {t('pro.publish', 'Publish')}
