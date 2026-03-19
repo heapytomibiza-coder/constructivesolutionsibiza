@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity, LineChart } from "lucide-react";
-import { UsersSection, JobsSection, ContentSection, SupportInbox } from "./sections";
+import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity, LineChart, Store } from "lucide-react";
+import { UsersSection, JobsSection, ContentSection, ListingsSection, SupportInbox } from "./sections";
 import { LinkMapSection } from "./sections/LinkMapSection";
 import { HealthSection } from "./sections/HealthSection";
 import { OperatorCockpit } from "./sections/OperatorCockpit";
@@ -36,7 +36,7 @@ export default function AdminDashboard() {
         {/* Main Content */}
         <div className="container py-8">
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
+            <TabsList className="grid w-full grid-cols-9 lg:w-auto lg:inline-grid">
               <TabsTrigger value="overview" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Overview</span>
@@ -56,6 +56,10 @@ export default function AdminDashboard() {
               <TabsTrigger value="jobs" className="gap-2">
                 <Briefcase className="h-4 w-4" />
                 <span className="hidden sm:inline">Jobs</span>
+              </TabsTrigger>
+              <TabsTrigger value="listings" className="gap-2">
+                <Store className="h-4 w-4" />
+                <span className="hidden sm:inline">Listings</span>
               </TabsTrigger>
               <TabsTrigger value="content" className="gap-2">
                 <MessageSquare className="h-4 w-4" />
@@ -85,6 +89,9 @@ export default function AdminDashboard() {
             </TabsContent>
             <TabsContent value="jobs">
               <JobsSection />
+            </TabsContent>
+            <TabsContent value="listings">
+              <ListingsSection />
             </TabsContent>
             <TabsContent value="content">
               <ContentSection />
