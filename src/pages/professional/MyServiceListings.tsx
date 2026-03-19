@@ -16,7 +16,7 @@ import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench, CheckCircle2, Rocket 
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
 import { useTranslation } from 'react-i18next';
-import { txMicro } from '@/i18n/taxonomyTranslations';
+import { evaluateListingReadiness } from '@/lib/listingPublishRules';
 
 /** Calculate profile completeness for a listing */
 function getCompleteness(listing: MyListing): number {
