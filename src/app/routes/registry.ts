@@ -52,7 +52,6 @@ export const publicRoutes: RouteConfig[] = [
     path: '/professionals', 
     access: 'public', 
     lane: 'public', 
-    nav: { section: 'public', labelKey: 'nav.professionals', order: 4 },
     titleKey: 'nav.professionals',
     minRollout: 'founding-members',
   },
