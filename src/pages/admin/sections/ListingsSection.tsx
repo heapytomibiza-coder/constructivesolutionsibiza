@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, ExternalLink, CheckCircle2, XCircle, Loader2, Image as ImageIcon } from "lucide-react";
+import { Eye, CheckCircle2, XCircle, Loader2, Image as ImageIcon, Search } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import ListingPreviewDrawer from "./ListingPreviewDrawer";
 
 type StatusFilter = "all" | "draft" | "live" | "paused";
 
@@ -20,6 +21,7 @@ const statusColors: Record<string, string> = {
 
 export default function ListingsSection() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: listings, isLoading } = useQuery({
@@ -169,6 +171,15 @@ export default function ListingsSection() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="gap-1"
+                            onClick={() => setPreviewId(listing.id)}
+                          >
+                            <Search className="h-3 w-3" />
+                            Review
+                          </Button>
                           {listing.status === "draft" && (
                             <Button
                               size="sm"
@@ -221,6 +232,7 @@ export default function ListingsSection() {
           )}
         </CardContent>
       </Card>
+      <ListingPreviewDrawer listingId={previewId} onClose={() => setPreviewId(null)} />
     </div>
   );
 }
