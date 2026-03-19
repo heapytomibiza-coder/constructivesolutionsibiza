@@ -17,6 +17,7 @@ import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
 import { useTranslation } from 'react-i18next';
 import { evaluateListingReadiness } from '@/lib/listingPublishRules';
+import { txMicro } from '@/i18n/taxonomyTranslations';
 
 /** Calculate profile completeness for a listing */
 function getCompleteness(listing: MyListing): number {
