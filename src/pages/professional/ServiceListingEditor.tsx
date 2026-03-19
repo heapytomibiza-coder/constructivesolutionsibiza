@@ -561,14 +561,19 @@ function PricingItemRow({
           className="sm:col-span-2"
         />
         <div className="flex gap-2">
-          <Input
-            type="number"
-            placeholder={t('listingEditor.pricePlaceholder')}
-            value={price}
-            onChange={e => { setPrice(e.target.value); markDirty(); }}
-            onBlur={handleBlur}
-            className="w-24"
-          />
+          <div className="relative">
+            <Input
+              type="number"
+              placeholder="0.00"
+              value={price}
+              onChange={e => { setPrice(e.target.value); markDirty(); }}
+              onBlur={handleBlur}
+              className={`w-24 ${!price || parseFloat(price) <= 0 ? 'border-destructive/50' : ''}`}
+              min="0.01"
+              step="0.01"
+              required
+            />
+          </div>
           <Select value={unit} onValueChange={v => { setUnit(v); markDirty(); setTimeout(handleBlur, 0); }}>
             <SelectTrigger className="w-28">
               <SelectValue />
