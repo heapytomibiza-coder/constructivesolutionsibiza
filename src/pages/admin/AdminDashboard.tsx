@@ -90,6 +90,9 @@ export default function AdminDashboard() {
             <TabsContent value="jobs">
               <JobsSection />
             </TabsContent>
+            <TabsContent value="listings">
+              <ListingsSection />
+            </TabsContent>
             <TabsContent value="content">
               <ContentSection />
             </TabsContent>
