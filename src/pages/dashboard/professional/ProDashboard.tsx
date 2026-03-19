@@ -231,6 +231,33 @@ const ProDashboard = () => {
         {/* Stage guidance card */}
         {getStageCard(dashboardStage, t)}
 
+        {/* Draft listings nudge — shown when pro is active but has unpublished listings */}
+        {isSetupComplete && !!draftCount && draftCount > 0 && (
+          <Card className="mb-5 border-amber-500/30 bg-amber-500/5 shadow-sm">
+            <CardContent className="py-4 px-4">
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg bg-amber-500/10 p-2 shrink-0">
+                  <Store className="h-5 w-5 text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
+                    {t('pro.draftNudgeTitle', 'You have {{count}} unpublished listing', { count: draftCount })}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {t('pro.draftNudgeDesc', 'Add a title, description and price to each listing so clients can find and book you in the marketplace.')}
+                  </p>
+                  <Button asChild size="sm">
+                    <Link to="/professional/listings">
+                      {t('pro.completeListings', 'Complete Your Listings')}
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Menu — grouped by context */}
         <div className="flex flex-col gap-2">
           {/* Get Started — visible while setup is incomplete */}
