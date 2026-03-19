@@ -73,10 +73,10 @@ const ProfessionalOnboarding = () => {
       const [ppRes, profRes, svcRes] = await Promise.all([
         supabase.from('professional_profiles')
           .select('service_zones, display_name, business_name')
-          .eq('user_id', user.id).single(),
+          .eq('user_id', user.id).maybeSingle(),
         supabase.from('profiles')
           .select('phone')
-          .eq('user_id', user.id).single(),
+          .eq('user_id', user.id).maybeSingle(),
         supabase.from('professional_services')
           .select('id', { count: 'exact', head: true })
           .eq('user_id', user.id)

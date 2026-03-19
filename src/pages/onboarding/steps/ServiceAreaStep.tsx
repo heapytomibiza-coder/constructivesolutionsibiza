@@ -39,7 +39,7 @@ export function ServiceAreaStep({ onComplete, onBack }: ServiceAreaStepProps) {
         .from('professional_profiles')
         .select('service_zones, service_area_type')
         .eq('user_id', user!.id)
-        .single();
+        .maybeSingle();
       return {
         service_zones: (data as { service_zones?: string[] })?.service_zones || [],
         service_area_type: (data as { service_area_type?: string })?.service_area_type || 'zones',

@@ -38,8 +38,8 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
     let cancelled = false;
     (async () => {
       const [ppRes, profRes] = await Promise.all([
-        supabase.from('professional_profiles').select('service_zones').eq('user_id', user.id).single(),
-        supabase.from('profiles').select('phone').eq('user_id', user.id).single(),
+        supabase.from('professional_profiles').select('service_zones').eq('user_id', user.id).maybeSingle(),
+        supabase.from('profiles').select('phone').eq('user_id', user.id).maybeSingle(),
       ]);
       if (cancelled) return;
       setFreshZones(ppRes.data?.service_zones ?? []);

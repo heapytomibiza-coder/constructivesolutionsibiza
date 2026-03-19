@@ -10,6 +10,23 @@ import { supabase } from "./integrations/supabase/client";
 // Start error monitoring before React renders
 initMonitor({ supabase });
 
+// Auto-recover from stale chunk loading errors after new deployments
+window.addEventListener('error', (event) => {
+  if (
+    event.message?.includes('Failed to fetch dynamically imported module') ||
+    event.message?.includes('Loading chunk') ||
+    event.message?.includes('Loading CSS chunk')
+  ) {
+    const reloaded = sessionStorage.getItem('chunk-reload');
+    if (!reloaded) {
+      sessionStorage.setItem('chunk-reload', '1');
+      window.location.reload();
+    }
+  }
+});
+// Clear reload flag on successful load
+sessionStorage.removeItem('chunk-reload');
+
 // Subtle loading indicator instead of blank screen
 const LoadingFallback = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background">

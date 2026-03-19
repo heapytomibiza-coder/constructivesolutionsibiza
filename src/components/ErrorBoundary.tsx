@@ -22,6 +22,29 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('[ErrorBoundary] Uncaught error:', error, info.componentStack);
+
+    // Report to error_events table for remote diagnosis
+    this.reportError(error, info);
+  }
+
+  private async reportError(error: Error, info: ErrorInfo) {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { user } } = await supabase.auth.getUser();
+
+      await supabase.from('error_events').insert({
+        user_id: user?.id ?? '00000000-0000-0000-0000-000000000000',
+        error_type: 'react_crash',
+        message: error.message?.slice(0, 500) || 'Unknown error',
+        stack: (error.stack?.slice(0, 2000) || '') + '\n\n--- Component Stack ---\n' + (info.componentStack?.slice(0, 1000) || ''),
+        route: window.location.pathname,
+        url: window.location.href,
+        browser: navigator.userAgent?.slice(0, 200),
+        viewport: `${window.innerWidth}x${window.innerHeight}`,
+      });
+    } catch (reportErr) {
+      console.warn('[ErrorBoundary] Failed to report error:', reportErr);
+    }
   }
 
   handleReset = () => {
@@ -40,6 +63,11 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-muted-foreground">
               An unexpected error occurred. Please try again.
             </p>
+            {import.meta.env.DEV && this.state.error && (
+              <pre className="text-xs text-left bg-muted p-3 rounded overflow-auto max-h-40">
+                {this.state.error.message}
+              </pre>
+            )}
             <Button onClick={this.handleReset}>Go to Home</Button>
           </div>
         </div>
