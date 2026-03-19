@@ -233,11 +233,11 @@ const ProDashboard = () => {
 
         {/* Draft listings nudge — shown when pro is active but has unpublished listings */}
         {isSetupComplete && !!draftCount && draftCount > 0 && (
-          <Card className="mb-5 border-amber-500/30 bg-amber-500/5 shadow-sm">
+          <Card className="mb-5 border-accent/30 bg-accent/5 shadow-sm">
             <CardContent className="py-4 px-4">
               <div className="flex items-start gap-3">
-                <div className="rounded-lg bg-amber-500/10 p-2 shrink-0">
-                  <Store className="h-5 w-5 text-amber-600" />
+                <div className="rounded-lg bg-accent/10 p-2 shrink-0">
+                  <Store className="h-5 w-5 text-accent-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
