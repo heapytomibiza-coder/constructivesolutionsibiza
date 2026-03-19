@@ -513,6 +513,7 @@ function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResu
     case "forum_post":        return buildForumPostEmail(payload, siteUrl);
     case "bug_report":        return buildBugReportEmail(payload, siteUrl);
     case "platform_error":    return buildPlatformErrorEmail(payload, siteUrl);
+    case "new_service":       return buildNewServiceEmail(payload, siteUrl);
     // User emails
     case "new_message":       return buildMessageEmail(payload, siteUrl);
     case "welcome":           return buildWelcomeEmail(payload, siteUrl);
