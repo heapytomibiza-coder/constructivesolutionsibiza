@@ -80,9 +80,6 @@ const AVAILABILITY_CONFIG: Record<string, { label: string; variant: 'success' | 
 };
 
 function formatPricing(pro: ProfessionalProfile): string {
-  if (pro.pricing_model === 'quote_required' || (!pro.hourly_rate_min && !pro.day_rate)) {
-    return 'Quote on request';
-  }
   if (pro.hourly_rate_min && pro.hourly_rate_max && pro.hourly_rate_min !== pro.hourly_rate_max) {
     return `€${pro.hourly_rate_min}–€${pro.hourly_rate_max}/hr`;
   }
@@ -92,7 +89,8 @@ function formatPricing(pro: ProfessionalProfile): string {
   if (pro.day_rate) {
     return `€${pro.day_rate}/day`;
   }
-  return 'Quote on request';
+  // No explicit rates — show "See service listings" instead of misleading "Quote on request"
+  return 'See service listings';
 }
 
 /* ─── Sub-components ───────────────────────────────────────── */
