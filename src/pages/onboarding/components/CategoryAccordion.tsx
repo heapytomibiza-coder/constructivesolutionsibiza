@@ -121,7 +121,7 @@ export function CategoryAccordion({
             <div className="text-left">
               <h3 className="text-lg font-semibold text-foreground">{txCategory(category.name, t)}</h3>
               <p className="text-base text-muted-foreground">
-                {totalMicros} jobs available
+                {t('onboarding:serviceUnlock.jobsAvailable', { count: totalMicros })}
               </p>
             </div>
           </div>
