@@ -46,10 +46,13 @@ function ListingCard({ listing }: { listing: MyListing }) {
   const pause = usePauseListing();
   const unpause = useUnpauseListing();
 
-  const canPublish = listing.status === 'draft' &&
-    listing.display_title?.trim() &&
-    listing.short_description?.trim() &&
-    listing.hero_image_url;
+  const { canPublish } = evaluateListingReadiness({
+    display_title: listing.display_title,
+    short_description: listing.short_description,
+    hero_image_url: listing.hero_image_url,
+    hasPricing: !!(listing.starting_price && listing.starting_price > 0),
+  });
+  const canPublishNow = listing.status === 'draft' && canPublish;
 
   const microLabel = txMicro(listing.micro_slug ?? null, tAll, listing.micro_name);
   const title = getDisplayTitle(listing, i18n.language) || t('pro.untitled', 'Untitled');
