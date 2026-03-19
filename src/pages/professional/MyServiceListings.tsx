@@ -1,15 +1,18 @@
 /**
  * My Service Listings - Provider management page
  * Tabs: Draft / Live / Paused
+ *
+ * Supports ?welcome=1 query param after first Go Live to show
+ * a clear "profile is live, now publish services" banner.
  */
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench, CheckCircle2, Rocket } from 'lucide-react';
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
 import { useTranslation } from 'react-i18next';

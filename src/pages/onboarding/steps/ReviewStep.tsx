@@ -80,7 +80,8 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
       if (error) throw error;
       try { await refresh(); } catch (e) { console.warn('Session refresh failed after go-live:', e); }
       trackEvent('pro_profile_published', 'professional', { onboardingPhase: 'complete' });
-      toast.success(t('review.liveSuccess'));
+      // Don't toast here — the listings page shows a welcome banner instead
+      navigate('/professional/listings?welcome=1');
       navigate('/dashboard/pro');
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
