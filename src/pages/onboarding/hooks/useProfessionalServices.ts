@@ -102,7 +102,7 @@ export function useProfessionalServices() {
     },
     onError: (error) => {
       console.error('Error bulk adding services:', error);
-      toast.error('Failed to add services');
+      toast.error(i18next.t('onboarding:serviceUnlock.errorToggle', 'Failed to add services'));
     },
   });
 
