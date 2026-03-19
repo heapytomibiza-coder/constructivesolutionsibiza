@@ -164,7 +164,7 @@ export function CategoryAccordion({
               }}
               className="text-sm"
             >
-              Select all
+              {t('onboarding:actions.selectAll')}
             </Button>
             <Button
               type="button"
