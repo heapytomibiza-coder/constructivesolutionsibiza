@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
       const { data: { user } } = await supabase.auth.getUser();
 
       await supabase.from('error_events').insert({
-        user_id: user?.id ?? '00000000-0000-0000-0000-000000000000',
+        user_id: user?.id ?? null,
         error_type: 'react_crash',
         message: error.message?.slice(0, 500) || 'Unknown error',
         stack: (error.stack?.slice(0, 2000) || '') + '\n\n--- Component Stack ---\n' + (info.componentStack?.slice(0, 1000) || ''),
