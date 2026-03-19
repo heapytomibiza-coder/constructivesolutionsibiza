@@ -49,13 +49,13 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
         .from('profiles')
         .select('display_name, phone')
         .eq('user_id', user!.id)
-        .single();
+        .maybeSingle();
 
       const { data: proProfile } = await supabase
         .from('professional_profiles')
         .select('display_name, bio, business_name, tagline')
         .eq('user_id', user!.id)
-        .single();
+        .maybeSingle();
 
       return {
         display_name: proProfile?.display_name || profile?.display_name || '',
