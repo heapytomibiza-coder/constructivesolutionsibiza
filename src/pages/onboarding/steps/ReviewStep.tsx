@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, CheckCircle2, Rocket, Loader2, User, MapPin, Briefcase, AlertCircle } from 'lucide-react';
 import { getCategoryIconByName } from '@/lib/categoryIcons';
+import { txCategory, txMicro } from '@/i18n/taxonomyTranslations';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
