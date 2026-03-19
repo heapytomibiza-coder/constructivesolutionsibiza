@@ -131,11 +131,13 @@
     "goBack": "Go Back",
     "nextStep": "Next Step",
     "saved": "Saved!",
-    "zones.central": "Central",
-    "zones.west": "West",
-    "zones.north": "North",
-    "zones.east": "East",
-    "zones.south": "South"
+    "zones": {
+      "central": "Central",
+      "west": "West",
+      "north": "North",
+      "east": "East",
+      "south": "South"
+    }
   },
 
   "serviceUnlock": {

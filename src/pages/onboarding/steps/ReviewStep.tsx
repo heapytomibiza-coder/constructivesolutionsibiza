@@ -143,7 +143,7 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
                   </div>
                   <div className="flex flex-wrap gap-2 ml-8">
                     {category.services.map(service => (
-                      <span key={service.id} className="text-sm text-foreground bg-muted/60 px-3 py-1.5 rounded-lg">{service.name}</span>
+                      <span key={service.id} className="text-sm text-foreground bg-muted/60 px-3 py-1.5 rounded-lg">{txMicro(service.slug, t, service.name)}</span>
                     ))}
                   </div>
                 </div>

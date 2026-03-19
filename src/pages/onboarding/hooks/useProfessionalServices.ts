@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { toast } from 'sonner';
+import i18next from 'i18next';
 
 export function useProfessionalServices() {
   const { user } = useSession();
