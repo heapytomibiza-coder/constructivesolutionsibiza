@@ -176,7 +176,7 @@ export function CategoryAccordion({
               }}
               className="text-sm text-muted-foreground"
             >
-              Clear
+              {t('onboarding:actions.clear')}
             </Button>
             <span className="ml-auto text-sm text-muted-foreground">
               {showPreferences ? "Tap a selected job to set priority" : "Tap any job you're happy to do"}
