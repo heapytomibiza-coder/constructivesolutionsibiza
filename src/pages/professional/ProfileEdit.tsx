@@ -576,7 +576,7 @@ export default function ProfileEdit() {
               
               <button
                 type="button"
-                onClick={() => navigate("/onboarding/professional?edit=1&step=services")}
+                onClick={() => navigate("/professional/services")}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 transition-all text-left"
               >
                 <Wrench className="h-5 w-5 text-primary" />

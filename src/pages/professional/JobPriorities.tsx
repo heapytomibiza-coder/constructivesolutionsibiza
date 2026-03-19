@@ -184,7 +184,7 @@ export default function JobPriorities() {
                   {t('priorities.noJobs')}
                 </p>
                 <Button asChild>
-                  <Link to="/onboarding/professional?edit=1&step=services">{t('priorities.chooseJobs')}</Link>
+                  <Link to="/professional/services">{t('priorities.chooseJobs')}</Link>
                 </Button>
               </CardContent>
             </Card>

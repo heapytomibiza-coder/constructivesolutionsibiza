@@ -78,6 +78,7 @@ const ProfileEdit = lazy(() => import("./pages/professional/ProfileEdit"));
 const JobPriorities = lazy(() => import("./pages/professional/JobPriorities"));
 const MyServiceListings = lazy(() => import("./pages/professional/MyServiceListings"));
 const ServiceListingEditor = lazy(() => import("./pages/professional/ServiceListingEditor"));
+const ManageServices = lazy(() => import("./pages/professional/ManageServices"));
 const ProInsights = lazy(() => import("./pages/professional/ProInsights"));
 
 // Settings
@@ -221,7 +222,7 @@ const App = () => {
 
               {/* Professional Onboarding */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
-              <Route path="/professional/services" element={<Navigate to="/dashboard/pro" replace />} />
+              <Route path="/professional/services" element={<ManageServices />} />
               <Route path="/professional/service-setup" element={<Navigate to="/professional/listings" replace />} />
               <Route path="/professional/profile" element={<ProfileEdit />} />
               <Route path="/professional/priorities" element={<JobPriorities />} />
