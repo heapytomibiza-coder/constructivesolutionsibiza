@@ -189,7 +189,7 @@ export default function ListingsSection() {
                               variant="destructive"
                               className="gap-1"
                               onClick={() =>
-                                updateStatusMutation.mutate({ id: listing.id, newStatus: "taken_down" })
+                                updateStatusMutation.mutate({ id: listing.id, newStatus: "paused" })
                               }
                               disabled={updateStatusMutation.isPending}
                             >
@@ -197,7 +197,7 @@ export default function ListingsSection() {
                               Take Down
                             </Button>
                           )}
-                          {listing.status === "taken_down" && (
+                          {listing.status === "paused" && (
                             <Button
                               size="sm"
                               variant="outline"
