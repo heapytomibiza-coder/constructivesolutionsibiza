@@ -223,7 +223,7 @@ export default function MyServiceListings() {
             {t('pro.manageListingsPageHint', 'Edit and publish your services to appear on the platform.')}
           </p>
           <Button size="sm" asChild className="shrink-0 gap-1.5">
-            <Link to="/onboarding/professional?edit=1&step=services">
+            <Link to="/professional/services">
               <Wrench className="h-3.5 w-3.5" />
               {t('pro.addRemoveCategories', 'Add / Remove Categories')}
             </Link>
