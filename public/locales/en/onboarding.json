@@ -131,11 +131,13 @@
     "goBack": "Go Back",
     "nextStep": "Next Step",
     "saved": "Saved!",
-    "zones.central": "Central",
-    "zones.west": "West",
-    "zones.north": "North",
-    "zones.east": "East",
-    "zones.south": "South"
+    "zones": {
+      "central": "Central",
+      "west": "West",
+      "north": "North",
+      "east": "East",
+      "south": "South"
+    }
   },
 
   "serviceUnlock": {
@@ -159,7 +161,8 @@
     "selectMinimum": "Select at least 1 job to continue",
     "jobsAvailable": "{{count}} jobs available",
     "tapToSelect": "Tap any job you're happy to do",
-    "tapToPrioritise": "Tap a selected job to set priority"
+    "tapToPrioritise": "Tap a selected job to set priority",
+    "errorToggle": "Failed to update selection"
   },
 
   "review": {

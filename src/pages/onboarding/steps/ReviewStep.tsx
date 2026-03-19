@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, CheckCircle2, Rocket, Loader2, User, MapPin, Briefcase, AlertCircle } from 'lucide-react';
 import { getCategoryIconByName } from '@/lib/categoryIcons';
+import { txCategory, txMicro } from '@/i18n/taxonomyTranslations';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
@@ -137,12 +138,12 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
                 <div key={category.categoryName}>
                   <div className="flex items-center gap-2 mb-3">
                     {(() => { const CatIcon = getCategoryIconByName(category.categoryName); return <CatIcon className="h-5 w-5 text-primary" />; })()}
-                    <span className="font-semibold text-base">{category.categoryName}</span>
+                    <span className="font-semibold text-base">{txCategory(category.categoryName, t)}</span>
                     <Badge variant="secondary" className="text-sm">{category.services.length}</Badge>
                   </div>
                   <div className="flex flex-wrap gap-2 ml-8">
                     {category.services.map(service => (
-                      <span key={service.id} className="text-sm text-foreground bg-muted/60 px-3 py-1.5 rounded-lg">{service.name}</span>
+                      <span key={service.id} className="text-sm text-foreground bg-muted/60 px-3 py-1.5 rounded-lg">{txMicro(service.slug, t, service.name)}</span>
                     ))}
                   </div>
                 </div>

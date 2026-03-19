@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { toast } from 'sonner';
+import i18next from 'i18next';
 
 export function useProfessionalServices() {
   const { user } = useSession();
@@ -68,7 +69,7 @@ export function useProfessionalServices() {
     },
     onError: (error) => {
       console.error('Error toggling service:', error);
-      toast.error('Failed to update selection');
+      toast.error(i18next.t('onboarding:serviceUnlock.errorToggle', 'Failed to update selection'));
     },
   });
 
@@ -102,7 +103,7 @@ export function useProfessionalServices() {
     },
     onError: (error) => {
       console.error('Error bulk adding services:', error);
-      toast.error('Failed to add services');
+      toast.error(i18next.t('onboarding:serviceUnlock.errorToggle', 'Failed to add services'));
     },
   });
 
@@ -126,7 +127,7 @@ export function useProfessionalServices() {
     },
     onError: (error) => {
       console.error('Error bulk removing services:', error);
-      toast.error('Failed to remove services');
+      toast.error(i18next.t('onboarding:serviceUnlock.errorToggle', 'Failed to remove services'));
     },
   });
 
