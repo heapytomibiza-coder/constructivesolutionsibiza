@@ -290,7 +290,7 @@ export type Database = {
           route: string | null
           stack: string | null
           url: string | null
-          user_id: string
+          user_id: string | null
           viewport: string | null
         }
         Insert: {
@@ -303,7 +303,7 @@ export type Database = {
           route?: string | null
           stack?: string | null
           url?: string | null
-          user_id: string
+          user_id?: string | null
           viewport?: string | null
         }
         Update: {
@@ -316,7 +316,7 @@ export type Database = {
           route?: string | null
           stack?: string | null
           url?: string | null
-          user_id?: string
+          user_id?: string | null
           viewport?: string | null
         }
         Relationships: []
