@@ -138,7 +138,7 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
                 <div key={category.categoryName}>
                   <div className="flex items-center gap-2 mb-3">
                     {(() => { const CatIcon = getCategoryIconByName(category.categoryName); return <CatIcon className="h-5 w-5 text-primary" />; })()}
-                    <span className="font-semibold text-base">{category.categoryName}</span>
+                    <span className="font-semibold text-base">{txCategory(category.categoryName, t)}</span>
                     <Badge variant="secondary" className="text-sm">{category.services.length}</Badge>
                   </div>
                   <div className="flex flex-wrap gap-2 ml-8">
