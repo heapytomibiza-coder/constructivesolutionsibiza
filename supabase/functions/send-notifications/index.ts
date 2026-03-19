@@ -521,6 +521,7 @@ type EmailResult = { subject: string; html: string; whatsapp?: string; telegram?
 const ADMIN_ONLY_EVENTS = [
   "admin_new_job", "admin_new_user", "pro_signup", "support_ticket",
   "forum_post", "bug_report", "platform_error", "contact_form", "new_service",
+  "listing_ready_for_review",
 ];
 
 function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResult | null {
@@ -534,6 +535,7 @@ function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResu
     case "bug_report":        return buildBugReportEmail(payload, siteUrl);
     case "platform_error":    return buildPlatformErrorEmail(payload, siteUrl);
     case "new_service":       return buildNewServiceEmail(payload, siteUrl);
+    case "listing_ready_for_review": return buildListingReadyEmail(payload, siteUrl);
     // User emails
     case "new_message":       return buildMessageEmail(payload, siteUrl);
     case "welcome":           return buildWelcomeEmail(payload, siteUrl);
