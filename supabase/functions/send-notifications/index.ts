@@ -330,6 +330,25 @@ function buildProSignupEmail(payload: any, siteUrl: string) {
   };
 }
 
+function buildNewServiceEmail(payload: any, siteUrl: string) {
+  return {
+    subject: `🔧 New service added: ${payload.micro_name} by ${payload.display_name}`,
+    html: emailShell(
+      "linear-gradient(135deg, #7c3aed, #8b5cf6)",
+      "New Service Added",
+      `<h2 style="margin: 0 0 8px; color: #111827; font-size: 18px;">${payload.micro_name}</h2>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Professional</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.display_name}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Category</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.category_name}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Service Slug</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.micro_slug}</td></tr>
+      </table>
+      <a href="${siteUrl}/dashboard/admin?tab=users" style="display: inline-block; background: #7c3aed; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">Review in Admin →</a>`
+    ),
+    whatsapp: `🔧 New service: ${payload.micro_name}\nBy: ${payload.display_name}\nCategory: ${payload.category_name}`,
+    telegram: `🔧 <b>NEW SERVICE ADDED</b>\n<b>${escapeHtml(payload.micro_name)}</b>\nBy: ${escapeHtml(payload.display_name)}\nCategory: ${escapeHtml(payload.category_name)}\n\n👉 ${siteUrl}/dashboard/admin?tab=users`,
+  };
+}
+
 function buildForumPostEmail(payload: any, siteUrl: string) {
   const postUrl = `${siteUrl}/forum/post/${payload.post_id}`;
   return {
@@ -481,7 +500,7 @@ type EmailResult = { subject: string; html: string; whatsapp?: string; telegram?
 
 const ADMIN_ONLY_EVENTS = [
   "admin_new_job", "admin_new_user", "pro_signup", "support_ticket",
-  "forum_post", "bug_report", "platform_error", "contact_form",
+  "forum_post", "bug_report", "platform_error", "contact_form", "new_service",
 ];
 
 function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResult | null {
@@ -494,6 +513,7 @@ function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResu
     case "forum_post":        return buildForumPostEmail(payload, siteUrl);
     case "bug_report":        return buildBugReportEmail(payload, siteUrl);
     case "platform_error":    return buildPlatformErrorEmail(payload, siteUrl);
+    case "new_service":       return buildNewServiceEmail(payload, siteUrl);
     // User emails
     case "new_message":       return buildMessageEmail(payload, siteUrl);
     case "welcome":           return buildWelcomeEmail(payload, siteUrl);
