@@ -1,13 +1,18 @@
 /**
  * LISTING PUBLISH RULES — Single source of truth
  *
- * Mirrors the DB trigger `validate_service_listing_live` exactly.
- * All UI surfaces must use this instead of ad-hoc field checks.
+ * Mirrors the ONLY DB trigger on service_listings: `validate_service_listing_live`.
+ * The older conflicting trigger `enforce_service_listing_publish_gate` (which
+ * required hero_image_url) has been dropped.
  *
  * DB contract (for listings created after 2026-03-19):
  *   - display_title required (non-empty)
  *   - short_description required (non-empty)
  *   - At least one enabled pricing item with price_amount > 0
+ *
+ * Allowed statuses: draft | live | paused
+ *   - "paused" is used by both provider self-service and admin take-down.
+ *   - Transitioning to "live" re-fires the validation trigger.
  *
  * Client adds hero_image_url as a soft recommendation but not a hard gate,
  * matching the DB trigger which does NOT require it.

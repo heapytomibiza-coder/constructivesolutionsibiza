@@ -10,12 +10,12 @@ import { Eye, ExternalLink, CheckCircle2, XCircle, Loader2, Image as ImageIcon }
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-type StatusFilter = "all" | "draft" | "live" | "taken_down";
+type StatusFilter = "all" | "draft" | "live" | "paused";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   live: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  taken_down: "bg-destructive/10 text-destructive",
+  paused: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
 };
 
 export default function ListingsSection() {
@@ -79,7 +79,7 @@ export default function ListingsSection() {
     all: listings?.length ?? 0,
     draft: listings?.filter((l) => l.status === "draft").length ?? 0,
     live: listings?.filter((l) => l.status === "live").length ?? 0,
-    taken_down: listings?.filter((l) => l.status === "taken_down").length ?? 0,
+    paused: listings?.filter((l) => l.status === "paused").length ?? 0,
   };
 
   return (
@@ -95,7 +95,7 @@ export default function ListingsSection() {
               <SelectItem value="all">All ({counts.all})</SelectItem>
               <SelectItem value="draft">Draft ({counts.draft})</SelectItem>
               <SelectItem value="live">Live ({counts.live})</SelectItem>
-              <SelectItem value="taken_down">Taken Down ({counts.taken_down})</SelectItem>
+              <SelectItem value="paused">Paused ({counts.paused})</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
@@ -189,7 +189,7 @@ export default function ListingsSection() {
                               variant="destructive"
                               className="gap-1"
                               onClick={() =>
-                                updateStatusMutation.mutate({ id: listing.id, newStatus: "taken_down" })
+                                updateStatusMutation.mutate({ id: listing.id, newStatus: "paused" })
                               }
                               disabled={updateStatusMutation.isPending}
                             >
@@ -197,7 +197,7 @@ export default function ListingsSection() {
                               Take Down
                             </Button>
                           )}
-                          {listing.status === "taken_down" && (
+                          {listing.status === "paused" && (
                             <Button
                               size="sm"
                               variant="outline"

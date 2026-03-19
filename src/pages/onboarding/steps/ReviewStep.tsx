@@ -82,7 +82,6 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
       trackEvent('pro_profile_published', 'professional', { onboardingPhase: 'complete' });
       // Don't toast here — the listings page shows a welcome banner instead
       navigate('/professional/listings?welcome=1');
-      navigate('/dashboard/pro');
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error('Error going live:', error);
