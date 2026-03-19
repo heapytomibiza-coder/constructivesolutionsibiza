@@ -123,12 +123,19 @@
     "selectAll": "Select all",
     "deselectAll": "Deselect all",
     "islandWide": "Great! You'll receive jobs from across Ibiza",
+    "islandWideTileTitle": "I cover the entire island",
+    "islandWideTileDesc": "We'll match you with jobs anywhere in Ibiza.",
     "areasSelected": "{{count}} area selected",
     "areasSelected_plural": "{{count}} areas selected",
     "selectAtLeast": "Please select at least one area",
     "goBack": "Go Back",
     "nextStep": "Next Step",
-    "saved": "Saved!"
+    "saved": "Saved!",
+    "zones.central": "Central",
+    "zones.west": "West",
+    "zones.north": "North",
+    "zones.east": "East",
+    "zones.south": "South"
   },
 
   "serviceUnlock": {
