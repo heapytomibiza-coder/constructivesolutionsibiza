@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, usePublishListing, type PricingItem } from './hooks/useListingEditor';
 import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones';
+import { evaluateListingReadiness } from '@/lib/listingPublishRules';
 
 export default function ServiceListingEditor() {
   const { listingId } = useParams<{ listingId: string }>();
@@ -110,8 +111,16 @@ export default function ServiceListingEditor() {
 
   const handlePublish = async () => {
     if (!listingId) return;
-    if (!title.trim() || !description.trim() || !heroUrl || !startingPrice) {
-      toast.error(t('listingEditor.publishValidation'));
+    const hasPricing = pricingItems.some(p => p.is_enabled && p.price_amount && p.price_amount > 0);
+    const { canPublish, issues } = evaluateListingReadiness({
+      display_title: title,
+      short_description: description,
+      hero_image_url: heroUrl,
+      hasPricing,
+    });
+    if (!canPublish) {
+      const requiredIssues = issues.filter(i => i.severity === 'required');
+      toast.error(requiredIssues.map(i => t(i.messageKey, i.field)).join('. '));
       return;
     }
     // Save first, then publish

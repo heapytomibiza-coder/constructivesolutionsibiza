@@ -16,6 +16,7 @@ import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench, CheckCircle2, Rocket 
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
 import { useTranslation } from 'react-i18next';
+import { evaluateListingReadiness } from '@/lib/listingPublishRules';
 import { txMicro } from '@/i18n/taxonomyTranslations';
 
 /** Calculate profile completeness for a listing */
@@ -46,10 +47,13 @@ function ListingCard({ listing }: { listing: MyListing }) {
   const pause = usePauseListing();
   const unpause = useUnpauseListing();
 
-  const canPublish = listing.status === 'draft' &&
-    listing.display_title?.trim() &&
-    listing.short_description?.trim() &&
-    listing.hero_image_url;
+  const { canPublish } = evaluateListingReadiness({
+    display_title: listing.display_title,
+    short_description: listing.short_description,
+    hero_image_url: listing.hero_image_url,
+    hasPricing: !!(listing.starting_price && listing.starting_price > 0),
+  });
+  const canPublishNow = listing.status === 'draft' && canPublish;
 
   const microLabel = txMicro(listing.micro_slug ?? null, tAll, listing.micro_name);
   const title = getDisplayTitle(listing, i18n.language) || t('pro.untitled', 'Untitled');
@@ -117,7 +121,7 @@ function ListingCard({ listing }: { listing: MyListing }) {
               <Button
                 size="sm"
                 className="h-8 gap-1.5"
-                disabled={!canPublish || publish.isPending}
+                disabled={!canPublishNow || publish.isPending}
                 onClick={() => publish.mutate(listing.id)}
               >
                 <Globe className="h-3.5 w-3.5" /> {t('pro.publish', 'Publish')}
