@@ -349,6 +349,26 @@ function buildNewServiceEmail(payload: any, siteUrl: string) {
   };
 }
 
+function buildListingReadyEmail(payload: any, siteUrl: string) {
+  return {
+    subject: `✅ Listing ready for review: "${payload.display_title}" by ${payload.display_name}`,
+    html: emailShell(
+      "linear-gradient(135deg, #059669, #10b981)",
+      "Listing Ready for Review",
+      `<h2 style="margin: 0 0 8px; color: #111827; font-size: 18px;">${payload.display_title}</h2>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Professional</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.display_name}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Service</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.micro_name}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Category</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.category_name}</td></tr>
+      </table>
+      <p style="color: #059669; font-weight: 600; margin: 0 0 16px;">✅ This listing has title, description, and pricing — ready for your approval.</p>
+      <a href="${siteUrl}/admin?tab=listings" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">Review & Approve →</a>`
+    ),
+    whatsapp: `✅ Listing ready: "${payload.display_title}"\nBy: ${payload.display_name}\nService: ${payload.micro_name}\n\nReview → ${siteUrl}/admin?tab=listings`,
+    telegram: `✅ <b>LISTING READY FOR REVIEW</b>\n<b>${escapeHtml(payload.display_title)}</b>\nBy: ${escapeHtml(payload.display_name)}\nService: ${escapeHtml(payload.micro_name)}\n\n👉 ${siteUrl}/admin?tab=listings`,
+  };
+}
+
 function buildForumPostEmail(payload: any, siteUrl: string) {
   const postUrl = `${siteUrl}/forum/post/${payload.post_id}`;
   return {
