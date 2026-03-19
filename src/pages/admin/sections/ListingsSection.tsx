@@ -95,7 +95,7 @@ export default function ListingsSection() {
               <SelectItem value="all">All ({counts.all})</SelectItem>
               <SelectItem value="draft">Draft ({counts.draft})</SelectItem>
               <SelectItem value="live">Live ({counts.live})</SelectItem>
-              <SelectItem value="taken_down">Taken Down ({counts.taken_down})</SelectItem>
+              <SelectItem value="paused">Paused ({counts.paused})</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
