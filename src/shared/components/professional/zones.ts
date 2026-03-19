@@ -16,7 +16,7 @@ export type IbizaZoneGroup = { group: string; zones: IbizaZone[] };
 
 export const IBIZA_ZONES: IbizaZoneGroup[] = [
   {
-    group: 'Central',
+    group: 'zones.central',
     zones: [
       { id: 'ibiza-town', label: 'Ibiza Town (Eivissa)', tier: 'main' },
       { id: 'jesus', label: 'Jesús' },
@@ -25,7 +25,7 @@ export const IBIZA_ZONES: IbizaZoneGroup[] = [
     ],
   },
   {
-    group: 'West',
+    group: 'zones.west',
     zones: [
       { id: 'san-antonio', label: 'San Antonio (Sant Antoni)', tier: 'main' },
       { id: 'san-jose', label: 'San José (Sant Josep)', tier: 'main' },
@@ -37,7 +37,7 @@ export const IBIZA_ZONES: IbizaZoneGroup[] = [
     ],
   },
   {
-    group: 'North',
+    group: 'zones.north',
     zones: [
       { id: 'san-juan', label: 'San Juan (Sant Joan)', tier: 'main' },
       { id: 'portinatx', label: 'Portinatx' },
@@ -48,7 +48,7 @@ export const IBIZA_ZONES: IbizaZoneGroup[] = [
     ],
   },
   {
-    group: 'East',
+    group: 'zones.east',
     zones: [
       { id: 'santa-eulalia', label: 'Santa Eulalia', tier: 'main' },
       { id: 'es-cana', label: 'Es Caná' },
@@ -57,7 +57,7 @@ export const IBIZA_ZONES: IbizaZoneGroup[] = [
     ],
   },
   {
-    group: 'South',
+    group: 'zones.south',
     zones: [
       { id: 'playa-den-bossa', label: "Playa d'en Bossa" },
       { id: 'salinas', label: 'Salinas' },

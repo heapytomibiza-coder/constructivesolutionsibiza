@@ -5,6 +5,7 @@
 
 import { cn } from '@/lib/utils';
 import { Check, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface IslandWideTileProps {
   selected: boolean;
@@ -17,6 +18,8 @@ export function IslandWideTile({
   onClick,
   className,
 }: IslandWideTileProps) {
+  const { t } = useTranslation('onboarding');
+
   return (
     <button
       type="button"
@@ -41,9 +44,9 @@ export function IslandWideTile({
           )}
         />
         <div>
-          <span className="block text-base font-medium">I cover the entire island</span>
+          <span className="block text-base font-medium">{t('serviceArea.islandWideTileTitle')}</span>
           <p className="text-sm text-muted-foreground">
-            We'll match you with jobs anywhere in Ibiza.
+            {t('serviceArea.islandWideTileDesc')}
           </p>
         </div>
       </div>

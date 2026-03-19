@@ -121,7 +121,7 @@ export function CategoryAccordion({
             <div className="text-left">
               <h3 className="text-lg font-semibold text-foreground">{txCategory(category.name, t)}</h3>
               <p className="text-base text-muted-foreground">
-                {totalMicros} jobs available
+                {t('onboarding:serviceUnlock.jobsAvailable', { count: totalMicros })}
               </p>
             </div>
           </div>
@@ -164,7 +164,7 @@ export function CategoryAccordion({
               }}
               className="text-sm"
             >
-              Select all
+              {t('onboarding:actions.selectAll')}
             </Button>
             <Button
               type="button"
@@ -176,10 +176,10 @@ export function CategoryAccordion({
               }}
               className="text-sm text-muted-foreground"
             >
-              Clear
+              {t('onboarding:actions.clear')}
             </Button>
             <span className="ml-auto text-sm text-muted-foreground">
-              {showPreferences ? "Tap a selected job to set priority" : "Tap any job you're happy to do"}
+              {showPreferences ? t('onboarding:serviceUnlock.tapToPrioritise') : t('onboarding:serviceUnlock.tapToSelect')}
             </span>
           </div>
 
