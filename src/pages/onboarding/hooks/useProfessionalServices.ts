@@ -126,7 +126,7 @@ export function useProfessionalServices() {
     },
     onError: (error) => {
       console.error('Error bulk removing services:', error);
-      toast.error('Failed to remove services');
+      toast.error(i18next.t('onboarding:serviceUnlock.errorToggle', 'Failed to remove services'));
     },
   });
 
