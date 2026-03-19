@@ -211,9 +211,19 @@ export default function MyServiceListings() {
                 <p className="text-sm text-muted-foreground mb-3">
                   {t('pro.welcomeDescription', 'Clients can now find you in the directory. To appear in the services marketplace, edit and publish your service listings below.')}
                 </p>
-                <Button size="sm" variant="ghost" onClick={handleDismissWelcome} className="text-xs text-muted-foreground">
-                  {t('common.dismiss', 'Dismiss')}
-                </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {drafts.length > 0 && (
+                    <Button size="sm" asChild>
+                      <Link to={`/professional/listings/${drafts[0].id}/edit`}>
+                        <Edit className="h-3.5 w-3.5 mr-1.5" />
+                        {t('pro.editFirstListing', 'Complete Your First Listing')}
+                      </Link>
+                    </Button>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={handleDismissWelcome} className="text-xs text-muted-foreground">
+                    {t('common.dismiss', 'Dismiss')}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

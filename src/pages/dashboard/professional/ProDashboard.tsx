@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
 import {
   Briefcase,
   BarChart3,
@@ -160,6 +161,23 @@ const ProDashboard = () => {
   const { stats, dashboardStage } = useProStats();
   const navigate = useNavigate();
 
+  // Fetch count of incomplete draft listings for nudge
+  const { data: draftCount } = useQuery({
+    queryKey: ['pro_draft_listings_count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count, error } = await supabase
+        .from('service_listings')
+        .select('id', { count: 'exact', head: true })
+        .eq('provider_id', user.id)
+        .eq('status', 'draft');
+      if (error) return 0;
+      return count ?? 0;
+    },
+    enabled: !!user?.id && (dashboardStage === 'active' || dashboardStage === 'needs_visibility'),
+    staleTime: 120000,
+  });
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success(t('auth.signedOut'));
@@ -212,6 +230,33 @@ const ProDashboard = () => {
 
         {/* Stage guidance card */}
         {getStageCard(dashboardStage, t)}
+
+        {/* Draft listings nudge — shown when pro is active but has unpublished listings */}
+        {isSetupComplete && !!draftCount && draftCount > 0 && (
+          <Card className="mb-5 border-accent/30 bg-accent/5 shadow-sm">
+            <CardContent className="py-4 px-4">
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg bg-accent/10 p-2 shrink-0">
+                  <Store className="h-5 w-5 text-accent-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
+                    {t('pro.draftNudgeTitle', 'You have {{count}} unpublished listing', { count: draftCount })}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {t('pro.draftNudgeDesc', 'Add a title, description and price to each listing so clients can find and book you in the marketplace.')}
+                  </p>
+                  <Button asChild size="sm">
+                    <Link to="/professional/listings">
+                      {t('pro.completeListings', 'Complete Your Listings')}
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Menu — grouped by context */}
         <div className="flex flex-col gap-2">
