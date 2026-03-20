@@ -618,7 +618,11 @@ const ADMIN_ONLY_EVENTS = [
   "listing_ready_for_review", "admin_dispute_opened",
 ];
 
-const DISPUTE_EVENTS = ["dispute_opened", "admin_dispute_opened", "dispute_response_submitted", "dispute_evidence_uploaded"];
+const DISPUTE_EVENTS = [
+  "dispute_opened", "admin_dispute_opened", "dispute_response_submitted", "dispute_evidence_uploaded",
+  "dispute_deadline_approaching", "dispute_deadline_passed", "dispute_deadline_passed_raiser",
+  "admin_dispute_deadline_passed", "dispute_auto_advanced",
+];
 
 function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResult | null {
   switch (eventType) {
