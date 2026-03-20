@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Globe, ImagePlus, Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, ImageIcon } from 'lucide-react';
+import { ArrowLeft, Globe, ImagePlus, Loader2, Plus, Save, Trash2, ArrowUp, ArrowDown, ImageIcon, Sparkles } from 'lucide-react';
 import { StockPhotoPicker } from './components/StockPhotoPicker';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +26,7 @@ import { evaluateListingReadiness } from '@/lib/listingPublishRules';
 export default function ServiceListingEditor() {
   const { listingId } = useParams<{ listingId: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation('professional');
+  const { t, i18n } = useTranslation('professional');
   const { user } = useSession();
   const { data: listing, isLoading } = useListingDetail(listingId);
   const updateListing = useUpdateListing();
@@ -44,6 +44,7 @@ export default function ServiceListingEditor() {
   const [startingPriceUnit, setStartingPriceUnit] = useState('hour');
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [aiAssisting, setAiAssisting] = useState(false);
   const [stockPickerOpen, setStockPickerOpen] = useState(false);
   const [stockPickerTarget, setStockPickerTarget] = useState<'hero' | 'gallery'>('hero');
 
@@ -297,12 +298,46 @@ export default function ServiceListingEditor() {
               <Textarea
                 id="desc"
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={e => setDescription(e.target.value.slice(0, 100))}
                 placeholder={t('listingEditor.shortDescPlaceholder')}
-                maxLength={200}
-                rows={3}
+                maxLength={100}
+                rows={2}
               />
-              <p className="text-xs text-muted-foreground text-right">{description.length}/200</p>
+              <div className="flex items-center justify-between">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs gap-1.5 text-primary hover:text-primary/80 px-1 h-7"
+                  disabled={aiAssisting || !title.trim() || !description.trim()}
+                  onClick={async () => {
+                    setAiAssisting(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke('listing-description-assist', {
+                        body: { title, sentence: description, lang: i18n.language },
+                      });
+                      if (error) throw error;
+                      if (data?.description) {
+                        setDescription(data.description);
+                        toast.success(t('listingEditor.aiAssisted'));
+                      }
+                    } catch (err) {
+                      console.error('AI assist failed:', err);
+                      toast.error(t('listingEditor.aiAssistFailed'));
+                    } finally {
+                      setAiAssisting(false);
+                    }
+                  }}
+                >
+                  {aiAssisting ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3 w-3" />
+                  )}
+                  {t('listingEditor.needHelp')}
+                </Button>
+                <p className="text-xs text-muted-foreground">{description.length}/100</p>
+              </div>
             </div>
 
             {/* Hero Image */}
