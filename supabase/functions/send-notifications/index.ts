@@ -513,6 +513,100 @@ function buildJobCompletedEmail(payload: any, siteUrl: string) {
 }
 
 // ============================================
+// EMAIL TEMPLATES — DISPUTE NOTIFICATIONS
+// ============================================
+
+async function enrichDisputePayload(payload: any): Promise<any> {
+  if (payload.job_id) {
+    try {
+      const { data: job } = await supabaseAdmin
+        .from("jobs")
+        .select("title, category, area")
+        .eq("id", payload.job_id)
+        .single();
+      if (job) {
+        payload._job_title = job.title;
+        payload._job_area = job.area || "Ibiza";
+      }
+    } catch (_) { /* ignore */ }
+  }
+  return payload;
+}
+
+function buildDisputeOpenedEmail(payload: any, siteUrl: string) {
+  const issueList = (payload.issue_types || []).map((t: string) => t.replace(/_/g, " ")).join(", ");
+  const deadlineStr = payload.response_deadline
+    ? new Date(payload.response_deadline).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+    : "48 hours";
+  const disputeUrl = `${siteUrl}/disputes/${payload.dispute_id}/respond`;
+  return {
+    subject: `Action required: Issue raised on your project`,
+    html: emailShell(
+      "linear-gradient(135deg, #dc2626, #ef4444)",
+      "Issue Raised on Your Project",
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">A concern has been raised regarding: <strong>${payload._job_title || "your project"}</strong></p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Issues</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${issueList || "Not specified"}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Raised by</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${payload.raised_by_role === "client" ? "Client" : "Professional"}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Response deadline</td><td style="padding: 8px 0; color: #dc2626; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 600;">${deadlineStr}</td></tr>
+        ${payload.requested_outcome ? `<tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Requested outcome</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.requested_outcome.replace(/_/g, " ")}</td></tr>` : ""}
+      </table>
+      <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 20px;">All responses are recorded and used to reach a fair outcome.</p>
+      <a href="${disputeUrl}" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">View & Respond →</a>`
+    ),
+  };
+}
+
+function buildAdminDisputeOpenedEmail(payload: any, siteUrl: string) {
+  const issueList = (payload.issue_types || []).map((t: string) => t.replace(/_/g, " ")).join(", ");
+  return {
+    subject: `⚠️ New dispute opened: ${payload._job_title || "Unknown project"}`,
+    html: emailShell(
+      "linear-gradient(135deg, #dc2626, #ef4444)",
+      "⚠️ New Dispute",
+      `<h2 style="margin: 0 0 8px; color: #111827; font-size: 18px;">${payload._job_title || "Unknown project"}</h2>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Issues</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${issueList || "N/A"}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Raised by</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${payload.raised_by_role || "N/A"}</td></tr>
+      </table>
+      <a href="${siteUrl}/dashboard/admin" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View in Admin →</a>`
+    ),
+    whatsapp: `⚠️ New dispute: ${payload._job_title || "Unknown"}\nIssues: ${issueList}`,
+    telegram: `⚠️ <b>NEW DISPUTE</b>\n<b>${escapeHtml(payload._job_title || "Unknown")}</b>\nIssues: ${escapeHtml(issueList)}\nBy: ${escapeHtml(payload.raised_by_role || "N/A")}\n\n👉 ${siteUrl}/dashboard/admin`,
+  };
+}
+
+function buildDisputeResponseEmail(payload: any, siteUrl: string) {
+  const disputeUrl = `${siteUrl}/disputes/${payload.dispute_id}`;
+  return {
+    subject: `Response received on your dispute — ${payload._job_title || "your project"}`,
+    html: emailShell(
+      "linear-gradient(135deg, #059669, #10b981)",
+      "Response Received",
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">The other party has submitted their response regarding: <strong>${payload._job_title || "your project"}</strong></p>
+      <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 20px;">Both statements will now be reviewed to identify agreed facts and disputed points.</p>
+      <a href="${disputeUrl}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">View Case →</a>`
+    ),
+  };
+}
+
+function buildDisputeEvidenceEmail(payload: any, siteUrl: string) {
+  const disputeUrl = `${siteUrl}/disputes/${payload.dispute_id}`;
+  return {
+    subject: `New evidence uploaded — ${payload._job_title || "your dispute"}`,
+    html: emailShell(
+      "linear-gradient(135deg, #3b82f6, #6366f1)",
+      "New Evidence Submitted",
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">New evidence has been uploaded to the dispute regarding: <strong>${payload._job_title || "your project"}</strong></p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Type</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${(payload.evidence_category || payload.file_type || "Document").replace(/_/g, " ")}</td></tr>
+      </table>
+      <a href="${disputeUrl}" style="display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">View Evidence →</a>`
+    ),
+  };
+}
+
+// ============================================
 // EVENT → TEMPLATE ROUTER
 // ============================================
 
@@ -521,8 +615,10 @@ type EmailResult = { subject: string; html: string; whatsapp?: string; telegram?
 const ADMIN_ONLY_EVENTS = [
   "admin_new_job", "admin_new_user", "pro_signup", "support_ticket",
   "forum_post", "bug_report", "platform_error", "contact_form", "new_service",
-  "listing_ready_for_review",
+  "listing_ready_for_review", "admin_dispute_opened",
 ];
+
+const DISPUTE_EVENTS = ["dispute_opened", "admin_dispute_opened", "dispute_response_submitted", "dispute_evidence_uploaded"];
 
 function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResult | null {
   switch (eventType) {
@@ -536,6 +632,11 @@ function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResu
     case "platform_error":    return buildPlatformErrorEmail(payload, siteUrl);
     case "new_service":       return buildNewServiceEmail(payload, siteUrl);
     case "listing_ready_for_review": return buildListingReadyEmail(payload, siteUrl);
+    // Dispute notifications
+    case "dispute_opened":              return buildDisputeOpenedEmail(payload, siteUrl);
+    case "admin_dispute_opened":        return buildAdminDisputeOpenedEmail(payload, siteUrl);
+    case "dispute_response_submitted":  return buildDisputeResponseEmail(payload, siteUrl);
+    case "dispute_evidence_uploaded":   return buildDisputeEvidenceEmail(payload, siteUrl);
     // User emails
     case "new_message":       return buildMessageEmail(payload, siteUrl);
     case "welcome":           return buildWelcomeEmail(payload, siteUrl);
@@ -692,6 +793,11 @@ const handler = async (req: Request): Promise<Response> => {
               payload._first_photo = postRow.photos[0];
             }
           } catch (_) { /* ignore */ }
+        }
+
+        // Enrich dispute payloads with job title
+        if (DISPUTE_EVENTS.includes(item.event_type) && payload.job_id) {
+          await enrichDisputePayload(payload);
         }
 
         // Build and send

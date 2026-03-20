@@ -109,6 +109,7 @@ const MonitoringPage = lazy(() => import("./pages/admin/monitoring/MonitoringPag
 // Disputes
 const RaiseDispute = lazy(() => import("./pages/disputes/RaiseDispute"));
 const DisputeDetail = lazy(() => import("./pages/disputes/DisputeDetail"));
+const DisputeResponse = lazy(() => import("./pages/disputes/DisputeResponse"));
 
 // Launch Checklist
 const LaunchChecklist = lazy(() => import("./pages/LaunchChecklist"));
@@ -241,6 +242,7 @@ const App = () => {
               {/* Disputes */}
               <Route path="/disputes/raise" element={<RolloutGate min="escrow-beta"><RaiseDispute /></RolloutGate>} />
               <Route path="/disputes/:disputeId" element={<RolloutGate min="escrow-beta"><DisputeDetail /></RolloutGate>} />
+              <Route path="/disputes/:disputeId/respond" element={<RolloutGate min="escrow-beta"><DisputeResponse /></RolloutGate>} />
 
               {/* Professional Dashboard */}
               <Route path="/dashboard/pro" element={<ProDashboard />} />

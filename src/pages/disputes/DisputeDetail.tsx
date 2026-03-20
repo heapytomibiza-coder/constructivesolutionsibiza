@@ -6,10 +6,12 @@ import { PublicLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 import { fetchDisputeDetail } from './queries/disputes.query';
 import { analyzeDispute } from './actions/analyzeDispute.action';
 import { AnalysisDisplay } from './components/AnalysisDisplay';
 import { CompletenessIndicator } from './components/CompletenessIndicator';
+import { CounterpartyBanner } from './components/CounterpartyBanner';
 import type { DisputeStatus } from './types';
 
 const STATUS_META: Record<DisputeStatus, { label: string; color: string }> = {
@@ -75,6 +77,20 @@ export default function DisputeDetail() {
   const job = d.jobs;
   const hasCurrentAnalysis = !!analysis;
 
+  // Current user for counterparty detection
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
+  const isCounterparty = currentUser?.id === d.counterparty_id;
+  const hasResponded = !!d.counterparty_responded_at || inputs.some(
+    (i: any) => i.user_id === d.counterparty_id
+  );
+
   return (
     <PublicLayout>
       <div className="container max-w-3xl py-8 space-y-6">
@@ -128,6 +144,16 @@ export default function DisputeDetail() {
             </span>
           )}
         </div>
+
+        {/* Counterparty Banner */}
+        {disputeId && (
+          <CounterpartyBanner
+            disputeId={disputeId}
+            isCounterparty={isCounterparty}
+            hasResponded={hasResponded}
+            responseDeadline={d.response_deadline}
+          />
+        )}
 
         <Separator />
 
