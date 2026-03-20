@@ -1498,6 +1498,8 @@ export type Database = {
         Row: {
           accepts_emergency: boolean | null
           availability_status: string | null
+          avatar_card_url: string | null
+          avatar_thumb_url: string | null
           avatar_url: string | null
           base_location: Json | null
           bio: string | null
@@ -1533,6 +1535,8 @@ export type Database = {
         Insert: {
           accepts_emergency?: boolean | null
           availability_status?: string | null
+          avatar_card_url?: string | null
+          avatar_thumb_url?: string | null
           avatar_url?: string | null
           base_location?: Json | null
           bio?: string | null
@@ -1568,6 +1572,8 @@ export type Database = {
         Update: {
           accepts_emergency?: boolean | null
           availability_status?: string | null
+          avatar_card_url?: string | null
+          avatar_thumb_url?: string | null
           avatar_url?: string | null
           base_location?: Json | null
           bio?: string | null
@@ -1957,7 +1963,10 @@ export type Database = {
           display_title: string
           display_title_i18n: Json | null
           gallery: string[] | null
+          hero_card_url: string | null
           hero_image_url: string | null
+          hero_large_url: string | null
+          hero_thumb_url: string | null
           id: string
           location_base: string | null
           micro_id: string
@@ -1977,7 +1986,10 @@ export type Database = {
           display_title?: string
           display_title_i18n?: Json | null
           gallery?: string[] | null
+          hero_card_url?: string | null
           hero_image_url?: string | null
+          hero_large_url?: string | null
+          hero_thumb_url?: string | null
           id?: string
           location_base?: string | null
           micro_id: string
@@ -1997,7 +2009,10 @@ export type Database = {
           display_title?: string
           display_title_i18n?: Json | null
           gallery?: string[] | null
+          hero_card_url?: string | null
           hero_image_url?: string | null
+          hero_large_url?: string | null
+          hero_thumb_url?: string | null
           id?: string
           location_base?: string | null
           micro_id?: string
@@ -2809,7 +2824,9 @@ export type Database = {
           category_slug: string | null
           created_at: string | null
           display_title: string | null
+          hero_card_url: string | null
           hero_image_url: string | null
+          hero_thumb_url: string | null
           id: string | null
           location_base: string | null
           micro_id: string | null
@@ -2817,6 +2834,7 @@ export type Database = {
           micro_slug: string | null
           pricing_summary: string | null
           provider_avatar: string | null
+          provider_avatar_thumb: string | null
           provider_id: string | null
           provider_name: string | null
           provider_verification: string | null
@@ -2945,7 +2963,10 @@ export type Database = {
           display_title: string
           display_title_i18n: Json | null
           gallery: string[] | null
+          hero_card_url: string | null
           hero_image_url: string | null
+          hero_large_url: string | null
+          hero_thumb_url: string | null
           id: string
           location_base: string | null
           micro_id: string
