@@ -9,7 +9,7 @@ import {
   TrendingUp, BarChart3, MessageSquare, Clock,
   Target, Users,
 } from 'lucide-react';
-import heroImg from '@/assets/heroes/hero-reputation.jpg';
+import heroImg from '@/assets/heroes/hero-reputation.webp';
 
 const SCORE_METRICS = [
   { icon: Star, labelKey: 'reputation.metrics.quality.label', descKey: 'reputation.metrics.quality.desc', weight: 35, color: 'bg-primary' },

@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import heroServices from '@/assets/heroes/hero-services.jpg';
+import heroServices from '@/assets/heroes/hero-services.webp';
 import { useServiceListingsBrowse } from '@/pages/services/queries/serviceListings.query';
 import { ServiceListingCardComponent } from '@/pages/services/ServiceListingCard';
 

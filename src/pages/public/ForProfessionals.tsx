@@ -8,7 +8,7 @@ import {
   Clock, TrendingUp, Shield, ArrowRight, Award,
   CheckCircle, Calculator, Briefcase,
 } from 'lucide-react';
-import heroImg from '@/assets/heroes/hero-for-professionals.jpg';
+import heroImg from '@/assets/heroes/hero-for-professionals.webp';
 
 /* ── Constant data (not i18n'd yet — static values) ── */
 

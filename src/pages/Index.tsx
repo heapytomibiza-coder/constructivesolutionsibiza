@@ -14,7 +14,7 @@ import {
   XCircle, Quote, MapPin, Calendar, Euro, Wrench,
   AlertTriangle, Lock, FileCheck, Scale, Users, Briefcase
 } from 'lucide-react';
-import heroHome from '@/assets/heroes/hero-home.jpg';
+import heroHome from '@/assets/heroes/hero-home.webp';
 
 const SERVICE_CARDS = [
   { key: 'svc1', icon: Hammer, link: '/services' },

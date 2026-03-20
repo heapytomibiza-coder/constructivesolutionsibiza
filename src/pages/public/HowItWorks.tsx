@@ -23,7 +23,7 @@ import {
   Target,
   Users,
 } from 'lucide-react';
-import heroHowItWorks from '@/assets/heroes/hero-how-it-works.jpg';
+import heroHowItWorks from '@/assets/heroes/hero-how-it-works.webp';
 
 const FAQ_KEYS = [
   'account',
