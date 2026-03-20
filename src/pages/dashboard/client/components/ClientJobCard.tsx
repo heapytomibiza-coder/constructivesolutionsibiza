@@ -281,6 +281,14 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             {job.status === 'open' && !job.assigned_professional_id && (
               <AssignProSelector jobId={job.id} onAssigned={onJobUpdated} />
             )}
+            {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
+              <Button variant="outline" size="sm" className="gap-1 text-destructive hover:text-destructive" asChild>
+                <Link to={`/disputes/raise?job=${job.id}`}>
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {t('client.raiseIssue', 'Raise Issue')}
+                </Link>
+              </Button>
+            )}
             {canComplete && (
               <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowCompletionModal(true)}>
                 <CheckCircle2 className="h-3.5 w-3.5" />
