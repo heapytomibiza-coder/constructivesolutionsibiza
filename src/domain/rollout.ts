@@ -9,7 +9,7 @@
  *  founding-members  → + Professional directory + Pro onboarding
  *  service-layer     → + Services marketplace + Listings
  *  trust-engine      → + Reviews + Ratings + Badges
- *  escrow-beta       → + Payment protection + Escrow
+ *  escrow-beta       → + Milestone payments + Resolution engine
  *  scale-ready       → + Full automation
  */
 
