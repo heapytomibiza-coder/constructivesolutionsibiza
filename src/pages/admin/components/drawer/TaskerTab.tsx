@@ -179,6 +179,3 @@ function ListingsSection({ listings }: { listings: ServiceListingSummary[]; user
     </div>
   );
 }
-    </>
-  );
-}
