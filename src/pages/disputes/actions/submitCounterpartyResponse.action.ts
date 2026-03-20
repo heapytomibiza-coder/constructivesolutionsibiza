@@ -18,6 +18,7 @@ export async function submitCounterpartyResponse(params: SubmitResponseParams) {
     .single();
 
   if (!dispute) throw new Error('Dispute not found');
+  const d = dispute as any;
   if (d.counterparty_id !== user.id) {
     throw new Error('Only the counterparty can submit a response via this route');
   }
