@@ -243,6 +243,38 @@ export type Database = {
           },
         ]
       }
+      dispute_ai_events: {
+        Row: {
+          created_at: string
+          dispute_id: string
+          event_type: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          created_at?: string
+          dispute_id: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          created_at?: string
+          dispute_id?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_ai_events_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispute_analysis: {
         Row: {
           agreed_facts: Json | null
@@ -251,6 +283,7 @@ export type Database = {
           dispute_id: string
           disputed_points: Json | null
           id: string
+          is_current: boolean | null
           issue_types:
             | Database["public"]["Enums"]["dispute_issue_type"][]
             | null
@@ -269,6 +302,7 @@ export type Database = {
           dispute_id: string
           disputed_points?: Json | null
           id?: string
+          is_current?: boolean | null
           issue_types?:
             | Database["public"]["Enums"]["dispute_issue_type"][]
             | null
@@ -287,6 +321,7 @@ export type Database = {
           dispute_id?: string
           disputed_points?: Json | null
           id?: string
+          is_current?: boolean | null
           issue_types?:
             | Database["public"]["Enums"]["dispute_issue_type"][]
             | null
@@ -313,33 +348,45 @@ export type Database = {
           created_at: string
           description: string | null
           dispute_id: string
+          evidence_category: string | null
           file_name: string | null
           file_path: string
           file_size_bytes: number | null
           file_type: string
           id: string
+          is_visible_to_counterparty: boolean | null
+          related_issue_type: string | null
+          submitted_by_role: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           description?: string | null
           dispute_id: string
+          evidence_category?: string | null
           file_name?: string | null
           file_path: string
           file_size_bytes?: number | null
           file_type?: string
           id?: string
+          is_visible_to_counterparty?: boolean | null
+          related_issue_type?: string | null
+          submitted_by_role?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           description?: string | null
           dispute_id?: string
+          evidence_category?: string | null
           file_name?: string | null
           file_path?: string
           file_size_bytes?: number | null
           file_type?: string
           id?: string
+          is_visible_to_counterparty?: boolean | null
+          related_issue_type?: string | null
+          submitted_by_role?: string | null
           user_id?: string
         }
         Relationships: [
@@ -3016,6 +3063,14 @@ export type Database = {
           suspended_at: string
           suspension_reason: string
         }[]
+      }
+      rpc_advance_dispute_status: {
+        Args: { p_dispute_id: string; p_new_status: string }
+        Returns: Json
+      }
+      rpc_dispute_completeness: {
+        Args: { p_dispute_id: string }
+        Returns: Json
       }
       switch_active_role: { Args: { p_new_role: string }; Returns: undefined }
       track_event: {
