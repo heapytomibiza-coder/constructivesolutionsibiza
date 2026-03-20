@@ -26,7 +26,7 @@ import { evaluateListingReadiness } from '@/lib/listingPublishRules';
 export default function ServiceListingEditor() {
   const { listingId } = useParams<{ listingId: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation('professional');
+  const { t, i18n } = useTranslation('professional');
   const { user } = useSession();
   const { data: listing, isLoading } = useListingDetail(listingId);
   const updateListing = useUpdateListing();
