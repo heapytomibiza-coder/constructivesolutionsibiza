@@ -132,7 +132,7 @@ async function fetchFilterOptions(filters: BrowseFilters): Promise<ServiceFilter
 
 export function useServiceFilterOptions(filters: BrowseFilters) {
   return useQuery({
-    queryKey: ['service-filter-options', filters.category, filters.subcategory],
+    queryKey: ['service-filter-options', filters.category ?? null, filters.subcategory ?? null],
     queryFn: () => fetchFilterOptions(filters),
     staleTime: 60_000,
   });
@@ -179,7 +179,7 @@ async function fetchListingsPage({
  */
 export function useServiceListingsBrowse(filters: BrowseFilters = {}) {
   return useInfiniteQuery({
-    queryKey: ['service-listings-browse', filters],
+    queryKey: ['service-listings-browse', filters.category ?? null, filters.subcategory ?? null, filters.micro ?? null, filters.sort ?? 'newest'],
     queryFn: ({ pageParam = 0 }) =>
       fetchListingsPage({ page: pageParam, filters }),
     initialPageParam: 0,
