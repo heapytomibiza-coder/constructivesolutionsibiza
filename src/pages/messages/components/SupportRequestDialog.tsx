@@ -2,6 +2,7 @@
  * Dialog for creating a support request
  */
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
   Clock, 
@@ -91,6 +92,7 @@ export function SupportRequestDialog({
   userRole,
 }: SupportRequestDialogProps) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [issueType, setIssueType] = useState<IssueType>('no_response');
   const [summary, setSummary] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -203,6 +205,30 @@ export function SupportRequestDialog({
               <p className="text-xs text-destructive/80 mt-1">
                 If you are in immediate danger, please contact local emergency services.
               </p>
+            </div>
+          )}
+
+          {/* Dispute escalation banner */}
+          {issueType === 'dispute' && jobId && (
+            <div className="rounded-md bg-muted border border-border p-3">
+              <p className="text-sm font-medium text-foreground">
+                Need a formal resolution?
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                If this is a serious issue, you can start a structured dispute process instead.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 gap-1.5 text-destructive hover:text-destructive"
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate(`/disputes/raise?job=${jobId}`);
+                }}
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Start Formal Dispute
+              </Button>
             </div>
           )}
         </div>

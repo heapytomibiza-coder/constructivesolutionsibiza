@@ -168,7 +168,7 @@ export default function JobTicketDetail() {
           </Badge>
           <div className="flex items-center gap-2">
             {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
-              <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" asChild>
+              <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" asChild title="Having an issue with this job? Start a structured resolution.">
                 <Link to={`/disputes/raise?job=${jobId}`}>
                   <AlertTriangle className="h-3.5 w-3.5" />
                   {t('jobTicket.raiseIssue', 'Raise Issue')}

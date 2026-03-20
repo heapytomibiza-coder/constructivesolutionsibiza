@@ -484,6 +484,7 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
         <Button
           variant="outline"
           className="gap-2 text-destructive hover:text-destructive"
+          title="Having an issue with this job? Start a structured resolution."
           onClick={() => { onClose(); navigate(`/disputes/raise?job=${jobPack.id}`); }}
         >
           <AlertTriangle className="h-4 w-4" />
