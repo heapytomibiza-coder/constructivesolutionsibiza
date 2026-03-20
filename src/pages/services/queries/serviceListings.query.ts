@@ -61,10 +61,12 @@ export function useServiceListingsBrowse(categoryFilter?: string) {
   return useQuery({
     queryKey: ['service-listings-browse', categoryFilter],
     queryFn: async (): Promise<ServiceListingCard[]> => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('service_listings_browse')
         .select('*')
         .order('published_at', { ascending: false });
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
@@ -84,13 +86,14 @@ export function useServiceListingsBrowse(categoryFilter?: string) {
 
 /**
  * Fetch a single service listing detail.
+ * Parallelized queries for faster load.
  */
 export function useServiceListingDetail(listingId: string | undefined) {
   return useQuery({
     queryKey: ['service-listing-detail', listingId],
     enabled: !!listingId,
     queryFn: async () => {
-      // Fetch listing
+      // Step 1: Fetch listing first (needed for provider_id and micro_id)
       const { data: listing, error: listingError } = await supabase
         .from('service_listings')
         .select('*')
@@ -101,30 +104,35 @@ export function useServiceListingDetail(listingId: string | undefined) {
       if (listingError) throw listingError;
       if (!listing) throw new Error('Listing not found');
 
-      // Fetch pricing items
-      const { data: pricingItems, error: pricingError } = await supabase
-        .from('service_pricing_items')
-        .select('*')
-        .eq('service_listing_id', listingId!)
-        .eq('is_enabled', true)
-        .order('sort_order', { ascending: true });
+      // Step 2: Fetch pricing, provider, and micro IN PARALLEL
+      const [pricingResult, providerResult, microResult] = await Promise.all([
+        supabase
+          .from('service_pricing_items')
+          .select('*')
+          .eq('service_listing_id', listingId!)
+          .eq('is_enabled', true)
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('professional_profiles')
+          .select('display_name, avatar_url, verification_status, bio, tagline, service_zones')
+          .eq('user_id', listing.provider_id)
+          .single(),
+        supabase
+          .from('service_micro_categories')
+          .select('name, slug, subcategory_id')
+          .eq('id', listing.micro_id)
+          .single(),
+      ]);
 
-      if (pricingError) throw pricingError;
+      if (pricingResult.error) throw pricingResult.error;
 
-      // Fetch provider info
-      const { data: provider } = await supabase
-        .from('professional_profiles')
-        .select('display_name, avatar_url, verification_status, bio, tagline, service_zones')
-        .eq('user_id', listing.provider_id)
-        .single();
+      const provider = providerResult.data ?? {
+        display_name: null, avatar_url: null, verification_status: null,
+        bio: null, tagline: null, service_zones: [],
+      };
+      const micro = microResult.data ?? { name: null, slug: null, subcategory_id: null };
 
-      // Fetch micro + taxonomy info
-      const { data: micro } = await supabase
-        .from('service_micro_categories')
-        .select('name, slug, subcategory_id')
-        .eq('id', listing.micro_id)
-        .single();
-
+      // Step 3: Fetch taxonomy (only if micro has subcategory)
       let categoryName: string | null = null;
       let subcategoryName: string | null = null;
 
@@ -148,7 +156,7 @@ export function useServiceListingDetail(listingId: string | undefined) {
         }
       }
 
-      // Record view
+      // Fire-and-forget view tracking
       supabase
         .from('service_views')
         .insert({ service_listing_id: listingId! })
@@ -156,9 +164,9 @@ export function useServiceListingDetail(listingId: string | undefined) {
 
       return {
         listing: listing as ServiceListingDetail,
-        pricingItems: (pricingItems ?? []) as ServicePricingItem[],
-        provider: provider ?? { display_name: null, avatar_url: null, verification_status: null, bio: null, tagline: null, service_zones: [] },
-        micro: micro ?? { name: null, slug: null, subcategory_id: null },
+        pricingItems: (pricingResult.data ?? []) as ServicePricingItem[],
+        provider,
+        micro,
         categoryName,
         subcategoryName,
       };

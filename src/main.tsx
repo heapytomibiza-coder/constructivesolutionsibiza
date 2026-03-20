@@ -7,8 +7,12 @@ import "./i18n";
 import { initMonitor } from "./lib/lighthouse-monitor";
 import { supabase } from "./integrations/supabase/client";
 
-// Start error monitoring before React renders
-initMonitor({ supabase });
+// Defer monitoring init — must not block first paint
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(() => initMonitor({ supabase }));
+} else {
+  setTimeout(() => initMonitor({ supabase }), 2000);
+}
 
 // Auto-recover from stale chunk loading errors after new deployments
 window.addEventListener('error', (event) => {
