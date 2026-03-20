@@ -22,7 +22,7 @@ const statusColors: Record<string, string> = {
 export default function ListingsSection() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
-  const queryClient = useQueryClient();
+  
 
   const { data: listings, isLoading } = useQuery({
     queryKey: ["admin-listings", statusFilter],
