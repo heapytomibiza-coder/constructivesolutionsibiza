@@ -3004,6 +3004,7 @@ export type Database = {
       }
       is_admin_email: { Args: never; Returns: boolean }
       purge_stale_telemetry: { Args: never; Returns: undefined }
+      rpc_admin_dispute_analytics: { Args: never; Returns: Json }
       rpc_admin_dispute_inbox: {
         Args: never
         Returns: {
@@ -3106,6 +3107,22 @@ export type Database = {
       rpc_dispute_completeness: {
         Args: { p_dispute_id: string }
         Returns: Json
+      }
+      rpc_offer_resolution: {
+        Args: {
+          p_dispute_id: string
+          p_resolution_description: string
+          p_resolution_type: string
+        }
+        Returns: undefined
+      }
+      rpc_respond_to_resolution: {
+        Args: {
+          p_accept: boolean
+          p_dispute_id: string
+          p_rejection_reason?: string
+        }
+        Returns: undefined
       }
       switch_active_role: { Args: { p_new_role: string }; Returns: undefined }
       track_event: {
