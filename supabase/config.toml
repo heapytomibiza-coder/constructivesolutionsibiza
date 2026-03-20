@@ -22,4 +22,3 @@ verify_jwt = false
 
 [functions.analyze-dispute]
 verify_jwt = false
-verify_jwt = false
