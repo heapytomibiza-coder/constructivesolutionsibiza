@@ -141,11 +141,9 @@ export default function DisputeRowActions({ dispute }: { dispute: AdminDisputeRo
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem asChild>
-            <a href={`/disputes/${dispute.id}`} target="_blank" rel="noopener noreferrer">
+          <DropdownMenuItem onClick={() => navigate(`/disputes/${dispute.id}`)}>
               <ExternalLink className="h-3.5 w-3.5 mr-2" />
               View Case
-            </a>
           </DropdownMenuItem>
 
           {nonEscalated.length > 0 && (
