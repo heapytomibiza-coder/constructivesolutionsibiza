@@ -3004,6 +3004,40 @@ export type Database = {
       }
       is_admin_email: { Args: never; Returns: boolean }
       purge_stale_telemetry: { Args: never; Returns: undefined }
+      rpc_admin_dispute_inbox: {
+        Args: never
+        Returns: {
+          age_hours: number
+          ai_confidence_score: number
+          analysis_exists: boolean
+          closed_at: string
+          counterparty_id: string
+          counterparty_name: string
+          counterparty_responded_at: string
+          created_at: string
+          evidence_count: number
+          evidence_deadline: string
+          human_review_required: boolean
+          id: string
+          input_count: number
+          issue_types: string[]
+          job_area: string
+          job_budget_value: number
+          job_category: string
+          job_id: string
+          job_title: string
+          raised_by: string
+          raised_by_role: string
+          raiser_name: string
+          recommended_pathway: string
+          requested_outcome: string
+          resolved_at: string
+          response_deadline: string
+          status: string
+          summary_neutral: string
+          updated_at: string
+        }[]
+      }
       rpc_admin_platform_stats: {
         Args: never
         Returns: {
