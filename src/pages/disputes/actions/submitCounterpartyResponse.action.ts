@@ -18,10 +18,8 @@ export async function submitCounterpartyResponse(params: SubmitResponseParams) {
     .single();
 
   if (!dispute) throw new Error('Dispute not found');
-  const d = dispute as any;
-
-  if (d.counterparty_id !== user.id && d.raised_by !== user.id) {
-    throw new Error('Not authorized to respond to this dispute');
+  if (d.counterparty_id !== user.id) {
+    throw new Error('Only the counterparty can submit a response via this route');
   }
 
   // Add questionnaire response
