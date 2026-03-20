@@ -316,9 +316,9 @@ export default function ServiceListingEditor() {
               <Textarea
                 id="desc"
                 value={description}
-                onChange={e => setDescription(e.target.value.slice(0, 100))}
+                onChange={e => setDescription(e.target.value.slice(0, 200))}
                 placeholder={t('listingEditor.shortDescPlaceholder')}
-                maxLength={100}
+                maxLength={200}
                 rows={2}
               />
               <div className="flex items-center justify-between">
@@ -354,7 +354,7 @@ export default function ServiceListingEditor() {
                   )}
                   {t('listingEditor.needHelp')}
                 </Button>
-                <p className="text-xs text-muted-foreground">{description.length}/100</p>
+                <p className="text-xs text-muted-foreground">{description.length}/200</p>
               </div>
             </div>
 

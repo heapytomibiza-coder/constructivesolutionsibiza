@@ -26,7 +26,7 @@ serve(async (req) => {
     const systemPrompt = `You are a concise copywriter for a home-services marketplace in Ibiza, Spain.
 Given a service listing title and a rough sentence from the professional, write a polished short description.
 Rules:
-- Maximum 100 characters
+- Maximum 200 characters
 - Write in ${lang === "es" ? "Spanish" : "English"}
 - Professional but warm tone
 - Focus on what the client gets
@@ -75,9 +75,9 @@ Rules:
     const data = await response.json();
     let result = data.choices?.[0]?.message?.content?.trim() ?? "";
 
-    // Enforce 100 char limit
-    if (result.length > 100) {
-      result = result.substring(0, 97) + "...";
+    // Enforce 200 char limit
+    if (result.length > 200) {
+      result = result.substring(0, 197) + "...";
     }
 
     return new Response(JSON.stringify({ description: result }), {
