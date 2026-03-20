@@ -201,6 +201,7 @@ const Index = () => {
         </div>
       </section>
       )}
+      </LazySection>
 
       {/* ─── PAYMENT PROTECTION (gated: escrow-beta) ─── */}
       {isRolloutActive('escrow-beta') && (<>
