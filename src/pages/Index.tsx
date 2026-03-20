@@ -63,7 +63,7 @@ const Index = () => {
       {/* ─── 1. HERO ─── */}
       <HeroBanner
         imageSrc={heroHome}
-        title={t('hero.title')}
+        imageSrcSet={{ '400w': heroHome400, '800w': heroHome800 }}
         subtitle={t('hero.subtitle')}
         height="full"
         action={
