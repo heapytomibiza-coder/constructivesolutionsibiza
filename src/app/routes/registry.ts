@@ -306,5 +306,6 @@ export const allRoutes: RouteConfig[] = [
   ...clientRoutes,
   ...proOnboardingRoutes,
   ...proDashboardRoutes,
+  ...disputeRoutes,
   ...adminRoutes,
 ];
