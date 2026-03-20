@@ -142,59 +142,15 @@ export default function ListingsSection() {
                         {format(new Date(listing.updated_at), "dd MMM yyyy")}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="gap-1"
-                            onClick={() => setPreviewId(listing.id)}
-                          >
-                            <Search className="h-3 w-3" />
-                            Review
-                          </Button>
-                          {listing.status === "draft" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1"
-                              onClick={() =>
-                                updateStatusMutation.mutate({ id: listing.id, newStatus: "live" })
-                              }
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              <CheckCircle2 className="h-3 w-3" />
-                              Approve
-                            </Button>
-                          )}
-                          {listing.status === "live" && (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              className="gap-1"
-                              onClick={() =>
-                                updateStatusMutation.mutate({ id: listing.id, newStatus: "paused" })
-                              }
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              <XCircle className="h-3 w-3" />
-                              Take Down
-                            </Button>
-                          )}
-                          {listing.status === "paused" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1"
-                              onClick={() =>
-                                updateStatusMutation.mutate({ id: listing.id, newStatus: "live" })
-                              }
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              <CheckCircle2 className="h-3 w-3" />
-                              Restore
-                            </Button>
-                          )}
-                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="gap-1"
+                          onClick={() => setPreviewId(listing.id)}
+                        >
+                          <Search className="h-3 w-3" />
+                          Review
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
