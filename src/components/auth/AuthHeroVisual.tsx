@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import heroAuth from '@/assets/heroes/hero-auth.jpg';
+import heroAuth from '@/assets/heroes/hero-auth.webp';
 
 interface AuthHeroVisualProps {
   className?: string;

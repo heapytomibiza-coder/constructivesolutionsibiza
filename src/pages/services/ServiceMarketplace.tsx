@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { Shield, Store } from 'lucide-react';
-import heroServices from '@/assets/heroes/hero-services.jpg';
+import heroServices from '@/assets/heroes/hero-services.webp';
 import { useServiceListingsBrowse } from './queries/serviceListings.query';
 import { ServiceListingCardComponent } from './ServiceListingCard';
 import { CardSkeleton } from '@/components/CardSkeleton';

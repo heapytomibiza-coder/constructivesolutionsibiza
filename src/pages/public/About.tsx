@@ -7,7 +7,7 @@ import {
   Hammer, Shield, Target, Globe, TrendingUp, Heart,
   ArrowRight, CheckCircle, Clock, Star, Users,
 } from 'lucide-react';
-import heroAbout from '@/assets/heroes/hero-about.jpg';
+import heroAbout from '@/assets/heroes/hero-about.webp';
 
 export default function About() {
   const { t } = useTranslation('common');

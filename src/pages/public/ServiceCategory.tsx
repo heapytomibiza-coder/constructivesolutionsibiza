@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowRight, Shield, Users } from 'lucide-react';
-import heroServices from '@/assets/heroes/hero-services.jpg';
+import heroServices from '@/assets/heroes/hero-services.webp';
 import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 

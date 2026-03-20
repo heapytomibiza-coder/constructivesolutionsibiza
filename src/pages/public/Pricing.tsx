@@ -8,7 +8,7 @@ import {
   Shield, CheckCircle, ArrowRight, Award, Star,
   Users, FileText, Search, Bell, Briefcase, Calculator,
 } from 'lucide-react';
-import heroImg from '@/assets/heroes/hero-pricing.jpg';
+import heroImg from '@/assets/heroes/hero-pricing.webp';
 
 const PLANS = [
   {
