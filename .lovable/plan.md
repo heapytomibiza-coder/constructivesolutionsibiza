@@ -1,77 +1,112 @@
 
 
-# Installation Plan: Dispute & Resolution Framework Document
+# Dispute Engine Hardening Plan
 
-## What the document contains
-
-The PDF has 4 distinct deliverables. Here is the best order to install them — foundation first, then public-facing content.
+This plan addresses 10 hardening requirements from the feedback before `escrow-beta` goes live. The work is grouped into three layers: database, backend, and frontend.
 
 ---
 
-## Phase 1: Legal Pack Update (Terms of Service)
-**Why first:** The legal foundation must be in place before the homepage references it.
+## Layer 1 — Database Migration
 
-**What changes:**
-- Expand `public/locales/en/legal.json` → `terms.sections` with the new Payment Terms (section 2), Dispute & Resolution Terms (section 3), Limitation of Liability (section 4), Construction Variability clause (section 5), User Conduct (section 6), and Legal Framework (section 7) from pages 18-26 of the PDF
-- Update `terms.date` to current date
-- Mirror all changes into `public/locales/es/legal.json` (Spanish translations)
-- No code changes needed — the existing `Terms.tsx` component already renders sections dynamically
+A single migration adding constraints, functions, and schema enrichments.
 
-**Scope:** ~2 files (en/es legal.json), content-only
+### 1a. State Machine Enforcement (DB trigger)
+Create a `validate_dispute_status_transition()` trigger function that defines an explicit allowed-transitions map and raises an exception on invalid jumps. This runs `BEFORE UPDATE` on `disputes`.
 
----
+Allowed transitions:
+```text
+draft         → open
+open          → awaiting_counterparty
+awaiting_cp   → evidence_collection
+evidence_coll → assessment
+assessment    → resolution_offered / escalated
+resolution_of → awaiting_acceptance / escalated
+awaiting_acc  → resolved / escalated
+resolved      → closed
+escalated     → closed
+(any)         → closed  (admin override)
+```
 
-## Phase 2: Dispute Policy Enrichment
-**Why second:** The existing dispute policy is already solid but the PDF adds richer Stage 0 (pre-dispute prevention), stronger payment control language, and the "What We Provide / Don't Provide" clarity section.
+### 1b. Evidence Schema Enrichment
+Add columns to `dispute_evidence`:
+- `submitted_by_role TEXT` (client/professional)
+- `evidence_category TEXT` (photo, video, invoice, message, plan, receipt)
+- `related_issue_type dispute_issue_type`
+- `is_visible_to_counterparty BOOLEAN DEFAULT true`
 
-**What changes:**
-- Update `public/locales/en/legal.json` → `dispute` section with:
-  - New Stage 0 (Pre-Dispute Prevention) before Stage 1
-  - Enhanced payment control & release section (pages 8-9)
-  - "What Constructive Solutions Provides / Does Not Provide" section
-  - Stronger summary section
-- Mirror to Spanish locale
-- No component changes — `DisputePolicy.tsx` already handles stages dynamically
+### 1c. Analysis Idempotency
+Add `is_current BOOLEAN DEFAULT true` to `dispute_analysis`. Add a trigger that sets `is_current = false` on all previous rows for the same `dispute_id` when a new row is inserted.
 
-**Scope:** ~2 files, content-only
+### 1d. Case Completeness Function
+Create `rpc_dispute_completeness(p_dispute_id UUID)` as a `SECURITY DEFINER` function returning a JSON object with boolean checks:
+- `has_statement`, `has_questionnaire`, `has_evidence`, `has_counterparty_response`, `evidence_count`, `has_scope`
+- Plus an overall `level` field: `low`, `medium`, `high`.
 
----
-
-## Phase 3: Homepage Conversion Copy
-**Why third:** Now the legal backing exists, the homepage can confidently reference payment protection and dispute resolution.
-
-**What changes:**
-- Update `public/locales/en/common.json` with the high-conversion copy from pages 11-17:
-  - Hero: "Build with Confidence. Get Paid with Certainty."
-  - Trust strip: Milestone-Based Payments, Final Payment Protection, Verified Professionals, 28-Day Resolution, No Large Upfront Risk
-  - Problem/Solution narrative section
-  - "How It Works" 4-step flow (already exists, update copy)
-  - Payment Protection section (new)
-  - For Professionals / For Clients benefit blocks
-  - Final CTA
-- Update `src/pages/Index.tsx` to add:
-  - Trust strip bar below hero
-  - Problem/Solution section
-  - Payment Protection section
-  - Dual audience blocks (For Professionals / For Clients)
-- Mirror to Spanish locale
-
-**Scope:** ~3 files (Index.tsx, en/common.json, es/common.json)
+### 1e. AI Audit Log Table
+Create `dispute_ai_events` table:
+- `id`, `dispute_id`, `event_type` (analysis_requested, analysis_completed, analysis_failed, analysis_superseded, manual_override), `metadata JSONB`, `created_at`
 
 ---
 
-## Phase 4: NOT included (future roadmap)
-Pages 27-50 cover investor visuals, AI automation ("Constructive Intelligence"), voice-to-case engine, guided question flows, and UX wireframes. These are **product vision documents**, not installable content. They inform future feature development (milestone payments, AI dispute engine, snagging mode) but require significant backend architecture that maps to your `escrow-beta` and `scale-ready` rollout phases.
+## Layer 2 — Backend (Edge Function + Domain Logic)
+
+### 2a. Harden `analyze-dispute` Edge Function
+- After parsing AI tool output, validate: `confidence_score` in 0..1, `suggested_pathway` in allowed enum, arrays capped at 20 items, `summary_neutral` max 2000 chars, no empty required fields.
+- On insert, write to `dispute_ai_events` (analysis_requested before call, analysis_completed/failed after).
+- Use the `is_current` flag pattern instead of blind insert.
+- Broaden human review triggers: also flag if issue contains `damage`, `abandonment`, `communication_conduct`, or if project budget > `manualReviewThresholdEur` from guardrails.
+
+### 2b. Status Transition RPC
+Create `rpc_advance_dispute_status(p_dispute_id UUID, p_new_status TEXT)` as a `SECURITY DEFINER` function that:
+- Validates caller is a party or admin
+- Checks the transition is allowed per the map
+- Updates the dispute
+- Returns the updated record
+
+This replaces scattered `.update()` calls from the client.
 
 ---
 
-## Summary
+## Layer 3 — Frontend
 
-| Phase | Files | Type | Effort |
-|-------|-------|------|--------|
-| 1. Legal Pack | 2 locale files | Content | Medium |
-| 2. Dispute Policy | 2 locale files | Content | Small |
-| 3. Homepage Copy | 3 files | Content + UI | Medium-Large |
+### 3a. Replace Direct Writes with RPC Calls
+- `createDispute.action.ts`: keep the `.insert()` (it's the creation path) but switch status transitions to the new RPC.
+- Add a new `advanceDisputeStatus.action.ts` calling the RPC.
 
-Total: ~7 file changes, no database migrations, no new routes needed.
+### 3b. Case Completeness Display
+In `DisputeDetail.tsx`, fetch completeness via `rpc_dispute_completeness` and render a small progress indicator (e.g., "Case Strength: Medium — 3/5 items submitted") before the AI analysis section.
+
+### 3c. AI Analysis Idempotency in UI
+- Disable "Generate Analysis" button if an `is_current` analysis already exists.
+- Add "Re-analyze" button that creates a new analysis (superseding the old one), with a confirmation prompt.
+
+### 3d. Evidence Metadata in Upload Flow
+Update `EvidenceUploader` to collect `evidence_category` (dropdown: photo, video, invoice, etc.) and pass it through `uploadDisputeEvidence.action.ts`.
+
+---
+
+## What This Does NOT Cover (deferred to next phase)
+
+- Counterparty response flow (notifications + response form) — separate task
+- Admin dispute queue/dashboard — separate task
+- Auto-nudge/deadline automation — separate task
+- Pre-dispute "request correction" mode — separate task
+- Resolution templates — separate task
+- Reputation/behaviour tracking — separate task
+
+---
+
+## Files Changed
+
+| File | Action |
+|---|---|
+| `supabase/migrations/new_hardening.sql` | Create: state machine trigger, evidence columns, `is_current` flag, completeness RPC, AI events table |
+| `supabase/functions/analyze-dispute/index.ts` | Edit: add validation, idempotency, AI event logging, broader human-review rules |
+| `src/pages/disputes/actions/advanceDisputeStatus.action.ts` | Create |
+| `src/pages/disputes/actions/uploadDisputeEvidence.action.ts` | Edit: add `evidence_category` |
+| `src/pages/disputes/actions/analyzeDispute.action.ts` | Minor edit for re-analysis |
+| `src/pages/disputes/components/EvidenceUploader.tsx` | Edit: category dropdown |
+| `src/pages/disputes/components/CompletenessIndicator.tsx` | Create |
+| `src/pages/disputes/DisputeDetail.tsx` | Edit: completeness display, analysis idempotency |
+| `src/pages/disputes/types.ts` | Edit: add new types |
 
