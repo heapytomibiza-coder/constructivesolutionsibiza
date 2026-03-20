@@ -34,7 +34,6 @@ export function useProfessionalServices() {
       if (!user?.id) throw new Error('Not authenticated');
 
       if (isSelected) {
-        // Add the service
         const { error } = await supabase
           .from('professional_services')
           .upsert({
@@ -44,14 +43,7 @@ export function useProfessionalServices() {
           }, { onConflict: 'user_id,micro_id' });
 
         if (error) throw error;
-
-        // Auto-create draft service listing
-        await supabase.rpc('create_draft_service_listings', {
-          p_provider_id: user.id,
-          p_micro_ids: [microId],
-        });
       } else {
-        // Remove the service
         const { error } = await supabase
           .from('professional_services')
           .delete()
@@ -61,11 +53,12 @@ export function useProfessionalServices() {
         if (error) throw error;
       }
 
-      // Update services count
       await updateServicesCount(user.id);
+      await syncServiceListings(user.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professional-services-binary'] });
+      queryClient.invalidateQueries({ queryKey: ['my-listings'] });
     },
     onError: (error) => {
       console.error('Error toggling service:', error);
@@ -90,16 +83,13 @@ export function useProfessionalServices() {
         .upsert(inserts, { onConflict: 'user_id,micro_id' });
 
       if (error) throw error;
-      await updateServicesCount(user.id);
 
-      // Auto-create draft service listings for newly added micros
-      await supabase.rpc('create_draft_service_listings', {
-        p_provider_id: user.id,
-        p_micro_ids: microIds,
-      });
+      await updateServicesCount(user.id);
+      await syncServiceListings(user.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professional-services-binary'] });
+      queryClient.invalidateQueries({ queryKey: ['my-listings'] });
     },
     onError: (error) => {
       console.error('Error bulk adding services:', error);
@@ -120,10 +110,13 @@ export function useProfessionalServices() {
         .in('micro_id', microIds);
 
       if (error) throw error;
+
       await updateServicesCount(user.id);
+      await syncServiceListings(user.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professional-services-binary'] });
+      queryClient.invalidateQueries({ queryKey: ['my-listings'] });
     },
     onError: (error) => {
       console.error('Error bulk removing services:', error);
@@ -142,15 +135,27 @@ export function useProfessionalServices() {
   };
 }
 
+async function syncServiceListings(userId: string) {
+  const { error } = await supabase.rpc('sync_service_listings_for_provider', {
+    p_provider_id: userId,
+  });
+
+  if (error) throw error;
+}
+
 // Helper to update services count on profile
 async function updateServicesCount(userId: string) {
-  const { count } = await supabase
+  const { count, error: countError } = await supabase
     .from('professional_services')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId);
 
-  await supabase
+  if (countError) throw countError;
+
+  const { error: profileError } = await supabase
     .from('professional_profiles')
     .update({ services_count: count || 0 })
     .eq('user_id', userId);
+
+  if (profileError) throw profileError;
 }
