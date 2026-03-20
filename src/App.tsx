@@ -106,6 +106,10 @@ const TopSourcesPage = lazy(() => import("./pages/admin/insights/TopSourcesPage"
 const MessagingPulsePage = lazy(() => import("./pages/admin/insights/MessagingPulsePage"));
 const MonitoringPage = lazy(() => import("./pages/admin/monitoring/MonitoringPage"));
 
+// Disputes
+const RaiseDispute = lazy(() => import("./pages/disputes/RaiseDispute"));
+const DisputeDetail = lazy(() => import("./pages/disputes/DisputeDetail"));
+
 // Launch Checklist
 const LaunchChecklist = lazy(() => import("./pages/LaunchChecklist"));
 import { ReportIssueWidget } from "./components/ReportIssueWidget";
