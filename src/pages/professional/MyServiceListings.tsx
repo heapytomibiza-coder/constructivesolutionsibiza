@@ -5,6 +5,7 @@
  * Supports ?welcome=1 query param after first Go Live to show
  * a clear "profile is live, now publish services" banner.
  */
+import { useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,8 +17,11 @@ import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench, CheckCircle2, Rocket 
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { evaluateListingReadiness } from '@/lib/listingPublishRules';
 import { txMicro } from '@/i18n/taxonomyTranslations';
+import { useSession } from '@/contexts/SessionContext';
+import { supabase } from '@/integrations/supabase/client';
 
 /** Calculate profile completeness for a listing */
 function getCompleteness(listing: MyListing): number {
@@ -169,6 +173,19 @@ export default function MyServiceListings() {
   const { data: listings, isLoading } = useMyListings();
   const [searchParams, setSearchParams] = useSearchParams();
   const isWelcome = searchParams.get('welcome') === '1';
+  const { user } = useSession();
+  const queryClient = useQueryClient();
+
+  // Auto-reconcile on page load: self-heal any drift from failed syncs
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.rpc('sync_service_listings_for_provider', { p_provider_id: user.id })
+      .then(({ error }) => {
+        if (!error) {
+          queryClient.invalidateQueries({ queryKey: ['my-listings'] });
+        }
+      });
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear welcome param from URL after first render (keeps URL clean)
   const handleDismissWelcome = () => {

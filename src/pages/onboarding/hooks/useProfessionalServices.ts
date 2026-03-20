@@ -140,7 +140,18 @@ async function syncServiceListings(userId: string) {
     p_provider_id: userId,
   });
 
-  if (error) throw error;
+  if (error) {
+    console.warn('[syncServiceListings] First attempt failed, retrying…', error.message);
+    // One retry after short delay
+    await new Promise(r => setTimeout(r, 1000));
+    const { error: retryError } = await supabase.rpc('sync_service_listings_for_provider', {
+      p_provider_id: userId,
+    });
+    if (retryError) {
+      console.error('[syncServiceListings] Retry also failed', retryError.message);
+      // Don't throw — the service mutation already committed; drift will self-heal on next page load
+    }
+  }
 }
 
 // Helper to update services count on profile
