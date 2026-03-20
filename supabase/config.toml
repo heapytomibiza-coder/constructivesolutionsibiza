@@ -19,5 +19,7 @@ verify_jwt = false
 verify_jwt = false
 
 
-[functions.search-stock-photos]
+
+[functions.analyze-dispute]
+verify_jwt = false
 verify_jwt = false
