@@ -445,6 +445,7 @@ const Index = () => {
       </section>
       </LazySection>
 
+      <LazySection minHeight={300}>
       {/* ─── WHY CHOOSE US — Comparison ─── */}
       <section className="py-20 bg-background">
         <div className="container">
