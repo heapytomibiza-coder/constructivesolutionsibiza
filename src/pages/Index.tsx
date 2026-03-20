@@ -64,6 +64,7 @@ const Index = () => {
       <HeroBanner
         imageSrc={heroHome}
         imageSrcSet={{ '400w': heroHome400, '800w': heroHome800 }}
+        title={t('hero.title')}
         subtitle={t('hero.subtitle')}
         height="full"
         action={
