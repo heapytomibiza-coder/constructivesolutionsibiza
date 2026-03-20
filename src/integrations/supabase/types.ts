@@ -243,6 +243,322 @@ export type Database = {
           },
         ]
       }
+      dispute_analysis: {
+        Row: {
+          agreed_facts: Json | null
+          confidence_score: number | null
+          created_at: string
+          dispute_id: string
+          disputed_points: Json | null
+          id: string
+          issue_types:
+            | Database["public"]["Enums"]["dispute_issue_type"][]
+            | null
+          missing_evidence: Json | null
+          raw_ai_response: Json | null
+          requires_human_review: boolean | null
+          suggested_pathway:
+            | Database["public"]["Enums"]["resolution_pathway"]
+            | null
+          summary_neutral: string | null
+        }
+        Insert: {
+          agreed_facts?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          dispute_id: string
+          disputed_points?: Json | null
+          id?: string
+          issue_types?:
+            | Database["public"]["Enums"]["dispute_issue_type"][]
+            | null
+          missing_evidence?: Json | null
+          raw_ai_response?: Json | null
+          requires_human_review?: boolean | null
+          suggested_pathway?:
+            | Database["public"]["Enums"]["resolution_pathway"]
+            | null
+          summary_neutral?: string | null
+        }
+        Update: {
+          agreed_facts?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          dispute_id?: string
+          disputed_points?: Json | null
+          id?: string
+          issue_types?:
+            | Database["public"]["Enums"]["dispute_issue_type"][]
+            | null
+          missing_evidence?: Json | null
+          raw_ai_response?: Json | null
+          requires_human_review?: boolean | null
+          suggested_pathway?:
+            | Database["public"]["Enums"]["resolution_pathway"]
+            | null
+          summary_neutral?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_analysis_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispute_evidence: {
+        Row: {
+          created_at: string
+          description: string | null
+          dispute_id: string
+          file_name: string | null
+          file_path: string
+          file_size_bytes: number | null
+          file_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          dispute_id: string
+          file_name?: string | null
+          file_path: string
+          file_size_bytes?: number | null
+          file_type?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          dispute_id?: string
+          file_name?: string | null
+          file_path?: string
+          file_size_bytes?: number | null
+          file_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_evidence_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispute_inputs: {
+        Row: {
+          created_at: string
+          dispute_id: string
+          id: string
+          input_type: string
+          questionnaire_answers: Json | null
+          raw_text: string | null
+          transcript: string | null
+          user_id: string
+          voice_file_path: string | null
+        }
+        Insert: {
+          created_at?: string
+          dispute_id: string
+          id?: string
+          input_type?: string
+          questionnaire_answers?: Json | null
+          raw_text?: string | null
+          transcript?: string | null
+          user_id: string
+          voice_file_path?: string | null
+        }
+        Update: {
+          created_at?: string
+          dispute_id?: string
+          id?: string
+          input_type?: string
+          questionnaire_answers?: Json | null
+          raw_text?: string | null
+          transcript?: string | null
+          user_id?: string
+          voice_file_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_inputs_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispute_status_history: {
+        Row: {
+          change_source: string
+          changed_by: string | null
+          created_at: string
+          dispute_id: string
+          from_status: Database["public"]["Enums"]["dispute_status"] | null
+          id: string
+          metadata: Json | null
+          to_status: Database["public"]["Enums"]["dispute_status"]
+        }
+        Insert: {
+          change_source?: string
+          changed_by?: string | null
+          created_at?: string
+          dispute_id: string
+          from_status?: Database["public"]["Enums"]["dispute_status"] | null
+          id?: string
+          metadata?: Json | null
+          to_status: Database["public"]["Enums"]["dispute_status"]
+        }
+        Update: {
+          change_source?: string
+          changed_by?: string | null
+          created_at?: string
+          dispute_id?: string
+          from_status?: Database["public"]["Enums"]["dispute_status"] | null
+          id?: string
+          metadata?: Json | null
+          to_status?: Database["public"]["Enums"]["dispute_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_status_history_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disputes: {
+        Row: {
+          ai_confidence_score: number | null
+          closed_at: string | null
+          counterparty_id: string | null
+          counterparty_responded_at: string | null
+          created_at: string
+          evidence_deadline: string | null
+          human_review_required: boolean | null
+          id: string
+          issue_types: Database["public"]["Enums"]["dispute_issue_type"][]
+          job_id: string
+          milestone_label: string | null
+          raised_by: string
+          raised_by_role: string
+          recommended_pathway:
+            | Database["public"]["Enums"]["resolution_pathway"]
+            | null
+          requested_outcome: string | null
+          resolution_accepted_at: string | null
+          resolution_description: string | null
+          resolution_type:
+            | Database["public"]["Enums"]["resolution_pathway"]
+            | null
+          resolved_at: string | null
+          response_deadline: string | null
+          secondary_tags: string[] | null
+          status: Database["public"]["Enums"]["dispute_status"]
+          summary_neutral: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_confidence_score?: number | null
+          closed_at?: string | null
+          counterparty_id?: string | null
+          counterparty_responded_at?: string | null
+          created_at?: string
+          evidence_deadline?: string | null
+          human_review_required?: boolean | null
+          id?: string
+          issue_types?: Database["public"]["Enums"]["dispute_issue_type"][]
+          job_id: string
+          milestone_label?: string | null
+          raised_by: string
+          raised_by_role?: string
+          recommended_pathway?:
+            | Database["public"]["Enums"]["resolution_pathway"]
+            | null
+          requested_outcome?: string | null
+          resolution_accepted_at?: string | null
+          resolution_description?: string | null
+          resolution_type?:
+            | Database["public"]["Enums"]["resolution_pathway"]
+            | null
+          resolved_at?: string | null
+          response_deadline?: string | null
+          secondary_tags?: string[] | null
+          status?: Database["public"]["Enums"]["dispute_status"]
+          summary_neutral?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_confidence_score?: number | null
+          closed_at?: string | null
+          counterparty_id?: string | null
+          counterparty_responded_at?: string | null
+          created_at?: string
+          evidence_deadline?: string | null
+          human_review_required?: boolean | null
+          id?: string
+          issue_types?: Database["public"]["Enums"]["dispute_issue_type"][]
+          job_id?: string
+          milestone_label?: string | null
+          raised_by?: string
+          raised_by_role?: string
+          recommended_pathway?:
+            | Database["public"]["Enums"]["resolution_pathway"]
+            | null
+          requested_outcome?: string | null
+          resolution_accepted_at?: string | null
+          resolution_description?: string | null
+          resolution_type?:
+            | Database["public"]["Enums"]["resolution_pathway"]
+            | null
+          resolved_at?: string | null
+          response_deadline?: string | null
+          secondary_tags?: string[] | null
+          status?: Database["public"]["Enums"]["dispute_status"]
+          summary_neutral?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_notifications_queue: {
         Row: {
           attempts: number
@@ -2708,7 +3024,34 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      dispute_issue_type:
+        | "quality"
+        | "completion"
+        | "delay"
+        | "payment"
+        | "scope_change"
+        | "materials"
+        | "access_site_conditions"
+        | "communication_conduct"
+        | "damage"
+        | "abandonment"
+        | "pricing_variation"
+      dispute_status:
+        | "draft"
+        | "open"
+        | "awaiting_counterparty"
+        | "evidence_collection"
+        | "assessment"
+        | "resolution_offered"
+        | "awaiting_acceptance"
+        | "resolved"
+        | "closed"
+        | "escalated"
+      resolution_pathway:
+        | "corrective_work"
+        | "financial_adjustment"
+        | "shared_responsibility"
+        | "expert_review"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2835,6 +3178,38 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      dispute_issue_type: [
+        "quality",
+        "completion",
+        "delay",
+        "payment",
+        "scope_change",
+        "materials",
+        "access_site_conditions",
+        "communication_conduct",
+        "damage",
+        "abandonment",
+        "pricing_variation",
+      ],
+      dispute_status: [
+        "draft",
+        "open",
+        "awaiting_counterparty",
+        "evidence_collection",
+        "assessment",
+        "resolution_offered",
+        "awaiting_acceptance",
+        "resolved",
+        "closed",
+        "escalated",
+      ],
+      resolution_pathway: [
+        "corrective_work",
+        "financial_adjustment",
+        "shared_responsibility",
+        "expert_review",
+      ],
+    },
   },
 } as const
