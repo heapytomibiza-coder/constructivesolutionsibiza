@@ -16,7 +16,7 @@ import { EmptyState } from '@/shared/components';
 const ServiceMarketplace = () => {
   const { t } = useTranslation('common');
   const [searchParams] = useSearchParams();
-  const categoryFilter = searchParams.get('category') ?? undefined;
+  const categoryFilter = searchParams.get('category') || undefined;
 
   const {
     data,
@@ -24,7 +24,7 @@ const ServiceMarketplace = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useServiceListingsBrowse(categoryFilter);
+  } = useServiceListingsBrowse(categoryFilter ? { category: categoryFilter } : {});
 
   const listings = data?.pages.flatMap((p) => p.data) ?? [];
   const totalCount = data?.pages[0]?.totalCount ?? 0;

@@ -56,21 +56,112 @@ export interface ServiceListingDetail {
   created_at: string;
 }
 
+export interface BrowseFilters {
+  category?: string;
+  subcategory?: string;
+  micro?: string;
+  sort?: 'newest' | 'price_asc';
+}
+
+// ─── Filter options (lightweight, no pagination) ───
+
+interface FilterOption {
+  slug: string;
+  name: string;
+}
+
+export interface ServiceFilterOptions {
+  categories: FilterOption[];
+  subcategories: FilterOption[];
+  micros: FilterOption[];
+}
+
+async function fetchFilterOptions(filters: BrowseFilters): Promise<ServiceFilterOptions> {
+  // Always fetch categories
+  const catQuery = supabase
+    .from('service_listings_browse')
+    .select('category_slug, category_name')
+    .not('category_slug', 'is', null);
+
+  const { data: catRows } = await catQuery;
+  const catMap = new Map<string, string>();
+  for (const r of catRows ?? []) {
+    if (r.category_slug && r.category_name) catMap.set(r.category_slug, r.category_name);
+  }
+
+  let subMap = new Map<string, string>();
+  let microMap = new Map<string, string>();
+
+  // Fetch subcategories only if a category is selected
+  if (filters.category) {
+    const { data: subRows } = await supabase
+      .from('service_listings_browse')
+      .select('subcategory_slug, subcategory_name')
+      .eq('category_slug', filters.category)
+      .not('subcategory_slug', 'is', null);
+
+    for (const r of subRows ?? []) {
+      if (r.subcategory_slug && r.subcategory_name) subMap.set(r.subcategory_slug, r.subcategory_name);
+    }
+  }
+
+  // Fetch micros only if a subcategory is selected
+  if (filters.subcategory) {
+    const { data: microRows } = await supabase
+      .from('service_listings_browse')
+      .select('micro_slug, micro_name')
+      .eq('subcategory_slug', filters.subcategory)
+      .not('micro_slug', 'is', null);
+
+    for (const r of microRows ?? []) {
+      if (r.micro_slug && r.micro_name) microMap.set(r.micro_slug, r.micro_name);
+    }
+  }
+
+  const toSorted = (m: Map<string, string>): FilterOption[] =>
+    Array.from(m.entries())
+      .map(([slug, name]) => ({ slug, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+  return {
+    categories: toSorted(catMap),
+    subcategories: toSorted(subMap),
+    micros: toSorted(microMap),
+  };
+}
+
+export function useServiceFilterOptions(filters: BrowseFilters) {
+  return useQuery({
+    queryKey: ['service-filter-options', filters.category, filters.subcategory],
+    queryFn: () => fetchFilterOptions(filters),
+    staleTime: 60_000,
+  });
+}
+
+// ─── Paginated browse ───
+
 async function fetchListingsPage({
   page,
-  categoryFilter,
+  filters,
 }: {
   page: number;
-  categoryFilter?: string;
+  filters: BrowseFilters;
 }) {
+  const orderCol = filters.sort === 'price_asc' ? 'starting_price' : 'published_at';
+  const ascending = filters.sort === 'price_asc';
+
   let query = supabase
     .from('service_listings_browse')
     .select('*', { count: 'exact' })
-    .order('published_at', { ascending: false })
+    .order(orderCol, { ascending, nullsFirst: false })
     .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
-  if (categoryFilter) {
-    query = query.eq('category_slug', categoryFilter);
+  if (filters.micro) {
+    query = query.eq('micro_slug', filters.micro);
+  } else if (filters.subcategory) {
+    query = query.eq('subcategory_slug', filters.subcategory);
+  } else if (filters.category) {
+    query = query.eq('category_slug', filters.category);
   }
 
   const { data, error, count } = await query;
@@ -84,14 +175,13 @@ async function fetchListingsPage({
 }
 
 /**
- * Server-side paginated service listings browse.
- * Uses useInfiniteQuery for "Load More" UX.
+ * Server-side paginated + filtered service listings browse.
  */
-export function useServiceListingsBrowse(categoryFilter?: string) {
+export function useServiceListingsBrowse(filters: BrowseFilters = {}) {
   return useInfiniteQuery({
-    queryKey: ['service-listings-browse', categoryFilter],
+    queryKey: ['service-listings-browse', filters],
     queryFn: ({ pageParam = 0 }) =>
-      fetchListingsPage({ page: pageParam, categoryFilter }),
+      fetchListingsPage({ page: pageParam, filters }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.hasMore ? allPages.length : undefined,
@@ -99,16 +189,13 @@ export function useServiceListingsBrowse(categoryFilter?: string) {
   });
 }
 
-/**
- * Fetch a single service listing detail.
- * Parallelized queries for faster load.
- */
+// ─── Detail ───
+
 export function useServiceListingDetail(listingId: string | undefined) {
   return useQuery({
     queryKey: ['service-listing-detail', listingId],
     enabled: !!listingId,
     queryFn: async () => {
-      // Step 1: Fetch listing first (needed for provider_id and micro_id)
       const { data: listing, error: listingError } = await supabase
         .from('service_listings')
         .select('*')
@@ -119,7 +206,6 @@ export function useServiceListingDetail(listingId: string | undefined) {
       if (listingError) throw listingError;
       if (!listing) throw new Error('Listing not found');
 
-      // Step 2: Fetch pricing, provider, and micro IN PARALLEL
       const [pricingResult, providerResult, microResult] = await Promise.all([
         supabase
           .from('service_pricing_items')
@@ -147,7 +233,6 @@ export function useServiceListingDetail(listingId: string | undefined) {
       };
       const micro = microResult.data ?? { name: null, slug: null, subcategory_id: null };
 
-      // Step 3: Fetch taxonomy (only if micro has subcategory)
       let categoryName: string | null = null;
       let subcategoryName: string | null = null;
 
@@ -171,7 +256,6 @@ export function useServiceListingDetail(listingId: string | undefined) {
         }
       }
 
-      // Fire-and-forget view tracking
       supabase
         .from('service_views')
         .insert({ service_listing_id: listingId! })

@@ -1,11 +1,10 @@
-import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { PublicLayout, HeroBanner } from '@/components/layout';
 import { CardSkeleton } from '@/components/CardSkeleton';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { Shield, Store, X } from 'lucide-react';
+import { Shield, Store, X, Loader2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -14,70 +13,43 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import heroServices from '@/assets/heroes/hero-services.webp';
-import { useServiceListingsBrowse } from '@/pages/services/queries/serviceListings.query';
+import {
+  useServiceListingsBrowse,
+  useServiceFilterOptions,
+  type BrowseFilters,
+} from '@/pages/services/queries/serviceListings.query';
 import { ServiceListingCardComponent } from '@/pages/services/ServiceListingCard';
 
 const ALL = '__all__';
 
 const Services = () => {
   const { t } = useTranslation('common');
-  const { data: rawData, isLoading } = useServiceListingsBrowse();
-  const listings = rawData?.pages.flatMap((p) => p.data) ?? undefined;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const category = searchParams.get('category') ?? '';
   const subcategory = searchParams.get('subcategory') ?? '';
   const micro = searchParams.get('micro') ?? '';
-  const sort = searchParams.get('sort') ?? 'newest';
+  const sort = (searchParams.get('sort') as BrowseFilters['sort']) ?? 'newest';
 
-  // Derive filter options from data
-  const { categories, subcategories, micros } = useMemo(() => {
-    if (!listings) return { categories: [], subcategories: [], micros: [] };
+  const filters: BrowseFilters = {
+    ...(category && { category }),
+    ...(subcategory && { subcategory }),
+    ...(micro && { micro }),
+    sort,
+  };
 
-    const catMap = new Map<string, string>();
-    const subMap = new Map<string, string>();
-    const microMap = new Map<string, string>();
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useServiceListingsBrowse(filters);
 
-    for (const l of listings) {
-      if (l.category_slug && l.category_name) catMap.set(l.category_slug, l.category_name);
-      if (category && l.category_slug === category && l.subcategory_slug && l.subcategory_name)
-        subMap.set(l.subcategory_slug, l.subcategory_name);
-      if (subcategory && l.subcategory_slug === subcategory && l.micro_slug && l.micro_name)
-        microMap.set(l.micro_slug, l.micro_name);
-    }
+  const { data: filterOptions } = useServiceFilterOptions(filters);
 
-    return {
-      categories: Array.from(catMap.entries()).sort((a, b) => a[1].localeCompare(b[1])),
-      subcategories: Array.from(subMap.entries()).sort((a, b) => a[1].localeCompare(b[1])),
-      micros: Array.from(microMap.entries()).sort((a, b) => a[1].localeCompare(b[1])),
-    };
-  }, [listings, category, subcategory]);
-
-  // Filter + sort
-  const filtered = useMemo(() => {
-    if (!listings) return [];
-    let result = [...listings];
-
-    if (micro) {
-      result = result.filter((l) => l.micro_slug === micro);
-    } else if (subcategory) {
-      result = result.filter((l) => l.subcategory_slug === subcategory);
-    } else if (category) {
-      result = result.filter((l) => l.category_slug === category);
-    }
-
-    if (sort === 'price_asc') {
-      result.sort((a, b) => (a.starting_price ?? Infinity) - (b.starting_price ?? Infinity));
-    } else {
-      result.sort(
-        (a, b) =>
-          new Date(b.published_at ?? b.created_at).getTime() -
-          new Date(a.published_at ?? a.created_at).getTime()
-      );
-    }
-
-    return result;
-  }, [listings, category, subcategory, micro, sort]);
+  const listings = data?.pages.flatMap((p) => p.data) ?? [];
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const hasActiveFilters = category || subcategory || micro;
 
@@ -86,23 +58,12 @@ const Services = () => {
       const next = new URLSearchParams(prev);
       if (!value || value === ALL) {
         next.delete(key);
-        // Cascade reset
-        if (key === 'category') {
-          next.delete('subcategory');
-          next.delete('micro');
-        }
-        if (key === 'subcategory') {
-          next.delete('micro');
-        }
+        if (key === 'category') { next.delete('subcategory'); next.delete('micro'); }
+        if (key === 'subcategory') { next.delete('micro'); }
       } else {
         next.set(key, value);
-        if (key === 'category') {
-          next.delete('subcategory');
-          next.delete('micro');
-        }
-        if (key === 'subcategory') {
-          next.delete('micro');
-        }
+        if (key === 'category') { next.delete('subcategory'); next.delete('micro'); }
+        if (key === 'subcategory') { next.delete('micro'); }
       }
       return next;
     });
@@ -117,6 +78,10 @@ const Services = () => {
       return next;
     });
   }
+
+  const categories = filterOptions?.categories ?? [];
+  const subcategories = filterOptions?.subcategories ?? [];
+  const micros = filterOptions?.micros ?? [];
 
   return (
     <PublicLayout>
@@ -136,50 +101,41 @@ const Services = () => {
       <div className="container py-12">
         {/* Filter Bar */}
         <div className="flex flex-wrap items-center gap-3 mb-8">
-          <Select
-            value={category || ALL}
-            onValueChange={(v) => setFilter('category', v)}
-          >
+          <Select value={category || ALL} onValueChange={(v) => setFilter('category', v)}>
             <SelectTrigger className="w-[180px] bg-card">
               <SelectValue placeholder={t('services.filterCategory', 'Category')} />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
               <SelectItem value={ALL}>{t('services.allCategories', 'All Categories')}</SelectItem>
-              {categories.map(([slug, name]) => (
-                <SelectItem key={slug} value={slug}>{name}</SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           {category && subcategories.length > 0 && (
-            <Select
-              value={subcategory || ALL}
-              onValueChange={(v) => setFilter('subcategory', v)}
-            >
+            <Select value={subcategory || ALL} onValueChange={(v) => setFilter('subcategory', v)}>
               <SelectTrigger className="w-[180px] bg-card">
                 <SelectValue placeholder={t('services.filterService', 'Service')} />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
                 <SelectItem value={ALL}>{t('services.allServices', 'All Services')}</SelectItem>
-                {subcategories.map(([slug, name]) => (
-                  <SelectItem key={slug} value={slug}>{name}</SelectItem>
+                {subcategories.map((s) => (
+                  <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
 
           {subcategory && micros.length > 0 && (
-            <Select
-              value={micro || ALL}
-              onValueChange={(v) => setFilter('micro', v)}
-            >
+            <Select value={micro || ALL} onValueChange={(v) => setFilter('micro', v)}>
               <SelectTrigger className="w-[180px] bg-card">
                 <SelectValue placeholder={t('services.filterTask', 'Task')} />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
                 <SelectItem value={ALL}>{t('services.allTasks', 'All Tasks')}</SelectItem>
-                {micros.map(([slug, name]) => (
-                  <SelectItem key={slug} value={slug}>{name}</SelectItem>
+                {micros.map((m) => (
+                  <SelectItem key={m.slug} value={m.slug}>{m.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -219,12 +175,37 @@ const Services = () => {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <CardSkeleton count={8} />
           </div>
-        ) : filtered.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filtered.map((listing) => (
-              <ServiceListingCardComponent key={listing.id} listing={listing} />
-            ))}
-          </div>
+        ) : listings.length > 0 ? (
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {listings.map((listing) => (
+                <ServiceListingCardComponent key={listing.id} listing={listing} />
+              ))}
+            </div>
+
+            {hasNextPage && (
+              <div className="flex justify-center mt-10">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      {t('services.loading', 'Loading…')}
+                    </>
+                  ) : (
+                    t('services.loadMore', {
+                      defaultValue: 'Load More ({{count}} remaining)',
+                      count: totalCount - listings.length,
+                    })
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <EmptyState
             icon={<Store className="h-8 w-8" />}
