@@ -210,9 +210,35 @@ export function usePauseListing() {
 
 export function useUnpauseListing() {
   const qc = useQueryClient();
+  const { user } = useSession();
 
   return useMutation({
     mutationFn: async (listingId: string) => {
+      if (!user?.id) throw new Error('Not authenticated');
+
+      // Fetch the listing's micro_id
+      const { data: listing, error: fetchErr } = await supabase
+        .from('service_listings')
+        .select('micro_id')
+        .eq('id', listingId)
+        .eq('provider_id', user.id)
+        .single();
+
+      if (fetchErr || !listing) throw new Error('Listing not found');
+
+      // Guard: verify the micro is still in professional_services
+      const { data: svc, error: svcErr } = await supabase
+        .from('professional_services')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('micro_id', listing.micro_id)
+        .maybeSingle();
+
+      if (svcErr) throw svcErr;
+      if (!svc) {
+        throw new Error('This service is no longer in your selected services. Re-add it first.');
+      }
+
       const { error } = await supabase
         .from('service_listings')
         .update({ status: 'live' })
@@ -223,6 +249,9 @@ export function useUnpauseListing() {
       toast.success('Listing is live again');
       qc.invalidateQueries({ queryKey: ['listing-detail', listingId] });
       qc.invalidateQueries({ queryKey: ['my-listings'] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to unpause listing');
     },
   });
 }

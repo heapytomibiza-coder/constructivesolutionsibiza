@@ -31,6 +31,15 @@ export function useMyListings() {
     queryKey: ['my-listings', user?.id],
     enabled: !!user,
     queryFn: async () => {
+      // Fetch the provider's active services (source of truth)
+      const { data: activeServices, error: svcError } = await supabase
+        .from('professional_services')
+        .select('micro_id')
+        .eq('user_id', user!.id);
+
+      if (svcError) throw svcError;
+      const activeMicroIds = new Set(activeServices?.map(s => s.micro_id) ?? []);
+
       const { data: listings, error } = await supabase
         .from('service_listings')
         .select(`
@@ -43,21 +52,24 @@ export function useMyListings() {
 
       if (error) throw error;
 
+      // Filter: only show listings backed by an active professional_service
+      const filteredListings = listings.filter(l => activeMicroIds.has(l.micro_id));
+
       // Fetch micro names for display
-      const microIds = [...new Set(listings.map(l => l.micro_id))];
+      const microIds = [...new Set(filteredListings.map(l => l.micro_id))];
       const { data: micros } = await supabase
         .from('service_micro_categories')
         .select('id, name, slug')
-        .in('id', microIds);
+        .in('id', microIds.length > 0 ? microIds : ['__none__']);
 
       const microMap = new Map(micros?.map(m => [m.id, { name: m.name, slug: m.slug }]) ?? []);
 
       // Fetch starting prices
-      const listingIds = listings.map(l => l.id);
+      const listingIds = filteredListings.map(l => l.id);
       const { data: pricingItems } = await supabase
         .from('service_pricing_items')
         .select('service_listing_id, price_amount')
-        .in('service_listing_id', listingIds)
+        .in('service_listing_id', listingIds.length > 0 ? listingIds : ['__none__'])
         .eq('is_enabled', true)
         .order('price_amount', { ascending: true });
 
@@ -68,7 +80,7 @@ export function useMyListings() {
         }
       });
 
-      return listings.map(l => {
+      return filteredListings.map(l => {
         const micro = microMap.get(l.micro_id);
         return {
           ...l,

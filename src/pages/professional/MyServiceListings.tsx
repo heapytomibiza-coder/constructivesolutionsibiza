@@ -170,6 +170,19 @@ export default function MyServiceListings() {
   const { data: listings, isLoading } = useMyListings();
   const [searchParams, setSearchParams] = useSearchParams();
   const isWelcome = searchParams.get('welcome') === '1';
+  const { user } = useSession();
+  const queryClient = useQueryClient();
+
+  // Auto-reconcile on page load: self-heal any drift from failed syncs
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.rpc('sync_service_listings_for_provider', { p_provider_id: user.id })
+      .then(({ error }) => {
+        if (!error) {
+          queryClient.invalidateQueries({ queryKey: ['my-listings'] });
+        }
+      });
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear welcome param from URL after first render (keeps URL clean)
   const handleDismissWelcome = () => {
