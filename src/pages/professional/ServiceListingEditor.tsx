@@ -48,9 +48,12 @@ export default function ServiceListingEditor() {
   const [stockPickerOpen, setStockPickerOpen] = useState(false);
   const [stockPickerTarget, setStockPickerTarget] = useState<'hero' | 'gallery'>('hero');
 
-  // Sync form state from loaded data
+  // Track whether we've done the initial sync from server
+  const [initialSynced, setInitialSynced] = useState(false);
+
+  // Sync form state from loaded data — only on initial load
   useEffect(() => {
-    if (listing) {
+    if (listing && !initialSynced) {
       setTitle(listing.display_title || '');
       setDescription(listing.short_description || '');
       setHeroUrl(listing.hero_image_url);
@@ -68,8 +71,16 @@ export default function ServiceListingEditor() {
         if (numMatch) setStartingPrice(numMatch[1]);
       }
       setPricingItems(listing.pricing_items);
+      setInitialSynced(true);
     }
-  }, [listing]);
+  }, [listing, initialSynced]);
+
+  // Keep pricing items in sync with server (they're managed server-side)
+  useEffect(() => {
+    if (listing && initialSynced) {
+      setPricingItems(listing.pricing_items);
+    }
+  }, [listing?.pricing_items]);
 
   const handleSave = async () => {
     if (!listingId) return;
