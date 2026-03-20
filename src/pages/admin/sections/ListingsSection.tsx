@@ -91,8 +91,7 @@ export default function ListingsSection() {
                     <TableHead>Status</TableHead>
                     <TableHead>Pricing</TableHead>
                     <TableHead>Views</TableHead>
-                    <TableHead>Updated</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                     <TableHead>Updated</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
