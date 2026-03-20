@@ -21,7 +21,8 @@ const ALL = '__all__';
 
 const Services = () => {
   const { t } = useTranslation('common');
-  const { data: listings, isLoading } = useServiceListingsBrowse();
+  const { data: rawData, isLoading } = useServiceListingsBrowse();
+  const listings = rawData?.pages.flatMap((p) => p.data) ?? undefined;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const category = searchParams.get('category') ?? '';
