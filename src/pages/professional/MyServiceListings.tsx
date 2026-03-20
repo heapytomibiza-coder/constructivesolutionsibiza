@@ -17,8 +17,11 @@ import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench, CheckCircle2, Rocket 
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { evaluateListingReadiness } from '@/lib/listingPublishRules';
 import { txMicro } from '@/i18n/taxonomyTranslations';
+import { useSession } from '@/contexts/SessionContext';
+import { supabase } from '@/integrations/supabase/client';
 
 /** Calculate profile completeness for a listing */
 function getCompleteness(listing: MyListing): number {
