@@ -16,7 +16,7 @@ import { EmptyState } from '@/shared/components';
 const ServiceMarketplace = () => {
   const { t } = useTranslation('common');
   const [searchParams] = useSearchParams();
-  const categoryFilter = searchParams.get('category') ?? undefined;
+  const categoryFilter = searchParams.get('category') || undefined;
 
   const {
     data,
