@@ -16,16 +16,16 @@ function formatStartingPrice(price: number | null, unit: string | null): string 
 function TrustBadge({ verification }: { verification: string | null }) {
   if (verification === 'verified') {
     return (
-      <span className="flex items-center gap-1 text-xs text-primary font-medium">
-        <ShieldCheck className="h-3.5 w-3.5" />
+      <span className="flex items-center gap-1 text-xs text-primary font-medium whitespace-nowrap">
+        <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
         Verified
       </span>
     );
   }
   return (
-    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-      <span className="h-2 w-2 rounded-full bg-success inline-block" />
-      New Professional
+    <span className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+      <span className="h-2 w-2 rounded-full bg-success inline-block shrink-0" />
+      New Pro
     </span>
   );
 }
@@ -36,7 +36,7 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
 
   return (
     <Link to={`/services/listing/${listing.id}`}>
-      <Card className="h-full card-grounded transition-all hover:shadow-soft hover:border-accent/50 cursor-pointer group overflow-hidden flex flex-col">
+      <Card className="h-full card-grounded transition-all hover:shadow-soft hover:border-accent/50 cursor-pointer group overflow-hidden flex flex-col min-w-0">
         {/* Fixed aspect ratio image area — always present */}
         <div className="aspect-[4/3] overflow-hidden relative">
           {(listing.hero_card_url || listing.hero_image_url) ? (
@@ -58,7 +58,7 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
           )}
         </div>
 
-        <CardContent className="p-4 space-y-2.5 flex-1 flex flex-col">
+        <CardContent className="p-4 space-y-2.5 flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Category context tags */}
           <div className="flex items-center gap-1.5 flex-wrap">
             {listing.category_name && (
@@ -96,8 +96,8 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
           </div>
 
           {/* Provider + trust */}
-          <div className="flex items-center justify-between pt-2 border-t border-border/50">
-            <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <Avatar className="h-6 w-6 shrink-0">
                 <AvatarImage src={listing.provider_avatar_thumb || listing.provider_avatar || undefined} />
                 <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
@@ -108,7 +108,9 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
                 {listing.provider_name ?? 'Tasker'}
               </span>
             </div>
-            <TrustBadge verification={listing.provider_verification ?? null} />
+            <div className="shrink-0">
+              <TrustBadge verification={listing.provider_verification ?? null} />
+            </div>
           </div>
         </CardContent>
       </Card>
