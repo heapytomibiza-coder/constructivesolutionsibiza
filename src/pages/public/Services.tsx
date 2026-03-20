@@ -179,7 +179,7 @@ const Services = () => {
           </div>
         ) : listings.length > 0 ? (
           <>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-full">
+            <div className="grid grid-cols-1 gap-6 w-full min-w-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-full">
               {listings.map((listing) => (
                 <ServiceListingCardComponent key={listing.id} listing={listing} />
               ))}
