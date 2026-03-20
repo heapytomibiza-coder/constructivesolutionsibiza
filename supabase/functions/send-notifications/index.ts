@@ -615,7 +615,7 @@ type EmailResult = { subject: string; html: string; whatsapp?: string; telegram?
 const ADMIN_ONLY_EVENTS = [
   "admin_new_job", "admin_new_user", "pro_signup", "support_ticket",
   "forum_post", "bug_report", "platform_error", "contact_form", "new_service",
-  "listing_ready_for_review", "admin_dispute_opened",
+  "listing_ready_for_review", "admin_dispute_opened", "admin_dispute_deadline_passed",
 ];
 
 const DISPUTE_EVENTS = [
