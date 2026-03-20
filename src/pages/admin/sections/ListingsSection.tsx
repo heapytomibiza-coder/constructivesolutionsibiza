@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, CheckCircle2, XCircle, Loader2, Image as ImageIcon, Search } from "lucide-react";
+import { Eye, Loader2, Image as ImageIcon, Search } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import ListingPreviewDrawer from "./ListingPreviewDrawer";
