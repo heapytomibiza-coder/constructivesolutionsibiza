@@ -98,7 +98,7 @@ const Services = () => {
         }
       />
 
-      <div className="container py-12">
+      <div className="container py-12 overflow-x-hidden">
         {/* Filter Bar */}
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 mb-8">
           <div className="flex flex-wrap items-center gap-2">
