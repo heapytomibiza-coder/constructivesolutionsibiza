@@ -3147,6 +3147,10 @@ export type Database = {
         Returns: undefined
       }
       switch_active_role: { Args: { p_new_role: string }; Returns: undefined }
+      sync_service_listings_for_provider: {
+        Args: { p_provider_id: string }
+        Returns: Json
+      }
       track_event: {
         Args: { p_event_name: string; p_metadata?: Json; p_role?: string }
         Returns: undefined
