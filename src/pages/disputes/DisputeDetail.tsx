@@ -181,7 +181,7 @@ export default function DisputeDetail() {
 
         {/* AI Analysis */}
         {analysis ? (
-          <AnalysisDisplay analysis={analysis} />
+          <AnalysisDisplay analysis={analysis as any} />
         ) : (
           <div className="text-center py-6 space-y-3">
             <Brain className="h-8 w-8 text-muted-foreground mx-auto" />
