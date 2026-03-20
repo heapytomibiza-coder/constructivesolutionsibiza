@@ -11,4 +11,5 @@ export const adminKeys = {
   supportDetail: (id: string) => [...adminKeys.all, 'support', id] as const,
   jobDetail: (id: string) => [...adminKeys.all, 'jobDetail', id] as const,
   userDetail: (id: string) => [...adminKeys.all, 'userDetail', id] as const,
+  disputes: () => [...adminKeys.all, 'disputes'] as const,
 };
