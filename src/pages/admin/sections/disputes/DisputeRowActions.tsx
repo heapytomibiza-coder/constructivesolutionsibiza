@@ -54,6 +54,7 @@ function statusLabel(s: string) {
 }
 
 export default function DisputeRowActions({ dispute }: { dispute: AdminDisputeRow }) {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
