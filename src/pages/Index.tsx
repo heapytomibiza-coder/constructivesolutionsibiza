@@ -153,6 +153,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      </LazySection>
 
       {/* ─── PROBLEM / SOLUTION (gated: escrow-beta) ─── */}
       {isRolloutActive('escrow-beta') && (
