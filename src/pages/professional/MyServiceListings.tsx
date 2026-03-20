@@ -5,6 +5,7 @@
  * Supports ?welcome=1 query param after first Go Live to show
  * a clear "profile is live, now publish services" banner.
  */
+import { useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
