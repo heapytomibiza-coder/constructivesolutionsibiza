@@ -480,7 +480,7 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
           )}
         </div>
       ) : null}
-      {user && ['in_progress', 'completed'].includes(jobPack.status ?? '') && (
+      {user && ['in_progress', 'completed'].includes(jobPack.status ?? '') && !jobPack.isOwner && (
         <Button
           variant="outline"
           className="gap-2 text-destructive hover:text-destructive"
