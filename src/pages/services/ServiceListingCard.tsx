@@ -16,16 +16,16 @@ function formatStartingPrice(price: number | null, unit: string | null): string 
 function TrustBadge({ verification }: { verification: string | null }) {
   if (verification === 'verified') {
     return (
-      <span className="flex items-center gap-1 text-xs text-primary font-medium">
-        <ShieldCheck className="h-3.5 w-3.5" />
+      <span className="flex items-center gap-1 text-xs text-primary font-medium whitespace-nowrap">
+        <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
         Verified
       </span>
     );
   }
   return (
-    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-      <span className="h-2 w-2 rounded-full bg-success inline-block" />
-      New Professional
+    <span className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+      <span className="h-2 w-2 rounded-full bg-success inline-block shrink-0" />
+      New Pro
     </span>
   );
 }
