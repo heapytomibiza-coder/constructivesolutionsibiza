@@ -92,6 +92,7 @@ export function SupportRequestDialog({
   userRole,
 }: SupportRequestDialogProps) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [issueType, setIssueType] = useState<IssueType>('no_response');
   const [summary, setSummary] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
