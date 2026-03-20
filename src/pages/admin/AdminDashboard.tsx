@@ -101,6 +101,9 @@ export default function AdminDashboard() {
             <TabsContent value="content">
               <ContentSection />
             </TabsContent>
+            <TabsContent value="disputes">
+              <DisputeQueue />
+            </TabsContent>
             <TabsContent value="support">
               <SupportInbox />
             </TabsContent>
