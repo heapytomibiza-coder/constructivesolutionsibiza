@@ -45,10 +45,13 @@ export function HeroBanner({
         className
       )}
     >
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${imageSrc})` }}
+      {/* Background Image — uses <img> for browser-native lazy/eager + decoding */}
+      <img
+        src={imageSrc}
+        alt=""
+        fetchPriority="high"
+        decoding="async"
+        className="absolute inset-0 w-full h-full object-cover"
       />
       
       {/* Gradient Overlay */}
