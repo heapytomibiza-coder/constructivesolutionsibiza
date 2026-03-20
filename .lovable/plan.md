@@ -1,79 +1,20 @@
 
 
-# Admin Dispute Dashboard Enhancement
+# Dispute Engine — Architecture Hardening (Complete)
 
-The current admin queue is a solid list view. The user's feedback requests two improvements:
+Applied fixes from the 6-layer architecture review:
 
-1. **Tighten counterparty response auth** — the `/respond` route should only allow the actual counterparty, not the complainant
-2. **Add admin row actions** — advance status, trigger re-analysis, escalate, add notes — directly from the queue
+## ✅ Fixes Applied
 
----
+1. **`rpc_dispute_completeness` auth hardened** — Added party/admin auth check. Non-parties now get an exception instead of completeness data.
 
-## 1. Tighten Counterparty Response Auth
+2. **`rpc_admin_dispute_inbox` confirmed secure** — Already had `WHERE has_role(auth.uid(), 'admin') AND is_admin_email()` in the query. No change needed.
 
-**File:** `src/pages/disputes/actions/submitCounterpartyResponse.action.ts`
+3. **`createDispute` now sets `awaiting_counterparty` directly** — Skips the redundant `open` status since a counterparty is always identified from the job at creation time.
 
-Change the auth check from allowing either party (`counterparty_id OR raised_by`) to strictly requiring `counterparty_id` only. The complainant already has the dispute detail page for their interactions.
+4. **Deadlines use `ESCROW_GUARDRAILS` constants** — Replaced hardcoded 72h/96h with `autoProgressionHours` and `responseWarningHours` from `escrowGuardrails.ts`.
 
-**File:** `src/pages/disputes/DisputeResponse.tsx`
+## Deferred (pre-wider-release)
 
-Add an early guard: if the current user is not the counterparty, show a "not authorized" message instead of the response form.
-
----
-
-## 2. Admin Row Actions in DisputeQueue
-
-**File:** `src/pages/admin/sections/disputes/DisputeQueue.tsx`
-
-Replace the single "open in new tab" button with a dropdown menu containing:
-
-- **View Case** — opens `/disputes/:id` in new tab (existing)
-- **Advance Status** — sub-menu showing the next valid status(es) based on current state, calls `advanceDisputeStatus` RPC
-- **Trigger Re-analysis** — calls `analyzeDispute` action
-- **Escalate** — shortcut to advance to `escalated`
-- **Add Admin Note** — dialog with textarea, inserts into `dispute_inputs` as `admin_note` type
-
-The valid-next-status map mirrors the DB trigger:
-```text
-draft → open
-open → awaiting_counterparty
-awaiting_counterparty → evidence_collection
-evidence_collection → assessment
-assessment → resolution_offered, escalated
-resolution_offered → awaiting_acceptance, escalated
-awaiting_acceptance → resolved, escalated
-resolved → closed
-escalated → closed
-```
-
-**New file:** `src/pages/admin/sections/disputes/DisputeRowActions.tsx`
-
-Extracted component with `DropdownMenu` containing the actions above. Uses existing `advanceDisputeStatus` and `analyzeDispute` actions. Admin note insertion uses a simple dialog + direct insert to `dispute_inputs`.
-
-**File:** `src/pages/admin/sections/disputes/DisputeQueue.tsx`
-
-- Add `overdue` filter (response_deadline passed, no counterparty response)
-- Add `high_value` filter (budget > guardrail threshold)
-- Replace the Actions column `<Button>` with `<DisputeRowActions>`
-- Add `completeness_level` to the RPC and display it
-
----
-
-## 3. Database: Add completeness to inbox RPC
-
-**Migration:** Update `rpc_admin_dispute_inbox` to also return a `completeness_level` field by calling the existing `rpc_dispute_completeness` function inline, or replicating its logic as a subquery.
-
----
-
-## Files Changed
-
-| File | Action |
-|---|---|
-| `src/pages/disputes/actions/submitCounterpartyResponse.action.ts` | Edit: restrict to counterparty only |
-| `src/pages/disputes/DisputeResponse.tsx` | Edit: add counterparty-only guard |
-| `src/pages/admin/sections/disputes/DisputeRowActions.tsx` | Create: dropdown with advance/escalate/re-analyze/note |
-| `src/pages/admin/sections/disputes/DisputeQueue.tsx` | Edit: add filters, use row actions, show completeness |
-| `src/pages/admin/sections/disputes/index.ts` | Edit: export new component |
-| `src/pages/admin/queries/adminDisputes.query.ts` | Edit: add completeness_level to type |
-| Migration SQL | Update `rpc_admin_dispute_inbox` to include completeness_level |
-
+- Storage evidence SELECT policy scoping (currently any authenticated user can view via UUID path)
+- Duplicate RLS policy cleanup on `dispute_inputs` / `dispute_evidence`
