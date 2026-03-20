@@ -132,7 +132,7 @@ async function fetchFilterOptions(filters: BrowseFilters): Promise<ServiceFilter
 
 export function useServiceFilterOptions(filters: BrowseFilters) {
   return useQuery({
-    queryKey: ['service-filter-options', filters.category, filters.subcategory],
+    queryKey: ['service-filter-options', filters.category ?? null, filters.subcategory ?? null],
     queryFn: () => fetchFilterOptions(filters),
     staleTime: 60_000,
   });
