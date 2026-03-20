@@ -1,48 +1,77 @@
 
 
-# Fix forwardRef Warnings — Cleanup Plan
+# Installation Plan: Dispute & Resolution Framework Document
 
-## What's happening
+## What the document contains
 
-React Router v6 and your `App.tsx` are passing refs down through layout wrappers (`RouteGuard`, `PublicOnlyGuard`, `AdminRouteLayout`) to child components that don't accept them. Every function component in the tree that receives an unexpected ref triggers the same warning. Since these are layout-level components, the warning cascades to dozens of children — making it look worse than it is.
+The PDF has 4 distinct deliverables. Here is the best order to install them — foundation first, then public-facing content.
 
-## Root cause
+---
 
-The components listed below are plain function components that React Router's `<Outlet />` or parent wrappers try to pass a `ref` to. They need `React.forwardRef` or the ref needs to be dropped.
+## Phase 1: Legal Pack Update (Terms of Service)
+**Why first:** The legal foundation must be in place before the homepage references it.
 
-## Affected components (7 files)
+**What changes:**
+- Expand `public/locales/en/legal.json` → `terms.sections` with the new Payment Terms (section 2), Dispute & Resolution Terms (section 3), Limitation of Liability (section 4), Construction Variability clause (section 5), User Conduct (section 6), and Legal Framework (section 7) from pages 18-26 of the PDF
+- Update `terms.date` to current date
+- Mirror all changes into `public/locales/es/legal.json` (Spanish translations)
+- No code changes needed — the existing `Terms.tsx` component already renders sections dynamically
 
-| File | Component | Fix |
-|------|-----------|-----|
-| `src/shared/components/layout/ScrollToTop.tsx` | `ScrollToTop` | Returns `null` — no DOM node to ref. Just wrap in `forwardRef` returning `null`. |
-| `src/shared/components/layout/UrlNormalizer.tsx` | `UrlNormalizer` | Same pattern — returns `null`. |
-| `src/guard/RouteGuard.tsx` | `RouteGuard`, `PublicOnlyGuard` | Both return `<Outlet />` or `<Navigate />`. Wrap in `forwardRef`. |
-| `src/pages/admin/AdminRouteLayout.tsx` | `AdminRouteLayout` | Wrap default export in `forwardRef`. |
-| `src/pages/admin/monitoring/MonitoringPage.tsx` | `MonitoringPage` + `StatCard` | Wrap both in `forwardRef`. |
-| `src/components/ui/sonner.tsx` | `Toaster` | Wrap in `forwardRef`. |
+**Scope:** ~2 files (en/es legal.json), content-only
 
-## Implementation approach
+---
 
-Each fix is the same 3-line pattern:
+## Phase 2: Dispute Policy Enrichment
+**Why second:** The existing dispute policy is already solid but the PDF adds richer Stage 0 (pre-dispute prevention), stronger payment control language, and the "What We Provide / Don't Provide" clarity section.
 
-```tsx
-// Before
-function ScrollToTop() { ... }
+**What changes:**
+- Update `public/locales/en/legal.json` → `dispute` section with:
+  - New Stage 0 (Pre-Dispute Prevention) before Stage 1
+  - Enhanced payment control & release section (pages 8-9)
+  - "What Constructive Solutions Provides / Does Not Provide" section
+  - Stronger summary section
+- Mirror to Spanish locale
+- No component changes — `DisputePolicy.tsx` already handles stages dynamically
 
-// After
-const ScrollToTop = React.forwardRef<HTMLDivElement>(function ScrollToTop(_props, _ref) {
-  // ... same body, ignore ref since there's no DOM node
-});
-```
+**Scope:** ~2 files, content-only
 
-For components that return JSX with a root `<div>`, the ref gets forwarded to that div. For components returning `null` or `<Outlet />`, the ref is simply accepted and ignored — which silences the warning without changing behavior.
+---
 
-## What this does NOT change
+## Phase 3: Homepage Conversion Copy
+**Why third:** Now the legal backing exists, the homepage can confidently reference payment protection and dispute resolution.
 
-- No behavior changes
-- No new dependencies
-- No database changes
-- No routing changes
+**What changes:**
+- Update `public/locales/en/common.json` with the high-conversion copy from pages 11-17:
+  - Hero: "Build with Confidence. Get Paid with Certainty."
+  - Trust strip: Milestone-Based Payments, Final Payment Protection, Verified Professionals, 28-Day Resolution, No Large Upfront Risk
+  - Problem/Solution narrative section
+  - "How It Works" 4-step flow (already exists, update copy)
+  - Payment Protection section (new)
+  - For Professionals / For Clients benefit blocks
+  - Final CTA
+- Update `src/pages/Index.tsx` to add:
+  - Trust strip bar below hero
+  - Problem/Solution section
+  - Payment Protection section
+  - Dual audience blocks (For Professionals / For Clients)
+- Mirror to Spanish locale
 
-All 7 files will be edited in a single pass.
+**Scope:** ~3 files (Index.tsx, en/common.json, es/common.json)
+
+---
+
+## Phase 4: NOT included (future roadmap)
+Pages 27-50 cover investor visuals, AI automation ("Constructive Intelligence"), voice-to-case engine, guided question flows, and UX wireframes. These are **product vision documents**, not installable content. They inform future feature development (milestone payments, AI dispute engine, snagging mode) but require significant backend architecture that maps to your `escrow-beta` and `scale-ready` rollout phases.
+
+---
+
+## Summary
+
+| Phase | Files | Type | Effort |
+|-------|-------|------|--------|
+| 1. Legal Pack | 2 locale files | Content | Medium |
+| 2. Dispute Policy | 2 locale files | Content | Small |
+| 3. Homepage Copy | 3 files | Content + UI | Medium-Large |
+
+Total: ~7 file changes, no database migrations, no new routes needed.
 
