@@ -16,8 +16,6 @@ import {
   AlertTriangle, Lock, FileCheck, Scale, Users, Briefcase
 } from 'lucide-react';
 import heroHome from '@/assets/heroes/hero-home.webp';
-import heroHome800 from '@/assets/heroes/hero-home-800w.webp';
-import heroHome400 from '@/assets/heroes/hero-home-400w.webp';
 
 const SERVICE_CARDS = [
   { key: 'svc1', icon: Hammer, link: '/services' },
