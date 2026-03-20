@@ -7,6 +7,7 @@ import { MobileFAB } from '@/components/MobileFAB';
 import { PLATFORM } from '@/domain/scope';
 import { UniversalSearchBar } from '@/components/search';
 import { isRolloutActive } from '@/domain/rollout';
+import { LazySection } from '@/shared/components/LazySection';
 import { 
   ArrowRight, Shield, Clock, Star, CheckCircle,
   MessageSquare, Ruler, HardHat, CheckCircle2,
@@ -15,6 +16,8 @@ import {
   AlertTriangle, Lock, FileCheck, Scale, Users, Briefcase
 } from 'lucide-react';
 import heroHome from '@/assets/heroes/hero-home.webp';
+import heroHome800 from '@/assets/heroes/hero-home-800w.webp';
+import heroHome400 from '@/assets/heroes/hero-home-400w.webp';
 
 const SERVICE_CARDS = [
   { key: 'svc1', icon: Hammer, link: '/services' },
