@@ -290,7 +290,7 @@ export default function DisputeQADashboard() {
                     )}
                   >
                     {check.pass ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     ) : (
                       <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                     )}
