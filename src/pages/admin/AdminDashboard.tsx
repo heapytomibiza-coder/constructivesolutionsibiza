@@ -66,6 +66,10 @@ export default function AdminDashboard() {
                 <MessageSquare className="h-4 w-4" />
                 <span className="hidden sm:inline">Content</span>
               </TabsTrigger>
+              <TabsTrigger value="disputes" className="gap-2">
+                <Scale className="h-4 w-4" />
+                <span className="hidden sm:inline">Disputes</span>
+              </TabsTrigger>
               <TabsTrigger value="support" className="gap-2">
                 <Headset className="h-4 w-4" />
                 <span className="hidden sm:inline">Support</span>
