@@ -158,6 +158,24 @@ export default function ServiceListingEditor() {
           toast.error(t('listingEditor.maxGallery'));
         }
       }
+
+      // Fire-and-forget: optimize image in background
+      supabase.functions.invoke('optimize-image', {
+        body: { bucket: 'service-images', path },
+      }).then(({ data, error }) => {
+        if (error) {
+          console.warn('Image optimization failed (non-blocking):', error);
+          return;
+        }
+        // If hero image, store variant URLs on the listing
+        if (type === 'hero' && listingId && data?.variants) {
+          supabase.from('service_listings').update({
+            hero_thumb_url: data.variants.thumb_url ?? null,
+            hero_card_url: data.variants.card_url ?? null,
+            hero_large_url: data.variants.large_url ?? null,
+          }).eq('id', listingId).then(() => {});
+        }
+      });
     } catch (err) {
       toast.error(t('listingEditor.uploadFailed'));
     } finally {

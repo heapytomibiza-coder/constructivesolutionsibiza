@@ -39,9 +39,9 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
       <Card className="h-full card-grounded transition-all hover:shadow-soft hover:border-accent/50 cursor-pointer group overflow-hidden flex flex-col">
         {/* Fixed aspect ratio image area — always present */}
         <div className="aspect-[4/3] overflow-hidden relative">
-          {listing.hero_image_url ? (
+          {(listing.hero_card_url || listing.hero_image_url) ? (
             <img
-              src={listing.hero_image_url}
+              src={listing.hero_card_url || listing.hero_image_url!}
               alt={listing.display_title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
@@ -99,7 +99,7 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
             <div className="flex items-center gap-2 min-w-0">
               <Avatar className="h-6 w-6 shrink-0">
-                <AvatarImage src={listing.provider_avatar ?? undefined} />
+                <AvatarImage src={listing.provider_avatar_thumb || listing.provider_avatar || undefined} />
                 <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                   {(listing.provider_name ?? '?')[0]}
                 </AvatarFallback>

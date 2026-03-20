@@ -10,6 +10,8 @@ export interface ServiceListingCard {
   display_title: string;
   short_description: string | null;
   hero_image_url: string | null;
+  hero_card_url: string | null;
+  hero_thumb_url: string | null;
   location_base: string | null;
   pricing_summary: string | null;
   view_count: number;
@@ -17,6 +19,7 @@ export interface ServiceListingCard {
   created_at: string;
   provider_name: string | null;
   provider_avatar: string | null;
+  provider_avatar_thumb: string | null;
   provider_verification: string | null;
   micro_name: string | null;
   micro_slug: string | null;
