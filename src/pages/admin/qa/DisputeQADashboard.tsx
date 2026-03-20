@@ -121,6 +121,22 @@ const TESTS = [
       "Partial failures handled gracefully",
     ],
   },
+  {
+    id: "t7",
+    title: "Test 7 — Partial Evidence / Weak Case",
+    goal: "Prove system handles incomplete disputes properly.",
+    steps: [
+      "Client raises dispute with minimal description",
+      "Client submits with NO evidence uploaded",
+      "Trigger AI analysis on thin data",
+      "Verify low confidence score (< 0.5)",
+      "Verify missing_evidence array is non-empty",
+      "Verify human_review_required = true",
+      "Verify completeness level = Low",
+      "Admin sees case flagged for review",
+      "Admin can still proceed manually",
+    ],
+  },
 ];
 
 /* ───────────────────────────────────────── Health Checks ── */
