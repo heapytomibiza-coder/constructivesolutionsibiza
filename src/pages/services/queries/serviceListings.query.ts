@@ -179,7 +179,7 @@ async function fetchListingsPage({
  */
 export function useServiceListingsBrowse(filters: BrowseFilters = {}) {
   return useInfiniteQuery({
-    queryKey: ['service-listings-browse', filters],
+    queryKey: ['service-listings-browse', filters.category ?? null, filters.subcategory ?? null, filters.micro ?? null, filters.sort ?? 'newest'],
     queryFn: ({ pageParam = 0 }) =>
       fetchListingsPage({ page: pageParam, filters }),
     initialPageParam: 0,
