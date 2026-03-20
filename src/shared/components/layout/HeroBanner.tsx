@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 
 interface HeroBannerProps {
   imageSrc: string;
+  /** Responsive variants: { "400w": url, "800w": url } */
+  imageSrcSet?: Record<string, string>;
   title: string;
   subtitle?: string;
   trustBadge?: React.ReactNode;
