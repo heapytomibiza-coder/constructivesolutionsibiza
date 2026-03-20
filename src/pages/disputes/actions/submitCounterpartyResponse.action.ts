@@ -44,15 +44,13 @@ export async function submitCounterpartyResponse(params: SubmitResponseParams) {
     if (tErr) throw tErr;
   }
 
-  // If counterparty, update responded_at
-  if (d.counterparty_id === user.id) {
-    await supabase
-      .from('disputes' as any)
-      .update({
-        counterparty_responded_at: new Date().toISOString(),
-      } as any)
-      .eq('id', params.disputeId);
-  }
+  // Update counterparty responded_at
+  await supabase
+    .from('disputes' as any)
+    .update({
+      counterparty_responded_at: new Date().toISOString(),
+    } as any)
+    .eq('id', params.disputeId);
 
   return true;
 }

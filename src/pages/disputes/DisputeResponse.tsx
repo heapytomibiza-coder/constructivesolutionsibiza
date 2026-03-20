@@ -87,6 +87,26 @@ export default function DisputeResponse() {
   }
 
   const d = data.dispute as any;
+  const isCounterparty = currentUser?.id === d.counterparty_id;
+
+  // Block non-counterparty users from this route
+  if (currentUser && !isCounterparty) {
+    return (
+      <PublicLayout>
+        <div className="container max-w-2xl py-16 text-center space-y-3">
+          <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
+          <p className="font-medium text-foreground">Not authorized</p>
+          <p className="text-sm text-muted-foreground">
+            This page is only available to the counterparty in this dispute.
+          </p>
+          <Button variant="outline" onClick={() => navigate(`/disputes/${disputeId}`)}>
+            View Dispute Details
+          </Button>
+        </div>
+      </PublicLayout>
+    );
+  }
+
   const job = d.jobs;
   const issueTypes = d.issue_types || [];
   const responseDeadline = d.response_deadline ? new Date(d.response_deadline) : null;
