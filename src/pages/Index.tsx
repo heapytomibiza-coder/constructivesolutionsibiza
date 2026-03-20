@@ -326,6 +326,7 @@ const Index = () => {
       </section>
       </>)}
 
+      <LazySection minHeight={400}>
       {/* ─── OUR SERVICES — Curated 6 cards ─── */}
       <section className="py-20 bg-gradient-concrete">
         <div className="container">
