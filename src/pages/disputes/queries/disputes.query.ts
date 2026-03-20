@@ -24,11 +24,12 @@ export async function fetchDisputeDetail(disputeId: string) {
   if (error) throw error;
 
   // Fetch related data in parallel
-  const [inputsRes, evidenceRes, analysisRes, historyRes] = await Promise.all([
+  const [inputsRes, evidenceRes, analysisRes, historyRes, aiEventsRes] = await Promise.all([
     supabase.from('dispute_inputs' as any).select('*').eq('dispute_id', disputeId).order('created_at'),
     supabase.from('dispute_evidence' as any).select('*').eq('dispute_id', disputeId).order('created_at'),
     supabase.from('dispute_analysis' as any).select('*').eq('dispute_id', disputeId).order('created_at', { ascending: false }).limit(1),
     supabase.from('dispute_status_history' as any).select('*').eq('dispute_id', disputeId).order('created_at'),
+    supabase.from('dispute_ai_events' as any).select('*').eq('dispute_id', disputeId).order('created_at'),
   ]);
 
   return {
