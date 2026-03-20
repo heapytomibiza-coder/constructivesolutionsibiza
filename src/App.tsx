@@ -240,9 +240,9 @@ const App = () => {
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
 
               {/* Disputes */}
-              <Route path="/disputes/raise" element={<RolloutGate min="escrow-beta"><RaiseDispute /></RolloutGate>} />
-              <Route path="/disputes/:disputeId" element={<RolloutGate min="escrow-beta"><DisputeDetail /></RolloutGate>} />
-              <Route path="/disputes/:disputeId/respond" element={<RolloutGate min="escrow-beta"><DisputeResponse /></RolloutGate>} />
+              <Route path="/disputes/raise" element={<RolloutGate min="service-layer"><RaiseDispute /></RolloutGate>} />
+              <Route path="/disputes/:disputeId" element={<RolloutGate min="service-layer"><DisputeDetail /></RolloutGate>} />
+              <Route path="/disputes/:disputeId/respond" element={<RolloutGate min="service-layer"><DisputeResponse /></RolloutGate>} />
 
               {/* Professional Dashboard */}
               <Route path="/dashboard/pro" element={<ProDashboard />} />
