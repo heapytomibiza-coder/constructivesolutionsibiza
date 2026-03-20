@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 
 interface HeroBannerProps {
   imageSrc: string;
+  /** Responsive variants: { "400w": url, "800w": url } */
+  imageSrcSet?: Record<string, string>;
   title: string;
   subtitle?: string;
   trustBadge?: React.ReactNode;
@@ -23,6 +25,7 @@ interface HeroBannerProps {
  */
 export function HeroBanner({
   imageSrc,
+  imageSrcSet,
   title,
   subtitle,
   trustBadge,
@@ -31,6 +34,21 @@ export function HeroBanner({
   className,
   children,
 }: HeroBannerProps) {
+  // Auto-derive srcset: if imageSrc is a Vite-bundled .webp, check for -800w and -400w variants
+  // Also support explicit imageSrcSet override
+  const derivedSrcSet = React.useMemo(() => {
+    if (imageSrcSet) {
+      return Object.entries(imageSrcSet)
+        .map(([size, url]) => `${url} ${size}`)
+        .join(', ');
+    }
+    // Auto-derive from naming convention: hero-X.webp → hero-X-800w.webp, hero-X-400w.webp
+    if (imageSrc && imageSrc.endsWith('.webp')) {
+      const base = imageSrc.replace(/\.webp$/, '');
+      return `${base}-400w.webp 400w, ${base}-800w.webp 800w, ${imageSrc} 1200w`;
+    }
+    return undefined;
+  }, [imageSrc, imageSrcSet]);
   const heightClasses = {
     full: "min-h-[60vh] lg:min-h-[70vh]",
     medium: "min-h-[45vh] lg:min-h-[50vh]",
@@ -48,9 +66,12 @@ export function HeroBanner({
       {/* Background Image — uses <img> for browser-native lazy/eager + decoding */}
       <img
         src={imageSrc}
+        srcSet={derivedSrcSet}
+        sizes={derivedSrcSet ? "(max-width: 640px) 400px, (max-width: 1024px) 800px, 1200px" : undefined}
         alt=""
         fetchPriority="high"
         decoding="async"
+        loading="eager"
         className="absolute inset-0 w-full h-full object-cover"
       />
       

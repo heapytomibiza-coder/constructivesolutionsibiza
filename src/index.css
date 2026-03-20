@@ -409,3 +409,9 @@
     @apply text-base leading-relaxed;
   }
 }
+
+/* ─── Performance: skip rendering off-screen cards ─── */
+.card-grounded {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}

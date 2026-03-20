@@ -7,6 +7,7 @@ import { MobileFAB } from '@/components/MobileFAB';
 import { PLATFORM } from '@/domain/scope';
 import { UniversalSearchBar } from '@/components/search';
 import { isRolloutActive } from '@/domain/rollout';
+import { LazySection } from '@/shared/components/LazySection';
 import { 
   ArrowRight, Shield, Clock, Star, CheckCircle,
   MessageSquare, Ruler, HardHat, CheckCircle2,
@@ -108,6 +109,7 @@ const Index = () => {
       </section>
       )}
 
+      <LazySection minHeight={400}>
       {/* ─── 2. HOW WE WORK — 4 steps ─── */}
       <section id="how-we-work" className="py-20 bg-background">
         <div className="container">
@@ -149,7 +151,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      </LazySection>
 
+      <LazySection minHeight={400}>
       {/* ─── PROBLEM / SOLUTION (gated: escrow-beta) ─── */}
       {isRolloutActive('escrow-beta') && (
       <section className="py-20 bg-gradient-concrete">
@@ -195,6 +199,7 @@ const Index = () => {
         </div>
       </section>
       )}
+      </LazySection>
 
       {/* ─── PAYMENT PROTECTION (gated: escrow-beta) ─── */}
       {isRolloutActive('escrow-beta') && (<>
@@ -319,6 +324,7 @@ const Index = () => {
       </section>
       </>)}
 
+      <LazySection minHeight={400}>
       {/* ─── OUR SERVICES — Curated 6 cards ─── */}
       <section className="py-20 bg-gradient-concrete">
         <div className="container">
@@ -383,7 +389,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      </LazySection>
 
+      <LazySection minHeight={300}>
       {/* ─── PORTFOLIO / FEATURED PROJECTS ─── */}
       <section className="py-20 bg-background">
         <div className="container">
@@ -433,7 +441,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      </LazySection>
 
+      <LazySection minHeight={300}>
       {/* ─── WHY CHOOSE US — Comparison ─── */}
       <section className="py-20 bg-background">
         <div className="container">
@@ -485,7 +495,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      </LazySection>
 
+      <LazySection minHeight={300}>
       {/* ─── SOCIAL PROOF — Stats + Testimonials ─── */}
       <section className="py-20 bg-gradient-steel text-primary-foreground">
         <div className="container">
@@ -562,6 +574,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      </LazySection>
 
       {/* ─── FINAL CTA ─── */}
       <section className="py-20 bg-gradient-clay text-accent-foreground">

@@ -114,7 +114,8 @@ const DisputeResponse = lazy(() => import("./pages/disputes/DisputeResponse"));
 
 // Launch Checklist
 const LaunchChecklist = lazy(() => import("./pages/LaunchChecklist"));
-import { ReportIssueWidget } from "./components/ReportIssueWidget";
+// Defer non-essential widgets
+const ReportIssueWidget = lazy(() => import('./components/ReportIssueWidget').then(m => ({ default: m.ReportIssueWidget })));
 
 const queryClient = new QueryClient();
 
@@ -273,7 +274,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
            </Routes>
            </Suspense>
-          <ReportIssueWidget />
+          <Suspense fallback={null}><ReportIssueWidget /></Suspense>
         </SessionProvider>
       </BrowserRouter>
     </TooltipProvider>
