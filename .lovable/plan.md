@@ -1,98 +1,67 @@
 
 
-# Dispute Engine Hardening Plan
+# Admin Dispute Dashboard Enhancement
 
-This plan addresses 10 hardening requirements from the feedback before `escrow-beta` goes live. The work is grouped into three layers: database, backend, and frontend.
+The current admin queue is a solid list view. The user's feedback requests two improvements:
+
+1. **Tighten counterparty response auth** — the `/respond` route should only allow the actual counterparty, not the complainant
+2. **Add admin row actions** — advance status, trigger re-analysis, escalate, add notes — directly from the queue
 
 ---
 
-## Layer 1 — Database Migration
+## 1. Tighten Counterparty Response Auth
 
-A single migration adding constraints, functions, and schema enrichments.
+**File:** `src/pages/disputes/actions/submitCounterpartyResponse.action.ts`
 
-### 1a. State Machine Enforcement (DB trigger)
-Create a `validate_dispute_status_transition()` trigger function that defines an explicit allowed-transitions map and raises an exception on invalid jumps. This runs `BEFORE UPDATE` on `disputes`.
+Change the auth check from allowing either party (`counterparty_id OR raised_by`) to strictly requiring `counterparty_id` only. The complainant already has the dispute detail page for their interactions.
 
-Allowed transitions:
+**File:** `src/pages/disputes/DisputeResponse.tsx`
+
+Add an early guard: if the current user is not the counterparty, show a "not authorized" message instead of the response form.
+
+---
+
+## 2. Admin Row Actions in DisputeQueue
+
+**File:** `src/pages/admin/sections/disputes/DisputeQueue.tsx`
+
+Replace the single "open in new tab" button with a dropdown menu containing:
+
+- **View Case** — opens `/disputes/:id` in new tab (existing)
+- **Advance Status** — sub-menu showing the next valid status(es) based on current state, calls `advanceDisputeStatus` RPC
+- **Trigger Re-analysis** — calls `analyzeDispute` action
+- **Escalate** — shortcut to advance to `escalated`
+- **Add Admin Note** — dialog with textarea, inserts into `dispute_inputs` as `admin_note` type
+
+The valid-next-status map mirrors the DB trigger:
 ```text
-draft         → open
-open          → awaiting_counterparty
-awaiting_cp   → evidence_collection
-evidence_coll → assessment
-assessment    → resolution_offered / escalated
-resolution_of → awaiting_acceptance / escalated
-awaiting_acc  → resolved / escalated
-resolved      → closed
-escalated     → closed
-(any)         → closed  (admin override)
+draft → open
+open → awaiting_counterparty
+awaiting_counterparty → evidence_collection
+evidence_collection → assessment
+assessment → resolution_offered, escalated
+resolution_offered → awaiting_acceptance, escalated
+awaiting_acceptance → resolved, escalated
+resolved → closed
+escalated → closed
 ```
 
-### 1b. Evidence Schema Enrichment
-Add columns to `dispute_evidence`:
-- `submitted_by_role TEXT` (client/professional)
-- `evidence_category TEXT` (photo, video, invoice, message, plan, receipt)
-- `related_issue_type dispute_issue_type`
-- `is_visible_to_counterparty BOOLEAN DEFAULT true`
+**New file:** `src/pages/admin/sections/disputes/DisputeRowActions.tsx`
 
-### 1c. Analysis Idempotency
-Add `is_current BOOLEAN DEFAULT true` to `dispute_analysis`. Add a trigger that sets `is_current = false` on all previous rows for the same `dispute_id` when a new row is inserted.
+Extracted component with `DropdownMenu` containing the actions above. Uses existing `advanceDisputeStatus` and `analyzeDispute` actions. Admin note insertion uses a simple dialog + direct insert to `dispute_inputs`.
 
-### 1d. Case Completeness Function
-Create `rpc_dispute_completeness(p_dispute_id UUID)` as a `SECURITY DEFINER` function returning a JSON object with boolean checks:
-- `has_statement`, `has_questionnaire`, `has_evidence`, `has_counterparty_response`, `evidence_count`, `has_scope`
-- Plus an overall `level` field: `low`, `medium`, `high`.
+**File:** `src/pages/admin/sections/disputes/DisputeQueue.tsx`
 
-### 1e. AI Audit Log Table
-Create `dispute_ai_events` table:
-- `id`, `dispute_id`, `event_type` (analysis_requested, analysis_completed, analysis_failed, analysis_superseded, manual_override), `metadata JSONB`, `created_at`
+- Add `overdue` filter (response_deadline passed, no counterparty response)
+- Add `high_value` filter (budget > guardrail threshold)
+- Replace the Actions column `<Button>` with `<DisputeRowActions>`
+- Add `completeness_level` to the RPC and display it
 
 ---
 
-## Layer 2 — Backend (Edge Function + Domain Logic)
+## 3. Database: Add completeness to inbox RPC
 
-### 2a. Harden `analyze-dispute` Edge Function
-- After parsing AI tool output, validate: `confidence_score` in 0..1, `suggested_pathway` in allowed enum, arrays capped at 20 items, `summary_neutral` max 2000 chars, no empty required fields.
-- On insert, write to `dispute_ai_events` (analysis_requested before call, analysis_completed/failed after).
-- Use the `is_current` flag pattern instead of blind insert.
-- Broaden human review triggers: also flag if issue contains `damage`, `abandonment`, `communication_conduct`, or if project budget > `manualReviewThresholdEur` from guardrails.
-
-### 2b. Status Transition RPC
-Create `rpc_advance_dispute_status(p_dispute_id UUID, p_new_status TEXT)` as a `SECURITY DEFINER` function that:
-- Validates caller is a party or admin
-- Checks the transition is allowed per the map
-- Updates the dispute
-- Returns the updated record
-
-This replaces scattered `.update()` calls from the client.
-
----
-
-## Layer 3 — Frontend
-
-### 3a. Replace Direct Writes with RPC Calls
-- `createDispute.action.ts`: keep the `.insert()` (it's the creation path) but switch status transitions to the new RPC.
-- Add a new `advanceDisputeStatus.action.ts` calling the RPC.
-
-### 3b. Case Completeness Display
-In `DisputeDetail.tsx`, fetch completeness via `rpc_dispute_completeness` and render a small progress indicator (e.g., "Case Strength: Medium — 3/5 items submitted") before the AI analysis section.
-
-### 3c. AI Analysis Idempotency in UI
-- Disable "Generate Analysis" button if an `is_current` analysis already exists.
-- Add "Re-analyze" button that creates a new analysis (superseding the old one), with a confirmation prompt.
-
-### 3d. Evidence Metadata in Upload Flow
-Update `EvidenceUploader` to collect `evidence_category` (dropdown: photo, video, invoice, etc.) and pass it through `uploadDisputeEvidence.action.ts`.
-
----
-
-## What This Does NOT Cover (deferred to next phase)
-
-- Counterparty response flow (notifications + response form) — separate task
-- Admin dispute queue/dashboard — separate task
-- Auto-nudge/deadline automation — separate task
-- Pre-dispute "request correction" mode — separate task
-- Resolution templates — separate task
-- Reputation/behaviour tracking — separate task
+**Migration:** Update `rpc_admin_dispute_inbox` to also return a `completeness_level` field by calling the existing `rpc_dispute_completeness` function inline, or replicating its logic as a subquery.
 
 ---
 
@@ -100,13 +69,11 @@ Update `EvidenceUploader` to collect `evidence_category` (dropdown: photo, video
 
 | File | Action |
 |---|---|
-| `supabase/migrations/new_hardening.sql` | Create: state machine trigger, evidence columns, `is_current` flag, completeness RPC, AI events table |
-| `supabase/functions/analyze-dispute/index.ts` | Edit: add validation, idempotency, AI event logging, broader human-review rules |
-| `src/pages/disputes/actions/advanceDisputeStatus.action.ts` | Create |
-| `src/pages/disputes/actions/uploadDisputeEvidence.action.ts` | Edit: add `evidence_category` |
-| `src/pages/disputes/actions/analyzeDispute.action.ts` | Minor edit for re-analysis |
-| `src/pages/disputes/components/EvidenceUploader.tsx` | Edit: category dropdown |
-| `src/pages/disputes/components/CompletenessIndicator.tsx` | Create |
-| `src/pages/disputes/DisputeDetail.tsx` | Edit: completeness display, analysis idempotency |
-| `src/pages/disputes/types.ts` | Edit: add new types |
+| `src/pages/disputes/actions/submitCounterpartyResponse.action.ts` | Edit: restrict to counterparty only |
+| `src/pages/disputes/DisputeResponse.tsx` | Edit: add counterparty-only guard |
+| `src/pages/admin/sections/disputes/DisputeRowActions.tsx` | Create: dropdown with advance/escalate/re-analyze/note |
+| `src/pages/admin/sections/disputes/DisputeQueue.tsx` | Edit: add filters, use row actions, show completeness |
+| `src/pages/admin/sections/disputes/index.ts` | Edit: export new component |
+| `src/pages/admin/queries/adminDisputes.query.ts` | Edit: add completeness_level to type |
+| Migration SQL | Update `rpc_admin_dispute_inbox` to include completeness_level |
 
