@@ -33,6 +33,7 @@ export interface AdminDisputeRow {
   input_count: number;
   analysis_exists: boolean;
   age_hours: number;
+  completeness_level: string;
 }
 
 export async function fetchAdminDisputes(): Promise<AdminDisputeRow[]> {
