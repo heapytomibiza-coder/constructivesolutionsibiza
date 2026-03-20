@@ -354,7 +354,7 @@ export default function ServiceListingEditor() {
                   )}
                   {t('listingEditor.needHelp')}
                 </Button>
-                <p className="text-xs text-muted-foreground">{description.length}/100</p>
+                <p className="text-xs text-muted-foreground">{description.length}/200</p>
               </div>
             </div>
 
