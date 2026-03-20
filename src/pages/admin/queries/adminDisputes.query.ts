@@ -41,3 +41,20 @@ export async function fetchAdminDisputes(): Promise<AdminDisputeRow[]> {
   if (error) throw error;
   return (data as unknown as AdminDisputeRow[]) ?? [];
 }
+
+export interface DisputeAnalyticsData {
+  by_status: Record<string, number>;
+  by_week: { week: string; count: number }[];
+  avg_resolution_hours: number | null;
+  median_resolution_hours: number | null;
+  escalation_rate: number;
+  top_issues: { issue: string; count: number }[];
+  repeat_offenders: { user_id: string; name: string; count: number; last_at: string }[];
+  total_disputes: number;
+}
+
+export async function fetchDisputeAnalytics(): Promise<DisputeAnalyticsData> {
+  const { data, error } = await supabase.rpc('rpc_admin_dispute_analytics');
+  if (error) throw error;
+  return data as unknown as DisputeAnalyticsData;
+}
