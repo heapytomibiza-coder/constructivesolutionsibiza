@@ -391,6 +391,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      </LazySection>
 
       {/* ─── PORTFOLIO / FEATURED PROJECTS ─── */}
       <section className="py-20 bg-background">
