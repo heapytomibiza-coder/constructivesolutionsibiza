@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+
+const PAGE_SIZE = 12;
 
 export interface ServiceListingCard {
   id: string;
@@ -54,32 +56,45 @@ export interface ServiceListingDetail {
   created_at: string;
 }
 
+async function fetchListingsPage({
+  page,
+  categoryFilter,
+}: {
+  page: number;
+  categoryFilter?: string;
+}) {
+  let query = supabase
+    .from('service_listings_browse')
+    .select('*', { count: 'exact' })
+    .order('published_at', { ascending: false })
+    .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+  if (categoryFilter) {
+    query = query.eq('category_slug', categoryFilter);
+  }
+
+  const { data, error, count } = await query;
+  if (error) throw error;
+
+  return {
+    data: (data ?? []) as ServiceListingCard[],
+    totalCount: count ?? 0,
+    hasMore: (page + 1) * PAGE_SIZE < (count ?? 0),
+  };
+}
+
 /**
- * Fetch all live service listings for the browse page.
+ * Server-side paginated service listings browse.
+ * Uses useInfiniteQuery for "Load More" UX.
  */
 export function useServiceListingsBrowse(categoryFilter?: string) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['service-listings-browse', categoryFilter],
-    queryFn: async (): Promise<ServiceListingCard[]> => {
-      let query = supabase
-        .from('service_listings_browse')
-        .select('*')
-        .order('published_at', { ascending: false });
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      
-      let results = (data ?? []) as ServiceListingCard[];
-      
-      if (categoryFilter) {
-        results = results.filter(r => 
-          r.category_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === categoryFilter
-        );
-      }
-      
-      return results;
-    },
+    queryFn: ({ pageParam = 0 }) =>
+      fetchListingsPage({ page: pageParam, categoryFilter }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.hasMore ? allPages.length : undefined,
     staleTime: 30_000,
   });
 }
