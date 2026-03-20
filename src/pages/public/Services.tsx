@@ -100,7 +100,7 @@ const Services = () => {
 
       <div className="container py-12">
         {/* Filter Bar */}
-        <div className="flex flex-wrap items-center gap-3 mb-8">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-8">
           <Select value={category || ALL} onValueChange={(v) => setFilter('category', v)}>
             <SelectTrigger className="w-[180px] bg-card">
               <SelectValue placeholder={t('services.filterCategory', 'Category')} />
