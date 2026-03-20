@@ -795,6 +795,11 @@ const handler = async (req: Request): Promise<Response> => {
           } catch (_) { /* ignore */ }
         }
 
+        // Enrich dispute payloads with job title
+        if (DISPUTE_EVENTS.includes(item.event_type) && payload.job_id) {
+          await enrichDisputePayload(payload);
+        }
+
         // Build and send
         const email = buildEmail(item.event_type, payload, siteUrl);
 
