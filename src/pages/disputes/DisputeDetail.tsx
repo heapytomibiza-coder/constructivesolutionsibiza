@@ -33,6 +33,14 @@ export default function DisputeDetail() {
   const { disputeId } = useParams<{ disputeId: string }>();
   const navigate = useNavigate();
 
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['dispute', disputeId],
     queryFn: () => fetchDisputeDetail(disputeId!),
@@ -78,15 +86,6 @@ export default function DisputeDetail() {
   const statusMeta = STATUS_META[d.status as DisputeStatus] || STATUS_META.open;
   const job = d.jobs;
   const hasCurrentAnalysis = !!analysis;
-
-  // Current user for counterparty detection
-  const { data: currentUser } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
 
   const isCounterparty = currentUser?.id === d.counterparty_id;
   const isParty = currentUser?.id === d.raised_by || currentUser?.id === d.counterparty_id;
