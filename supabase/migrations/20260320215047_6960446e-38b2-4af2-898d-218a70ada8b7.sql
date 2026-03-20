@@ -1,0 +1,1 @@
+UPDATE service_listings SET hero_image_url = REPLACE(hero_image_url, '.jpg', '.webp') WHERE hero_image_url LIKE '/stock-photos/%.jpg' OR hero_image_url LIKE '/service-photos/%.jpg';
