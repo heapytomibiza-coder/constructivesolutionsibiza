@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Eye, Loader2, Image as ImageIcon, Search } from "lucide-react";
 import { format } from "date-fns";
-import { format } from "date-fns";
 import ListingPreviewDrawer from "./ListingPreviewDrawer";
 
 type StatusFilter = "all" | "draft" | "live" | "paused";
