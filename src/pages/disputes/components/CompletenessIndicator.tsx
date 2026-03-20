@@ -21,7 +21,7 @@ export function CompletenessIndicator({ disputeId }: { disputeId: string }) {
         p_dispute_id: disputeId,
       } as any);
       if (error) throw error;
-      return data as CompletenessData;
+      return data as unknown as CompletenessData;
     },
   });
 
