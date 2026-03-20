@@ -3011,6 +3011,7 @@ export type Database = {
           ai_confidence_score: number
           analysis_exists: boolean
           closed_at: string
+          completeness_level: string
           counterparty_id: string
           counterparty_name: string
           counterparty_responded_at: string

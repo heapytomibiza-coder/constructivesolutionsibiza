@@ -3,11 +3,9 @@
  */
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
-import { Scale, AlertTriangle, Brain, FileText, MessageSquare, ExternalLink } from "lucide-react";
+import { Scale, AlertTriangle, Brain, FileText, MessageSquare, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -15,8 +13,9 @@ import {
 } from "@/components/ui/table";
 import { adminKeys } from "../../queries/keys";
 import { fetchAdminDisputes, type AdminDisputeRow } from "../../queries/adminDisputes.query";
+import DisputeRowActions from "./DisputeRowActions";
 
-type DisputeFilter = 'active' | 'needs_review' | 'escalated' | 'resolved' | 'all';
+type DisputeFilter = 'active' | 'needs_review' | 'escalated' | 'overdue' | 'high_value' | 'resolved' | 'all';
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: 'Draft', variant: 'outline' },
@@ -31,6 +30,8 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
   closed: { label: 'Closed', variant: 'outline' },
 };
 
+const HIGH_VALUE_THRESHOLD = 5000;
+
 function filterDisputes(disputes: AdminDisputeRow[], filter: DisputeFilter): AdminDisputeRow[] {
   switch (filter) {
     case 'active':
@@ -39,6 +40,18 @@ function filterDisputes(disputes: AdminDisputeRow[], filter: DisputeFilter): Adm
       return disputes.filter(d => d.human_review_required && !['resolved', 'closed'].includes(d.status));
     case 'escalated':
       return disputes.filter(d => d.status === 'escalated');
+    case 'overdue':
+      return disputes.filter(d =>
+        d.response_deadline &&
+        new Date(d.response_deadline) < new Date() &&
+        !d.counterparty_responded_at &&
+        !['resolved', 'closed'].includes(d.status)
+      );
+    case 'high_value':
+      return disputes.filter(d =>
+        (d.job_budget_value ?? 0) >= HIGH_VALUE_THRESHOLD &&
+        !['resolved', 'closed'].includes(d.status)
+      );
     case 'resolved':
       return disputes.filter(d => ['resolved', 'closed'].includes(d.status));
     default:
@@ -51,6 +64,27 @@ function ConfidenceBadge({ score }: { score: number | null }) {
   const pct = Math.round(score * 100);
   const color = pct >= 70 ? 'text-primary' : pct >= 40 ? 'text-secondary-foreground' : 'text-destructive';
   return <span className={`font-mono text-xs font-medium ${color}`}>{pct}%</span>;
+}
+
+function CompletenessBadge({ level }: { level: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    high: { label: 'High', className: 'bg-primary/10 text-primary border-primary/20' },
+    medium: { label: 'Med', className: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800' },
+    low: { label: 'Low', className: 'bg-destructive/10 text-destructive border-destructive/20' },
+  };
+  const c = config[level] ?? config.low;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0 rounded border ${c.className}`}>
+      <ShieldCheck className="h-2.5 w-2.5" />
+      {c.label}
+    </span>
+  );
+}
+
+function AgeIndicator({ hours }: { hours: number }) {
+  if (hours > 48) return <span className="text-destructive font-medium text-xs">{Math.floor(hours)}h</span>;
+  if (hours > 24) return <span className="text-secondary-foreground font-medium text-xs">{Math.floor(hours)}h</span>;
+  return <span className="text-muted-foreground text-xs">{Math.floor(hours)}h</span>;
 }
 
 export default function DisputeQueue() {
@@ -66,6 +100,16 @@ export default function DisputeQueue() {
     active: allDisputes.filter(d => !['resolved', 'closed', 'draft'].includes(d.status)).length,
     needs_review: allDisputes.filter(d => d.human_review_required && !['resolved', 'closed'].includes(d.status)).length,
     escalated: allDisputes.filter(d => d.status === 'escalated').length,
+    overdue: allDisputes.filter(d =>
+      d.response_deadline &&
+      new Date(d.response_deadline) < new Date() &&
+      !d.counterparty_responded_at &&
+      !['resolved', 'closed'].includes(d.status)
+    ).length,
+    high_value: allDisputes.filter(d =>
+      (d.job_budget_value ?? 0) >= HIGH_VALUE_THRESHOLD &&
+      !['resolved', 'closed'].includes(d.status)
+    ).length,
   } : null;
 
   return (
@@ -84,6 +128,11 @@ export default function DisputeQueue() {
                   {counts.escalated} escalated
                 </span>
               )}
+              {counts.overdue > 0 && (
+                <span className="text-destructive font-medium">
+                  {counts.overdue} overdue
+                </span>
+              )}
               <span>{counts.active} active</span>
             </div>
           )}
@@ -94,6 +143,8 @@ export default function DisputeQueue() {
           <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="active">Active{counts ? ` (${counts.active})` : ''}</TabsTrigger>
             <TabsTrigger value="needs_review">Needs Review{counts ? ` (${counts.needs_review})` : ''}</TabsTrigger>
+            <TabsTrigger value="overdue">Overdue{counts ? ` (${counts.overdue})` : ''}</TabsTrigger>
+            <TabsTrigger value="high_value">High Value{counts ? ` (${counts.high_value})` : ''}</TabsTrigger>
             <TabsTrigger value="escalated">Escalated</TabsTrigger>
             <TabsTrigger value="resolved">Resolved</TabsTrigger>
             <TabsTrigger value="all">All</TabsTrigger>
@@ -203,17 +254,14 @@ export default function DisputeQueue() {
                               <ConfidenceBadge score={d.ai_confidence_score} />
                             </span>
                           )}
+                          <CompletenessBadge level={d.completeness_level} />
                         </div>
                       </TableCell>
                       <TableCell>
                         <AgeIndicator hours={d.age_hours} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" asChild title="View dispute">
-                          <a href={`/disputes/${d.id}`} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        </Button>
+                        <DisputeRowActions dispute={d} />
                       </TableCell>
                     </TableRow>
                   );
@@ -225,10 +273,4 @@ export default function DisputeQueue() {
       </CardContent>
     </Card>
   );
-}
-
-function AgeIndicator({ hours }: { hours: number }) {
-  if (hours > 48) return <span className="text-destructive font-medium text-xs">{Math.floor(hours)}h</span>;
-  if (hours > 24) return <span className="text-secondary-foreground font-medium text-xs">{Math.floor(hours)}h</span>;
-  return <span className="text-muted-foreground text-xs">{Math.floor(hours)}h</span>;
 }

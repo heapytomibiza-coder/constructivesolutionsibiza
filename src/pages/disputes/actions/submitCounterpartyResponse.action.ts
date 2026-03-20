@@ -19,9 +19,8 @@ export async function submitCounterpartyResponse(params: SubmitResponseParams) {
 
   if (!dispute) throw new Error('Dispute not found');
   const d = dispute as any;
-
-  if (d.counterparty_id !== user.id && d.raised_by !== user.id) {
-    throw new Error('Not authorized to respond to this dispute');
+  if (d.counterparty_id !== user.id) {
+    throw new Error('Only the counterparty can submit a response via this route');
   }
 
   // Add questionnaire response
@@ -46,15 +45,13 @@ export async function submitCounterpartyResponse(params: SubmitResponseParams) {
     if (tErr) throw tErr;
   }
 
-  // If counterparty, update responded_at
-  if (d.counterparty_id === user.id) {
-    await supabase
-      .from('disputes' as any)
-      .update({
-        counterparty_responded_at: new Date().toISOString(),
-      } as any)
-      .eq('id', params.disputeId);
-  }
+  // Update counterparty responded_at
+  await supabase
+    .from('disputes' as any)
+    .update({
+      counterparty_responded_at: new Date().toISOString(),
+    } as any)
+    .eq('id', params.disputeId);
 
   return true;
 }
