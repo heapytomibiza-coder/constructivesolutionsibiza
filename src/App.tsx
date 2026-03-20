@@ -238,6 +238,10 @@ const App = () => {
               {/* Forum - New Post (requires auth) */}
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
 
+              {/* Disputes */}
+              <Route path="/disputes/raise" element={<RolloutGate min="escrow-beta"><RaiseDispute /></RolloutGate>} />
+              <Route path="/disputes/:disputeId" element={<RolloutGate min="escrow-beta"><DisputeDetail /></RolloutGate>} />
+
               {/* Professional Dashboard */}
               <Route path="/dashboard/pro" element={<ProDashboard />} />
 
