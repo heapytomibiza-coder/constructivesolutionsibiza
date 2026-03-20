@@ -1,19 +1,10 @@
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   MapPin, Briefcase, Store, MessageSquare,
-  ExternalLink, EyeOff, CheckCircle, AlertTriangle,
+  ExternalLink,
 } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { adminKeys } from "../../queries/keys";
 import type { AdminUserDetails, ProServiceEntry, ServiceListingSummary } from "../../queries/adminUserDetails.query";
 
 export function TaskerTab({ user }: { user: AdminUserDetails }) {
@@ -148,156 +139,43 @@ function ServicesSection({ services }: { services: ProServiceEntry[] }) {
   );
 }
 
-function ListingsSection({ listings, userId }: { listings: ServiceListingSummary[]; userId: string }) {
-  const queryClient = useQueryClient();
-  const [takedownTarget, setTakedownTarget] = useState<ServiceListingSummary | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const handleTakedown = async () => {
-    if (!takedownTarget) return;
-    setIsProcessing(true);
-    try {
-      const { error } = await supabase
-        .from("service_listings")
-        .update({ status: "draft" })
-        .eq("id", takedownTarget.id);
-      if (error) throw error;
-
-      // Log admin action
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("admin_actions_log").insert({
-          admin_user_id: user.id,
-          action_type: "listing_takedown",
-          target_type: "service_listing",
-          target_id: takedownTarget.id,
-          metadata: { listing_title: takedownTarget.display_title, provider_id: userId },
-        });
-      }
-
-      toast.success(`"${takedownTarget.display_title}" taken down to draft`);
-      queryClient.invalidateQueries({ queryKey: adminKeys.all });
-    } catch {
-      toast.error("Failed to take down listing");
-    } finally {
-      setIsProcessing(false);
-      setTakedownTarget(null);
-    }
-  };
-
-  const handleApproveListing = async (listing: ServiceListingSummary) => {
-    try {
-      const { error } = await supabase
-        .from("service_listings")
-        .update({ status: "live" })
-        .eq("id", listing.id);
-      if (error) throw error;
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("admin_actions_log").insert({
-          admin_user_id: user.id,
-          action_type: "listing_approved",
-          target_type: "service_listing",
-          target_id: listing.id,
-          metadata: { listing_title: listing.display_title, provider_id: userId },
-        });
-      }
-
-      toast.success(`"${listing.display_title}" approved & set live`);
-      queryClient.invalidateQueries({ queryKey: adminKeys.all });
-    } catch {
-      toast.error("Failed to approve listing");
-    }
-  };
-
+function ListingsSection({ listings }: { listings: ServiceListingSummary[]; userId: string }) {
   return (
-    <>
-      <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-          <Store className="h-3.5 w-3.5" /> Service Listings ({listings.length})
-        </h3>
-        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
-          {listings.map((l) => (
-            <div key={l.id} className="rounded-lg border p-3 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium truncate">{l.display_title || "Untitled"}</span>
-                <Badge
-                  variant={l.status === "live" ? "default" : "secondary"}
-                  className="text-[10px] capitalize shrink-0"
-                >
-                  {l.status}
-                </Badge>
-              </div>
-              <div className="flex gap-3 text-[11px] text-muted-foreground">
-                <span>{l.has_hero ? "✓ Image" : "✗ No image"}</span>
-                <span>{l.has_description ? "✓ Description" : "✗ No desc"}</span>
-                <span>{l.pricing_summary ? "✓ Pricing" : "✗ No pricing"}</span>
-              </div>
-              {/* Admin actions */}
-              <div className="flex items-center gap-1.5 pt-1">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 text-xs gap-1 px-2"
-                  onClick={() => window.open(`/services/listing/${l.id}`, "_blank")}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Review
-                </Button>
-                {l.status === "live" ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 text-xs gap-1 px-2 text-destructive hover:text-destructive"
-                    onClick={() => setTakedownTarget(l)}
-                  >
-                    <EyeOff className="h-3 w-3" />
-                    Take Down
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 text-xs gap-1 px-2 text-green-600 hover:text-green-700"
-                    onClick={() => handleApproveListing(l)}
-                    disabled={!l.has_hero || !l.has_description}
-                    title={!l.has_hero || !l.has_description ? "Listing needs image & description before going live" : ""}
-                  >
-                    <CheckCircle className="h-3 w-3" />
-                    Approve
-                  </Button>
-                )}
-              </div>
+    <div className="space-y-2">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+        <Store className="h-3.5 w-3.5" /> Service Listings ({listings.length})
+      </h3>
+      <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+        {listings.map((l) => (
+          <div key={l.id} className="rounded-lg border p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-medium truncate">{l.display_title || "Untitled"}</span>
+              <Badge
+                variant={l.status === "live" ? "default" : "secondary"}
+                className="text-[10px] capitalize shrink-0"
+              >
+                {l.status}
+              </Badge>
             </div>
-          ))}
-        </div>
+            <div className="flex gap-3 text-[11px] text-muted-foreground">
+              <span>{l.has_hero ? "✓ Image" : "✗ No image"}</span>
+              <span>{l.has_description ? "✓ Description" : "✗ No desc"}</span>
+              <span>{l.pricing_summary ? "✓ Pricing" : "✗ No pricing"}</span>
+            </div>
+            <div className="flex items-center gap-1.5 pt-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs gap-1 px-2"
+                onClick={() => window.open(`/services/listing/${l.id}`, "_blank")}
+              >
+                <ExternalLink className="h-3 w-3" />
+                View
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
-
-      {/* Takedown confirmation */}
-      <AlertDialog open={!!takedownTarget} onOpenChange={(v) => !v && setTakedownTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Take down listing?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This will set "{takedownTarget?.display_title}" back to draft, removing it from public view. The professional can re-publish it later.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleTakedown}
-              disabled={isProcessing}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isProcessing ? "Taking down…" : "Take Down"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    </div>
   );
 }

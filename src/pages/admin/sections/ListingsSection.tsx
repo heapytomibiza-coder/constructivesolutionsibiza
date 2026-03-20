@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, CheckCircle2, XCircle, Loader2, Image as ImageIcon, Search } from "lucide-react";
-import { toast } from "sonner";
+import { Eye, Loader2, Image as ImageIcon, Search } from "lucide-react";
 import { format } from "date-fns";
 import ListingPreviewDrawer from "./ListingPreviewDrawer";
 
@@ -22,7 +21,7 @@ const statusColors: Record<string, string> = {
 export default function ListingsSection() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
-  const queryClient = useQueryClient();
+  
 
   const { data: listings, isLoading } = useQuery({
     queryKey: ["admin-listings", statusFilter],
@@ -48,34 +47,7 @@ export default function ListingsSection() {
     },
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, newStatus }: { id: string; newStatus: string }) => {
-      const { error } = await supabase
-        .from("service_listings")
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
-
-      // Log admin action
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("admin_actions_log").insert({
-          admin_user_id: user.id,
-          action_type: `listing_${newStatus}`,
-          target_type: "service_listing",
-          target_id: id,
-          metadata: { new_status: newStatus },
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-listings"] });
-      toast.success("Listing status updated");
-    },
-    onError: (err: Error) => {
-      toast.error(`Failed to update: ${err.message}`);
-    },
-  });
+  // Status counts (read-only for now — approve/take-down actions removed pending proper review workflow)
 
   const counts = {
     all: listings?.length ?? 0,
@@ -118,8 +90,7 @@ export default function ListingsSection() {
                     <TableHead>Status</TableHead>
                     <TableHead>Pricing</TableHead>
                     <TableHead>Views</TableHead>
-                    <TableHead>Updated</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                     <TableHead>Updated</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -170,59 +141,15 @@ export default function ListingsSection() {
                         {format(new Date(listing.updated_at), "dd MMM yyyy")}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="gap-1"
-                            onClick={() => setPreviewId(listing.id)}
-                          >
-                            <Search className="h-3 w-3" />
-                            Review
-                          </Button>
-                          {listing.status === "draft" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1"
-                              onClick={() =>
-                                updateStatusMutation.mutate({ id: listing.id, newStatus: "live" })
-                              }
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              <CheckCircle2 className="h-3 w-3" />
-                              Approve
-                            </Button>
-                          )}
-                          {listing.status === "live" && (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              className="gap-1"
-                              onClick={() =>
-                                updateStatusMutation.mutate({ id: listing.id, newStatus: "paused" })
-                              }
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              <XCircle className="h-3 w-3" />
-                              Take Down
-                            </Button>
-                          )}
-                          {listing.status === "paused" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1"
-                              onClick={() =>
-                                updateStatusMutation.mutate({ id: listing.id, newStatus: "live" })
-                              }
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              <CheckCircle2 className="h-3 w-3" />
-                              Restore
-                            </Button>
-                          )}
-                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="gap-1"
+                          onClick={() => setPreviewId(listing.id)}
+                        >
+                          <Search className="h-3 w-3" />
+                          Review
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
