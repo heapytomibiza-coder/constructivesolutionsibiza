@@ -2,7 +2,8 @@
  * Button to request support - shows in conversation header
  */
 import { useState } from "react";
-import { Headset, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Headset, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSupportRequestStatus } from "../hooks/useSupportRequestStatus";
 import { SupportRequestDialog } from "./SupportRequestDialog";
@@ -31,10 +32,20 @@ export function RequestSupportButton({
 
   if (hasOpenRequest) {
     return (
-      <Button variant="outline" size="sm" disabled className="text-muted-foreground">
-        <Headset className="h-4 w-4 mr-2" />
-        Support Requested
-      </Button>
+      <div className="flex flex-col items-end gap-1">
+        <Button variant="outline" size="sm" disabled className="text-muted-foreground">
+          <Headset className="h-4 w-4 mr-2" />
+          Support Requested
+        </Button>
+        {jobId && (
+          <Link
+            to={`/disputes/raise?job=${jobId}`}
+            className="text-xs text-destructive hover:underline"
+          >
+            Not resolved? Escalate to formal dispute
+          </Link>
+        )}
+      </div>
     );
   }
 
