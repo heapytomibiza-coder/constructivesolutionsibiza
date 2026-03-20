@@ -5,3 +5,5 @@ export { AnalysisDisplay } from './AnalysisDisplay';
 export { CoolingOffNotice } from './CoolingOffNotice';
 export { CompletenessIndicator } from './CompletenessIndicator';
 export { CounterpartyBanner } from './CounterpartyBanner';
+export { ResolutionBanner } from './ResolutionBanner';
+export { DisputeTimeline } from './DisputeTimeline';

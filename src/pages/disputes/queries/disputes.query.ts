@@ -38,5 +38,6 @@ export async function fetchDisputeDetail(disputeId: string) {
     evidence: evidenceRes.data || [],
     analysis: (analysisRes.data || [])[0] || null,
     history: historyRes.data || [],
+    aiEvents: aiEventsRes.data || [],
   };
 }
