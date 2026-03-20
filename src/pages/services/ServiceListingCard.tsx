@@ -99,7 +99,7 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
             <div className="flex items-center gap-2 min-w-0">
               <Avatar className="h-6 w-6 shrink-0">
-                <AvatarImage src={listing.provider_avatar ?? undefined} />
+                <AvatarImage src={listing.provider_avatar_thumb || listing.provider_avatar || undefined} />
                 <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                   {(listing.provider_name ?? '?')[0]}
                 </AvatarFallback>
