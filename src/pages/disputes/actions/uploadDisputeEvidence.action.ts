@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 export async function uploadDisputeEvidence(
   disputeId: string,
   file: File,
-  description?: string
+  description?: string,
+  evidenceCategory?: string
 ) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
@@ -34,6 +35,7 @@ export async function uploadDisputeEvidence(
       file_name: file.name,
       file_size_bytes: file.size,
       description,
+      evidence_category: evidenceCategory || fileType,
     } as any)
     .select()
     .single();

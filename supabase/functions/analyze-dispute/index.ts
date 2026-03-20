@@ -7,6 +7,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const ALLOWED_PATHWAYS = ["corrective_work", "financial_adjustment", "shared_responsibility", "expert_review"];
+const ALLOWED_ISSUE_TYPES = [
+  "quality", "completion", "delay", "payment", "scope_change",
+  "materials", "access_site_conditions", "communication_conduct",
+  "damage", "abandonment", "pricing_variation",
+];
+const HIGH_RISK_ISSUES = ["damage", "abandonment", "communication_conduct"];
+const MANUAL_REVIEW_THRESHOLD_EUR = 20_000;
+
 const SYSTEM_PROMPT = `You are a neutral construction case structuring assistant for a marketplace platform in Ibiza, Spain.
 
 Your role is to:
@@ -34,10 +43,70 @@ Use "financial_adjustment" when partial value delivered but correction inefficie
 Use "shared_responsibility" when both sides contributed to the issue.
 Use "expert_review" when technical quality unclear, high value, or conflicting evidence.`;
 
+/** Validate and sanitize parsed AI output */
+function validateAnalysis(raw: any): { valid: boolean; analysis: any; errors: string[] } {
+  const errors: string[] = [];
+
+  if (!raw || typeof raw !== "object") return { valid: false, analysis: null, errors: ["Not an object"] };
+
+  // confidence_score
+  const conf = typeof raw.confidence_score === "number" ? raw.confidence_score : NaN;
+  if (isNaN(conf) || conf < 0 || conf > 1) errors.push("confidence_score out of range");
+  raw.confidence_score = Math.max(0, Math.min(1, conf || 0.5));
+
+  // suggested_pathway
+  if (!ALLOWED_PATHWAYS.includes(raw.suggested_pathway)) {
+    errors.push(`Invalid pathway: ${raw.suggested_pathway}`);
+    raw.suggested_pathway = "expert_review";
+  }
+
+  // issue_types
+  if (!Array.isArray(raw.issue_types)) raw.issue_types = [];
+  raw.issue_types = raw.issue_types.filter((t: string) => ALLOWED_ISSUE_TYPES.includes(t)).slice(0, 20);
+
+  // arrays capped
+  for (const key of ["agreed_facts", "disputed_points", "missing_evidence"]) {
+    if (!Array.isArray(raw[key])) raw[key] = [];
+    raw[key] = raw[key].slice(0, 20);
+  }
+
+  // summary_neutral
+  if (typeof raw.summary_neutral !== "string" || !raw.summary_neutral.trim()) {
+    errors.push("Empty summary_neutral");
+    raw.summary_neutral = "Analysis could not generate a summary.";
+  }
+  raw.summary_neutral = raw.summary_neutral.slice(0, 2000);
+
+  // requires_human_review
+  if (typeof raw.requires_human_review !== "boolean") raw.requires_human_review = true;
+
+  return { valid: errors.length === 0, analysis: raw, errors };
+}
+
+/** Check if human review should be forced beyond confidence threshold */
+function shouldForceHumanReview(analysis: any, job: any): boolean {
+  // Always true during beta
+  // Also check: high-risk issues, high-value project, low confidence
+  if (analysis.confidence_score < 0.65) return true;
+
+  const hasHighRisk = (analysis.issue_types || []).some((t: string) => HIGH_RISK_ISSUES.includes(t));
+  if (hasHighRisk) return true;
+
+  const budget = job?.budget_value || job?.budget_max || 0;
+  if (budget > MANUAL_REVIEW_THRESHOLD_EUR) return true;
+
+  return true; // beta: always human review
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -56,10 +125,6 @@ serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-
     if (!lovableApiKey) {
       return new Response(JSON.stringify({ error: "AI service not configured" }), {
         status: 500,
@@ -67,7 +132,7 @@ serve(async (req) => {
       });
     }
 
-    // Verify caller is a dispute party
+    // Verify caller
     const supabaseUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -79,10 +144,7 @@ serve(async (req) => {
       });
     }
 
-    // Use service role to read dispute data
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Fetch dispute + inputs + evidence
+    // Fetch dispute
     const { data: dispute, error: dErr } = await supabase
       .from("disputes")
       .select("*")
@@ -96,9 +158,8 @@ serve(async (req) => {
       });
     }
 
-    // Verify user is party to dispute
+    // Verify authorization
     if (dispute.raised_by !== user.id && dispute.counterparty_id !== user.id) {
-      // Check admin
       const { data: isAdmin } = await supabase.rpc("has_role", {
         _user_id: user.id,
         _role: "admin",
@@ -111,6 +172,13 @@ serve(async (req) => {
       }
     }
 
+    // Log analysis_requested
+    await supabase.from("dispute_ai_events").insert({
+      dispute_id,
+      event_type: "analysis_requested",
+      metadata: { triggered_by: user.id },
+    });
+
     // Fetch related data
     const [inputsRes, evidenceRes, jobRes] = await Promise.all([
       supabase.from("dispute_inputs").select("*").eq("dispute_id", dispute_id),
@@ -122,15 +190,11 @@ serve(async (req) => {
     const evidence = evidenceRes.data || [];
     const job = jobRes.data;
 
-    // Build context for AI
+    // Build context
     const userStatements = inputs.map((i: any) => {
       const who = i.user_id === dispute.raised_by ? "Complainant" : "Respondent";
-      if (i.input_type === "voice" && i.transcript) {
-        return `${who} (voice): ${i.transcript}`;
-      }
-      if (i.input_type === "multiple_choice" && i.questionnaire_answers) {
-        return `${who} (questionnaire): ${JSON.stringify(i.questionnaire_answers)}`;
-      }
+      if (i.input_type === "voice" && i.transcript) return `${who} (voice): ${i.transcript}`;
+      if (i.input_type === "multiple_choice" && i.questionnaire_answers) return `${who} (questionnaire): ${JSON.stringify(i.questionnaire_answers)}`;
       return `${who}: ${i.raw_text || "No text provided"}`;
     });
 
@@ -159,7 +223,7 @@ ${userStatements.length > 0 ? userStatements.join("\n\n") : "No statements submi
 EVIDENCE SUBMITTED:
 ${evidenceSummary.length > 0 ? evidenceSummary.join("\n") : "No evidence uploaded yet."}`;
 
-    // Call Lovable AI with tool calling for structured output
+    // Call AI
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -183,14 +247,7 @@ ${evidenceSummary.length > 0 ? evidenceSummary.join("\n") : "No evidence uploade
                 properties: {
                   issue_types: {
                     type: "array",
-                    items: {
-                      type: "string",
-                      enum: [
-                        "quality", "completion", "delay", "payment", "scope_change",
-                        "materials", "access_site_conditions", "communication_conduct",
-                        "damage", "abandonment", "pricing_variation",
-                      ],
-                    },
+                    items: { type: "string", enum: ALLOWED_ISSUE_TYPES },
                     description: "Identified issue types",
                   },
                   summary_neutral: {
@@ -214,7 +271,7 @@ ${evidenceSummary.length > 0 ? evidenceSummary.join("\n") : "No evidence uploade
                   },
                   suggested_pathway: {
                     type: "string",
-                    enum: ["corrective_work", "financial_adjustment", "shared_responsibility", "expert_review"],
+                    enum: ALLOWED_PATHWAYS,
                     description: "Recommended resolution pathway",
                   },
                   confidence_score: {
@@ -246,22 +303,25 @@ ${evidenceSummary.length > 0 ? evidenceSummary.join("\n") : "No evidence uploade
 
     if (!aiResponse.ok) {
       const status = aiResponse.status;
+      await supabase.from("dispute_ai_events").insert({
+        dispute_id,
+        event_type: "analysis_failed",
+        metadata: { error: `HTTP ${status}`, triggered_by: user.id },
+      });
+
       if (status === 429) {
         return new Response(JSON.stringify({ error: "AI service rate limited. Please try again shortly." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       console.error("AI error:", status, await aiResponse.text());
       return new Response(JSON.stringify({ error: "AI analysis failed" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -269,15 +329,23 @@ ${evidenceSummary.length > 0 ? evidenceSummary.join("\n") : "No evidence uploade
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
 
     if (!toolCall?.function?.arguments) {
+      await supabase.from("dispute_ai_events").insert({
+        dispute_id,
+        event_type: "analysis_failed",
+        metadata: { error: "No tool call in response", triggered_by: user.id },
+      });
       return new Response(JSON.stringify({ error: "AI returned invalid response" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const analysis = JSON.parse(toolCall.function.arguments);
+    const rawAnalysis = JSON.parse(toolCall.function.arguments);
+    const { analysis, errors } = validateAnalysis(rawAnalysis);
 
-    // Store analysis
+    // Force human review based on broader rules
+    analysis.requires_human_review = shouldForceHumanReview(analysis, job);
+
+    // Store analysis (is_current trigger auto-deactivates previous)
     const { data: savedAnalysis, error: saveErr } = await supabase
       .from("dispute_analysis")
       .insert({
@@ -291,6 +359,7 @@ ${evidenceSummary.length > 0 ? evidenceSummary.join("\n") : "No evidence uploade
         confidence_score: analysis.confidence_score,
         requires_human_review: analysis.requires_human_review,
         raw_ai_response: aiData,
+        is_current: true,
       })
       .select()
       .single();
@@ -306,30 +375,34 @@ ${evidenceSummary.length > 0 ? evidenceSummary.join("\n") : "No evidence uploade
         summary_neutral: analysis.summary_neutral,
         ai_confidence_score: analysis.confidence_score,
         recommended_pathway: analysis.suggested_pathway,
-        human_review_required: analysis.requires_human_review || analysis.confidence_score < 0.65,
+        human_review_required: analysis.requires_human_review,
         issue_types: analysis.issue_types,
       })
       .eq("id", dispute_id);
 
+    // Log success
+    await supabase.from("dispute_ai_events").insert({
+      dispute_id,
+      event_type: "analysis_completed",
+      metadata: {
+        analysis_id: savedAnalysis?.id,
+        confidence: analysis.confidence_score,
+        pathway: analysis.suggested_pathway,
+        human_review: analysis.requires_human_review,
+        validation_errors: errors,
+        triggered_by: user.id,
+      },
+    });
+
     return new Response(
-      JSON.stringify({
-        analysis: {
-          ...analysis,
-          id: savedAnalysis?.id,
-        },
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ analysis: { ...analysis, id: savedAnalysis?.id } }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
     console.error("analyze-dispute error:", e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

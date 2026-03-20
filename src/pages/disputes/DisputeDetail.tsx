@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Brain, Clock, FileText, Upload } from 'lucide-react';
+import { Loader2, ArrowLeft, Brain, Clock, FileText, Upload, RefreshCw } from 'lucide-react';
 import { PublicLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { fetchDisputeDetail } from './queries/disputes.query';
 import { analyzeDispute } from './actions/analyzeDispute.action';
 import { AnalysisDisplay } from './components/AnalysisDisplay';
+import { CompletenessIndicator } from './components/CompletenessIndicator';
 import type { DisputeStatus } from './types';
 
 const STATUS_META: Record<DisputeStatus, { label: string; color: string }> = {
@@ -72,6 +73,7 @@ export default function DisputeDetail() {
   const d = dispute as any;
   const statusMeta = STATUS_META[d.status as DisputeStatus] || STATUS_META.open;
   const job = d.jobs;
+  const hasCurrentAnalysis = !!analysis;
 
   return (
     <PublicLayout>
@@ -166,7 +168,7 @@ export default function DisputeDetail() {
               {evidence.map((e: any) => (
                 <div key={e.id} className="p-2 rounded-lg border bg-card text-center">
                   <div className="w-full h-16 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground capitalize">
-                    {e.file_type}
+                    {e.evidence_category || e.file_type}
                   </div>
                   {e.description && (
                     <p className="text-xs text-muted-foreground mt-1 truncate">{e.description}</p>
@@ -179,9 +181,33 @@ export default function DisputeDetail() {
 
         <Separator />
 
+        {/* Case Completeness */}
+        {disputeId && <CompletenessIndicator disputeId={disputeId} />}
+
         {/* AI Analysis */}
-        {analysis ? (
-          <AnalysisDisplay analysis={analysis as any} />
+        {hasCurrentAnalysis ? (
+          <div className="space-y-3">
+            <AnalysisDisplay analysis={analysis as any} />
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (window.confirm('This will generate a new analysis, superseding the current one. Continue?')) {
+                    analyzeMutation.mutate();
+                  }
+                }}
+                disabled={analyzeMutation.isPending}
+              >
+                {analyzeMutation.isPending ? (
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                )}
+                Re-analyze
+              </Button>
+            </div>
+          </div>
         ) : (
           <div className="text-center py-6 space-y-3">
             <Brain className="h-8 w-8 text-muted-foreground mx-auto" />

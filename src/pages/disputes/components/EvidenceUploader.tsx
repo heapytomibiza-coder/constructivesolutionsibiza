@@ -2,10 +2,22 @@ import { useState, useCallback } from 'react';
 import { Upload, X, Image, FileText, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const EVIDENCE_CATEGORIES = [
+  { value: 'photo', label: 'Photo' },
+  { value: 'video', label: 'Video' },
+  { value: 'invoice', label: 'Invoice' },
+  { value: 'message', label: 'Message / Screenshot' },
+  { value: 'plan', label: 'Plan / Drawing' },
+  { value: 'receipt', label: 'Receipt' },
+  { value: 'document', label: 'Other Document' },
+];
 
 interface EvidenceFile {
   file: File;
   description: string;
+  category: string;
   preview?: string;
 }
 
@@ -14,12 +26,19 @@ interface Props {
   onChange: (files: EvidenceFile[]) => void;
 }
 
+function inferCategory(file: File): string {
+  if (file.type.startsWith('image/')) return 'photo';
+  if (file.type.startsWith('video/')) return 'video';
+  return 'document';
+}
+
 export function EvidenceUploader({ files, onChange }: Props) {
   const handleAdd = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newFiles = Array.from(e.target.files || []).map((file) => ({
         file,
         description: '',
+        category: inferCategory(file),
         preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
       }));
       onChange([...files, ...newFiles]);
@@ -38,6 +57,12 @@ export function EvidenceUploader({ files, onChange }: Props) {
   const updateDescription = (idx: number, desc: string) => {
     const updated = [...files];
     updated[idx] = { ...updated[idx], description: desc };
+    onChange(updated);
+  };
+
+  const updateCategory = (idx: number, category: string) => {
+    const updated = [...files];
+    updated[idx] = { ...updated[idx], category };
     onChange(updated);
   };
 
@@ -80,11 +105,23 @@ export function EvidenceUploader({ files, onChange }: Props) {
                   {getIcon(f.file.type)}
                 </div>
               )}
-              <div className="flex-1 min-w-0 space-y-1">
+              <div className="flex-1 min-w-0 space-y-1.5">
                 <p className="text-sm font-medium truncate">{f.file.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {(f.file.size / 1024).toFixed(0)} KB
                 </p>
+                <Select value={f.category} onValueChange={(v) => updateCategory(idx, v)}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EVIDENCE_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value} className="text-xs">
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input
                   placeholder="Describe this evidence..."
                   value={f.description}
