@@ -155,6 +155,7 @@ const Index = () => {
       </section>
       </LazySection>
 
+      <LazySection minHeight={400}>
       {/* ─── PROBLEM / SOLUTION (gated: escrow-beta) ─── */}
       {isRolloutActive('escrow-beta') && (
       <section className="py-20 bg-gradient-concrete">
