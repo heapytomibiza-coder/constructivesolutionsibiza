@@ -48,34 +48,7 @@ export default function ListingsSection() {
     },
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, newStatus }: { id: string; newStatus: string }) => {
-      const { error } = await supabase
-        .from("service_listings")
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
-
-      // Log admin action
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("admin_actions_log").insert({
-          admin_user_id: user.id,
-          action_type: `listing_${newStatus}`,
-          target_type: "service_listing",
-          target_id: id,
-          metadata: { new_status: newStatus },
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-listings"] });
-      toast.success("Listing status updated");
-    },
-    onError: (err: Error) => {
-      toast.error(`Failed to update: ${err.message}`);
-    },
-  });
+  // Status counts (read-only for now — approve/take-down actions removed pending proper review workflow)
 
   const counts = {
     all: listings?.length ?? 0,
