@@ -109,6 +109,7 @@ const MonitoringPage = lazy(() => import("./pages/admin/monitoring/MonitoringPag
 // Disputes
 const RaiseDispute = lazy(() => import("./pages/disputes/RaiseDispute"));
 const DisputeDetail = lazy(() => import("./pages/disputes/DisputeDetail"));
+const DisputeResponse = lazy(() => import("./pages/disputes/DisputeResponse"));
 
 // Launch Checklist
 const LaunchChecklist = lazy(() => import("./pages/LaunchChecklist"));
