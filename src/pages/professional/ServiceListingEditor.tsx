@@ -44,6 +44,7 @@ export default function ServiceListingEditor() {
   const [startingPriceUnit, setStartingPriceUnit] = useState('hour');
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [aiAssisting, setAiAssisting] = useState(false);
   const [stockPickerOpen, setStockPickerOpen] = useState(false);
   const [stockPickerTarget, setStockPickerTarget] = useState<'hero' | 'gallery'>('hero');
 
