@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2, Pencil, Copy, X, Clock, MessageSquare, DollarSign } from 'lucide-react';
+import { CheckCircle2, Pencil, Copy, X, Clock, MessageSquare, DollarSign, AlertTriangle } from 'lucide-react';
 import { CategoryPlaceholder } from '@/components/CategoryPlaceholder';
 import { getCategoryIconByName } from '@/lib/categoryIcons';
 import { CompletionModal, RatingModal } from '@/pages/jobs/components';
@@ -280,6 +280,14 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             )}
             {job.status === 'open' && !job.assigned_professional_id && (
               <AssignProSelector jobId={job.id} onAssigned={onJobUpdated} />
+            )}
+            {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
+              <Button variant="outline" size="sm" className="gap-1 text-destructive hover:text-destructive" asChild>
+                <Link to={`/disputes/raise?job=${job.id}`}>
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {t('client.raiseIssue', 'Raise Issue')}
+                </Link>
+              </Button>
             )}
             {canComplete && (
               <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowCompletionModal(true)}>

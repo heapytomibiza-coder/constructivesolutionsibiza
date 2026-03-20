@@ -480,6 +480,16 @@ function JobDetailsActions({ jobPack, onClose }: JobDetailsActionsProps) {
           )}
         </div>
       ) : null}
+      {user && ['in_progress', 'completed'].includes(jobPack.status ?? '') && (
+        <Button
+          variant="outline"
+          className="gap-2 text-destructive hover:text-destructive"
+          onClick={() => { onClose(); navigate(`/disputes/raise?job=${jobPack.id}`); }}
+        >
+          <AlertTriangle className="h-4 w-4" />
+          {t('detail.raiseIssue', 'Raise Issue')}
+        </Button>
+      )}
       <Button variant="outline" disabled className="gap-2">
         <Share2 className="h-4 w-4" />
         {t('detail.share')}
