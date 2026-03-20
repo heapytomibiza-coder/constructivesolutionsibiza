@@ -105,6 +105,7 @@ const OnboardingFunnelPage = lazy(() => import("./pages/admin/insights/Onboardin
 const TopSourcesPage = lazy(() => import("./pages/admin/insights/TopSourcesPage"));
 const MessagingPulsePage = lazy(() => import("./pages/admin/insights/MessagingPulsePage"));
 const MonitoringPage = lazy(() => import("./pages/admin/monitoring/MonitoringPage"));
+const DisputeQADashboard = lazy(() => import("./pages/admin/qa/DisputeQADashboard"));
 
 // Disputes
 const RaiseDispute = lazy(() => import("./pages/disputes/RaiseDispute"));
@@ -262,6 +263,7 @@ const App = () => {
                 <Route path="insights/messaging-pulse" element={<MessagingPulsePage />} />
                 <Route path="insights/:metricKey" element={<MetricInsightPage />} />
                 <Route path="monitoring" element={<MonitoringPage />} />
+                <Route path="qa/disputes" element={<DisputeQADashboard />} />
               </Route>
             </Route>
 
