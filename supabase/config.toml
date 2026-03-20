@@ -22,3 +22,6 @@ verify_jwt = false
 
 [functions.analyze-dispute]
 verify_jwt = false
+
+[functions.dispute-deadline-automation]
+verify_jwt = false

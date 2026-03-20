@@ -606,6 +606,93 @@ function buildDisputeEvidenceEmail(payload: any, siteUrl: string) {
   };
 }
 
+function buildDeadlineApproachingEmail(payload: any, siteUrl: string) {
+  const isEvidence = payload.deadline_type === "evidence";
+  const deadlineStr = payload.deadline
+    ? new Date(payload.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
+    : `${payload.hours_remaining} hours`;
+  const disputeUrl = isEvidence
+    ? `${siteUrl}/disputes/${payload.dispute_id}`
+    : `${siteUrl}/disputes/${payload.dispute_id}/respond`;
+  return {
+    subject: `⏰ ${payload.hours_remaining}h remaining: ${isEvidence ? "Evidence" : "Response"} deadline approaching`,
+    html: emailShell(
+      "linear-gradient(135deg, #d97706, #f59e0b)",
+      `⏰ Deadline Approaching`,
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">You have <strong>${payload.hours_remaining} hours</strong> remaining to submit your ${isEvidence ? "evidence" : "response"} regarding: <strong>${payload._job_title || "your project"}</strong></p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Deadline</td><td style="padding: 8px 0; color: #dc2626; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 600;">${deadlineStr}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Type</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${isEvidence ? "Evidence submission" : "Response to dispute"}</td></tr>
+      </table>
+      <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 20px;">If the deadline passes without a ${isEvidence ? "submission" : "response"}, the case will progress automatically.</p>
+      <a href="${disputeUrl}" style="display: inline-block; background: #d97706; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">${isEvidence ? "Upload Evidence →" : "Respond Now →"}</a>`
+    ),
+  };
+}
+
+function buildDeadlinePassedEmail(payload: any, siteUrl: string) {
+  const disputeUrl = `${siteUrl}/disputes/${payload.dispute_id}/respond`;
+  return {
+    subject: `⚠️ Response deadline has passed — ${payload._job_title || "your dispute"}`,
+    html: emailShell(
+      "linear-gradient(135deg, #dc2626, #ef4444)",
+      "⚠️ Deadline Passed",
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">The response deadline for the dispute regarding <strong>${payload._job_title || "your project"}</strong> has passed.</p>
+      <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0 0 16px;">You have a <strong>${payload.grace_hours || 24} hour grace period</strong> to submit your response. After that, the case will automatically progress without your input.</p>
+      <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 20px;">All responses are recorded and used to reach a fair outcome.</p>
+      <a href="${disputeUrl}" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">Respond Now →</a>`
+    ),
+  };
+}
+
+function buildDeadlinePassedRaiserEmail(payload: any, siteUrl: string) {
+  const disputeUrl = `${siteUrl}/disputes/${payload.dispute_id}`;
+  return {
+    subject: `Update: Response deadline passed — ${payload._job_title || "your dispute"}`,
+    html: emailShell(
+      "linear-gradient(135deg, #6b7280, #9ca3af)",
+      "Deadline Update",
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">The counterparty's response deadline for your dispute regarding <strong>${payload._job_title || "your project"}</strong> has passed without a response.</p>
+      <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0 0 16px;">A grace period is in effect. If no response is received, the case will automatically progress based on the information available.</p>
+      <a href="${disputeUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">View Case →</a>`
+    ),
+  };
+}
+
+function buildAdminDeadlinePassedEmail(payload: any, siteUrl: string) {
+  const issueList = (payload.issue_types || []).map((t: string) => t.replace(/_/g, " ")).join(", ");
+  return {
+    subject: `⚠️ Dispute deadline passed: ${payload._job_title || "Unknown"}`,
+    html: emailShell(
+      "linear-gradient(135deg, #dc2626, #ef4444)",
+      "⚠️ Deadline Passed",
+      `<h2 style="margin: 0 0 8px; color: #111827; font-size: 18px;">${payload._job_title || "Unknown project"}</h2>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #f3f4f6;">Status</td><td style="padding: 8px 0; color: #111827; font-size: 14px; border-bottom: 1px solid #f3f4f6; text-align: right; font-weight: 500;">${(payload.status || "").replace(/_/g, " ")}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Issues</td><td style="padding: 8px 0; color: #111827; font-size: 14px; text-align: right; font-weight: 500;">${issueList || "N/A"}</td></tr>
+      </table>
+      <p style="color: #6b7280; font-size: 13px; margin: 0 0 16px;">Counterparty has not responded. Auto-advance will trigger after grace period.</p>
+      <a href="${siteUrl}/dashboard/admin" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View in Admin →</a>`
+    ),
+    telegram: `⚠️ <b>DEADLINE PASSED</b>\n<b>${escapeHtml(payload._job_title || "Unknown")}</b>\nStatus: ${escapeHtml((payload.status || "").replace(/_/g, " "))}\nNo counterparty response\n\n👉 ${siteUrl}/dashboard/admin`,
+  };
+}
+
+function buildAutoAdvancedEmail(payload: any, siteUrl: string) {
+  const disputeUrl = `${siteUrl}/disputes/${payload.dispute_id}`;
+  const newStatusLabel = (payload.new_status || "").replace(/_/g, " ");
+  return {
+    subject: `Case progressed automatically — ${payload._job_title || "your dispute"}`,
+    html: emailShell(
+      "linear-gradient(135deg, #6b7280, #9ca3af)",
+      "Case Progressed",
+      `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">The dispute regarding <strong>${payload._job_title || "your project"}</strong> has automatically progressed to: <strong>${newStatusLabel}</strong></p>
+      <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0 0 16px;">This occurred because the response deadline passed. The case will continue based on the information currently available.</p>
+      <a href="${disputeUrl}" style="display: inline-block; background: #374151; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">View Case →</a>`
+    ),
+  };
+}
+
 // ============================================
 // EVENT → TEMPLATE ROUTER
 // ============================================
@@ -615,10 +702,14 @@ type EmailResult = { subject: string; html: string; whatsapp?: string; telegram?
 const ADMIN_ONLY_EVENTS = [
   "admin_new_job", "admin_new_user", "pro_signup", "support_ticket",
   "forum_post", "bug_report", "platform_error", "contact_form", "new_service",
-  "listing_ready_for_review", "admin_dispute_opened",
+  "listing_ready_for_review", "admin_dispute_opened", "admin_dispute_deadline_passed",
 ];
 
-const DISPUTE_EVENTS = ["dispute_opened", "admin_dispute_opened", "dispute_response_submitted", "dispute_evidence_uploaded"];
+const DISPUTE_EVENTS = [
+  "dispute_opened", "admin_dispute_opened", "dispute_response_submitted", "dispute_evidence_uploaded",
+  "dispute_deadline_approaching", "dispute_deadline_passed", "dispute_deadline_passed_raiser",
+  "admin_dispute_deadline_passed", "dispute_auto_advanced",
+];
 
 function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResult | null {
   switch (eventType) {
@@ -637,6 +728,11 @@ function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResu
     case "admin_dispute_opened":        return buildAdminDisputeOpenedEmail(payload, siteUrl);
     case "dispute_response_submitted":  return buildDisputeResponseEmail(payload, siteUrl);
     case "dispute_evidence_uploaded":   return buildDisputeEvidenceEmail(payload, siteUrl);
+    case "dispute_deadline_approaching": return buildDeadlineApproachingEmail(payload, siteUrl);
+    case "dispute_deadline_passed":      return buildDeadlinePassedEmail(payload, siteUrl);
+    case "dispute_deadline_passed_raiser": return buildDeadlinePassedRaiserEmail(payload, siteUrl);
+    case "admin_dispute_deadline_passed": return buildAdminDeadlinePassedEmail(payload, siteUrl);
+    case "dispute_auto_advanced":        return buildAutoAdvancedEmail(payload, siteUrl);
     // User emails
     case "new_message":       return buildMessageEmail(payload, siteUrl);
     case "welcome":           return buildWelcomeEmail(payload, siteUrl);
