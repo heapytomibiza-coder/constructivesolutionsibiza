@@ -274,7 +274,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
            </Routes>
            </Suspense>
-          <S fallback={null}><ReportIssueWidget /></S>
+          <Suspense fallback={null}><ReportIssueWidget /></Suspense>
         </SessionProvider>
       </BrowserRouter>
     </TooltipProvider>
