@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { DisputeIssueType } from '../types';
+import { ESCROW_GUARDRAILS } from '@/domain/escrowGuardrails';
 
 interface CreateDisputeParams {
   job_id: string;
