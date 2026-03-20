@@ -16,44 +16,57 @@ interface ListingPreviewDrawerProps {
 }
 
 export default function ListingPreviewDrawer({ listingId, onClose }: ListingPreviewDrawerProps) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["admin-listing-preview", listingId],
     enabled: !!listingId,
+    retry: 2,
     queryFn: async () => {
-      const [listingRes, pricingRes] = await Promise.all([
-        supabase
+      // Use browse view first (security_invoker=false, works for any user)
+      // Fall back to direct table query for non-live listings
+      const { data: browseData } = await supabase
+        .from("service_listings_browse")
+        .select("*")
+        .eq("id", listingId!)
+        .maybeSingle();
+
+      let listing: any;
+
+      if (browseData) {
+        listing = browseData;
+      } else {
+        // Direct query for draft/paused listings (admin RLS)
+        const { data: directData, error: directError } = await supabase
           .from("service_listings")
           .select("*")
           .eq("id", listingId!)
-          .single(),
+          .single();
+        if (directError) throw directError;
+        listing = directData;
+      }
+
+      const [pricingRes, providerRes, microRes] = await Promise.all([
         supabase
           .from("service_pricing_items")
           .select("*")
           .eq("service_listing_id", listingId!)
           .order("sort_order", { ascending: true }),
+        supabase
+          .from("professional_profiles")
+          .select("display_name, avatar_url, verification_status, business_name")
+          .eq("user_id", listing.provider_id)
+          .single(),
+        supabase
+          .from("service_micro_categories")
+          .select("name, slug")
+          .eq("id", listing.micro_id)
+          .single(),
       ]);
 
-      if (listingRes.error) throw listingRes.error;
-
-      // Fetch provider info
-      const { data: provider } = await supabase
-        .from("professional_profiles")
-        .select("display_name, avatar_url, verification_status, business_name")
-        .eq("user_id", listingRes.data.provider_id)
-        .single();
-
-      // Fetch micro category
-      const { data: micro } = await supabase
-        .from("service_micro_categories")
-        .select("name, slug")
-        .eq("id", listingRes.data.micro_id)
-        .single();
-
       return {
-        listing: listingRes.data,
+        listing,
         pricingItems: pricingRes.data ?? [],
-        provider,
-        micro,
+        provider: providerRes.data,
+        micro: microRes.data,
       };
     },
   });
