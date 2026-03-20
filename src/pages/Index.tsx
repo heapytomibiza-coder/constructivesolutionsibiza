@@ -92,7 +92,8 @@ const Index = () => {
         </p>
       </HeroBanner>
 
-      {/* ─── TRUST STRIP ─── */}
+      {/* ─── TRUST STRIP (gated: escrow-beta) ─── */}
+      {isRolloutActive('escrow-beta') && (
       <section className="py-4 bg-primary/5 border-y border-primary/10">
         <div className="container">
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
@@ -105,6 +106,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* ─── 2. HOW WE WORK — 4 steps ─── */}
       <section id="how-we-work" className="py-20 bg-background">
