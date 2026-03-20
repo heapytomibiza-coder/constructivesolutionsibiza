@@ -100,48 +100,57 @@ const Services = () => {
 
       <div className="container py-12">
         {/* Filter Bar */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-8">
-          <Select value={category || ALL} onValueChange={(v) => setFilter('category', v)}>
-            <SelectTrigger className="w-[180px] bg-card">
-              <SelectValue placeholder={t('services.filterCategory', 'Category')} />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              <SelectItem value={ALL}>{t('services.allCategories', 'All Categories')}</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {category && subcategories.length > 0 && (
-            <Select value={subcategory || ALL} onValueChange={(v) => setFilter('subcategory', v)}>
-              <SelectTrigger className="w-[180px] bg-card">
-                <SelectValue placeholder={t('services.filterService', 'Service')} />
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 mb-8">
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={category || ALL} onValueChange={(v) => setFilter('category', v)}>
+              <SelectTrigger className="w-[calc(50vw-2rem)] sm:w-[180px] bg-card">
+                <SelectValue placeholder={t('services.filterCategory', 'Category')} />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
-                <SelectItem value={ALL}>{t('services.allServices', 'All Services')}</SelectItem>
-                {subcategories.map((s) => (
-                  <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+                <SelectItem value={ALL}>{t('services.allCategories', 'All Categories')}</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          )}
 
-          {subcategory && micros.length > 0 && (
-            <Select value={micro || ALL} onValueChange={(v) => setFilter('micro', v)}>
-              <SelectTrigger className="w-[180px] bg-card">
-                <SelectValue placeholder={t('services.filterTask', 'Task')} />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                <SelectItem value={ALL}>{t('services.allTasks', 'All Tasks')}</SelectItem>
-                {micros.map((m) => (
-                  <SelectItem key={m.slug} value={m.slug}>{m.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+            {category && subcategories.length > 0 && (
+              <Select value={subcategory || ALL} onValueChange={(v) => setFilter('subcategory', v)}>
+                <SelectTrigger className="w-[calc(50vw-2rem)] sm:w-[180px] bg-card">
+                  <SelectValue placeholder={t('services.filterService', 'Service')} />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value={ALL}>{t('services.allServices', 'All Services')}</SelectItem>
+                  {subcategories.map((s) => (
+                    <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
-          {/* Sort */}
+            {subcategory && micros.length > 0 && (
+              <Select value={micro || ALL} onValueChange={(v) => setFilter('micro', v)}>
+                <SelectTrigger className="w-[calc(50vw-2rem)] sm:w-[180px] bg-card">
+                  <SelectValue placeholder={t('services.filterTask', 'Task')} />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value={ALL}>{t('services.allTasks', 'All Tasks')}</SelectItem>
+                  {micros.map((m) => (
+                    <SelectItem key={m.slug} value={m.slug}>{m.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+                <X className="h-3.5 w-3.5" />
+                {t('professionals.clearAll')}
+              </Button>
+            )}
+          </div>
+
+          {/* Sort — full width on mobile, right-aligned on desktop */}
           <Select
             value={sort}
             onValueChange={(v) =>
@@ -153,7 +162,7 @@ const Services = () => {
               })
             }
           >
-            <SelectTrigger className="w-[160px] bg-card ml-auto">
+            <SelectTrigger className="w-full sm:w-[160px] bg-card sm:ml-auto">
               <SelectValue placeholder={t('services.sortBy', 'Sort by')} />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
@@ -161,13 +170,6 @@ const Services = () => {
               <SelectItem value="price_asc">{t('services.sortPrice', 'Lowest price')}</SelectItem>
             </SelectContent>
           </Select>
-
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
-              <X className="h-3.5 w-3.5" />
-              {t('professionals.clearAll')}
-            </Button>
-          )}
         </div>
 
         {/* Listings Grid */}
