@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2, Pencil, Copy, X, Clock, MessageSquare, DollarSign } from 'lucide-react';
+import { CheckCircle2, Pencil, Copy, X, Clock, MessageSquare, DollarSign, AlertTriangle } from 'lucide-react';
 import { CategoryPlaceholder } from '@/components/CategoryPlaceholder';
 import { getCategoryIconByName } from '@/lib/categoryIcons';
 import { CompletionModal, RatingModal } from '@/pages/jobs/components';
