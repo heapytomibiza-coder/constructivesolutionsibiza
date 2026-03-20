@@ -25,6 +25,7 @@ interface HeroBannerProps {
  */
 export function HeroBanner({
   imageSrc,
+  imageSrcSet,
   title,
   subtitle,
   trustBadge,
@@ -33,6 +34,12 @@ export function HeroBanner({
   className,
   children,
 }: HeroBannerProps) {
+  // Build srcset string from variants map
+  const srcSetStr = imageSrcSet
+    ? Object.entries(imageSrcSet)
+        .map(([size, url]) => `${url} ${size}`)
+        .join(', ')
+    : undefined;
   const heightClasses = {
     full: "min-h-[60vh] lg:min-h-[70vh]",
     medium: "min-h-[45vh] lg:min-h-[50vh]",
