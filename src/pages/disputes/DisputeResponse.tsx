@@ -30,18 +30,24 @@ export default function DisputeResponse() {
     enabled: !!disputeId,
   });
 
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
   const submitMutation = useMutation({
     mutationFn: async () => {
       if (!disputeId) throw new Error('No dispute ID');
 
-      // Submit structured response
       await submitCounterpartyResponse({
         disputeId,
         responseText,
         questionnaireAnswers: answers,
       });
 
-      // Upload evidence
       for (const ef of evidenceFiles) {
         await uploadDisputeEvidence(disputeId, ef.file, ef.description, ef.category);
       }
@@ -86,15 +92,6 @@ export default function DisputeResponse() {
   const responseDeadline = d.response_deadline ? new Date(d.response_deadline) : null;
   const evidenceDeadline = d.evidence_deadline ? new Date(d.evidence_deadline) : null;
   const isOverdue = responseDeadline && responseDeadline < new Date();
-
-  // Check if user already responded
-  const { data: currentUser } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
 
   const hasResponded = data.inputs.some((i: any) => i.user_id === currentUser?.id);
 
