@@ -1,78 +1,33 @@
 
 
-# Dispute Engine E2E Test Pack — PDF Checklist + In-App QA Dashboard
+# Make Dispute Filing Testable End-to-End
 
-Two deliverables: a downloadable PDF checklist for team sign-off, and a hidden admin route (`/dashboard/admin/qa/disputes`) for live, repeatable testing with DB verification.
+## Problem
+There's no "Raise Issue" button anywhere in the client or pro dashboard UI. The `/disputes/raise?job=<id>` route works, but you can't get to it without manually typing a URL. This makes the dispute flow untestable from a real user perspective.
 
----
+## Changes
 
-## Deliverable 1: PDF Checklist
+### 1. Add "Raise Issue" button to ClientJobCard
+In `src/pages/dashboard/client/components/ClientJobCard.tsx`:
+- Add a "Raise Issue" action button on jobs with status `in_progress` or `completed` (the statuses where disputes make sense — work has started or finished)
+- Button navigates to `/disputes/raise?job=${job.id}`
+- Uses `AlertTriangle` icon for visual clarity
+- Only visible when the job has an `assigned_professional_id` (need a counterparty for a dispute)
 
-Generated via a script using `reportlab`, output to `/mnt/documents/dispute-e2e-test-pack.pdf`.
+### 2. Add "Raise Issue" button to Pro dashboard job cards
+Find the pro-side equivalent job card and add the same entry point so professionals can also file disputes. The pro view likely lives in the matched jobs or active jobs section — will check `src/pages/dashboard/pro/` for the right component.
 
-Content structure:
-- **Cover page**: "Dispute Engine — E2E Test Pack", date, version
-- **Test accounts table**: Client / Professional / Admin with placeholder rows for emails
-- **6 test scenarios** each with:
-  - Goal statement
-  - Numbered steps with checkbox column
-  - Expected/Actual/Pass-Fail/Notes table per step
-  - DB verification checklist (tables to inspect)
-- **Summary sign-off page**: All 6 tests pass/fail, tester signature, date
+### 3. Add "Raise Issue" link in JobTicketDetail
+In `src/pages/dashboard/client/JobTicketDetail.tsx` — the detailed job control centre page — add a secondary action for raising a dispute. This gives users a second natural entry point.
 
----
-
-## Deliverable 2: In-App QA Dashboard
-
-### Route & Guard
-- New route: `/dashboard/admin/qa/disputes` inside the existing admin layout
-- Admin-only (same `AdminRouteLayout` guard as other admin pages)
-
-### Page: `DisputeQADashboard.tsx`
-
-**Section 1 — Test Scenarios Panel**
-- Accordion for each of the 6 tests
-- Each test shows numbered steps with description
-- Steps are read-only reference (not interactive checkboxes — the PDF handles that)
-
-**Section 2 — Live DB Inspector**
-- Dropdown to select a dispute (from `rpc_admin_dispute_inbox`)
-- Once selected, shows a tabbed view pulling live data:
-  - **Status History** — all rows from `dispute_status_history` for this dispute
-  - **Inputs** — all `dispute_inputs` rows
-  - **Evidence** — all `dispute_evidence` rows  
-  - **Analysis** — all `dispute_analysis` rows (highlights `is_current`)
-  - **AI Events** — all `dispute_ai_events` rows
-  - **Emails** — `email_notifications_queue` rows matching this dispute's ID in payload
-- Each tab shows a simple data table with timestamps, sorted chronologically
-
-**Section 3 — Quick Health Checks**
-- Automated queries run on page load, shown as pass/fail cards:
-  - "No duplicate active analyses" — `SELECT dispute_id, count(*) FROM dispute_analysis WHERE is_current = true GROUP BY dispute_id HAVING count(*) > 1`
-  - "No orphaned disputes" — disputes without any `dispute_status_history` entry
-  - "No invalid transitions" — status history rows where from_status → to_status isn't in allowed map
-  - "All resolved disputes have resolution_accepted_at" — resolved cases with null acceptance timestamp
-  - "No stale pending emails" — `email_notifications_queue` with dispute-related events stuck > 1 hour
-
-These checks will be implemented as a single RPC (`rpc_dispute_qa_health_checks`) returning a JSON object with pass/fail for each check.
-
----
+## What this unblocks
+- You can log in as a client, go to your dashboard, find a job with an assigned pro, and click "Raise Issue" to enter the full dispute wizard
+- The entire flow becomes testable: filing → counterparty response → AI analysis → admin resolution → party acceptance
 
 ## Files Changed
-
-| File | Action |
+| File | Change |
 |---|---|
-| Script (PDF generation) | Run via `lov-exec`, output to `/mnt/documents/` |
-| Migration SQL | New `rpc_dispute_qa_health_checks` RPC |
-| `src/pages/admin/qa/DisputeQADashboard.tsx` | Create: QA dashboard page |
-| `src/App.tsx` | Add route `/dashboard/admin/qa/disputes` |
-
----
-
-## Technical Details
-
-- PDF uses `reportlab` with the project's brand palette (navy/teal tones from existing UI)
-- QA dashboard queries use `supabase.from('dispute_*' as any)` pattern consistent with existing dispute queries
-- Health check RPC uses `SECURITY DEFINER` with admin + allowlist gate
-- No new dependencies required
+| `src/pages/dashboard/client/components/ClientJobCard.tsx` | Add "Raise Issue" button for `in_progress`/`completed` jobs |
+| `src/pages/dashboard/client/JobTicketDetail.tsx` | Add "Raise Issue" action link |
+| Pro dashboard job component (TBD) | Add matching entry point for pros |
 
