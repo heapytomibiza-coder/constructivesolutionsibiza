@@ -443,6 +443,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      </LazySection>
 
       {/* ─── WHY CHOOSE US — Comparison ─── */}
       <section className="py-20 bg-background">
