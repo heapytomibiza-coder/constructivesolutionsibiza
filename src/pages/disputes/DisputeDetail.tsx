@@ -77,6 +77,20 @@ export default function DisputeDetail() {
   const job = d.jobs;
   const hasCurrentAnalysis = !!analysis;
 
+  // Current user for counterparty detection
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
+  const isCounterparty = currentUser?.id === d.counterparty_id;
+  const hasResponded = !!d.counterparty_responded_at || inputs.some(
+    (i: any) => i.user_id === d.counterparty_id
+  );
+
   return (
     <PublicLayout>
       <div className="container max-w-3xl py-8 space-y-6">
