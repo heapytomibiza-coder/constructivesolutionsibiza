@@ -16,6 +16,7 @@ export {
   clientRoutes,
   proOnboardingRoutes,
   proDashboardRoutes,
+  disputeRoutes,
 } from './registry';
 
 // Route matching
