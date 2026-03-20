@@ -150,7 +150,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── PROBLEM / SOLUTION ─── */}
+      {/* ─── PROBLEM / SOLUTION (gated: escrow-beta) ─── */}
+      {isRolloutActive('escrow-beta') && (
       <section className="py-20 bg-gradient-concrete">
         <div className="container max-w-4xl">
           {/* Problem */}
@@ -193,6 +194,7 @@ const Index = () => {
           </p>
         </div>
       </section>
+      )}
 
       {/* ─── PAYMENT PROTECTION ─── */}
       <section className="py-20 bg-background">
