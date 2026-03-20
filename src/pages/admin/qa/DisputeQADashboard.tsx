@@ -284,8 +284,8 @@ export default function DisputeQADashboard() {
                     key={key}
                     className={cn(
                       "flex items-start gap-3 rounded-lg border p-3",
-                      check.pass
-                        ? "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30"
+                    check.pass
+                        ? "border-primary/20 bg-primary/5"
                         : "border-destructive/30 bg-destructive/5"
                     )}
                   >

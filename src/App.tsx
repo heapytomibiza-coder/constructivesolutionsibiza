@@ -263,6 +263,7 @@ const App = () => {
                 <Route path="insights/messaging-pulse" element={<MessagingPulsePage />} />
                 <Route path="insights/:metricKey" element={<MetricInsightPage />} />
                 <Route path="monitoring" element={<MonitoringPage />} />
+                <Route path="qa/disputes" element={<DisputeQADashboard />} />
               </Route>
             </Route>
 
