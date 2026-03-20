@@ -75,9 +75,9 @@ Rules:
     const data = await response.json();
     let result = data.choices?.[0]?.message?.content?.trim() ?? "";
 
-    // Enforce 100 char limit
-    if (result.length > 100) {
-      result = result.substring(0, 97) + "...";
+    // Enforce 200 char limit
+    if (result.length > 200) {
+      result = result.substring(0, 197) + "...";
     }
 
     return new Response(JSON.stringify({ description: result }), {
