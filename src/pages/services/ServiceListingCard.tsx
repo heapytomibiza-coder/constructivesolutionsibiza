@@ -58,7 +58,7 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
           )}
         </div>
 
-        <CardContent className="p-4 space-y-2.5 flex-1 flex flex-col">
+        <CardContent className="p-4 space-y-2.5 flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Category context tags */}
           <div className="flex items-center gap-1.5 flex-wrap">
             {listing.category_name && (
