@@ -39,9 +39,9 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
       <Card className="h-full card-grounded transition-all hover:shadow-soft hover:border-accent/50 cursor-pointer group overflow-hidden flex flex-col">
         {/* Fixed aspect ratio image area — always present */}
         <div className="aspect-[4/3] overflow-hidden relative">
-          {listing.hero_image_url ? (
+          {(listing.hero_card_url || listing.hero_image_url) ? (
             <img
-              src={listing.hero_image_url}
+              src={listing.hero_card_url || listing.hero_image_url!}
               alt={listing.display_title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
