@@ -141,6 +141,7 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   /* Respect reduced motion preferences */
