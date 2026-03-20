@@ -728,6 +728,11 @@ function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResu
     case "admin_dispute_opened":        return buildAdminDisputeOpenedEmail(payload, siteUrl);
     case "dispute_response_submitted":  return buildDisputeResponseEmail(payload, siteUrl);
     case "dispute_evidence_uploaded":   return buildDisputeEvidenceEmail(payload, siteUrl);
+    case "dispute_deadline_approaching": return buildDeadlineApproachingEmail(payload, siteUrl);
+    case "dispute_deadline_passed":      return buildDeadlinePassedEmail(payload, siteUrl);
+    case "dispute_deadline_passed_raiser": return buildDeadlinePassedRaiserEmail(payload, siteUrl);
+    case "admin_dispute_deadline_passed": return buildAdminDeadlinePassedEmail(payload, siteUrl);
+    case "dispute_auto_advanced":        return buildAutoAdvancedEmail(payload, siteUrl);
     // User emails
     case "new_message":       return buildMessageEmail(payload, siteUrl);
     case "welcome":           return buildWelcomeEmail(payload, siteUrl);
