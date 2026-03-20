@@ -68,7 +68,7 @@
 
   "terms": {
     "title": "Terms of Service",
-    "date": "19 February 2026",
+    "date": "20 March 2026",
     "intro": [
       "Welcome to {{company}}. By accessing or using our platform, you agree to be bound by these Terms of Service. If you do not agree, please do not use the platform."
     ],
@@ -76,118 +76,141 @@
       {
         "title": "1. Platform Role",
         "paragraphs": [
-          "{{company}} operates as a structured marketplace facilitating connections between clients (Askers) and construction professionals (Taskers).",
-          "We provide:"
+          "{{company}} (\"the Platform\") provides a digital infrastructure that facilitates:"
         ],
         "bullets1": [
-          "Job posting infrastructure",
-          "Payment processing integration",
-          "A structured 28-day dispute facilitation process",
-          "Account governance and moderation"
+          "Introductions between clients and construction professionals",
+          "Structured milestone-based payment workflows",
+          "Project documentation and communication tools",
+          "Dispute mediation and resolution processes"
         ],
         "paragraphs2": [
-          "We do not:"
+          "The Platform acts solely as an intermediary and system facilitator.",
+          "The Platform does not:"
         ],
         "bullets2": [
-          "Perform construction work",
-          "Supervise works",
-          "Enter into contracts on behalf of users",
-          "Guarantee workmanship outcomes"
+          "Act as a contractor or subcontractor",
+          "Supervise or manage physical construction work",
+          "Operate as a bank, escrow provider, or financial institution",
+          "Provide insurance, guarantees, or warranties"
         ],
         "paragraphs3": [
-          "All agreements are formed directly between the client (Asker) and the professional (Tasker)."
+          "All agreements are made directly between the Client (Asker) and the Professional (Tasker)."
         ]
       },
       {
-        "title": "2. User Accounts",
-        "bullets": [
-          "You must provide accurate and complete registration information.",
-          "You are responsible for maintaining the security of your account.",
-          "You must not share your login credentials with others.",
-          "You must be at least 18 years old to create an account."
-        ]
-      },
-      {
-        "title": "3. Posting Jobs",
+        "title": "2. User Responsibility",
         "paragraphs": [
-          "Clients (Askers) may post job requests describing the work they need. Job descriptions must be accurate, lawful, and related to construction, property, or trade services. We reserve the right to remove listings that violate these terms."
-        ]
-      },
-      {
-        "title": "4. Professional Obligations",
-        "paragraphs": [
-          "Professionals (Taskers) listed on the platform represent that they have the necessary skills, qualifications, and where applicable, licences to perform the services they offer. Any agreements, pricing, and timelines are between the client (Asker) and professional (Tasker) directly."
-        ]
-      },
-      {
-        "title": "5. Payments",
-        "paragraphs": [
-          "Payments processed through the platform are facilitated via Stripe.",
-          "Pending funds may be held in accordance with platform rules and are subject to temporary freeze during active dispute review.",
-          "{{company}} does not guarantee recovery of funds already released prior to dispute initiation."
-        ]
-      },
-      {
-        "title": "6. Dispute Facilitation",
-        "paragraphs": [
-          "{{company}} provides a structured 28-day dispute facilitation framework as described in our Dispute Policy.",
-          "You can read the full policy here: <disputeLink>/dispute-policy</disputeLink>.",
-          "The platform may:"
+          "Users are responsible for ensuring:"
         ],
         "bullets": [
-          "Review documentation",
-          "Summarise submitted evidence",
-          "Provide non-binding recommendations",
-          "Moderate communications"
+          "All project details are accurate and agreed before work begins",
+          "Milestones, timelines, and expectations are clearly defined",
+          "Communication is conducted through the platform where possible",
+          "Both parties cooperate in good faith"
         ],
         "paragraphs2": [
-          "The platform does not act as an arbitrator or legally binding adjudicator."
+          "Clients and Professionals are independent parties. The Platform does not employ, represent, or act on behalf of either party."
         ]
       },
       {
-        "title": "7. Prohibited Conduct",
-        "bullets": [
-          "Posting false, misleading, or fraudulent content",
-          "Harassing, threatening, or abusing other users",
-          "Attempting to circumvent platform security measures",
-          "Using the platform for services unrelated to construction and trades",
-          "Spamming or sending unsolicited promotional messages"
-        ]
-      },
-      {
-        "title": "8. Standards & Suspension",
+        "title": "3. Payment Terms",
         "paragraphs": [
-          "We reserve the right to suspend or remove accounts that:"
+          "All payments must follow a structured milestone-based system, which may include:"
         ],
-        "bullets": [
-          "Repeatedly deliver demonstrably substandard work",
-          "Engage in fraudulent behaviour",
-          "Abuse the dispute process",
-          "Withhold payment without documented justification"
+        "bullets1": [
+          "Initial deposit",
+          "Staged milestone payments",
+          "Final retention (typically 5–10%)"
         ],
         "paragraphs2": [
-          "Account removal decisions are made at the platform's discretion to maintain marketplace integrity."
+          "Payments are processed through regulated third-party payment providers. Funds relating to pending milestones may remain within the payment processing system until:"
+        ],
+        "bullets2": [
+          "Milestone completion is confirmed",
+          "The client approves progress",
+          "A dispute is resolved"
+        ],
+        "paragraphs3": [
+          "The Platform does not directly hold or custody funds outside of the payment processing system.",
+          "Payments are released when milestone completion is confirmed by the client, no dispute is raised within the response period, or resolution is reached through the dispute process. If a user fails to respond within 72 hours, the Platform may proceed based on available evidence.",
+          "Funds that have already been released are no longer controlled by the Platform and cannot be reversed unless mutually agreed.",
+          "The Platform reserves the right to set transaction limits, require alternative or hybrid payment methods for higher-value projects, and refuse or restrict high-risk transactions."
         ]
       },
       {
-        "title": "9. Limitation of Liability",
+        "title": "4. Dispute & Resolution Terms",
         "paragraphs": [
-          "{{company}}'s liability is limited to platform functionality and governance.",
-          "We are not liable for:"
+          "Disputes must be raised within 28 days of the relevant milestone or project stage. The Platform provides a structured resolution process including:"
+        ],
+        "bullets1": [
+          "Evidence submission",
+          "Technical and commercial assessment",
+          "Defined resolution pathways"
+        ],
+        "paragraphs2": [
+          "The Platform facilitates resolution but does not act as a court, arbitrator, or legally binding adjudicator. You can read the full dispute policy here: <disputeLink>/dispute-policy</disputeLink>.",
+          "During an active dispute, pending milestone funds may be temporarily restricted. Previously released funds remain outside Platform control.",
+          "Payment outcomes are determined based on evidence, project scope, industry standards, and communication records."
+        ],
+        "paragraphs3": [
+          "Possible outcomes include corrective work completion, partial payment allocation, shared responsibility outcome, independent expert review, or structured settlement. All outcomes are documented and finalised within the defined process.",
+          "If a party fails to engage, the Platform may proceed based on available evidence and the outcome may be issued without further input."
+        ]
+      },
+      {
+        "title": "5. Limitation of Liability",
+        "paragraphs": [
+          "The Platform's liability is strictly limited to the service fees paid for the relevant project.",
+          "The Platform is not liable for:"
         ],
         "bullets": [
           "Construction defects",
-          "Worksite injuries",
-          "Project delays",
-          "Contractual breaches between users"
+          "Delays or project overruns",
+          "Material failures",
+          "Indirect or consequential losses",
+          "Disputes between parties outside platform control"
         ],
         "paragraphs2": [
-          "Users remain solely responsible for their agreements and compliance with applicable laws."
+          "The Platform does not guarantee project outcomes, workmanship quality, or user behaviour. Users are solely responsible for their own agreements, compliance with applicable laws, and due diligence."
         ]
       },
       {
-        "title": "10. Modifications and Contact",
+        "title": "6. Construction Variability",
         "paragraphs": [
+          "Users acknowledge that construction projects may involve:"
+        ],
+        "bullets": [
+          "Delays due to weather or supply",
+          "Minor variations in finish",
+          "Evolving scope",
+          "Technical limitations"
+        ],
+        "paragraphs2": [
+          "Not all issues constitute a breach or failure. The dispute process considers standard construction tolerances and local conditions."
+        ]
+      },
+      {
+        "title": "7. User Conduct",
+        "paragraphs": [
+          "Users must not:"
+        ],
+        "bullets": [
+          "Harass or threaten other parties",
+          "Attempt to bypass the platform payment structure",
+          "Submit false or misleading claims",
+          "Manipulate dispute processes",
+          "Post false, misleading, or fraudulent content",
+          "Use the platform for services unrelated to construction and trades"
+        ],
+        "paragraphs2": [
+          "We reserve the right to suspend or remove accounts that repeatedly deliver substandard work, engage in fraudulent behaviour, abuse the dispute process, or withhold payment without documented justification."
+        ]
+      },
+      {
+        "title": "8. Legal Framework",
+        "paragraphs": [
+          "These terms are governed by the laws of Spain. Either party may pursue legal action independently. The Platform may provide documentation of the case upon request.",
           "We may update these Terms from time to time. Continued use of the platform after changes constitutes acceptance of the updated Terms. Material changes will be communicated via email or platform notification.",
           "If you have questions about these Terms, please reach out via our <contactLink>contact page</contactLink> or email us at <emailLink>{{email}}</emailLink>."
         ]
@@ -198,7 +221,7 @@
 
   "dispute": {
     "title": "28-Day Fair Resolution & Payment Protection Policy",
-    "date": "19 February 2026",
+    "date": "20 March 2026",
     "intro": "This policy applies to jobs arranged through {{company}} between clients (Askers) and professionals (Taskers).",
     "sections": [
       {
@@ -221,133 +244,148 @@
       {
         "title": "2. Payment Protection Framework",
         "paragraphs": [
-          "Payments processed through the platform are handled via Stripe's secure payment infrastructure.",
-          "Where funds are pending release:"
+          "Payments processed through the platform are handled via regulated third-party payment infrastructure.",
+          "Payment is directly linked to milestone completion, documented progress, or structured resolution outcomes. This ensures:"
         ],
         "bullets": [
-          "Funds may be temporarily held or frozen in accordance with platform rules.",
-          "Funds are not released while an active dispute is under review.",
-          "Release of funds occurs only in accordance with agreed resolution terms."
+          "Clients do not pay ahead of progress",
+          "Professionals are not exposed to arbitrary withholding",
+          "Payment decisions follow a controlled system",
+          "Funds may be temporarily held or frozen during active dispute review",
+          "Release of funds occurs only in accordance with agreed resolution terms"
         ],
         "paragraphs2": [
+          "Pending milestone funds may be restricted during disputes. Previously released funds are not automatically reversible.",
           "{{company}} does not guarantee recovery of funds already released prior to a dispute."
         ]
       },
       {
-        "title": "3. Pre-Dispute Communication Stage",
-        "paragraphs": [
-          "Before opening a formal dispute, parties are encouraged to:"
-        ],
+        "title": "3. What Constructive Solutions Provides",
         "bullets": [
-          "Clarify expectations",
-          "Share updated photos or documentation",
-          "Confirm scope alignment",
-          "Attempt direct resolution"
-        ],
-        "paragraphs2": [
-          "A 24-hour cooling-off period is recommended before escalation.",
-          "Many misunderstandings resolve at this stage."
+          "Structured milestone payment system",
+          "Neutral dispute mediation",
+          "Technical and commercial assessment",
+          "Documented resolution pathways",
+          "Reputation and accountability framework"
         ]
       },
       {
-        "title": "4. The 28-Day Resolution Pathway",
+        "title": "4. What Constructive Solutions Does Not Provide",
+        "bullets": [
+          "Escrow services",
+          "Financial custody outside payment infrastructure",
+          "Insurance or guarantees",
+          "Subjective or emotion-based decisions"
+        ]
+      },
+      {
+        "title": "5. The 28-Day Resolution Pathway",
         "paragraphs": [
-          "All disputes follow a structured five-stage process."
+          "All disputes follow a structured six-stage process."
         ],
         "stages": [
           {
-            "title": "Stage 1 — Issue Notification (Days 1–3)",
+            "title": "Stage 0 — Pre-Dispute Prevention",
             "paragraphs": [
-              "Either party may submit a dispute including:"
+              "Purpose: Prevent unnecessary escalation. Many issues are simply communication gaps, minor defects, or timing frustrations.",
+              "The platform provides:"
+            ],
+            "bullets": [
+              "Structured communication prompts",
+              "Clarification requests",
+              "Timeline updates",
+              "Snagging requests",
+              "Guided interaction",
+              "A cooling-off period"
+            ],
+            "paragraphs2": [
+              "Many issues resolve here without formal dispute."
+            ]
+          },
+          {
+            "title": "Stage 1 — Issue Raised (Days 1–3)",
+            "paragraphs": [
+              "Either party submits a dispute including:"
             ],
             "bullets1": [
               "Description of the issue",
-              "Original expectations or scope",
-              "Supporting documentation"
+              "Expected outcome",
+              "Supporting evidence"
             ],
             "paragraphs2": [
-              "The platform confirms:"
-            ],
-            "bullets2": [
-              "Receipt of dispute",
-              "Payment status",
-              "Next procedural steps"
-            ],
-            "paragraphs3": [
+              "The platform opens a structured case, stabilises communication, activates timeline visibility, confirms payment status, and defines next steps.",
               "All pending funds remain protected during this stage."
             ]
           },
           {
-            "title": "Stage 2 — Evidence Submission (Days 4–10)",
+            "title": "Stage 2 — Evidence Collection (Days 4–10)",
             "paragraphs": [
               "Both parties may submit:"
             ],
             "bullets1": [
-              "Photographs or videos",
-              "Plans, drawings, or specifications",
-              "Written communication",
-              "Invoices or receipts"
+              "Photos / videos",
+              "Plans / scope documents",
+              "Invoices / receipts",
+              "Written communications",
+              "Timeline agreements"
             ],
             "paragraphs2": [
-              "Evidence is submitted independently. The platform prepares a neutral factual summary outlining:"
-            ],
-            "bullets2": [
-              "Agreed facts",
-              "Disputed issues",
-              "Relevant scope references"
-            ],
-            "paragraphs3": [
-              "This summary is non-binding and provided solely for facilitation purposes."
+              "The platform enforces equal submission windows, builds a neutral case file, and identifies missing information. This shifts disputes from opinion to evidence."
             ]
           },
           {
-            "title": "Stage 3 — Platform Review (Days 11–17)",
+            "title": "Stage 3 — Technical & Commercial Assessment (Days 11–17)",
             "paragraphs": [
-              "{{company}} reviews submitted documentation in relation to:"
+              "The platform conducts a structured assessment based on:"
             ],
             "bullets": [
-              "The documented scope of work",
-              "Communication records",
-              "Industry-standard expectations",
-              "Common construction variables in Ibiza (e.g., weather delays, material availability)"
+              "Scope alignment",
+              "Quality vs reasonable standards",
+              "Responsibility for delays",
+              "Fairness of payment position",
+              "Feasibility of correction"
             ],
             "paragraphs2": [
-              "Where appropriate, either party may request an independent third-party specialist review. Such review is optional and subject to availability and cost allocation agreement.",
+              "Where required, independent specialists may be introduced. Structured findings and outcome pathways are prepared.",
               "The platform may issue a non-binding recommendation to assist resolution."
             ]
           },
           {
-            "title": "Stage 4 — Resolution Options (Days 18–24)",
+            "title": "Stage 4 — Resolution Pathways (Days 18–24)",
             "paragraphs": [
-              "Parties may agree to one of the following:"
+              "Four structured routes are provided:"
             ],
             "bullets": [
-              "A. Corrective Work",
-              "B. Partial or Full Fund Release",
-              "C. Refund or Reallocation",
-              "D. Shared Responsibility Adjustment"
+              "A. Corrective Work — work is completed or corrected before payment release",
+              "B. Financial Adjustment — funds are distributed proportionately to completed work",
+              "C. Shared Responsibility — balanced outcome where accountability is mixed",
+              "D. Independent Expert Outcome — specialist input determines final allocation"
             ],
             "paragraphs2": [
-              "Any agreement must be confirmed in writing within the platform before fund release."
+              "All outcomes include clear actions. Any agreement must be confirmed in writing within the platform before fund release."
             ]
           },
           {
-            "title": "Stage 5 — Finalisation (Days 25–28)",
+            "title": "Stage 5 — Final Resolution (Days 25–28)",
             "paragraphs": [
-              "Upon mutual confirmation:"
+              "Possible outcomes:"
             ],
             "bullets": [
-              "Funds are released in accordance with the agreed outcome",
-              "The dispute is formally closed"
+              "Mutual agreement — funds released",
+              "Conditional completion — release after final work",
+              "Platform-led resolution — based on evidence",
+              "Expert outcome — enforced distribution",
+              "Structured exit — fair settlement",
+              "Appeal window — limited review"
             ],
             "paragraphs2": [
-              "A limited procedural review may be requested within five (5) days only where new material evidence becomes available."
+              "Every case reaches a defined conclusion. A limited procedural review may be requested within five (5) days only where new material evidence becomes available."
             ]
           }
         ]
       },
       {
-        "title": "5. Participation Requirements",
+        "title": "6. Participation Requirements",
         "paragraphs": [
           "To maintain efficiency:"
         ],
@@ -360,7 +398,7 @@
         ]
       },
       {
-        "title": "6. Professional Reputation Protection",
+        "title": "7. Professional Reputation Protection",
         "paragraphs": [
           "Where a dispute is resolved in favour of the professional (Tasker):"
         ],
@@ -373,7 +411,7 @@
         ]
       },
       {
-        "title": "7. Client Protection",
+        "title": "8. Client Protection",
         "paragraphs": [
           "Clients (Askers) are protected through:"
         ],
@@ -388,7 +426,7 @@
         ]
       },
       {
-        "title": "8. Construction Reality Guidance",
+        "title": "9. Construction Reality Guidance",
         "paragraphs": [
           "Users are reminded that normal construction variables may include:"
         ],
@@ -403,7 +441,7 @@
         ]
       },
       {
-        "title": "9. Platform Role Clarification",
+        "title": "10. Platform Role Clarification",
         "paragraphs": [
           "{{company}}:"
         ],
@@ -419,9 +457,11 @@
         ]
       },
       {
-        "title": "10. Objective",
+        "title": "11. Objective",
         "paragraphs": [
-          "The objective of this framework is not to assign blame, but to provide a fair, structured, and transparent pathway toward resolution."
+          "This system combines structured payment control, construction-specific dispute resolution, neutral documented assessment, and defined financial outcomes.",
+          "It is designed to reduce conflict, protect both sides, maintain trust, and create clear and fair conclusions.",
+          "The objective of this framework is not to assign blame, but to deliver Constructive Solutions."
         ]
       }
     ]

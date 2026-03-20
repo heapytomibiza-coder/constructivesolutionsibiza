@@ -68,7 +68,7 @@
 
   "terms": {
     "title": "Términos del Servicio",
-    "date": "19 febrero 2026",
+    "date": "20 marzo 2026",
     "intro": [
       "Bienvenido a {{company}}. Al acceder o usar nuestra plataforma, aceptas quedar vinculado por estos Términos del Servicio. Si no estás de acuerdo, por favor no uses la plataforma."
     ],
@@ -76,118 +76,141 @@
       {
         "title": "1. Rol de la plataforma",
         "paragraphs": [
-          "{{company}} opera como un marketplace estructurado que facilita conexiones entre clientes (Askers) y profesionales de la construcción (Taskers).",
-          "Proporcionamos:"
+          "{{company}} (\"la Plataforma\") proporciona una infraestructura digital que facilita:"
         ],
         "bullets1": [
-          "Infraestructura para publicar trabajos",
-          "Integración de procesamiento de pagos",
-          "Un proceso estructurado de facilitación de disputas de 28 días",
-          "Gobernanza de cuentas y moderación"
+          "Presentaciones entre clientes y profesionales de la construcción",
+          "Flujos de pago estructurados basados en hitos",
+          "Herramientas de documentación de proyectos y comunicación",
+          "Procesos de mediación y resolución de disputas"
         ],
         "paragraphs2": [
-          "No:"
+          "La Plataforma actúa únicamente como intermediario y facilitador del sistema.",
+          "La Plataforma no:"
         ],
         "bullets2": [
-          "Realizamos trabajos de construcción",
-          "Supervisamos obras",
-          "Celebramos contratos en nombre de los usuarios",
-          "Garantizamos resultados de ejecución o acabados"
+          "Actúa como contratista o subcontratista",
+          "Supervisa ni gestiona trabajos físicos de construcción",
+          "Opera como banco, proveedor de depósitos en garantía o institución financiera",
+          "Proporciona seguros, garantías ni avales"
         ],
         "paragraphs3": [
-          "Todos los acuerdos se forman directamente entre el cliente (Asker) y el profesional (Tasker)."
+          "Todos los acuerdos se forman directamente entre el Cliente (Asker) y el Profesional (Tasker)."
         ]
       },
       {
-        "title": "2. Cuentas de usuario",
-        "bullets": [
-          "Debes proporcionar información de registro precisa y completa.",
-          "Eres responsable de mantener la seguridad de tu cuenta.",
-          "No debes compartir tus credenciales de acceso con terceros.",
-          "Debes tener al menos 18 años para crear una cuenta."
-        ]
-      },
-      {
-        "title": "3. Publicación de trabajos",
+        "title": "2. Responsabilidad del usuario",
         "paragraphs": [
-          "Los clientes (Askers) pueden publicar solicitudes describiendo el trabajo que necesitan. Las descripciones deben ser precisas, legales y relacionadas con servicios de construcción, propiedad u oficios. Nos reservamos el derecho de eliminar anuncios que infrinjan estos términos."
-        ]
-      },
-      {
-        "title": "4. Obligaciones de los profesionales",
-        "paragraphs": [
-          "Los profesionales (Taskers) listados en la plataforma declaran que cuentan con las habilidades, cualificaciones y, cuando corresponda, licencias necesarias para prestar los servicios que ofrecen. Cualquier acuerdo, precio y plazos se pactan directamente entre el cliente (Asker) y el profesional (Tasker)."
-        ]
-      },
-      {
-        "title": "5. Pagos",
-        "paragraphs": [
-          "Los pagos procesados a través de la plataforma se facilitan mediante Stripe.",
-          "Los fondos pendientes pueden mantenerse de acuerdo con las reglas de la plataforma y pueden estar sujetos a un bloqueo temporal durante una revisión de disputa activa.",
-          "{{company}} no garantiza la recuperación de fondos ya liberados antes de iniciarse una disputa."
-        ]
-      },
-      {
-        "title": "6. Facilitación de disputas",
-        "paragraphs": [
-          "{{company}} proporciona un marco estructurado de facilitación de disputas de 28 días, descrito en nuestra Política de Disputas.",
-          "Puedes leer la política completa aquí: <disputeLink>/dispute-policy</disputeLink>.",
-          "La plataforma puede:"
+          "Los usuarios son responsables de asegurar:"
         ],
         "bullets": [
-          "Revisar documentación",
-          "Resumir pruebas aportadas",
-          "Ofrecer recomendaciones no vinculantes",
-          "Moderar comunicaciones"
+          "Que todos los detalles del proyecto sean precisos y acordados antes de iniciar los trabajos",
+          "Que los hitos, plazos y expectativas estén claramente definidos",
+          "Que la comunicación se realice a través de la plataforma cuando sea posible",
+          "Que ambas partes cooperen de buena fe"
         ],
         "paragraphs2": [
-          "La plataforma no actúa como árbitro ni como adjudicador legalmente vinculante."
+          "Clientes y Profesionales son partes independientes. La Plataforma no emplea, representa ni actúa en nombre de ninguna de las partes."
         ]
       },
       {
-        "title": "7. Conducta prohibida",
-        "bullets": [
-          "Publicar contenido falso, engañoso o fraudulento",
-          "Acosar, amenazar o abusar de otros usuarios",
-          "Intentar eludir medidas de seguridad de la plataforma",
-          "Usar la plataforma para servicios no relacionados con construcción y oficios",
-          "Hacer spam o enviar mensajes promocionales no solicitados"
-        ]
-      },
-      {
-        "title": "8. Estándares y suspensión",
+        "title": "3. Condiciones de pago",
         "paragraphs": [
-          "Nos reservamos el derecho de suspender o eliminar cuentas que:"
+          "Todos los pagos deben seguir un sistema estructurado basado en hitos, que puede incluir:"
         ],
-        "bullets": [
-          "Entreguen repetidamente trabajos demostrablemente por debajo del estándar",
-          "Participen en conductas fraudulentas",
-          "Abusen del proceso de disputa",
-          "Retengan pagos sin justificación documentada"
+        "bullets1": [
+          "Depósito inicial",
+          "Pagos escalonados por hitos",
+          "Retención final (normalmente 5–10%)"
         ],
         "paragraphs2": [
-          "Las decisiones de eliminación se toman a discreción de la plataforma para mantener la integridad del marketplace."
+          "Los pagos se procesan a través de proveedores de pago regulados. Los fondos relativos a hitos pendientes pueden permanecer en el sistema de procesamiento de pagos hasta:"
+        ],
+        "bullets2": [
+          "Confirmación de la finalización del hito",
+          "Aprobación del progreso por parte del cliente",
+          "Resolución de una disputa"
+        ],
+        "paragraphs3": [
+          "La Plataforma no custodia fondos directamente fuera del sistema de procesamiento de pagos.",
+          "Los pagos se liberan cuando el cliente confirma la finalización del hito, no se presenta disputa dentro del periodo de respuesta, o se alcanza una resolución a través del proceso de disputas. Si un usuario no responde en 72 horas, la Plataforma puede proceder basándose en las evidencias disponibles.",
+          "Los fondos ya liberados dejan de estar bajo el control de la Plataforma y no pueden revertirse salvo acuerdo mutuo.",
+          "La Plataforma se reserva el derecho de establecer límites de transacción, requerir métodos de pago alternativos o híbridos para proyectos de mayor valor, y rechazar o restringir transacciones de alto riesgo."
         ]
       },
       {
-        "title": "9. Limitación de responsabilidad",
+        "title": "4. Condiciones de disputa y resolución",
         "paragraphs": [
-          "La responsabilidad de {{company}} se limita a la funcionalidad y gobernanza de la plataforma.",
-          "No somos responsables de:"
+          "Las disputas deben plantearse dentro de los 28 días siguientes al hito o fase del proyecto pertinente. La Plataforma proporciona un proceso de resolución estructurado que incluye:"
+        ],
+        "bullets1": [
+          "Presentación de evidencias",
+          "Evaluación técnica y comercial",
+          "Vías de resolución definidas"
+        ],
+        "paragraphs2": [
+          "La Plataforma facilita la resolución pero no actúa como tribunal, árbitro ni adjudicador legalmente vinculante. Puedes leer la política completa de disputas aquí: <disputeLink>/dispute-policy</disputeLink>.",
+          "Durante una disputa activa, los fondos de hitos pendientes pueden ser temporalmente restringidos. Los fondos previamente liberados permanecen fuera del control de la Plataforma.",
+          "Los resultados de pago se determinan en base a evidencias, alcance del proyecto, estándares del sector y registros de comunicación."
+        ],
+        "paragraphs3": [
+          "Los posibles resultados incluyen finalización de trabajo correctivo, asignación parcial de pagos, resultado de responsabilidad compartida, revisión por experto independiente o liquidación estructurada. Todos los resultados se documentan y finalizan dentro del proceso definido.",
+          "Si una parte no participa, la Plataforma puede proceder basándose en las evidencias disponibles y el resultado puede emitirse sin más aportaciones."
+        ]
+      },
+      {
+        "title": "5. Limitación de responsabilidad",
+        "paragraphs": [
+          "La responsabilidad de la Plataforma se limita estrictamente a las tarifas de servicio pagadas por el proyecto correspondiente.",
+          "La Plataforma no es responsable de:"
         ],
         "bullets": [
           "Defectos de construcción",
-          "Lesiones en obra",
-          "Retrasos del proyecto",
-          "Incumplimientos contractuales entre usuarios"
+          "Retrasos o excesos de plazo",
+          "Fallos de materiales",
+          "Pérdidas indirectas o consecuentes",
+          "Disputas entre partes fuera del control de la plataforma"
         ],
         "paragraphs2": [
-          "Los usuarios siguen siendo los únicos responsables de sus acuerdos y del cumplimiento de las leyes aplicables."
+          "La Plataforma no garantiza resultados del proyecto, calidad de ejecución ni comportamiento de los usuarios. Los usuarios son los únicos responsables de sus acuerdos, cumplimiento de leyes aplicables y diligencia debida."
         ]
       },
       {
-        "title": "10. Modificaciones y contacto",
+        "title": "6. Variabilidad en la construcción",
         "paragraphs": [
+          "Los usuarios reconocen que los proyectos de construcción pueden implicar:"
+        ],
+        "bullets": [
+          "Retrasos por clima o suministro",
+          "Variaciones menores en acabados",
+          "Alcance evolutivo",
+          "Limitaciones técnicas"
+        ],
+        "paragraphs2": [
+          "No todos los problemas constituyen un incumplimiento o fallo. El proceso de disputas considera las tolerancias estándar de construcción y las condiciones locales."
+        ]
+      },
+      {
+        "title": "7. Conducta del usuario",
+        "paragraphs": [
+          "Los usuarios no deben:"
+        ],
+        "bullets": [
+          "Acosar o amenazar a otras partes",
+          "Intentar eludir la estructura de pagos de la plataforma",
+          "Presentar reclamaciones falsas o engañosas",
+          "Manipular procesos de disputa",
+          "Publicar contenido falso, engañoso o fraudulento",
+          "Usar la plataforma para servicios no relacionados con construcción y oficios"
+        ],
+        "paragraphs2": [
+          "Nos reservamos el derecho de suspender o eliminar cuentas que entreguen repetidamente trabajo de calidad inferior, participen en conductas fraudulentas, abusen del proceso de disputa o retengan pagos sin justificación documentada."
+        ]
+      },
+      {
+        "title": "8. Marco legal",
+        "paragraphs": [
+          "Estos términos se rigen por las leyes de España. Cualquiera de las partes puede emprender acciones legales de forma independiente. La Plataforma puede proporcionar documentación del caso previa solicitud.",
           "Podemos actualizar estos Términos ocasionalmente. El uso continuado de la plataforma después de los cambios constituye aceptación de los Términos actualizados. Los cambios sustanciales se comunicarán por email o notificación en la plataforma.",
           "Si tienes preguntas sobre estos Términos, contáctanos a través de nuestra <contactLink>página de contacto</contactLink> o envíanos un email a <emailLink>{{email}}</emailLink>."
         ]
@@ -198,7 +221,7 @@
 
   "dispute": {
     "title": "Política de Resolución Justa de 28 Días y Protección de Pagos",
-    "date": "19 febrero 2026",
+    "date": "20 marzo 2026",
     "intro": "Esta política se aplica a trabajos gestionados a través de {{company}} entre clientes (Askers) y profesionales (Taskers).",
     "sections": [
       {
@@ -221,133 +244,148 @@
       {
         "title": "2. Marco de protección de pagos",
         "paragraphs": [
-          "Los pagos procesados a través de la plataforma se gestionan mediante la infraestructura segura de Stripe.",
-          "Cuando existan fondos pendientes de liberación:"
+          "Los pagos procesados a través de la plataforma se gestionan mediante infraestructura de pago regulada de terceros.",
+          "El pago está directamente vinculado a la finalización de hitos, progreso documentado o resultados de resolución estructurada. Esto garantiza:"
         ],
         "bullets": [
-          "Los fondos pueden retenerse temporalmente o congelarse de acuerdo con las reglas de la plataforma.",
-          "Los fondos no se liberan mientras una disputa activa esté bajo revisión.",
-          "La liberación de fondos ocurre solo conforme a los términos de resolución acordados."
+          "Los clientes no pagan por adelantado del progreso",
+          "Los profesionales no están expuestos a retenciones arbitrarias",
+          "Las decisiones de pago siguen un sistema controlado",
+          "Los fondos pueden retenerse temporalmente o congelarse durante una revisión de disputa activa",
+          "La liberación de fondos ocurre solo conforme a los términos de resolución acordados"
         ],
         "paragraphs2": [
+          "Los fondos de hitos pendientes pueden restringirse durante las disputas. Los fondos previamente liberados no son automáticamente reversibles.",
           "{{company}} no garantiza la recuperación de fondos ya liberados antes de una disputa."
         ]
       },
       {
-        "title": "3. Etapa previa: comunicación antes de la disputa",
-        "paragraphs": [
-          "Antes de abrir una disputa formal, se recomienda que las partes:"
-        ],
+        "title": "3. Lo que Constructive Solutions proporciona",
         "bullets": [
-          "Aclaren expectativas",
-          "Compartan fotos o documentación actualizada",
-          "Confirmen el alcance acordado",
-          "Intenten una resolución directa"
-        ],
-        "paragraphs2": [
-          "Se recomienda un periodo de 24 horas de \"enfriamiento\" antes de escalar.",
-          "Muchos malentendidos se resuelven en esta etapa."
+          "Sistema estructurado de pagos por hitos",
+          "Mediación neutral de disputas",
+          "Evaluación técnica y comercial",
+          "Vías de resolución documentadas",
+          "Marco de reputación y responsabilidad"
         ]
       },
       {
-        "title": "4. Vía de resolución de 28 días",
+        "title": "4. Lo que Constructive Solutions no proporciona",
+        "bullets": [
+          "Servicios de depósito en garantía (escrow)",
+          "Custodia financiera fuera de la infraestructura de pagos",
+          "Seguros o garantías",
+          "Decisiones subjetivas o basadas en emociones"
+        ]
+      },
+      {
+        "title": "5. Vía de resolución de 28 días",
         "paragraphs": [
-          "Todas las disputas siguen un proceso estructurado de cinco etapas."
+          "Todas las disputas siguen un proceso estructurado de seis etapas."
         ],
         "stages": [
           {
-            "title": "Etapa 1 — Notificación del problema (Días 1–3)",
+            "title": "Etapa 0 — Prevención previa a la disputa",
             "paragraphs": [
-              "Cualquiera de las partes puede presentar una disputa incluyendo:"
+              "Objetivo: prevenir escaladas innecesarias. Muchos problemas son simplemente brechas de comunicación, defectos menores o frustraciones de plazos.",
+              "La plataforma proporciona:"
+            ],
+            "bullets": [
+              "Avisos de comunicación estructurada",
+              "Solicitudes de aclaración",
+              "Actualizaciones de plazos",
+              "Solicitudes de revisión de remates",
+              "Interacción guiada",
+              "Periodo de reflexión"
+            ],
+            "paragraphs2": [
+              "Muchos problemas se resuelven aquí sin necesidad de disputa formal."
+            ]
+          },
+          {
+            "title": "Etapa 1 — Problema planteado (Días 1–3)",
+            "paragraphs": [
+              "Cualquiera de las partes presenta una disputa incluyendo:"
             ],
             "bullets1": [
               "Descripción del problema",
-              "Expectativas o alcance original",
-              "Documentación de soporte"
+              "Resultado esperado",
+              "Evidencia de soporte"
             ],
             "paragraphs2": [
-              "La plataforma confirma:"
-            ],
-            "bullets2": [
-              "Recepción de la disputa",
-              "Estado del pago",
-              "Siguientes pasos del procedimiento"
-            ],
-            "paragraphs3": [
+              "La plataforma abre un caso estructurado, estabiliza la comunicación, activa la visibilidad del cronograma, confirma el estado de pagos y define los próximos pasos.",
               "Todos los fondos pendientes permanecen protegidos durante esta etapa."
             ]
           },
           {
-            "title": "Etapa 2 — Aportación de evidencias (Días 4–10)",
+            "title": "Etapa 2 — Recopilación de evidencias (Días 4–10)",
             "paragraphs": [
               "Ambas partes pueden aportar:"
             ],
             "bullets1": [
-              "Fotografías o vídeos",
-              "Planos, dibujos o especificaciones",
-              "Comunicación escrita",
-              "Facturas o recibos"
+              "Fotos / vídeos",
+              "Planos / documentos de alcance",
+              "Facturas / recibos",
+              "Comunicaciones escritas",
+              "Acuerdos de plazos"
             ],
             "paragraphs2": [
-              "Las evidencias se presentan de forma independiente. La plataforma prepara un resumen neutral y factual que incluye:"
-            ],
-            "bullets2": [
-              "Hechos acordados",
-              "Puntos en disputa",
-              "Referencias relevantes al alcance"
-            ],
-            "paragraphs3": [
-              "Este resumen no es vinculante y se proporciona únicamente con fines de facilitación."
+              "La plataforma impone ventanas de presentación iguales, construye un expediente neutral del caso e identifica la información faltante. Esto convierte las disputas de opiniones en evidencias."
             ]
           },
           {
-            "title": "Etapa 3 — Revisión de la plataforma (Días 11–17)",
+            "title": "Etapa 3 — Evaluación técnica y comercial (Días 11–17)",
             "paragraphs": [
-              "{{company}} revisa la documentación presentada en relación con:"
+              "La plataforma realiza una evaluación estructurada basada en:"
             ],
             "bullets": [
-              "El alcance documentado del trabajo",
-              "Registros de comunicación",
-              "Expectativas estándar del sector",
-              "Variables habituales en obras en Ibiza (p. ej., retrasos por clima, disponibilidad de materiales)"
+              "Alineación con el alcance",
+              "Calidad frente a estándares razonables",
+              "Responsabilidad de los retrasos",
+              "Equidad de la posición de pago",
+              "Viabilidad de la corrección"
             ],
             "paragraphs2": [
-              "Cuando proceda, cualquiera de las partes puede solicitar una revisión independiente por un especialista externo. Dicha revisión es opcional y depende de disponibilidad y acuerdo sobre asignación de costes.",
+              "Cuando sea necesario, se pueden introducir especialistas independientes. Se preparan hallazgos estructurados y vías de resultado.",
               "La plataforma puede emitir una recomendación no vinculante para ayudar a la resolución."
             ]
           },
           {
-            "title": "Etapa 4 — Opciones de resolución (Días 18–24)",
+            "title": "Etapa 4 — Vías de resolución (Días 18–24)",
             "paragraphs": [
-              "Las partes pueden acordar una de las siguientes opciones:"
+              "Se proporcionan cuatro vías estructuradas:"
             ],
             "bullets": [
-              "A. Trabajo correctivo",
-              "B. Liberación parcial o total de fondos",
-              "C. Reembolso o reasignación",
-              "D. Ajuste por responsabilidad compartida"
+              "A. Trabajo correctivo — el trabajo se completa o corrige antes de la liberación del pago",
+              "B. Ajuste financiero — los fondos se distribuyen proporcionalmente al trabajo completado",
+              "C. Responsabilidad compartida — resultado equilibrado donde la responsabilidad es mixta",
+              "D. Resultado por experto independiente — la aportación del especialista determina la asignación final"
             ],
             "paragraphs2": [
-              "Cualquier acuerdo debe confirmarse por escrito dentro de la plataforma antes de liberar fondos."
+              "Todos los resultados incluyen acciones claras. Cualquier acuerdo debe confirmarse por escrito dentro de la plataforma antes de liberar fondos."
             ]
           },
           {
-            "title": "Etapa 5 — Cierre (Días 25–28)",
+            "title": "Etapa 5 — Resolución final (Días 25–28)",
             "paragraphs": [
-              "Tras confirmación mutua:"
+              "Posibles resultados:"
             ],
             "bullets": [
-              "Los fondos se liberan conforme al resultado acordado",
-              "La disputa se cierra formalmente"
+              "Acuerdo mutuo — fondos liberados",
+              "Finalización condicional — liberación tras trabajo final",
+              "Resolución dirigida por la plataforma — basada en evidencias",
+              "Resultado por experto — distribución ejecutada",
+              "Salida estructurada — liquidación justa",
+              "Ventana de apelación — revisión limitada"
             ],
             "paragraphs2": [
-              "Puede solicitarse una revisión procedimental limitada dentro de cinco (5) días únicamente si aparece nueva evidencia material."
+              "Cada caso alcanza una conclusión definida. Puede solicitarse una revisión procedimental limitada dentro de cinco (5) días únicamente si aparece nueva evidencia material."
             ]
           }
         ]
       },
       {
-        "title": "5. Requisitos de participación",
+        "title": "6. Requisitos de participación",
         "paragraphs": [
           "Para mantener la eficiencia:"
         ],
@@ -360,7 +398,7 @@
         ]
       },
       {
-        "title": "6. Protección de la reputación del profesional",
+        "title": "7. Protección de la reputación del profesional",
         "paragraphs": [
           "Cuando una disputa se resuelve a favor del profesional (Tasker):"
         ],
@@ -373,7 +411,7 @@
         ]
       },
       {
-        "title": "7. Protección del cliente",
+        "title": "8. Protección del cliente",
         "paragraphs": [
           "Los clientes (Askers) están protegidos mediante:"
         ],
@@ -388,7 +426,7 @@
         ]
       },
       {
-        "title": "8. Guía sobre la realidad de obra",
+        "title": "9. Guía sobre la realidad de obra",
         "paragraphs": [
           "Se recuerda a los usuarios que las variables normales de construcción pueden incluir:"
         ],
@@ -403,14 +441,14 @@
         ]
       },
       {
-        "title": "9. Aclaración del rol de la plataforma",
+        "title": "10. Aclaración del rol de la plataforma",
         "paragraphs": [
           "{{company}}:"
         ],
         "bullets": [
           "No actúa como tribunal o árbitro",
           "No proporciona asesoramiento legal",
-          "No certifica la calidad de construcción",
+          "No certifica calidad de construcción",
           "No supervisa obras"
         ],
         "paragraphs2": [
@@ -419,9 +457,11 @@
         ]
       },
       {
-        "title": "10. Objetivo",
+        "title": "11. Objetivo",
         "paragraphs": [
-          "El objetivo de este marco no es asignar culpas, sino proporcionar una vía justa, estructurada y transparente hacia la resolución."
+          "Este sistema combina control de pagos estructurado, resolución de disputas específica para construcción, evaluación neutral documentada y resultados financieros definidos.",
+          "Está diseñado para reducir conflictos, proteger a ambas partes, mantener la confianza y crear conclusiones claras y justas.",
+          "El objetivo de este marco no es asignar culpa, sino ofrecer Soluciones Constructivas."
         ]
       }
     ]
