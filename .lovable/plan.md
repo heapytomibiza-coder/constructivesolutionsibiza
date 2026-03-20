@@ -1,33 +1,42 @@
 
 
-# Make Dispute Filing Testable End-to-End
+# Connect Support Request → Dispute Escalation Funnel
 
-## Problem
-There's no "Raise Issue" button anywhere in the client or pro dashboard UI. The `/disputes/raise?job=<id>` route works, but you can't get to it without manually typing a URL. This makes the dispute flow untestable from a real user perspective.
+## What This Does
+
+When a user selects the "Dispute" issue type in the Support Request dialog (inside messaging), and also after any support request is created, give them a clear path to escalate to the formal dispute system. This creates the conflict funnel: **Conversation → Support → Formal Dispute**.
 
 ## Changes
 
-### 1. Add "Raise Issue" button to ClientJobCard
-In `src/pages/dashboard/client/components/ClientJobCard.tsx`:
-- Add a "Raise Issue" action button on jobs with status `in_progress` or `completed` (the statuses where disputes make sense — work has started or finished)
-- Button navigates to `/disputes/raise?job=${job.id}`
-- Uses `AlertTriangle` icon for visual clarity
-- Only visible when the job has an `assigned_professional_id` (need a counterparty for a dispute)
+### 1. Add "Escalate to Formal Dispute" button in SupportRequestDialog
+**File**: `src/pages/messages/components/SupportRequestDialog.tsx`
 
-### 2. Add "Raise Issue" button to Pro dashboard job cards
-Find the pro-side equivalent job card and add the same entry point so professionals can also file disputes. The pro view likely lives in the matched jobs or active jobs section — will check `src/pages/dashboard/pro/` for the right component.
+When user selects `dispute` issue type, show an info banner below the form:
+- Text: "If this is a serious issue, you can start a formal, structured dispute instead."
+- Button: "Start Formal Dispute" → navigates to `/disputes/raise?job=${jobId}`
+- Only visible when `jobId` is available and issue type is `dispute`
 
-### 3. Add "Raise Issue" link in JobTicketDetail
-In `src/pages/dashboard/client/JobTicketDetail.tsx` — the detailed job control centre page — add a secondary action for raising a dispute. This gives users a second natural entry point.
+### 2. Add escalation option after support request is created
+**File**: `src/pages/messages/components/RequestSupportButton.tsx`
 
-## What this unblocks
-- You can log in as a client, go to your dashboard, find a job with an assigned pro, and click "Raise Issue" to enter the full dispute wizard
-- The entire flow becomes testable: filing → counterparty response → AI analysis → admin resolution → party acceptance
+When `hasOpenRequest` is true, change the disabled "Support Requested" button to show a small link underneath:
+- Text: "Not resolved? Escalate to formal dispute"
+- Links to `/disputes/raise?job=${jobId}`
+- Only visible when `jobId` exists
+
+### 3. Add micro-copy to "Raise Issue" buttons
+**Files**: `ClientJobCard.tsx`, `JobTicketDetail.tsx`, `JobDetailsModal.tsx`
+
+Add a small helper text beneath or as tooltip on the "Raise Issue" button:
+- "Having an issue with this job? Start a structured resolution."
 
 ## Files Changed
+
 | File | Change |
 |---|---|
-| `src/pages/dashboard/client/components/ClientJobCard.tsx` | Add "Raise Issue" button for `in_progress`/`completed` jobs |
-| `src/pages/dashboard/client/JobTicketDetail.tsx` | Add "Raise Issue" action link |
-| Pro dashboard job component (TBD) | Add matching entry point for pros |
+| `src/pages/messages/components/SupportRequestDialog.tsx` | Add dispute escalation banner when issue type is `dispute` |
+| `src/pages/messages/components/RequestSupportButton.tsx` | Add escalation link when support already requested |
+| `src/pages/dashboard/client/components/ClientJobCard.tsx` | Add micro-copy tooltip |
+| `src/pages/dashboard/client/JobTicketDetail.tsx` | Add micro-copy tooltip |
+| `src/pages/jobs/JobDetailsModal.tsx` | Add micro-copy tooltip |
 
