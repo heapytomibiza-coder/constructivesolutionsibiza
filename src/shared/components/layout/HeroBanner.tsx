@@ -57,9 +57,12 @@ export function HeroBanner({
       {/* Background Image — uses <img> for browser-native lazy/eager + decoding */}
       <img
         src={imageSrc}
+        srcSet={srcSetStr}
+        sizes={srcSetStr ? "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw" : undefined}
         alt=""
         fetchPriority="high"
         decoding="async"
+        loading="eager"
         className="absolute inset-0 w-full h-full object-cover"
       />
       
