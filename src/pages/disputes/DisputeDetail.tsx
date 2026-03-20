@@ -145,6 +145,16 @@ export default function DisputeDetail() {
           )}
         </div>
 
+        {/* Counterparty Banner */}
+        {disputeId && (
+          <CounterpartyBanner
+            disputeId={disputeId}
+            isCounterparty={isCounterparty}
+            hasResponded={hasResponded}
+            responseDeadline={d.response_deadline}
+          />
+        )}
+
         <Separator />
 
         {/* Statements */}
