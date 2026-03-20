@@ -83,7 +83,9 @@ export default function ListingPreviewDrawer({ listingId, onClose }: ListingPrev
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : !data ? (
-          <p className="text-center text-muted-foreground py-16">Could not load listing.</p>
+          <p className="text-center text-muted-foreground py-16">
+            {error ? `Error: ${error.message}` : 'Could not load listing.'}
+          </p>
         ) : (
           <div className="space-y-6 pt-4">
             {/* Hero image */}
