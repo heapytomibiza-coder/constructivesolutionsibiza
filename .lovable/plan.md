@@ -1,20 +1,31 @@
 
 
-# Dispute Engine — Architecture Hardening (Complete)
+# Dispute Engine — Four Feature Expansion (Complete)
 
-Applied fixes from the 6-layer architecture review:
+## ✅ 1. Resolution Acceptance Flow
+- `rpc_offer_resolution` — admin offers resolution from assessment status, logs to `admin_actions_log`
+- `rpc_respond_to_resolution` — party accepts (→ resolved) or rejects with reason (→ escalated)
+- `ResolutionBanner` component in DisputeDetail for parties to accept/reject
+- "Offer Resolution" action in admin DisputeRowActions with type selector + description
+- Email notification trigger on `resolution_offered` status change
 
-## ✅ Fixes Applied
+## ✅ 2. Visual Dispute Timeline
+- `DisputeTimeline` component merges status history, inputs, evidence, and AI events
+- Color-coded vertical timeline with event-type icons and source badges
+- Replaces plain text timeline in DisputeDetail
+- `fetchDisputeDetail` now includes `dispute_ai_events`
 
-1. **`rpc_dispute_completeness` auth hardened** — Added party/admin auth check. Non-parties now get an exception instead of completeness data.
+## ✅ 3. Admin Bulk Actions
+- Checkbox column in DisputeQueue for multi-select
+- Floating action bar: "Close Stale" and "Batch Escalate"
+- Confirmation dialogs before execution
+- Calls `rpc_advance_dispute_status` per dispute via Promise.allSettled
 
-2. **`rpc_admin_dispute_inbox` confirmed secure** — Already had `WHERE has_role(auth.uid(), 'admin') AND is_admin_email()` in the query. No change needed.
-
-3. **`createDispute` now sets `awaiting_counterparty` directly** — Skips the redundant `open` status since a counterparty is always identified from the job at creation time.
-
-4. **Deadlines use `ESCROW_GUARDRAILS` constants** — Replaced hardcoded 72h/96h with `autoProgressionHours` and `responseWarningHours` from `escrowGuardrails.ts`.
+## ✅ 4. Dispute Analytics
+- `rpc_admin_dispute_analytics` — returns volume by status, weekly trends, resolution times, escalation rate, top issues, repeat offenders
+- `DisputeAnalytics` collapsible dashboard above DisputeQueue
+- Summary cards, issue breakdown bars, repeat parties table
 
 ## Deferred (pre-wider-release)
-
-- Storage evidence SELECT policy scoping (currently any authenticated user can view via UUID path)
+- Storage evidence SELECT policy scoping
 - Duplicate RLS policy cleanup on `dispute_inputs` / `dispute_evidence`
