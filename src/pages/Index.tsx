@@ -576,6 +576,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      </LazySection>
 
       {/* ─── FINAL CTA ─── */}
       <section className="py-20 bg-gradient-clay text-accent-foreground">
