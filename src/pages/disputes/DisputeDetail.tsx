@@ -12,6 +12,8 @@ import { analyzeDispute } from './actions/analyzeDispute.action';
 import { AnalysisDisplay } from './components/AnalysisDisplay';
 import { CompletenessIndicator } from './components/CompletenessIndicator';
 import { CounterpartyBanner } from './components/CounterpartyBanner';
+import { ResolutionBanner } from './components/ResolutionBanner';
+import { DisputeTimeline } from './components/DisputeTimeline';
 import type { DisputeStatus } from './types';
 
 const STATUS_META: Record<DisputeStatus, { label: string; color: string }> = {
@@ -71,7 +73,7 @@ export default function DisputeDetail() {
     );
   }
 
-  const { dispute, inputs, evidence, analysis, history } = data;
+  const { dispute, inputs, evidence, analysis, history, aiEvents } = data;
   const d = dispute as any;
   const statusMeta = STATUS_META[d.status as DisputeStatus] || STATUS_META.open;
   const job = d.jobs;
@@ -87,6 +89,7 @@ export default function DisputeDetail() {
   });
 
   const isCounterparty = currentUser?.id === d.counterparty_id;
+  const isParty = currentUser?.id === d.raised_by || currentUser?.id === d.counterparty_id;
   const hasResponded = !!d.counterparty_responded_at || inputs.some(
     (i: any) => i.user_id === d.counterparty_id
   );
@@ -152,6 +155,17 @@ export default function DisputeDetail() {
             isCounterparty={isCounterparty}
             hasResponded={hasResponded}
             responseDeadline={d.response_deadline}
+          />
+        )}
+
+        {/* Resolution Banner */}
+        {disputeId && (
+          <ResolutionBanner
+            disputeId={disputeId}
+            resolutionType={d.resolution_type}
+            resolutionDescription={d.resolution_description}
+            status={d.status}
+            isParty={isParty}
           />
         )}
 
@@ -256,24 +270,13 @@ export default function DisputeDetail() {
         )}
 
         {/* Timeline */}
-        {history.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-sm font-semibold">Timeline</h2>
-            <div className="space-y-2">
-              {history.map((h: any) => (
-                <div key={h.id} className="flex items-center gap-3 text-xs">
-                  <span className="text-muted-foreground w-32 flex-shrink-0">
-                    {new Date(h.created_at).toLocaleString()}
-                  </span>
-                  <span className="capitalize">
-                    {h.from_status ? `${h.from_status.replace(/_/g, ' ')} → ` : ''}
-                    {h.to_status.replace(/_/g, ' ')}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <Separator />
+        <DisputeTimeline
+          history={history}
+          inputs={inputs}
+          evidence={evidence}
+          aiEvents={aiEvents}
+        />
       </div>
     </PublicLayout>
   );
