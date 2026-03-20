@@ -35,32 +35,37 @@ function LoadingSpinner() {
 export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function RouteGuard({ children }, _ref) {
   const location = useLocation();
   const { isAuthenticated, hasRole, isProReady, isLoading, isReady, user, refresh } = useSession();
+  const [retryCount, setRetryCount] = useState(0);
   const [timedOut, setTimedOut] = useState(false);
-  const [retried, setRetried] = useState(false);
   const isMobile = useIsMobile();
+
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     if (isReady && !isLoading) return;
-    // Give mobile connections more time (5s vs 3s)
-    const delay = isMobile ? 5000 : 3000;
+    // Progressive delays: 5s → 4s → 3s (mobile gets +2s each)
+    const baseDelay = Math.max(3000, 5000 - retryCount * 1000);
+    const delay = isMobile ? baseDelay + 2000 : baseDelay;
     const timer = setTimeout(() => setTimedOut(true), delay);
     return () => clearTimeout(timer);
-  }, [isReady, isLoading, isMobile]);
+  }, [isReady, isLoading, isMobile, retryCount]);
 
   if ((isLoading || !isReady) && !timedOut) {
     return <LoadingSpinner />;
   }
 
   if ((isLoading || !isReady) && timedOut) {
-    // On first timeout, show retry toast instead of hard redirect
-    if (!retried) {
-      toast.error('Connection issue — retrying…', { id: 'auth-retry' });
-      setRetried(true);
+    if (retryCount < MAX_RETRIES) {
+      // Silent retry — no disruptive toast on first attempts
+      if (retryCount >= 1) {
+        toast.error('Still connecting — retrying…', { id: 'auth-retry' });
+      }
+      setRetryCount(prev => prev + 1);
       setTimedOut(false);
       refresh().catch(() => {});
       return <LoadingSpinner />;
     }
-    // After retry, redirect to auth
+    // All retries exhausted — redirect to auth
     const returnUrl = buildReturnUrl(location.pathname, location.search);
     const redirectUrl = buildRedirectUrl('/auth', returnUrl);
     return <Navigate to={redirectUrl} replace />;
