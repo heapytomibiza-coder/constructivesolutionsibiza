@@ -6,10 +6,12 @@ import { PublicLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 import { fetchDisputeDetail } from './queries/disputes.query';
 import { analyzeDispute } from './actions/analyzeDispute.action';
 import { AnalysisDisplay } from './components/AnalysisDisplay';
 import { CompletenessIndicator } from './components/CompletenessIndicator';
+import { CounterpartyBanner } from './components/CounterpartyBanner';
 import type { DisputeStatus } from './types';
 
 const STATUS_META: Record<DisputeStatus, { label: string; color: string }> = {
