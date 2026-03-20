@@ -96,8 +96,8 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
           </div>
 
           {/* Provider + trust */}
-          <div className="flex items-center justify-between pt-2 border-t border-border/50">
-            <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <Avatar className="h-6 w-6 shrink-0">
                 <AvatarImage src={listing.provider_avatar_thumb || listing.provider_avatar || undefined} />
                 <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
@@ -108,7 +108,9 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
                 {listing.provider_name ?? 'Tasker'}
               </span>
             </div>
-            <TrustBadge verification={listing.provider_verification ?? null} />
+            <div className="shrink-0">
+              <TrustBadge verification={listing.provider_verification ?? null} />
+            </div>
           </div>
         </CardContent>
       </Card>
