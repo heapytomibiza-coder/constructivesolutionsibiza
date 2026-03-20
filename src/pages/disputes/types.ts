@@ -83,8 +83,22 @@ export interface DisputeEvidence {
   file_name: string | null;
   file_size_bytes: number | null;
   description: string | null;
+  submitted_by_role: string | null;
+  evidence_category: string;
+  related_issue_type: string | null;
+  is_visible_to_counterparty: boolean;
   created_at: string;
 }
+
+export const EVIDENCE_CATEGORIES = [
+  { value: 'photo', label: 'Photo' },
+  { value: 'video', label: 'Video' },
+  { value: 'invoice', label: 'Invoice' },
+  { value: 'message', label: 'Message / Screenshot' },
+  { value: 'plan', label: 'Plan / Drawing' },
+  { value: 'receipt', label: 'Receipt' },
+  { value: 'document', label: 'Other Document' },
+] as const;
 
 export interface DisputeInput {
   id: string;
