@@ -11,7 +11,8 @@ import {
   ArrowRight, Shield, Clock, Star, CheckCircle,
   MessageSquare, Ruler, HardHat, CheckCircle2,
   Hammer, PenTool, Waves, TreePine, Zap, Building2,
-  XCircle, Quote, MapPin, Calendar, Euro, Wrench
+  XCircle, Quote, MapPin, Calendar, Euro, Wrench,
+  AlertTriangle, Lock, FileCheck, Scale, Users, Briefcase
 } from 'lucide-react';
 import heroHome from '@/assets/heroes/hero-home.jpg';
 
@@ -26,9 +27,9 @@ const SERVICE_CARDS = [
 
 const STEPS = [
   { key: 'step1', icon: MessageSquare, delay: '0ms' },
-  { key: 'step2', icon: Ruler, delay: '100ms' },
-  { key: 'step3', icon: HardHat, delay: '200ms' },
-  { key: 'step4', icon: CheckCircle2, delay: '300ms' },
+  { key: 'step2', icon: Lock, delay: '100ms' },
+  { key: 'step3', icon: CheckCircle2, delay: '200ms' },
+  { key: 'step4', icon: Scale, delay: '300ms' },
 ];
 
 const WHY_ROWS = ['why1', 'why2', 'why3', 'why4'];
@@ -38,6 +39,18 @@ const PORTFOLIO_ITEMS = [
   { key: 'project2', accent: 'from-accent/80 to-accent/40' },
   { key: 'project3', accent: 'from-secondary/80 to-secondary/40' },
 ];
+
+const TRUST_STRIP_KEYS = [
+  'trustStripMilestones',
+  'trustStripProtection',
+  'trustStripVerified',
+  'trustStripResolution',
+  'trustStripRisk',
+];
+
+const PROBLEM_KEYS = ['problem1', 'problem2', 'problem3', 'problem4'];
+
+const RESOLUTION_KEYS = ['resolution1', 'resolution2', 'resolution3', 'resolution4'];
 
 const Index = () => {
   const { t } = useTranslation('common');
@@ -78,6 +91,20 @@ const Index = () => {
           {PLATFORM.name}
         </p>
       </HeroBanner>
+
+      {/* ─── TRUST STRIP ─── */}
+      <section className="py-4 bg-primary/5 border-y border-primary/10">
+        <div className="container">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            {TRUST_STRIP_KEYS.map((key) => (
+              <span key={key} className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
+                <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                {t(`home.${key}`)}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ─── 2. HOW WE WORK — 4 steps ─── */}
       <section id="how-we-work" className="py-20 bg-background">
@@ -121,7 +148,172 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── 3. OUR SERVICES — Curated 6 cards ─── */}
+      {/* ─── PROBLEM / SOLUTION ─── */}
+      <section className="py-20 bg-gradient-concrete">
+        <div className="container max-w-4xl">
+          {/* Problem */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 text-sm font-semibold text-destructive uppercase tracking-wider mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              {t('home.problemTitle')}
+            </div>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+              {t('home.problemSubtitle')}
+            </h2>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 max-w-2xl mx-auto mb-6">
+            {PROBLEM_KEYS.map((key) => (
+              <div key={key} className="flex items-start gap-3 rounded-xl bg-destructive/5 border border-destructive/10 p-4">
+                <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">{t(`home.${key}`)}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-sm text-muted-foreground italic max-w-lg mx-auto mb-16">
+            {t('home.problemClosing')}
+          </p>
+
+          {/* Solution */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary uppercase tracking-wider mb-4">
+              <CheckCircle className="h-4 w-4" />
+              {t('home.solutionTitle')}
+            </div>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+              {t('home.solutionSubtitle')}
+            </h2>
+          </div>
+          <p className="text-center text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-4">
+            {t('home.solutionDesc')}
+          </p>
+          <p className="text-center text-sm font-semibold text-foreground">
+            {t('home.solutionClosing')}
+          </p>
+        </div>
+      </section>
+
+      {/* ─── PAYMENT PROTECTION ─── */}
+      <section className="py-20 bg-background">
+        <div className="container max-w-4xl">
+          <div className="text-center mb-12">
+            <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+              <Lock className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+              {t('home.paymentTitle')}
+            </h2>
+            <p className="mt-3 text-lg text-muted-foreground">
+              {t('home.paymentSubtitle')}
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 max-w-2xl mx-auto mb-6">
+            {['payment1', 'payment2', 'payment3', 'payment4'].map((key) => (
+              <div key={key} className="flex items-center gap-3 rounded-xl bg-primary/5 border border-primary/10 p-4">
+                <CheckCircle className="h-5 w-5 text-primary shrink-0" />
+                <p className="text-sm font-medium text-foreground">{t(`home.${key}`)}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-sm font-semibold text-foreground">
+            {t('home.paymentClosing')}
+          </p>
+        </div>
+      </section>
+
+      {/* ─── 28-DAY RESOLUTION ─── */}
+      <section className="py-20 bg-gradient-steel text-primary-foreground">
+        <div className="container max-w-4xl">
+          <div className="text-center mb-12">
+            <div className="mx-auto h-16 w-16 rounded-2xl bg-white/10 flex items-center justify-center mb-5">
+              <Scale className="h-8 w-8 text-primary-foreground" />
+            </div>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold">
+              {t('home.resolutionTitle')}
+            </h2>
+            <p className="mt-3 text-lg text-primary-foreground/80">
+              {t('home.resolutionSubtitle')}
+            </p>
+            <p className="mt-2 text-sm text-primary-foreground/70">
+              {t('home.resolutionDesc')}
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 max-w-2xl mx-auto mb-6">
+            {RESOLUTION_KEYS.map((key) => (
+              <div key={key} className="flex items-center gap-3 rounded-xl bg-white/10 border border-white/10 p-4">
+                <FileCheck className="h-5 w-5 text-primary-foreground/80 shrink-0" />
+                <p className="text-sm text-primary-foreground/90">{t(`home.${key}`)}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-sm text-primary-foreground/70 italic mb-6">
+            {t('home.resolutionClosing')}
+          </p>
+          <div className="text-center">
+            <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20" asChild>
+              <Link to="/dispute-policy">{t('home.resolutionLink')}</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── DUAL AUDIENCE: For Pros / For Clients ─── */}
+      <section className="py-20 bg-background">
+        <div className="container">
+          <div className="grid gap-8 md:grid-cols-2 max-w-5xl mx-auto">
+            {/* For Professionals */}
+            <Card className="card-grounded border-primary/15 overflow-hidden">
+              <div className="h-1.5 bg-gradient-to-r from-primary to-primary/50" />
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-xl font-bold text-foreground">{t('home.forProsTitle')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('home.forProsSubtitle')}</p>
+                  </div>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  {['forPros1', 'forPros2', 'forPros3', 'forPros4'].map((key) => (
+                    <li key={key} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                      {t(`home.${key}`)}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-muted-foreground italic">{t('home.forProsClosing')}</p>
+              </CardContent>
+            </Card>
+
+            {/* For Clients */}
+            <Card className="card-grounded border-accent/15 overflow-hidden">
+              <div className="h-1.5 bg-gradient-to-r from-accent to-accent/50" />
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-accent-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-xl font-bold text-foreground">{t('home.forClientsTitle')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('home.forClientsSubtitle')}</p>
+                  </div>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  {['forClients1', 'forClients2', 'forClients3', 'forClients4'].map((key) => (
+                    <li key={key} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                      {t(`home.${key}`)}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-muted-foreground italic">{t('home.forClientsClosing')}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── OUR SERVICES — Curated 6 cards ─── */}
       <section className="py-20 bg-gradient-concrete">
         <div className="container">
           <div className="text-center mb-12">
@@ -186,7 +378,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── 4. PORTFOLIO / FEATURED PROJECTS ─── */}
+      {/* ─── PORTFOLIO / FEATURED PROJECTS ─── */}
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">
@@ -236,7 +428,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── 5. WHY CHOOSE US — Comparison ─── */}
+      {/* ─── WHY CHOOSE US — Comparison ─── */}
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">
@@ -249,7 +441,6 @@ const Index = () => {
           </div>
 
           <div className="max-w-3xl mx-auto">
-            {/* Header row */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="text-center">
                 <span className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
@@ -265,7 +456,6 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Comparison rows */}
             <div className="space-y-3">
               {WHY_ROWS.map((key, i) => (
                 <div
@@ -290,10 +480,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── 5. SOCIAL PROOF — Stats + Testimonials ─── */}
+      {/* ─── SOCIAL PROOF — Stats + Testimonials ─── */}
       <section className="py-20 bg-gradient-steel text-primary-foreground">
         <div className="container">
-          {/* Stats bar */}
           <div className="text-center mb-14">
             <h2 className="font-display text-3xl sm:text-4xl font-bold">
               {t('home.proofTitle')}
@@ -309,7 +498,6 @@ const Index = () => {
             ))}
           </div>
 
-          {/* Testimonials */}
           <div className="grid gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
             {['testimonial1', 'testimonial2'].map((key) => (
               <Card key={key} className="bg-white/10 border-white/15 backdrop-blur-sm">
@@ -328,7 +516,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── 6. TRUST SIGNALS ─── */}
+      {/* ─── TRUST SIGNALS ─── */}
       <section className="py-16 bg-background">
         <div className="container">
           <div className="grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
@@ -369,18 +557,23 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ─── 7. CTA ─── */}
+      {/* ─── FINAL CTA ─── */}
       <section className="py-20 bg-gradient-clay text-accent-foreground">
         <div className="container text-center">
           <h2 className="font-display text-3xl font-bold">
-            {t('home.ctaTitle')}
+            {t('home.finalCtaTitle')}
           </h2>
           <p className="mt-4 text-accent-foreground/80 max-w-xl mx-auto">
-            {t('home.ctaDesc')}
+            {t('home.finalCtaDesc')}
           </p>
-          <Button size="lg" variant="secondary" className="mt-8" asChild>
-            <Link to="/post">{t('home.ctaButton')}</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <Button size="lg" variant="secondary" asChild>
+              <Link to="/post">{t('home.finalCtaStart')}</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="bg-transparent border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" asChild>
+              <Link to="/register">{t('home.finalCtaJoin')}</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
