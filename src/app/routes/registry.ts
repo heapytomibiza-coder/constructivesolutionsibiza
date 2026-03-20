@@ -271,9 +271,29 @@ export const adminRoutes: RouteConfig[] = [
 ];
 
 // ============================================
+// DISPUTE ROUTES - Resolution engine
+// ============================================
+export const disputeRoutes: RouteConfig[] = [
+  {
+    path: '/disputes/raise',
+    access: 'auth',
+    redirectTo: '/auth',
+    lane: 'shared',
+    titleKey: 'nav.raiseDispute',
+    minRollout: 'escrow-beta',
+  },
+  {
+    path: '/disputes/:disputeId',
+    access: 'auth',
+    redirectTo: '/auth',
+    lane: 'shared',
+    minRollout: 'escrow-beta',
+  },
+];
+
+// ============================================
 // V2 EXCLUDED (do not add these yet):
 // - /payments/*
-// - /disputes/*
 // - /contracts/*
 // ============================================
 
@@ -286,5 +306,6 @@ export const allRoutes: RouteConfig[] = [
   ...clientRoutes,
   ...proOnboardingRoutes,
   ...proDashboardRoutes,
+  ...disputeRoutes,
   ...adminRoutes,
 ];

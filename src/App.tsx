@@ -106,6 +106,10 @@ const TopSourcesPage = lazy(() => import("./pages/admin/insights/TopSourcesPage"
 const MessagingPulsePage = lazy(() => import("./pages/admin/insights/MessagingPulsePage"));
 const MonitoringPage = lazy(() => import("./pages/admin/monitoring/MonitoringPage"));
 
+// Disputes
+const RaiseDispute = lazy(() => import("./pages/disputes/RaiseDispute"));
+const DisputeDetail = lazy(() => import("./pages/disputes/DisputeDetail"));
+
 // Launch Checklist
 const LaunchChecklist = lazy(() => import("./pages/LaunchChecklist"));
 import { ReportIssueWidget } from "./components/ReportIssueWidget";
@@ -233,6 +237,10 @@ const App = () => {
 
               {/* Forum - New Post (requires auth) */}
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
+
+              {/* Disputes */}
+              <Route path="/disputes/raise" element={<RolloutGate min="escrow-beta"><RaiseDispute /></RolloutGate>} />
+              <Route path="/disputes/:disputeId" element={<RolloutGate min="escrow-beta"><DisputeDetail /></RolloutGate>} />
 
               {/* Professional Dashboard */}
               <Route path="/dashboard/pro" element={<ProDashboard />} />
