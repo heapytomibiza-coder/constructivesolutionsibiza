@@ -1,19 +1,10 @@
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   MapPin, Briefcase, Store, MessageSquare,
-  ExternalLink, EyeOff, CheckCircle, AlertTriangle,
+  ExternalLink,
 } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { adminKeys } from "../../queries/keys";
 import type { AdminUserDetails, ProServiceEntry, ServiceListingSummary } from "../../queries/adminUserDetails.query";
 
 export function TaskerTab({ user }: { user: AdminUserDetails }) {
