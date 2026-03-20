@@ -3108,6 +3108,7 @@ export type Database = {
         Args: { p_dispute_id: string }
         Returns: Json
       }
+      rpc_dispute_qa_health_checks: { Args: never; Returns: Json }
       rpc_offer_resolution: {
         Args: {
           p_dispute_id: string
