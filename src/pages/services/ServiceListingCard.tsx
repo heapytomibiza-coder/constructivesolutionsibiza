@@ -35,8 +35,8 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
   const CategoryIcon = listing.category_slug ? getCategoryIcon(listing.category_slug) : null;
 
   return (
-    <Link to={`/services/listing/${listing.id}`}>
-      <Card className="h-full card-grounded transition-all hover:shadow-soft hover:border-accent/50 cursor-pointer group overflow-hidden flex flex-col min-w-0">
+    <Link to={`/services/listing/${listing.id}`} className="block w-full min-w-0 max-w-full">
+      <Card className="h-full w-full max-w-full card-grounded transition-all hover:shadow-soft hover:border-accent/50 cursor-pointer group overflow-hidden flex flex-col min-w-0 box-border">
         {/* Fixed aspect ratio image area — always present */}
         <div className="aspect-[4/3] overflow-hidden relative">
           {(listing.hero_card_url || listing.hero_image_url) ? (
@@ -60,15 +60,15 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
 
         <CardContent className="p-4 space-y-2.5 flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Category context tags */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex min-w-0 items-center gap-1.5 flex-wrap overflow-hidden">
             {listing.category_name && (
-              <Badge variant="secondary" className="text-xs font-normal gap-1 px-2">
+              <Badge variant="secondary" className="max-w-full text-xs font-normal gap-1 px-2 overflow-hidden">
                 {CategoryIcon && <CategoryIcon className="h-3 w-3" />}
-                {listing.category_name}
+                <span className="truncate">{listing.category_name}</span>
               </Badge>
             )}
             {listing.subcategory_name && (
-              <span className="text-xs text-muted-foreground">
+              <span className="min-w-0 truncate text-xs text-muted-foreground">
                 {listing.subcategory_name}
               </span>
             )}
@@ -83,20 +83,20 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
           <div className="flex-1" />
 
           {/* Price row */}
-          <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center justify-between gap-2 overflow-hidden">
             {priceLabel ? (
-              <span className="text-sm font-semibold text-primary">{priceLabel}</span>
+              <span className="min-w-0 truncate text-sm font-semibold text-primary">{priceLabel}</span>
             ) : (
-              <span className="text-sm text-muted-foreground">Quote on request</span>
+              <span className="min-w-0 truncate text-sm text-muted-foreground">Quote on request</span>
             )}
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="shrink-0 flex items-center gap-1 text-xs text-muted-foreground">
               <Eye className="h-3 w-3" />
               {listing.view_count}
             </span>
           </div>
 
           {/* Provider + trust */}
-          <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+          <div className="flex min-w-0 items-center justify-between gap-2 pt-2 border-t border-border/50 overflow-hidden">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <Avatar className="h-6 w-6 shrink-0">
                 <AvatarImage src={listing.provider_avatar_thumb || listing.provider_avatar || undefined} />
