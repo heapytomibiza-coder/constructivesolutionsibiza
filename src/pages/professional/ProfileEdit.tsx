@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/form";
 import { useSession } from "@/contexts/SessionContext";
 import { supabase } from "@/integrations/supabase/client";
+import { isPhaseReady } from "@/pages/onboarding/lib/phaseProgression";
 import { cn } from "@/lib/utils";
 import { useProfessionalServices } from "@/pages/onboarding/hooks/useProfessionalServices";
 import { useMicroPreferences } from "@/pages/onboarding/hooks/useMicroPreferences";
@@ -50,7 +51,8 @@ const CHAR_LIMITS = {
 export default function ProfileEdit() {
   const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
-  const { user, refresh } = useSession();
+  const { user, refresh, professionalProfile } = useSession();
+  const canToggleVisibility = isPhaseReady(professionalProfile?.onboardingPhase);
   const { selectedMicroIds, isLoading: loadingServices } = useProfessionalServices();
   const { preferences } = useMicroPreferences();
 
@@ -547,7 +549,7 @@ export default function ProfileEdit() {
                   description="Control how you appear in search results."
                 />
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
                 <FormField
                   control={form.control}
                   name="isPubliclyListed"
@@ -562,11 +564,28 @@ export default function ProfileEdit() {
                         </FormDescription>
                       </div>
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} className="scale-125" />
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={canToggleVisibility ? field.onChange : undefined}
+                          disabled={!canToggleVisibility}
+                          className="scale-125"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
                 />
+                {!canToggleVisibility && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-200">
+                    You need to complete onboarding before you can appear in the directory.{" "}
+                    <button
+                      type="button"
+                      onClick={() => navigate("/onboarding/professional")}
+                      className="underline font-medium hover:no-underline"
+                    >
+                      Finish onboarding →
+                    </button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
