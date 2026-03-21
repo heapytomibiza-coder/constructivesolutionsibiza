@@ -15,6 +15,11 @@ import type { Json } from '@/integrations/supabase/types';
  * - Caches results to avoid redundant queries
  * - Defaults active_role to 'client' to prevent null checks
  * - Exposes loading/ready states for proper gate handling
+ * 
+ * STALENESS GUARDS:
+ * - loadVersionRef increments on every identity change / sign-out
+ * - loadUserData bails if version drifted or userId mismatches current user
+ * - clearAuthState is the single canonical reset path
  */
 
 export type UserRole = 'client' | 'professional' | 'admin';
@@ -63,7 +68,7 @@ export interface SessionSnapshot {
 
   // Professional state (only for professionals)
   professionalProfile: ProfessionalProfileData | null;
-  isProReady: boolean; // isPhaseReady(onboardingPhase) && servicesCount > 0 — verification is NOT a gate for MESSAGE/APPLY
+  isProReady: boolean;
 
   // Loading states
   isLoading: boolean;
@@ -77,9 +82,6 @@ export interface SessionSnapshot {
 
 const DEFAULT_ROLE: UserRole = 'client';
 
-// Attribution binding is now handled server-side via the collect-attribution edge function.
-// See bindAttributionOnSignIn() in useAttribution.ts.
-
 export function useSessionSnapshot(): SessionSnapshot {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -90,11 +92,31 @@ export function useSessionSnapshot(): SessionSnapshot {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  // Ref to track if we have a user without stale closure issues
+  // Ref to track current user without stale closure issues
   const userRef = useRef<User | null>(null);
   useEffect(() => { userRef.current = user; }, [user]);
 
+  // Monotonic version counter — incremented on every identity change or sign-out.
+  // loadUserData checks this before applying results to prevent stale async writes.
+  const loadVersionRef = useRef(0);
+
+  // Tracks last authoritative auth event to avoid "ghost authenticated" state
+  const authStateRef = useRef<'unknown' | 'signed_in' | 'signed_out'>('unknown');
+
+  // ── Single canonical reset ──────────────────────────────────────────
+  const clearAuthState = useCallback(() => {
+    loadVersionRef.current += 1; // invalidate any in-flight loadUserData
+    setSession(null);
+    setUser(null);
+    setRoles([DEFAULT_ROLE]);
+    setActiveRole(DEFAULT_ROLE);
+    setProfessionalProfile(null);
+  }, []);
+
+  // ── Load user data (roles + profile) ────────────────────────────────
   const loadUserData = useCallback(async (userId: string) => {
+    const version = loadVersionRef.current;
+
     try {
       const [rolesResult, proResult, phoneResult, isAdminResult] = await Promise.all([
         supabase
@@ -114,6 +136,10 @@ export function useSessionSnapshot(): SessionSnapshot {
           .single(),
         supabase.rpc('is_admin_email'),
       ]);
+
+      // ── Stale-request guard: bail if version drifted or user changed ──
+      if (version !== loadVersionRef.current) return;
+      if (userRef.current?.id !== userId) return;
 
       if (rolesResult.error && rolesResult.error.code !== 'PGRST116') {
         console.error('Error loading user roles:', rolesResult.error);
@@ -153,13 +179,24 @@ export function useSessionSnapshot(): SessionSnapshot {
         inferredRoles.add('admin');
       }
 
+      // ── Second stale guard after role inference (awaits above can interleave) ──
+      if (version !== loadVersionRef.current) return;
+
       const resolvedRoles = Array.from(inferredRoles);
       setRoles(resolvedRoles);
-      setActiveRole((prev) => {
-        if (dbRole && resolvedRoles.includes(dbRole)) return dbRole;
-        if (resolvedRoles.includes(prev)) return prev;
-        return resolvedRoles.includes('professional') ? 'professional' : DEFAULT_ROLE;
-      });
+
+      // Deterministic active role: prefer DB → DEFAULT → professional → first
+      // Never carry previous user's role across identities.
+      const nextActiveRole =
+        dbRole && resolvedRoles.includes(dbRole)
+          ? dbRole
+          : resolvedRoles.includes(DEFAULT_ROLE)
+            ? DEFAULT_ROLE
+            : resolvedRoles.includes('professional')
+              ? 'professional'
+              : resolvedRoles[0] ?? DEFAULT_ROLE;
+
+      setActiveRole(nextActiveRole);
 
       if (proResult.data) {
         setProfessionalProfile({
@@ -176,11 +213,16 @@ export function useSessionSnapshot(): SessionSnapshot {
         setProfessionalProfile(null);
       }
     } catch (err) {
+      // Bail on stale request even for errors
+      if (version !== loadVersionRef.current) return;
+      if (userRef.current?.id !== userId) return;
+
       console.error('Error loading user data:', err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
     }
   }, []);
 
+  // ── Manual refresh ──────────────────────────────────────────────────
   const refresh = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -188,7 +230,6 @@ export function useSessionSnapshot(): SessionSnapshot {
     try {
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
-      // Do NOT hard sign-out on transient refresh errors.
       if (sessionError) {
         console.warn('Session refresh warning:', sessionError);
       }
@@ -198,15 +239,11 @@ export function useSessionSnapshot(): SessionSnapshot {
         setUser(currentSession.user);
         await loadUserData(currentSession.user.id);
       } else {
-        // Use ref to avoid stale closure — preserve state if user exists in memory
-        if (!userRef.current) {
-          setSession(null);
-          setUser(null);
-          setRoles([DEFAULT_ROLE]);
-          setActiveRole(DEFAULT_ROLE);
-          setProfessionalProfile(null);
+        // Only preserve memory state if we haven't received a definitive SIGNED_OUT
+        if (userRef.current && authStateRef.current !== 'signed_out') {
+          console.warn('Session returned null but user exists in memory and no SIGNED_OUT — preserving state');
         } else {
-          console.warn('Session returned null but user exists in memory — preserving state');
+          clearAuthState();
         }
       }
     } catch (err) {
@@ -216,13 +253,11 @@ export function useSessionSnapshot(): SessionSnapshot {
       setIsLoading(false);
       setIsReady(true);
     }
-  }, [loadUserData]);
+  }, [loadUserData, clearAuthState]);
 
+  // ── Role switch ─────────────────────────────────────────────────────
   const switchRole = useCallback(async (newRole: UserRole) => {
-    if (!user || !roles.includes(newRole)) {
-      // Role switch denied - user doesn't have this role
-      return;
-    }
+    if (!user || !roles.includes(newRole)) return;
 
     try {
       const { error: rpcError } = await supabase
@@ -237,7 +272,7 @@ export function useSessionSnapshot(): SessionSnapshot {
     }
   }, [user, roles]);
 
-  // Set up auth state listener - handles INITIAL_SESSION for page load
+  // ── Auth state listener ─────────────────────────────────────────────
   useEffect(() => {
     let mounted = true;
 
@@ -245,9 +280,11 @@ export function useSessionSnapshot(): SessionSnapshot {
       async (event, newSession) => {
         if (!mounted) return;
 
-        // INITIAL_SESSION fires on page load with existing session (or null)
         if (event === 'INITIAL_SESSION') {
+          authStateRef.current = newSession ? 'signed_in' : 'unknown';
+
           if (newSession?.user) {
+            loadVersionRef.current += 1; // new identity
             setSession(newSession);
             setUser(newSession.user);
             await loadUserData(newSession.user.id);
@@ -257,49 +294,45 @@ export function useSessionSnapshot(): SessionSnapshot {
             );
 
             if (hasPersistedSession) {
-              // Hydration race: storage has a session, but INITIAL_SESSION arrived null.
-              // Retry via getSession instead of collapsing the UI to client-only.
               await refresh();
               return;
             }
 
-            setSession(null);
-            setUser(null);
-            setRoles([DEFAULT_ROLE]);
-            setActiveRole(DEFAULT_ROLE);
-            setProfessionalProfile(null);
+            clearAuthState();
           }
           setIsLoading(false);
           setIsReady(true);
           return;
         }
 
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          authStateRef.current = 'signed_in';
+
           if (newSession?.user) {
+            // Bump version on identity change (new sign-in or different user)
+            if (userRef.current?.id !== newSession.user.id) {
+              loadVersionRef.current += 1;
+            }
+
             setSession(newSession);
             setUser(newSession.user);
+
             // Use setTimeout to avoid potential deadlock with Supabase client
-            // On TOKEN_REFRESHED, load data but keep existing state on failure (graceful degradation)
             setTimeout(() => {
               loadUserData(newSession.user.id).catch((err) => {
                 if (event === 'TOKEN_REFRESHED') {
                   console.warn('loadUserData failed during token refresh, keeping cached state:', err);
-                  // Don't reset state — keep stale data rather than breaking the UI
                 }
               });
             }, 0);
 
-            // Fire-and-forget: bind attribution session → user via edge function
             if (event === 'SIGNED_IN') {
               bindAttributionOnSignIn().catch(() => {});
             }
           }
         } else if (event === 'SIGNED_OUT') {
-          setSession(null);
-          setUser(null);
-          setRoles([DEFAULT_ROLE]);
-          setActiveRole(DEFAULT_ROLE);
-          setProfessionalProfile(null);
+          authStateRef.current = 'signed_out';
+          clearAuthState();
         }
       }
     );
@@ -308,15 +341,12 @@ export function useSessionSnapshot(): SessionSnapshot {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [loadUserData]);
+  }, [loadUserData, clearAuthState, refresh]);
 
   const hasRole = useCallback((role: UserRole): boolean => {
     return roles.includes(role);
   }, [roles]);
 
-  // Calculate if professional is "ready" for marketplace actions
-  // Uses normalized phase check from phaseProgression utility
-  // Soft launch: verification is a trust badge, NOT a gate.
   const isProReady = 
     isPhaseReady(professionalProfile?.onboardingPhase) &&
     (professionalProfile?.servicesCount ?? 0) > 0;
