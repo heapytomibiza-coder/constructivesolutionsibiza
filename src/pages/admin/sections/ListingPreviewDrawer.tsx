@@ -247,6 +247,43 @@ export default function ListingPreviewDrawer({ listingId, onClose }: ListingPrev
                 </div>
               </>
             )}
+
+
+            {/* Admin Actions */}
+            <Separator />
+            <div className="flex gap-2">
+              {data.listing.status !== 'live' && (
+                <Button
+                  className="flex-1 gap-2"
+                  disabled={statusMutation.isPending}
+                  onClick={() => statusMutation.mutate({ newStatus: 'live' })}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Approve &amp; Set Live
+                </Button>
+              )}
+              {data.listing.status === 'live' && (
+                <Button
+                  variant="outline"
+                  className="flex-1 gap-2"
+                  disabled={statusMutation.isPending}
+                  onClick={() => statusMutation.mutate({ newStatus: 'paused' })}
+                >
+                  <PauseCircle className="h-4 w-4" />
+                  Pause Listing
+                </Button>
+              )}
+              {data.listing.status === 'paused' && (
+                <Button
+                  variant="outline"
+                  className="flex-1 gap-2"
+                  disabled={statusMutation.isPending}
+                  onClick={() => statusMutation.mutate({ newStatus: 'draft' })}
+                >
+                  Revert to Draft
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </SheetContent>
