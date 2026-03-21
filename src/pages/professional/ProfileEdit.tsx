@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/form";
 import { useSession } from "@/contexts/SessionContext";
 import { supabase } from "@/integrations/supabase/client";
+import { isPhaseReady } from "@/guard/proReadiness";
 import { cn } from "@/lib/utils";
 import { useProfessionalServices } from "@/pages/onboarding/hooks/useProfessionalServices";
 import { useMicroPreferences } from "@/pages/onboarding/hooks/useMicroPreferences";
