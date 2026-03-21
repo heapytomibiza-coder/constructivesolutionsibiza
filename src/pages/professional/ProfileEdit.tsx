@@ -51,7 +51,8 @@ const CHAR_LIMITS = {
 export default function ProfileEdit() {
   const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
-  const { user, refresh } = useSession();
+  const { user, refresh, professionalProfile } = useSession();
+  const canToggleVisibility = isPhaseReady(professionalProfile?.onboardingPhase);
   const { selectedMicroIds, isLoading: loadingServices } = useProfessionalServices();
   const { preferences } = useMicroPreferences();
 
