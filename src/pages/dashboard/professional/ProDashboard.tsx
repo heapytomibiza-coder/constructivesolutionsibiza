@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useSession } from '@/contexts/SessionContext';
 import { useProStats, type DashboardStage } from './hooks/useProStats';
 import { RoleSwitcher } from '@/shared/components/layout/RoleSwitcher';
+import { MobileRolePill } from '@/shared/components/layout/MobileRolePill';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
