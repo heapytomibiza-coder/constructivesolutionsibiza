@@ -336,6 +336,9 @@ const MonitoringPage = forwardRef<HTMLDivElement>(function MonitoringPage(_props
                             </pre>
                           </details>
                         )}
+                        <div className="mt-3 flex justify-end">
+                          <MessageReporterButton reportId={r.id} conversationId={r.conversation_id} />
+                        </div>
                       </div>
                     ))}
                   </div>
