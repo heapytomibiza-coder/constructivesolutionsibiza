@@ -22,7 +22,29 @@ const statusColors: Record<string, string> = {
 export default function ListingsSection() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
-  
+  const queryClient = useQueryClient();
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ listingId, newStatus }: { listingId: string; newStatus: string }) => {
+      const updateFields: Record<string, any> = { status: newStatus };
+      if (newStatus === 'live') updateFields.published_at = new Date().toISOString();
+      const { error } = await supabase
+        .from('service_listings')
+        .update(updateFields)
+        .eq('id', listingId);
+      if (error) throw error;
+    },
+    onSuccess: (_, { newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-listing-preview'] });
+      toast.success(newStatus === 'live' ? 'Listing approved and set to Live' : `Listing set to ${newStatus}`);
+    },
+    onError: (error) => {
+      console.error('Admin status update failed:', error);
+      toast.error(`Failed to update listing: ${error.message}`);
+    },
+  });
+
 
   const { data: listings, isLoading } = useQuery({
     queryKey: ["admin-listings", statusFilter],
