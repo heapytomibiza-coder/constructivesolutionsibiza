@@ -123,9 +123,9 @@ export function useSessionSnapshot(): SessionSnapshot {
         console.error('Error loading professional profile:', proResult.error);
       }
 
-      const rawRoles = rolesResult.data?.roles;
+      const rawRoles: unknown = rolesResult.data?.roles;
       const normalizedRoles = Array.isArray(rawRoles)
-        ? rawRoles
+        ? rawRoles.filter((role): role is string => typeof role === 'string')
         : typeof rawRoles === 'string'
           ? rawRoles.replace(/[{}]/g, '').split(',').map((role) => role.trim()).filter(Boolean)
           : [];

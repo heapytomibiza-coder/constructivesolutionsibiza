@@ -421,7 +421,7 @@ export default function Settings() {
               <BellRing className="h-5 w-5 text-muted-foreground" />
               <CardTitle className="text-base">{t('notifications.browserTitle')}</CardTitle>
               {browserPermission === 'granted' && (
-                <span className="ml-auto flex items-center gap-1 text-xs font-medium text-emerald-600">
+                <span className="ml-auto flex items-center gap-1 text-xs font-medium text-primary">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   {t('notifications.browserStatusAllowed')}
                 </span>
@@ -441,7 +441,7 @@ export default function Settings() {
                 Your browser does not support notifications.
               </p>
             ) : browserPermission === 'granted' ? (
-              <div className="rounded-md border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 p-3 space-y-2">
+              <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2">
                 <p className="text-sm text-foreground">{t('notifications.browserGranted')}</p>
               </div>
             ) : browserPermission === 'denied' ? (
