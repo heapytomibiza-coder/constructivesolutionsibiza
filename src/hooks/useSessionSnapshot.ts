@@ -118,7 +118,7 @@ export function useSessionSnapshot(): SessionSnapshot {
     const version = loadVersionRef.current;
 
     try {
-      const [rolesResult, proResult, phoneResult, isAdminResult] = await Promise.all([
+      const [rolesSettled, proSettled, phoneSettled, isAdminSettled] = await Promise.allSettled([
         supabase
           .from('user_roles')
           .select('roles, active_role')
@@ -137,6 +137,19 @@ export function useSessionSnapshot(): SessionSnapshot {
         supabase.rpc('is_admin_email'),
       ]);
 
+      const rolesResult = rolesSettled.status === 'fulfilled'
+        ? rolesSettled.value
+        : { data: null, error: rolesSettled.reason };
+      const proResult = proSettled.status === 'fulfilled'
+        ? proSettled.value
+        : { data: null, error: proSettled.reason };
+      const phoneResult = phoneSettled.status === 'fulfilled'
+        ? phoneSettled.value
+        : { data: null, error: phoneSettled.reason };
+      const isAdminResult = isAdminSettled.status === 'fulfilled'
+        ? isAdminSettled.value
+        : { data: false, error: isAdminSettled.reason };
+
       // ── Stale-request guard: bail if version drifted or user changed ──
       if (version !== loadVersionRef.current) return;
       if (userRef.current && userRef.current.id !== userId) return;
@@ -147,6 +160,14 @@ export function useSessionSnapshot(): SessionSnapshot {
 
       if (proResult.error && proResult.error.code !== 'PGRST116') {
         console.error('Error loading professional profile:', proResult.error);
+      }
+
+      if (phoneResult.error && phoneResult.error.code !== 'PGRST116') {
+        console.warn('Error loading profile phone:', phoneResult.error);
+      }
+
+      if (isAdminResult.error) {
+        console.warn('Error checking admin email:', isAdminResult.error);
       }
 
       const rawRoles: unknown = rolesResult.data?.roles;
