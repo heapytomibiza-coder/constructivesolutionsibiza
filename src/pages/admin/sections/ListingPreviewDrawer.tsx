@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet,
@@ -7,8 +7,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Image as ImageIcon, MapPin, Euro } from "lucide-react";
+import { Loader2, Image as ImageIcon, MapPin, Euro, CheckCircle, PauseCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface ListingPreviewDrawerProps {
   listingId: string | null;
