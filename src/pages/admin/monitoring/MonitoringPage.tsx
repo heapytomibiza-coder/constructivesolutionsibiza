@@ -69,7 +69,7 @@ function useRecentReports() {
     queryFn: async () => {
       const { data } = await supabase
         .from("tester_reports")
-        .select("id, description, url, route, browser, viewport, status, context, created_at")
+        .select("id, description, url, route, browser, viewport, status, context, created_at, conversation_id, user_id")
         .order("created_at", { ascending: false })
         .limit(50);
       return data ?? [];
