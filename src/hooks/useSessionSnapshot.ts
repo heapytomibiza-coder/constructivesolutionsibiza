@@ -230,7 +230,17 @@ export function useSessionSnapshot(): SessionSnapshot {
             setUser(newSession.user);
             await loadUserData(newSession.user.id);
           } else {
-            // No session - reset to defaults
+            const hasPersistedSession = Object.keys(localStorage).some(
+              (key) => key.startsWith('sb-') && key.endsWith('-auth-token')
+            );
+
+            if (hasPersistedSession) {
+              // Hydration race: storage has a session, but INITIAL_SESSION arrived null.
+              // Retry via getSession instead of collapsing the UI to client-only.
+              await refresh();
+              return;
+            }
+
             setSession(null);
             setUser(null);
             setRoles([DEFAULT_ROLE]);
