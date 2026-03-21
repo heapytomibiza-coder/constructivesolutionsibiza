@@ -164,13 +164,12 @@ export function useSessionSnapshot(): SessionSnapshot {
     try {
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
-      // Gracefully handle stale refresh tokens
+      // Do NOT hard sign-out on transient refresh errors.
+      // Recent auth-client behavior and multi-tab refresh races can surface
+      // "refresh token" errors while a still-valid session exists or while
+      // another tab has already rotated the token.
       if (sessionError) {
-        const msg = (sessionError as any)?.message?.toLowerCase?.() ?? '';
-        if (msg.includes('refresh token') || msg.includes('token not found')) {
-          console.warn('Stale session detected, signing out');
-          await supabase.auth.signOut();
-        }
+        console.warn('Session refresh warning:', sessionError);
       }
       
       if (currentSession?.user) {
@@ -178,11 +177,15 @@ export function useSessionSnapshot(): SessionSnapshot {
         setUser(currentSession.user);
         await loadUserData(currentSession.user.id);
       } else {
-        setSession(null);
-        setUser(null);
-        setRoles([DEFAULT_ROLE]);
-        setActiveRole(DEFAULT_ROLE);
-        setProfessionalProfile(null);
+        // If we already have an authenticated user in memory, preserve it
+        // instead of force-clearing the app state on a transient null session.
+        if (!user) {
+          setSession(null);
+          setUser(null);
+          setRoles([DEFAULT_ROLE]);
+          setActiveRole(DEFAULT_ROLE);
+          setProfessionalProfile(null);
+        }
       }
     } catch (err) {
       console.error('Error refreshing session:', err);
@@ -191,7 +194,7 @@ export function useSessionSnapshot(): SessionSnapshot {
       setIsLoading(false);
       setIsReady(true);
     }
-  }, [loadUserData]);
+  }, [loadUserData, user]);
 
   const switchRole = useCallback(async (newRole: UserRole) => {
     if (!user || !roles.includes(newRole)) {
