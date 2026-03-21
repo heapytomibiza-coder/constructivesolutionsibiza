@@ -309,10 +309,8 @@ export function useSessionSnapshot(): SessionSnapshot {
           authStateRef.current = 'signed_in';
 
           if (newSession?.user) {
-            // Bump version on identity change (new sign-in or different user)
-            if (userRef.current?.id !== newSession.user.id) {
-              loadVersionRef.current += 1;
-            }
+            // Always bump version so newest auth event supersedes older in-flight loads
+            loadVersionRef.current += 1;
 
             setSession(newSession);
             setUser(newSession.user);
