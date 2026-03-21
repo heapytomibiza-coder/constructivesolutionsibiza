@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useSession } from '@/contexts/SessionContext';
 import { useClientStats } from './hooks/useClientStats';
 import { RoleSwitcher } from '@/shared/components/layout/RoleSwitcher';
+import { MobileRolePill } from '@/shared/components/layout/MobileRolePill';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -86,7 +87,12 @@ const ClientDashboard = () => {
           
           <div className="flex items-center gap-2">
             {roles.length > 1 && (
-              <RoleSwitcher className="w-[140px]" />
+              <>
+                <MobileRolePill />
+                <div className="hidden md:block">
+                  <RoleSwitcher className="w-[140px]" />
+                </div>
+              </>
             )}
             <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
               <Link to="/settings">
