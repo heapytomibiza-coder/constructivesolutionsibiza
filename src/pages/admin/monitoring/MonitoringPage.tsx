@@ -5,16 +5,18 @@
  * from the Lighthouse Monitor telemetry tables.
  */
 
-import { forwardRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { forwardRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, AlertTriangle, Bug, Globe, Wifi, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, AlertTriangle, Bug, Globe, Wifi, RefreshCw, MessageSquare, ExternalLink, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import { contactBugReporter } from "../actions/contactBugReporter.action";
 
 /* ------------------------------------------------------------------ */
 /*  Queries                                                            */
@@ -67,7 +69,7 @@ function useRecentReports() {
     queryFn: async () => {
       const { data } = await supabase
         .from("tester_reports")
-        .select("id, description, url, route, browser, viewport, status, context, created_at")
+        .select("id, description, url, route, browser, viewport, status, context, created_at, conversation_id, user_id")
         .order("created_at", { ascending: false })
         .limit(50);
       return data ?? [];
@@ -143,9 +145,48 @@ const errorTypeBadge: Record<string, string> = {
 
 const reportStatusBadge: Record<string, string> = {
   open: "bg-red-100 text-red-800",
+  in_progress: "bg-blue-100 text-blue-800",
   reviewed: "bg-yellow-100 text-yellow-800",
   resolved: "bg-green-100 text-green-800",
 };
+
+function MessageReporterButton({ reportId, conversationId }: { reportId: string; conversationId: string | null }) {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  if (conversationId) {
+    return (
+      <Button variant="outline" size="sm" asChild>
+        <a href={`/messages?c=${conversationId}`} target="_blank" rel="noopener noreferrer">
+          <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+          Open Chat
+        </a>
+      </Button>
+    );
+  }
+
+  const handleContact = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoading(true);
+    const result = await contactBugReporter(reportId);
+    setLoading(false);
+    if (result.success && result.conversationId) {
+      toast.success("Conversation created with reporter");
+      queryClient.invalidateQueries({ queryKey: ["admin", "monitoring"] });
+      window.open(`/messages?c=${result.conversationId}`, "_blank");
+    } else {
+      toast.error(result.error || "Failed to contact reporter");
+    }
+  };
+
+  return (
+    <Button variant="outline" size="sm" onClick={handleContact} disabled={loading}>
+      {loading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <MessageSquare className="mr-1.5 h-3.5 w-3.5" />}
+      Message Reporter
+    </Button>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
@@ -295,6 +336,9 @@ const MonitoringPage = forwardRef<HTMLDivElement>(function MonitoringPage(_props
                             </pre>
                           </details>
                         )}
+                        <div className="mt-3 flex justify-end">
+                          <MessageReporterButton reportId={r.id} conversationId={r.conversation_id} />
+                        </div>
                       </div>
                     ))}
                   </div>
