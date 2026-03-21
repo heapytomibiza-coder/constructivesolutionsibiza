@@ -129,13 +129,14 @@ export function MobileNav() {
           <span className="sr-only">{t('nav.openMenu')}</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[280px] sm:w-[320px]">
-        <SheetHeader className="text-left">
+      <SheetContent side="left" className="w-[280px] sm:w-[320px] flex flex-col overflow-hidden">
+        <SheetHeader className="text-left flex-shrink-0">
           <SheetTitle className="font-display text-lg">{t('nav.menu')}</SheetTitle>
         </SheetHeader>
 
+        <div className="flex-1 overflow-y-auto mt-6 -mr-2 pr-2">
         {/* Render all visible sections from registry */}
-        <div className="mt-6">
+        <div>
           {visibleSections.map((section) => renderSection(section))}
         </div>
 
@@ -211,6 +212,7 @@ export function MobileNav() {
             </div>
           </>
         )}
+        </div>
       </SheetContent>
     </Sheet>
   );
