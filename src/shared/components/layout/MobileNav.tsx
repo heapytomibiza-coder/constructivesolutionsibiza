@@ -212,6 +212,7 @@ export function MobileNav() {
             </div>
           </>
         )}
+        </div>
       </SheetContent>
     </Sheet>
   );
