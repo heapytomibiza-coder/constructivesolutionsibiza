@@ -96,54 +96,62 @@ export function useSessionSnapshot(): SessionSnapshot {
 
   const loadUserData = useCallback(async (userId: string) => {
     try {
-      // Step 1: Roles query — required first to gate professional data fetch
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('roles, active_role')
-        .eq('user_id', userId)
-        .single();
+      const [rolesResult, proResult, phoneResult] = await Promise.all([
+        supabase
+          .from('user_roles')
+          .select('roles, active_role')
+          .eq('user_id', userId)
+          .single(),
+        supabase
+          .from('professional_profiles')
+          .select('onboarding_phase, verification_status, services_count, is_publicly_listed, display_name, business_name, service_zones')
+          .eq('user_id', userId)
+          .single(),
+        supabase
+          .from('profiles')
+          .select('phone')
+          .eq('user_id', userId)
+          .single(),
+      ]);
 
-      if (rolesError && rolesError.code !== 'PGRST116') {
-        console.error('Error loading user roles:', rolesError);
+      if (rolesResult.error && rolesResult.error.code !== 'PGRST116') {
+        console.error('Error loading user roles:', rolesResult.error);
       }
 
-      if (rolesData) {
-        setRoles(rolesData.roles as UserRole[]);
-        setActiveRole((rolesData.active_role as UserRole) || DEFAULT_ROLE);
+      if (proResult.error && proResult.error.code !== 'PGRST116') {
+        console.error('Error loading professional profile:', proResult.error);
       }
 
-      // Step 2: If professional, fetch pro profile + phone in parallel
-      const userRoles = rolesData?.roles || [DEFAULT_ROLE];
-      if (userRoles.includes('professional')) {
-        const [proResult, phoneResult] = await Promise.all([
-          supabase
-            .from('professional_profiles')
-            .select('onboarding_phase, verification_status, services_count, is_publicly_listed, display_name, business_name, service_zones')
-            .eq('user_id', userId)
-            .single(),
-          supabase
-            .from('profiles')
-            .select('phone')
-            .eq('user_id', userId)
-            .single(),
-        ]);
+      const inferredRoles = new Set<UserRole>((rolesResult.data?.roles as UserRole[] | undefined) ?? [DEFAULT_ROLE]);
 
-        if (proResult.error && proResult.error.code !== 'PGRST116') {
-          console.error('Error loading professional profile:', proResult.error);
-        }
+      // Fallback: if the user has a professional profile, they should be able to switch
+      // even if the roles query is delayed, stale, or temporarily unavailable.
+      if (proResult.data) {
+        inferredRoles.add('professional');
+      }
 
-        if (proResult.data) {
-          setProfessionalProfile({
-            onboardingPhase: proResult.data.onboarding_phase as OnboardingPhase,
-            verificationStatus: proResult.data.verification_status as VerificationStatus,
-            servicesCount: proResult.data.services_count,
-            isPubliclyListed: proResult.data.is_publicly_listed,
-            displayName: proResult.data.display_name,
-            businessName: proResult.data.business_name,
-            phone: phoneResult.data?.phone || null,
-            serviceZones: proResult.data.service_zones || [],
-          });
-        }
+      const resolvedRoles = Array.from(inferredRoles);
+      setRoles(resolvedRoles);
+      setActiveRole((prev) => {
+        const dbRole = rolesResult.data?.active_role as UserRole | undefined;
+        if (dbRole && resolvedRoles.includes(dbRole)) return dbRole;
+        if (resolvedRoles.includes(prev)) return prev;
+        return resolvedRoles.includes('professional') ? 'professional' : DEFAULT_ROLE;
+      });
+
+      if (proResult.data) {
+        setProfessionalProfile({
+          onboardingPhase: proResult.data.onboarding_phase as OnboardingPhase,
+          verificationStatus: proResult.data.verification_status as VerificationStatus,
+          servicesCount: proResult.data.services_count,
+          isPubliclyListed: proResult.data.is_publicly_listed,
+          displayName: proResult.data.display_name,
+          businessName: proResult.data.business_name,
+          phone: phoneResult.data?.phone || null,
+          serviceZones: proResult.data.service_zones || [],
+        });
+      } else {
+        setProfessionalProfile(null);
       }
     } catch (err) {
       console.error('Error loading user data:', err);
