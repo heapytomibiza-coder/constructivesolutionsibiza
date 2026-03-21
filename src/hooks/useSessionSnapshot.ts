@@ -96,7 +96,7 @@ export function useSessionSnapshot(): SessionSnapshot {
 
   const loadUserData = useCallback(async (userId: string) => {
     try {
-      const [rolesResult, proResult, phoneResult] = await Promise.all([
+      const [rolesResult, proResult, phoneResult, isAdminResult] = await Promise.all([
         supabase
           .from('user_roles')
           .select('roles, active_role')
@@ -112,6 +112,7 @@ export function useSessionSnapshot(): SessionSnapshot {
           .select('phone')
           .eq('user_id', userId)
           .single(),
+        supabase.rpc('is_admin_email'),
       ]);
 
       if (rolesResult.error && rolesResult.error.code !== 'PGRST116') {
@@ -122,18 +123,39 @@ export function useSessionSnapshot(): SessionSnapshot {
         console.error('Error loading professional profile:', proResult.error);
       }
 
-      const inferredRoles = new Set<UserRole>((rolesResult.data?.roles as UserRole[] | undefined) ?? [DEFAULT_ROLE]);
+      const rawRoles: unknown = rolesResult.data?.roles;
+      const normalizedRoles = Array.isArray(rawRoles)
+        ? rawRoles.filter((role): role is string => typeof role === 'string')
+        : typeof rawRoles === 'string'
+          ? rawRoles.replace(/[{}]/g, '').split(',').map((role) => role.trim()).filter(Boolean)
+          : [];
 
-      // Fallback: if the user has a professional profile, they should be able to switch
-      // even if the roles query is delayed, stale, or temporarily unavailable.
+      const inferredRoles = new Set<UserRole>(
+        normalizedRoles.filter((role): role is UserRole => (
+          role === 'client' || role === 'professional' || role === 'admin'
+        ))
+      );
+
+      if (inferredRoles.size === 0) {
+        inferredRoles.add(DEFAULT_ROLE);
+      }
+
+      const dbRole = rolesResult.data?.active_role as UserRole | undefined;
+      if (dbRole && (dbRole === 'client' || dbRole === 'professional' || dbRole === 'admin')) {
+        inferredRoles.add(dbRole);
+      }
+
       if (proResult.data) {
         inferredRoles.add('professional');
+      }
+
+      if (isAdminResult.data === true) {
+        inferredRoles.add('admin');
       }
 
       const resolvedRoles = Array.from(inferredRoles);
       setRoles(resolvedRoles);
       setActiveRole((prev) => {
-        const dbRole = rolesResult.data?.active_role as UserRole | undefined;
         if (dbRole && resolvedRoles.includes(dbRole)) return dbRole;
         if (resolvedRoles.includes(prev)) return prev;
         return resolvedRoles.includes('professional') ? 'professional' : DEFAULT_ROLE;

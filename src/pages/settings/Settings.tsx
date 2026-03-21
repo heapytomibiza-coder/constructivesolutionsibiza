@@ -174,11 +174,15 @@ export default function Settings() {
     navigate('/');
   };
 
-  const dashboardPath = activeRole === 'professional' 
-    ? '/dashboard/pro' 
-    : '/dashboard/client';
+  const dashboardPath = activeRole === 'admin'
+    ? '/dashboard/admin'
+    : activeRole === 'professional'
+      ? '/dashboard/pro'
+      : '/dashboard/client';
 
-  const switchableRoles = roles.filter((r): r is UserRole => r === 'client' || r === 'professional');
+  const switchableRoles = roles.filter((r): r is UserRole => (
+    r === 'client' || r === 'professional' || r === 'admin'
+  ));
   const isAdmin = roles.includes('admin');
   const currentPrefs = prefs ?? DEFAULT_PREFS;
 
@@ -219,10 +223,14 @@ export default function Settings() {
             <div>
               <p className="text-sm text-muted-foreground mb-2">{t('account.currentMode')}</p>
               {switchableRoles.length > 1 ? (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {switchableRoles.map((role) => {
                     const isActive = role === activeRole;
-                    const label = role === 'professional' ? t('account.tasker') : t('account.asker');
+                    const label = role === 'professional'
+                      ? t('account.tasker')
+                      : role === 'admin'
+                        ? t('roles.admin', 'Admin')
+                        : t('account.asker');
                     return (
                       <Button
                         key={role}
@@ -251,7 +259,11 @@ export default function Settings() {
                 </div>
               ) : (
                 <p className="font-medium">
-                  {activeRole === 'professional' ? t('account.tasker') : t('account.asker')}
+                  {activeRole === 'professional'
+                    ? t('account.tasker')
+                    : activeRole === 'admin'
+                      ? t('roles.admin', 'Admin')
+                      : t('account.asker')}
                 </p>
               )}
             </div>
@@ -409,7 +421,7 @@ export default function Settings() {
               <BellRing className="h-5 w-5 text-muted-foreground" />
               <CardTitle className="text-base">{t('notifications.browserTitle')}</CardTitle>
               {browserPermission === 'granted' && (
-                <span className="ml-auto flex items-center gap-1 text-xs font-medium text-emerald-600">
+                <span className="ml-auto flex items-center gap-1 text-xs font-medium text-primary">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   {t('notifications.browserStatusAllowed')}
                 </span>
@@ -429,7 +441,7 @@ export default function Settings() {
                 Your browser does not support notifications.
               </p>
             ) : browserPermission === 'granted' ? (
-              <div className="rounded-md border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 p-3 space-y-2">
+              <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2">
                 <p className="text-sm text-foreground">{t('notifications.browserGranted')}</p>
               </div>
             ) : browserPermission === 'denied' ? (
