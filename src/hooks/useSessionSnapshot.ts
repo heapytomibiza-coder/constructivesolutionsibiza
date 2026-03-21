@@ -215,7 +215,7 @@ export function useSessionSnapshot(): SessionSnapshot {
     } catch (err) {
       // Bail on stale request even for errors
       if (version !== loadVersionRef.current) return;
-      if (userRef.current?.id !== userId) return;
+      if (userRef.current && userRef.current.id !== userId) return;
 
       console.error('Error loading user data:', err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
