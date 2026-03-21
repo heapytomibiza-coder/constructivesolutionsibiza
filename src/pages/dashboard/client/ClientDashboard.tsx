@@ -4,6 +4,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { useClientStats } from './hooks/useClientStats';
 import { RoleSwitcher } from '@/shared/components/layout/RoleSwitcher';
 import { MobileRolePill } from '@/shared/components/layout/MobileRolePill';
+import { RoleSwitchPanel } from '@/shared/components/layout/RoleSwitchPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -136,6 +137,8 @@ const ClientDashboard = () => {
             {t('client.welcomeBack', { email: user?.email || '' })}
           </p>
         </div>
+
+        <RoleSwitchPanel className="mb-5 md:hidden" />
 
         {/* Menu */}
         <div className="flex flex-col gap-2">
