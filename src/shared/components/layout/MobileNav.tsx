@@ -84,14 +84,16 @@ export function MobileNav() {
   );
 
   const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      setOpen(false);
-      toast.success(t('toast.signOutSuccess'));
-      navigate('/');
-    } catch {
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
+
+    if (error) {
       toast.error(t('toast.signOutError'));
+      return;
     }
+
+    setOpen(false);
+    toast.success(t('toast.signOutSuccess'));
+    navigate('/', { replace: true });
   };
 
   const dashboardPath = getDashboardPath(activeRole);
