@@ -13,10 +13,10 @@ import ListingPreviewDrawer from "./ListingPreviewDrawer";
 
 type StatusFilter = "all" | "draft" | "live" | "paused";
 
-const statusColors: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  live: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  paused: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+const statusLabels: Record<string, string> = {
+  draft: "Needs approval",
+  live: "Already live",
+  paused: "Paused",
 };
 
 export default function ListingsSection() {
@@ -113,7 +113,8 @@ export default function ListingsSection() {
                     <TableHead>Status</TableHead>
                     <TableHead>Pricing</TableHead>
                     <TableHead>Views</TableHead>
-                     <TableHead>Updated</TableHead>
+                    <TableHead>Updated</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -145,9 +146,12 @@ export default function ListingsSection() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={statusColors[listing.status] ?? ""}>
-                          {listing.status}
-                        </Badge>
+                        <div className="space-y-1">
+                          <Badge variant="outline">{listing.status}</Badge>
+                          <p className="text-xs text-muted-foreground">
+                            {statusLabels[listing.status] ?? "Review listing"}
+                          </p>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm">
@@ -163,40 +167,40 @@ export default function ListingsSection() {
                       <TableCell className="text-sm text-muted-foreground">
                         {format(new Date(listing.updated_at), "dd MMM yyyy")}
                       </TableCell>
-                      <TableCell className="text-right flex items-center gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="gap-1"
-                          onClick={() => setPreviewId(listing.id)}
-                        >
-                          <Search className="h-3 w-3" />
-                          Review
-                        </Button>
-                        {listing.status !== 'live' && (
+                      <TableCell className="text-right">
+                        <div className="flex flex-col items-end gap-2">
                           <Button
                             size="sm"
                             variant="outline"
-                            className="gap-1 text-green-700 border-green-300 hover:bg-green-50"
-                            disabled={statusMutation.isPending}
-                            onClick={() => statusMutation.mutate({ listingId: listing.id, newStatus: 'live' })}
+                            className="gap-1"
+                            onClick={() => setPreviewId(listing.id)}
                           >
-                            <CheckCircle className="h-3 w-3" />
-                            Approve
+                            <Search className="h-3 w-3" />
+                            Open review
                           </Button>
-                        )}
-                        {listing.status === 'live' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="gap-1 text-amber-700 border-amber-300 hover:bg-amber-50"
-                            disabled={statusMutation.isPending}
-                            onClick={() => statusMutation.mutate({ listingId: listing.id, newStatus: 'paused' })}
-                          >
-                            <PauseCircle className="h-3 w-3" />
-                            Pause
-                          </Button>
-                        )}
+                          {listing.status !== 'live' ? (
+                            <Button
+                              size="sm"
+                              className="gap-1"
+                              disabled={statusMutation.isPending}
+                              onClick={() => statusMutation.mutate({ listingId: listing.id, newStatus: 'live' })}
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                              Approve now
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="gap-1"
+                              disabled={statusMutation.isPending}
+                              onClick={() => statusMutation.mutate({ listingId: listing.id, newStatus: 'paused' })}
+                            >
+                              <PauseCircle className="h-3 w-3" />
+                              Pause
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
