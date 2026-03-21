@@ -139,7 +139,7 @@ export function useSessionSnapshot(): SessionSnapshot {
 
       // ── Stale-request guard: bail if version drifted or user changed ──
       if (version !== loadVersionRef.current) return;
-      if (userRef.current?.id !== userId) return;
+      if (userRef.current && userRef.current.id !== userId) return;
 
       if (rolesResult.error && rolesResult.error.code !== 'PGRST116') {
         console.error('Error loading user roles:', rolesResult.error);
