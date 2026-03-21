@@ -55,8 +55,14 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
   }
 
   if ((isLoading || !isReady) && timedOut) {
+    // Check if there's a persisted session token before giving up.
+    // This prevents force-logout when the session is just slow to hydrate
+    // (e.g. slow network, multi-tab token rotation, mobile cold start).
+    const hasPersistedSession = Object.keys(localStorage).some(
+      (key) => key.startsWith('sb-') && key.endsWith('-auth-token')
+    );
+
     if (retryCount < MAX_RETRIES) {
-      // Silent retry — no disruptive toast on first attempts
       if (retryCount >= 1) {
         toast.error('Still connecting — retrying…', { id: 'auth-retry' });
       }
@@ -65,7 +71,15 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
       refresh().catch(() => {});
       return <LoadingSpinner />;
     }
-    // All retries exhausted — redirect to auth
+
+    // All retries exhausted — only redirect to auth if there's no persisted session
+    if (hasPersistedSession) {
+      // Session token exists but hydration failed — keep showing spinner
+      // rather than force-logging the user out
+      console.warn('RouteGuard: retries exhausted but session token found in storage — not redirecting');
+      return <LoadingSpinner />;
+    }
+
     const returnUrl = buildReturnUrl(location.pathname, location.search);
     const redirectUrl = buildRedirectUrl('/auth', returnUrl);
     return <Navigate to={redirectUrl} replace />;

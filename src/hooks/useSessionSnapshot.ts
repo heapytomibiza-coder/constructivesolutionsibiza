@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { isPhaseReady } from '@/pages/onboarding/lib/phaseProgression';
 import { bindAttributionOnSignIn } from '@/hooks/useAttribution';
@@ -90,6 +90,10 @@ export function useSessionSnapshot(): SessionSnapshot {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Ref to track if we have a user without stale closure issues
+  const userRef = useRef<User | null>(null);
+  useEffect(() => { userRef.current = user; }, [user]);
+
   const loadUserData = useCallback(async (userId: string) => {
     try {
       // Step 1: Roles query — required first to gate professional data fetch
@@ -155,9 +159,6 @@ export function useSessionSnapshot(): SessionSnapshot {
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
       // Do NOT hard sign-out on transient refresh errors.
-      // Recent auth-client behavior and multi-tab refresh races can surface
-      // "refresh token" errors while a still-valid session exists or while
-      // another tab has already rotated the token.
       if (sessionError) {
         console.warn('Session refresh warning:', sessionError);
       }
@@ -167,14 +168,15 @@ export function useSessionSnapshot(): SessionSnapshot {
         setUser(currentSession.user);
         await loadUserData(currentSession.user.id);
       } else {
-        // If we already have an authenticated user in memory, preserve it
-        // instead of force-clearing the app state on a transient null session.
-        if (!user) {
+        // Use ref to avoid stale closure — preserve state if user exists in memory
+        if (!userRef.current) {
           setSession(null);
           setUser(null);
           setRoles([DEFAULT_ROLE]);
           setActiveRole(DEFAULT_ROLE);
           setProfessionalProfile(null);
+        } else {
+          console.warn('Session returned null but user exists in memory — preserving state');
         }
       }
     } catch (err) {
@@ -184,7 +186,7 @@ export function useSessionSnapshot(): SessionSnapshot {
       setIsLoading(false);
       setIsReady(true);
     }
-  }, [loadUserData, user]);
+  }, [loadUserData]);
 
   const switchRole = useCallback(async (newRole: UserRole) => {
     if (!user || !roles.includes(newRole)) {
