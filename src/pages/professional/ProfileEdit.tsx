@@ -157,7 +157,8 @@ export default function ProfileEdit() {
               business_name: values.businessName || null,
               bio: values.bio || null,
               tagline: values.tagline || null,
-              is_publicly_listed: values.isPubliclyListed,
+              // Only send visibility when the user is allowed to change it
+              ...(canToggleVisibility ? { is_publicly_listed: values.isPubliclyListed } : {}),
               updated_at: new Date().toISOString(),
             },
             { onConflict: "user_id" }
