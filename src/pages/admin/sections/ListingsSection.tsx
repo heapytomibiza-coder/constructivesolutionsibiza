@@ -163,7 +163,7 @@ export default function ListingsSection() {
                       <TableCell className="text-sm text-muted-foreground">
                         {format(new Date(listing.updated_at), "dd MMM yyyy")}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right flex items-center gap-1">
                         <Button
                           size="sm"
                           variant="ghost"
@@ -173,6 +173,30 @@ export default function ListingsSection() {
                           <Search className="h-3 w-3" />
                           Review
                         </Button>
+                        {listing.status !== 'live' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-green-700 border-green-300 hover:bg-green-50"
+                            disabled={statusMutation.isPending}
+                            onClick={() => statusMutation.mutate({ listingId: listing.id, newStatus: 'live' })}
+                          >
+                            <CheckCircle className="h-3 w-3" />
+                            Approve
+                          </Button>
+                        )}
+                        {listing.status === 'live' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-amber-700 border-amber-300 hover:bg-amber-50"
+                            disabled={statusMutation.isPending}
+                            onClick={() => statusMutation.mutate({ listingId: listing.id, newStatus: 'paused' })}
+                          >
+                            <PauseCircle className="h-3 w-3" />
+                            Pause
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
