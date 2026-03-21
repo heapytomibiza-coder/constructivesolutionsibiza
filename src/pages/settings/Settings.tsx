@@ -174,11 +174,15 @@ export default function Settings() {
     navigate('/');
   };
 
-  const dashboardPath = activeRole === 'professional' 
-    ? '/dashboard/pro' 
-    : '/dashboard/client';
+  const dashboardPath = activeRole === 'admin'
+    ? '/dashboard/admin'
+    : activeRole === 'professional'
+      ? '/dashboard/pro'
+      : '/dashboard/client';
 
-  const switchableRoles = roles.filter((r): r is UserRole => r === 'client' || r === 'professional');
+  const switchableRoles = roles.filter((r): r is UserRole => (
+    r === 'client' || r === 'professional' || r === 'admin'
+  ));
   const isAdmin = roles.includes('admin');
   const currentPrefs = prefs ?? DEFAULT_PREFS;
 
@@ -219,10 +223,14 @@ export default function Settings() {
             <div>
               <p className="text-sm text-muted-foreground mb-2">{t('account.currentMode')}</p>
               {switchableRoles.length > 1 ? (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {switchableRoles.map((role) => {
                     const isActive = role === activeRole;
-                    const label = role === 'professional' ? t('account.tasker') : t('account.asker');
+                    const label = role === 'professional'
+                      ? t('account.tasker')
+                      : role === 'admin'
+                        ? t('roles.admin', 'Admin')
+                        : t('account.asker');
                     return (
                       <Button
                         key={role}
@@ -251,7 +259,11 @@ export default function Settings() {
                 </div>
               ) : (
                 <p className="font-medium">
-                  {activeRole === 'professional' ? t('account.tasker') : t('account.asker')}
+                  {activeRole === 'professional'
+                    ? t('account.tasker')
+                    : activeRole === 'admin'
+                      ? t('roles.admin', 'Admin')
+                      : t('account.asker')}
                 </p>
               )}
             </div>

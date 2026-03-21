@@ -168,5 +168,6 @@ export function getVisibleNavModel(ctx: {
  * Get dashboard path based on active role
  */
 export function getDashboardPath(activeRole?: UserRole): string {
+  if (activeRole === 'admin') return '/dashboard/admin';
   return activeRole === 'professional' ? '/dashboard/pro' : '/dashboard/client';
 }
