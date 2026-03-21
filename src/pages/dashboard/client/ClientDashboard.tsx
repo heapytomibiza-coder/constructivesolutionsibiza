@@ -67,9 +67,15 @@ const ClientDashboard = () => {
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
+
+    if (error) {
+      toast.error(t('auth.signOutError', 'Log out failed'));
+      return;
+    }
+
     toast.success(t('auth.signedOut'));
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   return (
