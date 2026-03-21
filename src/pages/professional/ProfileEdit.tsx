@@ -549,7 +549,7 @@ export default function ProfileEdit() {
                   description="Control how you appear in search results."
                 />
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
                 <FormField
                   control={form.control}
                   name="isPubliclyListed"
@@ -564,11 +564,28 @@ export default function ProfileEdit() {
                         </FormDescription>
                       </div>
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} className="scale-125" />
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={canToggleVisibility ? field.onChange : undefined}
+                          disabled={!canToggleVisibility}
+                          className="scale-125"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
                 />
+                {!canToggleVisibility && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-200">
+                    You need to complete onboarding before you can appear in the directory.{" "}
+                    <button
+                      type="button"
+                      onClick={() => navigate("/onboarding/professional")}
+                      className="underline font-medium hover:no-underline"
+                    >
+                      Finish onboarding →
+                    </button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
