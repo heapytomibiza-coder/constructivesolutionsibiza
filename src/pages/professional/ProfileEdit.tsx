@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { useSession } from "@/contexts/SessionContext";
 import { supabase } from "@/integrations/supabase/client";
-import { isPhaseReady } from "@/pages/onboarding/lib/phaseProgression";
+import { normalizePhase, phaseIndex, type CanonicalPhase } from "@/pages/onboarding/lib/phaseProgression";
 import { cn } from "@/lib/utils";
 import { useProfessionalServices } from "@/pages/onboarding/hooks/useProfessionalServices";
 import { useMicroPreferences } from "@/pages/onboarding/hooks/useMicroPreferences";
@@ -52,7 +52,7 @@ export default function ProfileEdit() {
   const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
   const { user, refresh, professionalProfile } = useSession();
-  const canToggleVisibility = isPhaseReady(professionalProfile?.onboardingPhase);
+  const canToggleVisibility = phaseIndex(normalizePhase(professionalProfile?.onboardingPhase)) >= phaseIndex('complete' as CanonicalPhase);
   const { selectedMicroIds, isLoading: loadingServices } = useProfessionalServices();
   const { preferences } = useMicroPreferences();
 
@@ -157,7 +157,8 @@ export default function ProfileEdit() {
               business_name: values.businessName || null,
               bio: values.bio || null,
               tagline: values.tagline || null,
-              is_publicly_listed: values.isPubliclyListed,
+              // Only send visibility when the user is allowed to change it
+              ...(canToggleVisibility ? { is_publicly_listed: values.isPubliclyListed } : {}),
               updated_at: new Date().toISOString(),
             },
             { onConflict: "user_id" }
@@ -233,7 +234,7 @@ export default function ProfileEdit() {
             business_name: values.businessName || null,
             bio: values.bio || null,
             tagline: values.tagline || null,
-            is_publicly_listed: values.isPubliclyListed,
+            ...(canToggleVisibility ? { is_publicly_listed: values.isPubliclyListed } : {}),
             updated_at: new Date().toISOString(),
           },
           { onConflict: "user_id" }
