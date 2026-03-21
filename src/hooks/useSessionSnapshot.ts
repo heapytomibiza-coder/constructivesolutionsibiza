@@ -90,6 +90,10 @@ export function useSessionSnapshot(): SessionSnapshot {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Ref to track if we have a user without stale closure issues
+  const userRef = useRef<User | null>(null);
+  useEffect(() => { userRef.current = user; }, [user]);
+
   const loadUserData = useCallback(async (userId: string) => {
     try {
       // Step 1: Roles query — required first to gate professional data fetch
