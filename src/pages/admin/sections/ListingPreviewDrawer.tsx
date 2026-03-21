@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet,
@@ -7,8 +7,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Image as ImageIcon, MapPin, Euro } from "lucide-react";
+import { Loader2, Image as ImageIcon, MapPin, Euro, CheckCircle, PauseCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface ListingPreviewDrawerProps {
   listingId: string | null;
@@ -16,6 +18,27 @@ interface ListingPreviewDrawerProps {
 }
 
 export default function ListingPreviewDrawer({ listingId, onClose }: ListingPreviewDrawerProps) {
+  const queryClient = useQueryClient();
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ newStatus }: { newStatus: string }) => {
+      const updateFields: Record<string, any> = { status: newStatus };
+      if (newStatus === 'live') updateFields.published_at = new Date().toISOString();
+      const { error } = await supabase
+        .from('service_listings')
+        .update(updateFields)
+        .eq('id', listingId!);
+      if (error) throw error;
+    },
+    onSuccess: (_, { newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-listing-preview', listingId] });
+      toast.success(newStatus === 'live' ? 'Listing approved and set to Live' : `Listing set to ${newStatus}`);
+    },
+    onError: (error: any) => {
+      toast.error(`Failed: ${error.message}`);
+    },
+  });
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin-listing-preview", listingId],
     enabled: !!listingId,
@@ -226,6 +249,43 @@ export default function ListingPreviewDrawer({ listingId, onClose }: ListingPrev
                 </div>
               </>
             )}
+
+
+            {/* Admin Actions */}
+            <Separator />
+            <div className="flex gap-2">
+              {data.listing.status !== 'live' && (
+                <Button
+                  className="flex-1 gap-2"
+                  disabled={statusMutation.isPending}
+                  onClick={() => statusMutation.mutate({ newStatus: 'live' })}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Approve &amp; Set Live
+                </Button>
+              )}
+              {data.listing.status === 'live' && (
+                <Button
+                  variant="outline"
+                  className="flex-1 gap-2"
+                  disabled={statusMutation.isPending}
+                  onClick={() => statusMutation.mutate({ newStatus: 'paused' })}
+                >
+                  <PauseCircle className="h-4 w-4" />
+                  Pause Listing
+                </Button>
+              )}
+              {data.listing.status === 'paused' && (
+                <Button
+                  variant="outline"
+                  className="flex-1 gap-2"
+                  disabled={statusMutation.isPending}
+                  onClick={() => statusMutation.mutate({ newStatus: 'draft' })}
+                >
+                  Revert to Draft
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </SheetContent>

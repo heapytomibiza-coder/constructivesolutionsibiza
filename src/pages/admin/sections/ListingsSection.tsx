@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, Loader2, Image as ImageIcon, Search } from "lucide-react";
+import { Eye, Loader2, Image as ImageIcon, Search, CheckCircle, PauseCircle } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import ListingPreviewDrawer from "./ListingPreviewDrawer";
 
 type StatusFilter = "all" | "draft" | "live" | "paused";
@@ -21,7 +22,29 @@ const statusColors: Record<string, string> = {
 export default function ListingsSection() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
-  
+  const queryClient = useQueryClient();
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ listingId, newStatus }: { listingId: string; newStatus: string }) => {
+      const updateFields: Record<string, any> = { status: newStatus };
+      if (newStatus === 'live') updateFields.published_at = new Date().toISOString();
+      const { error } = await supabase
+        .from('service_listings')
+        .update(updateFields)
+        .eq('id', listingId);
+      if (error) throw error;
+    },
+    onSuccess: (_, { newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-listing-preview'] });
+      toast.success(newStatus === 'live' ? 'Listing approved and set to Live' : `Listing set to ${newStatus}`);
+    },
+    onError: (error) => {
+      console.error('Admin status update failed:', error);
+      toast.error(`Failed to update listing: ${error.message}`);
+    },
+  });
+
 
   const { data: listings, isLoading } = useQuery({
     queryKey: ["admin-listings", statusFilter],
@@ -140,7 +163,7 @@ export default function ListingsSection() {
                       <TableCell className="text-sm text-muted-foreground">
                         {format(new Date(listing.updated_at), "dd MMM yyyy")}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right flex items-center gap-1">
                         <Button
                           size="sm"
                           variant="ghost"
@@ -150,6 +173,30 @@ export default function ListingsSection() {
                           <Search className="h-3 w-3" />
                           Review
                         </Button>
+                        {listing.status !== 'live' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-green-700 border-green-300 hover:bg-green-50"
+                            disabled={statusMutation.isPending}
+                            onClick={() => statusMutation.mutate({ listingId: listing.id, newStatus: 'live' })}
+                          >
+                            <CheckCircle className="h-3 w-3" />
+                            Approve
+                          </Button>
+                        )}
+                        {listing.status === 'live' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-amber-700 border-amber-300 hover:bg-amber-50"
+                            disabled={statusMutation.isPending}
+                            onClick={() => statusMutation.mutate({ listingId: listing.id, newStatus: 'paused' })}
+                          >
+                            <PauseCircle className="h-3 w-3" />
+                            Pause
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
