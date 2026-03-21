@@ -2384,6 +2384,7 @@ export type Database = {
         Row: {
           browser: string | null
           context: Json | null
+          conversation_id: string | null
           created_at: string
           description: string
           id: string
@@ -2396,6 +2397,7 @@ export type Database = {
         Insert: {
           browser?: string | null
           context?: Json | null
+          conversation_id?: string | null
           created_at?: string
           description: string
           id?: string
@@ -2408,6 +2410,7 @@ export type Database = {
         Update: {
           browser?: string | null
           context?: Json | null
+          conversation_id?: string | null
           created_at?: string
           description?: string
           id?: string
@@ -2417,7 +2420,15 @@ export type Database = {
           user_id?: string
           viewport?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tester_reports_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -3124,6 +3135,10 @@ export type Database = {
       rpc_advance_dispute_status: {
         Args: { p_dispute_id: string; p_new_status: string }
         Returns: Json
+      }
+      rpc_create_bug_report_conversation: {
+        Args: { p_report_id: string }
+        Returns: string
       }
       rpc_dispute_completeness: {
         Args: { p_dispute_id: string }
