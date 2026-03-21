@@ -5,16 +5,18 @@
  * from the Lighthouse Monitor telemetry tables.
  */
 
-import { forwardRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { forwardRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, AlertTriangle, Bug, Globe, Wifi, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, AlertTriangle, Bug, Globe, Wifi, RefreshCw, MessageSquare, ExternalLink, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import { contactBugReporter } from "../actions/contactBugReporter.action";
 
 /* ------------------------------------------------------------------ */
 /*  Queries                                                            */
