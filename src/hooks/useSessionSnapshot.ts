@@ -92,12 +92,6 @@ export function useSessionSnapshot(): SessionSnapshot {
 
   const loadUserData = useCallback(async (userId: string) => {
     try {
-      // PARALLELIZATION STRATEGY:
-      // Query 1 (user_roles) MUST complete first — it determines whether to fetch
-      // the professional profile. This is a true data dependency.
-      // Query 2 (professional_profiles) and Query 3 (profiles/phone) are independent
-      // of each other and can run in parallel once we know the user has the 'professional' role.
-
       // Step 1: Roles query — required first to gate professional data fetch
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
@@ -109,18 +103,16 @@ export function useSessionSnapshot(): SessionSnapshot {
         console.error('Error loading user roles:', rolesError);
       }
 
+      const resolvedRoles = (rolesData?.roles as UserRole[] | undefined) ?? roles;
+      const resolvedActiveRole = (rolesData?.active_role as UserRole | undefined) ?? activeRole;
+
       if (rolesData) {
-        setRoles(rolesData.roles as UserRole[]);
-        setActiveRole((rolesData.active_role as UserRole) || DEFAULT_ROLE);
+        setRoles(resolvedRoles);
+        setActiveRole(resolvedActiveRole || DEFAULT_ROLE);
       }
 
       // Step 2: If professional, fetch pro profile + phone in parallel
-      // Safe to parallelize because:
-      // - professional_profiles and profiles are independent tables
-      // - Neither query depends on the other's result
-      // - Both only need userId which we already have
-      const userRoles = rolesData?.roles || [DEFAULT_ROLE];
-      if (userRoles.includes('professional')) {
+      if (resolvedRoles.includes('professional')) {
         const [proResult, phoneResult] = await Promise.all([
           supabase
             .from('professional_profiles')
@@ -155,7 +147,7 @@ export function useSessionSnapshot(): SessionSnapshot {
       console.error('Error loading user data:', err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
     }
-  }, []);
+  }, [roles, activeRole]);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
@@ -164,13 +156,12 @@ export function useSessionSnapshot(): SessionSnapshot {
     try {
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
-      // Gracefully handle stale refresh tokens
+      // Do NOT hard sign-out on transient refresh errors.
+      // Recent auth-client behavior and multi-tab refresh races can surface
+      // "refresh token" errors while a still-valid session exists or while
+      // another tab has already rotated the token.
       if (sessionError) {
-        const msg = (sessionError as any)?.message?.toLowerCase?.() ?? '';
-        if (msg.includes('refresh token') || msg.includes('token not found')) {
-          console.warn('Stale session detected, signing out');
-          await supabase.auth.signOut();
-        }
+        console.warn('Session refresh warning:', sessionError);
       }
       
       if (currentSession?.user) {
@@ -178,11 +169,15 @@ export function useSessionSnapshot(): SessionSnapshot {
         setUser(currentSession.user);
         await loadUserData(currentSession.user.id);
       } else {
-        setSession(null);
-        setUser(null);
-        setRoles([DEFAULT_ROLE]);
-        setActiveRole(DEFAULT_ROLE);
-        setProfessionalProfile(null);
+        // If we already have an authenticated user in memory, preserve it
+        // instead of force-clearing the app state on a transient null session.
+        if (!user) {
+          setSession(null);
+          setUser(null);
+          setRoles([DEFAULT_ROLE]);
+          setActiveRole(DEFAULT_ROLE);
+          setProfessionalProfile(null);
+        }
       }
     } catch (err) {
       console.error('Error refreshing session:', err);
@@ -191,7 +186,7 @@ export function useSessionSnapshot(): SessionSnapshot {
       setIsLoading(false);
       setIsReady(true);
     }
-  }, [loadUserData]);
+  }, [loadUserData, user]);
 
   const switchRole = useCallback(async (newRole: UserRole) => {
     if (!user || !roles.includes(newRole)) {
