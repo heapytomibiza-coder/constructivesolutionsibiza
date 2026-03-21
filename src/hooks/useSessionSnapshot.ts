@@ -139,7 +139,7 @@ export function useSessionSnapshot(): SessionSnapshot {
 
       // ── Stale-request guard: bail if version drifted or user changed ──
       if (version !== loadVersionRef.current) return;
-      if (userRef.current?.id !== userId) return;
+      if (userRef.current && userRef.current.id !== userId) return;
 
       if (rolesResult.error && rolesResult.error.code !== 'PGRST116') {
         console.error('Error loading user roles:', rolesResult.error);
@@ -215,7 +215,7 @@ export function useSessionSnapshot(): SessionSnapshot {
     } catch (err) {
       // Bail on stale request even for errors
       if (version !== loadVersionRef.current) return;
-      if (userRef.current?.id !== userId) return;
+      if (userRef.current && userRef.current.id !== userId) return;
 
       console.error('Error loading user data:', err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
@@ -309,10 +309,8 @@ export function useSessionSnapshot(): SessionSnapshot {
           authStateRef.current = 'signed_in';
 
           if (newSession?.user) {
-            // Bump version on identity change (new sign-in or different user)
-            if (userRef.current?.id !== newSession.user.id) {
-              loadVersionRef.current += 1;
-            }
+            // Always bump version so newest auth event supersedes older in-flight loads
+            loadVersionRef.current += 1;
 
             setSession(newSession);
             setUser(newSession.user);
