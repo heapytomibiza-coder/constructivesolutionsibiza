@@ -16,6 +16,27 @@ interface ListingPreviewDrawerProps {
 }
 
 export default function ListingPreviewDrawer({ listingId, onClose }: ListingPreviewDrawerProps) {
+  const queryClient = useQueryClient();
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ newStatus }: { newStatus: string }) => {
+      const updateFields: Record<string, any> = { status: newStatus };
+      if (newStatus === 'live') updateFields.published_at = new Date().toISOString();
+      const { error } = await supabase
+        .from('service_listings')
+        .update(updateFields)
+        .eq('id', listingId!);
+      if (error) throw error;
+    },
+    onSuccess: (_, { newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-listing-preview', listingId] });
+      toast.success(newStatus === 'live' ? 'Listing approved and set to Live' : `Listing set to ${newStatus}`);
+    },
+    onError: (error: any) => {
+      toast.error(`Failed: ${error.message}`);
+    },
+  });
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin-listing-preview", listingId],
     enabled: !!listingId,
