@@ -145,9 +145,48 @@ const errorTypeBadge: Record<string, string> = {
 
 const reportStatusBadge: Record<string, string> = {
   open: "bg-red-100 text-red-800",
+  in_progress: "bg-blue-100 text-blue-800",
   reviewed: "bg-yellow-100 text-yellow-800",
   resolved: "bg-green-100 text-green-800",
 };
+
+function MessageReporterButton({ reportId, conversationId }: { reportId: string; conversationId: string | null }) {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  if (conversationId) {
+    return (
+      <Button variant="outline" size="sm" asChild>
+        <a href={`/messages?c=${conversationId}`} target="_blank" rel="noopener noreferrer">
+          <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+          Open Chat
+        </a>
+      </Button>
+    );
+  }
+
+  const handleContact = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoading(true);
+    const result = await contactBugReporter(reportId);
+    setLoading(false);
+    if (result.success && result.conversationId) {
+      toast.success("Conversation created with reporter");
+      queryClient.invalidateQueries({ queryKey: ["admin", "monitoring"] });
+      window.open(`/messages?c=${result.conversationId}`, "_blank");
+    } else {
+      toast.error(result.error || "Failed to contact reporter");
+    }
+  };
+
+  return (
+    <Button variant="outline" size="sm" onClick={handleContact} disabled={loading}>
+      {loading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <MessageSquare className="mr-1.5 h-3.5 w-3.5" />}
+      Message Reporter
+    </Button>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
