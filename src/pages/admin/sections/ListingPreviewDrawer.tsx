@@ -9,7 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Image as ImageIcon, MapPin, Euro, CheckCircle, PauseCircle } from "lucide-react";
+import { Loader2, Image as ImageIcon, MapPin, Euro, CheckCircle, PauseCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 
 interface ListingPreviewDrawerProps {

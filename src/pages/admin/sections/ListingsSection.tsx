@@ -13,10 +13,10 @@ import ListingPreviewDrawer from "./ListingPreviewDrawer";
 
 type StatusFilter = "all" | "draft" | "live" | "paused";
 
-const statusColors: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  live: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  paused: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+const statusLabels: Record<string, string> = {
+  draft: "Needs approval",
+  live: "Already live",
+  paused: "Paused",
 };
 
 export default function ListingsSection() {
