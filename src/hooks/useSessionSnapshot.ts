@@ -103,16 +103,14 @@ export function useSessionSnapshot(): SessionSnapshot {
         console.error('Error loading user roles:', rolesError);
       }
 
-      const resolvedRoles = (rolesData?.roles as UserRole[] | undefined) ?? roles;
-      const resolvedActiveRole = (rolesData?.active_role as UserRole | undefined) ?? activeRole;
-
       if (rolesData) {
-        setRoles(resolvedRoles);
-        setActiveRole(resolvedActiveRole || DEFAULT_ROLE);
+        setRoles(rolesData.roles as UserRole[]);
+        setActiveRole((rolesData.active_role as UserRole) || DEFAULT_ROLE);
       }
 
       // Step 2: If professional, fetch pro profile + phone in parallel
-      if (resolvedRoles.includes('professional')) {
+      const userRoles = rolesData?.roles || [DEFAULT_ROLE];
+      if (userRoles.includes('professional')) {
         const [proResult, phoneResult] = await Promise.all([
           supabase
             .from('professional_profiles')
@@ -147,7 +145,7 @@ export function useSessionSnapshot(): SessionSnapshot {
       console.error('Error loading user data:', err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
     }
-  }, [roles, activeRole]);
+  }, []);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
