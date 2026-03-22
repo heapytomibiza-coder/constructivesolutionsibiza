@@ -415,9 +415,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     }
     trackEvent('job_wizard_step_viewed', 'client', {
       step: currentStep,
-      stepIndex: getStepIndex(currentStep),
-      category: wizardState.mainCategory,
-    });
+      step_index: getStepIndex(currentStep),
+    }, { category: wizardState.mainCategory });
     if (currentStep === WizardStep.Review) {
       trackEvent('review_step_entered', 'client', { category: wizardState.mainCategory });
     }
