@@ -37,6 +37,9 @@ const ForumPost = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [editTags, setEditTags] = useState("");
+  const [editPhotos, setEditPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: post, isLoading: postLoading } = useForumPost(postId ?? "");
   const { data: replies, isLoading: repliesLoading } = useForumReplies(postId ?? "");
