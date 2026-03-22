@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Brain,
   AlertTriangle,
@@ -18,6 +20,7 @@ import {
   ArrowDown,
   Clock,
   AlertCircle,
+  Database,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -127,6 +130,10 @@ function MetricCard({
 export function PlatformAssistant() {
   const { data, isLoading, isError, error, refetch } = useAssistantSummary();
   const queryClient = useQueryClient();
+  const [backfillFrom, setBackfillFrom] = useState("2026-02-15");
+  const [backfillTo, setBackfillTo] = useState(
+    new Date(Date.now() - 86400000).toISOString().split("T")[0]
+  );
 
   const generateReport = useMutation({
     mutationFn: async () => {
@@ -174,6 +181,36 @@ export function PlatformAssistant() {
       toast.success("Alert resolved");
       queryClient.invalidateQueries({ queryKey: ["platform_assistant_summary"] });
     },
+  });
+
+  const backfillMetrics = useMutation({
+    mutationFn: async () => {
+      const startDate = new Date(backfillFrom);
+      const endDate = new Date(backfillTo);
+      let daysProcessed = 0;
+      let totalAlerts = 0;
+
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        const { error } = await supabase.rpc("aggregate_daily_metrics", { p_date: dateStr });
+        if (error) throw new Error(`Aggregation failed for ${dateStr}: ${error.message}`);
+        daysProcessed++;
+      }
+
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        const { data: alertCount, error } = await supabase.rpc("run_platform_alert_rules", { p_date: dateStr });
+        if (error) throw new Error(`Alert rules failed for ${dateStr}: ${error.message}`);
+        totalAlerts += (alertCount as number) || 0;
+      }
+
+      return { daysProcessed, totalAlerts };
+    },
+    onSuccess: (result) => {
+      toast.success(`Backfill complete: ${result.daysProcessed} days, ${result.totalAlerts} alerts generated`);
+      queryClient.invalidateQueries({ queryKey: ["platform_assistant_summary"] });
+    },
+    onError: (err) => toast.error(`Backfill failed: ${err.message}`),
   });
 
   if (isLoading) {
@@ -474,6 +511,49 @@ export function PlatformAssistant() {
           </CardContent>
         </Card>
       )}
+
+      {/* Backfill Metrics Utility */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Database className="h-4 w-4" /> Backfill Metrics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            Re-aggregate daily metrics and generate alerts for a date range. Useful after fixing aggregation logic or catching up after downtime.
+          </p>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">From</label>
+              <Input
+                type="date"
+                value={backfillFrom}
+                onChange={(e) => setBackfillFrom(e.target.value)}
+                className="h-9 w-40 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">To</label>
+              <Input
+                type="date"
+                value={backfillTo}
+                onChange={(e) => setBackfillTo(e.target.value)}
+                className="h-9 w-40 text-sm"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => backfillMetrics.mutate()}
+              disabled={backfillMetrics.isPending}
+            >
+              <Database className="h-4 w-4 mr-1" />
+              {backfillMetrics.isPending ? "Processing…" : "Run Backfill"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
