@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PublicLayout } from "@/components/layout";
@@ -13,7 +13,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForumPost, useForumReplies, useCreateReply, useUpdatePost } from "./hooks/useForumData";
 import { useSession } from "@/contexts/SessionContext";
 import { incrementPostViewCount } from "./queries/forumQueries";
-import { ArrowLeft, MessageCircle, Clock, User, Send, Image, Pencil, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, MessageCircle, Clock, User, Send, Image, Pencil, X, ImagePlus, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enGB } from "date-fns/locale";
 import { toast } from "sonner";
@@ -36,6 +37,9 @@ const ForumPost = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [editTags, setEditTags] = useState("");
+  const [editPhotos, setEditPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: post, isLoading: postLoading } = useForumPost(postId ?? "");
   const { data: replies, isLoading: repliesLoading } = useForumReplies(postId ?? "");
@@ -59,11 +63,60 @@ const ForumPost = () => {
     setEditTitle(post.title);
     setEditContent(post.content);
     setEditTags((post.tags ?? []).join(", "));
+    setEditPhotos(post.photos ?? []);
     setIsEditing(true);
   };
 
   const cancelEditing = () => {
     setIsEditing(false);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !session?.user) return;
+
+    const remaining = 4 - editPhotos.length;
+    if (remaining <= 0) {
+      toast.error(t("toast.maxPhotos"));
+      return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, remaining);
+    setUploading(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of filesToUpload) {
+        if (!file.type.startsWith("image/")) {
+          toast.error(t("toast.notImage", { name: file.name }));
+          continue;
+        }
+        const ext = file.name.split(".").pop() ?? "jpg";
+        const path = `${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from("forum-images").upload(path, file);
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          toast.error(t("toast.photoError"));
+          continue;
+        }
+        const { data: urlData } = supabase.storage.from("forum-images").getPublicUrl(path);
+        uploadedUrls.push(urlData.publicUrl);
+      }
+      if (uploadedUrls.length > 0) {
+        setEditPhotos((prev) => [...prev, ...uploadedUrls]);
+        toast.success(t("toast.photoUploaded", { count: uploadedUrls.length }));
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error(t("toast.photoError"));
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeEditPhoto = (index: number) => {
+    setEditPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSaveEdit = async () => {
@@ -81,7 +134,7 @@ const ForumPost = () => {
         title: editTitle.trim(),
         content: editContent.trim(),
         tags,
-        photos: post?.photos ?? [],
+        photos: editPhotos,
       });
       setIsEditing(false);
       toast.success(t("toast.postCreated"));
@@ -220,6 +273,56 @@ const ForumPost = () => {
                       placeholder={t("post.tagsPlaceholder")}
                     />
                     <p className="text-xs text-muted-foreground">{t("post.tagsHelp")}</p>
+                  </div>
+                  {/* Photos */}
+                  <div className="space-y-3">
+                    <Label>{t("post.photos")}</Label>
+                    <p className="text-xs text-muted-foreground">{t("post.photosHelp")}</p>
+                    {editPhotos.length < 4 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="w-full h-12"
+                      >
+                        {uploading ? (
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        ) : (
+                          <ImagePlus className="h-5 w-5 mr-2" />
+                        )}
+                        {uploading ? t("post.publishing") : t("post.addPhoto")}
+                        {editPhotos.length > 0 && ` (${editPhotos.length}/4)`}
+                      </Button>
+                    )}
+                    {editPhotos.length > 0 && (
+                      <div className="flex flex-wrap gap-3">
+                        {editPhotos.map((url, index) => (
+                          <div key={url} className="relative group">
+                            <img
+                              src={url}
+                              alt={`Upload ${index + 1}`}
+                              className="w-24 h-24 object-cover rounded-lg border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeEditPhoto(index)}
+                              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handlePhotoUpload}
+                    />
                   </div>
                   <div className="flex gap-3">
                     <Button
