@@ -443,10 +443,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       if (hasSubmittedRef.current) return;
 
       trackEvent('job_wizard_abandoned', 'client', {
-        lastStep: lastStepRef.current,
-        stepIndex: getStepIndex(lastStepRef.current),
-        category: lastCategoryRef.current,
-      });
+        last_step: lastStepRef.current,
+        step_index: getStepIndex(lastStepRef.current),
+      }, { category: lastCategoryRef.current });
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
