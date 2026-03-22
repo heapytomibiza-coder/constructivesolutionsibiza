@@ -94,36 +94,26 @@ The audit is correct: **do NOT create a new `platform_events` table**. The exist
 
 ---
 
-## Sprint 4 — Weekly AI Report + Admin Surface
+## Sprint 4 — Weekly AI Report + Admin Surface ✅
 
-### 4.1 Create `weekly_ai_reports` table
-- Columns: id, report_week (date), summary_json, ai_analysis (text), issues (jsonb array), recommendations (jsonb array), comparison_json, created_at
+### 4.1 Create `weekly_ai_reports` table ✅
+- Columns: id, report_week, summary_json, comparison_json, ai_analysis, issues, recommendations, open_alerts_snapshot, created_at
+- Unique index on report_week, admin-only RLS
 
-### 4.2 Upgrade `weekly-kpi-digest` edge function
-- Extend `gatherKPIs()` to pull from `daily_platform_metrics` (7-day window)
-- Add previous-week comparison
-- Add category performance + worker outliers
-- Output structured summary JSON
+### 4.2 Build `generate-weekly-ai-report` edge function ✅
+- Assembles 7-day platform rollup + previous week comparison + category breakdown + active alerts
+- Calls Lovable AI (gemini-2.5-flash) for structured analysis
+- Returns issues + recommendations + narrative analysis
+- Upserts to weekly_ai_reports (idempotent per week)
+- Auth: internal secret OR admin JWT
 
-### 4.3 Build AI analysis function
-- New edge function `generate-weekly-ai-report`
-- Takes the structured summary, sends to Lovable AI (gemini-2.5-flash)
-- Prompt: what changed, why, top issues, opportunities, recommended actions
-- Saves to `weekly_ai_reports`
-- Called after digest generation
-
-### 4.4 Build "Platform Assistant" admin tab
-- New tab in existing AdminDashboard (reuse tab infrastructure)
-- Sections:
-  - **This Week Summary** — from latest `daily_platform_metrics` aggregation
-  - **AI Analysis** — from latest `weekly_ai_reports`
-  - **Active Alerts** — from `platform_alerts` (open/acknowledged), with resolve/acknowledge actions
-  - **Recommendations** — from AI report, markable as reviewed/completed
-  - **4-Week Trend** — sparklines for success rate, job score, response rate, dispute rate
-
-### 4.5 Build `get_platform_assistant_summary` RPC
-- Single SECURITY DEFINER RPC returning all data for the assistant tab
+### 4.3 Build `get_platform_assistant_summary` RPC ✅
+- Single SECURITY DEFINER RPC returning: this_week, prev_week, 4-week trends, active alerts (14d), latest AI report
 - Admin-only access check
+
+### 4.4 Build "Platform Assistant" admin tab ✅
+- New tab in AdminDashboard with Brain icon
+- Sections: This Week Summary (with delta indicators), AI Analysis, Recommendations, Active Alerts (with acknowledge/resolve), 4-Week Trends (sparklines)
 
 ---
 
