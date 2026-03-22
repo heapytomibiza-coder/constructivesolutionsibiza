@@ -225,49 +225,52 @@ const ForumNewPost = () => {
               </div>
 
               {/* Photos */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label>{t("post.photos")}</Label>
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-xs text-muted-foreground">
                   {t("post.photosHelp")}
                 </p>
                 
+                {/* Upload button - always visible */}
+                {photos.length < 4 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="w-full h-12"
+                  >
+                    {uploading ? (
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    ) : (
+                      <ImagePlus className="h-5 w-5 mr-2" />
+                    )}
+                    {uploading ? t("post.publishing") : t("post.addPhoto")}
+                    {photos.length > 0 && ` (${photos.length}/4)`}
+                  </Button>
+                )}
+
                 {/* Photo grid */}
-                <div className="flex flex-wrap gap-3">
-                  {photos.map((url, index) => (
-                    <div key={url} className="relative group">
-                      <img
-                        src={url}
-                        alt={`Upload ${index + 1}`}
-                        className="w-24 h-24 object-cover rounded-lg border"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(index)}
-                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                  
-                  {photos.length < 4 && (
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                      className="w-24 h-24 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
-                    >
-                      {uploading ? (
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                      ) : (
-                        <>
-                          <ImagePlus className="h-6 w-6" />
-                          <span className="text-xs">{t("post.addPhoto")}</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
+                {photos.length > 0 && (
+                  <div className="flex flex-wrap gap-3">
+                    {photos.map((url, index) => (
+                      <div key={url} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Upload ${index + 1}`}
+                          className="w-24 h-24 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(index)}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 
                 <input
                   ref={fileInputRef}
