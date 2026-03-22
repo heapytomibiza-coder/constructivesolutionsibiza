@@ -5,13 +5,15 @@ import { PublicLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useForumPost, useForumReplies, useCreateReply, useForumCategory } from "./hooks/useForumData";
+import { useForumPost, useForumReplies, useCreateReply, useUpdatePost } from "./hooks/useForumData";
 import { useSession } from "@/contexts/SessionContext";
 import { incrementPostViewCount } from "./queries/forumQueries";
-import { ArrowLeft, MessageCircle, Clock, User, Send, Image } from "lucide-react";
+import { ArrowLeft, MessageCircle, Clock, User, Send, Image, Pencil, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enGB } from "date-fns/locale";
 import { toast } from "sonner";
@@ -29,14 +31,21 @@ const ForumPost = () => {
   const [replyContent, setReplyContent] = useState("");
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
+  // Edit state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editTags, setEditTags] = useState("");
+
   const { data: post, isLoading: postLoading } = useForumPost(postId ?? "");
   const { data: replies, isLoading: repliesLoading } = useForumReplies(postId ?? "");
   
-  // Fetch category for breadcrumb
-  const categoryId = post?.category_id ?? "";
   const dateLocale = i18n.language?.startsWith("es") ? es : enGB;
   
   const createReply = useCreateReply();
+  const updatePost = useUpdatePost();
+
+  const isAuthor = session?.user?.id === post?.author_id;
 
   // Increment view count on mount
   useEffect(() => {
@@ -44,6 +53,42 @@ const ForumPost = () => {
       incrementPostViewCount(postId);
     }
   }, [postId]);
+
+  const startEditing = () => {
+    if (!post) return;
+    setEditTitle(post.title);
+    setEditContent(post.content);
+    setEditTags((post.tags ?? []).join(", "));
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTitle.trim() || !editContent.trim() || !postId) return;
+
+    const tags = editTags
+      .split(",")
+      .map((t) => t.trim().toLowerCase())
+      .filter((t) => t.length > 0)
+      .slice(0, 5);
+
+    try {
+      await updatePost.mutateAsync({
+        postId,
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        tags,
+        photos: post?.photos ?? [],
+      });
+      setIsEditing(false);
+      toast.success(t("toast.postCreated"));
+    } catch (err) {
+      toast.error(t("toast.postError"));
+    }
+  };
 
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,8 +105,6 @@ const ForumPost = () => {
       toast.error(t("replies.error"));
     }
   };
-
-  const isLoading = postLoading || repliesLoading;
 
   if (!postLoading && !post) {
     return (
@@ -102,59 +145,127 @@ const ForumPost = () => {
         ) : post && (
           <Card className="mb-8">
             <CardHeader>
-              <h1 className="font-display text-2xl font-bold">{post.title}</h1>
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
-                <span className="flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  {post.author_display_name}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: dateLocale })}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageCircle className="h-4 w-4" />
-                  {post.reply_count} {post.reply_count === 1 ? t("replies.reply") : t("replies.replies")}
-                </span>
-              </div>
-              {post.tags.length > 0 && (
-                <div className="flex gap-1 mt-3">
-                  {post.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-title">{t("post.title")}</Label>
+                    <Input
+                      id="edit-title"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      maxLength={150}
+                    />
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-4">
+                    <h1 className="font-display text-2xl font-bold">{post.title}</h1>
+                    {isAuthor && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={startEditing}
+                        className="shrink-0"
+                      >
+                        <Pencil className="h-4 w-4 mr-1" />
+                        {t("post.edit")}
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
+                    <span className="flex items-center gap-1">
+                      <User className="h-4 w-4" />
+                      {post.author_display_name}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: dateLocale })}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageCircle className="h-4 w-4" />
+                      {post.reply_count} {post.reply_count === 1 ? t("replies.reply") : t("replies.replies")}
+                    </span>
+                  </div>
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex gap-1 mt-3">
+                      {post.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
-                {post.content}
-              </div>
-              
-              {/* Photos */}
-              {post.photos && post.photos.length > 0 && (
-                <div className="mt-4 pt-4 border-t">
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                    <Image className="h-4 w-4" />
-                    {post.photos.length} {post.photos.length === 1 ? t("post.photo") : t("post.photos_plural")}
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-content">{t("post.content")}</Label>
+                    <Textarea
+                      id="edit-content"
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      rows={8}
+                    />
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {post.photos.map((url, index) => (
-                      <button
-                        key={url}
-                        onClick={() => setLightboxUrl(url)}
-                        className="aspect-square overflow-hidden rounded-lg border hover:opacity-90 transition-opacity"
-                      >
-                        <img
-                          src={url}
-                          alt={`Photo ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-tags">{t("post.tags")}</Label>
+                    <Input
+                      id="edit-tags"
+                      value={editTags}
+                      onChange={(e) => setEditTags(e.target.value)}
+                      placeholder={t("post.tagsPlaceholder")}
+                    />
+                    <p className="text-xs text-muted-foreground">{t("post.tagsHelp")}</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={handleSaveEdit}
+                      disabled={!editTitle.trim() || !editContent.trim() || updatePost.isPending}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      {updatePost.isPending ? t("post.saving") : t("post.save")}
+                    </Button>
+                    <Button variant="outline" onClick={cancelEditing}>
+                      <X className="h-4 w-4 mr-1" />
+                      {t("post.cancelEdit")}
+                    </Button>
                   </div>
                 </div>
+              ) : (
+                <>
+                  <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
+                    {post.content}
+                  </div>
+                  
+                  {/* Photos */}
+                  {post.photos && post.photos.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                        <Image className="h-4 w-4" />
+                        {post.photos.length} {post.photos.length === 1 ? t("post.photo") : t("post.photos_plural")}
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {post.photos.map((url, index) => (
+                          <button
+                            key={url}
+                            onClick={() => setLightboxUrl(url)}
+                            className="aspect-square overflow-hidden rounded-lg border hover:opacity-90 transition-opacity"
+                          >
+                            <img
+                              src={url}
+                              alt={`Photo ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

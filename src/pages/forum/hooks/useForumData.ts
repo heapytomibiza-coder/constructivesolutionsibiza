@@ -7,6 +7,7 @@ import {
   fetchRepliesByPost,
   createForumPost,
   createForumReply,
+  updateForumPost,
   ForumCategory,
   ForumPost,
   ForumReply,
@@ -102,6 +103,37 @@ export function useCreatePost() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.posts(variables.categoryId),
+      });
+    },
+  });
+}
+
+/**
+ * Hook: Update an existing post
+ */
+export function useUpdatePost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      postId,
+      title,
+      content,
+      tags,
+      photos,
+    }: {
+      postId: string;
+      title: string;
+      content: string;
+      tags?: string[];
+      photos?: string[];
+    }) => updateForumPost(postId, { title, content, tags, photos }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.post(data.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.posts(data.category_id),
       });
     },
   });

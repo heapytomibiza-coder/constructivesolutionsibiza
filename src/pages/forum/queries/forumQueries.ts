@@ -172,10 +172,36 @@ export async function createForumReply(
 }
 
 /**
+ * Update an existing forum post
+ */
+export async function updateForumPost(
+  postId: string,
+  updates: { title: string; content: string; tags?: string[]; photos?: string[] }
+): Promise<ForumPost> {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session.session?.user) throw new Error("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("forum_posts")
+    .update({
+      title: updates.title,
+      content: updates.content,
+      tags: updates.tags ?? [],
+      photos: updates.photos ?? [],
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", postId)
+    .eq("author_id", session.session.user.id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
  * Increment view count for a post (best-effort, no RPC needed)
  */
 export async function incrementPostViewCount(postId: string): Promise<void> {
-  // View count increment is nice-to-have; we'll skip for MVP
-  // Could implement later with RPC or edge function
   console.debug("View count increment skipped for:", postId);
 }
