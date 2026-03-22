@@ -218,6 +218,7 @@ const ForumNewPost = () => {
                   placeholder={t("post.tagsPlaceholder")}
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
                 />
                 <p className="text-xs text-muted-foreground">
                   {t("post.tagsHelp")}
