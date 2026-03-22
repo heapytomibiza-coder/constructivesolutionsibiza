@@ -854,7 +854,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         queryClient.invalidateQueries({ queryKey: ['jobs'] });
         queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
         queryClient.invalidateQueries({ queryKey: ['client_stats'] });
-        trackEvent('job_posted', 'client', { jobId: data.id, category: wizardState.mainCategory });
+        trackEvent('job_posted', 'client', {}, { job_id: data.id, category: wizardState.mainCategory });
 
         // Fire-and-forget: translate user-generated content
         supabase.functions.invoke('translate-content', {
