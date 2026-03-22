@@ -26,8 +26,8 @@ vi.mock("@/integrations/supabase/client", () => ({
 // ─── Layer 1: Event Taxonomy Enforcement ───
 
 describe("Event Taxonomy", () => {
-  it("EVENT_NAMES exports all required event keys", async () => {
-    const { EVENT_NAMES } = await import("@/lib/eventTaxonomy");
+  it("EVENTS exports all required event keys", async () => {
+    const { EVENTS } = await import("@/lib/eventTaxonomy");
 
     const required = [
       "JOB_CREATED", "JOB_POSTED", "JOB_COMPLETED",
