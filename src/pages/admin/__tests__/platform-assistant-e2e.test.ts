@@ -38,8 +38,8 @@ describe("Event Taxonomy", () => {
     ];
 
     for (const key of required) {
-      expect(EVENT_NAMES).toHaveProperty(key);
-      expect(typeof (EVENT_NAMES as any)[key]).toBe("string");
+      expect(EVENTS).toHaveProperty(key);
+      expect(typeof (EVENTS as any)[key]).toBe("string");
     }
   });
 
