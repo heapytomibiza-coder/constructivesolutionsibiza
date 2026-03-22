@@ -67,21 +67,29 @@ The audit is correct: **do NOT create a new `platform_events` table**. The exist
 
 ---
 
-## Sprint 3 — Alerts Engine + Stripe Events
+## Sprint 3 — Alerts Engine + Stripe Events ✅
 
-### 3.1 Create `platform_alerts` table
-- Columns: id, severity, title, body, category, related_id, status (open/acknowledged/resolved/snoozed), created_at, resolved_at
+### 3.1 Create `platform_alerts` table ✅
+- Columns: id, severity, title, body, category, metric_date, related_id, status, dedupe_key, metadata, created_at, resolved_at, acknowledged_at, acknowledged_by
+- Dedupe index on (dedupe_key, metric_date)
+- Status workflow: open → acknowledged → resolved / snoozed
+- Admin-only RLS (read + update)
 
-### 3.2 Build `run_platform_alert_rules` RPC
-- Initial rules from daily metrics:
-  - Zero-response jobs > 20% → high alert
-  - Dispute rate > 5% → high alert
-  - Wizard completion rate drops > 15% week-over-week → medium alert
-  - Worker inactivity spike → medium alert
-- Called by the daily aggregation job after metrics are written
+### 3.2 Build `run_platform_alert_rules` RPC ✅
+- 5 alert rules based on daily_*_metrics:
+  1. Zero-response jobs > 20% → high (>40% → critical)
+  2. Dispute rate > 5% → high (>10% → critical)
+  3. Wizard completion rate drops > 15% week-over-week → medium
+  4. Category underperformance (3+ jobs, <0.5 avg responses) → medium
+  5. Worker inactivity spike (>30% of verified pros idle) → medium
+- Deduplication via ON CONFLICT on dedupe_key+metric_date
 
-### 3.3 Add Stripe webhook event logging
-- Extend existing Stripe webhook handler (or create if not yet built) to call `track_event` for: `payment_intent_created`, `payment_succeeded`, `payment_failed`, `deposit_paid`, `refund_issued`
+### 3.2b Fix aggregate_daily_metrics null-rate handling ✅
+- response_rate, success_rate, dispute_rate, wizard_completion_rate → NULL when denominator is zero
+- success_rate documented as "resolved-outcome success rate" (completed / (completed + disputed))
+
+### 3.3 Add Stripe webhook event logging (deferred)
+- Extend existing Stripe webhook handler to call `track_event` for payment events
 - Link to job_id/user_id in metadata
 
 ---
