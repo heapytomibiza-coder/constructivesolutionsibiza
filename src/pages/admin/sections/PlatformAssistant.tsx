@@ -456,7 +456,7 @@ export function PlatformAssistant() {
                 data={trends}
                 dataKey="response_rate"
                 label="Response Rate %"
-                color="hsl(142, 76%, 36%)"
+                color="hsl(var(--accent-foreground))"
               />
               <TrendChart
                 data={trends}
