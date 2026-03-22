@@ -154,7 +154,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       setCurrentStep(deriveStepFromState(result.state));
       markDraftChecked();
       setIsInitialized(true);
-      trackEvent('job_wizard_started', 'client', { mode: 'edit', jobId: editId });
+      trackEvent('job_wizard_started', 'client', { mode: 'edit', job_id: editId });
     };
     
     loadJob();
