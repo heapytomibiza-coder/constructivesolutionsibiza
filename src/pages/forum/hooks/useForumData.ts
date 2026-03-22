@@ -109,6 +109,37 @@ export function useCreatePost() {
 }
 
 /**
+ * Hook: Update an existing post
+ */
+export function useUpdatePost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      postId,
+      title,
+      content,
+      tags,
+      photos,
+    }: {
+      postId: string;
+      title: string;
+      content: string;
+      tags?: string[];
+      photos?: string[];
+    }) => updateForumPost(postId, { title, content, tags, photos }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.post(data.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.posts(data.category_id),
+      });
+    },
+  });
+}
+
+/**
  * Hook: Create a reply
  */
 export function useCreateReply() {
