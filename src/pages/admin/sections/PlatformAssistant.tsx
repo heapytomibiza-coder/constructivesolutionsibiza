@@ -268,26 +268,75 @@ export function PlatformAssistant() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-4">
-            <MetricCard label="Jobs Posted" value={tw.jobs_posted} prevValue={pw.jobs_posted} />
-            <MetricCard label="Jobs Completed" value={tw.jobs_completed} prevValue={pw.jobs_completed} />
-            <MetricCard label="Conversations" value={tw.total_conversations} />
-            <MetricCard label="New Users" value={tw.new_users} prevValue={pw.new_users} />
-            <MetricCard label="Response Rate" value={tw.avg_response_rate} prevValue={pw.avg_response_rate} suffix="%" />
-            <MetricCard label="Success Rate" value={tw.avg_success_rate} prevValue={pw.avg_success_rate} suffix="%" />
-            <MetricCard label="Dispute Rate" value={tw.avg_dispute_rate} prevValue={pw.avg_dispute_rate} suffix="%" invertColors />
-          </div>
+          {!hasAnyData ? (
+            <p className="text-sm text-muted-foreground">
+              No daily metrics have been aggregated yet. Run the daily aggregation first.
+            </p>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-4">
+              <MetricCard label="Jobs Posted" value={tw.jobs_posted} prevValue={pw.jobs_posted} />
+              <MetricCard label="Jobs Completed" value={tw.jobs_completed} prevValue={pw.jobs_completed} />
+              <MetricCard label="Conversations" value={tw.total_conversations} />
+              <MetricCard label="New Users" value={tw.new_users} prevValue={pw.new_users} />
+              <MetricCard label="Response Rate" value={tw.avg_response_rate} prevValue={pw.avg_response_rate} suffix="%" />
+              <MetricCard label="Success Rate" value={tw.avg_success_rate} prevValue={pw.avg_success_rate} suffix="%" />
+              <MetricCard label="Dispute Rate" value={tw.avg_dispute_rate} prevValue={pw.avg_dispute_rate} suffix="%" invertColors />
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* AI Analysis */}
-      {report && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Brain className="h-4 w-4" /> AI Analysis
+      {/* AI Analysis — show placeholder when no report */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Brain className="h-4 w-4" /> AI Analysis
+            {report && (
               <span className="text-xs text-muted-foreground font-normal">
                 Week of {report.report_week}
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!report ? (
+            <p className="text-sm text-muted-foreground">
+              No AI report has been generated yet. Click "Generate AI Report" above to create one.
+            </p>
+          ) : report.ai_analysis && report.ai_analysis !== "AI analysis unavailable this week." && report.ai_analysis !== "No metrics data available for analysis." ? (
+            <>
+              <div className="prose prose-sm max-w-none text-foreground">
+                {report.ai_analysis.split("\n\n").map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+              {report.issues?.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium flex items-center gap-1">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Issues Identified
+                  </h4>
+                  {report.issues.map((issue, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm">
+                      <Badge variant="outline" className={SEVERITY_COLORS[issue.severity] || ""}>
+                        {issue.severity}
+                      </Badge>
+                      <div>
+                        <span className="font-medium">{issue.title}</span>
+                        <span className="text-muted-foreground"> — {issue.description}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <AlertCircle className="h-4 w-4" />
+              AI analysis was not available for this report. Metrics and alerts are still shown below.
+            </div>
+          )}
+        </CardContent>
+      </Card>
               </span>
             </CardTitle>
           </CardHeader>
