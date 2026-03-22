@@ -742,7 +742,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // === SUBMISSION (handles both new jobs and edits) ===
   
   const handleSubmit = useCallback(async () => {
-    trackEvent('review_post_clicked', 'client', { category: wizardState.mainCategory });
+    trackEvent('review_post_clicked', 'client', {}, { category: wizardState.mainCategory });
 
     // Auth check — persist draft to BOTH storages so it survives
     // new-tab email-confirmation flows (sessionStorage is tab-scoped)
