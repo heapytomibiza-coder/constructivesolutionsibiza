@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { trackEvent } from "@/lib/trackEvent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { metricRegistry, allMetricKeys } from "../lib/metricRegistry";
