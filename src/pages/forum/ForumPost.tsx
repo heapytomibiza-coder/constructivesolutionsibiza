@@ -274,6 +274,56 @@ const ForumPost = () => {
                     />
                     <p className="text-xs text-muted-foreground">{t("post.tagsHelp")}</p>
                   </div>
+                  {/* Photos */}
+                  <div className="space-y-3">
+                    <Label>{t("post.photos")}</Label>
+                    <p className="text-xs text-muted-foreground">{t("post.photosHelp")}</p>
+                    {editPhotos.length < 4 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="w-full h-12"
+                      >
+                        {uploading ? (
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        ) : (
+                          <ImagePlus className="h-5 w-5 mr-2" />
+                        )}
+                        {uploading ? t("post.publishing") : t("post.addPhoto")}
+                        {editPhotos.length > 0 && ` (${editPhotos.length}/4)`}
+                      </Button>
+                    )}
+                    {editPhotos.length > 0 && (
+                      <div className="flex flex-wrap gap-3">
+                        {editPhotos.map((url, index) => (
+                          <div key={url} className="relative group">
+                            <img
+                              src={url}
+                              alt={`Upload ${index + 1}`}
+                              className="w-24 h-24 object-cover rounded-lg border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeEditPhoto(index)}
+                              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handlePhotoUpload}
+                    />
+                  </div>
                   <div className="flex gap-3">
                     <Button
                       onClick={handleSaveEdit}
