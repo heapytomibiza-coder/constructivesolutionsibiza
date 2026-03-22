@@ -1,4 +1,5 @@
 import * as React from "react";
+import { trackEvent } from "@/lib/trackEvent";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -157,6 +158,20 @@ export function JobDetailsModal({
 }) {
   const { t } = useTranslation("jobs");
   const { data: row, isLoading, isError, error, refetch } = useJobDetails(jobId, open);
+
+  // Track worker_viewed_job once per modal open
+  const viewedRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (open && row && jobId && viewedRef.current !== jobId) {
+      viewedRef.current = jobId;
+      trackEvent('worker_viewed_job', 'professional', {
+        jobId,
+        category: row.category,
+        status: row.status,
+      });
+    }
+  }, [open, row, jobId]);
+
 
   const microSlugs = React.useMemo(() => {
     if (!row) return [];

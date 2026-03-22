@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { trackEvent } from "@/lib/trackEvent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { metricRegistry, allMetricKeys } from "../lib/metricRegistry";
@@ -85,7 +86,10 @@ export default function InsightsSection() {
               <Card
                 key={page.path}
                 className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => navigate(page.path)}
+                onClick={() => {
+                  trackEvent('admin_viewed_insight_panel', 'admin', { panel: page.label, path: page.path });
+                  navigate(page.path);
+                }}
               >
                 <CardContent className="p-5 flex items-start gap-4">
                   <div className="p-2 rounded-lg bg-primary/10 shrink-0">
@@ -116,7 +120,10 @@ export default function InsightsSection() {
               <Card
                 key={key}
                 className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => navigate(`/dashboard/admin/insights/${key}`)}
+                onClick={() => {
+                  trackEvent('admin_viewed_insight_panel', 'admin', { panel: metric.label, metric_key: key });
+                  navigate(`/dashboard/admin/insights/${key}`);
+                }}
               >
                 <CardContent className="p-4 flex items-center gap-3">
                   <Icon className="h-5 w-5 text-primary" />
