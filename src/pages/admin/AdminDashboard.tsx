@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity, LineChart, Store, Scale } from "lucide-react";
+import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity, LineChart, Store, Scale, Brain } from "lucide-react";
 import { UsersSection, JobsSection, ContentSection, ListingsSection, SupportInbox } from "./sections";
 import { DisputeQueue } from "./sections/disputes";
 import { LinkMapSection } from "./sections/LinkMapSection";
 import { HealthSection } from "./sections/HealthSection";
 import { OperatorCockpit } from "./sections/OperatorCockpit";
 import InsightsSection from "./sections/InsightsSection";
+import { PlatformAssistant } from "./sections/PlatformAssistant";
 
 /**
  * ADMIN DASHBOARD
