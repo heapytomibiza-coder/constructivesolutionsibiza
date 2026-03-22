@@ -85,7 +85,7 @@ export async function assignProfessional(
     return { success: false, error: 'Job could not be assigned (it may have changed)' };
   }
 
-  trackEvent('hire_initiated', 'client', { jobId, proId: professionalId });
+  trackEvent('hire_initiated', 'client', { pro_id: professionalId }, { job_id: jobId });
 
   return { success: true };
 }

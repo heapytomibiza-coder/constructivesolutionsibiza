@@ -61,7 +61,7 @@ export async function completeJob(jobId: string): Promise<{ success: boolean; er
     return { success: false, error: 'Job already completed or status changed' };
   }
 
-  trackEvent('job_completed', 'client', { jobId });
+  trackEvent('job_completed', 'client', {}, { job_id: jobId });
 
   return { success: true };
 }

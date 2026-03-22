@@ -48,6 +48,6 @@ export async function reviseQuote(
     return { success: false, error: "Failed to create revised quote" };
   }
 
-  trackEvent("quote_revised", "professional", { jobId: payload.jobId });
+  trackEvent("quote_revised", "professional", {}, { job_id: payload.jobId });
   return { success: true };
 }

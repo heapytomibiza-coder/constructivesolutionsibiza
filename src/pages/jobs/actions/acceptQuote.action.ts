@@ -66,6 +66,6 @@ export async function acceptQuote(
     return { success: false, error: "Quote accepted but assignment failed" };
   }
 
-  trackEvent("quote_accepted", "client", { jobId, quoteId, proId: professionalId });
+  trackEvent("quote_accepted", "client", { quote_id: quoteId, pro_id: professionalId }, { job_id: jobId });
   return { success: true };
 }

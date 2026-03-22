@@ -154,7 +154,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       setCurrentStep(deriveStepFromState(result.state));
       markDraftChecked();
       setIsInitialized(true);
-      trackEvent('job_wizard_started', 'client', { mode: 'edit', jobId: editId });
+      trackEvent('job_wizard_started', 'client', { mode: 'edit', job_id: editId });
     };
     
     loadJob();
@@ -415,11 +415,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     }
     trackEvent('job_wizard_step_viewed', 'client', {
       step: currentStep,
-      stepIndex: getStepIndex(currentStep),
-      category: wizardState.mainCategory,
-    });
+      step_index: getStepIndex(currentStep),
+    }, { category: wizardState.mainCategory });
     if (currentStep === WizardStep.Review) {
-      trackEvent('review_step_entered', 'client', { category: wizardState.mainCategory });
+      trackEvent('review_step_entered', 'client', {}, { category: wizardState.mainCategory });
     }
   }, [currentStep, isInitialized, wizardState.mainCategory]);
 
@@ -444,10 +443,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       if (hasSubmittedRef.current) return;
 
       trackEvent('job_wizard_abandoned', 'client', {
-        lastStep: lastStepRef.current,
-        stepIndex: getStepIndex(lastStepRef.current),
-        category: lastCategoryRef.current,
-      });
+        last_step: lastStepRef.current,
+        step_index: getStepIndex(lastStepRef.current),
+      }, { category: lastCategoryRef.current });
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -598,7 +596,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     });
     setShowCustomForm(false);
     setCurrentStep(WizardStep.Logistics);
-    trackEvent('custom_request_submitted', 'client', { category: categoryName });
+    trackEvent('custom_request_submitted', 'client', {}, { category: categoryName });
   }, []);
 
   // === NAVIGATION ===
@@ -649,9 +647,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     if (currentStep !== WizardStep.Review && canAdvance()) {
       trackEvent('job_wizard_step_completed', 'client', {
         step: currentStep,
-        stepIndex: getStepIndex(currentStep),
-        category: wizardState.mainCategory,
-      });
+        step_index: getStepIndex(currentStep),
+      }, { category: wizardState.mainCategory });
 
       let nextStep = getNextStep(currentStep);
 
@@ -745,12 +742,12 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // === SUBMISSION (handles both new jobs and edits) ===
   
   const handleSubmit = useCallback(async () => {
-    trackEvent('review_post_clicked', 'client', { category: wizardState.mainCategory });
+    trackEvent('review_post_clicked', 'client', {}, { category: wizardState.mainCategory });
 
     // Auth check — persist draft to BOTH storages so it survives
     // new-tab email-confirmation flows (sessionStorage is tab-scoped)
     if (!isAuthenticated || !user) {
-      trackEvent('job_post_submit_auth_redirect', 'client', { category: wizardState.mainCategory });
+      trackEvent('job_post_submit_auth_redirect', 'client', {}, { category: wizardState.mainCategory });
       const draftForStorage = {
         ...wizardState,
         extras: {
@@ -778,10 +775,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
     // Track submit attempt (after validation passes, before DB call)
     trackEvent('job_post_submit_attempt', 'client', {
-      category: wizardState.mainCategory,
       mode: isEditMode ? 'edit' : 'new',
-      wizardMode: wizardState.wizardMode,
-    });
+      wizard_mode: wizardState.wizardMode,
+    }, { category: wizardState.mainCategory });
 
     setIsSubmitting(true);
 
@@ -814,7 +810,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         if (incError) console.warn('Failed to increment edit_version:', incError);
 
         // Track the edit event
-        trackEvent('job_edited', 'client', { jobId: editJobId, category: wizardState.mainCategory });
+        trackEvent('job_edited', 'client', {}, { job_id: editJobId, category: wizardState.mainCategory });
 
         hasSubmittedRef.current = true;
         clearSession();
@@ -858,7 +854,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         queryClient.invalidateQueries({ queryKey: ['jobs'] });
         queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
         queryClient.invalidateQueries({ queryKey: ['client_stats'] });
-        trackEvent('job_posted', 'client', { jobId: data.id, category: wizardState.mainCategory });
+        trackEvent('job_posted', 'client', {}, { job_id: data.id, category: wizardState.mainCategory });
 
         // Fire-and-forget: translate user-generated content
         supabase.functions.invoke('translate-content', {
@@ -879,11 +875,10 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     } catch (error: any) {
       console.error('Submit error:', error);
       trackEvent('job_post_submit_fail', 'client', {
-        category: wizardState.mainCategory,
         reason: error?.message || 'unknown',
         code: error?.code || null,
         mode: isEditMode ? 'edit' : 'new',
-      });
+      }, { category: wizardState.mainCategory });
       toast.error(t('toasts.submitFailed'));
     } finally {
       setIsSubmitting(false);

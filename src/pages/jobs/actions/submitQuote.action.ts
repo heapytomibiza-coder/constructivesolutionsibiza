@@ -59,6 +59,6 @@ export async function submitQuote(
     return { success: false, error: "Failed to submit quote" };
   }
 
-  trackEvent("quote_submitted", "professional", { jobId: payload.jobId });
+  trackEvent("quote_submitted", "professional", {}, { job_id: payload.jobId });
   return { success: true };
 }

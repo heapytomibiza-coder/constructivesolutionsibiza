@@ -56,7 +56,7 @@ export async function submitReview({
     return { success: false, error: error.message };
   }
 
-  trackEvent('review_submitted', reviewerRole, { jobId, rating, reviewerRole, visibility });
+  trackEvent('review_submitted', reviewerRole, { rating, reviewer_role: reviewerRole, visibility }, { job_id: jobId });
 
   // Award stats when CLIENT rates PROFESSIONAL
   // This drives the verification ladder: unverified → progressing → verified → expert

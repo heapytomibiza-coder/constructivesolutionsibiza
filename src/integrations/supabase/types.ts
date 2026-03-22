@@ -243,6 +243,162 @@ export type Database = {
           },
         ]
       }
+      daily_category_metrics: {
+        Row: {
+          avg_job_score: number | null
+          avg_responses: number | null
+          category: string
+          created_at: string
+          dispute_rate: number | null
+          id: string
+          jobs_completed: number
+          jobs_created: number
+          jobs_disputed: number
+          jobs_posted: number
+          metric_date: string
+          success_rate: number | null
+        }
+        Insert: {
+          avg_job_score?: number | null
+          avg_responses?: number | null
+          category: string
+          created_at?: string
+          dispute_rate?: number | null
+          id?: string
+          jobs_completed?: number
+          jobs_created?: number
+          jobs_disputed?: number
+          jobs_posted?: number
+          metric_date: string
+          success_rate?: number | null
+        }
+        Update: {
+          avg_job_score?: number | null
+          avg_responses?: number | null
+          category?: string
+          created_at?: string
+          dispute_rate?: number | null
+          id?: string
+          jobs_completed?: number
+          jobs_created?: number
+          jobs_disputed?: number
+          jobs_posted?: number
+          metric_date?: string
+          success_rate?: number | null
+        }
+        Relationships: []
+      }
+      daily_platform_metrics: {
+        Row: {
+          avg_job_score: number | null
+          avg_response_time_hours: number | null
+          created_at: string
+          dispute_rate: number | null
+          jobs_awarded: number
+          jobs_completed: number
+          jobs_created: number
+          jobs_disputed: number
+          jobs_posted: number
+          jobs_with_zero_responses: number
+          metric_date: string
+          new_professionals: number
+          new_users: number
+          response_rate: number | null
+          success_rate: number | null
+          total_conversations: number
+          total_messages: number
+          updated_at: string
+          wizard_completion_rate: number | null
+        }
+        Insert: {
+          avg_job_score?: number | null
+          avg_response_time_hours?: number | null
+          created_at?: string
+          dispute_rate?: number | null
+          jobs_awarded?: number
+          jobs_completed?: number
+          jobs_created?: number
+          jobs_disputed?: number
+          jobs_posted?: number
+          jobs_with_zero_responses?: number
+          metric_date: string
+          new_professionals?: number
+          new_users?: number
+          response_rate?: number | null
+          success_rate?: number | null
+          total_conversations?: number
+          total_messages?: number
+          updated_at?: string
+          wizard_completion_rate?: number | null
+        }
+        Update: {
+          avg_job_score?: number | null
+          avg_response_time_hours?: number | null
+          created_at?: string
+          dispute_rate?: number | null
+          jobs_awarded?: number
+          jobs_completed?: number
+          jobs_created?: number
+          jobs_disputed?: number
+          jobs_posted?: number
+          jobs_with_zero_responses?: number
+          metric_date?: string
+          new_professionals?: number
+          new_users?: number
+          response_rate?: number | null
+          success_rate?: number | null
+          total_conversations?: number
+          total_messages?: number
+          updated_at?: string
+          wizard_completion_rate?: number | null
+        }
+        Relationships: []
+      }
+      daily_worker_metrics: {
+        Row: {
+          completion_rate: number | null
+          created_at: string
+          disputes: number
+          id: string
+          jobs_completed: number
+          jobs_received: number
+          jobs_responded: number
+          jobs_viewed: number
+          metric_date: string
+          response_rate: number | null
+          trust_score_snapshot: number | null
+          worker_id: string
+        }
+        Insert: {
+          completion_rate?: number | null
+          created_at?: string
+          disputes?: number
+          id?: string
+          jobs_completed?: number
+          jobs_received?: number
+          jobs_responded?: number
+          jobs_viewed?: number
+          metric_date: string
+          response_rate?: number | null
+          trust_score_snapshot?: number | null
+          worker_id: string
+        }
+        Update: {
+          completion_rate?: number | null
+          created_at?: string
+          disputes?: number
+          id?: string
+          jobs_completed?: number
+          jobs_received?: number
+          jobs_responded?: number
+          jobs_viewed?: number
+          metric_date?: string
+          response_rate?: number | null
+          trust_score_snapshot?: number | null
+          worker_id?: string
+        }
+        Relationships: []
+      }
       dispute_ai_events: {
         Row: {
           created_at: string
@@ -2960,6 +3116,7 @@ export type Database = {
         }
         Returns: Json
       }
+      aggregate_daily_metrics: { Args: { p_date?: string }; Returns: Json }
       calculate_job_score: { Args: { p_job_id: string }; Returns: number }
       calculate_job_score_inline: {
         Args: { v_job: Database["public"]["Tables"]["jobs"]["Row"] }
