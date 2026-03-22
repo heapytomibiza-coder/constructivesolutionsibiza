@@ -337,40 +337,8 @@ export function PlatformAssistant() {
           )}
         </CardContent>
       </Card>
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {report.ai_analysis && (
-              <div className="prose prose-sm max-w-none text-foreground">
-                {report.ai_analysis.split("\n\n").map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
-            )}
 
-            {/* Issues */}
-            {report.issues?.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium flex items-center gap-1">
-                  <AlertTriangle className="h-3.5 w-3.5" /> Issues Identified
-                </h4>
-                {report.issues.map((issue, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <Badge variant="outline" className={SEVERITY_COLORS[issue.severity] || ""}>
-                      {issue.severity}
-                    </Badge>
-                    <div>
-                      <span className="font-medium">{issue.title}</span>
-                      <span className="text-muted-foreground"> — {issue.description}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Recommendations */}
       {report?.recommendations?.length > 0 && (
