@@ -596,7 +596,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     });
     setShowCustomForm(false);
     setCurrentStep(WizardStep.Logistics);
-    trackEvent('custom_request_submitted', 'client', { category: categoryName });
+    trackEvent('custom_request_submitted', 'client', {}, { category: categoryName });
   }, []);
 
   // === NAVIGATION ===
