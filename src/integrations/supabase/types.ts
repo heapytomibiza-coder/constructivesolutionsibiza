@@ -1494,6 +1494,57 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          body: string
+          category: string
+          created_at: string
+          dedupe_key: string
+          id: string
+          metadata: Json | null
+          metric_date: string | null
+          related_id: string | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          title: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          body?: string
+          category?: string
+          created_at?: string
+          dedupe_key: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string | null
+          related_id?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          body?: string
+          category?: string
+          created_at?: string
+          dedupe_key?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string | null
+          related_id?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       professional_documents: {
         Row: {
           created_at: string | null
@@ -3333,6 +3384,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      run_platform_alert_rules: { Args: { p_date?: string }; Returns: number }
       switch_active_role: { Args: { p_new_role: string }; Returns: undefined }
       sync_service_listings_for_provider: {
         Args: { p_provider_id: string }
