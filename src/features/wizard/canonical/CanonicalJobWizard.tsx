@@ -647,9 +647,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     if (currentStep !== WizardStep.Review && canAdvance()) {
       trackEvent('job_wizard_step_completed', 'client', {
         step: currentStep,
-        stepIndex: getStepIndex(currentStep),
-        category: wizardState.mainCategory,
-      });
+        step_index: getStepIndex(currentStep),
+      }, { category: wizardState.mainCategory });
 
       let nextStep = getNextStep(currentStep);
 
