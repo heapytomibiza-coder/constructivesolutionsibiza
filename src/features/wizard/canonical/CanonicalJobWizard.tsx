@@ -747,7 +747,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     // Auth check — persist draft to BOTH storages so it survives
     // new-tab email-confirmation flows (sessionStorage is tab-scoped)
     if (!isAuthenticated || !user) {
-      trackEvent('job_post_submit_auth_redirect', 'client', { category: wizardState.mainCategory });
+      trackEvent('job_post_submit_auth_redirect', 'client', {}, { category: wizardState.mainCategory });
       const draftForStorage = {
         ...wizardState,
         extras: {
