@@ -29,13 +29,14 @@ Deno.serve(async (req) => {
       const token = authHeader.replace("Bearer ", "");
       const { data: { user } } = await supabase.auth.getUser(token);
       if (user) {
-        const { data: hasAdmin } = await supabase
+        const { data: roleRow } = await supabase
           .from("user_roles")
-          .select("role")
+          .select("roles")
           .eq("user_id", user.id)
-          .eq("role", "admin")
           .maybeSingle();
-        if (hasAdmin) isAuthorized = true;
+        if (roleRow && Array.isArray(roleRow.roles) && roleRow.roles.includes("admin")) {
+          isAuthorized = true;
+        }
       }
     }
 
