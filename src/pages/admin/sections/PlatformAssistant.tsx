@@ -511,6 +511,49 @@ export function PlatformAssistant() {
           </CardContent>
         </Card>
       )}
+
+      {/* Backfill Metrics Utility */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Database className="h-4 w-4" /> Backfill Metrics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            Re-aggregate daily metrics and generate alerts for a date range. Useful after fixing aggregation logic or catching up after downtime.
+          </p>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">From</label>
+              <Input
+                type="date"
+                value={backfillFrom}
+                onChange={(e) => setBackfillFrom(e.target.value)}
+                className="h-9 w-40 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">To</label>
+              <Input
+                type="date"
+                value={backfillTo}
+                onChange={(e) => setBackfillTo(e.target.value)}
+                className="h-9 w-40 text-sm"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => backfillMetrics.mutate()}
+              disabled={backfillMetrics.isPending}
+            >
+              <Database className="h-4 w-4 mr-1" />
+              {backfillMetrics.isPending ? "Processing…" : "Run Backfill"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
