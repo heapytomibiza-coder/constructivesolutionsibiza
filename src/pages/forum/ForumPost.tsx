@@ -63,6 +63,7 @@ const ForumPost = () => {
     setEditTitle(post.title);
     setEditContent(post.content);
     setEditTags((post.tags ?? []).join(", "));
+    setEditPhotos(post.photos ?? []);
     setIsEditing(true);
   };
 
