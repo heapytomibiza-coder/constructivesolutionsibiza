@@ -810,7 +810,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         if (incError) console.warn('Failed to increment edit_version:', incError);
 
         // Track the edit event
-        trackEvent('job_edited', 'client', { jobId: editJobId, category: wizardState.mainCategory });
+        trackEvent('job_edited', 'client', {}, { job_id: editJobId, category: wizardState.mainCategory });
 
         hasSubmittedRef.current = true;
         clearSession();
