@@ -121,7 +121,7 @@ export default function InsightsSection() {
                 key={key}
                 className="cursor-pointer hover:border-primary/50 transition-colors"
                 onClick={() => {
-                  trackEvent('admin_viewed_insight_panel', 'admin', { panel: metric.label, metric_key: key });
+                  trackEvent('admin_opened_insight_panel', 'admin', { panel: metric.label, metric_key: key });
                   navigate(`/dashboard/admin/insights/${key}`);
                 }}
               >
