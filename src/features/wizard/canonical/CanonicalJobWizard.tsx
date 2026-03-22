@@ -775,10 +775,9 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
     // Track submit attempt (after validation passes, before DB call)
     trackEvent('job_post_submit_attempt', 'client', {
-      category: wizardState.mainCategory,
       mode: isEditMode ? 'edit' : 'new',
-      wizardMode: wizardState.wizardMode,
-    });
+      wizard_mode: wizardState.wizardMode,
+    }, { category: wizardState.mainCategory });
 
     setIsSubmitting(true);
 
