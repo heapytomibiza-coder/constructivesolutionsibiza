@@ -2679,6 +2679,42 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_ai_reports: {
+        Row: {
+          ai_analysis: string | null
+          comparison_json: Json
+          created_at: string
+          id: string
+          issues: Json | null
+          open_alerts_snapshot: Json | null
+          recommendations: Json | null
+          report_week: string
+          summary_json: Json
+        }
+        Insert: {
+          ai_analysis?: string | null
+          comparison_json?: Json
+          created_at?: string
+          id?: string
+          issues?: Json | null
+          open_alerts_snapshot?: Json | null
+          recommendations?: Json | null
+          report_week: string
+          summary_json?: Json
+        }
+        Update: {
+          ai_analysis?: string | null
+          comparison_json?: Json
+          created_at?: string
+          id?: string
+          issues?: Json | null
+          open_alerts_snapshot?: Json | null
+          recommendations?: Json | null
+          report_week?: string
+          summary_json?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       admin_support_inbox: {
@@ -3248,6 +3284,7 @@ export type Database = {
         Args: { p_job_id: string; p_pro_id: string }
         Returns: string
       }
+      get_platform_assistant_summary: { Args: never; Returns: Json }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_job_edit_version: {
         Args: { p_job_id: string }
