@@ -229,9 +229,9 @@ Focus on:
       .upsert(
         {
           report_week: reportWeekStr,
-          summary_json: summaryJson || {},
+          summary_json: { ...(summaryJson || {}), ai_analysis_status: aiAnalysisStatus },
           comparison_json: comparisonJson,
-          ai_analysis: aiAnalysis,
+          ai_analysis: aiAnalysis || null,
           issues,
           recommendations,
           open_alerts_snapshot: (activeAlerts || []).slice(0, 20),
