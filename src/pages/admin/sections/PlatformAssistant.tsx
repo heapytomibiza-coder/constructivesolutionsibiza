@@ -125,7 +125,7 @@ function MetricCard({
 }
 
 export function PlatformAssistant() {
-  const { data, isLoading, refetch } = useAssistantSummary();
+  const { data, isLoading, isError, error, refetch } = useAssistantSummary();
   const queryClient = useQueryClient();
 
   const generateReport = useMutation({
@@ -186,32 +186,72 @@ export function PlatformAssistant() {
     );
   }
 
+  if (isError) {
+    return (
+      <Card className="border-destructive/30">
+        <CardContent className="p-6 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+          <div>
+            <p className="font-medium">Failed to load assistant data</p>
+            <p className="text-sm text-muted-foreground">{error?.message || "Unknown error"}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="ml-auto shrink-0">
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const tw = data?.this_week ?? {};
   const pw = data?.prev_week ?? {};
   const alerts = data?.alerts ?? [];
   const report = data?.latest_report;
   const trends = data?.trends ?? [];
 
+  // Data freshness
+  const latestMetricDate = trends.length > 0 ? trends[trends.length - 1]?.date : null;
+  const latestAlertDate = alerts.length > 0 ? alerts[0]?.created_at?.split("T")[0] : null;
+  const latestReportDate = report?.created_at ? new Date(report.created_at).toLocaleDateString() : null;
+  const hasAnyData = tw.days > 0 || trends.length > 0;
+
   return (
     <div className="space-y-6">
-      {/* Header + Generate */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold">Platform Assistant</h2>
+      {/* Header + Generate + Freshness */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Platform Assistant</h2>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => generateReport.mutate()}
+              disabled={generateReport.isPending}
+            >
+              <Brain className="h-4 w-4 mr-1" />
+              {generateReport.isPending ? "Generating…" : "Generate AI Report"}
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            <RefreshCw className="h-4 w-4 mr-1" /> Refresh
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => generateReport.mutate()}
-            disabled={generateReport.isPending}
-          >
-            <Brain className="h-4 w-4 mr-1" />
-            {generateReport.isPending ? "Generating…" : "Generate AI Report"}
-          </Button>
+        {/* Data Freshness Bar */}
+        <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            Metrics: {latestMetricDate || "No data yet"}
+          </span>
+          <span className="flex items-center gap-1">
+            <Bell className="h-3 w-3" />
+            Alerts: {latestAlertDate || "None"}
+          </span>
+          <span className="flex items-center gap-1">
+            <Brain className="h-3 w-3" />
+            AI Report: {latestReportDate || "Not generated yet"}
+          </span>
         </div>
       </div>
 
