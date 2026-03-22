@@ -71,6 +71,54 @@ const ForumPost = () => {
     setIsEditing(false);
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !session?.user) return;
+
+    const remaining = 4 - editPhotos.length;
+    if (remaining <= 0) {
+      toast.error(t("toast.maxPhotos"));
+      return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, remaining);
+    setUploading(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of filesToUpload) {
+        if (!file.type.startsWith("image/")) {
+          toast.error(t("toast.notImage", { name: file.name }));
+          continue;
+        }
+        const ext = file.name.split(".").pop() ?? "jpg";
+        const path = `${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from("forum-images").upload(path, file);
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          toast.error(t("toast.photoError"));
+          continue;
+        }
+        const { data: urlData } = supabase.storage.from("forum-images").getPublicUrl(path);
+        uploadedUrls.push(urlData.publicUrl);
+      }
+      if (uploadedUrls.length > 0) {
+        setEditPhotos((prev) => [...prev, ...uploadedUrls]);
+        toast.success(t("toast.photoUploaded", { count: uploadedUrls.length }));
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error(t("toast.photoError"));
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeEditPhoto = (index: number) => {
+    setEditPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSaveEdit = async () => {
     if (!editTitle.trim() || !editContent.trim() || !postId) return;
 
@@ -86,7 +134,7 @@ const ForumPost = () => {
         title: editTitle.trim(),
         content: editContent.trim(),
         tags,
-        photos: post?.photos ?? [],
+        photos: editPhotos,
       });
       setIsEditing(false);
       toast.success(t("toast.postCreated"));
