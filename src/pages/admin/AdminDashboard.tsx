@@ -47,9 +47,6 @@ export default function AdminDashboard() {
                 <Brain className="h-4 w-4" />
                 <span className="hidden sm:inline">Assistant</span>
               </TabsTrigger>
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Overview</span>
-              </TabsTrigger>
               <TabsTrigger value="insights" className="gap-2">
                 <LineChart className="h-4 w-4" />
                 <span className="hidden sm:inline">Insights</span>
