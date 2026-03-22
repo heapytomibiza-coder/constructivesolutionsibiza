@@ -8,7 +8,6 @@ import {
   Brain,
   AlertTriangle,
   TrendingUp,
-  TrendingDown,
   Minus,
   CheckCircle2,
   Lightbulb,
@@ -17,6 +16,8 @@ import {
   Bell,
   ArrowUp,
   ArrowDown,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
