@@ -3116,7 +3116,7 @@ export type Database = {
         }
         Returns: Json
       }
-      aggregate_daily_metrics: { Args: { p_date?: string }; Returns: Json }
+      aggregate_daily_metrics: { Args: { p_date: string }; Returns: undefined }
       calculate_job_score: { Args: { p_job_id: string }; Returns: number }
       calculate_job_score_inline: {
         Args: { v_job: Database["public"]["Tables"]["jobs"]["Row"] }
