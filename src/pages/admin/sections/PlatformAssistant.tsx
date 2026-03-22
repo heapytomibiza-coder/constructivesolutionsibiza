@@ -213,7 +213,7 @@ export function PlatformAssistant() {
     onError: (err) => toast.error(`Backfill failed: ${err.message}`),
   });
 
-
+  if (isLoading) {
     return (
       <div className="space-y-4">
         {[...Array(4)].map((_, i) => (
