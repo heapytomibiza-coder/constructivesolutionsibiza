@@ -1108,6 +1108,7 @@ export type Database = {
           id: string
           is_custom_request: boolean
           is_publicly_listed: boolean
+          job_score: number | null
           location: Json | null
           micro_slug: string | null
           source_lang: string | null
@@ -1146,6 +1147,7 @@ export type Database = {
           id?: string
           is_custom_request?: boolean
           is_publicly_listed?: boolean
+          job_score?: number | null
           location?: Json | null
           micro_slug?: string | null
           source_lang?: string | null
@@ -1184,6 +1186,7 @@ export type Database = {
           id?: string
           is_custom_request?: boolean
           is_publicly_listed?: boolean
+          job_score?: number | null
           location?: Json | null
           micro_slug?: string | null
           source_lang?: string | null
@@ -1526,6 +1529,7 @@ export type Database = {
           services_count: number
           submitted_at: string | null
           tagline: string | null
+          trust_score: number | null
           typical_lead_time: string | null
           updated_at: string
           user_id: string
@@ -1563,6 +1567,7 @@ export type Database = {
           services_count?: number
           submitted_at?: string | null
           tagline?: string | null
+          trust_score?: number | null
           typical_lead_time?: string | null
           updated_at?: string
           user_id: string
@@ -1600,6 +1605,7 @@ export type Database = {
           services_count?: number
           submitted_at?: string | null
           tagline?: string | null
+          trust_score?: number | null
           typical_lead_time?: string | null
           updated_at?: string
           user_id?: string
@@ -2953,6 +2959,15 @@ export type Database = {
           p_to_ts?: string
         }
         Returns: Json
+      }
+      calculate_job_score: { Args: { p_job_id: string }; Returns: number }
+      calculate_job_score_inline: {
+        Args: { v_job: Database["public"]["Tables"]["jobs"]["Row"] }
+        Returns: number
+      }
+      calculate_worker_trust_score: {
+        Args: { p_user_id: string }
+        Returns: number
       }
       check_rate_limit: {
         Args: {
