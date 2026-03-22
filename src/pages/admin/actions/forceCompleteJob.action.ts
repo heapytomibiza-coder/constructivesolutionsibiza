@@ -43,7 +43,7 @@ export async function forceCompleteJob(
     return { success: false, error: "Failed to complete job. Please try again." };
   }
 
-  trackEvent('admin_force_completed_job', 'admin', { jobId });
+  trackEvent('admin_force_completed_job', 'admin', {}, { job_id: jobId });
 
   // Log admin action
   const { error: logError } = await supabase.from("admin_actions_log").insert({
