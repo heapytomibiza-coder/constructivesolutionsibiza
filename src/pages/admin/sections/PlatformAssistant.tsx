@@ -130,6 +130,10 @@ function MetricCard({
 export function PlatformAssistant() {
   const { data, isLoading, isError, error, refetch } = useAssistantSummary();
   const queryClient = useQueryClient();
+  const [backfillFrom, setBackfillFrom] = useState("2026-02-15");
+  const [backfillTo, setBackfillTo] = useState(
+    new Date(Date.now() - 86400000).toISOString().split("T")[0]
+  );
 
   const generateReport = useMutation({
     mutationFn: async () => {
