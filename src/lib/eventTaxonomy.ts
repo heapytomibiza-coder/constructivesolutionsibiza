@@ -52,6 +52,7 @@ export const EVENTS = {
   QUOTE_REVISED: "quote_revised",
   QUOTE_VIEWED: "quote_viewed",
   QUOTE_WITHDRAWN: "quote_withdrawn",
+  QUOTE_ACCEPTED: "quote_accepted",
 
   // Reviews
   REVIEW_SUBMITTED: "review_submitted",
