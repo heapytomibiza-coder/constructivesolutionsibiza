@@ -44,7 +44,7 @@ describe("Event Taxonomy", () => {
   });
 
   it("all event name values are snake_case", async () => {
-    const { EVENT_NAMES } = await import("@/lib/eventTaxonomy");
+    const { EVENTS } = await import("@/lib/eventTaxonomy");
     const snakeCaseRegex = /^[a-z][a-z0-9_]*$/;
 
     for (const [key, value] of Object.entries(EVENT_NAMES)) {
