@@ -144,6 +144,7 @@ Deno.serve(async (req) => {
     // 2. Call AI for analysis
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     let aiAnalysis = "";
+    let aiAnalysisStatus: "ok" | "unavailable" | "no_data" = "no_data";
     let issues: any[] = [];
     let recommendations: any[] = [];
 
@@ -201,20 +202,25 @@ Focus on:
             aiAnalysis = parsed.analysis || "";
             issues = parsed.issues || [];
             recommendations = parsed.recommendations || [];
+            aiAnalysisStatus = "ok";
           } catch {
             aiAnalysis = content;
+            aiAnalysisStatus = "ok";
           }
         } else {
           const errText = await aiResponse.text();
           console.error("AI gateway error:", aiResponse.status, errText);
-          aiAnalysis = "AI analysis unavailable this week.";
+          aiAnalysis = "";
+          aiAnalysisStatus = "unavailable";
         }
       } catch (err) {
         console.error("AI call failed:", err);
-        aiAnalysis = "AI analysis unavailable this week.";
+        aiAnalysis = "";
+        aiAnalysisStatus = "unavailable";
       }
     } else {
-      aiAnalysis = "No metrics data available for analysis.";
+      aiAnalysis = "";
+      aiAnalysisStatus = summaryJson ? "unavailable" : "no_data";
     }
 
     // 3. Upsert report
