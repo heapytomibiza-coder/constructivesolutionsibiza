@@ -86,7 +86,10 @@ export default function InsightsSection() {
               <Card
                 key={page.path}
                 className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => navigate(page.path)}
+                onClick={() => {
+                  trackEvent('admin_viewed_insight_panel', 'admin', { panel: page.label, path: page.path });
+                  navigate(page.path);
+                }}
               >
                 <CardContent className="p-5 flex items-start gap-4">
                   <div className="p-2 rounded-lg bg-primary/10 shrink-0">
