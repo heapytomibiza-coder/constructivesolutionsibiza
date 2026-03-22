@@ -183,7 +183,37 @@ export function PlatformAssistant() {
     },
   });
 
-  if (isLoading) {
+  const backfillMetrics = useMutation({
+    mutationFn: async () => {
+      const startDate = new Date(backfillFrom);
+      const endDate = new Date(backfillTo);
+      let daysProcessed = 0;
+      let totalAlerts = 0;
+
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        const { error } = await supabase.rpc("aggregate_daily_metrics", { p_date: dateStr });
+        if (error) throw new Error(`Aggregation failed for ${dateStr}: ${error.message}`);
+        daysProcessed++;
+      }
+
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        const { data: alertCount, error } = await supabase.rpc("run_platform_alert_rules", { p_date: dateStr });
+        if (error) throw new Error(`Alert rules failed for ${dateStr}: ${error.message}`);
+        totalAlerts += (alertCount as number) || 0;
+      }
+
+      return { daysProcessed, totalAlerts };
+    },
+    onSuccess: (result) => {
+      toast.success(`Backfill complete: ${result.daysProcessed} days, ${result.totalAlerts} alerts generated`);
+      queryClient.invalidateQueries({ queryKey: ["platform_assistant_summary"] });
+    },
+    onError: (err) => toast.error(`Backfill failed: ${err.message}`),
+  });
+
+
     return (
       <div className="space-y-4">
         {[...Array(4)].map((_, i) => (
