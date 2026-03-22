@@ -7,6 +7,7 @@ import {
   fetchRepliesByPost,
   createForumPost,
   createForumReply,
+  updateForumPost,
   ForumCategory,
   ForumPost,
   ForumReply,
