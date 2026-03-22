@@ -94,6 +94,9 @@ export default function AdminDashboard() {
             <TabsContent value="insights" className="space-y-6">
               <InsightsSection />
             </TabsContent>
+            <TabsContent value="assistant" className="space-y-6">
+              <PlatformAssistant />
+            </TabsContent>
             <TabsContent value="health">
               <HealthSection />
             </TabsContent>
