@@ -1,49 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { getLeanAttribution } from "@/lib/attribution";
+import type { EventName } from "@/lib/eventTaxonomy";
 
-/**
- * Approved event taxonomy — use ONLY these event names.
- *
- * Job lifecycle:
- *   job_created, job_posted, job_updated, job_viewed,
- *   job_sent_to_workers, job_viewed_by_worker,
- *   job_response_received, job_shortlisted, job_awarded,
- *   job_started, job_completed, job_disputed
- *
- * Wizard:
- *   job_wizard_started, wizard_step_completed,
- *   wizard_abandoned, wizard_completed
- *
- * Worker:
- *   worker_notified, worker_viewed_job, worker_responded,
- *   worker_ignored_job, worker_hired, worker_completed_job
- *
- * Conversations:
- *   conversation_started, message_sent
- *
- * Quotes:
- *   quote_submitted, quote_revised, quote_viewed
- *
- * Trust:
- *   review_submitted, worker_flagged, worker_restricted, client_flagged
- *
- * Payments (future):
- *   payment_intent_created, payment_succeeded, payment_failed,
- *   deposit_paid, refund_issued
- *
- * Listings:
- *   listing_published, listing_paused
- *
- * Admin:
- *   admin_viewed_insight_panel, admin_archived_job,
- *   admin_suspended_user
- *
- * Onboarding:
- *   pro_onboarding_started, pro_onboarding_step_completed,
- *   pro_onboarding_step_entered, pro_profile_published,
- *   onboarding_step_failed
- */
+/** Re-export for convenience */
+export type { EventName } from "@/lib/eventTaxonomy";
 
 /** Optional structured fields merged into metadata for richer analytics. */
 export interface TrackEventFields {
@@ -62,20 +23,24 @@ export interface TrackEventFields {
  * Fire-and-forget — errors are logged but not thrown.
  * Auto-injects attribution (session_id, ref, utm_source, utm_campaign).
  *
- * @param eventName  Approved event name from taxonomy above
+ * Merge order: attribution < freeform metadata < typed fields.
+ * Typed fields are authoritative and cannot be overwritten by metadata.
+ *
+ * @param eventName  Approved event name from EventName type
  * @param role       Actor role
- * @param metadata   Arbitrary extra data (merged after typed fields)
- * @param fields     Optional typed fields for structured analytics
+ * @param metadata   Arbitrary extra data (merged before typed fields)
+ * @param fields     Optional typed fields — these win over metadata
  */
 export async function trackEvent(
-  eventName: string,
+  eventName: EventName,
   role: "client" | "professional" | "admin" = "client",
   metadata: Record<string, unknown> = {},
   fields?: TrackEventFields
 ) {
   try {
     const attribution = getLeanAttribution();
-    const enriched = { ...attribution, ...fields, ...metadata };
+    // Fields win: attribution < metadata < fields
+    const enriched = { ...attribution, ...metadata, ...fields };
 
     await supabase.rpc("track_event", {
       p_event_name: eventName,
