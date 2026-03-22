@@ -47,7 +47,7 @@ export async function verifyProfessional({
     return { success: false, error: 'Failed to update verification status. Please try again.' };
   }
 
-  trackEvent('admin_verified_professional', 'admin', { userId, status });
+  trackEvent('admin_verified_professional', 'admin', { user_id: userId, status });
 
   // Log the action
   await supabase.from('admin_actions_log').insert({

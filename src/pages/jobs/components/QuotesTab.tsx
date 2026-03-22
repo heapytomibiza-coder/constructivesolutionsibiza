@@ -34,7 +34,7 @@ export function QuotesTab({ jobId, isOwner }: QuotesTabProps) {
   useEffect(() => {
     if (isOwner && allQuotes && allQuotes.length > 0 && !trackedRef.current) {
       trackedRef.current = true;
-      trackEvent('quote_viewed', 'client', { jobId, quoteCount: allQuotes.length });
+      trackEvent('quote_viewed', 'client', { quote_count: allQuotes.length }, { job_id: jobId });
     }
   }, [isOwner, allQuotes, jobId]);
 

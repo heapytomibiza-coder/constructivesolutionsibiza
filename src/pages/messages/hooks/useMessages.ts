@@ -123,7 +123,7 @@ export function useSendMessage(conversationId: string | undefined, senderId: str
       // Invalidate conversations list in background (don't block/re-render thread)
       queryClient.invalidateQueries({ queryKey: ["conversations"], refetchType: 'none' });
       // Track message_sent for engagement velocity
-      trackEvent('message_sent', 'client', { conversationId });
+      trackEvent('message_sent', 'client', { conversation_id: conversationId });
     },
   });
 

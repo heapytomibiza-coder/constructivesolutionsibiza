@@ -24,6 +24,6 @@ export async function withdrawQuote(
     return { success: false, error: "Failed to withdraw quote" };
   }
 
-  trackEvent("quote_withdrawn", "professional", { jobId });
+  trackEvent("quote_withdrawn", "professional", {}, { job_id: jobId });
   return { success: true };
 }

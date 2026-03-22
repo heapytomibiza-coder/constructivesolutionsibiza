@@ -43,7 +43,7 @@ export async function archiveJob(
     return { success: false, error: "Failed to archive job. Please try again." };
   }
 
-  trackEvent('admin_archived_job', 'admin', { jobId, reason });
+  trackEvent('admin_archived_job', 'admin', { reason }, { job_id: jobId });
 
   // Log admin action
   const { error: logError } = await supabase.from("admin_actions_log").insert({

@@ -45,7 +45,7 @@ export async function suspendUser({ userId, reason }: SuspendUserParams): Promis
     return { success: false, error: 'Failed to suspend user. Please try again.' };
   }
 
-  trackEvent('admin_suspended_user', 'admin', { userId, reason });
+  trackEvent('admin_suspended_user', 'admin', { user_id: userId, reason });
 
   // Log the action
   await supabase.from('admin_actions_log').insert({

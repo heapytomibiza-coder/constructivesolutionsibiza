@@ -69,7 +69,7 @@ export async function startConversation(
     throw new Error("Conversation ID not returned");
   }
 
-  trackEvent('conversation_started', 'professional', { jobId, conversationId: String(data) });
+  trackEvent('conversation_started', 'professional', { conversation_id: String(data) }, { job_id: jobId });
 
   return String(data);
 }
