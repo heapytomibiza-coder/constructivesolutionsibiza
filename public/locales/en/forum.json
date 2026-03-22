@@ -44,7 +44,12 @@
     "newIn": "New Post in {{category}}",
     "photo": "photo",
     "photos_plural": "photos",
-    "addPhoto": "Add"
+    "addPhoto": "Add",
+    "edit": "Edit Post",
+    "editing": "Editing Post",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "cancelEdit": "Cancel"
   },
   "replies": {
     "title": "Replies",

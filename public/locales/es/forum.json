@@ -44,7 +44,12 @@
     "newIn": "Nueva Publicación en {{category}}",
     "photo": "foto",
     "photos_plural": "fotos",
-    "addPhoto": "Añadir"
+    "addPhoto": "Añadir",
+    "edit": "Editar Publicación",
+    "editing": "Editando Publicación",
+    "save": "Guardar Cambios",
+    "saving": "Guardando...",
+    "cancelEdit": "Cancelar"
   },
   "replies": {
     "title": "Respuestas",
