@@ -214,7 +214,7 @@ function ExpandableSection({
 }) {
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={onOpenChange}>
       <Card className={severity === "danger" ? "border-destructive/30" : ""}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4">
