@@ -10,6 +10,8 @@ import { Rocket, Loader2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useActionOutcomes } from "../hooks/useActionOutcomes";
+import { ActionOutcomeBadge } from "../components/ActionOutcomeBadge";
 
 function gapColor(score: number): string {
   if (score >= 0.7) return "bg-red-100 text-red-800 border-red-200";
