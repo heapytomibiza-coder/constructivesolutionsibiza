@@ -109,7 +109,7 @@ function NotifyProsButton({ jobId, outcome }: { jobId: string; outcome?: import(
   );
 }
 
-function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | undefined; isLoading: boolean; threshold: number }) {
+function JobTable({ data, isLoading, threshold, notifyOutcomes }: { data: UnansweredJob[] | undefined; isLoading: boolean; threshold: number; notifyOutcomes?: import("../hooks/useActionOutcomes").ActionOutcome[] }) {
   const { openDrawer } = useAdminDrawer();
   if (isLoading) {
     return (
