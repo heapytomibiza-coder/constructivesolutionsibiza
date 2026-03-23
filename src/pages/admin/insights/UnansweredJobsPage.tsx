@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, AlertTriangle, Clock, MessageSquare } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Clock, MessageSquare, Bell, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUnansweredJobs, useNoProReplyJobs, type UnansweredJob } from "../hooks/useUnansweredJobs";
 import {
@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { useAdminDrawer } from "../context/AdminDrawerContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function urgencyColor(hours: number) {
   if (hours >= 48) return "bg-red-100 text-red-800 border-red-200";
