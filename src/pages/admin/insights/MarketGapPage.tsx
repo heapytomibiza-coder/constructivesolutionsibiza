@@ -24,6 +24,7 @@ export default function MarketGapPage() {
   const now = useMemo(() => new Date().toISOString(), []);
   const from = useMemo(() => subDays(new Date(), 30).toISOString(), []);
   const { data, isLoading } = useMarketGap(from, now);
+  const { data: boostOutcomes } = useActionOutcomes(["boost_category"]);
 
   // Build grid structure
   const areas = useMemo(() => [...new Set(data?.map((d) => d.area) ?? [])].sort(), [data]);
