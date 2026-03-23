@@ -7,13 +7,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, MessageSquare, Clock, AlertTriangle, TrendingUp,
-  Users, Zap, Timer,
+  Users, Zap, Timer, Mail, Loader2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
   CartesianGrid,
 } from "recharts";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function formatMinutes(m: number | null): string {
   if (m == null) return "—";
