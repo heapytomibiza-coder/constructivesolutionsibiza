@@ -176,6 +176,7 @@ export default function UnansweredJobsPage() {
 
   const { data: noConvoData, isLoading: noConvoLoading } = useUnansweredJobs(threshold);
   const { data: noReplyData, isLoading: noReplyLoading } = useNoProReplyJobs(threshold);
+  const { data: notifyOutcomes } = useActionOutcomes(["notify_matching_pros"]);
 
   const activeData = tier === "no_conversation" ? noConvoData : noReplyData;
   const activeLoading = tier === "no_conversation" ? noConvoLoading : noReplyLoading;
