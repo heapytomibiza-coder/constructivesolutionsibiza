@@ -200,20 +200,21 @@ function ExpandableSection({
   icon,
   count,
   severity,
-  defaultOpen,
+  open,
+  onOpenChange,
   children,
 }: {
   title: string;
   icon: React.ReactNode;
   count?: number;
   severity?: "ok" | "warn" | "danger";
-  defaultOpen?: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen ?? false);
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={onOpenChange}>
       <Card className={severity === "danger" ? "border-destructive/30" : ""}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4">
@@ -679,7 +680,8 @@ export function HealthSection() {
           icon={<Mail className="h-4 w-4 text-muted-foreground" />}
           count={(data?.emails.pending ?? 0) + (data?.emails.failed ?? 0)}
           severity={emailSeverity}
-          defaultOpen={emailsOpen || (data?.emails.failed ?? 0) > 0}
+          open={emailsOpen || (data?.emails.failed ?? 0) > 0}
+          onOpenChange={setEmailsOpen}
         >
           <EmailQueuePanel />
         </ExpandableSection>
@@ -687,7 +689,8 @@ export function HealthSection() {
         <ExpandableSection
           title="Client Errors"
           icon={<Bug className="h-4 w-4 text-muted-foreground" />}
-          defaultOpen={errorsOpen}
+          open={errorsOpen}
+          onOpenChange={setErrorsOpen}
         >
           <ErrorEventsPanel />
         </ExpandableSection>
@@ -695,7 +698,8 @@ export function HealthSection() {
         <ExpandableSection
           title="Network Failures"
           icon={<Wifi className="h-4 w-4 text-muted-foreground" />}
-          defaultOpen={networkOpen}
+          open={networkOpen}
+          onOpenChange={setNetworkOpen}
         >
           <NetworkFailuresPanel />
         </ExpandableSection>
