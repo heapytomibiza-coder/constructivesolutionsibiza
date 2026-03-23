@@ -86,16 +86,26 @@ function NotifyProsButton({ jobId, outcome }: { jobId: string; outcome?: import(
   });
 
   return (
-    <Button
-      size="sm"
-      variant="outline"
-      className="h-7 text-xs gap-1"
-      onClick={(e) => { e.stopPropagation(); mutation.mutate(); }}
-      disabled={mutation.isPending}
-    >
-      {mutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bell className="h-3 w-3" />}
-      Notify Pros
-    </Button>
+    <div className="flex items-center gap-1">
+      {outcome && (
+        <ActionOutcomeBadge
+          status={outcome.outcome_status}
+          createdAt={outcome.created_at}
+          details={outcome.outcome_details}
+          compact
+        />
+      )}
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-7 text-xs gap-1"
+        onClick={(e) => { e.stopPropagation(); mutation.mutate(); }}
+        disabled={mutation.isPending}
+      >
+        {mutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bell className="h-3 w-3" />}
+        Notify Pros
+      </Button>
+    </div>
   );
 }
 
