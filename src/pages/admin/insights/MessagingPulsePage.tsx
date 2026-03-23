@@ -7,13 +7,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, MessageSquare, Clock, AlertTriangle, TrendingUp,
-  Users, Zap, Timer,
+  Users, Zap, Timer, Mail, Loader2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
   CartesianGrid,
 } from "recharts";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function formatMinutes(m: number | null): string {
   if (m == null) return "—";
@@ -196,30 +199,7 @@ export default function MessagingPulsePage() {
                 </p>
                 <div className="space-y-2">
                   {data.stale_conversations.map((sc) => (
-                    <Card key={sc.id}>
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{sc.job_title}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {[sc.category, sc.area].filter(Boolean).join(" • ")}
-                            {sc.pro_name && ` — ${sc.pro_name}`}
-                          </p>
-                          {sc.last_message_preview && (
-                            <p className="text-xs text-muted-foreground mt-1 truncate italic">
-                              "{sc.last_message_preview}"
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right shrink-0">
-                          <Badge variant={sc.hours_silent > 96 ? "destructive" : "secondary"} className="text-xs">
-                            {Math.round(sc.hours_silent)}h silent
-                          </Badge>
-                          <p className="text-[10px] text-muted-foreground mt-1">
-                            {formatDistanceToNow(new Date(sc.last_message_at), { addSuffix: true })}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <StaleConversationCard key={sc.id} conversation={sc} />
                   ))}
                 </div>
               </section>
@@ -270,6 +250,63 @@ function StatCard({ icon, label, value, subtitle }: {
           <p className="text-xs text-muted-foreground">{label}</p>
           <p className="text-xl font-bold">{value}</p>
           {subtitle && <p className="text-[10px] text-muted-foreground">{subtitle}</p>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StaleConversationCard({ conversation: sc }: { conversation: import("../hooks/useMessagingPulse").StaleConversation }) {
+  const nudge = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("admin_nudge_client", {
+        p_conversation_id: sc.id,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success(`Nudge sent for "${sc.job_title}"`);
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Nudge failed");
+    },
+  });
+
+  return (
+    <Card>
+      <CardContent className="p-4 flex items-center gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm truncate">{sc.job_title}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            {[sc.category, sc.area].filter(Boolean).join(" • ")}
+            {sc.pro_name && ` — ${sc.pro_name}`}
+          </p>
+          {sc.last_message_preview && (
+            <p className="text-xs text-muted-foreground mt-1 truncate italic">
+              "{sc.last_message_preview}"
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="text-right">
+            <Badge variant={sc.hours_silent > 96 ? "destructive" : "secondary"} className="text-xs">
+              {Math.round(sc.hours_silent)}h silent
+            </Badge>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {formatDistanceToNow(new Date(sc.last_message_at), { addSuffix: true })}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1"
+            onClick={() => nudge.mutate()}
+            disabled={nudge.isPending || nudge.isSuccess}
+          >
+            {nudge.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+            {nudge.isSuccess ? "Sent" : "Nudge"}
+          </Button>
         </div>
       </CardContent>
     </Card>

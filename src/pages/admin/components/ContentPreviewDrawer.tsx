@@ -1,7 +1,7 @@
 /**
  * Content Preview Drawer
- * Shows full post/reply content, photos, thread context, and author info
- * before moderation decisions.
+ * Fetches canonical record from DB for moderation accuracy.
+ * Shows full content, photos, thread context, and author profile link.
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -39,35 +39,106 @@ interface ContentPreviewDrawerProps {
   onDelete: (item: AdminContentItem) => void;
 }
 
-/** Fetch thread context: if it's a reply, get the parent post + sibling replies */
-function useThreadContext(item: AdminContentItem | null) {
-  const postId = item?.type === "reply" ? item.postId : item?.type === "post" ? item.id : null;
+interface CanonicalPost {
+  id: string;
+  title: string;
+  content: string;
+  author_id: string;
+  author_display_name: string | null;
+  created_at: string | null;
+  reply_count: number | null;
+  view_count: number | null;
+  tags: string[] | null;
+  photos: string[] | null;
+  category_id: string;
+}
 
+interface CanonicalReply {
+  id: string;
+  content: string;
+  author_id: string;
+  author_display_name: string | null;
+  created_at: string | null;
+  post_id: string;
+}
+
+interface CanonicalData {
+  post: CanonicalPost | null;
+  reply: CanonicalReply | null;
+  threadReplies: Array<{
+    id: string;
+    content: string;
+    author_id: string;
+    author_display_name: string | null;
+    created_at: string | null;
+  }>;
+}
+
+/**
+ * Fetches the canonical record from DB — the single source of truth
+ * for moderation, not the list table's potentially stale/truncated data.
+ */
+function useCanonicalContent(item: AdminContentItem | null, enabled: boolean) {
   return useQuery({
-    queryKey: ["admin", "content", "thread", postId],
-    queryFn: async () => {
-      if (!postId) return null;
+    queryKey: ["admin", "content", "canonical", item?.type, item?.id],
+    queryFn: async (): Promise<CanonicalData> => {
+      if (!item) throw new Error("No item");
 
-      const [postRes, repliesRes] = await Promise.all([
-        supabase
-          .from("forum_posts")
-          .select("id, title, content, author_display_name, created_at, reply_count, view_count, tags, photos, category_id")
-          .eq("id", postId)
-          .maybeSingle(),
-        supabase
+      if (item.type === "post") {
+        const [postRes, repliesRes] = await Promise.all([
+          supabase
+            .from("forum_posts")
+            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id")
+            .eq("id", item.id)
+            .maybeSingle(),
+          supabase
+            .from("forum_replies")
+            .select("id, content, author_id, author_display_name, created_at")
+            .eq("post_id", item.id)
+            .order("created_at", { ascending: true })
+            .limit(20),
+        ]);
+
+        return {
+          post: postRes.data as CanonicalPost | null,
+          reply: null,
+          threadReplies: repliesRes.data ?? [],
+        };
+      } else {
+        // Reply: fetch the reply itself, its parent post, and sibling replies
+        const replyRes = await supabase
           .from("forum_replies")
-          .select("id, content, author_display_name, created_at")
-          .eq("post_id", postId)
-          .order("created_at", { ascending: true })
-          .limit(20),
-      ]);
+          .select("id, content, author_id, author_display_name, created_at, post_id")
+          .eq("id", item.id)
+          .maybeSingle();
 
-      return {
-        post: postRes.data,
-        replies: repliesRes.data ?? [],
-      };
+        const postId = replyRes.data?.post_id;
+        if (!postId) {
+          return { post: null, reply: replyRes.data as CanonicalReply | null, threadReplies: [] };
+        }
+
+        const [postRes, repliesRes] = await Promise.all([
+          supabase
+            .from("forum_posts")
+            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id")
+            .eq("id", postId)
+            .maybeSingle(),
+          supabase
+            .from("forum_replies")
+            .select("id, content, author_id, author_display_name, created_at")
+            .eq("post_id", postId)
+            .order("created_at", { ascending: true })
+            .limit(20),
+        ]);
+
+        return {
+          post: postRes.data as CanonicalPost | null,
+          reply: replyRes.data as CanonicalReply | null,
+          threadReplies: repliesRes.data ?? [],
+        };
+      }
     },
-    enabled: !!postId,
+    enabled: enabled && !!item,
   });
 }
 
@@ -77,11 +148,32 @@ export function ContentPreviewDrawer({
   onOpenChange,
   onDelete,
 }: ContentPreviewDrawerProps) {
-  const { data: thread, isLoading: threadLoading } = useThreadContext(open ? item : null);
+  const { data: canonical, isLoading } = useCanonicalContent(item, open);
 
   if (!item) return null;
 
   const isPost = item.type === "post";
+
+  // Use canonical data when available, fall back to list item for immediate display
+  const displayContent = isPost
+    ? canonical?.post?.content ?? item.content
+    : canonical?.reply?.content ?? item.content;
+  const displayAuthorName = isPost
+    ? canonical?.post?.author_display_name ?? item.authorName
+    : canonical?.reply?.author_display_name ?? item.authorName;
+  const displayAuthorId = isPost
+    ? canonical?.post?.author_id ?? item.authorId
+    : canonical?.reply?.author_id ?? item.authorId;
+  const displayTitle = isPost
+    ? canonical?.post?.title ?? item.title
+    : canonical?.post?.title ?? item.postTitle;
+  const displayPhotos = canonical?.post?.photos ?? item.photos ?? [];
+  const displayTags = canonical?.post?.tags ?? [];
+  const displayReplyCount = canonical?.post?.reply_count ?? item.replyCount ?? 0;
+  const displayViewCount = canonical?.post?.view_count ?? 0;
+  const displayCreatedAt = isPost
+    ? canonical?.post?.created_at ?? item.createdAt
+    : canonical?.reply?.created_at ?? item.createdAt;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -99,9 +191,14 @@ export function ContentPreviewDrawer({
                 Reply
               </Badge>
             )}
+            {isLoading && (
+              <Badge variant="outline" className="text-[10px] animate-pulse">
+                Loading…
+              </Badge>
+            )}
           </div>
           <SheetTitle className="text-left">
-            {isPost ? item.title || "Untitled Post" : `Reply to: ${item.postTitle || "Unknown Post"}`}
+            {isPost ? displayTitle || "Untitled Post" : `Reply to: ${displayTitle || "Unknown Post"}`}
           </SheetTitle>
           <SheetDescription className="text-left">
             Full content preview for moderation review
@@ -116,27 +213,34 @@ export function ContentPreviewDrawer({
                 <User className="h-4 w-4 text-muted-foreground" />
               </div>
               <div>
-                <div className="text-sm font-medium">{item.authorName || "Unknown"}</div>
+                <button
+                  className="text-sm font-medium hover:underline text-left"
+                  onClick={() => {
+                    if (displayAuthorId) {
+                      // Navigate to admin user detail — open in current tab context
+                      window.open(`/dashboard/admin?tab=users&user=${displayAuthorId}`, "_blank");
+                    }
+                  }}
+                  title={displayAuthorId ? `View user ${displayAuthorId.slice(0, 8)}…` : undefined}
+                >
+                  {displayAuthorName || "Unknown"}
+                </button>
                 <div className="text-xs text-muted-foreground flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  {item.createdAt ? format(new Date(item.createdAt), "PPP 'at' p") : "—"}
+                  {displayCreatedAt ? format(new Date(displayCreatedAt), "PPP 'at' p") : "—"}
                 </div>
               </div>
             </div>
             {isPost && (
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                {thread?.post?.view_count != null && (
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    {thread.post.view_count}
-                  </span>
-                )}
-                {item.replyCount != null && (
-                  <span className="flex items-center gap-1">
-                    <MessageCircle className="h-3 w-3" />
-                    {item.replyCount}
-                  </span>
-                )}
+                <span className="flex items-center gap-1">
+                  <Eye className="h-3 w-3" />
+                  {displayViewCount}
+                </span>
+                <span className="flex items-center gap-1">
+                  <MessageCircle className="h-3 w-3" />
+                  {displayReplyCount}
+                </span>
               </div>
             )}
           </div>
@@ -148,20 +252,24 @@ export function ContentPreviewDrawer({
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Full Content
             </h4>
-            <div className="prose prose-sm max-w-none text-foreground bg-muted/30 rounded-lg p-4 whitespace-pre-wrap break-words">
-              {item.content}
-            </div>
+            {isLoading ? (
+              <Skeleton className="h-24 w-full rounded-lg" />
+            ) : (
+              <div className="prose prose-sm max-w-none text-foreground bg-muted/30 rounded-lg p-4 whitespace-pre-wrap break-words">
+                {displayContent}
+              </div>
+            )}
           </div>
 
           {/* Photos */}
-          {isPost && item.photos && item.photos.length > 0 && (
+          {isPost && displayPhotos.length > 0 && (
             <div>
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
                 <ImageIcon className="h-3 w-3" />
-                Photos ({item.photos.length})
+                Photos ({displayPhotos.length})
               </h4>
               <div className="grid grid-cols-2 gap-2">
-                {item.photos.map((url, i) => (
+                {displayPhotos.map((url, i) => (
                   <a
                     key={i}
                     href={url}
@@ -182,14 +290,14 @@ export function ContentPreviewDrawer({
           )}
 
           {/* Tags */}
-          {isPost && thread?.post?.tags && thread.post.tags.length > 0 && (
+          {isPost && displayTags.length > 0 && (
             <div>
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
                 <Hash className="h-3 w-3" />
                 Tags
               </h4>
               <div className="flex flex-wrap gap-1.5">
-                {thread.post.tags.map((tag: string) => (
+                {displayTags.map((tag) => (
                   <Badge key={tag} variant="secondary" className="text-xs">
                     {tag}
                   </Badge>
@@ -205,35 +313,35 @@ export function ContentPreviewDrawer({
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Thread Context
             </h4>
-            {threadLoading ? (
+            {isLoading ? (
               <div className="space-y-2">
                 <Skeleton className="h-16 w-full" />
                 <Skeleton className="h-12 w-full" />
               </div>
-            ) : !thread ? (
+            ) : !canonical ? (
               <p className="text-sm text-muted-foreground">No thread data available</p>
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {/* Parent post (if viewing a reply) */}
-                {!isPost && thread.post && (
+                {!isPost && canonical.post && (
                   <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-1">
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <FileText className="h-3 w-3" />
                       <span className="font-medium text-foreground">
-                        {thread.post.author_display_name || "Unknown"}
+                        {canonical.post.author_display_name || "Unknown"}
                       </span>
                       <span>·</span>
                       <span>Original Post</span>
                     </div>
-                    <div className="text-sm font-medium">{thread.post.title}</div>
+                    <div className="text-sm font-medium">{canonical.post.title}</div>
                     <div className="text-sm text-muted-foreground line-clamp-3">
-                      {thread.post.content}
+                      {canonical.post.content}
                     </div>
                   </div>
                 )}
 
                 {/* Replies in thread */}
-                {thread.replies.map((reply) => {
+                {canonical.threadReplies.map((reply) => {
                   const isCurrentItem = reply.id === item.id;
                   return (
                     <div
@@ -268,7 +376,7 @@ export function ContentPreviewDrawer({
                   );
                 })}
 
-                {thread.replies.length === 0 && isPost && (
+                {canonical.threadReplies.length === 0 && isPost && (
                   <p className="text-sm text-muted-foreground py-2">No replies yet</p>
                 )}
               </div>

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, AlertTriangle, Clock, MessageSquare } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Clock, MessageSquare, Bell, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUnansweredJobs, useNoProReplyJobs, type UnansweredJob } from "../hooks/useUnansweredJobs";
 import {
@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { useAdminDrawer } from "../context/AdminDrawerContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function urgencyColor(hours: number) {
   if (hours >= 48) return "bg-red-100 text-red-800 border-red-200";
@@ -58,6 +61,42 @@ function BreakdownCards({ data }: { data: UnansweredJob[] | undefined }) {
   );
 }
 
+function NotifyProsButton({ jobId }: { jobId: string }) {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("admin_notify_matching_pros", { p_job_id: jobId });
+      if (error) throw error;
+      return data as unknown as { success: boolean; pros_notified: number };
+    },
+    onSuccess: (result) => {
+      const count = (result as any)?.pros_notified ?? 0;
+      if (count > 0) {
+        toast.success(`Notified ${count} matching pro${count !== 1 ? "s" : ""}`);
+      } else {
+        toast.info("No matching pros found to notify");
+      }
+      queryClient.invalidateQueries({ queryKey: ["admin", "unanswered_jobs"] });
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Failed to notify pros");
+    },
+  });
+
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      className="h-7 text-xs gap-1"
+      onClick={(e) => { e.stopPropagation(); mutation.mutate(); }}
+      disabled={mutation.isPending}
+    >
+      {mutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bell className="h-3 w-3" />}
+      Notify Pros
+    </Button>
+  );
+}
+
 function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | undefined; isLoading: boolean; threshold: number }) {
   const { openDrawer } = useAdminDrawer();
   if (isLoading) {
@@ -87,6 +126,7 @@ function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | unde
             <TableHead>Budget</TableHead>
             <TableHead>Waiting</TableHead>
             <TableHead>Posted</TableHead>
+            <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -105,6 +145,9 @@ function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | unde
               </TableCell>
               <TableCell className="text-muted-foreground text-xs">
                 {format(new Date(job.created_at), "MMM d, HH:mm")}
+              </TableCell>
+              <TableCell className="text-right">
+                <NotifyProsButton jobId={job.id} />
               </TableCell>
             </TableRow>
           ))}

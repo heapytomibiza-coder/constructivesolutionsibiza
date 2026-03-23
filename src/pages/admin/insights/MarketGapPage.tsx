@@ -1,10 +1,15 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useMarketGap } from "../hooks/useMarketGap";
 import { subDays } from "date-fns";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Rocket, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function gapColor(score: number): string {
   if (score >= 0.7) return "bg-red-100 text-red-800 border-red-200";
@@ -103,21 +108,7 @@ export default function MarketGapPage() {
           <CardContent>
             <div className="space-y-2">
               {data.filter((d) => d.gap_score >= 0.5).slice(0, 5).map((d, i) => (
-                <div key={i} className="flex items-center justify-between p-2 rounded-lg border">
-                  <div>
-                    <span className="font-medium capitalize">{d.category.replace(/-/g, " ")}</span>
-                    <span className="text-muted-foreground"> in </span>
-                    <span className="font-medium">{d.area}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span>{d.demand_count} jobs</span>
-                    <span className="text-muted-foreground">vs</span>
-                    <span>{d.supply_count} pros</span>
-                    <Badge className={gapColor(d.gap_score)}>
-                      {d.gap_score.toFixed(2)}
-                    </Badge>
-                  </div>
-                </div>
+                <TopShortageRow key={i} category={d.category} area={d.area} demandCount={d.demand_count} supplyCount={d.supply_count} gapScore={d.gap_score} />
               ))}
               {data.filter((d) => d.gap_score >= 0.5).length === 0 && (
                 <p className="text-sm text-muted-foreground">No significant shortages detected.</p>
@@ -126,6 +117,55 @@ export default function MarketGapPage() {
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function TopShortageRow({ category, area, demandCount, supplyCount, gapScore }: {
+  category: string; area: string; demandCount: number; supplyCount: number; gapScore: number;
+}) {
+  const boost = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("admin_boost_category", {
+        p_category: category,
+        p_area: area,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success(`Boosted ${category.replace(/-/g, " ")} in ${area}`);
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Boost failed");
+    },
+  });
+
+  return (
+    <div className="flex items-center justify-between p-2 rounded-lg border">
+      <div>
+        <span className="font-medium capitalize">{category.replace(/-/g, " ")}</span>
+        <span className="text-muted-foreground"> in </span>
+        <span className="font-medium">{area}</span>
+      </div>
+      <div className="flex items-center gap-3 text-sm">
+        <span>{demandCount} jobs</span>
+        <span className="text-muted-foreground">vs</span>
+        <span>{supplyCount} pros</span>
+        <Badge className={gapColor(gapScore)}>
+          {gapScore.toFixed(2)}
+        </Badge>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs gap-1 ml-1"
+          onClick={() => boost.mutate()}
+          disabled={boost.isPending || boost.isSuccess}
+        >
+          {boost.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Rocket className="h-3 w-3" />}
+          {boost.isSuccess ? "Boosted" : "Boost"}
+        </Button>
+      </div>
     </div>
   );
 }
