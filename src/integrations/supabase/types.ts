@@ -3139,6 +3139,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_boost_category: {
+        Args: { p_area: string; p_category: string }
+        Returns: Json
+      }
       admin_email_queue_details: { Args: never; Returns: Json }
       admin_health_snapshot: { Args: never; Returns: Json }
       admin_market_gap: {
@@ -3183,6 +3187,8 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_notify_matching_pros: { Args: { p_job_id: string }; Returns: Json }
+      admin_nudge_client: { Args: { p_conversation_id: string }; Returns: Json }
       admin_onboarding_funnel: {
         Args: { p_from_ts?: string; p_to_ts?: string }
         Returns: Json
