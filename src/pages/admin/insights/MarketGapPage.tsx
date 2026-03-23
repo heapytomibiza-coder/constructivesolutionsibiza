@@ -110,9 +110,14 @@ export default function MarketGapPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {data.filter((d) => d.gap_score >= 0.5).slice(0, 5).map((d, i) => (
-                <TopShortageRow key={i} category={d.category} area={d.area} demandCount={d.demand_count} supplyCount={d.supply_count} gapScore={d.gap_score} />
-              ))}
+              {data.filter((d) => d.gap_score >= 0.5).slice(0, 5).map((d, i) => {
+                const outcome = boostOutcomes?.find(
+                  (o) => o.action_metadata?.category === d.category && o.action_metadata?.area === d.area
+                );
+                return (
+                  <TopShortageRow key={i} category={d.category} area={d.area} demandCount={d.demand_count} supplyCount={d.supply_count} gapScore={d.gap_score} outcome={outcome} />
+                );
+              })}
               {data.filter((d) => d.gap_score >= 0.5).length === 0 && (
                 <p className="text-sm text-muted-foreground">No significant shortages detected.</p>
               )}
