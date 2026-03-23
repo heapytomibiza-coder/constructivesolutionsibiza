@@ -1,10 +1,15 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useMarketGap } from "../hooks/useMarketGap";
 import { subDays } from "date-fns";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Rocket, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function gapColor(score: number): string {
   if (score >= 0.7) return "bg-red-100 text-red-800 border-red-200";
