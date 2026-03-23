@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useAdminStats } from "../hooks/useAdminStats";
 import { useLatestJobs, type LatestJob } from "../hooks/useLatestJobs";
 import { useAdminAlerts } from "../hooks/useAdminAlerts";
+import { AdminActionsPanel } from "../components/AdminActionsPanel";
 import type { AdminAlert } from "../hooks/useAdminAlerts";
 import { formatWhatsAppPost, copyToClipboard } from "../lib/formatWhatsAppPost";
 import { Card, CardContent } from "@/components/ui/card";
