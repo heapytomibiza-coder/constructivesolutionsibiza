@@ -200,17 +200,18 @@ function ExpandableSection({
   icon,
   count,
   severity,
-  defaultOpen,
+  open,
+  onOpenChange,
   children,
 }: {
   title: string;
   icon: React.ReactNode;
   count?: number;
   severity?: "ok" | "warn" | "danger";
-  defaultOpen?: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen ?? false);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
