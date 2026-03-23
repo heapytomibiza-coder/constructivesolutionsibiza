@@ -258,7 +258,10 @@ function StatCard({ icon, label, value, subtitle }: {
   );
 }
 
-function StaleConversationCard({ conversation: sc }: { conversation: import("../hooks/useMessagingPulse").StaleConversation }) {
+function StaleConversationCard({ conversation: sc, outcome }: {
+  conversation: import("../hooks/useMessagingPulse").StaleConversation;
+  outcome?: import("../hooks/useActionOutcomes").ActionOutcome;
+}) {
   const nudge = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc("admin_nudge_client", {
