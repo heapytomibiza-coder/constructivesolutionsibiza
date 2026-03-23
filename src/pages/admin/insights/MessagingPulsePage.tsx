@@ -17,6 +17,8 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useActionOutcomes } from "../hooks/useActionOutcomes";
+import { ActionOutcomeBadge } from "../components/ActionOutcomeBadge";
 
 function formatMinutes(m: number | null): string {
   if (m == null) return "—";
@@ -37,6 +39,7 @@ export default function MessagingPulsePage() {
   const navigate = useNavigate();
   const [days, setDays] = useState(30);
   const { data, isLoading, error } = useMessagingPulse(days);
+  const { data: nudgeOutcomes } = useActionOutcomes(["nudge_client"]);
 
   if (error) {
     return (
@@ -199,7 +202,11 @@ export default function MessagingPulsePage() {
                 </p>
                 <div className="space-y-2">
                   {data.stale_conversations.map((sc) => (
-                    <StaleConversationCard key={sc.id} conversation={sc} />
+                    <StaleConversationCard
+                      key={sc.id}
+                      conversation={sc}
+                      outcome={nudgeOutcomes?.find((o) => o.target_id === sc.id)}
+                    />
                   ))}
                 </div>
               </section>
@@ -256,7 +263,10 @@ function StatCard({ icon, label, value, subtitle }: {
   );
 }
 
-function StaleConversationCard({ conversation: sc }: { conversation: import("../hooks/useMessagingPulse").StaleConversation }) {
+function StaleConversationCard({ conversation: sc, outcome }: {
+  conversation: import("../hooks/useMessagingPulse").StaleConversation;
+  outcome?: import("../hooks/useActionOutcomes").ActionOutcome;
+}) {
   const nudge = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc("admin_nudge_client", {
@@ -297,6 +307,14 @@ function StaleConversationCard({ conversation: sc }: { conversation: import("../
               {formatDistanceToNow(new Date(sc.last_message_at), { addSuffix: true })}
             </p>
           </div>
+          {outcome && (
+            <ActionOutcomeBadge
+              status={outcome.outcome_status}
+              createdAt={outcome.created_at}
+              details={outcome.outcome_details}
+              compact
+            />
+          )}
           <Button
             size="sm"
             variant="outline"

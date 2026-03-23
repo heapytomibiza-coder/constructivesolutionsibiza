@@ -10,6 +10,8 @@ import { Rocket, Loader2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useActionOutcomes } from "../hooks/useActionOutcomes";
+import { ActionOutcomeBadge } from "../components/ActionOutcomeBadge";
 
 function gapColor(score: number): string {
   if (score >= 0.7) return "bg-red-100 text-red-800 border-red-200";
@@ -22,6 +24,7 @@ export default function MarketGapPage() {
   const now = useMemo(() => new Date().toISOString(), []);
   const from = useMemo(() => subDays(new Date(), 30).toISOString(), []);
   const { data, isLoading } = useMarketGap(from, now);
+  const { data: boostOutcomes } = useActionOutcomes(["boost_category"]);
 
   // Build grid structure
   const areas = useMemo(() => [...new Set(data?.map((d) => d.area) ?? [])].sort(), [data]);
@@ -107,9 +110,14 @@ export default function MarketGapPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {data.filter((d) => d.gap_score >= 0.5).slice(0, 5).map((d, i) => (
-                <TopShortageRow key={i} category={d.category} area={d.area} demandCount={d.demand_count} supplyCount={d.supply_count} gapScore={d.gap_score} />
-              ))}
+              {data.filter((d) => d.gap_score >= 0.5).slice(0, 5).map((d, i) => {
+                const outcome = boostOutcomes?.find(
+                  (o) => o.action_metadata?.category === d.category && o.action_metadata?.area === d.area
+                );
+                return (
+                  <TopShortageRow key={i} category={d.category} area={d.area} demandCount={d.demand_count} supplyCount={d.supply_count} gapScore={d.gap_score} outcome={outcome} />
+                );
+              })}
               {data.filter((d) => d.gap_score >= 0.5).length === 0 && (
                 <p className="text-sm text-muted-foreground">No significant shortages detected.</p>
               )}
@@ -121,8 +129,9 @@ export default function MarketGapPage() {
   );
 }
 
-function TopShortageRow({ category, area, demandCount, supplyCount, gapScore }: {
+function TopShortageRow({ category, area, demandCount, supplyCount, gapScore, outcome }: {
   category: string; area: string; demandCount: number; supplyCount: number; gapScore: number;
+  outcome?: import("../hooks/useActionOutcomes").ActionOutcome;
 }) {
   const boost = useMutation({
     mutationFn: async () => {
@@ -165,6 +174,14 @@ function TopShortageRow({ category, area, demandCount, supplyCount, gapScore }: 
           {boost.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Rocket className="h-3 w-3" />}
           {boost.isSuccess ? "Boosted" : "Boost"}
         </Button>
+        {outcome && (
+          <ActionOutcomeBadge
+            status={outcome.outcome_status}
+            createdAt={outcome.created_at}
+            details={outcome.outcome_details}
+            compact
+          />
+        )}
       </div>
     </div>
   );

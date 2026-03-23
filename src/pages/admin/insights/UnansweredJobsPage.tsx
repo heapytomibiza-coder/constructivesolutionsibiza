@@ -15,6 +15,8 @@ import { useAdminDrawer } from "../context/AdminDrawerContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useActionOutcomes } from "../hooks/useActionOutcomes";
+import { ActionOutcomeBadge } from "../components/ActionOutcomeBadge";
 
 function urgencyColor(hours: number) {
   if (hours >= 48) return "bg-red-100 text-red-800 border-red-200";
@@ -61,7 +63,7 @@ function BreakdownCards({ data }: { data: UnansweredJob[] | undefined }) {
   );
 }
 
-function NotifyProsButton({ jobId }: { jobId: string }) {
+function NotifyProsButton({ jobId, outcome }: { jobId: string; outcome?: import("../hooks/useActionOutcomes").ActionOutcome }) {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async () => {
@@ -84,20 +86,30 @@ function NotifyProsButton({ jobId }: { jobId: string }) {
   });
 
   return (
-    <Button
-      size="sm"
-      variant="outline"
-      className="h-7 text-xs gap-1"
-      onClick={(e) => { e.stopPropagation(); mutation.mutate(); }}
-      disabled={mutation.isPending}
-    >
-      {mutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bell className="h-3 w-3" />}
-      Notify Pros
-    </Button>
+    <div className="flex items-center gap-1">
+      {outcome && (
+        <ActionOutcomeBadge
+          status={outcome.outcome_status}
+          createdAt={outcome.created_at}
+          details={outcome.outcome_details}
+          compact
+        />
+      )}
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-7 text-xs gap-1"
+        onClick={(e) => { e.stopPropagation(); mutation.mutate(); }}
+        disabled={mutation.isPending}
+      >
+        {mutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bell className="h-3 w-3" />}
+        Notify Pros
+      </Button>
+    </div>
   );
 }
 
-function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | undefined; isLoading: boolean; threshold: number }) {
+function JobTable({ data, isLoading, threshold, notifyOutcomes }: { data: UnansweredJob[] | undefined; isLoading: boolean; threshold: number; notifyOutcomes?: import("../hooks/useActionOutcomes").ActionOutcome[] }) {
   const { openDrawer } = useAdminDrawer();
   if (isLoading) {
     return (
@@ -147,7 +159,7 @@ function JobTable({ data, isLoading, threshold }: { data: UnansweredJob[] | unde
                 {format(new Date(job.created_at), "MMM d, HH:mm")}
               </TableCell>
               <TableCell className="text-right">
-                <NotifyProsButton jobId={job.id} />
+                <NotifyProsButton jobId={job.id} outcome={notifyOutcomes?.find((o) => o.target_id === job.id)} />
               </TableCell>
             </TableRow>
           ))}
@@ -164,6 +176,7 @@ export default function UnansweredJobsPage() {
 
   const { data: noConvoData, isLoading: noConvoLoading } = useUnansweredJobs(threshold);
   const { data: noReplyData, isLoading: noReplyLoading } = useNoProReplyJobs(threshold);
+  const { data: notifyOutcomes } = useActionOutcomes(["notify_matching_pros"]);
 
   const activeData = tier === "no_conversation" ? noConvoData : noReplyData;
   const activeLoading = tier === "no_conversation" ? noConvoLoading : noReplyLoading;
@@ -244,7 +257,7 @@ export default function UnansweredJobsPage() {
             <Card>
               <CardHeader><CardTitle className="text-base">Jobs With No Conversation</CardTitle></CardHeader>
               <CardContent>
-                <JobTable data={noConvoData} isLoading={noConvoLoading} threshold={threshold} />
+                <JobTable data={noConvoData} isLoading={noConvoLoading} threshold={threshold} notifyOutcomes={notifyOutcomes} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -272,7 +285,7 @@ export default function UnansweredJobsPage() {
             <Card>
               <CardHeader><CardTitle className="text-base">Jobs With Conversation But No Pro Reply</CardTitle></CardHeader>
               <CardContent>
-                <JobTable data={noReplyData} isLoading={noReplyLoading} threshold={threshold} />
+                <JobTable data={noReplyData} isLoading={noReplyLoading} threshold={threshold} notifyOutcomes={notifyOutcomes} />
               </CardContent>
             </Card>
           </TabsContent>

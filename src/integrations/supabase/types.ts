@@ -3143,6 +3143,10 @@ export type Database = {
         Args: { p_area: string; p_category: string }
         Returns: Json
       }
+      admin_compute_action_outcomes: {
+        Args: { p_action_types?: string[]; p_limit?: number }
+        Returns: Json
+      }
       admin_email_queue_details: { Args: never; Returns: Json }
       admin_health_snapshot: { Args: never; Returns: Json }
       admin_market_gap: {
