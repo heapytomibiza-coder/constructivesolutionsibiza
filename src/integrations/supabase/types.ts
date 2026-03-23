@@ -3139,6 +3139,7 @@ export type Database = {
       }
     }
     Functions: {
+      admin_email_queue_details: { Args: never; Returns: Json }
       admin_health_snapshot: { Args: never; Returns: Json }
       admin_market_gap: {
         Args: { p_from_ts?: string; p_to_ts?: string }
@@ -3187,10 +3188,17 @@ export type Database = {
         Returns: Json
       }
       admin_operator_alerts: { Args: never; Returns: Json }
+      admin_recent_errors: { Args: { p_limit?: number }; Returns: Json }
+      admin_recent_network_failures: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
       admin_repeat_work: {
         Args: { p_from_ts?: string; p_to_ts?: string }
         Returns: Json
       }
+      admin_retry_all_failed_emails: { Args: never; Returns: Json }
+      admin_retry_failed_email: { Args: { p_email_id: string }; Returns: Json }
       admin_top_sources: {
         Args: { p_from_ts?: string; p_to_ts?: string }
         Returns: Json
