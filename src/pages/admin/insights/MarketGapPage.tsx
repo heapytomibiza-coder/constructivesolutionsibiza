@@ -129,8 +129,9 @@ export default function MarketGapPage() {
   );
 }
 
-function TopShortageRow({ category, area, demandCount, supplyCount, gapScore }: {
+function TopShortageRow({ category, area, demandCount, supplyCount, gapScore, outcome }: {
   category: string; area: string; demandCount: number; supplyCount: number; gapScore: number;
+  outcome?: import("../hooks/useActionOutcomes").ActionOutcome;
 }) {
   const boost = useMutation({
     mutationFn: async () => {
