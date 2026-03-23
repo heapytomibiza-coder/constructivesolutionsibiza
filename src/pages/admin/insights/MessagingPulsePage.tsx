@@ -39,6 +39,7 @@ export default function MessagingPulsePage() {
   const navigate = useNavigate();
   const [days, setDays] = useState(30);
   const { data, isLoading, error } = useMessagingPulse(days);
+  const { data: nudgeOutcomes } = useActionOutcomes(["nudge_client"]);
 
   if (error) {
     return (
