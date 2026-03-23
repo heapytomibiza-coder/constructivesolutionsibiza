@@ -63,7 +63,7 @@ function BreakdownCards({ data }: { data: UnansweredJob[] | undefined }) {
   );
 }
 
-function NotifyProsButton({ jobId }: { jobId: string }) {
+function NotifyProsButton({ jobId, outcome }: { jobId: string; outcome?: import("../hooks/useActionOutcomes").ActionOutcome }) {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async () => {
