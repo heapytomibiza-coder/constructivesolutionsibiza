@@ -239,6 +239,11 @@ export function OperatorCockpit() {
           </div>
         )}
       </section>
+
+      {/* Admin Actions with Outcome Tracking */}
+      <section>
+        <AdminActionsPanel />
+      </section>
     </div>
   );
 }

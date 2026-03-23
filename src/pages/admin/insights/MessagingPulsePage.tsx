@@ -302,6 +302,14 @@ function StaleConversationCard({ conversation: sc, outcome }: {
               {formatDistanceToNow(new Date(sc.last_message_at), { addSuffix: true })}
             </p>
           </div>
+          {outcome && (
+            <ActionOutcomeBadge
+              status={outcome.outcome_status}
+              createdAt={outcome.created_at}
+              details={outcome.outcome_details}
+              compact
+            />
+          )}
           <Button
             size="sm"
             variant="outline"
