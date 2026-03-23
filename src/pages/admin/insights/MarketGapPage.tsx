@@ -174,6 +174,14 @@ function TopShortageRow({ category, area, demandCount, supplyCount, gapScore, ou
           {boost.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Rocket className="h-3 w-3" />}
           {boost.isSuccess ? "Boosted" : "Boost"}
         </Button>
+        {outcome && (
+          <ActionOutcomeBadge
+            status={outcome.outcome_status}
+            createdAt={outcome.created_at}
+            details={outcome.outcome_details}
+            compact
+          />
+        )}
       </div>
     </div>
   );

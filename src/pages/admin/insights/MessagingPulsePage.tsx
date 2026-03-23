@@ -202,7 +202,11 @@ export default function MessagingPulsePage() {
                 </p>
                 <div className="space-y-2">
                   {data.stale_conversations.map((sc) => (
-                    <StaleConversationCard key={sc.id} conversation={sc} />
+                    <StaleConversationCard
+                      key={sc.id}
+                      conversation={sc}
+                      outcome={nudgeOutcomes?.find((o) => o.target_id === sc.id)}
+                    />
                   ))}
                 </div>
               </section>
