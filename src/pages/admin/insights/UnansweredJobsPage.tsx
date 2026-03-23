@@ -15,6 +15,8 @@ import { useAdminDrawer } from "../context/AdminDrawerContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useActionOutcomes } from "../hooks/useActionOutcomes";
+import { ActionOutcomeBadge } from "../components/ActionOutcomeBadge";
 
 function urgencyColor(hours: number) {
   if (hours >= 48) return "bg-red-100 text-red-800 border-red-200";
