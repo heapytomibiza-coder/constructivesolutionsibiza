@@ -159,7 +159,7 @@ function JobTable({ data, isLoading, threshold, notifyOutcomes }: { data: Unansw
                 {format(new Date(job.created_at), "MMM d, HH:mm")}
               </TableCell>
               <TableCell className="text-right">
-                <NotifyProsButton jobId={job.id} />
+                <NotifyProsButton jobId={job.id} outcome={notifyOutcomes?.find((o) => o.target_id === job.id)} />
               </TableCell>
             </TableRow>
           ))}
