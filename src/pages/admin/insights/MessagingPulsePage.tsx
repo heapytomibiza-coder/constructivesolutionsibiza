@@ -199,30 +199,7 @@ export default function MessagingPulsePage() {
                 </p>
                 <div className="space-y-2">
                   {data.stale_conversations.map((sc) => (
-                    <Card key={sc.id}>
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{sc.job_title}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {[sc.category, sc.area].filter(Boolean).join(" • ")}
-                            {sc.pro_name && ` — ${sc.pro_name}`}
-                          </p>
-                          {sc.last_message_preview && (
-                            <p className="text-xs text-muted-foreground mt-1 truncate italic">
-                              "{sc.last_message_preview}"
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right shrink-0">
-                          <Badge variant={sc.hours_silent > 96 ? "destructive" : "secondary"} className="text-xs">
-                            {Math.round(sc.hours_silent)}h silent
-                          </Badge>
-                          <p className="text-[10px] text-muted-foreground mt-1">
-                            {formatDistanceToNow(new Date(sc.last_message_at), { addSuffix: true })}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <StaleConversationCard key={sc.id} conversation={sc} />
                   ))}
                 </div>
               </section>
