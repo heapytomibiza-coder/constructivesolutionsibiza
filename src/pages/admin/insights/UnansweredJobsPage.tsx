@@ -257,7 +257,7 @@ export default function UnansweredJobsPage() {
             <Card>
               <CardHeader><CardTitle className="text-base">Jobs With No Conversation</CardTitle></CardHeader>
               <CardContent>
-                <JobTable data={noConvoData} isLoading={noConvoLoading} threshold={threshold} />
+                <JobTable data={noConvoData} isLoading={noConvoLoading} threshold={threshold} notifyOutcomes={notifyOutcomes} />
               </CardContent>
             </Card>
           </TabsContent>
