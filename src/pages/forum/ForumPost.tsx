@@ -29,9 +29,11 @@ import { useQueryClient } from "@tanstack/react-query";
 const ForumPost = () => {
   const { t } = useTranslation("forum");
   const { postId } = useParams<{ postId: string }>();
-  const { session } = useSession();
+  const { session, hasRole } = useSession();
+  const queryClient = useQueryClient();
   const [replyContent, setReplyContent] = useState("");
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -50,7 +52,12 @@ const ForumPost = () => {
   const createReply = useCreateReply();
   const updatePost = useUpdatePost();
 
+  const isAdmin = hasRole("admin");
   const isAuthor = session?.user?.id === post?.author_id;
+  const canManage = isAdmin || isAuthor;
+  const isLocked = post?.is_locked ?? false;
+  const isAnonymous = post?.is_anonymous ?? false;
+  const displayAuthorName = isAnonymous ? t("auth.anonymous", "Anonymous") : post?.author_display_name;
 
   // Increment view count on mount
   useEffect(() => {
