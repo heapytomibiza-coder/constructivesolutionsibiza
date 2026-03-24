@@ -47,12 +47,7 @@ export default function FunnelsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Conversion Funnels</h2>
-        <p className="text-sm text-muted-foreground">
-          Track drop-offs across client and professional journeys. Last 30 days.
-        </p>
-      </div>
+      <AdminPageHeader title="Conversion Funnels" description="Track drop-offs across client and professional journeys. Last 30 days." />
 
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2">

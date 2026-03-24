@@ -74,12 +74,7 @@ export default function PricingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Price Intelligence</h2>
-        <p className="text-sm text-muted-foreground">
-          Budget distribution and pricing benchmarks across categories. All jobs.
-        </p>
-      </div>
+      <AdminPageHeader title="Price Intelligence" description="Budget distribution and pricing benchmarks across categories. All jobs." />
 
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2">

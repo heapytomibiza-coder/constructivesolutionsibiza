@@ -37,12 +37,7 @@ export default function MarketGapPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Demand vs Supply Heatmap</h2>
-        <p className="text-sm text-muted-foreground">
-          Market Gap Index — red = shortage, green = well-served. Last 30 days.
-        </p>
-      </div>
+      <AdminPageHeader title="Demand vs Supply Heatmap" description="Market Gap Index — red = shortage, green = well-served. Last 30 days." />
 
       {isLoading ? (
         <Skeleton className="h-[400px] w-full rounded-lg" />

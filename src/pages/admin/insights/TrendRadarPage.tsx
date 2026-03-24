@@ -82,15 +82,7 @@ export default function TrendRadarPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Zap className="h-5 w-5 text-primary" />
-          Trend Radar
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Week-over-week growth by category. Spot emerging demand and seasonal shifts.
-        </p>
-      </div>
+      <AdminPageHeader title="Trend Radar" description="Week-over-week growth by category. Spot emerging demand and seasonal shifts." />
 
       <Card>
         <CardHeader>
