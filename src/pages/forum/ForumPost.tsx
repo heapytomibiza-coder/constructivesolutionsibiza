@@ -205,7 +205,7 @@ const ForumPost = () => {
     }
   };
 
-
+  if (!postLoading && !post) {
     return (
       <PublicLayout>
         <div className="container py-12 text-center">
