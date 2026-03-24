@@ -20,7 +20,6 @@ import { es, enGB } from "date-fns/locale";
 import { toast } from "sonner";
 import i18n from "@/i18n";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUserRole } from "@/contexts/RoleContext";
 
 /**
  * FORUM POST PAGE
