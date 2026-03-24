@@ -883,6 +883,8 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           id: string
+          is_anonymous: boolean
+          is_locked: boolean
           is_pinned: boolean | null
           photos: string[] | null
           reply_count: number | null
@@ -900,6 +902,8 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           id?: string
+          is_anonymous?: boolean
+          is_locked?: boolean
           is_pinned?: boolean | null
           photos?: string[] | null
           reply_count?: number | null
@@ -917,6 +921,8 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           id?: string
+          is_anonymous?: boolean
+          is_locked?: boolean
           is_pinned?: boolean | null
           photos?: string[] | null
           reply_count?: number | null
