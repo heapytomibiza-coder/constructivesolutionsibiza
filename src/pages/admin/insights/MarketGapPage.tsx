@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { AdminPageHeader } from "../components/AdminPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,12 +38,7 @@ export default function MarketGapPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Demand vs Supply Heatmap</h2>
-        <p className="text-sm text-muted-foreground">
-          Market Gap Index — red = shortage, green = well-served. Last 30 days.
-        </p>
-      </div>
+      <AdminPageHeader title="Demand vs Supply Heatmap" description="Market Gap Index — red = shortage, green = well-served. Last 30 days." />
 
       {isLoading ? (
         <Skeleton className="h-[400px] w-full rounded-lg" />

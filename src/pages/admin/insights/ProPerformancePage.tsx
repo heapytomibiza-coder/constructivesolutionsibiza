@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { AdminPageHeader } from "../components/AdminPageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,12 +83,7 @@ export default function ProPerformancePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Pro Performance Dashboard</h2>
-        <p className="text-sm text-muted-foreground">
-          Leaderboard tracking engagement, completions, and responsiveness.
-        </p>
-      </div>
+      <AdminPageHeader title="Pro Performance Dashboard" description="Leaderboard tracking engagement, completions, and responsiveness." />
 
       {/* Summary cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">

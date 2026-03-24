@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { AdminPageHeader } from "../components/AdminPageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,12 +75,7 @@ export default function PricingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Price Intelligence</h2>
-        <p className="text-sm text-muted-foreground">
-          Budget distribution and pricing benchmarks across categories. All jobs.
-        </p>
-      </div>
+      <AdminPageHeader title="Price Intelligence" description="Budget distribution and pricing benchmarks across categories. All jobs." />
 
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2">

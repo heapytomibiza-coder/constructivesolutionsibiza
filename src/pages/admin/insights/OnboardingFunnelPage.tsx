@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { AdminPageHeader } from "../components/AdminPageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -122,12 +123,7 @@ export default function OnboardingFunnelPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-lg font-semibold">Onboarding Funnel</h2>
-        <p className="text-sm text-muted-foreground">
-          Step-by-step conversion, timing, and drop-off for professional onboarding. Last 30 days.
-        </p>
-      </div>
+      <AdminPageHeader title="Onboarding Funnel" description="Step-by-step conversion, timing, and drop-off for professional onboarding. Last 30 days." />
 
       {/* Summary cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
