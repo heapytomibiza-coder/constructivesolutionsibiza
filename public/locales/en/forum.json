@@ -78,5 +78,18 @@
   },
   "buttons": {
     "cancel": "Cancel"
+  },
+  "locked": {
+    "badge": "Archived",
+    "noReplies": "This thread has been archived and is no longer accepting replies.",
+    "lockThread": "Archive Thread",
+    "unlockThread": "Reopen Thread",
+    "lockSuccess": "Thread archived",
+    "unlockSuccess": "Thread reopened",
+    "anonymizeSuccess": "Author anonymized",
+    "deanonymizeSuccess": "Author restored",
+    "makeAnonymous": "Make Anonymous",
+    "restoreAuthor": "Restore Author",
+    "actionError": "Action failed. Please try again."
   }
 }

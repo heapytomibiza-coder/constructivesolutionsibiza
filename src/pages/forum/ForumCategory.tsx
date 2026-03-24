@@ -130,9 +130,15 @@ const ForumCategory = () => {
                       {post.is_pinned && (
                         <Pin className="h-4 w-4 text-primary shrink-0 mt-1" />
                       )}
-                      <CardTitle className="text-lg font-medium leading-snug">
+                      <CardTitle className="text-lg font-medium leading-snug flex-1">
                         {post.title}
                       </CardTitle>
+                      {post.is_locked && (
+                        <Badge variant="secondary" className="shrink-0 gap-1 text-xs">
+                          <Lock className="h-3 w-3" />
+                          {t("locked.badge")}
+                        </Badge>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
