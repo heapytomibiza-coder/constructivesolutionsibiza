@@ -14,11 +14,13 @@ import { useForumPost, useForumReplies, useCreateReply, useUpdatePost } from "./
 import { useSession } from "@/contexts/SessionContext";
 import { incrementPostViewCount } from "./queries/forumQueries";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, MessageCircle, Clock, User, Send, Image, Pencil, X, ImagePlus, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Clock, User, Send, Image, Pencil, X, ImagePlus, Loader2, Lock, Unlock, EyeOff, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enGB } from "date-fns/locale";
 import { toast } from "sonner";
 import i18n from "@/i18n";
+import { useQueryClient } from "@tanstack/react-query";
+import { useUserRole } from "@/contexts/RoleContext";
 
 /**
  * FORUM POST PAGE
