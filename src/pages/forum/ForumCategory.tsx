@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useForumCategory, useForumPosts } from "./hooks/useForumData";
 import { useSession } from "@/contexts/SessionContext";
-import { ArrowLeft, Plus, MessageCircle, Pin, Clock } from "lucide-react";
+import { ArrowLeft, Plus, MessageCircle, Pin, Clock, Lock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enGB } from "date-fns/locale";
 import i18n from "@/i18n";
