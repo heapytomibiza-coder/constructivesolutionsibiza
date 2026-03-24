@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { AdminPageHeader } from "../components/AdminPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
