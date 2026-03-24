@@ -153,8 +153,12 @@ export function OperatorCockpit() {
         ) : (
           <div className="space-y-2">
             {latestJobs.map((job) => (
-              <Card key={job.id}>
-                <CardContent className="p-4 flex items-center gap-4">
+              <Card
+                key={job.id}
+                className="cursor-pointer hover:bg-accent/50 transition-colors active:bg-accent"
+                onClick={() => window.open(`/jobs/${job.id}`, "_blank")}
+              >
+                <CardContent className="p-4 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{job.title}</p>
                     <p className="text-sm text-muted-foreground truncate">
@@ -170,21 +174,21 @@ export function OperatorCockpit() {
                   <div className="flex items-center gap-1 shrink-0">
                     <Button
                       variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopyWhatsApp(job)}
+                      size="icon"
+                      className="h-10 w-10"
+                      onClick={(e) => { e.stopPropagation(); handleCopyWhatsApp(job); }}
                       title="Copy WhatsApp post"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <a
-                        href={`/jobs/${job.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Open job"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10"
+                      onClick={(e) => { e.stopPropagation(); window.open(`/jobs/${job.id}`, "_blank"); }}
+                      title="Open job"
+                    >
+                      <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
                 </CardContent>
