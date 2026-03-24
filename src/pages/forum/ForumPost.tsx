@@ -167,7 +167,45 @@ const ForumPost = () => {
     }
   };
 
-  if (!postLoading && !post) {
+  const handleToggleLock = async () => {
+    if (!postId || actionLoading) return;
+    setActionLoading(true);
+    try {
+      const newValue = !isLocked;
+      const { error } = await supabase
+        .from("forum_posts")
+        .update({ is_locked: newValue })
+        .eq("id", postId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["forum", "post", postId] });
+      toast.success(t(newValue ? "locked.lockSuccess" : "locked.unlockSuccess"));
+    } catch {
+      toast.error(t("locked.actionError"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleAnonymous = async () => {
+    if (!postId || actionLoading) return;
+    setActionLoading(true);
+    try {
+      const newValue = !isAnonymous;
+      const { error } = await supabase
+        .from("forum_posts")
+        .update({ is_anonymous: newValue })
+        .eq("id", postId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["forum", "post", postId] });
+      toast.success(t(newValue ? "locked.anonymizeSuccess" : "locked.deanonymizeSuccess"));
+    } catch {
+      toast.error(t("locked.actionError"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+
     return (
       <PublicLayout>
         <div className="container py-12 text-center">
