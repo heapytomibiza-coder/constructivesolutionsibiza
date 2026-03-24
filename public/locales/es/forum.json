@@ -78,5 +78,18 @@
   },
   "buttons": {
     "cancel": "Cancelar"
+  },
+  "locked": {
+    "badge": "Archivado",
+    "noReplies": "Este hilo ha sido archivado y ya no acepta respuestas.",
+    "lockThread": "Archivar hilo",
+    "unlockThread": "Reabrir hilo",
+    "lockSuccess": "Hilo archivado",
+    "unlockSuccess": "Hilo reabierto",
+    "anonymizeSuccess": "Autor anonimizado",
+    "deanonymizeSuccess": "Autor restaurado",
+    "makeAnonymous": "Hacer anónimo",
+    "restoreAuthor": "Restaurar autor",
+    "actionError": "Acción fallida. Inténtalo de nuevo."
   }
 }

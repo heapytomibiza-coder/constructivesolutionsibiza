@@ -23,6 +23,8 @@ export interface ForumPost {
   tags: string[];
   photos: string[];
   is_pinned: boolean;
+  is_locked: boolean;
+  is_anonymous: boolean;
   reply_count: number;
   view_count: number;
   created_at: string;

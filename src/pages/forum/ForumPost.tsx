@@ -14,11 +14,12 @@ import { useForumPost, useForumReplies, useCreateReply, useUpdatePost } from "./
 import { useSession } from "@/contexts/SessionContext";
 import { incrementPostViewCount } from "./queries/forumQueries";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, MessageCircle, Clock, User, Send, Image, Pencil, X, ImagePlus, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Clock, User, Send, Image, Pencil, X, ImagePlus, Loader2, Lock, Unlock, EyeOff, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enGB } from "date-fns/locale";
 import { toast } from "sonner";
 import i18n from "@/i18n";
+import { useQueryClient } from "@tanstack/react-query";
 
 /**
  * FORUM POST PAGE
@@ -28,9 +29,11 @@ import i18n from "@/i18n";
 const ForumPost = () => {
   const { t } = useTranslation("forum");
   const { postId } = useParams<{ postId: string }>();
-  const { session } = useSession();
+  const { session, hasRole } = useSession();
+  const queryClient = useQueryClient();
   const [replyContent, setReplyContent] = useState("");
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -49,7 +52,12 @@ const ForumPost = () => {
   const createReply = useCreateReply();
   const updatePost = useUpdatePost();
 
+  const isAdmin = hasRole("admin");
   const isAuthor = session?.user?.id === post?.author_id;
+  const canManage = isAdmin || isAuthor;
+  const isLocked = post?.is_locked ?? false;
+  const isAnonymous = post?.is_anonymous ?? false;
+  const displayAuthorName = isAnonymous ? t("auth.anonymous", "Anonymous") : post?.author_display_name;
 
   // Increment view count on mount
   useEffect(() => {
@@ -159,6 +167,44 @@ const ForumPost = () => {
     }
   };
 
+  const handleToggleLock = async () => {
+    if (!postId || actionLoading) return;
+    setActionLoading(true);
+    try {
+      const newValue = !isLocked;
+      const { error } = await supabase
+        .from("forum_posts")
+        .update({ is_locked: newValue })
+        .eq("id", postId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["forum", "post", postId] });
+      toast.success(t(newValue ? "locked.lockSuccess" : "locked.unlockSuccess"));
+    } catch {
+      toast.error(t("locked.actionError"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleAnonymous = async () => {
+    if (!postId || actionLoading) return;
+    setActionLoading(true);
+    try {
+      const newValue = !isAnonymous;
+      const { error } = await supabase
+        .from("forum_posts")
+        .update({ is_anonymous: newValue })
+        .eq("id", postId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["forum", "post", postId] });
+      toast.success(t(newValue ? "locked.anonymizeSuccess" : "locked.deanonymizeSuccess"));
+    } catch {
+      toast.error(t("locked.actionError"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (!postLoading && !post) {
     return (
       <PublicLayout>
@@ -213,8 +259,16 @@ const ForumPost = () => {
               ) : (
                 <>
                   <div className="flex items-start justify-between gap-4">
-                    <h1 className="font-display text-2xl font-bold">{post.title}</h1>
-                    {isAuthor && (
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <h1 className="font-display text-2xl font-bold">{post.title}</h1>
+                      {isLocked && (
+                        <Badge variant="secondary" className="shrink-0 gap-1">
+                          <Lock className="h-3 w-3" />
+                          {t("locked.badge")}
+                        </Badge>
+                      )}
+                    </div>
+                    {isAuthor && !isLocked && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -229,7 +283,7 @@ const ForumPost = () => {
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
                     <span className="flex items-center gap-1">
                       <User className="h-4 w-4" />
-                      {post.author_display_name}
+                      {displayAuthorName}
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
@@ -247,6 +301,33 @@ const ForumPost = () => {
                           {tag}
                         </Badge>
                       ))}
+                    </div>
+                  )}
+                  {/* Lock / Anonymize controls for admin + author */}
+                  {canManage && (
+                    <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleToggleLock}
+                        disabled={actionLoading}
+                        className="gap-1.5"
+                      >
+                        {isLocked ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                        {t(isLocked ? "locked.unlockThread" : "locked.lockThread")}
+                      </Button>
+                      {isAdmin && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleToggleAnonymous}
+                          disabled={actionLoading}
+                          className="gap-1.5"
+                        >
+                          {isAnonymous ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                          {t(isAnonymous ? "locked.restoreAuthor" : "locked.makeAnonymous")}
+                        </Button>
+                      )}
                     </div>
                   )}
                 </>
@@ -426,7 +507,16 @@ const ForumPost = () => {
         </div>
 
         {/* Reply form */}
-        {session ? (
+        {isLocked ? (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <Lock className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+              <p className="text-muted-foreground">
+                {t("locked.noReplies")}
+              </p>
+            </CardContent>
+          </Card>
+        ) : session ? (
           <Card>
             <CardContent className="pt-6">
               <form onSubmit={handleSubmitReply}>

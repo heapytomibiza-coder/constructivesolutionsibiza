@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useForumCategory, useForumPosts } from "./hooks/useForumData";
 import { useSession } from "@/contexts/SessionContext";
-import { ArrowLeft, Plus, MessageCircle, Pin, Clock } from "lucide-react";
+import { ArrowLeft, Plus, MessageCircle, Pin, Clock, Lock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, enGB } from "date-fns/locale";
 import i18n from "@/i18n";
@@ -130,9 +130,15 @@ const ForumCategory = () => {
                       {post.is_pinned && (
                         <Pin className="h-4 w-4 text-primary shrink-0 mt-1" />
                       )}
-                      <CardTitle className="text-lg font-medium leading-snug">
+                      <CardTitle className="text-lg font-medium leading-snug flex-1">
                         {post.title}
                       </CardTitle>
+                      {post.is_locked && (
+                        <Badge variant="secondary" className="shrink-0 gap-1 text-xs">
+                          <Lock className="h-3 w-3" />
+                          {t("locked.badge")}
+                        </Badge>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
