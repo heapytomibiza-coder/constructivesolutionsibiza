@@ -507,7 +507,16 @@ const ForumPost = () => {
         </div>
 
         {/* Reply form */}
-        {session ? (
+        {isLocked ? (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <Lock className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+              <p className="text-muted-foreground">
+                {t("locked.noReplies")}
+              </p>
+            </CardContent>
+          </Card>
+        ) : session ? (
           <Card>
             <CardContent className="pt-6">
               <form onSubmit={handleSubmitReply}>
