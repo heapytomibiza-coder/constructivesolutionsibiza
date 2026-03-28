@@ -4,7 +4,6 @@ import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 
 const PRICE_IDS: Record<string, string> = {
   silver: 'price_1TG3HUAsoYCrHLeBJ0XM4Ks3',
-  gold: 'price_1TG3HWAsoYCrHLeBdJC0lMwF',
   elite: 'price_1TG3HXAsoYCrHLeBlwitj6fQ',
 };
 
@@ -43,7 +42,7 @@ Deno.serve(async (req) => {
 
   const tier = body.tier;
   if (!tier || !PRICE_IDS[tier]) {
-    return new Response(JSON.stringify({ error: 'Invalid tier. Must be silver, gold, or elite.' }), { status: 400, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: 'Invalid tier. Must be silver or elite.' }), { status: 400, headers: corsHeaders });
   }
 
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
