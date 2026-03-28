@@ -52,6 +52,8 @@ interface Specialisation {
   micro_id: string;
   micro_name: string;
   preference: string;
+  avg_rating: number | null;
+  rating_count: number | null;
 }
 
 interface ServiceListing {
