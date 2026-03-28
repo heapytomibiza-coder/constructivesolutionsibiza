@@ -79,6 +79,7 @@ function NotifyProsButton({ jobId, outcome }: { jobId: string; outcome?: import(
         toast.info("No matching pros found to notify");
       }
       queryClient.invalidateQueries({ queryKey: ["admin", "unanswered_jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "action_outcomes"] });
     },
     onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : "Failed to notify pros");

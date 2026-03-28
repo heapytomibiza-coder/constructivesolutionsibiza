@@ -14,7 +14,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
   CartesianGrid,
 } from "recharts";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useActionOutcomes } from "../hooks/useActionOutcomes";
@@ -267,6 +267,7 @@ function StaleConversationCard({ conversation: sc, outcome }: {
   conversation: import("../hooks/useMessagingPulse").StaleConversation;
   outcome?: import("../hooks/useActionOutcomes").ActionOutcome;
 }) {
+  const queryClient = useQueryClient();
   const nudge = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc("admin_nudge_client", {
@@ -277,6 +278,7 @@ function StaleConversationCard({ conversation: sc, outcome }: {
     },
     onSuccess: () => {
       toast.success(`Nudge sent for "${sc.job_title}"`);
+      queryClient.invalidateQueries({ queryKey: ["admin", "action_outcomes"] });
     },
     onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : "Nudge failed");
