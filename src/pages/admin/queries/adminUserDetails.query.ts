@@ -33,6 +33,13 @@ export interface AskerJobSummary {
   created_at: string;
 }
 
+export interface AdminReviewSummary {
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  reviewer_role: string;
+}
+
 export interface AdminUserDetails {
   user_id: string;
   display_name: string | null;
@@ -70,6 +77,10 @@ export interface AdminUserDetails {
   jobs_count: number;
   conversations_count: number;
   support_tickets_count: number;
+  // Reviews (public reviews received as pro)
+  review_avg: number | null;
+  review_count: number;
+  recent_reviews: AdminReviewSummary[];
 }
 
 function calcCompleteness(user: Omit<AdminUserDetails, 'completeness'>): ProfileCompleteness {
@@ -95,6 +106,7 @@ async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> 
     profileRes, rolesRes, proRes,
     jobsRes, clientConvosRes, proConvosRes,
     ticketsCountRes, servicesRes, listingsRes, docsCountRes,
+    reviewsRes,
   ] = await Promise.all([
     supabase.from("profiles").select("display_name, phone, created_at").eq("user_id", userId).single(),
     supabase.from("user_roles").select("roles, active_role, suspended_at, suspension_reason").eq("user_id", userId).single(),
@@ -109,6 +121,8 @@ async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> 
     supabase.from("professional_services").select("micro_id, status").eq("user_id", userId),
     supabase.from("service_listings").select("id, display_title, status, hero_image_url, short_description, pricing_summary").eq("provider_id", userId),
     supabase.from("professional_documents").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    // Public reviews received (as pro)
+    supabase.from("job_reviews").select("rating, comment, created_at, reviewer_role").eq("reviewee_user_id", userId).eq("visibility", "public").order("created_at", { ascending: false }).limit(10),
   ]);
 
   if (profileRes.error) throw profileRes.error;
@@ -156,6 +170,13 @@ async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> 
   const clientConvos = clientConvosRes.count ?? 0;
   const proConvos = proConvosRes.count ?? 0;
 
+  // Compute review aggregates from fetched reviews
+  const allReviews = reviewsRes.data ?? [];
+  const reviewCount = allReviews.length;
+  const reviewAvg = reviewCount > 0
+    ? allReviews.reduce((s, r) => s + r.rating, 0) / reviewCount
+    : null;
+
   const base: Omit<AdminUserDetails, 'completeness'> = {
     user_id: userId,
     display_name: profileRes.data.display_name,
@@ -178,6 +199,14 @@ async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> 
     jobs_count: askerJobs.length,
     conversations_count: clientConvos + proConvos,
     support_tickets_count: ticketsCountRes.count ?? 0,
+    review_avg: reviewAvg,
+    review_count: reviewCount,
+    recent_reviews: allReviews.map((r) => ({
+      rating: r.rating,
+      comment: r.comment,
+      created_at: r.created_at,
+      reviewer_role: r.reviewer_role,
+    })),
   };
 
   return {

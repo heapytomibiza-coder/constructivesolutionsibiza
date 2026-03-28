@@ -23,6 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 import { isRolloutActive } from '@/domain/rollout';
 import { getZoneByIdSafe } from '@/shared/components/professional/zones';
+import { PublicReviewsSection } from './components/PublicReviewsSection';
 
 /* ─── Types ────────────────────────────────────────────────── */
 
@@ -431,17 +432,7 @@ const ProfessionalDetails = () => {
 
               {/* 5. Reviews */}
               {isRolloutActive('trust-engine') ? (
-                <Card className="card-grounded">
-                  <CardHeader>
-                    <CardTitle className="font-display text-lg flex items-center gap-2">
-                      <Star className="h-4 w-4 text-primary" />
-                      Reviews
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">No reviews yet.</p>
-                  </CardContent>
-                </Card>
+                <PublicReviewsSection proUserId={professional.user_id} />
               ) : (
                 <Card className="card-grounded border-dashed">
                   <CardContent className="py-6 text-center">
