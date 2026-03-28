@@ -267,6 +267,7 @@ function StaleConversationCard({ conversation: sc, outcome }: {
   conversation: import("../hooks/useMessagingPulse").StaleConversation;
   outcome?: import("../hooks/useActionOutcomes").ActionOutcome;
 }) {
+  const queryClient = useQueryClient();
   const nudge = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc("admin_nudge_client", {
@@ -277,6 +278,7 @@ function StaleConversationCard({ conversation: sc, outcome }: {
     },
     onSuccess: () => {
       toast.success(`Nudge sent for "${sc.job_title}"`);
+      queryClient.invalidateQueries({ queryKey: ["admin", "action_outcomes"] });
     },
     onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : "Nudge failed");

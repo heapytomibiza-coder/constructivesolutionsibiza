@@ -129,6 +129,7 @@ function TopShortageRow({ category, area, demandCount, supplyCount, gapScore, ou
   category: string; area: string; demandCount: number; supplyCount: number; gapScore: number;
   outcome?: import("../hooks/useActionOutcomes").ActionOutcome;
 }) {
+  const queryClient = useQueryClient();
   const boost = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc("admin_boost_category", {
@@ -140,6 +141,7 @@ function TopShortageRow({ category, area, demandCount, supplyCount, gapScore, ou
     },
     onSuccess: () => {
       toast.success(`Boosted ${category.replace(/-/g, " ")} in ${area}`);
+      queryClient.invalidateQueries({ queryKey: ["admin", "action_outcomes"] });
     },
     onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : "Boost failed");
