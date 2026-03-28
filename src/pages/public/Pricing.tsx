@@ -200,14 +200,21 @@ const Pricing = () => {
                       <Link to="/auth">{t('pricing.getStarted')}</Link>
                     </Button>
                   ) : (
-                    <Button
-                      className="w-full"
-                      variant={plan.popular ? 'default' : 'outline'}
-                      disabled={isCtaDisabled(plan.tier)}
-                      onClick={() => handleSubscribe(plan.tier)}
-                    >
-                      {loadingTier === plan.tier ? '...' : getCtaLabel(plan.tier)}
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        className="w-full"
+                        variant={plan.popular ? 'default' : 'outline'}
+                        disabled={isCtaDisabled(plan.tier)}
+                        onClick={() => handleSubscribe(plan.tier)}
+                      >
+                        {loadingTier === plan.tier ? '...' : getCtaLabel(plan.tier)}
+                      </Button>
+                      {meta.earned && (
+                        <Link to="/reputation" className="block text-xs text-amber-600 hover:underline">
+                          How Gold works →
+                        </Link>
+                      )}
+                    </div>
                   )}
                 </CardContent>
               </Card>

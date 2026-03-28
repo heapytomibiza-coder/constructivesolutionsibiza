@@ -60,11 +60,15 @@ export const COMMISSION_RATES: Record<SubscriptionTier, number> = {
 };
 
 /** Tier metadata — earned vs purchasable */
-export const TIER_META: Record<SubscriptionTier, { earned: boolean; purchasable: boolean }> = {
-  bronze: { earned: false, purchasable: false },
-  silver: { earned: false, purchasable: true },
-  gold:   { earned: true,  purchasable: false },
-  elite:  { earned: false, purchasable: true },
+export const TIER_META: Record<SubscriptionTier, {
+  earned: boolean;
+  purchasable: boolean;
+  inviteOnly: boolean;
+}> = {
+  bronze: { earned: false, purchasable: false, inviteOnly: false },
+  silver: { earned: false, purchasable: true,  inviteOnly: false },
+  gold:   { earned: true,  purchasable: false, inviteOnly: true  },
+  elite:  { earned: false, purchasable: true,  inviteOnly: false },
 };
 
 /** Safety flag — set to true once Stripe webhook secret is configured */
