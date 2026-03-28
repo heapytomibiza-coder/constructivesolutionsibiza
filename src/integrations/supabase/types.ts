@@ -2467,6 +2467,45 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          commission_rate: number
+          created_at: string | null
+          current_period_end: string | null
+          id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          commission_rate?: number
+          created_at?: string | null
+          current_period_end?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string | null
+          current_period_end?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_request_events: {
         Row: {
           actor_role: string
@@ -3327,6 +3366,14 @@ export type Database = {
         Returns: {
           area: string
           job_count: number
+        }[]
+      }
+      get_user_tier: {
+        Args: { p_user_id: string }
+        Returns: {
+          commission_rate: number
+          status: string
+          tier: string
         }[]
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
