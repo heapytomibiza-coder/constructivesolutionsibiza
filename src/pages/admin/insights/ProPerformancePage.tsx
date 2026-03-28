@@ -147,13 +147,14 @@ export default function ProPerformancePage() {
                     <TableHead className="text-center">Services</TableHead>
                     <TableHead className="text-center">Convos</TableHead>
                     <TableHead className="text-center">Completed</TableHead>
+                    <TableHead className="text-center">Avg Rating</TableHead>
                     <TableHead className="text-center">Score</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sorted.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                         No professionals yet
                       </TableCell>
                     </TableRow>
@@ -176,6 +177,16 @@ export default function ProPerformancePage() {
                         <TableCell className="text-center">{pro.services_count}</TableCell>
                         <TableCell className="text-center">{pro.total_conversations}</TableCell>
                         <TableCell className="text-center">{pro.total_completed}</TableCell>
+                        <TableCell className="text-center">
+                          {pro.avg_rating != null ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Star className="h-3 w-3 text-warning fill-warning" />
+                              {pro.avg_rating.toFixed(1)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-center">
                           <Badge variant="secondary">{score}</Badge>
                         </TableCell>
