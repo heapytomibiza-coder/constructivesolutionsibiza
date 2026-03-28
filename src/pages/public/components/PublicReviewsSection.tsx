@@ -8,6 +8,22 @@ interface PublicReviewsSectionProps {
 }
 
 export function PublicReviewsSection({ proUserId }: PublicReviewsSectionProps) {
+  // Full aggregate: all public ratings for true avg/count
+  const { data: aggData } = useQuery({
+    queryKey: ['public_pro_review_agg', proUserId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('job_reviews')
+        .select('rating')
+        .eq('reviewee_user_id', proUserId)
+        .eq('visibility', 'public');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!proUserId,
+  });
+
+  // Display list: limited to 10 most recent
   const { data: reviewData } = useQuery({
     queryKey: ['public_pro_reviews', proUserId],
     queryFn: async () => {
@@ -25,9 +41,11 @@ export function PublicReviewsSection({ proUserId }: PublicReviewsSectionProps) {
   });
 
   const reviews = reviewData ?? [];
-  const avgRating = reviews.length > 0
-    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+  const allRatings = aggData ?? [];
+  const avgRating = allRatings.length > 0
+    ? allRatings.reduce((s, r) => s + r.rating, 0) / allRatings.length
     : null;
+  const totalCount = allRatings.length;
 
   return (
     <Card className="card-grounded">
@@ -38,13 +56,13 @@ export function PublicReviewsSection({ proUserId }: PublicReviewsSectionProps) {
           {avgRating != null && (
             <span className="ml-auto flex items-center gap-1 text-sm font-normal text-muted-foreground">
               <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-              {avgRating.toFixed(1)} ({reviews.length})
+              {avgRating.toFixed(1)} ({totalCount})
             </span>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {reviews.length === 0 ? (
+        {totalCount === 0 ? (
           <p className="text-muted-foreground">No reviews yet.</p>
         ) : (
           <div className="space-y-3">
