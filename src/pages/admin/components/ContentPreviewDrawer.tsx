@@ -28,6 +28,8 @@ import {
   MessageCircle,
   Eye,
   Trash2,
+  Lock,
+  EyeOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { AdminContentItem } from "../hooks/useAdminContent";
@@ -51,6 +53,8 @@ interface CanonicalPost {
   tags: string[] | null;
   photos: string[] | null;
   category_id: string;
+  is_locked: boolean;
+  is_anonymous: boolean;
 }
 
 interface CanonicalReply {
@@ -88,7 +92,7 @@ function useCanonicalContent(item: AdminContentItem | null, enabled: boolean) {
         const [postRes, repliesRes] = await Promise.all([
           supabase
             .from("forum_posts")
-            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id")
+            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id, is_locked, is_anonymous")
             .eq("id", item.id)
             .maybeSingle(),
           supabase
@@ -120,7 +124,7 @@ function useCanonicalContent(item: AdminContentItem | null, enabled: boolean) {
         const [postRes, repliesRes] = await Promise.all([
           supabase
             .from("forum_posts")
-            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id")
+            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id, is_locked, is_anonymous")
             .eq("id", postId)
             .maybeSingle(),
           supabase
@@ -179,7 +183,7 @@ export function ContentPreviewDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="pb-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {isPost ? (
               <Badge variant="secondary" className="gap-1">
                 <FileText className="h-3 w-3" />
@@ -189,6 +193,18 @@ export function ContentPreviewDrawer({
               <Badge variant="outline" className="gap-1">
                 <MessageSquare className="h-3 w-3" />
                 Reply
+              </Badge>
+            )}
+            {isPost && canonical?.post?.is_locked && (
+              <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
+                <Lock className="h-3 w-3" />
+                Archived
+              </Badge>
+            )}
+            {isPost && canonical?.post?.is_anonymous && (
+              <Badge variant="outline" className="gap-1 text-violet-600 border-violet-300">
+                <EyeOff className="h-3 w-3" />
+                Anonymous to public
               </Badge>
             )}
             {isLoading && (

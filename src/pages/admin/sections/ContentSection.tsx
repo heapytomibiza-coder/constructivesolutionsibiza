@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Search, Trash2, MessageSquare, FileText, ExternalLink, Image } from "lucide-react";
+import { Search, Trash2, MessageSquare, FileText, ExternalLink, Image, Lock, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -179,17 +179,31 @@ export default function ContentSection() {
                       onClick={() => setPreviewItem(item)}
                     >
                       <TableCell>
-                        {item.type === "post" ? (
-                          <Badge variant="secondary" className="gap-1">
-                            <FileText className="h-3 w-3" />
-                            Post
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="gap-1">
-                            <MessageSquare className="h-3 w-3" />
-                            Reply
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {item.type === "post" ? (
+                            <Badge variant="secondary" className="gap-1">
+                              <FileText className="h-3 w-3" />
+                              Post
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="gap-1">
+                              <MessageSquare className="h-3 w-3" />
+                              Reply
+                            </Badge>
+                          )}
+                          {item.isLocked && (
+                            <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
+                              <Lock className="h-3 w-3" />
+                              Archived
+                            </Badge>
+                          )}
+                          {item.isAnonymous && (
+                            <Badge variant="outline" className="gap-1 text-violet-600 border-violet-300">
+                              <EyeOff className="h-3 w-3" />
+                              Anon
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="max-w-[300px]">
