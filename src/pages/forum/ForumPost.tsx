@@ -167,6 +167,18 @@ const ForumPost = () => {
     }
   };
 
+  const logAdminAction = async (actionType: string, targetId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("admin_actions_log").insert({
+      admin_user_id: user.id,
+      action_type: actionType,
+      target_type: "post",
+      target_id: targetId,
+      metadata: {},
+    });
+  };
+
   const handleToggleLock = async () => {
     if (!postId || actionLoading) return;
     setActionLoading(true);
@@ -178,6 +190,12 @@ const ForumPost = () => {
         .eq("id", postId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["forum", "post", postId] });
+      if (post?.category_id) {
+        queryClient.invalidateQueries({ queryKey: ["forum", "posts", post.category_id] });
+      }
+      if (isAdmin) {
+        await logAdminAction(newValue ? "lock_post" : "unlock_post", postId);
+      }
       toast.success(t(newValue ? "locked.lockSuccess" : "locked.unlockSuccess"));
     } catch {
       toast.error(t("locked.actionError"));
@@ -197,6 +215,9 @@ const ForumPost = () => {
         .eq("id", postId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["forum", "post", postId] });
+      if (isAdmin) {
+        await logAdminAction(newValue ? "anonymize_post" : "deanonymize_post", postId);
+      }
       toast.success(t(newValue ? "locked.anonymizeSuccess" : "locked.deanonymizeSuccess"));
     } catch {
       toast.error(t("locked.actionError"));
