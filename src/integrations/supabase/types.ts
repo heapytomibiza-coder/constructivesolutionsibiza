@@ -143,6 +143,48 @@ export type Database = {
         }
         Relationships: []
       }
+      client_reputation: {
+        Row: {
+          avg_response_hours: number
+          badges: string[]
+          completed_jobs: number
+          completion_rate: number
+          dispute_rate: number
+          repeat_hire_rate: number
+          review_rate: number
+          score: number
+          total_jobs: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_response_hours?: number
+          badges?: string[]
+          completed_jobs?: number
+          completion_rate?: number
+          dispute_rate?: number
+          repeat_hire_rate?: number
+          review_rate?: number
+          score?: number
+          total_jobs?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_response_hours?: number
+          badges?: string[]
+          completed_jobs?: number
+          completion_rate?: number
+          dispute_rate?: number
+          repeat_hire_rate?: number
+          review_rate?: number
+          score?: number
+          total_jobs?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -396,6 +438,39 @@ export type Database = {
           response_rate?: number | null
           trust_score_snapshot?: number | null
           worker_id?: string
+        }
+        Relationships: []
+      }
+      demand_snapshots: {
+        Row: {
+          area: string | null
+          category: string
+          created_at: string
+          id: string
+          job_count_30d: number
+          job_count_7d: number
+          pct_change_7d: number | null
+          snapshot_date: string
+        }
+        Insert: {
+          area?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          job_count_30d?: number
+          job_count_7d?: number
+          pct_change_7d?: number | null
+          snapshot_date?: string
+        }
+        Update: {
+          area?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          job_count_30d?: number
+          job_count_7d?: number
+          pct_change_7d?: number | null
+          snapshot_date?: string
         }
         Relationships: []
       }
@@ -1824,6 +1899,42 @@ export type Database = {
           user_id?: string
           verification_status?: string
           working_hours?: Json | null
+        }
+        Relationships: []
+      }
+      professional_rankings: {
+        Row: {
+          activity_score: number
+          completion_rate: number
+          labels: string[]
+          ranking_score: number
+          rating_avg: number
+          repeat_hire_rate: number
+          response_speed_score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_score?: number
+          completion_rate?: number
+          labels?: string[]
+          ranking_score?: number
+          rating_avg?: number
+          repeat_hire_rate?: number
+          response_speed_score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_score?: number
+          completion_rate?: number
+          labels?: string[]
+          ranking_score?: number
+          rating_avg?: number
+          repeat_hire_rate?: number
+          response_speed_score?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -3279,10 +3390,18 @@ export type Database = {
         Returns: Json
       }
       aggregate_daily_metrics: { Args: { p_date: string }; Returns: undefined }
+      calculate_client_reputation: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       calculate_job_score: { Args: { p_job_id: string }; Returns: number }
       calculate_job_score_inline: {
         Args: { v_job: Database["public"]["Tables"]["jobs"]["Row"] }
         Returns: number
+      }
+      calculate_professional_ranking: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       calculate_worker_trust_score: {
         Args: { p_user_id: string }
@@ -3384,6 +3503,13 @@ export type Database = {
           job_count: number
         }[]
       }
+      get_repeat_hire_pair: {
+        Args: { p_client_id: string; p_pro_id: string }
+        Returns: {
+          hire_count: number
+          last_hired_at: string
+        }[]
+      }
       get_user_tier: {
         Args: { p_user_id: string }
         Returns: {
@@ -3407,6 +3533,7 @@ export type Database = {
       }
       is_admin_email: { Args: never; Returns: boolean }
       purge_stale_telemetry: { Args: never; Returns: undefined }
+      refresh_demand_snapshots: { Args: never; Returns: undefined }
       rpc_admin_dispute_analytics: { Args: never; Returns: Json }
       rpc_admin_dispute_inbox: {
         Args: never
