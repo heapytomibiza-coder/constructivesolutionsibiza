@@ -40,10 +40,10 @@ const VALUE_STACK = [
 ];
 
 const TIERS = [
-  { name: 'Bronze', annual: '€333', monthly: '€33', fee: '18%', tagKey: 'forPros.tiers.bronze.tag', earned: false },
-  { name: 'Silver', annual: '€666', monthly: '€66', fee: '12%', tagKey: 'forPros.tiers.silver.tag', earned: false, popular: true },
-  { name: 'Gold', annual: null, monthly: null, fee: '9%', tagKey: 'forPros.tiers.gold.tag', earned: true },
-  { name: 'Elite', annual: '€2,000', monthly: '€199', fee: '6%', tagKey: 'forPros.tiers.elite.tag', earned: false },
+  { name: 'Bronze', monthly: '€0', fee: '18%', tagKey: 'forPros.tiers.bronze.tag', earned: false },
+  { name: 'Silver', monthly: '€49', fee: '12%', tagKey: 'forPros.tiers.silver.tag', earned: false, popular: true },
+  { name: 'Gold', monthly: '€99', fee: '9%', tagKey: 'forPros.tiers.gold.tag', earned: false },
+  { name: 'Elite', monthly: '€199', fee: '6%', tagKey: 'forPros.tiers.elite.tag', earned: false },
 ];
 
 const PROJECT_EXAMPLES = [
@@ -236,20 +236,13 @@ const ForProfessionals = () => {
                 )}
                 <CardContent className="p-6 text-center space-y-4">
                   <h3 className="text-lg font-bold text-foreground">
-                    {tier.earned && '⭐ '}{tier.name}
+                    {tier.name}
                   </h3>
                   <p className="text-xs text-muted-foreground">{t(tier.tagKey)}</p>
-                  {tier.earned ? (
-                    <div>
-                      <p className="text-2xl font-bold text-amber-600">{t('forPros.pricing.inviteOnly')}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-3xl font-bold text-foreground">{tier.annual}</p>
-                      <p className="text-xs text-muted-foreground">/year</p>
-                      <p className="text-sm text-muted-foreground mt-1">or {tier.monthly}/mo</p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">{tier.monthly}</p>
+                    <p className="text-xs text-muted-foreground">/mo</p>
+                  </div>
                   <div className="pt-2 border-t border-border">
                     <p className="text-sm text-foreground">{tier.fee} {t('forPros.pricing.commission')}</p>
                   </div>
