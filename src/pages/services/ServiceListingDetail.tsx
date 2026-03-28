@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   ArrowLeft, Briefcase, Eye, MapPin, MessageCircle, Info, 
-  CheckCircle2, Clock 
+  CheckCircle2, Clock, Star 
 } from 'lucide-react';
 import { useServiceListingDetail } from './queries/serviceListings.query';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';

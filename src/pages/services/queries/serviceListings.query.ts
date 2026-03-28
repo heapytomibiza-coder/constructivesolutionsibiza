@@ -29,6 +29,10 @@ export interface ServiceListingCard {
   category_slug: string | null;
   starting_price: number | null;
   starting_price_unit: string | null;
+  micro_avg_rating: number | null;
+  micro_rating_count: number | null;
+  micro_completed_count: number | null;
+  micro_verification_level: string | null;
 }
 
 export interface ServicePricingItem {
