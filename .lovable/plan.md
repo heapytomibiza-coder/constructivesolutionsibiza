@@ -1,60 +1,35 @@
 
 
-# Backfill Historical Metrics and Generate First AI Report
+# Review Aggregate Accuracy Fix
 
-## What you have
+## Problem
+Two surfaces compute provider-level avg/count from a limit-10 fetch, producing wrong results for providers with 10+ reviews.
 
-Your data situation is strong for a backfill:
+## Changes
 
-| Table | Rows | Date range |
-|-------|------|-----------|
-| analytics_events | 3,650 | Feb 15 – Mar 22 (36 days, continuous) |
-| jobs | 46 | Feb 19 – Mar 21 |
-| conversations | 82 | Feb 19 – Mar 22 |
-| messages | 156 | Feb 19 – Mar 22 |
-| disputes | 3 | Mar 5 – Mar 20 |
-| job_status_history | 59 | Feb 19 – Mar 21 |
-| professional_services | 1,161 | Feb 4 – Mar 21 |
-| daily_platform_metrics | **0** | — (never aggregated) |
+### 1. `src/pages/public/components/PublicReviewsSection.tsx`
 
-You have real event data (wizard starts, job_posted, message_sent, etc.) and real business records. This is a **full backfill** scenario — not reconstructed, but actual source data.
+Add a second query that fetches only `rating` from all public reviews (no limit) for true aggregate. Keep existing limit-10 query for display list.
 
-## Plan
+- New query key: `['public_pro_review_agg', proUserId]` — fetches all ratings
+- Existing query: unchanged, limit 10 for display
+- Header avg/count: sourced from aggregate query
+- Empty state: uses aggregate count (0 = "No reviews yet")
 
-### Step 1: Backfill daily metrics for all 36 historical days
+### 2. `src/pages/admin/queries/adminUserDetails.query.ts`
 
-Create a migration with a one-time backfill function that loops from Feb 15 through yesterday (Mar 21), calling the aggregation logic for each date. The existing `aggregate_daily_metrics` RPC requires admin auth, so the backfill function will be `SECURITY DEFINER` and bypass the auth check — it will contain the same aggregation logic inline, run once, then drop itself.
+Add a parallel query in the `Promise.all` that fetches all public review ratings (no limit, `rating` column only). Use that for `review_avg` and `review_count`. Keep the existing limit-10 fetch for `recent_reviews` display.
 
-This populates:
-- `daily_platform_metrics` — 36 rows
-- `daily_category_metrics` — rows per category per day
-- `daily_worker_metrics` — rows per active worker per day
+- Add: `supabase.from("job_reviews").select("rating").eq("reviewee_user_id", userId).eq("visibility", "public")` (no limit)
+- Compute `review_avg` and `review_count` from this full fetch
+- `recent_reviews` stays from the existing limit-10 fetch
 
-### Step 2: Run alert rules on backfilled data
+### Files unchanged
+- `ProProfileDrawer.tsx` — already correct
+- `TaskerTab.tsx` — no logic, just displays
+- `ProfessionalDetails.tsx` — delegates to `PublicReviewsSection`
 
-After metrics exist, call `run_platform_alert_rules` for each historical date to generate any alerts that would have fired. This gives the AI report a realistic alert history to reference.
-
-### Step 3: Generate the first weekly AI report
-
-Invoke the `generate-weekly-ai-report` edge function. It will now find real metrics, real week-over-week comparisons, and real alerts to analyze.
-
-### Step 4: Add "Backfill Metrics" button to Platform Assistant
-
-Add a small admin utility in the assistant tab that lets operators trigger a backfill for a date range. This is useful for:
-- Re-running after fixing aggregation logic
-- Catching up after downtime
-
-Will show progress and results.
-
-## Technical details
-
-**Migration SQL** — a `DO` block that:
-1. Loops `d` from `'2026-02-15'` to `CURRENT_DATE - 1`
-2. For each date, runs the same aggregation queries as `aggregate_daily_metrics` but without the auth check
-3. Then loops again calling `run_platform_alert_rules(d)` for each date
-4. Self-contained, runs once on deploy
-
-**UI addition** — small "Backfill" section in `PlatformAssistant.tsx` with date range inputs and a button that calls `aggregate_daily_metrics` + `run_platform_alert_rules` in sequence via RPC.
-
-**Edge function call** — after backfill, trigger `generate-weekly-ai-report` to produce the first report with real data.
+## Technical notes
+- Full aggregate queries fetch only the `rating` column — minimal payload
+- No schema or UI design changes
 
