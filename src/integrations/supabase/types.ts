@@ -3189,14 +3189,16 @@ export type Database = {
       }
     }
     Functions: {
-      accept_quote_and_assign: {
-        Args: {
-          p_job_id: string
-          p_professional_id: string
-          p_quote_id: string
-        }
-        Returns: undefined
-      }
+      accept_quote_and_assign:
+        | { Args: { p_job_id: string; p_quote_id: string }; Returns: undefined }
+        | {
+            Args: {
+              p_job_id: string
+              p_professional_id: string
+              p_quote_id: string
+            }
+            Returns: undefined
+          }
       admin_boost_category: {
         Args: { p_area: string; p_category: string }
         Returns: Json
