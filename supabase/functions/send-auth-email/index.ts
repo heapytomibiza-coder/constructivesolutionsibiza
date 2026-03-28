@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -9,12 +10,6 @@ const PRIMARY_FROM = "Constructive Solutions Ibiza <info@tmdirectibiza.com>";
 
 // Fallback sender (works without verifying your own domain).
 const FALLBACK_FROM = "CS Ibiza <onboarding@resend.dev>";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
 
 interface AuthEmailRequest {
   type: "signup" | "recovery" | "resend";
@@ -56,24 +51,9 @@ const sendEmailWithSenderFallback = async ({ to, subject, html }: SendEmailArgs)
   return { usedFrom: PRIMARY_FROM, response: primary, primaryResponse: primary };
 };
 
-// Simple in-memory rate limiter
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
-const RATE_LIMIT_MAX = 5;
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-  entry.count++;
-  if (entry.count > RATE_LIMIT_MAX) return false;
-  return true;
-}
-
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req);
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -86,21 +66,30 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing required fields: email and type");
     }
 
-    // Rate limit by email
-    const emailKey = `email:${email.toLowerCase()}`;
-    if (!checkRateLimit(emailKey)) {
-      return new Response(
-        JSON.stringify({ success: true, message: "If an account exists, an email will be sent." }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
-    // Create admin client for generating links
+    // Rate limit by email — use DB-backed rate limiting for persistence across cold starts
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
+
+    const { data: rateLimitOk, error: rlError } = await supabaseAdmin.rpc("check_rate_limit_by_key", {
+      p_key: `auth_email:${email.toLowerCase()}`,
+      p_action: "auth_email",
+      p_max_count: 5,
+      p_window_interval: "5 minutes",
+    });
+
+    if (rlError) {
+      console.error("Rate limit check error:", rlError);
+      // On rate limit check failure, proceed cautiously (allow the request)
+    } else if (rateLimitOk === false) {
+      // Rate limited — return generic success to not reveal user existence
+      return new Response(
+        JSON.stringify({ success: true, message: "If an account exists, an email will be sent." }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     // Use SITE_URL env var, falling back to request origin or preview URL
     const origin = req.headers.get("origin") || req.headers.get("referer")?.split("/").slice(0, 3).join("/");

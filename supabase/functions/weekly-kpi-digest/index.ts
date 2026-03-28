@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Constructive Solutions Ibiza <notifications@constructivesolutionsibiza.com>";
@@ -9,11 +10,6 @@ if (!ADMIN_EMAIL) {
 }
 const BRAND_NAME = "Constructive Solutions Ibiza";
 const SITE_URL = Deno.env.get("SITE_URL") || "https://constructivesolutionsibiza.lovable.app";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 const supabaseAdmin = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
@@ -65,7 +61,6 @@ async function gatherKPIs(): Promise<KPIData> {
     supabaseAdmin.from("jobs").select("area").eq("is_publicly_listed", true).gte("created_at", from).lte("created_at", to).not("area", "is", null),
   ]);
 
-  // Aggregate top categories
   const catCounts: Record<string, number> = {};
   (topCats || []).forEach((r: any) => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
   const topCategories = Object.entries(catCounts)
@@ -73,7 +68,6 @@ async function gatherKPIs(): Promise<KPIData> {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
-  // Aggregate top areas
   const areaCounts: Record<string, number> = {};
   (topAreas || []).forEach((r: any) => { areaCounts[r.area] = (areaCounts[r.area] || 0) + 1; });
   const topAreasResult = Object.entries(areaCounts)
@@ -157,13 +151,25 @@ function buildDigestEmail(kpi: KPIData): { subject: string; html: string } {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const headers = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers });
+  }
+
+  // Auth: require dedicated internal secret (cron/admin only)
+  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
+  const providedSecret = req.headers.get("x-internal-secret");
+  if (!internalSecret || providedSecret !== internalSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...headers },
+    });
   }
 
   try {
     if (!RESEND_API_KEY) {
-      return new Response(JSON.stringify({ error: "RESEND_API_KEY not configured" }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      return new Response(JSON.stringify({ error: "RESEND_API_KEY not configured" }), { status: 500, headers: { "Content-Type": "application/json", ...headers } });
     }
 
     console.log("Gathering weekly KPIs...");
@@ -189,15 +195,15 @@ const handler = async (req: Request): Promise<Response> => {
     const body = await res.text();
     if (!res.ok) {
       console.error("Resend error:", res.status, body);
-      return new Response(JSON.stringify({ error: `Resend ${res.status}`, detail: body.substring(0, 200) }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+      return new Response(JSON.stringify({ error: `Resend ${res.status}`, detail: body.substring(0, 200) }), { status: 500, headers: { "Content-Type": "application/json", ...headers } });
     }
 
     console.log("Weekly digest sent successfully");
-    return new Response(JSON.stringify({ success: true, kpi }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ success: true, kpi }), { status: 200, headers: { "Content-Type": "application/json", ...headers } });
   } catch (error: unknown) {
     console.error("weekly-kpi-digest error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ error: message }), { status: 500, headers: { "Content-Type": "application/json", ...headers } });
   }
 };
 

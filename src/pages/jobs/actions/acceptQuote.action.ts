@@ -1,12 +1,10 @@
 /**
  * Accept a quote on a job.
- * Sets quote → accepted, rejects others, assigns pro, sets job → in_progress.
+ * Uses a transactional RPC to atomically: accept quote, reject others, assign pro, set job → in_progress.
  */
 
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/trackEvent";
-
-const ASSIGNABLE_STATUSES = ["open", "posted"] as const;
 
 export async function acceptQuote(
   quoteId: string,
@@ -16,54 +14,25 @@ export async function acceptQuote(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
-  // Verify job ownership + status
-  const { data: job, error: fetchErr } = await supabase
-    .from("jobs")
-    .select("id, user_id, status, assigned_professional_id")
-    .eq("id", jobId)
-    .single();
+  const { error } = await supabase.rpc("accept_quote_and_assign" as any, {
+    p_quote_id: quoteId,
+    p_job_id: jobId,
+    p_professional_id: professionalId,
+  });
 
-  if (fetchErr || !job) return { success: false, error: "Job not found" };
-  if (job.user_id !== user.id) return { success: false, error: "Not authorized" };
-  if (job.assigned_professional_id) return { success: false, error: "Job already has an assigned professional" };
-  if (!ASSIGNABLE_STATUSES.includes(job.status as typeof ASSIGNABLE_STATUSES[number])) {
-    return { success: false, error: "Job must be open to accept a quote" };
-  }
+  if (error) {
+    console.error("Error in accept_quote_and_assign:", error);
 
-  // Accept the quote
-  const { error: acceptErr } = await supabase
-    .from("quotes")
-    .update({ status: "accepted" })
-    .eq("id", quoteId);
+    // Map RPC exceptions to user-friendly messages
+    const msg = error.message || "";
+    if (msg.includes("not_authorized")) return { success: false, error: "Not authorized" };
+    if (msg.includes("job_not_found")) return { success: false, error: "Job not found" };
+    if (msg.includes("job_already_assigned")) return { success: false, error: "Job already has an assigned professional" };
+    if (msg.includes("job_not_assignable")) return { success: false, error: "Job must be open to accept a quote" };
+    if (msg.includes("quote_not_found")) return { success: false, error: "Quote not found" };
+    if (msg.includes("quote_not_acceptable")) return { success: false, error: "Quote is not in an acceptable status" };
 
-  if (acceptErr) {
-    console.error("Error accepting quote:", acceptErr);
     return { success: false, error: "Failed to accept quote" };
-  }
-
-  // Reject all other active quotes on this job
-  await supabase
-    .from("quotes")
-    .update({ status: "rejected" })
-    .eq("job_id", jobId)
-    .neq("id", quoteId)
-    .in("status", ["submitted", "revised"]);
-
-  // Assign professional + move job to in_progress
-  const { error: assignErr } = await supabase
-    .from("jobs")
-    .update({
-      assigned_professional_id: professionalId,
-      status: "in_progress",
-    })
-    .eq("id", jobId)
-    .eq("user_id", user.id)
-    .in("status", [...ASSIGNABLE_STATUSES])
-    .is("assigned_professional_id", null);
-
-  if (assignErr) {
-    console.error("Error assigning professional:", assignErr);
-    return { success: false, error: "Quote accepted but assignment failed" };
   }
 
   trackEvent("quote_accepted", "client", { quote_id: quoteId, pro_id: professionalId }, { job_id: jobId });

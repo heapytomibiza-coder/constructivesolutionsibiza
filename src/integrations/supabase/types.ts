@@ -3189,6 +3189,14 @@ export type Database = {
       }
     }
     Functions: {
+      accept_quote_and_assign: {
+        Args: {
+          p_job_id: string
+          p_professional_id: string
+          p_quote_id: string
+        }
+        Returns: undefined
+      }
       admin_boost_category: {
         Args: { p_area: string; p_category: string }
         Returns: Json
@@ -3290,6 +3298,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_rate_limit_by_key: {
+        Args: {
+          p_action: string
+          p_key: string
+          p_max_count: number
+          p_window_interval: string
+        }
+        Returns: boolean
+      }
       create_direct_conversation: {
         Args: { p_client_id: string; p_job_id: string; p_pro_id: string }
         Returns: string
@@ -3383,6 +3400,10 @@ export type Database = {
       }
       increment_professional_micro_stats: {
         Args: { p_micro_id: string; p_rating?: number; p_user_id: string }
+        Returns: undefined
+      }
+      increment_professional_micro_stats_batch: {
+        Args: { p_micro_ids: string[]; p_rating?: number; p_user_id: string }
         Returns: undefined
       }
       is_admin_email: { Args: never; Returns: boolean }
