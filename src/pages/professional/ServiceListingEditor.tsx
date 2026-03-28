@@ -40,8 +40,6 @@ export default function ServiceListingEditor() {
   const [heroUrl, setHeroUrl] = useState<string | null>(null);
   const [gallery, setGallery] = useState<string[]>([]);
   const [locationBase, setLocationBase] = useState<string>('');
-  const [startingPrice, setStartingPrice] = useState('');
-  const [startingPriceUnit, setStartingPriceUnit] = useState('hour');
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [aiAssisting, setAiAssisting] = useState(false);
@@ -59,17 +57,6 @@ export default function ServiceListingEditor() {
       setHeroUrl(listing.hero_image_url);
       setGallery(listing.gallery || []);
       setLocationBase(listing.location_base || '');
-      // Parse pricing_summary back to structured values if possible
-      const summaryMatch = listing.pricing_summary?.match(/^From\s+([\d.]+)\s+€\/(.+)$/);
-      if (summaryMatch) {
-        setStartingPrice(summaryMatch[1]);
-        const unitMap: Record<string, string> = { 'hr': 'hour', 'day': 'day', 'm²': 'sqm', 'job': 'job', 'item': 'item' };
-        setStartingPriceUnit(unitMap[summaryMatch[2]] || 'hour');
-      } else if (listing.pricing_summary) {
-        // Try to extract just a number
-        const numMatch = listing.pricing_summary.match(/([\d.]+)/);
-        if (numMatch) setStartingPrice(numMatch[1]);
-      }
       setPricingItems(listing.pricing_items);
       setInitialSynced(true);
     }
@@ -85,10 +72,14 @@ export default function ServiceListingEditor() {
   const handleSave = async () => {
     if (!listingId) return;
     try {
-      // Build pricing_summary from structured fields
+      // Auto-compute pricing_summary from lowest enabled pricing item
       const unitLabels: Record<string, string> = { hour: 'hr', day: 'day', sqm: 'm²', job: 'job', item: 'item' };
-      const pricingSummary = startingPrice
-        ? `From ${startingPrice} €/${unitLabels[startingPriceUnit] || startingPriceUnit}`
+      const enabledWithPrice = pricingItems
+        .filter(p => p.is_enabled && p.price_amount && p.price_amount > 0)
+        .sort((a, b) => (a.price_amount ?? 0) - (b.price_amount ?? 0));
+      const cheapest = enabledWithPrice[0];
+      const pricingSummary = cheapest
+        ? `From ${cheapest.price_amount} €/${unitLabels[cheapest.unit] || cheapest.unit}`
         : null;
 
       await updateListing.mutateAsync({
@@ -470,32 +461,6 @@ export default function ServiceListingEditor() {
               </Select>
             </div>
 
-            {/* Starting Price */}
-            <div className="space-y-2">
-              <Label>{t('listingEditor.startingPrice')}</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  value={startingPrice}
-                  onChange={e => setStartingPrice(e.target.value)}
-                  placeholder={t('listingEditor.startingPricePlaceholder')}
-                  className="w-28"
-                  min="0"
-                  step="0.01"
-                />
-                <span className="flex items-center text-sm text-muted-foreground font-medium">€</span>
-                <Select value={startingPriceUnit} onValueChange={setStartingPriceUnit}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(['hour', 'day', 'sqm', 'job', 'item'] as const).map(u => (
-                      <SelectItem key={u} value={u}>{t(`listingEditor.units.${u}`)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
