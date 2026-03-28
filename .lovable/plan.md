@@ -59,7 +59,14 @@ Tier-to-commission mapping stored as a constant in the function (not frontend).
 
 `supabase/functions/create-checkout-session/index.ts`
 
-Authenticated endpoint. Accepts `{ tier: 'silver' | 'gold' | 'elite' }`, creates a Stripe Checkout session, returns the URL. Validates user auth via JWT in code.
+Authenticated endpoint. Accepts `{ tier: 'silver' | 'elite' }`, creates a Stripe Checkout session, returns the URL. Gold is NOT purchasable — it is earned/invited only. Validates user auth via JWT in code.
+
+#### Gold Tier Policy
+- **Gold = Invite & Earned Only** — never self-purchasable via Stripe checkout
+- Gold keeps its price (€99) and commission (9%) as display values / value anchors
+- Gold is removed from `STRIPE_PRICE_IDS`, checkout edge function, and webhook tier mapping
+- `TIER_META` defines `earned: true, purchasable: false` for Gold
+- `STRIPE_CHECKOUT_LIVE = false` gates Silver/Elite checkout until webhook secret is configured
 
 ### Ticket 5 — `useSubscription` Hook
 
