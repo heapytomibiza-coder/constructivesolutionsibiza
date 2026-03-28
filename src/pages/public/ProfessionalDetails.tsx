@@ -23,6 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
 import { isRolloutActive } from '@/domain/rollout';
 import { getZoneByIdSafe } from '@/shared/components/professional/zones';
+import { PublicReviewsSection } from './components/PublicReviewsSection';
 
 /* ─── Types ────────────────────────────────────────────────── */
 

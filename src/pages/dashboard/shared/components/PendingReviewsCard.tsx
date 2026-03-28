@@ -30,6 +30,10 @@ export const PendingReviewsCard = () => {
       toast.success(t('client.ratingSuccess', 'Thanks for your rating!'));
       setSelectedReview(null);
       queryClient.invalidateQueries({ queryKey: ['pending-reviews'] });
+      // Refresh review surfaces so new review appears immediately
+      queryClient.invalidateQueries({ queryKey: ['pro_reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['pro_review_agg'] });
+      queryClient.invalidateQueries({ queryKey: ['public_pro_reviews'] });
     } else {
       toast.error(result.error || t('client.ratingFailed', 'Failed to submit rating'));
     }
