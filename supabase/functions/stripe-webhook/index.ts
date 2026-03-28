@@ -52,13 +52,18 @@ Deno.serve(async (req) => {
         const priceId = sub.items.data[0]?.price?.id;
         const mapping = priceId ? TIER_COMMISSION[priceId] : null;
 
+        if (!mapping) {
+          console.error(`Unknown Stripe price ID: ${priceId} — ignoring, no tier change`);
+          break;
+        }
+
         await supabase.from('subscriptions').upsert({
           user_id: userId,
-          tier: mapping?.tier ?? 'bronze',
+          tier: mapping.tier,
           status: 'active',
           stripe_customer_id: session.customer as string,
           stripe_subscription_id: sub.id,
-          commission_rate: mapping?.commission ?? 18,
+          commission_rate: mapping.commission,
           current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' });
