@@ -34,40 +34,49 @@ export default function ProPerformancePage() {
 
       if (error) throw error;
 
-      // Get conversation counts per pro
-      const { data: convos } = await supabase
-        .from("conversations")
-        .select("pro_id");
-
-      // Get completed jobs per pro
-      const { data: completed } = await supabase
-        .from("jobs")
-        .select("assigned_professional_id")
-        .eq("status", "completed")
-        .not("assigned_professional_id", "is", null);
+      // Get conversation counts, completed jobs, and ratings in parallel
+      const [convosResult, completedResult, ratingsResult] = await Promise.all([
+        supabase.from("conversations").select("pro_id"),
+        supabase.from("jobs").select("assigned_professional_id").eq("status", "completed").not("assigned_professional_id", "is", null),
+        supabase.from("professional_micro_stats").select("user_id, avg_rating, rating_count"),
+      ]);
 
       const convoMap = new Map<string, number>();
-      convos?.forEach((c) => {
+      convosResult.data?.forEach((c) => {
         convoMap.set(c.pro_id, (convoMap.get(c.pro_id) ?? 0) + 1);
       });
 
       const completedMap = new Map<string, number>();
-      completed?.forEach((j) => {
+      completedResult.data?.forEach((j) => {
         if (j.assigned_professional_id) {
           completedMap.set(j.assigned_professional_id, (completedMap.get(j.assigned_professional_id) ?? 0) + 1);
         }
       });
 
-      return (pros ?? []).map((p) => ({
-        user_id: p.user_id,
-        display_name: p.display_name,
-        business_name: p.business_name,
-        verification_status: p.verification_status,
-        services_count: p.services_count,
-        total_conversations: convoMap.get(p.user_id) ?? 0,
-        total_completed: completedMap.get(p.user_id) ?? 0,
-        avg_rating: null,
-      }));
+      // Compute weighted provider-level avg from per-micro stats
+      const ratingMap = new Map<string, { totalSum: number; totalCount: number }>();
+      ratingsResult.data?.forEach((r) => {
+        if (r.avg_rating != null && r.rating_count > 0) {
+          const existing = ratingMap.get(r.user_id) ?? { totalSum: 0, totalCount: 0 };
+          existing.totalSum += r.avg_rating * r.rating_count;
+          existing.totalCount += r.rating_count;
+          ratingMap.set(r.user_id, existing);
+        }
+      });
+
+      return (pros ?? []).map((p) => {
+        const r = ratingMap.get(p.user_id);
+        return {
+          user_id: p.user_id,
+          display_name: p.display_name,
+          business_name: p.business_name,
+          verification_status: p.verification_status,
+          services_count: p.services_count,
+          total_conversations: convoMap.get(p.user_id) ?? 0,
+          total_completed: completedMap.get(p.user_id) ?? 0,
+          avg_rating: r && r.totalCount > 0 ? r.totalSum / r.totalCount : null,
+        };
+      });
     },
     staleTime: 60_000,
   });
