@@ -33,6 +33,7 @@ export interface ServiceListingCard {
   micro_rating_count: number | null;
   micro_completed_count: number | null;
   micro_verification_level: string | null;
+  repeat_client_count: number | null;
 }
 
 export interface ServicePricingItem {
