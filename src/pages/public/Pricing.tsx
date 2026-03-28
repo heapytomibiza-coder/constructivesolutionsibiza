@@ -13,7 +13,8 @@ import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  TIER_PRICES, COMMISSION_RATES, type SubscriptionTier,
+  TIER_PRICES, COMMISSION_RATES, TIER_META, STRIPE_CHECKOUT_LIVE,
+  type SubscriptionTier,
 } from '@/domain/entitlements';
 
 const PLANS: Array<{
@@ -21,7 +22,6 @@ const PLANS: Array<{
   tier: SubscriptionTier;
   tagKey: string;
   features: string[];
-  earned: boolean;
   popular?: boolean;
 }> = [
   {
@@ -29,14 +29,12 @@ const PLANS: Array<{
     tier: 'bronze',
     tagKey: 'pricing.plans.bronze.tag',
     features: ['pricing.plans.bronze.f1', 'pricing.plans.bronze.f2', 'pricing.plans.bronze.f3', 'pricing.plans.bronze.f4'],
-    earned: false,
   },
   {
     name: 'Silver',
     tier: 'silver',
     tagKey: 'pricing.plans.silver.tag',
     features: ['pricing.plans.silver.f1', 'pricing.plans.silver.f2', 'pricing.plans.silver.f3', 'pricing.plans.silver.f4'],
-    earned: false,
     popular: true,
   },
   {
@@ -44,14 +42,12 @@ const PLANS: Array<{
     tier: 'gold',
     tagKey: 'pricing.plans.gold.tag',
     features: ['pricing.plans.gold.f1', 'pricing.plans.gold.f2', 'pricing.plans.gold.f3', 'pricing.plans.gold.f4'],
-    earned: false,
   },
   {
     name: 'Elite',
     tier: 'elite',
     tagKey: 'pricing.plans.elite.tag',
     features: ['pricing.plans.elite.f1', 'pricing.plans.elite.f2', 'pricing.plans.elite.f3', 'pricing.plans.elite.f4'],
-    earned: false,
   },
 ];
 
@@ -74,9 +70,10 @@ const Pricing = () => {
 
   const handleSubscribe = async (tier: SubscriptionTier) => {
     if (tier === 'bronze') return;
+    if (!TIER_META[tier].purchasable) return;
+    if (!STRIPE_CHECKOUT_LIVE) return;
 
     if (!user) {
-      // Redirect to auth if not logged in
       window.location.href = '/auth';
       return;
     }
@@ -110,11 +107,25 @@ const Pricing = () => {
   };
 
   const getCtaLabel = (tier: SubscriptionTier) => {
+    const meta = TIER_META[tier];
+
+    if (meta.earned) return 'Earned by reputation';
     if (subscription.tier === tier && subscription.status === 'active') {
       return t('pricing.currentPlan', 'Current plan');
     }
     if (tier === 'bronze') return t('pricing.getStarted');
+    if (!STRIPE_CHECKOUT_LIVE) return 'Coming Soon';
     return t('pricing.subscribe', 'Subscribe');
+  };
+
+  const isCtaDisabled = (tier: SubscriptionTier) => {
+    const meta = TIER_META[tier];
+    if (meta.earned) return true;
+    if (!meta.purchasable) return true;
+    if (!STRIPE_CHECKOUT_LIVE) return true;
+    if (subscription.tier === tier && subscription.status === 'active') return true;
+    if (loadingTier === tier) return true;
+    return false;
   };
 
   return (
@@ -138,6 +149,7 @@ const Pricing = () => {
           {PLANS.map((plan) => {
             const price = TIER_PRICES[plan.tier];
             const commission = COMMISSION_RATES[plan.tier];
+            const meta = TIER_META[plan.tier];
             const isCurrentPlan = subscription.tier === plan.tier && subscription.status === 'active';
 
             return (
@@ -148,6 +160,11 @@ const Pricing = () => {
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
                     {t('pricing.mostPopular')}
+                  </div>
+                )}
+                {meta.earned && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+                    Invite &amp; Earned Only
                   </div>
                 )}
                 <CardContent className="p-6 text-center space-y-4">
@@ -161,7 +178,7 @@ const Pricing = () => {
                       €{price}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      /{t('pricing.month')}
+                      {meta.earned ? '/mo value' : `/${t('pricing.month')}`}
                     </p>
                   </div>
 
@@ -186,7 +203,7 @@ const Pricing = () => {
                     <Button
                       className="w-full"
                       variant={plan.popular ? 'default' : 'outline'}
-                      disabled={isCurrentPlan || loadingTier === plan.tier}
+                      disabled={isCtaDisabled(plan.tier)}
                       onClick={() => handleSubscribe(plan.tier)}
                     >
                       {loadingTier === plan.tier ? '...' : getCtaLabel(plan.tier)}
@@ -227,7 +244,9 @@ const Pricing = () => {
                   <th className="text-left py-3 px-2 text-muted-foreground font-medium">{t('pricing.comparison.feature')}</th>
                   <th className="text-center py-3 px-2 text-foreground font-medium">Bronze</th>
                   <th className="text-center py-3 px-2 text-primary font-bold">Silver</th>
-                  <th className="text-center py-3 px-2 text-foreground font-medium">Gold</th>
+                  <th className="text-center py-3 px-2 text-foreground font-medium">
+                    Gold <span className="text-xs text-amber-500 font-normal">(earned)</span>
+                  </th>
                   <th className="text-center py-3 px-2 text-foreground font-medium">Elite</th>
                 </tr>
               </thead>

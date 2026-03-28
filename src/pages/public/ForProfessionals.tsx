@@ -42,7 +42,7 @@ const VALUE_STACK = [
 const TIERS = [
   { name: 'Bronze', monthly: '€0', fee: '18%', tagKey: 'forPros.tiers.bronze.tag', earned: false },
   { name: 'Silver', monthly: '€49', fee: '12%', tagKey: 'forPros.tiers.silver.tag', earned: false, popular: true },
-  { name: 'Gold', monthly: '€99', fee: '9%', tagKey: 'forPros.tiers.gold.tag', earned: false },
+  { name: 'Gold', monthly: '€99', fee: '9%', tagKey: 'forPros.tiers.gold.tag', earned: true },
   { name: 'Elite', monthly: '€199', fee: '6%', tagKey: 'forPros.tiers.elite.tag', earned: false },
 ];
 
@@ -189,18 +189,21 @@ const ForProfessionals = () => {
             {t('forPros.reputation.desc')}
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            {['Bronze', 'Silver', 'Gold'].map((tier, i) => (
+            {['Bronze', 'Silver', 'Gold', 'Elite'].map((tier, i) => (
               <div key={tier} className="flex items-center gap-3">
                 <div className={`px-5 py-3 rounded-xl font-semibold text-sm ${
-                  tier === 'Gold' 
-                    ? 'bg-amber-100 text-amber-800 border-2 border-amber-300' 
-                    : tier === 'Silver' 
-                      ? 'bg-slate-100 text-slate-700 border-2 border-slate-300'
-                      : 'bg-orange-50 text-orange-700 border-2 border-orange-200'
+                  tier === 'Elite'
+                    ? 'bg-slate-900 text-white border-2 border-slate-700'
+                    : tier === 'Gold' 
+                      ? 'bg-amber-100 text-amber-800 border-2 border-amber-300' 
+                      : tier === 'Silver' 
+                        ? 'bg-slate-100 text-slate-700 border-2 border-slate-300'
+                        : 'bg-orange-50 text-orange-700 border-2 border-orange-200'
                 }`}>
                   {tier === 'Gold' && '⭐ '}{tier}
+                  {tier === 'Gold' && <span className="block text-[10px] font-normal mt-0.5">earned</span>}
                 </div>
-                {i < 2 && <ArrowRight className="h-4 w-4 text-muted-foreground" />}
+                {i < 3 && <ArrowRight className="h-4 w-4 text-muted-foreground" />}
               </div>
             ))}
           </div>
@@ -238,10 +241,15 @@ const ForProfessionals = () => {
                   <h3 className="text-lg font-bold text-foreground">
                     {tier.name}
                   </h3>
+                  {tier.earned && (
+                    <span className="inline-block bg-amber-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                      Invite &amp; Earned Only
+                    </span>
+                  )}
                   <p className="text-xs text-muted-foreground">{t(tier.tagKey)}</p>
                   <div>
                     <p className="text-3xl font-bold text-foreground">{tier.monthly}</p>
-                    <p className="text-xs text-muted-foreground">/mo</p>
+                    <p className="text-xs text-muted-foreground">{tier.earned ? '/mo value' : '/mo'}</p>
                   </div>
                   <div className="pt-2 border-t border-border">
                     <p className="text-sm text-foreground">{tier.fee} {t('forPros.pricing.commission')}</p>
