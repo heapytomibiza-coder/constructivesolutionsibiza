@@ -16,10 +16,20 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth: internal only (triggered by DB webhook / admin)
-  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
-  const providedSecret = req.headers.get("x-internal-secret");
-  if (!internalSecret || providedSecret !== internalSecret) {
+  // Auth: require authenticated user (called from frontend wizard/editor)
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const _authClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+  const { error: claimsErr } = await _authClient.auth.getClaims(authHeader.replace("Bearer ", ""));
+  if (claimsErr) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

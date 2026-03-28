@@ -1,6 +1,7 @@
 /**
  * Accept a quote on a job.
  * Uses a transactional RPC to atomically: accept quote, reject others, assign pro, set job → in_progress.
+ * The professional is derived from the quote inside the RPC — not passed by the client.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -14,16 +15,16 @@ export async function acceptQuote(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
+  // professionalId is kept in the signature for trackEvent but NOT sent to the RPC.
+  // The RPC derives it from the quote to prevent mismatch attacks.
   const { error } = await supabase.rpc("accept_quote_and_assign" as any, {
     p_quote_id: quoteId,
     p_job_id: jobId,
-    p_professional_id: professionalId,
   });
 
   if (error) {
     console.error("Error in accept_quote_and_assign:", error);
 
-    // Map RPC exceptions to user-friendly messages
     const msg = error.message || "";
     if (msg.includes("not_authorized")) return { success: false, error: "Not authorized" };
     if (msg.includes("job_not_found")) return { success: false, error: "Job not found" };
