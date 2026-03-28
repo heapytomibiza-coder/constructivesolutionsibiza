@@ -33,6 +33,13 @@ export interface AskerJobSummary {
   created_at: string;
 }
 
+export interface AdminReviewSummary {
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  reviewer_role: string;
+}
+
 export interface AdminUserDetails {
   user_id: string;
   display_name: string | null;
@@ -70,6 +77,10 @@ export interface AdminUserDetails {
   jobs_count: number;
   conversations_count: number;
   support_tickets_count: number;
+  // Reviews (public reviews received as pro)
+  review_avg: number | null;
+  review_count: number;
+  recent_reviews: AdminReviewSummary[];
 }
 
 function calcCompleteness(user: Omit<AdminUserDetails, 'completeness'>): ProfileCompleteness {

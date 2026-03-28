@@ -74,7 +74,24 @@ export default function ProProfileDrawer({
     enabled: !!proUserId && open,
   });
 
-  // Fetch reviews
+  // Fetch true aggregate from job_reviews (provider-level, not per-micro)
+  const { data: reviewAgg } = useQuery({
+    queryKey: ['pro_review_agg', proUserId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('job_reviews')
+        .select('rating')
+        .eq('reviewee_user_id', proUserId!)
+        .eq('visibility', 'public');
+      if (error) throw error;
+      if (!data || data.length === 0) return { avg: null, count: 0 };
+      const sum = data.reduce((s, r) => s + r.rating, 0);
+      return { avg: sum / data.length, count: data.length };
+    },
+    enabled: !!proUserId && open,
+  });
+
+  // Fetch recent reviews for display only
   const { data: reviews = [] } = useQuery({
     queryKey: ['pro_reviews', proUserId],
     queryFn: async () => {
@@ -91,9 +108,8 @@ export default function ProProfileDrawer({
     enabled: !!proUserId && open,
   });
 
-  const avgRating = reviews.length > 0
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : null;
+  const avgRating = reviewAgg?.avg ?? null;
+  const reviewCount = reviewAgg?.count ?? 0;
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
@@ -141,7 +157,7 @@ export default function ProProfileDrawer({
                   {avgRating && (
                     <span className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Star className="h-3.5 w-3.5 text-amber-500" />
-                      {avgRating.toFixed(1)} ({reviews.length})
+                      {avgRating.toFixed(1)} ({reviewCount})
                     </span>
                   )}
                 </div>
