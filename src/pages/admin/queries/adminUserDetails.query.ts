@@ -106,7 +106,7 @@ async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> 
     profileRes, rolesRes, proRes,
     jobsRes, clientConvosRes, proConvosRes,
     ticketsCountRes, servicesRes, listingsRes, docsCountRes,
-    reviewsRes,
+    reviewsRes, reviewAggRes,
   ] = await Promise.all([
     supabase.from("profiles").select("display_name, phone, created_at").eq("user_id", userId).single(),
     supabase.from("user_roles").select("roles, active_role, suspended_at, suspension_reason").eq("user_id", userId).single(),
