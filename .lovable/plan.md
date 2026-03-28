@@ -1,121 +1,142 @@
 
 
-# Phase 1 Trust Upgrade: Repeat Hire Tracking + Neighbourhood Jobs
+# Subscription System — Phase 1 Build
 
-## Overview
-Surface two high-impact trust signals that use data already in the database, require no schema changes, and are impossible to fake.
+## Context
 
-## Changes
+The Pricing page (`/pricing`) and ForProfessionals page (`/for-professionals`) are both gated behind the `trust-engine` rollout phase. Current rollout is `service-layer`, so **no users can see the misleading pricing page today**. This means we can build the real system before flipping the gate.
 
-### 1. Repeat Hire Count — Service Listing Detail Page
+## Build Order (8 tickets)
 
-**File**: `src/pages/services/ServiceListingDetail.tsx`
+### Ticket 1 — Enable Stripe + Create Products
 
-Add a query in `serviceListings.query.ts` (inside `fetchListingDetail`) that counts how many distinct clients have hired this provider more than once. Query pattern:
+Use Lovable's Stripe integration to enable Stripe, then create 3 subscription products with monthly prices:
+
+| Product | Monthly | Commission |
+|---------|---------|------------|
+| Silver  | €49     | 12%        |
+| Gold    | €99     | 9%         |
+| Elite   | €199    | 6%         |
+
+Bronze is the default (no Stripe product, 18% commission).
+
+### Ticket 2 — Subscriptions Table
+
+Migration to create:
 
 ```sql
-SELECT count(DISTINCT user_id) 
-FROM jobs 
-WHERE assigned_professional_id = :provider_id 
-  AND status = 'completed'
-GROUP BY user_id 
-HAVING count(*) >= 2
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE,
+  tier TEXT NOT NULL DEFAULT 'bronze' CHECK (tier IN ('bronze','silver','gold','elite')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','past_due','cancelled')),
+  stripe_customer_id TEXT,
+  stripe_subscription_id TEXT UNIQUE,
+  commission_rate NUMERIC NOT NULL DEFAULT 18,
+  current_period_end TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
 ```
 
-This translates to a Supabase RPC or a client-side count from a lightweight query. Since Supabase JS doesn't support `HAVING`, create a small **RPC** `get_provider_repeat_clients(p_provider_id uuid)` that returns a single integer.
+RLS: users can read own row, admins can read all. No direct insert/update from client (webhook-only for Stripe fields).
 
-Display in the provider sidebar card (below the rating block):
-- "Hired again by 3 previous clients" (if count > 0)
-- Hidden if 0
+RPC `get_user_tier(p_user_id UUID)` returns tier + commission_rate + status.
 
-### 2. Repeat Hire Count — Public Professional Profile
+### Ticket 3 — Stripe Webhook Edge Function
 
-**File**: `src/pages/public/ProfessionalDetails.tsx`
+`supabase/functions/stripe-webhook/index.ts`
 
-Add a query using the same RPC. Display in the Quick Facts sidebar:
-- Icon: `Users` or `RefreshCw`
-- Label: "Repeat clients"
-- Value: "5" (or hidden if 0)
+Handles:
+- `checkout.session.completed` — upsert subscription row with tier + commission
+- `invoice.paid` — set status = active
+- `invoice.payment_failed` — set status = past_due
+- `customer.subscription.deleted` — set tier = bronze, status = cancelled
 
-### 3. Neighbourhood Jobs Count — Service Listing Detail
+Tier-to-commission mapping stored as a constant in the function (not frontend).
 
-**File**: `src/pages/services/ServiceListingDetail.tsx`
+### Ticket 4 — Checkout Session Edge Function
 
-The listing already has `location_base` (e.g. "San Antonio"). Jobs store `location.area` in their JSON. Create a small **RPC** `get_provider_area_jobs(p_provider_id uuid, p_area text)` that counts completed jobs in the same area.
+`supabase/functions/create-checkout-session/index.ts`
 
-Display below repeat hire signal:
-- "8 jobs completed near San Antonio" (if count > 0 and location_base exists)
-- Hidden otherwise
+Authenticated endpoint. Accepts `{ tier: 'silver' | 'gold' | 'elite' }`, creates a Stripe Checkout session, returns the URL. Validates user auth via JWT in code.
 
-### 4. Neighbourhood Jobs — Public Professional Profile
+### Ticket 5 — `useSubscription` Hook
 
-**File**: `src/pages/public/ProfessionalDetails.tsx`
+New file: `src/hooks/useSubscription.ts`
 
-Show per-zone job counts in the "Service Area" card. Create RPC `get_provider_zone_jobs(p_provider_id uuid)` returning `{area, count}[]`. Display as enhanced zone badges:
-- "San Antonio (12 jobs)" instead of just "San Antonio"
-
-### 5. Repeat Hire Badge — Service Listing Card (Browse)
-
-**File**: `src/pages/services/ServiceListingCard.tsx`
-
-This requires extending `service_listings_browse` view again to include a `repeat_client_count` column. Create a migration that:
-- Adds a subquery or LEFT JOIN LATERAL to count distinct clients with 2+ completed jobs for that provider
-
-Display on card: subtle text line "Hired again by X clients" below rating row, only if > 0.
-
----
-
-## Technical Details
-
-### New Database Objects
-
-**RPC 1**: `get_provider_repeat_clients(p_provider_id uuid) RETURNS integer`
-```sql
-CREATE OR REPLACE FUNCTION public.get_provider_repeat_clients(p_provider_id uuid)
-RETURNS integer
-LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT count(*)::integer FROM (
-    SELECT user_id FROM jobs
-    WHERE assigned_professional_id = p_provider_id
-      AND status = 'completed'
-    GROUP BY user_id
-    HAVING count(*) >= 2
-  ) x;
-$$;
+Queries `subscriptions` table for current user. Returns:
+```ts
+{ tier, status, commissionRate, isLoading }
 ```
 
-**RPC 2**: `get_provider_area_jobs(p_provider_id uuid, p_area text) RETURNS integer`
-```sql
-CREATE OR REPLACE FUNCTION public.get_provider_area_jobs(p_provider_id uuid, p_area text)
-RETURNS integer
-LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT count(*)::integer FROM jobs
-  WHERE assigned_professional_id = p_provider_id
-    AND status = 'completed'
-    AND location->>'area' = p_area;
-$$;
+Exposed via SessionContext so it's available app-wide without extra queries.
+
+### Ticket 6 — Feature Entitlement System
+
+New file: `src/domain/entitlements.ts`
+
+```ts
+const FEATURE_MAP = {
+  bronze:  { visibility_boost: 0, portfolio_limit: 5, insights: false, priority_matching: false, demand_data: false, featured_slots: false },
+  silver:  { visibility_boost: 0.05, portfolio_limit: 15, insights: true, priority_matching: false, demand_data: false, featured_slots: false },
+  gold:    { visibility_boost: 0.1, portfolio_limit: 50, insights: true, priority_matching: true, demand_data: true, featured_slots: false },
+  elite:   { visibility_boost: 0.2, portfolio_limit: 100, insights: true, priority_matching: true, demand_data: true, featured_slots: true },
+};
+
+function hasFeature(tier, feature): boolean
+function getLimit(tier, feature): number
 ```
 
-**View update**: Extend `service_listings_browse` to add `repeat_client_count` via a subquery on jobs.
+All tier checks across the app use `hasFeature()` — never raw `tier === 'gold'`.
 
-### Files Changed
+### Ticket 7 — Pricing Page Rebuild
 
-| File | Change |
+Update `Pricing.tsx` and `ForProfessionals.tsx`:
+
+- Replace hardcoded prices with the real tier data
+- CTA buttons call `create-checkout-session` edge function and redirect to Stripe Checkout
+- For Bronze: CTA remains "Get Started" → `/auth`
+- For Gold (earned): show "Earned by reputation" with no purchase button
+- Add "Launching Soon" badge if Stripe isn't ready yet (feature flag)
+
+### Ticket 8 — Light Ranking Boost
+
+Update the `professional_matching_scores` view to include a small subscription weight:
+
+```
+final_score = trust_score + (visibility_boost * 10)
+```
+
+Where `visibility_boost` comes from the subscriptions table joined via provider_id. Trust score (rating, preferences, completions) remains 80%+ of the total. Subscription boost is capped so a Bronze pro with great trust always outranks an Elite pro with poor trust.
+
+## Files Involved
+
+| File | Action |
 |---|---|
-| Migration (new) | 2 RPCs + view update |
-| `serviceListings.query.ts` | Call RPCs in detail fetch, add `repeat_client_count` to card type |
-| `ServiceListingDetail.tsx` | Show repeat hire + area jobs in sidebar |
-| `ServiceListingCard.tsx` | Show repeat hire badge if count > 0 |
-| `ProfessionalDetails.tsx` | Add repeat clients to Quick Facts, enhance zone badges with counts |
+| Migration (new) | subscriptions table + RPC |
+| `supabase/functions/stripe-webhook/index.ts` | New edge function |
+| `supabase/functions/create-checkout-session/index.ts` | New edge function |
+| `supabase/config.toml` | Add function config blocks |
+| `src/hooks/useSubscription.ts` | New hook |
+| `src/domain/entitlements.ts` | New entitlement system |
+| `src/contexts/SessionContext.tsx` | Expose subscription data |
+| `src/pages/public/Pricing.tsx` | Rebuild with real checkout |
+| `src/pages/public/ForProfessionals.tsx` | Update tier section |
+| `professional_matching_scores` view (migration) | Add visibility_boost column |
 
-### Rollout Safety
-- All signals hidden when count is 0 — no negative messaging
-- RPCs are `SECURITY DEFINER` with `search_path = public` for safety
-- View update is additive (new columns only)
-- No schema changes to existing tables
-- Gated behind data existence, not rollout phase (these are factual signals)
+## Rollout Safety
+
+- Current rollout phase is `service-layer` — pricing pages are hidden until `trust-engine` is activated
+- Build everything behind the gate, test, then flip to `trust-engine`
+- Bronze is the default for all existing users (no migration of user data needed)
+- Webhook is idempotent (uses `stripe_subscription_id` as dedup key)
+- Commission rate lives in DB, never in frontend state
+
+## Strategic Alignment Check
+
+- Trust signals (ratings, repeat hires, verification) remain free for all tiers
+- Subscriptions sell visibility, speed, and insights — never trust
+- Ranking formula ensures trust always dominates over subscription boost
+- Gold tier is earned by reputation, reinforcing the "trust first" philosophy
 
