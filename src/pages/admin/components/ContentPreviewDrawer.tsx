@@ -28,6 +28,8 @@ import {
   MessageCircle,
   Eye,
   Trash2,
+  Lock,
+  EyeOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { AdminContentItem } from "../hooks/useAdminContent";
@@ -51,6 +53,8 @@ interface CanonicalPost {
   tags: string[] | null;
   photos: string[] | null;
   category_id: string;
+  is_locked: boolean;
+  is_anonymous: boolean;
 }
 
 interface CanonicalReply {
@@ -88,7 +92,7 @@ function useCanonicalContent(item: AdminContentItem | null, enabled: boolean) {
         const [postRes, repliesRes] = await Promise.all([
           supabase
             .from("forum_posts")
-            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id")
+            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id, is_locked, is_anonymous")
             .eq("id", item.id)
             .maybeSingle(),
           supabase
@@ -120,7 +124,7 @@ function useCanonicalContent(item: AdminContentItem | null, enabled: boolean) {
         const [postRes, repliesRes] = await Promise.all([
           supabase
             .from("forum_posts")
-            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id")
+            .select("id, title, content, author_id, author_display_name, created_at, reply_count, view_count, tags, photos, category_id, is_locked, is_anonymous")
             .eq("id", postId)
             .maybeSingle(),
           supabase
