@@ -33,6 +33,7 @@ export interface ServiceListingCard {
   micro_rating_count: number | null;
   micro_completed_count: number | null;
   micro_verification_level: string | null;
+  repeat_client_count: number | null;
 }
 
 export interface ServicePricingItem {
@@ -213,7 +214,7 @@ export function useServiceListingDetail(listingId: string | undefined) {
       if (listingError) throw listingError;
       if (!listing) throw new Error('Listing not found');
 
-      const [pricingResult, providerResult, microResult, microStatsResult] = await Promise.all([
+      const [pricingResult, providerResult, microResult, microStatsResult, repeatClientsResult, areaJobsResult] = await Promise.all([
         supabase
           .from('service_pricing_items')
           .select('*')
@@ -236,6 +237,10 @@ export function useServiceListingDetail(listingId: string | undefined) {
           .eq('user_id', listing.provider_id)
           .eq('micro_id', listing.micro_id)
           .maybeSingle(),
+        supabase.rpc('get_provider_repeat_clients', { p_provider_id: listing.provider_id }),
+        listing.location_base
+          ? supabase.rpc('get_provider_area_jobs', { p_provider_id: listing.provider_id, p_area: listing.location_base })
+          : Promise.resolve({ data: 0, error: null }),
       ]);
 
       if (pricingResult.error) throw pricingResult.error;
@@ -275,6 +280,8 @@ export function useServiceListingDetail(listingId: string | undefined) {
         .then(() => {});
 
       const microStats = microStatsResult.data ?? null;
+      const repeatClientCount = (repeatClientsResult.data as number) ?? 0;
+      const areaJobCount = (areaJobsResult.data as number) ?? 0;
 
       return {
         listing: listing as ServiceListingDetail,
@@ -284,6 +291,8 @@ export function useServiceListingDetail(listingId: string | undefined) {
         categoryName,
         subcategoryName,
         microStats,
+        repeatClientCount,
+        areaJobCount,
       };
     },
     staleTime: 60_000,

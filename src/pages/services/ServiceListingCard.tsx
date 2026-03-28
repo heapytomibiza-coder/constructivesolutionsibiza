@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Eye, ShieldCheck, Star } from 'lucide-react';
+import { Eye, RefreshCw, ShieldCheck, Star } from 'lucide-react';
 import { CategoryPlaceholder } from '@/components/CategoryPlaceholder';
 import { getCategoryIcon } from '@/lib/categoryIcons';
 import type { ServiceListingCard as ServiceListingCardType } from './queries/serviceListings.query';
@@ -91,6 +91,14 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
               {listing.micro_completed_count != null && listing.micro_completed_count > 0 && (
                 <span className="text-muted-foreground text-xs">· {listing.micro_completed_count} jobs</span>
               )}
+            </div>
+          )}
+
+          {/* Repeat hire signal */}
+          {listing.repeat_client_count != null && listing.repeat_client_count > 0 && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <RefreshCw className="h-3 w-3 text-primary" />
+              <span>Hired again by {listing.repeat_client_count} {listing.repeat_client_count === 1 ? 'client' : 'clients'}</span>
             </div>
           )}
 

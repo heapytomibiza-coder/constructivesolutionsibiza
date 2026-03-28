@@ -17,6 +17,7 @@ import {
   Star,
   ExternalLink,
   ImageIcon,
+  RefreshCw,
 } from 'lucide-react';
 import { PublicLayout } from '@/components/layout';
 import { supabase } from '@/integrations/supabase/client';
@@ -286,11 +287,38 @@ const ProfessionalDetails = () => {
     },
   });
 
+  /* ── Repeat clients query ── */
+  const { data: repeatClientCount } = useQuery({
+    queryKey: ['professional_repeat_clients', professional?.user_id],
+    enabled: !!professional?.user_id,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_provider_repeat_clients', { p_provider_id: professional!.user_id });
+      if (error) throw error;
+      return (data as number) ?? 0;
+    },
+  });
+
+  /* ── Zone jobs query ── */
+  const { data: zoneJobs } = useQuery({
+    queryKey: ['professional_zone_jobs', professional?.user_id],
+    enabled: !!professional?.user_id,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_provider_zone_jobs', { p_provider_id: professional!.user_id });
+      if (error) throw error;
+      return (data as { area: string; job_count: number }[]) ?? [];
+    },
+  });
+
   /* ── Derived values ── */
   const zoneLabels = (professional?.service_zones || [])
     .map((zoneId) => getZoneByIdSafe(zoneId))
     .filter(Boolean)
     .map((z) => z!.label);
+
+  const zoneJobMap = new Map<string, number>();
+  for (const zj of zoneJobs ?? []) {
+    if (zj.area) zoneJobMap.set(zj.area, zj.job_count);
+  }
 
   const availability = AVAILABILITY_CONFIG[professional?.availability_status || 'available'] ?? AVAILABILITY_CONFIG.available;
   const firstName = professional?.display_name?.split(' ')[0] || 'them';
@@ -445,11 +473,17 @@ const ProfessionalDetails = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      {zoneLabels.map((label) => (
-                        <Badge key={label} variant="outline">
-                          {label}
-                        </Badge>
-                      ))}
+                      {zoneLabels.map((label) => {
+                        const jobCount = zoneJobMap.get(label);
+                        return (
+                          <Badge key={label} variant="outline">
+                            {label}
+                            {jobCount != null && jobCount > 0 && (
+                              <span className="ml-1 text-[10px] opacity-70">({jobCount} {jobCount === 1 ? 'job' : 'jobs'})</span>
+                            )}
+                          </Badge>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
@@ -523,6 +557,15 @@ const ProfessionalDetails = () => {
                     label="Services:"
                     value={professional.services_count ? `${professional.services_count} offered` : 'Contact for details'}
                   />
+
+                  {repeatClientCount != null && repeatClientCount > 0 && (
+                    <QuickFactRow
+                      icon={RefreshCw}
+                      label="Repeat clients:"
+                      value={String(repeatClientCount)}
+                      iconClassName="text-primary"
+                    />
+                  )}
 
                   {professional.minimum_call_out && professional.minimum_call_out > 0 && (
                     <QuickFactRow
