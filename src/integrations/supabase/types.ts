@@ -3095,9 +3095,13 @@ export type Database = {
           hero_thumb_url: string | null
           id: string | null
           location_base: string | null
+          micro_avg_rating: number | null
+          micro_completed_count: number | null
           micro_id: string | null
           micro_name: string | null
+          micro_rating_count: number | null
           micro_slug: string | null
+          micro_verification_level: string | null
           pricing_summary: string | null
           provider_avatar: string | null
           provider_avatar_thumb: string | null

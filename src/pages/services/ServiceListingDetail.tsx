@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   ArrowLeft, Briefcase, Eye, MapPin, MessageCircle, Info, 
-  CheckCircle2, Clock 
+  CheckCircle2, Clock, Star 
 } from 'lucide-react';
 import { useServiceListingDetail } from './queries/serviceListings.query';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
@@ -56,7 +56,7 @@ const ServiceListingDetail = () => {
     );
   }
 
-  const { listing, pricingItems, provider, micro, categoryName, subcategoryName } = data;
+  const { listing, pricingItems, provider, micro, categoryName, subcategoryName, microStats } = data;
 
   const wizardUrl = buildWizardLink(
     micro.slug
@@ -193,6 +193,20 @@ const ServiceListingDetail = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Per-service rating */}
+                {microStats && microStats.rating_count > 0 && (
+                  <div className="flex items-center gap-2 pt-2 border-t border-border">
+                    <Star className="h-4 w-4 text-warning fill-warning" />
+                    <span className="font-semibold">{microStats.avg_rating?.toFixed(1)}</span>
+                    <span className="text-sm text-muted-foreground">
+                      ({microStats.rating_count} {microStats.rating_count === 1 ? 'review' : 'reviews'})
+                    </span>
+                    {microStats.completed_jobs_count > 0 && (
+                      <span className="text-sm text-muted-foreground">· {microStats.completed_jobs_count} jobs done</span>
+                    )}
+                  </div>
+                )}
 
                 {provider.tagline && (
                   <p className="text-sm text-muted-foreground italic">{provider.tagline}</p>

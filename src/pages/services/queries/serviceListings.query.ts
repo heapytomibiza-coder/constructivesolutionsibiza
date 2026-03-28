@@ -29,6 +29,10 @@ export interface ServiceListingCard {
   category_slug: string | null;
   starting_price: number | null;
   starting_price_unit: string | null;
+  micro_avg_rating: number | null;
+  micro_rating_count: number | null;
+  micro_completed_count: number | null;
+  micro_verification_level: string | null;
 }
 
 export interface ServicePricingItem {
@@ -209,7 +213,7 @@ export function useServiceListingDetail(listingId: string | undefined) {
       if (listingError) throw listingError;
       if (!listing) throw new Error('Listing not found');
 
-      const [pricingResult, providerResult, microResult] = await Promise.all([
+      const [pricingResult, providerResult, microResult, microStatsResult] = await Promise.all([
         supabase
           .from('service_pricing_items')
           .select('*')
@@ -226,6 +230,12 @@ export function useServiceListingDetail(listingId: string | undefined) {
           .select('name, slug, subcategory_id')
           .eq('id', listing.micro_id)
           .single(),
+        supabase
+          .from('professional_micro_stats')
+          .select('avg_rating, rating_count, completed_jobs_count, verification_level')
+          .eq('user_id', listing.provider_id)
+          .eq('micro_id', listing.micro_id)
+          .maybeSingle(),
       ]);
 
       if (pricingResult.error) throw pricingResult.error;
@@ -264,6 +274,8 @@ export function useServiceListingDetail(listingId: string | undefined) {
         .insert({ service_listing_id: listingId! })
         .then(() => {});
 
+      const microStats = microStatsResult.data ?? null;
+
       return {
         listing: listing as ServiceListingDetail,
         pricingItems: (pricingResult.data ?? []) as ServicePricingItem[],
@@ -271,6 +283,7 @@ export function useServiceListingDetail(listingId: string | undefined) {
         micro,
         categoryName,
         subcategoryName,
+        microStats,
       };
     },
     staleTime: 60_000,

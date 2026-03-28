@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Eye, ShieldCheck } from 'lucide-react';
+import { Eye, ShieldCheck, Star } from 'lucide-react';
 import { CategoryPlaceholder } from '@/components/CategoryPlaceholder';
 import { getCategoryIcon } from '@/lib/categoryIcons';
 import type { ServiceListingCard as ServiceListingCardType } from './queries/serviceListings.query';
@@ -81,6 +81,18 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
 
           {/* Spacer to push bottom content down */}
           <div className="flex-1" />
+
+          {/* Rating row */}
+          {listing.micro_rating_count != null && listing.micro_rating_count > 0 && (
+            <div className="flex items-center gap-1.5 text-sm">
+              <Star className="h-3.5 w-3.5 text-warning fill-warning" />
+              <span className="font-semibold">{listing.micro_avg_rating?.toFixed(1)}</span>
+              <span className="text-muted-foreground text-xs">({listing.micro_rating_count})</span>
+              {listing.micro_completed_count != null && listing.micro_completed_count > 0 && (
+                <span className="text-muted-foreground text-xs">· {listing.micro_completed_count} jobs</span>
+              )}
+            </div>
+          )}
 
           {/* Price row */}
           <div className="flex min-w-0 items-center justify-between gap-2 overflow-hidden">

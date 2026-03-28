@@ -52,6 +52,8 @@ interface Specialisation {
   micro_id: string;
   micro_name: string;
   preference: string;
+  avg_rating: number | null;
+  rating_count: number | null;
 }
 
 interface ServiceListing {
@@ -236,19 +238,35 @@ const ProfessionalDetails = () => {
     queryKey: ['professional_specialisations', professional?.user_id],
     enabled: !!professional?.user_id,
     queryFn: async (): Promise<Specialisation[]> => {
-      const { data, error } = await supabase
-        .from('professional_micro_preferences')
-        .select('micro_id, preference, service_micro_categories!inner(name)')
-        .eq('user_id', professional!.user_id)
-        .in('preference', ['preferred', 'available']);
+      const [prefsResult, statsResult] = await Promise.all([
+        supabase
+          .from('professional_micro_preferences')
+          .select('micro_id, preference, service_micro_categories!inner(name)')
+          .eq('user_id', professional!.user_id)
+          .in('preference', ['preferred', 'available']),
+        supabase
+          .from('professional_micro_stats')
+          .select('micro_id, avg_rating, rating_count')
+          .eq('user_id', professional!.user_id),
+      ]);
 
-      if (error) throw error;
+      if (prefsResult.error) throw prefsResult.error;
 
-      return (data || []).map((row: any) => ({
-        micro_id: row.micro_id,
-        micro_name: row.service_micro_categories?.name ?? 'Service',
-        preference: row.preference,
-      }));
+      const statsMap = new Map<string, { avg_rating: number | null; rating_count: number }>();
+      for (const s of statsResult.data ?? []) {
+        statsMap.set(s.micro_id, { avg_rating: s.avg_rating, rating_count: s.rating_count });
+      }
+
+      return (prefsResult.data || []).map((row: any) => {
+        const stats = statsMap.get(row.micro_id);
+        return {
+          micro_id: row.micro_id,
+          micro_name: row.service_micro_categories?.name ?? 'Service',
+          preference: row.preference,
+          avg_rating: stats?.avg_rating ?? null,
+          rating_count: stats?.rating_count ?? null,
+        };
+      });
     },
   });
 
@@ -400,8 +418,15 @@ const ProfessionalDetails = () => {
                         <Badge
                           key={s.micro_id}
                           variant={s.preference === 'preferred' ? 'default' : 'outline'}
+                          className="gap-1.5"
                         >
                           {s.micro_name}
+                          {s.avg_rating != null && s.rating_count != null && s.rating_count > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] opacity-80">
+                              <Star className="h-2.5 w-2.5 fill-current" />
+                              {s.avg_rating.toFixed(1)} ({s.rating_count})
+                            </span>
+                          )}
                         </Badge>
                       ))}
                     </div>
