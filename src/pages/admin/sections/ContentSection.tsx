@@ -280,7 +280,7 @@ export default function ContentSection() {
                 Remove {selectedItem?.type === "post" ? "Post" : "Reply"}
               </DialogTitle>
               <DialogDescription>
-                This will permanently delete this content. This action cannot be undone and is logged for audit.
+                This will remove this content from public view. The action is logged for audit.
               </DialogDescription>
             </DialogHeader>
 
