@@ -162,8 +162,13 @@ const ForumPost = () => {
       });
       setReplyContent("");
       toast.success(t("replies.success"));
-    } catch (err) {
-      toast.error(t("replies.error"));
+    } catch (err: any) {
+      const msg = err?.message || "";
+      if (msg.includes("LOCKED_POST")) {
+        toast.error(t("locked.cannotReply", "This post is archived and no longer accepts replies."));
+      } else {
+        toast.error(t("replies.error"));
+      }
     }
   };
 
