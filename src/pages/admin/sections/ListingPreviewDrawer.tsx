@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { evaluateListingReadiness } from "@/lib/listingPublishRules";
 import {
   Sheet,
   SheetContent,
@@ -260,39 +261,66 @@ export default function ListingPreviewDrawer({ listingId, onClose }: ListingPrev
             </div>
 
             <div className="sticky bottom-0 border-t bg-background px-6 py-4">
-              <div className="flex flex-col gap-2 sm:flex-row">
-                {data.listing.status !== 'live' && (
-                  <Button
-                    className="flex-1 gap-2"
-                    disabled={statusMutation.isPending}
-                    onClick={() => statusMutation.mutate({ newStatus: 'live' })}
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                    Approve &amp; Set Live
-                  </Button>
-                )}
-                {data.listing.status === 'live' && (
-                  <Button
-                    variant="outline"
-                    className="flex-1 gap-2"
-                    disabled={statusMutation.isPending}
-                    onClick={() => statusMutation.mutate({ newStatus: 'paused' })}
-                  >
-                    <PauseCircle className="h-4 w-4" />
-                    Pause Listing
-                  </Button>
-                )}
-                {data.listing.status === 'paused' && (
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    disabled={statusMutation.isPending}
-                    onClick={() => statusMutation.mutate({ newStatus: 'draft' })}
-                  >
-                    Revert to Draft
-                  </Button>
-                )}
-              </div>
+              {(() => {
+                const hasPricing = data.pricingItems.some(
+                  (p: any) => p.is_enabled && p.price_amount && p.price_amount > 0
+                );
+                const { canPublish, issues } = evaluateListingReadiness({
+                  display_title: data.listing.display_title,
+                  short_description: data.listing.short_description,
+                  hero_image_url: data.listing.hero_image_url,
+                  hasPricing,
+                });
+                const requiredIssues = issues.filter(i => i.severity === 'required');
+
+                return (
+                  <div className="flex flex-col gap-2">
+                    {data.listing.status !== 'live' && !canPublish && requiredIssues.length > 0 && (
+                      <p className="text-xs text-destructive">
+                        ⚠ Cannot approve: {requiredIssues.map(i => {
+                          if (i.field === 'display_title') return 'missing title';
+                          if (i.field === 'short_description') return 'missing description';
+                          if (i.field === 'pricing') return 'no valid pricing';
+                          return i.field;
+                        }).join(', ')}
+                      </p>
+                    )}
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      {data.listing.status !== 'live' && (
+                        <Button
+                          className="flex-1 gap-2"
+                          disabled={statusMutation.isPending || !canPublish}
+                          onClick={() => statusMutation.mutate({ newStatus: 'live' })}
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          Approve &amp; Set Live
+                        </Button>
+                      )}
+                      {data.listing.status === 'live' && (
+                        <Button
+                          variant="outline"
+                          className="flex-1 gap-2"
+                          disabled={statusMutation.isPending}
+                          onClick={() => statusMutation.mutate({ newStatus: 'paused' })}
+                        >
+                          <PauseCircle className="h-4 w-4" />
+                          Pause Listing
+                        </Button>
+                      )}
+                      {data.listing.status === 'paused' && (
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          disabled={statusMutation.isPending}
+                          onClick={() => statusMutation.mutate({ newStatus: 'draft' })}
+                        >
+                          Revert to Draft
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </>
         )}
