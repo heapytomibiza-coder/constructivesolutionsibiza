@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   MapPin, Briefcase, Store, MessageSquare,
-  ExternalLink,
+  ExternalLink, Star,
 } from "lucide-react";
 import type { AdminUserDetails, ProServiceEntry, ServiceListingSummary } from "../../queries/adminUserDetails.query";
 
@@ -55,7 +55,7 @@ export function TaskerTab({ user }: { user: AdminUserDetails }) {
       <Separator />
 
       {/* Activity */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="rounded-lg border p-3 text-center">
           <MessageSquare className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
           <p className="text-lg font-bold">{user.tasker_conversations_count}</p>
@@ -71,6 +71,13 @@ export function TaskerTab({ user }: { user: AdminUserDetails }) {
           <p className="text-lg font-bold">{user.service_listings.length}</p>
           <p className="text-[10px] text-muted-foreground">Listings</p>
         </div>
+        <div className="rounded-lg border p-3 text-center">
+          <Star className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
+          <p className="text-lg font-bold">
+            {user.review_avg != null ? user.review_avg.toFixed(1) : "—"}
+          </p>
+          <p className="text-[10px] text-muted-foreground">Avg Rating ({user.review_count})</p>
+        </div>
       </div>
 
       <Separator />
@@ -83,6 +90,38 @@ export function TaskerTab({ user }: { user: AdminUserDetails }) {
         <>
           <Separator />
           <ListingsSection listings={user.service_listings} userId={user.user_id} />
+        </>
+      )}
+
+      {/* Recent Reviews */}
+      {user.recent_reviews.length > 0 && (
+        <>
+          <Separator />
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Star className="h-3.5 w-3.5" /> Recent Public Reviews ({user.review_count})
+            </h3>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              {user.recent_reviews.map((r, i) => (
+                <div key={i} className="rounded-lg border p-3 space-y-1">
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, si) => (
+                      <Star
+                        key={si}
+                        className={`h-3 w-3 ${si < r.rating ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground/30'}`}
+                      />
+                    ))}
+                    <span className="ml-auto text-[10px] text-muted-foreground">
+                      {new Date(r.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {r.comment && (
+                    <p className="text-xs text-foreground line-clamp-3">{r.comment}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </>
       )}
     </div>
