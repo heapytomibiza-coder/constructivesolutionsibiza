@@ -1,142 +1,72 @@
 
 
-# Subscription System — Phase 1 Build
+# Gold = Invite & Earned Only + Checkout Gating
 
-## Context
+## Summary
 
-The Pricing page (`/pricing`) and ForProfessionals page (`/for-professionals`) are both gated behind the `trust-engine` rollout phase. Current rollout is `service-layer`, so **no users can see the misleading pricing page today**. This means we can build the real system before flipping the gate.
+Make Gold visibly priced but clearly non-purchasable ("Invite & Earned Only"), remove it from all checkout/webhook flows, add a `STRIPE_CHECKOUT_LIVE` safety flag so Silver/Elite show "Coming Soon" until the webhook secret is configured, and fix the ForProfessionals reputation ladder to include Elite.
 
-## Build Order (8 tickets)
+## Changes
 
-### Ticket 1 — Enable Stripe + Create Products
+### 1. `src/domain/entitlements.ts`
 
-Use Lovable's Stripe integration to enable Stripe, then create 3 subscription products with monthly prices:
+- Add `TIER_META` constant:
+  ```ts
+  export const TIER_META: Record<SubscriptionTier, { earned: boolean; purchasable: boolean }> = {
+    bronze: { earned: false, purchasable: false },
+    silver: { earned: false, purchasable: true },
+    gold:   { earned: true,  purchasable: false },
+    elite:  { earned: false, purchasable: true },
+  };
+  ```
+- Add safety flag: `export const STRIPE_CHECKOUT_LIVE = false;`
+- Remove `gold` from `STRIPE_PRICE_IDS` (type becomes `Record<'silver' | 'elite', string>`)
+- Keep Gold in `TIER_PRICES` (€99) and `COMMISSION_RATES` (9%) — display only
 
-| Product | Monthly | Commission |
-|---------|---------|------------|
-| Silver  | €49     | 12%        |
-| Gold    | €99     | 9%         |
-| Elite   | €199    | 6%         |
+### 2. `src/pages/public/Pricing.tsx`
 
-Bronze is the default (no Stripe product, 18% commission).
+- Set `earned: true` on Gold in the `PLANS` array
+- Gold card rendering:
+  - Show "Invite & Earned Only" badge (amber styled, like "Most Popular" badge on Silver)
+  - Price displays as `€99` with subtext `/mo value` instead of `/mo`
+  - CTA button: disabled with text "Earned by reputation" (no click handler)
+- Silver/Elite cards: when `STRIPE_CHECKOUT_LIVE === false`, CTA shows "Coming Soon" (disabled) instead of "Subscribe"
+- `handleSubscribe`: early return if `TIER_META[tier].purchasable === false`
 
-### Ticket 2 — Subscriptions Table
+### 3. `src/pages/public/ForProfessionals.tsx`
 
-Migration to create:
+- Update `TIERS` array: Gold gets `earned: true`, add label distinction
+- Gold tier card: show "Invite & Earned" tag instead of plain price, still display `€99/mo value`
+- Fix reputation ladder (line 192): add Elite to the array `['Bronze', 'Silver', 'Gold', 'Elite']` with appropriate styling (dark/black for Elite)
+- Gold step in ladder gets a subtle "earned" label
 
-```sql
-CREATE TABLE subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL UNIQUE,
-  tier TEXT NOT NULL DEFAULT 'bronze' CHECK (tier IN ('bronze','silver','gold','elite')),
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','past_due','cancelled')),
-  stripe_customer_id TEXT,
-  stripe_subscription_id TEXT UNIQUE,
-  commission_rate NUMERIC NOT NULL DEFAULT 18,
-  current_period_end TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-```
+### 4. `supabase/functions/create-checkout-session/index.ts`
 
-RLS: users can read own row, admins can read all. No direct insert/update from client (webhook-only for Stripe fields).
+- Remove `gold` from `PRICE_IDS` map (only `silver` and `elite` remain)
+- Update error message: `'Invalid tier. Must be silver or elite.'`
 
-RPC `get_user_tier(p_user_id UUID)` returns tier + commission_rate + status.
+### 5. `supabase/functions/stripe-webhook/index.ts`
 
-### Ticket 3 — Stripe Webhook Edge Function
+- Remove gold price ID mapping from `TIER_COMMISSION` (only silver and elite remain)
+- If an unknown price ID comes through, it defaults to bronze/18% (already handled by fallback)
 
-`supabase/functions/stripe-webhook/index.ts`
+### 6. `.lovable/plan.md`
 
-Handles:
-- `checkout.session.completed` — upsert subscription row with tier + commission
-- `invoice.paid` — set status = active
-- `invoice.payment_failed` — set status = past_due
-- `customer.subscription.deleted` — set tier = bronze, status = cancelled
+- Update to reflect Gold = earned/invite only, not purchasable
+- Note `STRIPE_CHECKOUT_LIVE` flag for gating
 
-Tier-to-commission mapping stored as a constant in the function (not frontend).
+## What stays unchanged
 
-### Ticket 4 — Checkout Session Edge Function
+- Gold's entitlements in `FEATURE_MAP` — full feature set remains
+- Gold's commission rate (9%) and price (€99) — visible as value anchors
+- All pages remain behind `trust-engine` rollout gate — safe to publish
+- `useSubscription` hook and `SessionContext` — no changes needed
 
-`supabase/functions/create-checkout-session/index.ts`
+## Gating summary
 
-Authenticated endpoint. Accepts `{ tier: 'silver' | 'gold' | 'elite' }`, creates a Stripe Checkout session, returns the URL. Validates user auth via JWT in code.
-
-### Ticket 5 — `useSubscription` Hook
-
-New file: `src/hooks/useSubscription.ts`
-
-Queries `subscriptions` table for current user. Returns:
-```ts
-{ tier, status, commissionRate, isLoading }
-```
-
-Exposed via SessionContext so it's available app-wide without extra queries.
-
-### Ticket 6 — Feature Entitlement System
-
-New file: `src/domain/entitlements.ts`
-
-```ts
-const FEATURE_MAP = {
-  bronze:  { visibility_boost: 0, portfolio_limit: 5, insights: false, priority_matching: false, demand_data: false, featured_slots: false },
-  silver:  { visibility_boost: 0.05, portfolio_limit: 15, insights: true, priority_matching: false, demand_data: false, featured_slots: false },
-  gold:    { visibility_boost: 0.1, portfolio_limit: 50, insights: true, priority_matching: true, demand_data: true, featured_slots: false },
-  elite:   { visibility_boost: 0.2, portfolio_limit: 100, insights: true, priority_matching: true, demand_data: true, featured_slots: true },
-};
-
-function hasFeature(tier, feature): boolean
-function getLimit(tier, feature): number
-```
-
-All tier checks across the app use `hasFeature()` — never raw `tier === 'gold'`.
-
-### Ticket 7 — Pricing Page Rebuild
-
-Update `Pricing.tsx` and `ForProfessionals.tsx`:
-
-- Replace hardcoded prices with the real tier data
-- CTA buttons call `create-checkout-session` edge function and redirect to Stripe Checkout
-- For Bronze: CTA remains "Get Started" → `/auth`
-- For Gold (earned): show "Earned by reputation" with no purchase button
-- Add "Launching Soon" badge if Stripe isn't ready yet (feature flag)
-
-### Ticket 8 — Light Ranking Boost
-
-Update the `professional_matching_scores` view to include a small subscription weight:
-
-```
-final_score = trust_score + (visibility_boost * 10)
-```
-
-Where `visibility_boost` comes from the subscriptions table joined via provider_id. Trust score (rating, preferences, completions) remains 80%+ of the total. Subscription boost is capped so a Bronze pro with great trust always outranks an Elite pro with poor trust.
-
-## Files Involved
-
-| File | Action |
+| Element | Gated by |
 |---|---|
-| Migration (new) | subscriptions table + RPC |
-| `supabase/functions/stripe-webhook/index.ts` | New edge function |
-| `supabase/functions/create-checkout-session/index.ts` | New edge function |
-| `supabase/config.toml` | Add function config blocks |
-| `src/hooks/useSubscription.ts` | New hook |
-| `src/domain/entitlements.ts` | New entitlement system |
-| `src/contexts/SessionContext.tsx` | Expose subscription data |
-| `src/pages/public/Pricing.tsx` | Rebuild with real checkout |
-| `src/pages/public/ForProfessionals.tsx` | Update tier section |
-| `professional_matching_scores` view (migration) | Add visibility_boost column |
-
-## Rollout Safety
-
-- Current rollout phase is `service-layer` — pricing pages are hidden until `trust-engine` is activated
-- Build everything behind the gate, test, then flip to `trust-engine`
-- Bronze is the default for all existing users (no migration of user data needed)
-- Webhook is idempotent (uses `stripe_subscription_id` as dedup key)
-- Commission rate lives in DB, never in frontend state
-
-## Strategic Alignment Check
-
-- Trust signals (ratings, repeat hires, verification) remain free for all tiers
-- Subscriptions sell visibility, speed, and insights — never trust
-- Ranking formula ensures trust always dominates over subscription boost
-- Gold tier is earned by reputation, reinforcing the "trust first" philosophy
+| `/pricing`, `/for-professionals` pages | `trust-engine` rollout phase (not yet active) |
+| Silver/Elite checkout buttons | `STRIPE_CHECKOUT_LIVE` flag (set to `false`) |
+| Gold checkout | Removed entirely from Stripe flow |
 
