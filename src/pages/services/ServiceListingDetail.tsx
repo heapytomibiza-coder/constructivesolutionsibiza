@@ -208,6 +208,7 @@ const ServiceListingDetail = () => {
                   </div>
                 )}
 
+                {provider.tagline && (
                   <p className="text-sm text-muted-foreground italic">{provider.tagline}</p>
                 )}
 
