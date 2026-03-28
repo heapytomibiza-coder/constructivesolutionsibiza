@@ -15,6 +15,15 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Auth: internal only (triggered by DB webhook / admin)
+  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
+  const providedSecret = req.headers.get("x-internal-secret");
+  if (!internalSecret || providedSecret !== internalSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   let body: TranslateRequest = { entity: "jobs", id: "", fields: {} };
   try {
     body = await req.json();
