@@ -400,8 +400,15 @@ const ProfessionalDetails = () => {
                         <Badge
                           key={s.micro_id}
                           variant={s.preference === 'preferred' ? 'default' : 'outline'}
+                          className="gap-1.5"
                         >
                           {s.micro_name}
+                          {s.avg_rating != null && s.rating_count != null && s.rating_count > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] opacity-80">
+                              <Star className="h-2.5 w-2.5 fill-current" />
+                              {s.avg_rating.toFixed(1)} ({s.rating_count})
+                            </span>
+                          )}
                         </Badge>
                       ))}
                     </div>

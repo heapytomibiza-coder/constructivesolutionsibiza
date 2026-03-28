@@ -194,7 +194,20 @@ const ServiceListingDetail = () => {
                   </div>
                 </div>
 
-                {provider.tagline && (
+                {/* Per-service rating */}
+                {microStats && microStats.rating_count > 0 && (
+                  <div className="flex items-center gap-2 pt-2 border-t border-border">
+                    <Star className="h-4 w-4 text-warning fill-warning" />
+                    <span className="font-semibold">{microStats.avg_rating?.toFixed(1)}</span>
+                    <span className="text-sm text-muted-foreground">
+                      ({microStats.rating_count} {microStats.rating_count === 1 ? 'review' : 'reviews'})
+                    </span>
+                    {microStats.completed_jobs_count > 0 && (
+                      <span className="text-sm text-muted-foreground">· {microStats.completed_jobs_count} jobs done</span>
+                    )}
+                  </div>
+                )}
+
                   <p className="text-sm text-muted-foreground italic">{provider.tagline}</p>
                 )}
 
