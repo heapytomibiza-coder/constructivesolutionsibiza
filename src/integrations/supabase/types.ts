@@ -3109,6 +3109,7 @@ export type Database = {
           provider_name: string | null
           provider_verification: string | null
           published_at: string | null
+          repeat_client_count: number | null
           short_description: string | null
           starting_price: number | null
           starting_price_unit: string | null
@@ -3313,6 +3314,21 @@ export type Database = {
         Returns: string
       }
       get_platform_assistant_summary: { Args: never; Returns: Json }
+      get_provider_area_jobs: {
+        Args: { p_area: string; p_provider_id: string }
+        Returns: number
+      }
+      get_provider_repeat_clients: {
+        Args: { p_provider_id: string }
+        Returns: number
+      }
+      get_provider_zone_jobs: {
+        Args: { p_provider_id: string }
+        Returns: {
+          area: string
+          job_count: number
+        }[]
+      }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_job_edit_version: {
         Args: { p_job_id: string }
