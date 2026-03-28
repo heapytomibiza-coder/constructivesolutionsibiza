@@ -5,7 +5,6 @@ import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 /** Tier ↔ commission mapping — single source of truth */
 const TIER_COMMISSION: Record<string, { tier: string; commission: number }> = {
   'price_1TG3HUAsoYCrHLeBJ0XM4Ks3': { tier: 'silver', commission: 12 },
-  'price_1TG3HWAsoYCrHLeBdJC0lMwF': { tier: 'gold', commission: 9 },
   'price_1TG3HXAsoYCrHLeBlwitj6fQ': { tier: 'elite', commission: 6 },
 };
 

@@ -59,10 +59,20 @@ export const COMMISSION_RATES: Record<SubscriptionTier, number> = {
   elite: 6,
 };
 
-/** Stripe price IDs mapped to tiers */
-export const STRIPE_PRICE_IDS: Record<Exclude<SubscriptionTier, 'bronze'>, string> = {
+/** Tier metadata — earned vs purchasable */
+export const TIER_META: Record<SubscriptionTier, { earned: boolean; purchasable: boolean }> = {
+  bronze: { earned: false, purchasable: false },
+  silver: { earned: false, purchasable: true },
+  gold:   { earned: true,  purchasable: false },
+  elite:  { earned: false, purchasable: true },
+};
+
+/** Safety flag — set to true once Stripe webhook secret is configured */
+export const STRIPE_CHECKOUT_LIVE = false;
+
+/** Stripe price IDs mapped to purchasable tiers only */
+export const STRIPE_PRICE_IDS: Record<'silver' | 'elite', string> = {
   silver: 'price_1TG3HUAsoYCrHLeBJ0XM4Ks3',
-  gold: 'price_1TG3HWAsoYCrHLeBdJC0lMwF',
   elite: 'price_1TG3HXAsoYCrHLeBlwitj6fQ',
 };
 
