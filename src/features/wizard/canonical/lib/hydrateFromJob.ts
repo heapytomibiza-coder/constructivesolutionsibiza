@@ -112,6 +112,11 @@ export async function hydrateFromJob(jobId: string): Promise<{
   // Guard against invalid date strings
   const parseDate = (v: unknown): Date | undefined => {
     if (typeof v !== 'string' || !v) return undefined;
+    // Date-only strings (YYYY-MM-DD): parse as local midnight to avoid UTC shift
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+      const [y, m, d] = v.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
     const d = new Date(v);
     return Number.isNaN(d.getTime()) ? undefined : d;
   };

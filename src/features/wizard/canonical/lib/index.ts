@@ -12,7 +12,6 @@ export {
   isQuestionsComplete,
   isLogisticsComplete,
   isExtrasComplete,
-  validateWizardForSubmission,
   validateQuestionPack,
   validateAllPacks,
   canLeaveStep,

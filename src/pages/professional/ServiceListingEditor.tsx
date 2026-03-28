@@ -243,7 +243,13 @@ export default function ServiceListingEditor() {
     handleSavePricingItem(newItems[swapIdx]);
   };
 
-  const canPublish = title.trim() && description.trim() && heroUrl && startingPrice;
+  const hasPricingForGate = pricingItems.some(p => p.is_enabled && p.price_amount && p.price_amount > 0);
+  const { canPublish } = evaluateListingReadiness({
+    display_title: title,
+    short_description: description,
+    hero_image_url: heroUrl,
+    hasPricing: hasPricingForGate,
+  });
   const allZones = getAllZones();
 
   if (isLoading) {
@@ -371,7 +377,7 @@ export default function ServiceListingEditor() {
 
             {/* Hero Image */}
             <div className="space-y-2">
-              <Label>{t('listingEditor.heroImage')} *</Label>
+              <Label>{t('listingEditor.heroImage')} <span className="text-xs font-normal text-muted-foreground">({t('common.recommended', 'recommended')})</span></Label>
               {heroUrl ? (
                 <div className="relative aspect-video rounded-lg overflow-hidden border border-border">
                   <img src={heroUrl} alt="Hero" className="w-full h-full object-cover" />

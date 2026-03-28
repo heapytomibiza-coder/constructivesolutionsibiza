@@ -123,6 +123,8 @@ export const ISSUE_TYPE_OPTIONS: { value: DisputeIssueType; label: string; descr
   { value: 'damage', label: 'Damage', description: 'Property was damaged during work' },
   { value: 'communication_conduct', label: 'Communication/Conduct', description: 'Unprofessional behavior or lack of communication' },
   { value: 'abandonment', label: 'Abandonment', description: 'Professional stopped responding or left' },
+  { value: 'pricing_variation', label: 'Pricing variation', description: 'Final price differs from agreed quote' },
+  { value: 'access_site_conditions', label: 'Site access / conditions', description: 'Issues accessing the property or unexpected site conditions' },
 ];
 
 export const OUTCOME_OPTIONS = [
