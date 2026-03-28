@@ -56,7 +56,7 @@ const ServiceListingDetail = () => {
     );
   }
 
-  const { listing, pricingItems, provider, micro, categoryName, subcategoryName } = data;
+  const { listing, pricingItems, provider, micro, categoryName, subcategoryName, microStats } = data;
 
   const wizardUrl = buildWizardLink(
     micro.slug
