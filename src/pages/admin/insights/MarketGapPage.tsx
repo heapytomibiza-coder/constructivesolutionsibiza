@@ -8,7 +8,7 @@ import { useMarketGap } from "../hooks/useMarketGap";
 import { subDays } from "date-fns";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Rocket, Loader2 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useActionOutcomes } from "../hooks/useActionOutcomes";
