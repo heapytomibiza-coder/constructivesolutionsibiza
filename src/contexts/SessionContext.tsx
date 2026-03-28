@@ -10,11 +10,17 @@ import { useSessionSnapshot, type SessionSnapshot } from '@/hooks/useSessionSnap
 import { useMessageNotifications } from '@/hooks/useMessageNotifications';
 import { useJobAlerts } from '@/hooks/useJobAlerts';
 import { useAttribution } from '@/hooks/useAttribution';
+import { useSubscription, type SubscriptionState } from '@/hooks/useSubscription';
 
-const SessionContext = createContext<SessionSnapshot | null>(null);
+interface SessionWithSubscription extends SessionSnapshot {
+  subscription: SubscriptionState;
+}
+
+const SessionContext = createContext<SessionWithSubscription | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const snapshot = useSessionSnapshot();
+  const subscription = useSubscription(snapshot.user?.id ?? null);
 
   // Capture UTM / referral attribution on landing
   useAttribution();
@@ -23,13 +29,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useMessageNotifications(snapshot.user?.id ?? null);
   useJobAlerts(snapshot.user?.id ?? null, snapshot.activeRole);
   return (
-    <SessionContext.Provider value={snapshot}>
+    <SessionContext.Provider value={{ ...snapshot, subscription }}>
       {children}
     </SessionContext.Provider>
   );
 }
 
-export function useSession(): SessionSnapshot {
+export function useSession(): SessionWithSubscription {
   const context = useContext(SessionContext);
   
   if (!context) {

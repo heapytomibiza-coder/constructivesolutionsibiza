@@ -15,13 +15,14 @@ export function useSubscription(userId: string | null): SubscriptionState {
     enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .rpc('get_user_tier', { p_user_id: userId! });
+        .from('subscriptions')
+        .select('tier, commission_rate, status')
+        .eq('user_id', userId!)
+        .maybeSingle();
       if (error) throw error;
-      // RPC returns a single-row table
-      const row = Array.isArray(data) ? data[0] : data;
-      return row ?? null;
+      return data;
     },
-    staleTime: 5 * 60 * 1000, // 5 min cache
+    staleTime: 5 * 60 * 1000,
   });
 
   return {
