@@ -21,6 +21,8 @@ export interface AdminContentItem {
   postTitle?: string; // For replies
   replyCount?: number; // For posts
   photos?: string[]; // For posts
+  isLocked?: boolean; // For posts
+  isAnonymous?: boolean; // For posts
 }
 
 interface UseAdminContentOptions {
@@ -40,7 +42,8 @@ async function fetchAdminContent(
   if (type === "all" || type === "post") {
     let postsQuery = supabase
       .from("forum_posts")
-      .select("id, title, content, author_id, author_display_name, created_at, reply_count, photos")
+      .select("id, title, content, author_id, author_display_name, created_at, reply_count, photos, is_locked, is_anonymous")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -65,6 +68,8 @@ async function fetchAdminContent(
         createdAt: post.created_at ?? "",
         replyCount: post.reply_count ?? 0,
         photos: post.photos ?? [],
+        isLocked: post.is_locked ?? false,
+        isAnonymous: post.is_anonymous ?? false,
       });
     }
   }
@@ -82,6 +87,7 @@ async function fetchAdminContent(
         post_id,
         forum_posts!inner(title)
       `)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(50);
 
