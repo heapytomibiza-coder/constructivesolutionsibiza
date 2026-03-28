@@ -16,6 +16,8 @@ import { acceptQuote } from "../actions/acceptQuote.action";
 import { withdrawQuote } from "../actions/withdrawQuote.action";
 import { quoteKeys } from "../queries/quotes.query";
 import { jobKeys } from "../queries/keys";
+import { RepeatHireBadge } from "@/components/trust/RepeatHireBadge";
+import { ClientBadges } from "@/components/trust/ClientBadges";
 import type { Quote } from "../types";
 
 const STATUS_VARIANTS: Record<string, "default" | "success" | "secondary" | "destructive" | "outline"> = {
@@ -30,9 +32,11 @@ interface QuoteCardProps {
   quote: Quote;
   role: "client" | "pro";
   onRevise?: () => void;
+  /** Client user_id — needed for trust badges */
+  clientId?: string | null;
 }
 
-export function QuoteCard({ quote, role, onRevise }: QuoteCardProps) {
+export function QuoteCard({ quote, role, onRevise, clientId }: QuoteCardProps) {
   const { t, i18n } = useTranslation("jobs");
   const queryClient = useQueryClient();
   const [acting, setActing] = useState(false);
@@ -93,6 +97,16 @@ export function QuoteCard({ quote, role, onRevise }: QuoteCardProps) {
           <Badge variant={STATUS_VARIANTS[quote.status] ?? "outline"}>
             {t(`quotes.status.${quote.status}`)}
           </Badge>
+         </div>
+
+        {/* Trust signals */}
+        <div className="flex flex-wrap gap-1.5">
+          <RepeatHireBadge
+            clientId={clientId ?? null}
+            proId={quote.professional_id}
+            viewerRole={role}
+          />
+          {role === 'pro' && <ClientBadges clientId={clientId ?? null} />}
         </div>
 
         {/* Price type + time */}

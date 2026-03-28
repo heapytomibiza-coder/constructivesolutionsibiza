@@ -9,6 +9,8 @@ export interface RankedProfessional {
   verification_status: string | null;
   match_score: number;
   coverage: number;
+  ranking_score: number;
+  ranking_labels: string[];
 }
 
 /**
@@ -65,27 +67,49 @@ export async function getRankedProfessionals(
       return b.score - a.score;
     });
 
-  // Step 4: Fetch profile details for ranked users
+  // Step 4: Fetch profile details + ranking labels for ranked users
   const userIds = rankedUserIds.map(u => u.userId);
   
-  const { data: profiles, error: profilesError } = await supabase
-    .from('professional_profiles')
-    .select('id, user_id, display_name, avatar_url, services_count, verification_status')
-    .in('user_id', userIds)
-    .eq('is_publicly_listed', true);
+  const [profilesResult, rankingsResult] = await Promise.all([
+    supabase
+      .from('professional_profiles')
+      .select('id, user_id, display_name, avatar_url, services_count, verification_status')
+      .in('user_id', userIds)
+      .eq('is_publicly_listed', true),
+    supabase
+      .from('professional_rankings' as any)
+      .select('user_id, ranking_score, labels')
+      .in('user_id', userIds),
+  ]);
 
-  if (profilesError) throw profilesError;
+  if (profilesResult.error) throw profilesResult.error;
 
   // Step 5: Merge and return in ranked order
-  const profileMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
+  const profileMap = new Map(profilesResult.data?.map(p => [p.user_id, p]) ?? []);
+  const rankingMap = new Map(
+    ((rankingsResult.data as any[]) ?? []).map((r: any) => [r.user_id, r])
+  );
   
   return rankedUserIds
     .filter(r => profileMap.has(r.userId))
-    .map(r => ({
-      ...profileMap.get(r.userId)!,
-      match_score: r.score,
-      coverage: r.coverage,
-    }));
+    .map(r => {
+      const ranking = rankingMap.get(r.userId);
+      return {
+        ...profileMap.get(r.userId)!,
+        match_score: r.score,
+        coverage: r.coverage,
+        ranking_score: Number(ranking?.ranking_score ?? 0),
+        ranking_labels: ranking?.labels ?? [],
+      };
+    })
+    .sort((a, b) => {
+      // Primary: coverage
+      if (b.coverage !== a.coverage) return b.coverage - a.coverage;
+      // Secondary: match score
+      if (b.match_score !== a.match_score) return b.match_score - a.match_score;
+      // Tertiary: ranking score as tiebreaker
+      return b.ranking_score - a.ranking_score;
+    });
 }
 
 /**
