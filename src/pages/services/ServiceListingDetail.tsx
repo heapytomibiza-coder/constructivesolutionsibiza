@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   ArrowLeft, Briefcase, Eye, MapPin, MessageCircle, Info, 
-  CheckCircle2, Clock, Star 
+  CheckCircle2, Clock, Star, RefreshCw 
 } from 'lucide-react';
 import { useServiceListingDetail } from './queries/serviceListings.query';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
@@ -56,7 +56,7 @@ const ServiceListingDetail = () => {
     );
   }
 
-  const { listing, pricingItems, provider, micro, categoryName, subcategoryName, microStats } = data;
+  const { listing, pricingItems, provider, micro, categoryName, subcategoryName, microStats, repeatClientCount, areaJobCount } = data;
 
   const wizardUrl = buildWizardLink(
     micro.slug
@@ -204,6 +204,24 @@ const ServiceListingDetail = () => {
                     </span>
                     {microStats.completed_jobs_count > 0 && (
                       <span className="text-sm text-muted-foreground">· {microStats.completed_jobs_count} jobs done</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Trust signals: repeat hire + neighbourhood */}
+                {(repeatClientCount > 0 || areaJobCount > 0) && (
+                  <div className="space-y-1.5 pt-2 border-t border-border">
+                    {repeatClientCount > 0 && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <RefreshCw className="h-3.5 w-3.5 text-primary" />
+                        <span>Hired again by <span className="font-medium text-foreground">{repeatClientCount}</span> previous {repeatClientCount === 1 ? 'client' : 'clients'}</span>
+                      </div>
+                    )}
+                    {areaJobCount > 0 && listing.location_base && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 text-primary" />
+                        <span><span className="font-medium text-foreground">{areaJobCount}</span> jobs completed near {listing.location_base}</span>
+                      </div>
                     )}
                   </div>
                 )}
