@@ -203,7 +203,7 @@ async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> 
     support_tickets_count: ticketsCountRes.count ?? 0,
     review_avg: reviewAvg,
     review_count: reviewCount,
-    recent_reviews: allReviews.map((r) => ({
+    recent_reviews: (reviewsRes.data ?? []).map((r) => ({
       rating: r.rating,
       comment: r.comment,
       created_at: r.created_at,
