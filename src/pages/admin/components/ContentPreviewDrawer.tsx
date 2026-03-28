@@ -183,7 +183,7 @@ export function ContentPreviewDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="pb-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {isPost ? (
               <Badge variant="secondary" className="gap-1">
                 <FileText className="h-3 w-3" />
@@ -193,6 +193,18 @@ export function ContentPreviewDrawer({
               <Badge variant="outline" className="gap-1">
                 <MessageSquare className="h-3 w-3" />
                 Reply
+              </Badge>
+            )}
+            {isPost && canonical?.post?.is_locked && (
+              <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
+                <Lock className="h-3 w-3" />
+                Archived
+              </Badge>
+            )}
+            {isPost && canonical?.post?.is_anonymous && (
+              <Badge variant="outline" className="gap-1 text-violet-600 border-violet-300">
+                <EyeOff className="h-3 w-3" />
+                Anonymous to public
               </Badge>
             )}
             {isLoading && (
