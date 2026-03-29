@@ -1,52 +1,105 @@
 
-# Phase 6 — Trust & Growth Layer
 
-## Status: ✅ Hardened & Deployed
+# Phase 7 — Conversion & Retention Layer
 
-## Fixes Applied (Hardening Pass)
+## Existing Infrastructure
 
-### 1. Demand Intelligence — DB-Level Tier Gating ✅
-- Removed permissive `SELECT` policy on `demand_snapshots`
-- Created `get_demand_snapshots()` RPC with tier check: only `gold`/`elite` users get data
-- Bronze/Silver users receive `demand_data_not_entitled` exception
-- Frontend uses RPC, not direct table access
+- **Admin nudge system**: `admin_nudge_client` RPC already exists for manual nudging from MessagingPulsePage
+- **Email queue**: `email_notifications_queue` with retry/dead-letter pattern, processed by `send-notifications` edge function
+- **Dispute deadline nudges**: `dispute-deadline-automation` edge function already uses the enqueue + dedup pattern via `dispute_ai_events`
+- **Jobs table**: has `assigned_professional_id`, all needed fields for cloning (category, subcategory, micro_slug, area, budget, location, answers, description)
+- **No existing**: saved pros, rebook flow, or automated conversion nudges
 
-### 2. Ranking Score — Not Exposed to Client ✅
-- Removed public `SELECT` policy on `professional_rankings`
-- Created `get_professional_labels(p_user_ids)` — returns labels only, no numeric score
-- Created `get_professional_ranking_scores(p_user_ids)` — used server-side for sort ordering
-- `rankedProfessionals.query.ts` fetches scores for sorting, strips them before returning
-- Client receives `ranking_labels: string[]` only
+---
 
-### 3. Client Reputation RLS ✅ (Confirmed Correct)
-- `user_id = auth.uid()` — self-read
-- Admin read via `has_role` + `is_admin_email`
-- Pro read via jobs/conversations relationship check
-- No INSERT/UPDATE/DELETE policies = deny by default
+## Implementation Plan
 
-### 4. Repeat Hire — Live Aggregate RPC (Intentional)
-- `get_repeat_hire_pair(p_client_id, p_pro_id)` — SECURITY DEFINER, live COUNT from `jobs`
-- Decision: live aggregate, not materialized table
-- Rationale: at current scale (<10K completed jobs), a COUNT with indexed WHERE is <1ms
-- Scale trigger: if >50K completed jobs, migrate to materialized `repeat_hires` table
+### Ticket 1: Saved Pros / Favourites
+**Effort:** 2 hours
 
-### 5. Trigger Coverage — Complete ✅
-- `trg_job_completed_trust_scores` — on job completion → recalculates client rep + pro ranking
-- `trg_review_trust_scores` — on review insert → recalculates both
-- `trg_dispute_trust_scores` — on dispute insert/update → recalculates both
-- `trg_message_response_trust` — on first message in conversation → recalculates response speed
+**Migration:**
+- Create `saved_pros` table: `user_id UUID`, `professional_id UUID`, `created_at TIMESTAMPTZ DEFAULT now()`, `PRIMARY KEY (user_id, professional_id)`
+- RLS: users can INSERT/SELECT/DELETE where `user_id = auth.uid()`
+- Create `toggle_saved_pro(p_professional_id UUID)` RPC (SECURITY DEFINER): if row exists, delete; else insert. Returns `{saved: boolean}`
+- Create `get_saved_pros()` RPC: returns saved pros joined with `professional_profiles` for display name, avatar, verification status
 
-### 6. Cron + Backfill — Complete ✅
-- `refresh-demand-snapshots` edge function deployed
-- Cron scheduled: every 6 hours (`0 */6 * * *`)
-- Initial backfill run: 48 demand snapshots, 34 client reputations seeded
-- Professional rankings: 0 (no completed jobs with assigned pros in current data — correct)
+**Frontend:**
+- New `src/hooks/useSavedPros.ts` — toggle mutation + list query
+- Heart button on `ServiceListingCard` and `ProfessionalDetails.tsx`
+- New "Saved Pros" section in `ClientDashboard.tsx` — grid of saved pro cards with link to profile
 
-## Architecture Summary
+---
 
-| System | Storage | Access | Recalculation |
-|--------|---------|--------|---------------|
-| Client Reputation | `client_reputation` table | RLS: self + admin + relationship-based pro | Triggers: job completion, review, dispute, first message |
-| Pro Rankings | `professional_rankings` table | Labels via RPC only; scores internal | Triggers: job completion, review, dispute, first message |
-| Repeat Hire | Live aggregate RPC | SECURITY DEFINER | On-demand (no trigger needed) |
-| Demand Intelligence | `demand_snapshots` table | Tier-gated RPC (Gold/Elite) | Cron every 6h |
+### Ticket 2: Re-booking Flow (Hire Again)
+**Effort:** 3 hours
+
+**Migration:**
+- Add `rebook_source_job_id UUID` column to `jobs` table (nullable, references self)
+- Create `create_rebook_job(p_source_job_id UUID)` RPC (SECURITY DEFINER):
+  - Verifies `auth.uid() = jobs.user_id` on source job
+  - Verifies source job status is `completed` or `in_progress`
+  - Copies: title, category, subcategory, micro_slug, area, location, budget_type, budget_value, budget_min, budget_max, start_timing, description, answers
+  - Sets: `status = 'draft'`, `user_id = auth.uid()`, `rebook_source_job_id = p_source_job_id`, `assigned_professional_id = source.assigned_professional_id`
+  - Returns `{new_job_id}`
+- No separate `rebook_events` table — the `rebook_source_job_id` column on jobs is sufficient for tracking
+
+**Frontend:**
+- New `src/hooks/useRebook.ts` — mutation calling the RPC, redirects to `/post?edit={new_job_id}`
+- "Hire Again" button on:
+  - `ClientJobCard.tsx` (for completed jobs)
+  - `JobTicketDetail.tsx` (for completed/in_progress jobs)
+  - `ProfessionalDetails.tsx` (if user has a completed job with this pro — checked via a lightweight query)
+
+---
+
+### Ticket 3: Incomplete Hire Nudges (Automated + Admin Override)
+**Effort:** 4 hours
+
+**Migration:**
+- Create `nudge_log` table:
+  - `id UUID PK`, `user_id UUID NOT NULL`, `job_id UUID`, `nudge_type TEXT NOT NULL`, `triggered_at TIMESTAMPTZ DEFAULT now()`, `sent_at TIMESTAMPTZ`, `suppressed_by UUID` (admin override), `suppressed_at TIMESTAMPTZ`
+  - Unique constraint: `(user_id, job_id, nudge_type, DATE(triggered_at))` — enforces max 1 per type per day
+- RLS: no direct user access (service role only); admin SELECT
+- Create `get_pending_nudges()` RPC (SECURITY DEFINER, service role pattern):
+  - Finds nudge candidates:
+    - `draft_stale`: jobs in draft, created > 2h ago, no nudge sent in 24h
+    - `quotes_pending`: jobs with quotes but status still open, oldest quote > 24h, no nudge in 24h
+    - `conversation_stale`: conversations with messages but no quote/hire after 48h, no nudge in 24h
+  - Anti-spam: max 3 nudges per job total, skip if job completed/cancelled
+  - Returns candidate rows
+- Create `mark_nudge_sent(p_nudge_id UUID)` and `suppress_nudge(p_job_id UUID, p_nudge_type TEXT)` RPCs
+
+**Edge Function: `process-nudges`**
+- Internal-only (x-internal-secret header)
+- Calls `get_pending_nudges()`, inserts into `nudge_log`, enqueues into `email_notifications_queue`
+- Message templates:
+  - `draft_stale`: "Finish posting your job — pros are waiting"
+  - `quotes_pending`: "You've received X quotes — review them now"
+  - `conversation_stale`: "You spoke to {pro_name} — ready to hire?"
+- Scheduled via pg_cron every hour
+
+**Admin UI:**
+- Add "Suppress nudges" and "Send nudge now" buttons to existing MessagingPulsePage stale conversations view
+- Admin can pause all nudges for a specific job
+
+**Event taxonomy additions:**
+- `NUDGE_SENT`, `NUDGE_SUPPRESSED`, `REBOOK_CREATED`, `PRO_SAVED`, `PRO_UNSAVED`
+
+---
+
+## Build Order
+
+| Week | Tickets | Rationale |
+|------|---------|-----------|
+| 1 | T1 (Saved Pros) | Simplest, immediate retention value |
+| 1 | T2 (Rebook Flow) | High-impact, leverages existing job structure |
+| 2 | T3 (Nudges) | Most complex, needs email templates + scheduling |
+
+## Technical Notes
+
+- Rebook uses a column on `jobs` rather than a separate tracking table — simpler, queryable, no sync issues
+- Nudge deduplication follows the same pattern as `dispute-deadline-automation` (event log + unique constraint)
+- All RPCs use SECURITY DEFINER with `SET search_path = public`
+- Nudge edge function is internal-only, matching the existing auth classification model
+- No new public-facing tables — `saved_pros` is user-scoped, `nudge_log` is service-role only
+
