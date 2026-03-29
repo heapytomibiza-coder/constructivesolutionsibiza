@@ -3483,11 +3483,37 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_demand_snapshots: {
+        Args: never
+        Returns: {
+          area: string
+          category: string
+          id: string
+          job_count_30d: number
+          job_count_7d: number
+          pct_change_7d: number
+          snapshot_date: string
+        }[]
+      }
       get_or_create_conversation: {
         Args: { p_job_id: string; p_pro_id: string }
         Returns: string
       }
       get_platform_assistant_summary: { Args: never; Returns: Json }
+      get_professional_labels: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          labels: string[]
+          user_id: string
+        }[]
+      }
+      get_professional_ranking_scores: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          ranking_score: number
+          user_id: string
+        }[]
+      }
       get_provider_area_jobs: {
         Args: { p_area: string; p_provider_id: string }
         Returns: number
