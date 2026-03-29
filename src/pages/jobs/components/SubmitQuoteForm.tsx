@@ -36,7 +36,16 @@ export function SubmitQuoteForm({ jobId, onSuccess }: SubmitQuoteFormProps) {
   const [exclusionsText, setExclusionsText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const isPriceValid =
+    (priceType === "fixed" && Number(priceFixed) > 0) ||
+    (priceType === "estimate" && Number(priceMin) > 0 && Number(priceMax) > Number(priceMin)) ||
+    (priceType === "hourly" && Number(hourlyRate) > 0);
+
   const handleSubmit = async () => {
+    if (!isPriceValid) {
+      toast.error(t("quotes.priceRequired", "Please enter a valid price."));
+      return;
+    }
     if (!scopeText.trim()) {
       toast.error(t("quotes.scopeRequired"));
       return;
