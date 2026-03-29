@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
-import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, usePublishListing, type PricingItem } from './hooks/useListingEditor';
+import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, type PricingItem } from './hooks/useListingEditor';
 import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones';
 import { evaluateListingReadiness } from '@/lib/listingPublishRules';
 
@@ -32,7 +32,7 @@ export default function ServiceListingEditor() {
   const updateListing = useUpdateListing();
   const upsertPricing = useUpsertPricingItem();
   const deletePricing = useDeletePricingItem();
-  const publishListing = usePublishListing();
+  // publishListing now handled inline in handlePublish for atomic write
 
   // Form state
   const [title, setTitle] = useState('');
