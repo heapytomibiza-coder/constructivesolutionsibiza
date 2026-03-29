@@ -1542,6 +1542,42 @@ export type Database = {
         }
         Relationships: []
       }
+      nudge_log: {
+        Row: {
+          id: string
+          job_id: string | null
+          nudge_date: string
+          nudge_type: string
+          sent_at: string | null
+          suppressed_at: string | null
+          suppressed_by: string | null
+          triggered_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          job_id?: string | null
+          nudge_date?: string
+          nudge_type: string
+          sent_at?: string | null
+          suppressed_at?: string | null
+          suppressed_by?: string | null
+          triggered_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          job_id?: string | null
+          nudge_date?: string
+          nudge_type?: string
+          sent_at?: string | null
+          suppressed_at?: string | null
+          suppressed_by?: string | null
+          triggered_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       page_views: {
         Row: {
           browser: string | null
@@ -3499,6 +3535,18 @@ export type Database = {
         Args: { p_job_id: string; p_pro_id: string }
         Returns: string
       }
+      get_pending_nudges: {
+        Args: never
+        Returns: {
+          job_id: string
+          job_title: string
+          nudge_type: string
+          pro_name: string
+          quote_count: number
+          user_email: string
+          user_id: string
+        }[]
+      }
       get_platform_assistant_summary: { Args: never; Returns: Json }
       get_professional_labels: {
         Args: { p_user_ids: string[] }
@@ -3558,6 +3606,7 @@ export type Database = {
         Returns: undefined
       }
       is_admin_email: { Args: never; Returns: boolean }
+      mark_nudge_sent: { Args: { p_nudge_id: string }; Returns: undefined }
       purge_stale_telemetry: { Args: never; Returns: undefined }
       refresh_demand_snapshots: { Args: never; Returns: undefined }
       rpc_admin_dispute_analytics: { Args: never; Returns: Json }
@@ -3686,6 +3735,10 @@ export type Database = {
         Returns: undefined
       }
       run_platform_alert_rules: { Args: { p_date?: string }; Returns: number }
+      suppress_nudge: {
+        Args: { p_job_id: string; p_nudge_type: string }
+        Returns: undefined
+      }
       switch_active_role: { Args: { p_new_role: string }; Returns: undefined }
       sync_service_listings_for_provider: {
         Args: { p_provider_id: string }
