@@ -285,6 +285,22 @@ function StaleConversationCard({ conversation: sc, outcome }: {
     },
   });
 
+  const suppress = useMutation({
+    mutationFn: async () => {
+      const { error } = await (supabase.rpc as any)("suppress_nudge", {
+        p_job_id: sc.job_id,
+        p_nudge_type: "conversation_stale",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(`Auto-nudges suppressed for "${sc.job_title}"`);
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Suppress failed");
+    },
+  });
+
   return (
     <Card>
       <CardContent className="p-4 flex items-center gap-4">
@@ -326,6 +342,16 @@ function StaleConversationCard({ conversation: sc, outcome }: {
           >
             {nudge.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
             {nudge.isSuccess ? "Sent" : "Nudge"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 text-xs gap-1 text-muted-foreground"
+            onClick={() => suppress.mutate()}
+            disabled={suppress.isPending || suppress.isSuccess}
+            title="Suppress auto-nudges for this job"
+          >
+            {suppress.isSuccess ? "Suppressed" : "Mute"}
           </Button>
         </div>
       </CardContent>

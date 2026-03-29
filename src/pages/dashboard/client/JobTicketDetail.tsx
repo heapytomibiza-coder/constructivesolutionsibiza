@@ -27,7 +27,9 @@ import {
   Eye,
   XCircle,
   Pencil,
+  RotateCw,
 } from 'lucide-react';
+import { useRebook } from '@/hooks/useRebook';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
@@ -36,6 +38,7 @@ export default function JobTicketDetail() {
   const { user } = useSession();
   const queryClient = useQueryClient();
   const [isPublishing, setIsPublishing] = useState(false);
+  const rebook = useRebook();
 
   const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
     ready: { label: t('jobTicket.notSharedYet'), variant: 'secondary' },
@@ -168,12 +171,24 @@ export default function JobTicketDetail() {
           </Badge>
           <div className="flex items-center gap-2">
             {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
-              <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" asChild title="Having an issue with this job? Start a structured resolution.">
-                <Link to={`/disputes/raise?job=${jobId}`}>
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  {t('jobTicket.raiseIssue', 'Raise Issue')}
-                </Link>
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => rebook.mutate(job.id)}
+                  disabled={rebook.isPending}
+                >
+                  <RotateCw className="h-3.5 w-3.5" />
+                  {t('jobTicket.hireAgain', 'Hire Again')}
+                </Button>
+                <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" asChild title="Having an issue with this job? Start a structured resolution.">
+                  <Link to={`/disputes/raise?job=${jobId}`}>
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    {t('jobTicket.raiseIssue', 'Raise Issue')}
+                  </Link>
+                </Button>
+              </>
             )}
             {['ready', 'open', 'posted'].includes(job.status) && (
               <Button

@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2, Pencil, Copy, X, Clock, MessageSquare, DollarSign, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Pencil, Copy, X, Clock, MessageSquare, DollarSign, AlertTriangle, RotateCw } from 'lucide-react';
+import { useRebook } from '@/hooks/useRebook';
 import { CategoryPlaceholder } from '@/components/CategoryPlaceholder';
 import { getCategoryIconByName } from '@/lib/categoryIcons';
 import { CompletionModal, RatingModal } from '@/pages/jobs/components';
@@ -86,6 +87,8 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const rebook = useRebook();
+  const canRebook = ['completed', 'in_progress'].includes(job.status) && !!job.assigned_professional_id;
 
   const canComplete = job.status === 'in_progress' && job.assigned_professional_id;
   const { canEdit, canDuplicate, canClose } = getActions(job.status);
@@ -304,6 +307,18 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
               <Button variant="ghost" size="sm" className="gap-1" onClick={handleEdit}>
                 <Pencil className="h-3.5 w-3.5" />
                 {t('client.editJob')}
+              </Button>
+            )}
+            {canRebook && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1"
+                onClick={() => rebook.mutate(job.id)}
+                disabled={rebook.isPending}
+              >
+                <RotateCw className="h-3.5 w-3.5" />
+                {t('client.hireAgain', 'Hire Again')}
               </Button>
             )}
             {canDuplicate && (

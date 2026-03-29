@@ -94,6 +94,13 @@ export const EVENTS = {
   PRO_ONBOARDING_STEP_ENTERED: "pro_onboarding_step_entered",
   PRO_PROFILE_PUBLISHED: "pro_profile_published",
   ONBOARDING_STEP_FAILED: "onboarding_step_failed",
+
+  // Phase 7 — Conversion & Retention
+  REBOOK_CREATED: "rebook_created",
+  PRO_SAVED: "pro_saved",
+  PRO_UNSAVED: "pro_unsaved",
+  NUDGE_SENT: "nudge_sent",
+  NUDGE_SUPPRESSED: "nudge_suppressed",
 } as const;
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
