@@ -9,17 +9,19 @@ export interface RankedProfessional {
   verification_status: string | null;
   match_score: number;
   coverage: number;
-  ranking_score: number;
   ranking_labels: string[];
 }
 
 /**
  * Fetch professionals ranked by match score for given micro IDs.
- * Used when category/subcategory filters are applied.
  * 
  * Ranking logic:
  * 1. Primary sort: coverage (pros who cover more of the requested micros)
  * 2. Secondary sort: match_score (preference + completions + ratings + verification)
+ * 3. Tertiary sort: ranking_score (server-side only, not exposed to client)
+ *
+ * NOTE: ranking_score is fetched via server-side RPC for ordering
+ * but is NOT included in the returned data to prevent leaking numeric scores.
  */
 export async function getRankedProfessionals(
   microIds: string[]
@@ -31,7 +33,7 @@ export async function getRankedProfessionals(
     .from('professional_matching_scores')
     .select('user_id, micro_id, match_score, status, preference, verification_level')
     .in('micro_id', microIds)
-    .neq('status', 'paused'); // Exclude paused services
+    .neq('status', 'paused');
 
   if (scoresError) throw scoresError;
   if (!scores?.length) return [];
@@ -61,55 +63,50 @@ export async function getRankedProfessionals(
       coverage: data.coveredMicros.size / microIds.length,
     }))
     .sort((a, b) => {
-      // Primary: coverage (pros who cover more of the job rank higher)
       if (b.coverage !== a.coverage) return b.coverage - a.coverage;
-      // Secondary: match score
       return b.score - a.score;
     });
 
-  // Step 4: Fetch profile details + ranking labels for ranked users
+  // Step 4: Fetch profiles + labels (no raw scores) + ranking scores for ordering
   const userIds = rankedUserIds.map(u => u.userId);
   
-  const [profilesResult, rankingsResult] = await Promise.all([
+  const [profilesResult, labelsResult, scoresResult] = await Promise.all([
     supabase
       .from('professional_profiles')
       .select('id, user_id, display_name, avatar_url, services_count, verification_status')
       .in('user_id', userIds)
       .eq('is_publicly_listed', true),
-    supabase
-      .from('professional_rankings' as any)
-      .select('user_id, ranking_score, labels')
-      .in('user_id', userIds),
+    supabase.rpc('get_professional_labels' as any, { p_user_ids: userIds }),
+    supabase.rpc('get_professional_ranking_scores' as any, { p_user_ids: userIds }),
   ]);
 
   if (profilesResult.error) throw profilesResult.error;
 
-  // Step 5: Merge and return in ranked order
+  // Step 5: Build lookup maps
   const profileMap = new Map(profilesResult.data?.map(p => [p.user_id, p]) ?? []);
-  const rankingMap = new Map(
-    ((rankingsResult.data as any[]) ?? []).map((r: any) => [r.user_id, r])
+  const labelMap = new Map(
+    ((labelsResult.data as any[]) ?? []).map((r: any) => [r.user_id, r.labels ?? []])
+  );
+  const scoreMap = new Map(
+    ((scoresResult.data as any[]) ?? []).map((r: any) => [r.user_id, Number(r.ranking_score ?? 0)])
   );
   
+  // Step 6: Merge, sort with ranking_score tiebreaker, return WITHOUT ranking_score
   return rankedUserIds
     .filter(r => profileMap.has(r.userId))
-    .map(r => {
-      const ranking = rankingMap.get(r.userId);
-      return {
-        ...profileMap.get(r.userId)!,
-        match_score: r.score,
-        coverage: r.coverage,
-        ranking_score: Number(ranking?.ranking_score ?? 0),
-        ranking_labels: ranking?.labels ?? [],
-      };
-    })
+    .map(r => ({
+      ...profileMap.get(r.userId)!,
+      match_score: r.score,
+      coverage: r.coverage,
+      ranking_labels: labelMap.get(r.userId) ?? [],
+      _rankingScore: scoreMap.get(r.userId) ?? 0, // temporary for sorting
+    }))
     .sort((a, b) => {
-      // Primary: coverage
       if (b.coverage !== a.coverage) return b.coverage - a.coverage;
-      // Secondary: match score
       if (b.match_score !== a.match_score) return b.match_score - a.match_score;
-      // Tertiary: ranking score as tiebreaker
-      return b.ranking_score - a.ranking_score;
-    });
+      return b._rankingScore - a._rankingScore;
+    })
+    .map(({ _rankingScore, ...rest }) => rest); // strip internal score
 }
 
 /**
@@ -122,7 +119,6 @@ export async function getMicroIdsForFilter(
 ): Promise<string[]> {
   if (!categoryId && !subcategoryId) return [];
 
-  // Get all micro categories
   let microQuery = supabase
     .from('service_micro_categories')
     .select('id, subcategory_id');
@@ -138,7 +134,6 @@ export async function getMicroIdsForFilter(
     return (micros || []).map(m => m.id);
   }
 
-  // Category filter: need to get subcategories first
   if (categoryId) {
     const { data: subs } = await supabase
       .from('service_subcategories')

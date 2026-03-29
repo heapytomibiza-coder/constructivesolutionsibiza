@@ -1,34 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface ProRanking {
-  userId: string;
-  rankingScore: number;
-  labels: string[];
-}
-
 /**
- * Fetch ranking labels for a professional.
- * Used to display trust labels on cards/profiles.
+ * Fetch ranking labels for a professional via labels-only RPC.
+ * Does NOT return numeric ranking_score — only labels.
  */
 export function useProRanking(userId: string | null) {
-  return useQuery<ProRanking | null>({
-    queryKey: ['pro-ranking', userId],
+  return useQuery<string[]>({
+    queryKey: ['pro-ranking-labels', userId],
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('professional_rankings' as any)
-        .select('user_id, ranking_score, labels')
-        .eq('user_id', userId!)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_professional_labels' as any, {
+        p_user_ids: [userId!],
+      });
       if (error) throw error;
-      if (!data) return null;
-      return {
-        userId: (data as any).user_id,
-        rankingScore: Number((data as any).ranking_score ?? 0),
-        labels: (data as any).labels ?? [],
-      };
+      const row = Array.isArray(data) ? data[0] : null;
+      return (row as any)?.labels ?? [];
     },
   });
 }

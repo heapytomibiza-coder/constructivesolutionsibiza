@@ -12,22 +12,25 @@ export interface DemandSnapshot {
 }
 
 /**
- * Fetch demand snapshots for the pro insights dashboard.
- * Returns category-level and area-level demand data.
+ * Fetch demand snapshots via tier-gated RPC.
+ * Returns 403-equivalent error for Bronze/Silver users.
  */
 export function useDemandData() {
   return useQuery<DemandSnapshot[]>({
     queryKey: ['demand-snapshots'],
-    staleTime: 30 * 60 * 1000, // 30 min — data refreshes every 6h
+    staleTime: 30 * 60 * 1000,
+    retry: false, // Don't retry on entitlement errors
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('demand_snapshots' as any)
-        .select('id, category, area, job_count_7d, job_count_30d, pct_change_7d, snapshot_date')
-        .order('job_count_7d', { ascending: false })
-        .limit(100);
+      const { data, error } = await supabase.rpc('get_demand_snapshots' as any);
 
-      if (error) throw error;
-      return ((data as any[]) ?? []).map((d) => ({
+      if (error) {
+        // Tier gating returns this exception
+        if (error.message?.includes('demand_data_not_entitled')) {
+          return [];
+        }
+        throw error;
+      }
+      return ((data as any[]) ?? []).map((d: any) => ({
         id: d.id,
         category: d.category,
         area: d.area,
