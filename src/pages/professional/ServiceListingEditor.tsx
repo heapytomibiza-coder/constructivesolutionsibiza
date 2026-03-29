@@ -145,6 +145,27 @@ export default function ServiceListingEditor() {
       return;
     }
 
+    // Flush any unsaved pricing items before publishing
+    // This handles the edge case where user edits a price but clicks Publish before blurring
+    try {
+      const dirtyItems = pricingItems.filter(p => p.id);
+      await Promise.all(dirtyItems.map(item =>
+        upsertPricing.mutateAsync({
+          id: item.id,
+          service_listing_id: listingId,
+          label: item.label,
+          price_amount: item.price_amount,
+          unit: item.unit,
+          info_description: item.info_description,
+          is_enabled: item.is_enabled,
+          sort_order: item.sort_order,
+        })
+      ));
+    } catch {
+      toast.error(t('listingEditor.saveFailed'));
+      return;
+    }
+
     // Atomic publish: single write combining save + status change
     // The DB trigger handles published_at automatically
     try {
