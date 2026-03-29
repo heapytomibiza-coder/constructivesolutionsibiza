@@ -176,14 +176,28 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Fetch unsent notifications (max 20)
+    // Generate a unique batch ID to claim items and prevent concurrent processing
+    const batchId = crypto.randomUUID();
+
+    // Claim unsent notifications atomically (max 20)
+    const { error: claimError } = await supabaseAdmin
+      .from("job_notifications_queue")
+      .update({ last_error: `claiming:${batchId}` })
+      .is("sent_at", null)
+      .lt("attempts", 3)
+      .not("last_error", "like", "claiming:%")
+      .order("created_at", { ascending: true })
+      .limit(20);
+
+    if (claimError) throw claimError;
+
+    // Fetch only the items we claimed
     const { data: queue, error: queueError } = await supabaseAdmin
       .from("job_notifications_queue")
       .select("*")
+      .eq("last_error", `claiming:${batchId}`)
       .is("sent_at", null)
-      .lt("attempts", 3)
-      .order("created_at", { ascending: true })
-      .limit(20);
+      .order("created_at", { ascending: true });
 
     if (queueError) throw queueError;
     if (!queue || queue.length === 0) {
