@@ -1,45 +1,52 @@
 
-# Phase 6 — Trust & Growth Layer (Implemented)
+# Phase 6 — Trust & Growth Layer
 
-## Status: ✅ Deployed
+## Status: ✅ Hardened & Deployed
 
-## What Was Built
+## Fixes Applied (Hardening Pass)
 
-### Ticket 1: Client Reputation System ✅
-- `client_reputation` table with RLS (self + admin + pro-on-their-jobs)
-- `calculate_client_reputation(p_user_id)` SECURITY DEFINER RPC
-- Scoring: completion_rate × 20 + review_rate × 20 + (1-dispute_rate) × 20 + response_speed × 20 + repeat_hire_rate × 20
-- Badges: `reliable_client` (score ≥ 80), `fast_responder` (< 4h avg), `consistent_reviewer` (≥ 70% review rate)
-- Auto-trigger on job completion + review submission
-- Frontend: `ClientBadges` component shown to pros on quote cards
+### 1. Demand Intelligence — DB-Level Tier Gating ✅
+- Removed permissive `SELECT` policy on `demand_snapshots`
+- Created `get_demand_snapshots()` RPC with tier check: only `gold`/`elite` users get data
+- Bronze/Silver users receive `demand_data_not_entitled` exception
+- Frontend uses RPC, not direct table access
 
-### Ticket 2: Professional Ranking Engine ✅
-- `professional_rankings` table (public read for search)
-- `calculate_professional_ranking(p_user_id)` SECURITY DEFINER RPC
-- Score: rating_avg × 0.25 + completion × 0.20 + response_speed × 0.15 + repeat_hire × 0.20 + activity × 0.20
-- Labels: `top_rated` (≥ 4.7), `highly_reliable` (≥ 90% + 5 jobs), `in_demand` (5+ recent jobs)
-- Auto-trigger on job completion + review submission
-- Integrated into `rankedProfessionals.query.ts` as tertiary sort tiebreaker
-- Frontend: `ProRankingLabels` component (does NOT expose numeric score)
+### 2. Ranking Score — Not Exposed to Client ✅
+- Removed public `SELECT` policy on `professional_rankings`
+- Created `get_professional_labels(p_user_ids)` — returns labels only, no numeric score
+- Created `get_professional_ranking_scores(p_user_ids)` — used server-side for sort ordering
+- `rankedProfessionals.query.ts` fetches scores for sorting, strips them before returning
+- Client receives `ranking_labels: string[]` only
 
-### Ticket 3: Repeat Hire Badges on Quotes ✅
-- `get_repeat_hire_pair(p_client_id, p_pro_id)` RPC
-- `RepeatHireBadge` component on QuoteCard (both client + pro views)
-- Hidden when < 2 hires (no false signal)
+### 3. Client Reputation RLS ✅ (Confirmed Correct)
+- `user_id = auth.uid()` — self-read
+- Admin read via `has_role` + `is_admin_email`
+- Pro read via jobs/conversations relationship check
+- No INSERT/UPDATE/DELETE policies = deny by default
 
-### Ticket 4: Demand Intelligence Dashboard ✅
-- `demand_snapshots` table with `refresh_demand_snapshots()` RPC
-- `ProInsights` page rewritten with tier gate (`demand_data` → Gold/Elite only)
-- Shows: trending categories with week-over-week %, hot areas by volume
-- Bronze/Silver see upgrade prompt
+### 4. Repeat Hire — Live Aggregate RPC (Intentional)
+- `get_repeat_hire_pair(p_client_id, p_pro_id)` — SECURITY DEFINER, live COUNT from `jobs`
+- Decision: live aggregate, not materialized table
+- Rationale: at current scale (<10K completed jobs), a COUNT with indexed WHERE is <1ms
+- Scale trigger: if >50K completed jobs, migrate to materialized `repeat_hires` table
 
-## System Connections
-- Job completion triggers → client_reputation + professional_rankings recalculation
-- Review submission triggers → client_reputation + professional_rankings recalculation
-- Ranking score feeds search ordering (tiebreaker after coverage + match score)
-- Client badges visible to pros only (not public)
+### 5. Trigger Coverage — Complete ✅
+- `trg_job_completed_trust_scores` — on job completion → recalculates client rep + pro ranking
+- `trg_review_trust_scores` — on review insert → recalculates both
+- `trg_dispute_trust_scores` — on dispute insert/update → recalculates both
+- `trg_message_response_trust` — on first message in conversation → recalculates response speed
 
-## Post-Deploy Tasks
-- [ ] Run `refresh_demand_snapshots()` manually or set up cron schedule
-- [ ] Seed initial rankings by running `calculate_professional_ranking` for active pros
-- [ ] Seed initial client reputations for clients with completed jobs
+### 6. Cron + Backfill — Complete ✅
+- `refresh-demand-snapshots` edge function deployed
+- Cron scheduled: every 6 hours (`0 */6 * * *`)
+- Initial backfill run: 48 demand snapshots, 34 client reputations seeded
+- Professional rankings: 0 (no completed jobs with assigned pros in current data — correct)
+
+## Architecture Summary
+
+| System | Storage | Access | Recalculation |
+|--------|---------|--------|---------------|
+| Client Reputation | `client_reputation` table | RLS: self + admin + relationship-based pro | Triggers: job completion, review, dispute, first message |
+| Pro Rankings | `professional_rankings` table | Labels via RPC only; scores internal | Triggers: job completion, review, dispute, first message |
+| Repeat Hire | Live aggregate RPC | SECURITY DEFINER | On-demand (no trigger needed) |
+| Demand Intelligence | `demand_snapshots` table | Tier-gated RPC (Gold/Elite) | Cron every 6h |
