@@ -221,14 +221,29 @@ const handler = async (req: Request): Promise<Response> => {
         const html = buildEmailHtml(job, siteUrl);
         const result = await sendWithFallback(NOTIFY_EMAIL, subject, html);
 
-        // Send Telegram push notification
-        await sendTelegramAlert(job, siteUrl);
+        // Send Telegram push notification (always attempt, even if email fails)
+        let telegramOk = false;
+        try {
+          await sendTelegramAlert(job, siteUrl);
+          telegramOk = true;
+        } catch (tgErr) {
+          console.error("Telegram alert failed:", tgErr);
+        }
 
         if (result.error) {
-          await supabaseAdmin
-            .from("job_notifications_queue")
-            .update({ attempts: item.attempts + 1, last_error: String(result.error.message) })
-            .eq("id", item.id);
+          // If Telegram succeeded, mark as sent despite email failure
+          if (telegramOk) {
+            await supabaseAdmin
+              .from("job_notifications_queue")
+              .update({ sent_at: new Date().toISOString() })
+              .eq("id", item.id);
+            sent++;
+          } else {
+            await supabaseAdmin
+              .from("job_notifications_queue")
+              .update({ attempts: item.attempts + 1, last_error: String(result.error.message) })
+              .eq("id", item.id);
+          }
         } else {
           await supabaseAdmin
             .from("job_notifications_queue")
