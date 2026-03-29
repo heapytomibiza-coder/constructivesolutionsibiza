@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Eye, RefreshCw, ShieldCheck, Star } from 'lucide-react';
+import { SavedProHeart } from '@/components/SavedProHeart';
 import { CategoryPlaceholder } from '@/components/CategoryPlaceholder';
 import { getCategoryIcon } from '@/lib/categoryIcons';
 import type { ServiceListingCard as ServiceListingCardType } from './queries/serviceListings.query';
@@ -115,7 +116,7 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
             </span>
           </div>
 
-          {/* Provider + trust */}
+          {/* Provider + trust + save */}
           <div className="flex min-w-0 items-center justify-between gap-2 pt-2 border-t border-border/50 overflow-hidden">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <Avatar className="h-6 w-6 shrink-0">
@@ -128,8 +129,11 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
                 {listing.provider_name ?? 'Tasker'}
               </span>
             </div>
-            <div className="shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               <TrustBadge verification={listing.provider_verification ?? null} />
+              {listing.provider_id && (
+                <SavedProHeart professionalId={listing.provider_id} size="sm" />
+              )}
             </div>
           </div>
         </CardContent>
