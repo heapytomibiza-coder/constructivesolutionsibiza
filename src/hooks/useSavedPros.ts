@@ -19,9 +19,9 @@ export function useSavedPros() {
   return useQuery({
     queryKey: ['saved_pros', user?.id],
     queryFn: async (): Promise<SavedPro[]> => {
-      const { data, error } = await supabase.rpc('get_saved_pros');
+      const { data, error } = await (supabase.rpc as any)('get_saved_pros');
       if (error) throw error;
-      return (data ?? []) as unknown as SavedPro[];
+      return (data ?? []) as SavedPro[];
     },
     enabled: !!user?.id,
     staleTime: 30_000,
@@ -33,11 +33,11 @@ export function useToggleSavedPro() {
 
   return useMutation({
     mutationFn: async (professionalId: string) => {
-      const { data, error } = await supabase.rpc('toggle_saved_pro', {
+      const { data, error } = await (supabase.rpc as any)('toggle_saved_pro', {
         p_professional_id: professionalId,
       });
       if (error) throw error;
-      return data as unknown as { saved: boolean };
+      return data as { saved: boolean };
     },
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['saved_pros'] });
