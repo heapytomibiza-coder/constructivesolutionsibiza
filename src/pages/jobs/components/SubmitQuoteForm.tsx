@@ -144,7 +144,7 @@ export function SubmitQuoteForm({ jobId, onSuccess }: SubmitQuoteFormProps) {
         <Textarea value={exclusionsText} onChange={(e) => setExclusionsText(e.target.value)} placeholder={t("quotes.exclusionsPlaceholder")} rows={2} />
       </div>
 
-      <Button onClick={handleSubmit} disabled={submitting} className="w-full gap-2">
+      <Button onClick={handleSubmit} disabled={submitting || !isPriceValid || !scopeText.trim()} className="w-full gap-2">
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         {t("quotes.submit")}
       </Button>
