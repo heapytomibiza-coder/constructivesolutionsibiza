@@ -17,9 +17,13 @@ import {
   MessageCircle,
   LogOut,
   Settings,
-  ChevronRight
+  ChevronRight,
+  Heart
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useSavedPros } from '@/hooks/useSavedPros';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ShieldCheck } from 'lucide-react';
 
 /**
  * CLIENT DASHBOARD
@@ -64,6 +68,7 @@ const ClientDashboard = () => {
   const { t } = useTranslation('dashboard');
   const { user, roles } = useSession();
   const { stats } = useClientStats();
+  const { data: savedPros } = useSavedPros();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -154,6 +159,41 @@ const ClientDashboard = () => {
           <MenuItem to="/settings" icon={Settings} label={t('common.settings', 'Settings')} />
           <MenuItem to="/forum" icon={MessageCircle} label={t('client.forumHelp', 'Community Forum & Help')} />
         </div>
+
+        {/* Saved Pros */}
+        {savedPros && savedPros.length > 0 && (
+          <div className="mt-6">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
+              <Heart className="h-4 w-4 text-destructive" />
+              {t('client.savedPros', 'Saved Professionals')}
+            </h2>
+            <div className="grid grid-cols-2 gap-2">
+              {savedPros.slice(0, 4).map((pro) => (
+                <Link
+                  key={pro.professional_id}
+                  to={`/services/provider/${pro.professional_id}`}
+                  className="flex items-center gap-2.5 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-colors"
+                >
+                  <Avatar className="h-8 w-8 shrink-0">
+                    <AvatarImage src={pro.avatar_thumb_url || pro.avatar_url || undefined} />
+                    <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                      {(pro.display_name ?? '?')[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{pro.display_name ?? 'Professional'}</p>
+                    {pro.verification_status === 'verified' && (
+                      <span className="flex items-center gap-1 text-[10px] text-primary">
+                        <ShieldCheck className="h-3 w-3" />
+                        Verified
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
