@@ -1,68 +1,61 @@
 
 
-# Add Trigger Guard on `user_roles` for Defense-in-Depth
+# Priority 1: End-to-End Flow — Identify & Fix Code Gaps
 
-## Current State
+## Current State (Honest Assessment)
 
-- **RLS policy** ("Users can switch active role only") uses WITH CHECK subqueries to lock `roles`, `suspended_at`, `suspended_by`, `suspension_reason` columns
-- **`switch_active_role` RPC** (SECURITY DEFINER) validates the requested role is in the user's existing `roles` array
-- **No trigger guard exists** — if RLS is somehow bypassed (e.g., future policy change, admin mistake), there is no second layer preventing self-escalation
+The full journey exists in code: Wizard → Job Alert → Quote → Accept → Complete → Review.
 
-All 9 security scan findings are already marked as resolved/ignored with documented reasons. No new scan findings to fix.
+But there are **3 real gaps** that would break the flow for a real user:
 
-## What This Adds
+### Gap 1: Missing `in_progress` Transition
+- `completeJob` requires `status = 'in_progress'`
+- `accept_quote_and_assign` RPC sets `assigned_professional_id` but need to verify it also sets status to `in_progress`
+- If it doesn't → **client can never complete a job** (blocker)
+- **Fix**: Verify the RPC, and if missing, add `status = 'in_progress'` to the accept flow
 
-A single `BEFORE UPDATE` trigger on `user_roles` that rejects any change to sensitive columns when the update comes from the row owner (non-admin path). This is the belt-and-suspenders layer the user requested.
+### Gap 2: Quote Form Allows €0 / Empty Prices
+- Pro can submit a "fixed" quote without entering a price amount
+- No validation that `priceFixed > 0` when type is "fixed", or `priceMin/priceMax > 0` for estimates
+- **Fix**: Add frontend validation in `SubmitQuoteForm` — require a positive number for the selected price type before allowing submit
 
-## Implementation
+### Gap 3: Payment Not Wired (Known — Not Blocking Launch)
+- Payment protection exists as a concept (legal wording, homepage section) but isn't in the actual job lifecycle
+- This is behind `escrow-beta` flag — acknowledged, not a code fix right now
+- **Action**: Document this as a known gap, not a bug
 
-### Migration: Add `guard_user_roles_update` trigger
+## Implementation Plan
 
-```sql
-CREATE OR REPLACE FUNCTION public.guard_user_roles_update()
-RETURNS trigger
-LANGUAGE plpgsql
-SET search_path = public
-AS $$
-BEGIN
-  -- Only guard non-service-role updates (regular user path)
-  -- Service role updates (admin, system) are allowed through
-  IF current_setting('role', true) = 'authenticated' THEN
-    IF NEW.roles IS DISTINCT FROM OLD.roles THEN
-      RAISE EXCEPTION 'Cannot modify roles array directly';
-    END IF;
-    IF NEW.suspended_at IS DISTINCT FROM OLD.suspended_at
-       OR NEW.suspended_by IS DISTINCT FROM OLD.suspended_by
-       OR NEW.suspension_reason IS DISTINCT FROM OLD.suspension_reason THEN
-      RAISE EXCEPTION 'Cannot modify suspension fields directly';
-    END IF;
-  END IF;
+### Step 1 — Verify `accept_quote_and_assign` RPC sets `in_progress`
+- Read the RPC definition from the database
+- If status transition is missing, create a migration to fix it
+- This is the **most critical gap** — without it, jobs get stuck after accepting a quote
 
-  RETURN NEW;
-END;
-$$;
+### Step 2 — Add price validation to SubmitQuoteForm
+- In `src/pages/jobs/components/SubmitQuoteForm.tsx`:
+  - Fixed: require `priceFixed > 0`
+  - Estimate: require `priceMin > 0` and `priceMax > priceMin`
+  - Hourly: require `hourlyRate > 0`
+- Show toast error if validation fails
+- Disable submit button when price fields are empty/invalid
 
-CREATE TRIGGER trg_guard_user_roles_update
-BEFORE UPDATE ON public.user_roles
-FOR EACH ROW
-EXECUTE FUNCTION public.guard_user_roles_update();
-```
+### Step 3 — Build the Smoke Test Checklist
+- Create a documented checklist page or output the exact steps to test manually
+- Each step maps to the real code path so you know exactly what's being tested
 
-### Why check `current_setting('role')` instead of `auth.uid() = OLD.user_id`
-
-- The `switch_active_role` RPC runs as SECURITY DEFINER, which executes under the function owner's role — not `authenticated`. So the trigger won't block the RPC.
-- Admin operations via service role key also bypass the guard correctly.
-- Direct client-side `.update()` calls run as `authenticated` — those are blocked from touching sensitive columns.
-
-### Files Changed
+## Files Changed
 
 | File | Change |
 |------|--------|
-| New migration SQL | `guard_user_roles_update()` function + trigger |
+| `src/pages/jobs/components/SubmitQuoteForm.tsx` | Price validation (positive numbers required) |
+| Migration SQL (if needed) | Fix `accept_quote_and_assign` to set `status = 'in_progress'` |
 
-### What This Does NOT Change
-- Existing RLS policies — kept as-is (double protection)
-- `switch_active_role` RPC — unaffected (runs as definer)
-- Admin suspension policies — unaffected (use service role)
-- Scan findings — all already resolved/ignored
+## What This Does NOT Change
+- Wizard flow — already solid
+- Job alerts — already working
+- Review system — already working
+- Payment integration — intentionally deferred (escrow-beta flag)
+
+## After This
+Once gaps are fixed, you run the smoke test manually. Then we move to **Quote Structure Tightening** (priority 2) and **Landing Page Funnel** (priority 3).
 
