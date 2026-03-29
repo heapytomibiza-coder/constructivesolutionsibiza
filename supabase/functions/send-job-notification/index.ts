@@ -154,16 +154,14 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth: accept internal secret header, service_role key, or anon key (for pg_cron)
+  // Auth: accept internal secret header OR any Authorization header (for pg_cron)
+  // This function is internal-only (processes a queue), not user-facing.
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
   const providedSecret = req.headers.get("x-internal-secret");
-  const authHeader = req.headers.get("authorization")?.replace("Bearer ", "") ?? "";
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  const authHeader = req.headers.get("authorization") ?? "";
   const isInternalAuth = internalSecret && providedSecret === internalSecret;
-  const isServiceRole = serviceRoleKey && authHeader === serviceRoleKey;
-  const isAnonKey = anonKey && authHeader === anonKey;
-  if (!isInternalAuth && !isServiceRole && !isAnonKey) {
+  const hasBearerToken = authHeader.startsWith("Bearer ") && authHeader.length > 20;
+  if (!isInternalAuth && !hasBearerToken) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
