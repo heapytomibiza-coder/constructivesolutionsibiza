@@ -1,105 +1,135 @@
 
 
-# Phase 7 — Conversion & Retention Layer
+# Fix Publish Flow — 3 Patches
 
-## Existing Infrastructure
+## What We're Fixing
 
-- **Admin nudge system**: `admin_nudge_client` RPC already exists for manual nudging from MessagingPulsePage
-- **Email queue**: `email_notifications_queue` with retry/dead-letter pattern, processed by `send-notifications` edge function
-- **Dispute deadline nudges**: `dispute-deadline-automation` edge function already uses the enqueue + dedup pattern via `dispute_ai_events`
-- **Jobs table**: has `assigned_professional_id`, all needed fields for cloning (category, subcategory, micro_slug, area, budget, location, answers, description)
-- **No existing**: saved pros, rebook flow, or automated conversion nudges
+1. **BLOCKER**: `published_at` never set on publish → listings invisible in marketplace
+2. **ISSUE**: Live listings can have required fields blanked via save
+3. **FRAGILITY**: Publish is two sequential writes (save then status update) → race condition risk
 
----
+## Implementation
 
-## Implementation Plan
+### Patch 1 — DB Trigger (Migration)
 
-### Ticket 1: Saved Pros / Favourites
-**Effort:** 2 hours
+Extend `validate_service_listing_live` to:
+- **Set `published_at := now()`** on transition to `live` (when `OLD.status IS NULL OR OLD.status <> 'live'`)
+- **Validate required fields on ALL updates where `status = 'live'`** — not just transitions. This prevents blanking title/description on a live listing via save.
+- Keep the grandfather clause for pre-March-19 listings on the transition check, but enforce field integrity on all live updates regardless.
 
-**Migration:**
-- Create `saved_pros` table: `user_id UUID`, `professional_id UUID`, `created_at TIMESTAMPTZ DEFAULT now()`, `PRIMARY KEY (user_id, professional_id)`
-- RLS: users can INSERT/SELECT/DELETE where `user_id = auth.uid()`
-- Create `toggle_saved_pro(p_professional_id UUID)` RPC (SECURITY DEFINER): if row exists, delete; else insert. Returns `{saved: boolean}`
-- Create `get_saved_pros()` RPC: returns saved pros joined with `professional_profiles` for display name, avatar, verification status
+```sql
+CREATE OR REPLACE FUNCTION public.validate_service_listing_live()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public
+AS $$
+BEGIN
+  -- Validate required fields whenever status IS live (not just transition)
+  IF NEW.status = 'live' THEN
+    -- Grandfather clause only for initial publish of old listings
+    IF NEW.created_at < '2026-03-19T12:00:00Z'
+       AND (OLD.status IS NULL OR OLD.status <> 'live') THEN
+      -- Allow grandfathered listings to go live without checks
+      NULL;
+    ELSE
+      IF NEW.display_title IS NULL OR trim(NEW.display_title) = '' THEN
+        RAISE EXCEPTION 'A display title is required for live listings';
+      END IF;
+      IF NEW.short_description IS NULL OR trim(NEW.short_description) = '' THEN
+        RAISE EXCEPTION 'A short description is required for live listings';
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM service_pricing_items
+        WHERE service_listing_id = NEW.id
+          AND is_enabled = true
+          AND price_amount IS NOT NULL
+          AND price_amount > 0
+      ) THEN
+        RAISE EXCEPTION 'At least one enabled pricing item is required for live listings';
+      END IF;
+    END IF;
+  END IF;
 
-**Frontend:**
-- New `src/hooks/useSavedPros.ts` — toggle mutation + list query
-- Heart button on `ServiceListingCard` and `ProfessionalDetails.tsx`
-- New "Saved Pros" section in `ClientDashboard.tsx` — grid of saved pro cards with link to profile
+  -- Set published_at on transition to live
+  IF NEW.status = 'live' AND (OLD.status IS NULL OR OLD.status <> 'live') THEN
+    NEW.published_at := now();
+  END IF;
 
----
+  RETURN NEW;
+END;
+$$;
+```
 
-### Ticket 2: Re-booking Flow (Hire Again)
-**Effort:** 3 hours
+### Patch 2 — Frontend Live-Save Guard
 
-**Migration:**
-- Add `rebook_source_job_id UUID` column to `jobs` table (nullable, references self)
-- Create `create_rebook_job(p_source_job_id UUID)` RPC (SECURITY DEFINER):
-  - Verifies `auth.uid() = jobs.user_id` on source job
-  - Verifies source job status is `completed` or `in_progress`
-  - Copies: title, category, subcategory, micro_slug, area, location, budget_type, budget_value, budget_min, budget_max, start_timing, description, answers
-  - Sets: `status = 'draft'`, `user_id = auth.uid()`, `rebook_source_job_id = p_source_job_id`, `assigned_professional_id = source.assigned_professional_id`
-  - Returns `{new_job_id}`
-- No separate `rebook_events` table — the `rebook_source_job_id` column on jobs is sufficient for tracking
+In `ServiceListingEditor.tsx`, add validation at the top of `handleSave`:
 
-**Frontend:**
-- New `src/hooks/useRebook.ts` — mutation calling the RPC, redirects to `/post?edit={new_job_id}`
-- "Hire Again" button on:
-  - `ClientJobCard.tsx` (for completed jobs)
-  - `JobTicketDetail.tsx` (for completed/in_progress jobs)
-  - `ProfessionalDetails.tsx` (if user has a completed job with this pro — checked via a lightweight query)
+```typescript
+// Before saving, if listing is live, ensure required fields remain valid
+if (listing?.status === 'live') {
+  const hasPricing = pricingItems.some(p => p.is_enabled && p.price_amount && p.price_amount > 0);
+  const { canPublish } = evaluateListingReadiness({
+    display_title: title,
+    short_description: description,
+    hero_image_url: heroUrl,
+    hasPricing,
+  });
+  if (!canPublish) {
+    toast.error('Live listings must keep title, description, and pricing complete');
+    return;
+  }
+}
+```
 
----
+### Patch 3 — Atomic Publish (Single Write)
 
-### Ticket 3: Incomplete Hire Nudges (Automated + Admin Override)
-**Effort:** 4 hours
+Replace the two-step `handlePublish` (save → publish) with a single atomic update:
 
-**Migration:**
-- Create `nudge_log` table:
-  - `id UUID PK`, `user_id UUID NOT NULL`, `job_id UUID`, `nudge_type TEXT NOT NULL`, `triggered_at TIMESTAMPTZ DEFAULT now()`, `sent_at TIMESTAMPTZ`, `suppressed_by UUID` (admin override), `suppressed_at TIMESTAMPTZ`
-  - Unique constraint: `(user_id, job_id, nudge_type, DATE(triggered_at))` — enforces max 1 per type per day
-- RLS: no direct user access (service role only); admin SELECT
-- Create `get_pending_nudges()` RPC (SECURITY DEFINER, service role pattern):
-  - Finds nudge candidates:
-    - `draft_stale`: jobs in draft, created > 2h ago, no nudge sent in 24h
-    - `quotes_pending`: jobs with quotes but status still open, oldest quote > 24h, no nudge in 24h
-    - `conversation_stale`: conversations with messages but no quote/hire after 48h, no nudge in 24h
-  - Anti-spam: max 3 nudges per job total, skip if job completed/cancelled
-  - Returns candidate rows
-- Create `mark_nudge_sent(p_nudge_id UUID)` and `suppress_nudge(p_job_id UUID, p_nudge_type TEXT)` RPCs
+```typescript
+const handlePublish = async () => {
+  if (!listingId || !listing) return;
+  const hasPricing = pricingItems.some(p => p.is_enabled && p.price_amount && p.price_amount > 0);
+  const { canPublish, issues } = evaluateListingReadiness({ ... });
+  if (!canPublish) { toast.error(...); return; }
 
-**Edge Function: `process-nudges`**
-- Internal-only (x-internal-secret header)
-- Calls `get_pending_nudges()`, inserts into `nudge_log`, enqueues into `email_notifications_queue`
-- Message templates:
-  - `draft_stale`: "Finish posting your job — pros are waiting"
-  - `quotes_pending`: "You've received X quotes — review them now"
-  - `conversation_stale`: "You spoke to {pro_name} — ready to hire?"
-- Scheduled via pg_cron every hour
+  try {
+    const { error } = await supabase
+      .from('service_listings')
+      .update({
+        display_title: title,
+        short_description: description,
+        hero_image_url: heroUrl,
+        gallery,
+        location_base: locationBase || null,
+        pricing_summary: computedPricingSummary,
+        status: 'live',
+      })
+      .eq('id', listingId);
+    if (error) throw error;
 
-**Admin UI:**
-- Add "Suppress nudges" and "Send nudge now" buttons to existing MessagingPulsePage stale conversations view
-- Admin can pause all nudges for a specific job
+    // fire-and-forget translation
+    toast.success('Listing published');
+    queryClient.invalidateQueries({ queryKey: ['listing-detail', listingId] });
+    queryClient.invalidateQueries({ queryKey: ['my-listings'] });
+    navigate('/professional/listings');
+  } catch (err) {
+    toast.error('Failed to publish listing');
+  }
+};
+```
 
-**Event taxonomy additions:**
-- `NUDGE_SENT`, `NUDGE_SUPPRESSED`, `REBOOK_CREATED`, `PRO_SAVED`, `PRO_UNSAVED`
+This eliminates the race condition and reduces DB writes from 2 to 1. The trigger handles `published_at` automatically.
 
----
+### Files Changed
 
-## Build Order
+| File | Change |
+|------|--------|
+| New migration SQL | Upgraded `validate_service_listing_live` trigger |
+| `src/pages/professional/ServiceListingEditor.tsx` | Live-save guard + atomic publish |
 
-| Week | Tickets | Rationale |
-|------|---------|-----------|
-| 1 | T1 (Saved Pros) | Simplest, immediate retention value |
-| 1 | T2 (Rebook Flow) | High-impact, leverages existing job structure |
-| 2 | T3 (Nudges) | Most complex, needs email templates + scheduling |
-
-## Technical Notes
-
-- Rebook uses a column on `jobs` rather than a separate tracking table — simpler, queryable, no sync issues
-- Nudge deduplication follows the same pattern as `dispute-deadline-automation` (event log + unique constraint)
-- All RPCs use SECURITY DEFINER with `SET search_path = public`
-- Nudge edge function is internal-only, matching the existing auth classification model
-- No new public-facing tables — `saved_pros` is user-scoped, `nudge_log` is service-role only
+### What We're NOT Changing
+- `usePublishListing` / `useUnpauseListing` hooks — publish now handled inline; unpause already works via the dashboard and the trigger will set `published_at` for it automatically
+- `listingPublishRules.ts` — no changes needed, contract is correct
+- No new tables or RPCs
 
