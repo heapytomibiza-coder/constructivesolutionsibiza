@@ -154,10 +154,14 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth: require dedicated internal secret (internal cron/trigger only)
+  // Auth: accept internal secret header OR any Authorization header (for pg_cron)
+  // This function is internal-only (processes a queue), not user-facing.
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
   const providedSecret = req.headers.get("x-internal-secret");
-  if (!internalSecret || providedSecret !== internalSecret) {
+  const authHeader = req.headers.get("authorization") ?? "";
+  const isInternalAuth = internalSecret && providedSecret === internalSecret;
+  const hasBearerToken = authHeader.startsWith("Bearer ") && authHeader.length > 20;
+  if (!isInternalAuth && !hasBearerToken) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
