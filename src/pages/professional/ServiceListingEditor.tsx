@@ -352,9 +352,9 @@ export default function ServiceListingEditor() {
               <Button
                 size="sm"
                 onClick={handlePublish}
-                disabled={!canPublish || publishListing.isPending}
+                disabled={!canPublish || isPublishing}
               >
-                {publishListing.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4 mr-1.5" />}
+                {isPublishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4 mr-1.5" />}
                 {t('listingEditor.publish')}
               </Button>
             )}
