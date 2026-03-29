@@ -71,6 +71,22 @@ export default function ServiceListingEditor() {
 
   const handleSave = async () => {
     if (!listingId) return;
+
+    // Guard: prevent breaking live listings by blanking required fields
+    if (listing?.status === 'live') {
+      const hasPricing = pricingItems.some(p => p.is_enabled && p.price_amount && p.price_amount > 0);
+      const { canPublish } = evaluateListingReadiness({
+        display_title: title,
+        short_description: description,
+        hero_image_url: heroUrl,
+        hasPricing,
+      });
+      if (!canPublish) {
+        toast.error(t('listingEditor.liveListingMustRemainComplete', 'Live listings must keep title, description, and pricing complete'));
+        return;
+      }
+    }
+
     try {
       // Auto-compute pricing_summary from lowest enabled pricing item
       const unitLabels: Record<string, string> = { hour: 'hr', day: 'day', sqm: 'm²', job: 'job', item: 'item' };
@@ -112,8 +128,10 @@ export default function ServiceListingEditor() {
     }
   };
 
+  const [isPublishing, setIsPublishing] = useState(false);
+
   const handlePublish = async () => {
-    if (!listingId) return;
+    if (!listingId || !listing) return;
     const hasPricing = pricingItems.some(p => p.is_enabled && p.price_amount && p.price_amount > 0);
     const { canPublish, issues } = evaluateListingReadiness({
       display_title: title,
@@ -126,11 +144,54 @@ export default function ServiceListingEditor() {
       toast.error(requiredIssues.map(i => t(i.messageKey, i.field)).join('. '));
       return;
     }
-    // Save first, then publish
-    await handleSave();
-    publishListing.mutate(listingId, {
-      onSuccess: () => navigate('/professional/listings'),
-    });
+
+    // Atomic publish: single write combining save + status change
+    // The DB trigger handles published_at automatically
+    try {
+      setIsPublishing(true);
+
+      const unitLabels: Record<string, string> = { hour: 'hr', day: 'day', sqm: 'm²', job: 'job', item: 'item' };
+      const enabledWithPrice = pricingItems
+        .filter(p => p.is_enabled && p.price_amount && p.price_amount > 0)
+        .sort((a, b) => (a.price_amount ?? 0) - (b.price_amount ?? 0));
+      const cheapest = enabledWithPrice[0];
+      const pricingSummary = cheapest
+        ? `From ${cheapest.price_amount} €/${unitLabels[cheapest.unit] || cheapest.unit}`
+        : null;
+
+      const { error } = await supabase
+        .from('service_listings')
+        .update({
+          display_title: title,
+          short_description: description,
+          hero_image_url: heroUrl,
+          gallery,
+          location_base: locationBase || null,
+          pricing_summary: pricingSummary,
+          status: 'live',
+        })
+        .eq('id', listingId);
+
+      if (error) throw error;
+
+      // Fire-and-forget translation
+      if (title.trim() || description.trim()) {
+        supabase.functions.invoke('translate-content', {
+          body: {
+            entity: 'service_listings',
+            id: listingId,
+            fields: { display_title: title, short_description: description },
+          },
+        }).catch(() => {});
+      }
+
+      toast.success(t('listingEditor.listingPublished', 'Listing published'));
+      navigate('/professional/listings');
+    } catch (err) {
+      toast.error(t('listingEditor.publishFailed', 'Failed to publish listing'));
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'hero' | 'gallery') => {
