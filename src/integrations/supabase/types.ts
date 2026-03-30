@@ -1521,6 +1521,8 @@ export type Database = {
           email_digests: boolean
           email_job_matches: boolean
           email_messages: boolean
+          email_project_updates: boolean
+          email_quotes: boolean
           updated_at: string
           user_id: string
         }
@@ -1529,6 +1531,8 @@ export type Database = {
           email_digests?: boolean
           email_job_matches?: boolean
           email_messages?: boolean
+          email_project_updates?: boolean
+          email_quotes?: boolean
           updated_at?: string
           user_id: string
         }
@@ -1537,6 +1541,8 @@ export type Database = {
           email_digests?: boolean
           email_job_matches?: boolean
           email_messages?: boolean
+          email_project_updates?: boolean
+          email_quotes?: boolean
           updated_at?: string
           user_id?: string
         }

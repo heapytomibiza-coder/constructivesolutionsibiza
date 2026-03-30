@@ -29,6 +29,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 interface NotificationPrefs {
   email_messages: boolean;
   email_job_matches: boolean;
+  email_quotes: boolean;
+  email_project_updates: boolean;
   email_digests: boolean;
   digest_frequency: string;
 }
@@ -36,6 +38,8 @@ interface NotificationPrefs {
 const DEFAULT_PREFS: NotificationPrefs = {
   email_messages: true,
   email_job_matches: true,
+  email_quotes: true,
+  email_project_updates: true,
   email_digests: false,
   digest_frequency: 'daily',
 };
@@ -80,7 +84,7 @@ export default function Settings() {
       if (!user?.id) return DEFAULT_PREFS;
       const { data, error } = await supabase
         .from('notification_preferences')
-        .select('email_messages, email_job_matches, email_digests, digest_frequency')
+        .select('email_messages, email_job_matches, email_quotes, email_project_updates, email_digests, digest_frequency')
         .eq('user_id', user.id)
         .maybeSingle();
       if (error) throw error;
@@ -117,6 +121,8 @@ export default function Settings() {
     const map: Record<string, string> = {
       email_messages: t('notifications.newMessages'),
       email_job_matches: t('notifications.jobMatches'),
+      email_quotes: t('notifications.quotes'),
+      email_project_updates: t('notifications.projectUpdates'),
       email_digests: t('notifications.emailDigest'),
     };
     return map[key] ?? key;
@@ -379,6 +385,28 @@ export default function Settings() {
                   <Switch
                     checked={currentPrefs.email_job_matches}
                     onCheckedChange={(v) => handleToggle('email_job_matches', v)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">{t('notifications.quotes')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('notifications.quotesDesc')}</p>
+                  </div>
+                  <Switch
+                    checked={currentPrefs.email_quotes}
+                    onCheckedChange={(v) => handleToggle('email_quotes', v)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">{t('notifications.projectUpdates')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('notifications.projectUpdatesDesc')}</p>
+                  </div>
+                  <Switch
+                    checked={currentPrefs.email_project_updates}
+                    onCheckedChange={(v) => handleToggle('email_project_updates', v)}
                   />
                 </div>
                 <Separator />
