@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { QuoteComparisonCard } from '@/components/quotes/QuoteComparisonCard';
 import { useQuotesForJob } from '@/pages/jobs/queries/quotes.query';
 import { acceptQuote } from '@/pages/jobs/actions/acceptQuote.action';
+import { declineQuote } from '@/pages/jobs/actions/declineQuote.action';
 import { quoteKeys } from '@/pages/jobs/queries/quotes.query';
 import { jobKeys } from '@/pages/jobs/queries/keys';
 import { supabase } from '@/integrations/supabase/client';
@@ -87,7 +88,6 @@ export default function QuoteComparison() {
   };
 
   const handleMessage = async (professionalId: string) => {
-    // Find or navigate to existing conversation
     if (!jobId) return;
     const { data: conv } = await supabase
       .from('conversations')
@@ -100,6 +100,24 @@ export default function QuoteComparison() {
       navigate(`/messages/${conv.id}`);
     } else {
       navigate(`/messages`);
+    }
+  };
+
+  const handleDecline = async (quoteId: string) => {
+    const quote = activeQuotes.find(q => q.id === quoteId);
+    if (!quote) return;
+    if (!confirm(t('quoteComparison.declineConfirm', 'Decline this quote? The professional will be notified.'))) return;
+
+    setActing(true);
+    const result = await declineQuote(quoteId);
+    setActing(false);
+
+    if (result.success) {
+      trackEvent(EVENTS.QUOTE_DECLINED, 'client', {}, { job_id: quote.job_id, worker_id: quote.professional_id });
+      toast.success(t('quoteComparison.quoteDeclined', 'Quote declined'));
+      queryClient.invalidateQueries({ queryKey: quoteKeys.forJob(quote.job_id) });
+    } else {
+      toast.error(result.error ?? t('quoteComparison.declineFailed', 'Failed to decline quote'));
     }
   };
 
