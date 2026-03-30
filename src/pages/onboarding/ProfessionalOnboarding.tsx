@@ -56,8 +56,10 @@ const ProfessionalOnboarding = () => {
     complete: 'review',
   };
 
-  // Fix 4: Safe default — defer phase-based step until loading completes
+  // Safe default — defer phase-based step until loading completes
   const [currentStep, setCurrentStep] = useState<WizardStep>(editMode ? 'tracker' : 'basic_info');
+
+  // Track explicit user navigation so phase sync doesn't override it
   const userNavigatedRef = useRef(false);
   const lastPhaseRef = useRef<string | null>(null);
 
@@ -95,7 +97,7 @@ const ProfessionalOnboarding = () => {
     return () => { cancelled = true; };
   }, [user?.id, isLoading, currentStep]);
 
-  // Fix 4: Set correct step once profile has loaded
+  // Set correct step once profile has loaded, but do not override explicit manual navigation
   useEffect(() => {
     if (isLoading || editMode) return;
     if (userNavigatedRef.current) return;
@@ -109,25 +111,26 @@ const ProfessionalOnboarding = () => {
     }
   }, [phase, editMode, navigate]);
 
-  // Fix 1: Deep-link to a step — gate tracker behind edit mode
+  // Deep-link to a step — gate tracker behind edit mode
   useEffect(() => {
     if (!stepParam) return;
     const allowed: WizardStep[] = editMode
       ? ['tracker', 'basic_info', 'service_area', 'services', 'review']
       : ['basic_info', 'service_area', 'services', 'review'];
     if (allowed.includes(stepParam)) {
+      userNavigatedRef.current = true;
       setCurrentStep(stepParam);
     }
   }, [stepParam, editMode]);
 
-  // Fix 2: Safety fallback — tracker can never exist outside edit mode
+  // Safety fallback — tracker can never exist outside edit mode
   useEffect(() => {
     if (!editMode && currentStep === 'tracker') {
       setCurrentStep('basic_info');
     }
   }, [editMode, currentStep]);
 
-  // Fix 3: Phase auto-advance with currentStep in deps (no stale closure)
+  // Phase auto-advance, but never override explicit user navigation
   useEffect(() => {
     if (editMode) return;
     if (userNavigatedRef.current) return;
@@ -140,7 +143,7 @@ const ProfessionalOnboarding = () => {
     }
   }, [phase, editMode, currentStep]);
 
-  // Reset navigation lock when phase actually changes (user saved something)
+  // Reset manual navigation lock only when phase actually changes server-side
   useEffect(() => {
     if (!phase) return;
     if (lastPhaseRef.current !== null && lastPhaseRef.current !== phase) {
@@ -152,18 +155,21 @@ const ProfessionalOnboarding = () => {
   // Step completion handlers - always advance to next step
   const handleBasicInfoComplete = () => {
     trackEvent('pro_onboarding_started', 'professional', { step: 'basic_info' });
+    userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
     setCurrentStep('service_area');
   };
 
   const handleServiceAreaComplete = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'service_area' });
+    userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
     setCurrentStep('services');
   };
 
   const handleServicesComplete = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'services' });
+    userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
     setCurrentStep('review');
   };
@@ -201,7 +207,14 @@ const ProfessionalOnboarding = () => {
             </Button>
           )}
           {editMode && currentStep !== 'tracker' && (
-            <Button variant="ghost" size="sm" onClick={() => setCurrentStep('tracker')}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                userNavigatedRef.current = true;
+                setCurrentStep('tracker');
+              }}
+            >
               <ArrowLeft className="h-5 w-5 mr-2" />
               {t('wizard.backToOverview')}
             </Button>
@@ -267,6 +280,7 @@ const ProfessionalOnboarding = () => {
               phase={phase}
               editMode={editMode}
               onStepClick={(stepId) => {
+                userNavigatedRef.current = true;
                 setCurrentStep(stepId as WizardStep);
                 trackEvent('pro_onboarding_step_entered', 'professional', { step: stepId, edit_mode: editMode });
               }}
@@ -274,20 +288,32 @@ const ProfessionalOnboarding = () => {
           ) : currentStep === 'basic_info' ? (
             <BasicInfoStep onComplete={handleBasicInfoComplete} />
           ) : currentStep === 'service_area' ? (
-            <ServiceAreaStep 
-              onComplete={handleServiceAreaComplete} 
-              onBack={() => editMode ? setCurrentStep('tracker') : setCurrentStep('basic_info')}
+            <ServiceAreaStep
+              onComplete={handleServiceAreaComplete}
+              onBack={() => {
+                userNavigatedRef.current = true;
+                editMode ? setCurrentStep('tracker') : setCurrentStep('basic_info');
+              }}
             />
           ) : currentStep === 'services' ? (
             <ServiceUnlockStep
               onComplete={handleServicesComplete}
-              onBack={() => editMode ? setCurrentStep('tracker') : setCurrentStep('service_area')}
+              onBack={() => {
+                userNavigatedRef.current = true;
+                editMode ? setCurrentStep('tracker') : setCurrentStep('service_area');
+              }}
               editMode={editMode}
             />
           ) : currentStep === 'review' ? (
             <ReviewStep
-              onBack={() => editMode ? setCurrentStep('tracker') : setCurrentStep('services')}
-              onNavigate={(step) => { userNavigatedRef.current = true; setCurrentStep(step as WizardStep); }}
+              onBack={() => {
+                userNavigatedRef.current = true;
+                editMode ? setCurrentStep('tracker') : setCurrentStep('services');
+              }}
+              onNavigate={(step) => {
+                userNavigatedRef.current = true;
+                setCurrentStep(step as WizardStep);
+              }}
             />
           ) : null}
         </div>
