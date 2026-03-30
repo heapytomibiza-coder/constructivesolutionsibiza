@@ -1,6 +1,7 @@
 /**
- * Job Ticket Detail Page - Control centre for a saved job
- * Shows job summary + distribution actions + activity
+ * Job Ticket Detail Page — Full lifecycle control centre for a job.
+ * Shows: summary → status timeline → quotes → conversations →
+ *        distribution → invites → completion → review
  */
 
 import { useParams, useNavigate, Link } from 'react-router-dom';
@@ -30,6 +31,11 @@ import {
   RotateCw,
 } from 'lucide-react';
 import { useRebook } from '@/hooks/useRebook';
+import { StatusTimeline } from '@/components/quotes/StatusTimeline';
+import { JobTicketQuotes } from './components/JobTicketQuotes';
+import { JobTicketConversations } from './components/JobTicketConversations';
+import { JobTicketCompletion } from './components/JobTicketCompletion';
+import { JobTicketReview } from './components/JobTicketReview';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
@@ -164,48 +170,52 @@ export default function JobTicketDetail() {
       </nav>
 
       <div className="container max-w-3xl py-6 space-y-6">
-        {/* Status + Actions Header */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <Badge variant={statusConfig.variant} className="text-sm px-3 py-1">
-            {statusConfig.label}
-          </Badge>
-          <div className="flex items-center gap-2">
-            {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
-              <>
+        {/* Status + Timeline + Actions Header */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <Badge variant={statusConfig.variant} className="text-sm px-3 py-1">
+              {statusConfig.label}
+            </Badge>
+            <div className="flex items-center gap-2">
+              {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => rebook.mutate(job.id)}
+                    disabled={rebook.isPending}
+                  >
+                    <RotateCw className="h-3.5 w-3.5" />
+                    {t('jobTicket.hireAgain', 'Hire Again')}
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" asChild title="Having an issue with this job? Start a structured resolution.">
+                    <Link to={`/disputes/raise?job=${jobId}`}>
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {t('jobTicket.raiseIssue', 'Raise Issue')}
+                    </Link>
+                  </Button>
+                </>
+              )}
+              {['ready', 'open', 'posted'].includes(job.status) && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="gap-1.5"
-                  onClick={() => rebook.mutate(job.id)}
-                  disabled={rebook.isPending}
+                  onClick={() => navigate(`/post?edit=${jobId}`)}
                 >
-                  <RotateCw className="h-3.5 w-3.5" />
-                  {t('jobTicket.hireAgain', 'Hire Again')}
+                  <Pencil className="h-3.5 w-3.5" />
+                  {t('jobTicket.editJob', 'Edit Job')}
                 </Button>
-                <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" asChild title="Having an issue with this job? Start a structured resolution.">
-                  <Link to={`/disputes/raise?job=${jobId}`}>
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    {t('jobTicket.raiseIssue', 'Raise Issue')}
-                  </Link>
-                </Button>
-              </>
-            )}
-            {['ready', 'open', 'posted'].includes(job.status) && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => navigate(`/post?edit=${jobId}`)}
-              >
-                <Pencil className="h-3.5 w-3.5" />
-                {t('jobTicket.editJob', 'Edit Job')}
+              )}
+              <Button variant="ghost" size="sm" className="gap-1.5 text-destructive" onClick={handleClose}>
+                <XCircle className="h-3.5 w-3.5" />
+                {t('jobTicket.closeJob')}
               </Button>
-            )}
-            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive" onClick={handleClose}>
-              <XCircle className="h-3.5 w-3.5" />
-              {t('jobTicket.closeJob')}
-            </Button>
+            </div>
           </div>
+          {/* Status Timeline */}
+          <StatusTimeline currentStatus={job.status} />
         </div>
 
         {/* Job Summary Card */}
@@ -284,49 +294,67 @@ export default function JobTicketDetail() {
           </div>
         )}
 
-        {/* Distribution Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-display">{t('jobTicket.shareTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <button
-              onClick={handlePostToBoard}
-              disabled={isPublishing || job.status === 'open'}
-              className="w-full flex items-start gap-4 p-4 rounded-xl border-2 border-border hover:border-primary/40 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Globe className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">{t('jobTicket.postToBoard')}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {job.status === 'open'
-                    ? t('jobTicket.alreadyPosted')
-                    : t('jobTicket.postToBoardDesc')}
-                </p>
-              </div>
-              {job.status === 'open' && (
-                <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
-              )}
-            </button>
+        {/* Completion CTA (only when in_progress) */}
+        <JobTicketCompletion jobId={job.id} jobStatus={job.status} />
 
-            <Link
-              to={`/dashboard/jobs/${jobId}/invite`}
-              className="w-full flex items-start gap-4 p-4 rounded-xl border-2 border-border hover:border-primary/40 transition-all text-left block"
-            >
-              <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                <UserPlus className="h-5 w-5 text-accent" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">{t('jobTicket.inviteSpecific')}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {t('jobTicket.inviteSpecificDesc')}
-                </p>
-              </div>
-            </Link>
-          </CardContent>
-        </Card>
+        {/* Review section (only when completed) */}
+        <JobTicketReview
+          jobId={job.id}
+          jobStatus={job.status}
+          assignedProfessionalId={job.assigned_professional_id}
+        />
+
+        {/* Quotes Received */}
+        <JobTicketQuotes jobId={job.id} jobStatus={job.status} />
+
+        {/* Conversations */}
+        <JobTicketConversations jobId={job.id} />
+
+        {/* Distribution Actions */}
+        {['ready', 'open'].includes(job.status) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-display">{t('jobTicket.shareTitle')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <button
+                onClick={handlePostToBoard}
+                disabled={isPublishing || job.status === 'open'}
+                className="w-full flex items-start gap-4 p-4 rounded-xl border-2 border-border hover:border-primary/40 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Globe className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">{t('jobTicket.postToBoard')}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {job.status === 'open'
+                      ? t('jobTicket.alreadyPosted')
+                      : t('jobTicket.postToBoardDesc')}
+                  </p>
+                </div>
+                {job.status === 'open' && (
+                  <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                )}
+              </button>
+
+              <Link
+                to={`/dashboard/jobs/${jobId}/invite`}
+                className="w-full flex items-start gap-4 p-4 rounded-xl border-2 border-border hover:border-primary/40 transition-all text-left block"
+              >
+                <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  <UserPlus className="h-5 w-5 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">{t('jobTicket.inviteSpecific')}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {t('jobTicket.inviteSpecificDesc')}
+                  </p>
+                </div>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         {invites.length > 0 && (
           <Card>
