@@ -98,13 +98,73 @@ Deferred until Phase 1A and 1B are tested in production. Consolidation depends o
 - ✅ Documentation aligned with production behavior
 - ✅ Build passes cleanly
 - ⏳ Transport consolidation intentionally deferred
+- ✅ Conversion nudge pipeline activated (Phase 2)
+
+---
+
+## Phase 2 — Conversion Nudge Activation
+
+**Date:** 2026-03-30
+
+### What Was Done
+
+1. **`process-nudges` deployed**: Added to `config.toml`, function updated with 50-item batch safety cap and Bearer token auth for pg_cron compatibility.
+
+2. **Hourly pg_cron schedule created**: `process-nudges-hourly` runs at the top of every hour via `pg_net.http_post`.
+
+3. **`get_pending_nudges()` expanded**: Added two new nudge types:
+   - `pro_no_quote` — Pro has conversation on open job but no quote after 12h (max 2 nudges, 24h cooldown)
+   - `review_reminder` — Job completed > 24h ago, targets each side independently (max 2 nudges, 48h cooldown)
+
+4. **`send-notifications` wired for nudges**: 
+   - All `nudge_*` events now render using payload-driven subject/body wrapped in email shell
+   - All nudge events respect `email_project_updates` preference
+   - Skipped nudges marked processed with `skipped_by_preferences` (consistent with existing pattern)
+
+5. **Event taxonomy aligned**: Added `NUDGE_DRAFT_STALE`, `NUDGE_QUOTES_PENDING`, `NUDGE_CONVERSATION_STALE`, `NUDGE_PRO_NO_QUOTE`, `NUDGE_REVIEW_REMINDER` to `eventTaxonomy.ts`.
+
+### Nudge Matrix
+
+| Type | Target | Trigger | Cooldown | Max | Preference |
+|------|--------|---------|----------|-----|------------|
+| `draft_stale` | Client | Draft job > 2h | 24h | 3 | `email_project_updates` |
+| `quotes_pending` | Client | Unreviewed quotes > 24h | 24h | 3 | `email_project_updates` |
+| `conversation_stale` | Client | Idle conversation > 48h | 24h | 3 | `email_project_updates` |
+| `pro_no_quote` | Pro | Conversation exists, no quote > 12h | 24h | 2 | `email_project_updates` |
+| `review_reminder` | Client & Pro (independently) | Job completed > 24h, no review | 48h | 2 | `email_project_updates` |
+
+### Design Decisions
+
+- **`pro_no_quote` targets conversation participants only**, not all category-matched pros. This prevents spam from overly broad matching.
+- **`review_reminder` fires per-side**: only the party that hasn't reviewed gets nudged. Suppressed once that party leaves a review.
+- **Batch limit of 50** per hourly run prevents flood after downtime or backlog.
+- **Preference-skipped nudges** are marked processed and not retried (consistent queue semantics).
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `supabase/config.toml` | Added `[functions.process-nudges]` |
+| `supabase/functions/process-nudges/index.ts` | Expanded templates, added batch limit + Bearer auth |
+| `supabase/functions/send-notifications/index.ts` | Added `NUDGE_EVENTS`, `buildNudgeEmail()`, preference handling |
+| `src/lib/eventTaxonomy.ts` | Added 5 nudge event constants |
+| SQL migration | Expanded `get_pending_nudges()` with `pro_no_quote` + `review_reminder` |
+| SQL (insert) | Created `process-nudges-hourly` pg_cron job |
 
 ---
 
 ## Recommended Smoke Test
 
+### Phase 1
 1. Toggle "Quotes & hiring" off → submit a quote → verify email is suppressed
 2. Toggle "Project updates" off → post a job → verify confirmation email is suppressed
 3. Accept a quote → verify mandatory email sends regardless of preferences
 4. Check dispute email sends regardless of preferences
 5. Toggle preferences back on → verify emails resume
+
+### Phase 2
+6. Create a draft job → wait 2h (or manually invoke `process-nudges`) → verify `nudge_draft_stale` appears in email queue
+7. Submit a quote on an open job → wait 24h → verify `nudge_quotes_pending` enqueued
+8. Start a conversation as a pro without quoting → wait 12h → verify `nudge_pro_no_quote` enqueued
+9. Complete a job → wait 24h → verify `nudge_review_reminder` enqueued for both client and pro (separately)
+10. Toggle "Project updates" off → verify nudges are skipped with `skipped_by_preferences`
