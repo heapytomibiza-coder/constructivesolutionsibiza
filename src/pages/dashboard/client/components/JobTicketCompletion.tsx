@@ -11,6 +11,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { trackEvent } from '@/lib/trackEvent';
+import { EVENTS } from '@/lib/eventTaxonomy';
 
 interface JobTicketCompletionProps {
   jobId: string;
@@ -34,6 +36,7 @@ export function JobTicketCompletion({ jobId, jobStatus }: JobTicketCompletionPro
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .eq('id', jobId);
       if (error) throw error;
+      trackEvent(EVENTS.JOB_COMPLETED, 'client', {}, { job_id: jobId });
       toast.success(t('client.completedSuccess', 'Job marked as completed!'));
       queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });
     } catch {
