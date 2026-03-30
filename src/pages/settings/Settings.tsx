@@ -29,6 +29,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 interface NotificationPrefs {
   email_messages: boolean;
   email_job_matches: boolean;
+  email_quotes: boolean;
+  email_project_updates: boolean;
   email_digests: boolean;
   digest_frequency: string;
 }
@@ -36,6 +38,8 @@ interface NotificationPrefs {
 const DEFAULT_PREFS: NotificationPrefs = {
   email_messages: true,
   email_job_matches: true,
+  email_quotes: true,
+  email_project_updates: true,
   email_digests: false,
   digest_frequency: 'daily',
 };

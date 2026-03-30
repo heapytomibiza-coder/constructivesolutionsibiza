@@ -848,16 +848,21 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         // Check notification preferences for user-targeted events
-        if (item.recipient_user_id && ["new_message", "job_match"].includes(item.event_type)) {
+        if (item.recipient_user_id && ["new_message", "job_match", "quote_received", "welcome", "job_posted_confirm"].includes(item.event_type)) {
           const { data: prefs } = await supabaseAdmin
             .from("notification_preferences")
-            .select("email_messages, email_job_matches")
+            .select("email_messages, email_job_matches, email_quotes, email_project_updates")
             .eq("user_id", item.recipient_user_id)
             .maybeSingle();
 
-          const allow =
-            item.event_type === "new_message" ? (prefs?.email_messages ?? true) :
-            item.event_type === "job_match" ? (prefs?.email_job_matches ?? true) : true;
+          const prefMap: Record<string, boolean> = {
+            new_message: prefs?.email_messages ?? true,
+            job_match: prefs?.email_job_matches ?? true,
+            quote_received: prefs?.email_quotes ?? true,
+            welcome: prefs?.email_project_updates ?? true,
+            job_posted_confirm: prefs?.email_project_updates ?? true,
+          };
+          const allow = prefMap[item.event_type] ?? true;
 
           if (!allow) {
             await supabaseAdmin.from("email_notifications_queue")
