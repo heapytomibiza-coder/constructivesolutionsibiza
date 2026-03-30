@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,8 @@ const ProfessionalOnboarding = () => {
 
   // Fix 4: Safe default — defer phase-based step until loading completes
   const [currentStep, setCurrentStep] = useState<WizardStep>(editMode ? 'tracker' : 'basic_info');
+  const userNavigatedRef = useRef(false);
+  const lastPhaseRef = useRef<string | null>(null);
 
   // Current step index (0-based) for progress display
   const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
@@ -96,6 +98,7 @@ const ProfessionalOnboarding = () => {
   // Fix 4: Set correct step once profile has loaded
   useEffect(() => {
     if (isLoading || editMode) return;
+    if (userNavigatedRef.current) return;
     setCurrentStep(phaseToStep[phase] ?? 'basic_info');
   }, [isLoading, editMode, phase]);
 
@@ -127,6 +130,7 @@ const ProfessionalOnboarding = () => {
   // Fix 3: Phase auto-advance with currentStep in deps (no stale closure)
   useEffect(() => {
     if (editMode) return;
+    if (userNavigatedRef.current) return;
     const stepOrder: WizardStep[] = ['basic_info', 'service_area', 'services', 'review'];
     const nextStep = phaseToStep[phase] ?? 'basic_info';
     const currentIdx = stepOrder.indexOf(currentStep);
@@ -135,6 +139,15 @@ const ProfessionalOnboarding = () => {
       setCurrentStep(nextStep);
     }
   }, [phase, editMode, currentStep]);
+
+  // Reset navigation lock when phase actually changes (user saved something)
+  useEffect(() => {
+    if (!phase) return;
+    if (lastPhaseRef.current !== null && lastPhaseRef.current !== phase) {
+      userNavigatedRef.current = false;
+    }
+    lastPhaseRef.current = phase;
+  }, [phase]);
 
   // Step completion handlers - always advance to next step
   const handleBasicInfoComplete = () => {
@@ -274,7 +287,7 @@ const ProfessionalOnboarding = () => {
           ) : currentStep === 'review' ? (
             <ReviewStep
               onBack={() => editMode ? setCurrentStep('tracker') : setCurrentStep('services')}
-              onNavigate={(step) => setCurrentStep(step as WizardStep)}
+              onNavigate={(step) => { userNavigatedRef.current = true; setCurrentStep(step as WizardStep); }}
             />
           ) : null}
         </div>
