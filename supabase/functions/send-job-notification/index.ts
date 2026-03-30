@@ -72,11 +72,59 @@ async function sendTelegramAlert(job: any, siteUrl: string) {
     `📋 <a href="${boardUrl}">Browse All Jobs</a>`,
   ].join("\n");
 
+  // Extract first photo from job answers if available
+  let photoBase64: string | null = null;
   try {
+    const answers = typeof job.answers === "string" ? JSON.parse(job.answers) : job.answers;
+    const photos: string[] = answers?.extras?.photos ?? [];
+    if (photos.length > 0 && photos[0].startsWith("data:")) {
+      photoBase64 = photos[0];
+    }
+  } catch {
+    // answers parse failed, proceed without photo
+  }
+
+  try {
+    // If we have a photo, send it with sendPhoto (caption = text)
+    if (photoBase64) {
+      // Convert base64 data URL to binary
+      const base64Data = photoBase64.split(",")[1];
+      const binaryStr = atob(base64Data);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+
+      // 8MB guard — fall back to text-only if too large
+      if (bytes.length <= 8 * 1024 * 1024) {
+        const mimeMatch = photoBase64.match(/^data:(image\/\w+);/);
+        const ext = mimeMatch?.[1]?.split("/")?.[1] ?? "jpg";
+
+        const form = new FormData();
+        form.append("chat_id", chatId);
+        form.append("caption", text);
+        form.append("parse_mode", "HTML");
+        form.append("photo", new Blob([bytes], { type: mimeMatch?.[1] ?? "image/jpeg" }), `job-photo.${ext}`);
+
+        const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+          method: "POST",
+          body: form,
+        });
+        if (!res.ok) {
+          const body = await res.text();
+          console.error("Telegram sendPhoto failed, falling back to text:", res.status, body);
+          // Fall through to sendMessage below
+        } else {
+          return; // Photo sent successfully
+        }
+      }
+    }
+
+    // Text-only fallback (or no photo available)
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: false }),
     });
     if (!res.ok) {
       const body = await res.text();
