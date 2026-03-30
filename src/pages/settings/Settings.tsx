@@ -390,6 +390,28 @@ export default function Settings() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">{t('notifications.quotes')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('notifications.quotesDesc')}</p>
+                  </div>
+                  <Switch
+                    checked={currentPrefs.email_quotes}
+                    onCheckedChange={(v) => handleToggle('email_quotes', v)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">{t('notifications.projectUpdates')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('notifications.projectUpdatesDesc')}</p>
+                  </div>
+                  <Switch
+                    checked={currentPrefs.email_project_updates}
+                    onCheckedChange={(v) => handleToggle('email_project_updates', v)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
                     <Label className="text-sm font-medium">{t('notifications.emailDigest')}</Label>
                     <p className="text-xs text-muted-foreground">{t('notifications.emailDigestDesc')}</p>
                   </div>
