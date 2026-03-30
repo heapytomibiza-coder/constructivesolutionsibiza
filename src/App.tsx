@@ -220,6 +220,7 @@ const App = () => {
               <Route path="/dashboard/client/jobs" element={<ClientJobsList />} />
               <Route path="/dashboard/jobs/:jobId" element={<JobTicketDetail />} />
               <Route path="/dashboard/jobs/:jobId/invite" element={<MatchAndSend />} />
+              <Route path="/dashboard/jobs/:jobId/compare" element={<QuoteComparison />} />
               
               {/* Messages (shared) */}
               <Route path="/messages" element={<Messages />} />
