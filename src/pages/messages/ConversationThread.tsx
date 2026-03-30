@@ -3,6 +3,7 @@ import { useRef, useEffect, useState, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useMessages, useSendMessage, type Message } from "./hooks";
 import { RequestSupportButton, SystemMessage } from "./components";
+import { QuoteNudgeBanner } from "./components/QuoteNudgeBanner";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, ArrowLeft, CheckCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -15,6 +16,7 @@ interface ConversationThreadProps {
   clientId?: string;
   jobId?: string | null;
   jobTitle?: string;
+  jobStatus?: string;
   otherPartyName?: string;
   onBack?: () => void;
   onNewMessage?: () => void;
@@ -26,6 +28,7 @@ export function ConversationThread({
   clientId,
   jobId,
   jobTitle,
+  jobStatus,
   otherPartyName,
   onBack,
   onNewMessage,
@@ -196,6 +199,15 @@ export function ConversationThread({
           </div>
         )}
       </div>
+
+      {/* Quote nudge for professionals */}
+      {jobId && (
+        <QuoteNudgeBanner
+          jobId={jobId}
+          jobStatus={jobStatus}
+          messageCount={messages?.length ?? 0}
+        />
+      )}
 
       {/* Compose — pinned to bottom, never moves */}
       <div className="px-3 py-2 border-t border-border bg-card shrink-0 pb-[max(env(safe-area-inset-bottom),8px)]">
