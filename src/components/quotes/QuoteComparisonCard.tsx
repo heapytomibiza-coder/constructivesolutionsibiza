@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ProSummaryCard } from './ProSummaryCard';
 import { Check, MessageSquare, X, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { formatQuotePrice } from '@/pages/jobs/utils/formatQuotePrice';
 import type { Quote } from '@/pages/jobs/types';
 
 interface QuoteComparisonCardProps {
@@ -29,20 +30,7 @@ export function QuoteComparisonCard({
 }: QuoteComparisonCardProps) {
   const { t } = useTranslation('dashboard');
 
-  const priceDisplay = (() => {
-    switch (quote.price_type) {
-      case 'fixed':
-        return quote.price_fixed != null ? `€${quote.price_fixed.toLocaleString()}` : '—';
-      case 'estimate':
-        return quote.price_min != null && quote.price_max != null
-          ? `€${quote.price_min.toLocaleString()} – €${quote.price_max.toLocaleString()}`
-          : '—';
-      case 'hourly':
-        return quote.hourly_rate != null ? `€${quote.hourly_rate}/h` : '—';
-      default:
-        return '—';
-    }
-  })();
+  const priceDisplay = formatQuotePrice(quote);
 
   const isActive = quote.status === 'submitted' || quote.status === 'revised';
   const isAccepted = quote.status === 'accepted';

@@ -3,38 +3,40 @@
  */
 
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProSummaryCard } from '@/components/quotes/ProSummaryCard';
 import { BarChart3, FileText, MessageSquare } from 'lucide-react';
 import { useQuotesForJob } from '@/pages/jobs/queries/quotes.query';
-import type { Quote } from '@/pages/jobs/types';
+import { supabase } from '@/integrations/supabase/client';
+import { formatQuotePrice } from '@/pages/jobs/utils/formatQuotePrice';
 
 interface JobTicketQuotesProps {
   jobId: string;
   jobStatus: string;
 }
 
-function getQuotePrice(quote: Quote): string {
-  switch (quote.price_type) {
-    case 'fixed':
-      return quote.price_fixed != null ? `€${quote.price_fixed.toLocaleString()}` : '—';
-    case 'estimate':
-      return quote.price_min != null && quote.price_max != null
-        ? `€${quote.price_min.toLocaleString()} – €${quote.price_max.toLocaleString()}`
-        : '—';
-    case 'hourly':
-      return quote.hourly_rate != null ? `€${quote.hourly_rate}/h` : '—';
-    default:
-      return '—';
-  }
-}
-
 export function JobTicketQuotes({ jobId, jobStatus }: JobTicketQuotesProps) {
   const { t } = useTranslation('dashboard');
+  const navigate = useNavigate();
   const { data: quotes = [], isLoading } = useQuotesForJob(jobId);
+
+  const handleMessage = async (professionalId: string) => {
+    const { data: conv } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('job_id', jobId)
+      .eq('pro_id', professionalId)
+      .maybeSingle();
+
+    if (conv) {
+      navigate(`/messages/${conv.id}`);
+    } else {
+      navigate('/messages');
+    }
+  };
 
   // Only show active (non-withdrawn) quotes
   const activeQuotes = quotes.filter(q => q.status !== 'withdrawn');
@@ -105,11 +107,14 @@ export function JobTicketQuotes({ jobId, jobStatus }: JobTicketQuotesProps) {
               )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <span className="text-sm font-semibold">{getQuotePrice(quote)}</span>
-              <Button variant="ghost" size="sm" className="h-7 px-2" asChild>
-                <Link to={`/dashboard/jobs/${jobId}/compare`}>
-                  <MessageSquare className="h-3.5 w-3.5" />
-                </Link>
+              <span className="text-sm font-semibold">{formatQuotePrice(quote)}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2"
+                onClick={() => handleMessage(quote.professional_id)}
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
