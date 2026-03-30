@@ -21,6 +21,9 @@ verify_jwt = false
 [functions.optimize-image]
 verify_jwt = false
 
+[functions.process-nudges]
+verify_jwt = false
+
 [functions.analyze-dispute]
 verify_jwt = false
 

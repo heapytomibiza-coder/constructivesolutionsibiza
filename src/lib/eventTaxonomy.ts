@@ -101,6 +101,11 @@ export const EVENTS = {
   PRO_UNSAVED: "pro_unsaved",
   NUDGE_SENT: "nudge_sent",
   NUDGE_SUPPRESSED: "nudge_suppressed",
+  NUDGE_DRAFT_STALE: "nudge_draft_stale",
+  NUDGE_QUOTES_PENDING: "nudge_quotes_pending",
+  NUDGE_CONVERSATION_STALE: "nudge_conversation_stale",
+  NUDGE_PRO_NO_QUOTE: "nudge_pro_no_quote",
+  NUDGE_REVIEW_REMINDER: "nudge_review_reminder",
 } as const;
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
