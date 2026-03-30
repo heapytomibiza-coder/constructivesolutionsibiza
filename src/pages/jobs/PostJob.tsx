@@ -21,7 +21,7 @@ const PostJob = () => {
     <div className="min-h-screen relative">
       {/* Background Image */}
       <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
         style={{ backgroundImage: `url(${heroPost})` }}
       />
       
