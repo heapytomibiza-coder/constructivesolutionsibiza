@@ -6,8 +6,6 @@ verify_jwt = false
 [functions.seedpacks]
 verify_jwt = false
 
-[functions.send-auth-email]
-verify_jwt = false
 
 [functions.send-job-notification]
 verify_jwt = false
