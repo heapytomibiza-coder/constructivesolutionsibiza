@@ -1,61 +1,130 @@
 
 
-# Priority 1: End-to-End Flow — Identify & Fix Code Gaps
+# Phase 1: Email System Cleanup — Truth Check, Preferences, Consolidation
 
-## Current State (Honest Assessment)
+## Summary
 
-The full journey exists in code: Wizard → Job Alert → Quote → Accept → Complete → Review.
+Three-phase workstream: remove dead code, expand notification preferences, then prepare for provider consolidation.
 
-But there are **3 real gaps** that would break the flow for a real user:
+---
 
-### Gap 1: Missing `in_progress` Transition
-- `completeJob` requires `status = 'in_progress'`
-- `accept_quote_and_assign` RPC sets `assigned_professional_id` but need to verify it also sets status to `in_progress`
-- If it doesn't → **client can never complete a job** (blocker)
-- **Fix**: Verify the RPC, and if missing, add `status = 'in_progress'` to the accept flow
+## Phase 1A — Remove `send-auth-email` (Dead Code)
 
-### Gap 2: Quote Form Allows €0 / Empty Prices
-- Pro can submit a "fixed" quote without entering a price amount
-- No validation that `priceFixed > 0` when type is "fixed", or `priceMin/priceMax > 0` for estimates
-- **Fix**: Add frontend validation in `SubmitQuoteForm` — require a positive number for the selected price type before allowing submit
+### Evidence
 
-### Gap 3: Payment Not Wired (Known — Not Blocking Launch)
-- Payment protection exists as a concept (legal wording, homepage section) but isn't in the actual job lifecycle
-- This is behind `escrow-beta` flag — acknowledged, not a code fix right now
-- **Action**: Document this as a known gap, not a bug
+- **Zero frontend invocations**: No file in `src/` calls `send-auth-email`
+- **Zero production logs**: Edge function logs return empty
+- **Auth flows use native Supabase Auth**: `Auth.tsx` calls `supabase.auth.signUp()`, `supabase.auth.resend()`, `ForgotPassword.tsx` calls `supabase.auth.resetPasswordForEmail()` — all native, no edge function
+- **No DB hooks or triggers reference it**
 
-## Implementation Plan
+### Action
 
-### Step 1 — Verify `accept_quote_and_assign` RPC sets `in_progress`
-- Read the RPC definition from the database
-- If status transition is missing, create a migration to fix it
-- This is the **most critical gap** — without it, jobs get stuck after accepting a quote
+| What | Detail |
+|------|--------|
+| Delete `supabase/functions/send-auth-email/index.ts` | Remove the entire edge function directory |
+| Remove from `supabase/config.toml` | Delete the `[functions.send-auth-email]` block |
+| Remove `RESEND_API_KEY` dependency note | Document that Resend is still used by `send-job-notification` — do not remove the secret yet |
 
-### Step 2 — Add price validation to SubmitQuoteForm
-- In `src/pages/jobs/components/SubmitQuoteForm.tsx`:
-  - Fixed: require `priceFixed > 0`
-  - Estimate: require `priceMin > 0` and `priceMax > priceMin`
-  - Hourly: require `hourlyRate > 0`
-- Show toast error if validation fails
-- Disable submit button when price fields are empty/invalid
+---
 
-### Step 3 — Build the Smoke Test Checklist
-- Create a documented checklist page or output the exact steps to test manually
-- Each step maps to the real code path so you know exactly what's being tested
+## Phase 1B — Expand Notification Preferences
 
-## Files Changed
+### Current State
+
+The `notification_preferences` table has 4 columns: `email_messages`, `email_job_matches`, `email_digests`, `digest_frequency`. Only `email_messages` and `email_job_matches` are checked in `send-notifications`.
+
+The following event types send emails **without** any preference check:
+- `welcome`
+- `job_posted_confirm`
+- `quote_received`
+- `quote_accepted` / `quote_declined`
+- `job_completed`
+- `job_match` (already preference-aware)
+- `new_message` (already preference-aware)
+
+### Classification
+
+| Category | Events | Mandatory? |
+|----------|--------|-----------|
+| **Mandatory** (no opt-out) | `quote_accepted`, `quote_declined`, `job_completed`, dispute emails | Yes — action/outcome emails |
+| **Optional — Quotes & Hiring** | `quote_received` | No — add `email_quotes` preference |
+| **Optional — Project Updates** | `job_posted_confirm`, `welcome` | No — add `email_project_updates` preference |
+| **Already controlled** | `new_message` → `email_messages`, `job_match` → `email_job_matches` | Already done |
+
+### Database Changes
+
+Add two columns to `notification_preferences`:
+
+```sql
+ALTER TABLE public.notification_preferences
+  ADD COLUMN IF NOT EXISTS email_quotes boolean NOT NULL DEFAULT true,
+  ADD COLUMN IF NOT EXISTS email_project_updates boolean NOT NULL DEFAULT true;
+```
+
+### Code Changes
 
 | File | Change |
 |------|--------|
-| `src/pages/jobs/components/SubmitQuoteForm.tsx` | Price validation (positive numbers required) |
-| Migration SQL (if needed) | Fix `accept_quote_and_assign` to set `status = 'in_progress'` |
+| `supabase/functions/send-notifications/index.ts` | Expand the preference check block (~line 851) to include `quote_received` → `email_quotes` and `welcome`, `job_posted_confirm` → `email_project_updates` |
+| `src/pages/settings/Settings.tsx` | Add two new toggle rows for "Quotes & hiring activity" and "Project updates". Update the `NotificationPrefs` interface. |
+| `public/locales/en/settings.json` | Add translation keys for the new toggles |
 
-## What This Does NOT Change
-- Wizard flow — already solid
-- Job alerts — already working
-- Review system — already working
-- Payment integration — intentionally deferred (escrow-beta flag)
+### Preference Check Logic (in `send-notifications`)
 
-## After This
-Once gaps are fixed, you run the smoke test manually. Then we move to **Quote Structure Tightening** (priority 2) and **Landing Page Funnel** (priority 3).
+```
+expanded preference map:
+  new_message       → email_messages       (existing)
+  job_match         → email_job_matches    (existing)
+  quote_received    → email_quotes         (new)
+  welcome           → email_project_updates (new)
+  job_posted_confirm→ email_project_updates (new)
+  quote_accepted    → mandatory (no check)
+  quote_declined    → mandatory (no check)
+  job_completed     → mandatory (no check)
+```
+
+---
+
+## Phase 1C — Provider Consolidation (Documented, Not Implemented Yet)
+
+### Current Split
+
+| Provider | Used By | Transport |
+|----------|---------|-----------|
+| **Resend** (API) | `send-job-notification` (admin alerts) | REST API |
+| **Krystal SMTP** | `send-notifications` (all user + admin queue emails) | SMTP via nodemailer |
+| **Supabase Auth** | Signup confirm, password reset, resend | Native (GoTrue) |
+
+### Recommendation (for later)
+
+Consolidate to one provider for all **app-generated** emails (not auth — those stay native). The choice depends on:
+- Whether Krystal SMTP has deliverability issues
+- Whether Resend costs are acceptable at scale
+- Whether you want API-driven sending everywhere
+
+This phase is deferred until Phase 1A and 1B are complete and tested.
+
+---
+
+## Implementation Order
+
+1. Delete `send-auth-email` edge function + config entry
+2. Add `email_quotes` and `email_project_updates` columns (migration)
+3. Update `send-notifications` preference check logic
+4. Update Settings UI with new toggles
+5. Add translation keys
+6. Deploy updated `send-notifications` edge function
+
+---
+
+## Files Changed
+
+| File | Action |
+|------|--------|
+| `supabase/functions/send-auth-email/index.ts` | Delete |
+| `supabase/config.toml` | Remove `[functions.send-auth-email]` block |
+| `supabase/functions/send-notifications/index.ts` | Expand preference check |
+| `src/pages/settings/Settings.tsx` | Add 2 new preference toggles |
+| `public/locales/en/settings.json` | Add translation keys |
+| New migration SQL | Add 2 columns to `notification_preferences` |
 
