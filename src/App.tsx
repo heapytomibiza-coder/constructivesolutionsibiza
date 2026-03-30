@@ -66,6 +66,7 @@ const ClientDashboard = lazy(() => import("./pages/dashboard/client/ClientDashbo
 const ClientJobsList = lazy(() => import("./pages/dashboard/client/ClientJobsList"));
 const JobTicketDetail = lazy(() => import("./pages/dashboard/client/JobTicketDetail"));
 const MatchAndSend = lazy(() => import("./pages/dashboard/client/MatchAndSend"));
+const QuoteComparison = lazy(() => import("./pages/dashboard/client/QuoteComparison"));
 const ProDashboard = lazy(() => import("./pages/dashboard/professional/ProDashboard"));
 const DashboardResolver = lazy(() => import("./pages/dashboard/DashboardResolver"));
 
