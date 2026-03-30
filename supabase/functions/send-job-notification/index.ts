@@ -185,7 +185,7 @@ const handler = async (req: Request): Promise<Response> => {
       .update({ last_error: `claiming:${batchId}` })
       .is("sent_at", null)
       .lt("attempts", 3)
-      .not("last_error", "like", "claiming:%")
+      .or("last_error.is.null,last_error.not.like.claiming:%")
       .order("created_at", { ascending: true })
       .limit(20);
 
