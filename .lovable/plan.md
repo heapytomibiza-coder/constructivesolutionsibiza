@@ -1,73 +1,46 @@
 
 
-# Sprint 1 Closure — Fix Issues 1, 3, 4, 6
+# Fix: Onboarding Wizard Navigation Trap
 
-## Issue 5 — Already Resolved
-The `job_reviews` table already has `CONSTRAINT unique_review_per_job_per_reviewer UNIQUE (job_id, reviewer_user_id)` from its original migration. No action needed.
+## Problem
+The auto-advance effect in `ProfessionalOnboarding.tsx` (line 128) overrides explicit user navigation from the Review checklist. Users clicking "Where you Work" get snapped back to Review immediately, making it impossible to edit service area.
 
----
+## Root Cause
+Two effects fight user intent:
+- **Line 97-100**: Sets step from phase on load — re-fires on phase change and overrides manual navigation
+- **Line 128-137**: Auto-advances forward whenever phase-derived step is ahead of current step
 
-## Issue 1 — Complete Job via Secure RPC (Blocker)
+Neither distinguishes system-driven sync from user-driven backward navigation.
 
-**Problem**: `JobTicketCompletion.tsx` does a raw client-side update. Timestamps and status are client-controlled.
+## Fix (3 changes in one file)
 
-**Fix**:
+**File**: `src/pages/onboarding/ProfessionalOnboarding.tsx`
 
-1. **Migration**: Create `complete_job(p_job_id UUID)` RPC as `SECURITY DEFINER`:
-   - Validates `auth.uid() = user_id`
-   - Confirms `status = 'in_progress'` and `assigned_professional_id IS NOT NULL`
-   - Sets `status = 'completed'`, `completed_at = now()` server-side
-   - Returns `job_id` and `status` (not `VOID`, per your feedback)
-   - Raises named exceptions for each failure case
+### 1. Add navigation refs (after existing state declarations ~line 57)
+```typescript
+const userNavigatedRef = useRef(false);
+const lastPhaseRef = useRef<string | null>(null);
+```
 
-2. **Update `JobTicketCompletion.tsx`**: Replace the raw `.update()` with `supabase.rpc('complete_job', { p_job_id: jobId })`. Map RPC error messages to user-friendly toasts.
+### 2. Guard both auto-advance effects
 
-3. **Update `completeJob.action.ts`**: Same change — use the RPC instead of raw update. This action file already has ownership checks that become redundant (RPC handles it), so simplify to just call RPC + track event.
+**Line 97-100** (phase-based initial step): Add `userNavigatedRef.current` guard so it only fires on first load, not after manual navigation.
 
----
+**Line 128-137** (phase auto-advance): Add `if (userNavigatedRef.current) return` at the top of the effect body.
 
-## Issue 3 — Message Button Links to Wrong Page (Bug)
+### 3. Set the ref on explicit navigation, clear on phase change
 
-**Problem**: In `JobTicketQuotes.tsx` line 110, the `MessageSquare` button links to `/dashboard/jobs/${jobId}/compare` instead of the conversation.
+- **Line 277** (`onNavigate` callback): Set `userNavigatedRef.current = true` before `setCurrentStep`
+- **New effect**: Reset `userNavigatedRef.current = false` when `phase` actually changes (tracked via `lastPhaseRef`), so forward sync resumes after a save
 
-**Fix**: Replace the static `<Link>` with an `onClick` handler that:
-1. Queries `conversations` for `job_id + pro_id` match
-2. Navigates to `/messages/${conv.id}` if found
-3. Falls back to `/messages` if no conversation exists
+### 4. Review step safeguards (already in place)
+Confirmed: `ReviewStep.tsx` already checks `hasServiceArea = effectiveZones.length > 0` and blocks "Go Live" when false. The checklist item correctly shows incomplete state and routes via `onNavigate`. No changes needed there.
 
-This mirrors the `handleMessage` pattern already used in `QuoteComparison.tsx`.
+## Files Changed
+| File | Change |
+|------|--------|
+| `ProfessionalOnboarding.tsx` | Add 2 refs, guard 2 effects, set ref on navigate, add phase-change reset effect |
 
----
-
-## Issue 4 — Extract Shared Price Formatter (Cleanup)
-
-**Problem**: Identical price formatting logic in `JobTicketQuotes.tsx` (lines 20-33) and `QuoteComparisonCard.tsx` (lines 32-45).
-
-**Fix**: Create `src/pages/jobs/utils/formatQuotePrice.ts` with a single `formatQuotePrice(quote)` function. Import in both files, delete the inline versions.
-
----
-
-## Issue 6 — Wire Decline Handler (Missing Feature)
-
-**Problem**: `QuoteComparisonCard` renders a decline button when `onDecline` is passed, but `QuoteComparison.tsx` never passes it.
-
-**Fix**: Following the same secure pattern as `acceptQuote.action.ts`:
-
-1. **Create `declineQuote.action.ts`**: Updates the quote status to `rejected`. Since the `quotes` table RLS already allows clients to update quotes on their own jobs, this can use a direct update with status guard (`eq('status', 'submitted')`). The client can only reject quotes on jobs they own (RLS enforced).
-
-2. **Wire in `QuoteComparison.tsx`**: Add `handleDecline` function, pass as `onDecline` to each card. Show a confirmation dialog before declining. Track `EVENTS.QUOTE_DECLINED` event. Invalidate quote queries after success.
-
-3. **Add `QUOTE_DECLINED` to event taxonomy**.
-
----
-
-## Summary
-
-| Issue | Type | Action | Files Changed |
-|-------|------|--------|---------------|
-| 1 | Blocker | `complete_job` RPC + update 2 components | Migration + `JobTicketCompletion.tsx` + `completeJob.action.ts` |
-| 3 | Bug | Fix message button navigation | `JobTicketQuotes.tsx` |
-| 4 | Cleanup | Extract `formatQuotePrice` | New util + `JobTicketQuotes.tsx` + `QuoteComparisonCard.tsx` |
-| 5 | N/A | Already has unique constraint | None |
-| 6 | Missing | `declineQuote` action + wire handler | New action + `QuoteComparison.tsx` + `eventTaxonomy.ts` |
+## Risk
+Low — scoped to navigation logic only. No data flow, no DB changes, no new components.
 
