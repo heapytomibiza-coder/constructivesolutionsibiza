@@ -14,7 +14,13 @@ interface UseAdminJobsOptions {
   search?: string;
 }
 
-async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<JobsBoardRow[]> {
+export interface AdminJobRow extends JobsBoardRow {
+  conversation_count?: number;
+  quote_count?: number;
+  needs_quote?: boolean;
+}
+
+async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<AdminJobRow[]> {
   let query = supabase
     .from("jobs")
     .select(`
@@ -45,13 +51,13 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
     .order("created_at", { ascending: false })
     .limit(100);
 
-  // Apply status filter
+  // For needs_quote, we filter open jobs then do client-side filtering
   switch (filter) {
     case "flagged":
-      // Jobs with any flags (safety concerns, etc.)
       query = query.not("flags", "is", null).neq("flags", []);
       break;
     case "open":
+    case "needs_quote":
       query = query.eq("status", "open");
       break;
     case "in_progress":
@@ -63,14 +69,48 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
     case "archived":
       query = query.eq("status", "archived");
       break;
-    // "all" - no filter
   }
 
   const { data, error } = await query;
-
   if (error) throw error;
 
-  let jobs = (data ?? []) as JobsBoardRow[];
+  let jobs = (data ?? []) as AdminJobRow[];
+
+  // Enrich with conversation and quote counts for all jobs
+  if (jobs.length > 0) {
+    const jobIds = jobs.map(j => j.id);
+
+    const [convsRes, quotesRes] = await Promise.all([
+      supabase.from("conversations").select("job_id").in("job_id", jobIds),
+      supabase.from("quotes").select("job_id").in("job_id", jobIds),
+    ]);
+
+    const convCounts = new Map<string, number>();
+    (convsRes.data ?? []).forEach(c => {
+      convCounts.set(c.job_id, (convCounts.get(c.job_id) ?? 0) + 1);
+    });
+
+    const quoteCounts = new Map<string, number>();
+    (quotesRes.data ?? []).forEach(q => {
+      quoteCounts.set(q.job_id, (quoteCounts.get(q.job_id) ?? 0) + 1);
+    });
+
+    jobs = jobs.map(j => {
+      const cc = convCounts.get(j.id) ?? 0;
+      const qc = quoteCounts.get(j.id) ?? 0;
+      return {
+        ...j,
+        conversation_count: cc,
+        quote_count: qc,
+        needs_quote: j.status === 'open' && cc > 0 && qc === 0,
+      };
+    });
+  }
+
+  // Apply needs_quote filter
+  if (filter === "needs_quote") {
+    jobs = jobs.filter(j => j.needs_quote);
+  }
 
   // Client-side search filter
   if (search.trim()) {
