@@ -690,6 +690,37 @@ function buildAutoAdvancedEmail(payload: any, siteUrl: string) {
 }
 
 // ============================================
+// NUDGE EMAIL TEMPLATES
+// ============================================
+
+const NUDGE_EVENTS = [
+  "nudge_draft_stale", "nudge_quotes_pending", "nudge_conversation_stale",
+  "nudge_pro_no_quote", "nudge_review_reminder",
+];
+
+function buildNudgeEmail(eventType: string, payload: any, siteUrl: string): EmailResult | null {
+  // process-nudges sets subject + body in payload; wrap in email shell
+  const subject = payload.subject;
+  const body = payload.body;
+  if (!subject || !body) return null;
+
+  const ctaUrl = payload.job_id ? `${siteUrl}/dashboard/my-jobs` : `${siteUrl}/dashboard`;
+  const ctaLabel = eventType === "nudge_pro_no_quote" ? "View Job →"
+    : eventType === "nudge_review_reminder" ? "Leave a Review →"
+    : "View Your Jobs →";
+
+  const html = emailShell(
+    "linear-gradient(135deg, #f59e0b, #d97706)",
+    "Reminder",
+    `<p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">${escapeHtml(body)}</p>
+    <a href="${ctaUrl}" style="display: inline-block; background: #d97706; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">${ctaLabel}</a>`,
+    `You're receiving this because you have an active project. <a href="${siteUrl}/dashboard/settings" style="color: #9ca3af;">Manage preferences</a>`
+  );
+
+  return { subject, html };
+}
+
+// ============================================
 // EVENT → TEMPLATE ROUTER
 // ============================================
 
@@ -708,6 +739,11 @@ const DISPUTE_EVENTS = [
 ];
 
 function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResult | null {
+  // Nudge events — payload-driven template
+  if (NUDGE_EVENTS.includes(eventType)) {
+    return buildNudgeEmail(eventType, payload, siteUrl);
+  }
+
   switch (eventType) {
     // Admin alerts
     case "admin_new_job":     return buildAdminNewJobEmail(payload, siteUrl);
@@ -847,8 +883,12 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        // Check notification preferences for user-targeted events
-        if (item.recipient_user_id && ["new_message", "job_match", "quote_received", "welcome", "job_posted_confirm"].includes(item.event_type)) {
+        // Check notification preferences for preference-controlled events
+        const PREFERENCE_CONTROLLED_EVENTS = [
+          "new_message", "job_match", "quote_received", "welcome", "job_posted_confirm",
+          ...NUDGE_EVENTS,
+        ];
+        if (item.recipient_user_id && PREFERENCE_CONTROLLED_EVENTS.includes(item.event_type)) {
           const { data: prefs } = await supabaseAdmin
             .from("notification_preferences")
             .select("email_messages, email_job_matches, email_quotes, email_project_updates")
@@ -862,6 +902,10 @@ const handler = async (req: Request): Promise<Response> => {
             welcome: prefs?.email_project_updates ?? true,
             job_posted_confirm: prefs?.email_project_updates ?? true,
           };
+          // All nudge_* events use email_project_updates
+          for (const ne of NUDGE_EVENTS) {
+            prefMap[ne] = prefs?.email_project_updates ?? true;
+          }
           const allow = prefMap[item.event_type] ?? true;
 
           if (!allow) {
