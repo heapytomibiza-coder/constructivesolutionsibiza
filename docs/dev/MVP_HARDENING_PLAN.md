@@ -107,7 +107,7 @@ This prevents the common situation where something is "technically done but not 
 **Audit ref:** S-MEDIUM — 7 functions have `verify_jwt = false`  
 **Current state in `config.toml`:**
 - `ping` — OK to keep open (health check)
-- `send-auth-email` — OK (called by Auth hooks, no user JWT available)
+- `send-auth-email` — ✅ REMOVED (dead code, auth uses native Supabase Auth)
 - `seedpacks` — ❌ MUST enable JWT + admin check
 - `send-job-notification` — ❌ Review: if called by DB trigger, needs service role; if by client, needs JWT
 - `send-notifications` — ❌ Add internal auth (service role or admin JWT)

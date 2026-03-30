@@ -394,7 +394,7 @@ Core tables grouped by system. Relationships are anchored on:
 |----------|---------|----------|
 | `send-notifications` | Email dispatch from queue | `email_notifications_queue` |
 | `send-job-notification` | Job-specific notifications | `job_notifications_queue` |
-| `send-auth-email` | Custom auth emails | Auth events |
+
 | `translate-content` | i18n translation | Job/listing creation |
 | `backfill-translations` | Batch translate existing content | Manual/admin |
 | `collect-attribution` | Store marketing attribution | Page load |
