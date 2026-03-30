@@ -63,7 +63,19 @@ export default function QuoteComparison() {
     setActing(false);
 
     if (result.success) {
-      trackEvent(EVENTS.QUOTE_ACCEPTED, 'client', { quote_count: activeQuotes.length }, { job_id: quote.job_id, worker_id: quote.professional_id });
+      // Derive hire-latency metrics from quote timestamps
+      const sortedByDate = [...activeQuotes].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      const firstQuoteAt = sortedByDate[0]?.created_at ? new Date(sortedByDate[0].created_at).getTime() : null;
+      const latestQuoteAt = sortedByDate[sortedByDate.length - 1]?.created_at ? new Date(sortedByDate[sortedByDate.length - 1].created_at).getTime() : null;
+      const now = Date.now();
+      const hoursSinceFirstQuote = firstQuoteAt ? Math.round((now - firstQuoteAt) / 3_600_000 * 10) / 10 : null;
+      const hoursSinceLatestQuote = latestQuoteAt ? Math.round((now - latestQuoteAt) / 3_600_000 * 10) / 10 : null;
+
+      trackEvent(EVENTS.QUOTE_ACCEPTED, 'client', {
+        quote_count: activeQuotes.length,
+        hours_since_first_quote: hoursSinceFirstQuote,
+        hours_since_latest_quote: hoursSinceLatestQuote,
+      }, { job_id: quote.job_id, worker_id: quote.professional_id });
       toast.success(t('quoteComparison.quoteAccepted', 'Quote accepted — professional has been notified!'));
       queryClient.invalidateQueries({ queryKey: quoteKeys.forJob(quote.job_id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.details(quote.job_id) });
