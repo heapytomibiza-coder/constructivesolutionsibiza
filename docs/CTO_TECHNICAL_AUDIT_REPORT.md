@@ -171,10 +171,9 @@ The database already has comprehensive indexes:
 
 ### Authentication — Rating: Good
 
-- Email + password authentication via Supabase Auth
-- Custom `send-auth-email` edge function with branded templates
-- Rate limiting on auth emails (5/email/5min)
+- Email + password authentication via Supabase Auth (native GoTrue)
 - Password recovery flow with secure link generation
+- No anonymous signups
 - No anonymous signups
 
 ### Row Level Security — Rating: Strong with Gaps
@@ -233,7 +232,7 @@ The database already has comprehensive indexes:
 |--------|---------|---------|
 | `SUPABASE_SERVICE_ROLE_KEY` | 9 edge functions | Admin-level DB operations |
 | `GMAIL_APP_PASSWORD` | send-notifications | SMTP email delivery |
-| `RESEND_API_KEY` | send-auth-email, send-job-notification | Auth email delivery |
+| `RESEND_API_KEY` | send-job-notification | Admin job alert delivery |
 | `LOVABLE_API_KEY` | translate-content, backfill-translations | AI translation |
 | `UNSPLASH_ACCESS_KEY` | search-stock-photos | Stock photo search |
 | `TELEGRAM_BOT_TOKEN` | send-notifications, send-job-notification | Admin alerts |
@@ -292,7 +291,7 @@ This is unusually mature:
 | Function | Auth Method | Uses Service Key? | Risk Level | Assessment |
 |----------|-------------|-------------------|------------|------------|
 | `update-user-email` | JWT via `getUser()` | ✅ Yes — `admin.updateUserById` | **Medium** | Validates caller identity before admin operation. See detailed analysis below. |
-| `send-auth-email` | None (public endpoint) | ✅ Yes — `admin.generateLink` | **Low** | Rate-limited (5/email/5min). Generates auth links — standard pattern. Does not reveal user existence. |
+
 | `send-notifications` | None (queue processor) | ✅ Yes — reads queue + user emails | **Low** | Internal queue processor. No user-facing input. CORS open but no sensitive operations exposed. |
 | `send-job-notification` | None (queue processor) | ✅ Yes — reads jobs + enqueues matches | **Low** | Internal queue processor. Same pattern as send-notifications. |
 | `collect-attribution` | Optional JWT | ✅ Yes — writes attribution data | **Low** | Input sanitised (max lengths). Service key only writes to attribution table. JWT used only for user binding. |
@@ -486,7 +485,7 @@ Growth → Scale (5,000 → 50,000 users)
 | CORS headers | 8 edge functions define their own | Low — `_shared/cors.ts` exists but not used everywhere |
 | Email templates | `send-notifications` + `send-job-notification` | Medium — consolidate into shared template module |
 | Supabase admin client creation | 9 edge functions | Low — 3 lines each, not worth abstracting |
-| Resend sender fallback logic | `send-auth-email` + `send-job-notification` | Medium — extract to shared helper |
+| Resend sender fallback logic | `send-job-notification` | Low — single usage, no shared helper needed |
 
 ### Fragile Components
 

@@ -87,7 +87,7 @@ Questions a senior dev will ask — answered here so they don't have to hunt.
 |----------|---------|
 | `send-notifications` | Push notification dispatch |
 | `send-job-notification` | Job-specific alerts to matched professionals |
-| `send-auth-email` | Custom auth email templates |
+
 | `translate-content` | Auto-translation (EN↔ES) |
 | `backfill-translations` | Batch translation backfill |
 | `collect-attribution` | UTM/referrer tracking |

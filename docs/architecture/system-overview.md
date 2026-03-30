@@ -51,11 +51,10 @@ Production platform running on Lovable Cloud (Supabase) with 12 edge functions, 
 │  └──────────┘  └─────┬─────┘  └──────────┘  └────────┘ │
 │                      │                                   │
 │  ┌───────────────────┴────────────────────────────────┐  │
-│  │              EDGE FUNCTIONS (12)                    │  │
+│  │              EDGE FUNCTIONS (11)                    │  │
 │  │                                                     │  │
 │  │  send-notifications      → Gmail SMTP queue worker  │  │
 │  │  send-job-notification   → Resend + Telegram alerts │  │
-│  │  send-auth-email         → Custom auth emails       │  │
 │  │  collect-attribution     → Attribution binding      │  │
 │  │  translate-content       → i18n translation         │  │
 │  │  search-stock-photos     → Stock photo search       │  │

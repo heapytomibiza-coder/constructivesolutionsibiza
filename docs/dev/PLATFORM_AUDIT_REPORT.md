@@ -40,7 +40,7 @@
 |-------|----------|--------|
 | **`send-notifications` test endpoint is unauthenticated** | HIGH | `?test_email=1&to=anyone@example.com` sends emails with zero auth. `verify_jwt = false` in config.toml. Anyone can use your Resend quota as a spam relay. **Fix: remove test endpoint or gate behind admin JWT.** |
 | **Service role key in edge functions** | Medium | `SUPABASE_SERVICE_ROLE_KEY` is used in `send-notifications` — correct for server-side, but ensure it's never logged or exposed in error responses. Currently `result.error` is returned in test endpoint JSON. |
-| **`verify_jwt = false` on multiple functions** | Medium | `ping`, `seedpacks`, `send-auth-email`, `send-job-notification`, `send-notifications`, `search-stock-photos` — all skip JWT verification. Each needs individual review for abuse potential. |
+| **`verify_jwt = false` on multiple functions** | Medium | `ping`, `seedpacks`, `send-job-notification`, `send-notifications`, `search-stock-photos` — all skip JWT verification. Each needs individual review for abuse potential. |
 | **No rate limiting on public RPCs** | Medium | `get_or_create_conversation`, `track_event` — no throttling. A bot could flood analytics_events or create thousands of conversations. |
 | **`ADMIN_EMAIL` hardcoded as fallback** | Low | `heapytomibiza@gmail.com` is a hardcoded fallback in the edge function. Should be env-only with a startup check. |
 | **Old admin views still exist** | Low | `admin_users_list`, `admin_support_inbox`, `admin_platform_stats` views still exist in DB. Not used by frontend, but still queryable if someone has the anon key. Drop them. |
