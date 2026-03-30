@@ -84,7 +84,7 @@ export default function Settings() {
       if (!user?.id) return DEFAULT_PREFS;
       const { data, error } = await supabase
         .from('notification_preferences')
-        .select('email_messages, email_job_matches, email_digests, digest_frequency')
+        .select('email_messages, email_job_matches, email_quotes, email_project_updates, email_digests, digest_frequency')
         .eq('user_id', user.id)
         .maybeSingle();
       if (error) throw error;
@@ -121,6 +121,8 @@ export default function Settings() {
     const map: Record<string, string> = {
       email_messages: t('notifications.newMessages'),
       email_job_matches: t('notifications.jobMatches'),
+      email_quotes: t('notifications.quotes'),
+      email_project_updates: t('notifications.projectUpdates'),
       email_digests: t('notifications.emailDigest'),
     };
     return map[key] ?? key;
