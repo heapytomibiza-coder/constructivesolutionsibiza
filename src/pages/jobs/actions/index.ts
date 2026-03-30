@@ -12,3 +12,4 @@ export * from "./submitQuote.action";
 export * from "./reviseQuote.action";
 export * from "./acceptQuote.action";
 export * from "./withdrawQuote.action";
+export * from "./declineQuote.action";

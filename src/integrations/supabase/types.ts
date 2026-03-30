@@ -3467,6 +3467,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      complete_job: { Args: { p_job_id: string }; Returns: Json }
       create_direct_conversation: {
         Args: { p_client_id: string; p_job_id: string; p_pro_id: string }
         Returns: string

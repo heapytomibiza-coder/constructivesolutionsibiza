@@ -1,6 +1,7 @@
 /**
  * JobTicketCompletion — Mark job as complete section.
  * Shown when job status is 'in_progress'.
+ * Uses the secure complete_job RPC for server-side validation.
  */
 
 import { useState } from 'react';
@@ -19,6 +20,13 @@ interface JobTicketCompletionProps {
   jobStatus: string;
 }
 
+const RPC_ERROR_MAP: Record<string, string> = {
+  job_not_found: 'Job not found',
+  not_authorized: 'Not authorized',
+  job_not_in_progress: 'Job must be in progress to complete',
+  no_professional_assigned: 'Assign a professional before completing',
+};
+
 export function JobTicketCompletion({ jobId, jobStatus }: JobTicketCompletionProps) {
   const { t } = useTranslation('dashboard');
   const queryClient = useQueryClient();
@@ -31,11 +39,12 @@ export function JobTicketCompletion({ jobId, jobStatus }: JobTicketCompletionPro
 
     setIsCompleting(true);
     try {
-      const { error } = await supabase
-        .from('jobs')
-        .update({ status: 'completed', completed_at: new Date().toISOString() })
-        .eq('id', jobId);
-      if (error) throw error;
+      const { error } = await supabase.rpc('complete_job', { p_job_id: jobId });
+      if (error) {
+        const friendlyMsg = RPC_ERROR_MAP[error.message] ?? error.message;
+        toast.error(t('client.completeFailed', friendlyMsg));
+        return;
+      }
       trackEvent(EVENTS.JOB_COMPLETED, 'client', {}, { job_id: jobId });
       toast.success(t('client.completedSuccess', 'Job marked as completed!'));
       queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });

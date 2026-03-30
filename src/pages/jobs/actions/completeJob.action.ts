@@ -1,67 +1,21 @@
 import { supabase } from '@/integrations/supabase/client';
 import { trackEvent } from '@/lib/trackEvent';
+import { EVENTS } from '@/lib/eventTaxonomy';
 
 /**
- * Mark a job as completed.
+ * Mark a job as completed via secure RPC.
  * Only the job owner (client) can complete a job.
- * Requires an assigned professional.
+ * The RPC validates ownership, status, and assigned professional server-side.
  */
 export async function completeJob(jobId: string): Promise<{ success: boolean; error?: string }> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    return { success: false, error: 'Not authenticated' };
-  }
-
-  // First fetch the job to verify ownership and assigned pro
-  const { data: job, error: fetchError } = await supabase
-    .from('jobs')
-    .select('id, user_id, assigned_professional_id, status')
-    .eq('id', jobId)
-    .single();
-
-  if (fetchError || !job) {
-    return { success: false, error: 'Job not found' };
-  }
-
-  // Must be job owner
-  if (job.user_id !== user.id) {
-    return { success: false, error: 'Not authorized' };
-  }
-
-  // Must have an assigned professional
-  if (!job.assigned_professional_id) {
-    return { success: false, error: 'Assign a professional before completing' };
-  }
-
-  // Must be in progress
-  if (job.status !== 'in_progress') {
-    return { success: false, error: 'Job must be in progress to complete' };
-  }
-
-  // Update job status to completed (include status check to prevent race/double-complete)
-  const { data: updated, error } = await supabase
-    .from('jobs')
-    .update({
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-    })
-    .eq('id', jobId)
-    .eq('user_id', user.id)
-    .eq('status', 'in_progress')
-    .select('id')
-    .maybeSingle();
+  const { error } = await supabase.rpc('complete_job', { p_job_id: jobId });
 
   if (error) {
     console.error('Error completing job:', error);
     return { success: false, error: error.message };
   }
 
-  if (!updated) {
-    return { success: false, error: 'Job already completed or status changed' };
-  }
-
-  trackEvent('job_completed', 'client', {}, { job_id: jobId });
+  trackEvent(EVENTS.JOB_COMPLETED, 'client', {}, { job_id: jobId });
 
   return { success: true };
 }
