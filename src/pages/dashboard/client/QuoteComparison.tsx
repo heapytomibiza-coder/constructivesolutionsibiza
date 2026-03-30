@@ -18,6 +18,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
+import { trackEvent } from '@/lib/trackEvent';
+import { EVENTS } from '@/lib/eventTaxonomy';
 
 export default function QuoteComparison() {
   const { t } = useTranslation('dashboard');
@@ -26,6 +29,13 @@ export default function QuoteComparison() {
   const queryClient = useQueryClient();
   const [acting, setActing] = useState(false);
   const [mobileIndex, setMobileIndex] = useState(0);
+
+  // Track comparison page view
+  useEffect(() => {
+    if (jobId) {
+      trackEvent(EVENTS.QUOTE_COMPARISON_VIEWED, 'client', {}, { job_id: jobId });
+    }
+  }, [jobId]);
 
   const { data: job } = useQuery({
     queryKey: ['job_ticket', jobId],
@@ -53,6 +63,7 @@ export default function QuoteComparison() {
     setActing(false);
 
     if (result.success) {
+      trackEvent(EVENTS.QUOTE_ACCEPTED, 'client', { quote_count: activeQuotes.length }, { job_id: quote.job_id, worker_id: quote.professional_id });
       toast.success(t('quoteComparison.quoteAccepted', 'Quote accepted — professional has been notified!'));
       queryClient.invalidateQueries({ queryKey: quoteKeys.forJob(quote.job_id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.details(quote.job_id) });

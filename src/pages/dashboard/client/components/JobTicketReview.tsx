@@ -14,6 +14,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { trackEvent } from '@/lib/trackEvent';
+import { EVENTS } from '@/lib/eventTaxonomy';
 
 interface JobTicketReviewProps {
   jobId: string;
@@ -95,6 +97,7 @@ export function JobTicketReview({ jobId, jobStatus, assignedProfessionalId }: Jo
         comment: comment.trim() || null,
       });
       if (error) throw error;
+      trackEvent(EVENTS.REVIEW_SUBMITTED, 'client', { rating }, { job_id: jobId, worker_id: assignedProfessionalId });
       toast.success(t('client.ratingSuccess', 'Thanks for your rating!'));
       queryClient.invalidateQueries({ queryKey: ['client_review', jobId] });
     } catch {
