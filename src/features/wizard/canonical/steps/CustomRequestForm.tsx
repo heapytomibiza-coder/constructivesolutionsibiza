@@ -21,6 +21,7 @@ import {
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { txCategory } from '@/i18n/taxonomyTranslations';
+import { toast } from '@/hooks/use-toast';
 import type { CustomRequest } from '../types';
 
 interface CustomRequestFormProps {
@@ -71,7 +72,22 @@ export function CustomRequestForm({
   }, [categoryId, jobTitle, description]);
 
   const handleSubmit = () => {
-    if (!canContinue || !selectedCategory) return;
+    if (!categoryId.trim()) {
+      toast({ title: t('custom.categoryLabel'), description: t('custom.categoryPlaceholder'), variant: 'destructive' });
+      return;
+    }
+    if (jobTitle.trim().length < 4) {
+      toast({ title: t('custom.titleLabel'), description: t('custom.titleHelp'), variant: 'destructive' });
+      return;
+    }
+    if (description.trim().length < 20) {
+      toast({ title: t('custom.descriptionLabel'), description: t('custom.descriptionHelp'), variant: 'destructive' });
+      return;
+    }
+    if (!selectedCategory) {
+      toast({ title: 'Error', description: 'Category not found. Please re-select.', variant: 'destructive' });
+      return;
+    }
     onSubmit(
       {
         jobTitle: jobTitle.trim(),

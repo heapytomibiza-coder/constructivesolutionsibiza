@@ -21,12 +21,12 @@ const PostJob = () => {
     <div className="min-h-screen relative">
       {/* Background Image */}
       <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
         style={{ backgroundImage: `url(${heroPost})` }}
       />
       
       {/* Light Overlay */}
-      <div className="fixed inset-0 bg-background/85 backdrop-blur-[2px]" />
+      <div className="fixed inset-0 bg-background/85 backdrop-blur-[2px] pointer-events-none" />
       
       {/* Content */}
       <div className="relative z-10">
