@@ -1,99 +1,73 @@
 
-# Build-First Implementation Plan — Constructive Solutions Ibiza
 
-## Sprint Status
+# Sprint 1 Closure — Fix Issues 1, 3, 4, 6
 
-### Sprint 1 ✅ IMPLEMENTED — "Post → Quote → Compare → Hire → Complete → Review"
-
-**Objective**: Complete the full money path on mobile.
-
-**Components built**:
-- `ProSummaryCard` — compact pro info (avatar, verified badge, rating)
-- `StatusTimeline` — visual job lifecycle progress (required, not optional)
-- `QuoteComparisonCard` — mobile-first quote card with accept/message/decline
-- `JobTicketQuotes` — quotes received section with "Compare" CTA
-- `JobTicketConversations` — linked message threads
-- `JobTicketCompletion` — mark job complete CTA (in_progress only)
-- `JobTicketReview` — star rating + comment form (completed only)
-
-**Pages built**:
-- Quote Comparison View (`/dashboard/jobs/:jobId/compare`) — grid (desktop) / swipeable cards (mobile)
-- Job Ticket Detail — refactored with all 4 missing lifecycle sections
-
-**Success metrics**:
-- Quote acceptance rate
-- Time-to-hire (job posted → quote accepted)
-- Review completion rate
-
-**Acceptance test**: A client can complete this full flow on mobile:
-post job → receive quote notifications → compare quotes → hire → message → mark complete → leave review
+## Issue 5 — Already Resolved
+The `job_reviews` table already has `CONSTRAINT unique_review_per_job_per_reviewer UNIQUE (job_id, reviewer_user_id)` from its original migration. No action needed.
 
 ---
 
-### Sprint 2 — Public Trust Pages (Pro Profile → Directory)
+## Issue 1 — Complete Job via Secure RPC (Blocker)
 
-**Priority order** (profile closes trust, directory only helps browsing):
-1. Professional Profile (`/professionals/:id`) — **build first**
-2. Professional Directory (`/professionals`) — build second
-3. Portfolio gallery component (before/after)
-4. Review breakdown component
+**Problem**: `JobTicketCompletion.tsx` does a raw client-side update. Timestamps and status are client-controlled.
 
-**Success metrics**:
-- Profile view → contact rate
+**Fix**:
 
----
+1. **Migration**: Create `complete_job(p_job_id UUID)` RPC as `SECURITY DEFINER`:
+   - Validates `auth.uid() = user_id`
+   - Confirms `status = 'in_progress'` and `assigned_professional_id IS NOT NULL`
+   - Sets `status = 'completed'`, `completed_at = now()` server-side
+   - Returns `job_id` and `status` (not `VOID`, per your feedback)
+   - Raises named exceptions for each failure case
 
-### Sprint 3 — Onboarding Polish + Empty States
+2. **Update `JobTicketCompletion.tsx`**: Replace the raw `.update()` with `supabase.rpc('complete_job', { p_job_id: jobId })`. Map RPC error messages to user-friendly toasts.
 
-- Onboarding motivation screen ("Here's what happens next")
-- Empty state variants (no quotes, no conversations, no matches)
-- Settings page completion
-
-**Success metrics**:
-- Onboarding completion rate
-- First-quote-sent rate
+3. **Update `completeJob.action.ts`**: Same change — use the RPC instead of raw update. This action file already has ownership checks that become redundant (RPC handles it), so simplify to just call RPC + track event.
 
 ---
 
-### Sprint 4 — Service Layer + Marketplace Browse
+## Issue 3 — Message Button Links to Wrong Page (Bug)
 
-- Service Listing Detail polish
-- Services Directory improvements
-- Homepage featured projects (real data)
-- For Professionals landing page
+**Problem**: In `JobTicketQuotes.tsx` line 110, the `MessageSquare` button links to `/dashboard/jobs/${jobId}/compare` instead of the conversation.
 
-**Success metrics**:
-- Browse-to-contact rate
+**Fix**: Replace the static `<Link>` with an `onClick` handler that:
+1. Queries `conversations` for `job_id + pro_id` match
+2. Navigates to `/messages/${conv.id}` if found
+3. Falls back to `/messages` if no conversation exists
 
----
-
-## Top 10 Wireframes (Approved Order)
-
-1. Homepage ✅
-2. Post a Job Wizard ✅
-3. Pro Onboarding ✅
-4. Job Ticket Detail ✅ (Sprint 1 complete)
-5. Quote Comparison View ✅ (Sprint 1 complete)
-6. Messages ✅
-7. Professional Dashboard ✅
-8. Client Dashboard ✅
-9. Professional Profile 🟡 (Sprint 2)
-10. Service Listing Detail ✅
+This mirrors the `handleMessage` pattern already used in `QuoteComparison.tsx`.
 
 ---
 
-## Phase 1 Email System Cleanup — COMPLETE
+## Issue 4 — Extract Shared Price Formatter (Cleanup)
 
-### Phase 1A — `send-auth-email` Removed ✅
-### Phase 1B — Notification Preferences Expanded ✅
-### Phase 1C — Provider Consolidation (Deferred)
+**Problem**: Identical price formatting logic in `JobTicketQuotes.tsx` (lines 20-33) and `QuoteComparisonCard.tsx` (lines 32-45).
+
+**Fix**: Create `src/pages/jobs/utils/formatQuotePrice.ts` with a single `formatQuotePrice(quote)` function. Import in both files, delete the inline versions.
 
 ---
 
-## Phase 2 — Conversion Nudges — COMPLETE
+## Issue 6 — Wire Decline Handler (Missing Feature)
 
-- `process-nudges` deployed + hourly pg_cron schedule
-- 5 nudge types: `draft_stale`, `quotes_pending`, `conversation_stale`, `pro_no_quote`, `review_reminder`
-- All nudge events respect `email_project_updates` preference
-- 50-item batch safety cap per run
-- `review_reminder` targets only the missing side
+**Problem**: `QuoteComparisonCard` renders a decline button when `onDecline` is passed, but `QuoteComparison.tsx` never passes it.
+
+**Fix**: Following the same secure pattern as `acceptQuote.action.ts`:
+
+1. **Create `declineQuote.action.ts`**: Updates the quote status to `rejected`. Since the `quotes` table RLS already allows clients to update quotes on their own jobs, this can use a direct update with status guard (`eq('status', 'submitted')`). The client can only reject quotes on jobs they own (RLS enforced).
+
+2. **Wire in `QuoteComparison.tsx`**: Add `handleDecline` function, pass as `onDecline` to each card. Show a confirmation dialog before declining. Track `EVENTS.QUOTE_DECLINED` event. Invalidate quote queries after success.
+
+3. **Add `QUOTE_DECLINED` to event taxonomy**.
+
+---
+
+## Summary
+
+| Issue | Type | Action | Files Changed |
+|-------|------|--------|---------------|
+| 1 | Blocker | `complete_job` RPC + update 2 components | Migration + `JobTicketCompletion.tsx` + `completeJob.action.ts` |
+| 3 | Bug | Fix message button navigation | `JobTicketQuotes.tsx` |
+| 4 | Cleanup | Extract `formatQuotePrice` | New util + `JobTicketQuotes.tsx` + `QuoteComparisonCard.tsx` |
+| 5 | N/A | Already has unique constraint | None |
+| 6 | Missing | `declineQuote` action + wire handler | New action + `QuoteComparison.tsx` + `eventTaxonomy.ts` |
+
