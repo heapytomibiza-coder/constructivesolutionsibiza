@@ -26,7 +26,7 @@ const PostJob = () => {
       />
       
       {/* Light Overlay */}
-      <div className="fixed inset-0 bg-background/85 backdrop-blur-[2px]" />
+      <div className="fixed inset-0 bg-background/85 backdrop-blur-[2px] pointer-events-none" />
       
       {/* Content */}
       <div className="relative z-10">
