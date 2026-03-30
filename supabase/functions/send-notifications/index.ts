@@ -830,10 +830,16 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth: internal only (queue processor)
+  // Auth: internal secret OR Bearer token (pg_cron compatibility)
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
   const providedSecret = req.headers.get("x-internal-secret");
-  if (!internalSecret || providedSecret !== internalSecret) {
+  const authHeader = req.headers.get("authorization") || "";
+  const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const isInternalAuth = internalSecret && providedSecret === internalSecret;
+  const isBearerAuth = bearerToken && (bearerToken === anonKey || bearerToken === serviceKey);
+  if (!isInternalAuth && !isBearerAuth) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
     });
