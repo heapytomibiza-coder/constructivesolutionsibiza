@@ -172,6 +172,7 @@ export default function QuoteComparison() {
               quote={activeQuotes[0]}
               onAccept={handleAccept}
               onMessage={handleMessage}
+              onDecline={handleDecline}
               isActing={acting}
             />
           </div>
@@ -185,6 +186,7 @@ export default function QuoteComparison() {
                   quote={quote}
                   onAccept={handleAccept}
                   onMessage={handleMessage}
+                  onDecline={handleDecline}
                   isActing={acting}
                 />
               ))}
@@ -217,6 +219,7 @@ export default function QuoteComparison() {
                 quote={activeQuotes[mobileIndex]}
                 onAccept={handleAccept}
                 onMessage={handleMessage}
+                onDecline={handleDecline}
                 isActing={acting}
               />
               {/* Dot indicators */}
