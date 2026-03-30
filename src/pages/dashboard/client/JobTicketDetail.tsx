@@ -36,6 +36,7 @@ import { JobTicketQuotes } from './components/JobTicketQuotes';
 import { JobTicketConversations } from './components/JobTicketConversations';
 import { JobTicketCompletion } from './components/JobTicketCompletion';
 import { JobTicketReview } from './components/JobTicketReview';
+import { JobActivityPanel } from './components/JobActivityPanel';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
@@ -170,6 +171,9 @@ export default function JobTicketDetail() {
       </nav>
 
       <div className="container max-w-3xl py-6 space-y-6">
+        {/* Job Activity Panel */}
+        <JobActivityPanel jobId={jobId!} jobStatus={job.status} />
+
         {/* Status + Timeline + Actions Header */}
         <div className="space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-3">

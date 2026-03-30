@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Search, AlertTriangle, CheckCircle, Archive, ExternalLink, Copy } from "lucide-react";
+import { Search, AlertTriangle, CheckCircle, Archive, ExternalLink, Copy, MessageSquare, DollarSign } from "lucide-react";
 import { useAdminDrawer } from "../context/AdminDrawerContext";
 import { formatWhatsAppPost, copyToClipboard } from "../lib/formatWhatsAppPost";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,7 +38,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { useAdminJobs, type AdminJobsFilter } from "../hooks/useAdminJobs";
+import { useAdminJobs, type AdminJobsFilter, type AdminJobRow } from "../hooks/useAdminJobs";
 import { forceCompleteJob } from "../actions/forceCompleteJob.action";
 import { archiveJob } from "../actions/archiveJob.action";
 import type { JobsBoardRow } from "@/pages/jobs/types";
@@ -154,6 +154,7 @@ export default function JobsSection() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Jobs</SelectItem>
+              <SelectItem value="needs_quote">💬 Needs Quote</SelectItem>
               <SelectItem value="flagged">⚠️ Flagged</SelectItem>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="in_progress">In Progress</SelectItem>
@@ -171,6 +172,7 @@ export default function JobsSection() {
                 <TableHead>Job</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Activity</TableHead>
                 <TableHead>Safety</TableHead>
                 <TableHead>Flags</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -180,14 +182,14 @@ export default function JobsSection() {
               {isLoading ? (
                 [...Array(5)].map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell colSpan={6}>
+                    <TableCell colSpan={7}>
                       <Skeleton className="h-8 w-full" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : !jobs?.length ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     No jobs found
                   </TableCell>
                 </TableRow>
@@ -214,6 +216,23 @@ export default function JobsSection() {
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(job.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="flex items-center gap-0.5 text-muted-foreground" title="Conversations">
+                          <MessageSquare className="h-3 w-3" />
+                          {(job as AdminJobRow).conversation_count ?? 0}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-muted-foreground" title="Quotes">
+                          <DollarSign className="h-3 w-3" />
+                          {(job as AdminJobRow).quote_count ?? 0}
+                        </span>
+                        {(job as AdminJobRow).needs_quote && (
+                          <Badge variant="warning" className="text-[10px] px-1.5 py-0">
+                            Needs Quote
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{getSafetyBadge(job.computed_safety)}</TableCell>
                     <TableCell>
                       {job.flags && job.flags.length > 0 ? (

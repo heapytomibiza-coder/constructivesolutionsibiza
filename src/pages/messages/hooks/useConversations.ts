@@ -16,6 +16,7 @@ export interface Conversation {
   unread_count: number;
   job_title?: string;
   job_category?: string;
+  job_status?: string;
   other_party_name?: string;
 }
 
@@ -52,7 +53,7 @@ async function fetchConversations(currentUserId: string): Promise<Conversation[]
   // Fetch job titles + category
   const { data: jobs, error: jobsError } = await supabase
     .from("jobs")
-    .select("id, title, category")
+    .select("id, title, category, status")
     .in("id", jobIds);
 
   if (jobsError) throw jobsError;
@@ -83,6 +84,7 @@ async function fetchConversations(currentUserId: string): Promise<Conversation[]
       unread_count: Number(c.unread_count) || 0,
       job_title: jobMap.get(c.job_id)?.title ?? undefined,
       job_category: jobMap.get(c.job_id)?.category ?? undefined,
+      job_status: jobMap.get(c.job_id)?.status ?? undefined,
       other_party_name: otherName,
     };
   });
