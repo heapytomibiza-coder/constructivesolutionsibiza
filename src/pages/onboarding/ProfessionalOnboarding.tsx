@@ -166,6 +166,8 @@ const ProfessionalOnboarding = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'service_area' });
     userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
+    // If user came from review (fixing zones), go back to review
+    if (navigatedFromStep === 'review') { navigatedFromStep = null; setCurrentStep('review'); return; }
     setCurrentStep('services');
   };
 
