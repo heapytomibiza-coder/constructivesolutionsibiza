@@ -42,31 +42,80 @@ const Contact = () => {
         }
       />
 
-      <div className="container py-12">
-        <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+      <div className="container px-4 py-8 sm:py-12">
+        <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+          {/* Contact Details — shown first on mobile for quick access */}
+          <div className="space-y-3 md:order-2">
+            <Card className="card-grounded">
+              <CardContent className="p-4 sm:pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 shrink-0 rounded-sm bg-primary/10 flex items-center justify-center text-primary">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-foreground text-sm">{t('contact.emailLabel')}</h3>
+                    <a href="mailto:constructivesolutionsibiza@gmail.com" className="text-sm text-muted-foreground hover:text-primary transition-colors break-all">
+                      constructivesolutionsibiza@gmail.com
+                    </a>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="card-grounded">
+              <CardContent className="p-4 sm:pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 shrink-0 rounded-sm bg-primary/10 flex items-center justify-center text-primary">
+                    <Phone className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-foreground text-sm">{t('contact.phoneLabel')}</h3>
+                    <a href="tel:+34602403536" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                      +34 602 403 536
+                    </a>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="card-grounded">
+              <CardContent className="p-4 sm:pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 shrink-0 rounded-sm bg-primary/10 flex items-center justify-center text-primary">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-foreground text-sm">{t('contact.locationLabel')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('contact.locationValue')}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Contact Form */}
-          <Card className="card-grounded">
-            <CardHeader>
-              <CardTitle className="font-display">{t('contact.formTitle')}</CardTitle>
-              <CardDescription>
+          <Card className="card-grounded md:order-1">
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display text-lg">{t('contact.formTitle')}</CardTitle>
+              <CardDescription className="text-sm">
                 {t('contact.formDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="name">{t('contact.labelName')}</Label>
                   <Input id="name" placeholder={t('contact.placeholderName')} required />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="email">{t('contact.labelEmail')}</Label>
                   <Input id="email" type="email" placeholder={t('contact.placeholderEmail')} required />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="subject">{t('contact.labelSubject')}</Label>
                   <Input id="subject" placeholder={t('contact.placeholderSubject')} required />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="message">{t('contact.labelMessage')}</Label>
                   <Textarea 
                     id="message" 
@@ -81,55 +130,6 @@ const Contact = () => {
               </form>
             </CardContent>
           </Card>
-
-          {/* Contact Details */}
-          <div className="space-y-6">
-            <Card className="card-grounded">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary">
-                    <Mail className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-foreground">{t('contact.emailLabel')}</h3>
-                    <a href="mailto:constructivesolutionsibiza@gmail.com" className="text-muted-foreground hover:text-primary transition-colors">
-                      constructivesolutionsibiza@gmail.com
-                    </a>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-grounded">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary">
-                    <Phone className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-foreground">{t('contact.phoneLabel')}</h3>
-                    <a href="tel:+34602403536" className="text-muted-foreground hover:text-primary transition-colors">
-                      +34 602 403 536
-                    </a>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-grounded">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary">
-                    <MapPin className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-foreground">{t('contact.locationLabel')}</h3>
-                    <p className="text-muted-foreground">{t('contact.locationValue')}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </PublicLayout>
