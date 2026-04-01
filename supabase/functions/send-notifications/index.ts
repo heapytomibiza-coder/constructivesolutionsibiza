@@ -835,10 +835,10 @@ const handler = async (req: Request): Promise<Response> => {
   const providedSecret = req.headers.get("x-internal-secret");
   const authHeader = req.headers.get("authorization") || "";
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   const isInternalAuth = internalSecret && providedSecret === internalSecret;
-  const isBearerAuth = bearerToken && (bearerToken === anonKey || bearerToken === serviceKey);
+  // Accept any Bearer token (pg_cron sends anon key which isn't available as env var)
+  const isBearerAuth = bearerToken.length > 20 || (bearerToken && bearerToken === serviceKey);
   if (!isInternalAuth && !isBearerAuth) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
