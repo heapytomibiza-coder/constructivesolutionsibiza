@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 type WizardStep = 'tracker' | 'basic_info' | 'service_area' | 'services' | 'review';
+/** Track which step the user came from for return-navigation */
+let navigatedFromStep: WizardStep | null = null;
 
 interface StepConfig {
   id: string;
@@ -164,6 +166,8 @@ const ProfessionalOnboarding = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'service_area' });
     userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
+    // If user came from review (fixing zones), go back to review
+    if (navigatedFromStep === 'review') { navigatedFromStep = null; setCurrentStep('review'); return; }
     setCurrentStep('services');
   };
 
@@ -171,6 +175,7 @@ const ProfessionalOnboarding = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'services' });
     userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
+    if (navigatedFromStep === 'review') { navigatedFromStep = null; setCurrentStep('review'); return; }
     setCurrentStep('review');
   };
 
@@ -312,6 +317,7 @@ const ProfessionalOnboarding = () => {
               }}
               onNavigate={(step) => {
                 userNavigatedRef.current = true;
+                navigatedFromStep = 'review';
                 setCurrentStep(step as WizardStep);
               }}
             />
