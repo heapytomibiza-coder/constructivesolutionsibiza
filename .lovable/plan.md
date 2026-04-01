@@ -1,31 +1,23 @@
 
 
-# Fix: Custom Request Form "Continue" Button Unresponsive on Mobile
+# Fix: send-notifications Edge Function Still Returning 401
 
-## Problem
-Real user ("Izz") filled in the custom request form completely but cannot tap Continue. The button appears enabled but does not respond.
+## Root Cause
 
-## Root Causes
+The auth fix applied previously checks `bearerToken === anonKey` where `anonKey = Deno.env.get("SUPABASE_ANON_KEY")`. **But `SUPABASE_ANON_KEY` is not a standard auto-injected env var in Supabase Edge Functions.** Only `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided automatically.
 
-### Cause 1: Fixed overlays stealing mobile touches
-`PostJob.tsx` lines 23-29 have two `fixed inset-0` elements (background image + blur overlay) without `pointer-events-none`. On iOS Safari with `backdrop-blur`, these can intercept touch events even though the content div has `z-10`. The user was able to fill in the form fields (which are higher up the page) but the Continue button sits near the bottom edge where touch interception is more aggressive.
+So `anonKey` resolves to `""`, and the comparison `bearerToken === ""` always fails → 401 on every cron invocation.
 
-### Cause 2: Silent validation failure
-`CustomRequestForm.tsx` line 74: `if (!canContinue || !selectedCategory) return;` — if the category lookup fails silently (e.g. race condition between `preselectedCategoryId` and the categories query), the button is enabled but clicking it does nothing. No toast, no error, no feedback.
+This means **no emails from the `email_notifications_queue` have been sent since this function was deployed** — there's a backlog of ~20+ unsent welcome emails, job confirmations, and message notifications.
+
+## Evidence
+
+- Every cron call returns HTTP 401 (confirmed via edge logs)
+- All items in `email_notifications_queue` have `sent_at: null`
+- Direct curl test with the correct anon key also returns 401
 
 ## Fix
 
-### File 1: `src/pages/jobs/PostJob.tsx`
-Add `pointer-events-none` to both fixed background divs:
-- Line 24: `className="fixed inset-0 ... pointer-events-none"`
-- Line 29: `className="fixed inset-0 ... pointer-events-none"`
+**File: `supabase/functions/send-notifications/index.ts`** (lines ~838-841)
 
-### File 2: `src/features/wizard/canonical/steps/CustomRequestForm.tsx`
-Add defensive feedback so the form never fails silently:
-- If `handleSubmit` is called but `selectedCategory` is falsy, show a toast: "Please select a category"
-- If `canContinue` is false but somehow the button was tapped, show which field is missing
-
-Two small changes, zero risk, fixes the live user's problem.
-
-## No database changes.
-
+Replace the env var lookup with the hardcoded anon key value (which is a publishable key, not a secret —
