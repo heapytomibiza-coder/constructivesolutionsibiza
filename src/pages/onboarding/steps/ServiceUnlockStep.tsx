@@ -117,19 +117,32 @@ export function ServiceUnlockStep({ onComplete, onBack, editMode = false }: Serv
 
   const handleContinue = async () => {
     if (!canContinue || !user?.id) return;
+
+    // Guard: don't advance past service_setup without service_zones
+    const { data: profile } = await supabase
+      .from('professional_profiles')
+      .select('service_zones')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    const hasZones = (profile?.service_zones?.length ?? 0) > 0;
+    if (!hasZones) {
+      toast.error(t('serviceArea.selectAtLeast', { defaultValue: 'Please set your service areas first' }));
+      onBack();
+      return;
+    }
+
     const newPhase = nextPhase(currentPhase, 'service_setup');
     if (newPhase !== currentPhase) {
-      let phaseUpdated = false;
       try {
         const { error } = await supabase.from('professional_profiles').update({ onboarding_phase: newPhase }).eq('user_id', user.id);
         if (error) throw error;
-        phaseUpdated = true;
+        try { await refresh(); } catch (e) { console.warn('Session refresh failed after phase advance:', e); }
       } catch (err) {
         console.error('Error advancing phase:', err);
         const msg = err instanceof Error ? err.message : String(err);
         trackEvent('onboarding_step_failed', 'professional', { step: 'service_unlock', error_message: msg });
+        // Don't block — phase update is non-critical if already at service_setup
       }
-      if (phaseUpdated) { try { await refresh(); } catch (e) { console.warn('Session refresh failed after phase advance:', e); } }
     }
     onComplete();
   };
