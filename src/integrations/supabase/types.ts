@@ -3407,6 +3407,7 @@ export type Database = {
         Args: { p_from_ts?: string; p_to_ts?: string }
         Returns: Json
       }
+      admin_onboarding_health: { Args: never; Returns: Json }
       admin_operator_alerts: { Args: never; Returns: Json }
       admin_recent_errors: { Args: { p_limit?: number }; Returns: Json }
       admin_recent_network_failures: {
