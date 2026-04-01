@@ -316,6 +316,7 @@ const ProfessionalOnboarding = () => {
               }}
               onNavigate={(step) => {
                 userNavigatedRef.current = true;
+                navigatedFromStep = 'review';
                 setCurrentStep(step as WizardStep);
               }}
             />
