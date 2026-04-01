@@ -21,7 +21,8 @@ export function useProfessionalServices() {
       const { data, error } = await supabase
         .from('professional_services')
         .select('micro_id')
-        .eq('user_id', user!.id);
+        .eq('user_id', user!.id)
+        .eq('status', 'offered');
 
       if (error) throw error;
       return new Set(data?.map(s => s.micro_id) || []);

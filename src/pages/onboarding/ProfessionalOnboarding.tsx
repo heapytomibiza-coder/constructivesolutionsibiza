@@ -13,8 +13,6 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 type WizardStep = 'tracker' | 'basic_info' | 'service_area' | 'services' | 'review';
-/** Track which step the user came from for return-navigation */
-let navigatedFromStep: WizardStep | null = null;
 
 interface StepConfig {
   id: string;
@@ -65,6 +63,9 @@ const ProfessionalOnboarding = () => {
   const userNavigatedRef = useRef(false);
   const lastPhaseRef = useRef<string | null>(null);
 
+  // Track which step the user came from for return-navigation (useRef, not module-level)
+  const navigatedFromStepRef = useRef<WizardStep | null>(null);
+
   // Current step index (0-based) for progress display
   const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
   const progress = currentStepIndex >= 0 ? ((currentStepIndex + 1) / STEPS.length) * 100 : 25;
@@ -99,12 +100,27 @@ const ProfessionalOnboarding = () => {
     return () => { cancelled = true; };
   }, [user?.id, isLoading, currentStep]);
 
-  // Set correct step once profile has loaded, but do not override explicit manual navigation
+  // Auth guard — redirect unauthenticated users to login
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/login', { replace: true });
+    }
+  }, [isLoading, user, navigate]);
+
+  // Set correct step once profile has loaded, but do not override explicit manual navigation.
+  // Also handles forward-only phase advancement in a single consolidated effect.
   useEffect(() => {
     if (isLoading || editMode) return;
     if (userNavigatedRef.current) return;
-    setCurrentStep(phaseToStep[phase] ?? 'basic_info');
-  }, [isLoading, editMode, phase]);
+    const nextStep = phaseToStep[phase] ?? 'basic_info';
+    const stepOrder: WizardStep[] = ['basic_info', 'service_area', 'services', 'review'];
+    const currentIdx = stepOrder.indexOf(currentStep);
+    const nextIdx = stepOrder.indexOf(nextStep);
+    // Only advance forward — never regress
+    if (nextIdx > currentIdx || currentIdx === -1) {
+      setCurrentStep(nextStep);
+    }
+  }, [isLoading, editMode, phase, currentStep]);
 
   // Only redirect completed users when NOT in edit mode
   useEffect(() => {
@@ -132,19 +148,6 @@ const ProfessionalOnboarding = () => {
     }
   }, [editMode, currentStep]);
 
-  // Phase auto-advance, but never override explicit user navigation
-  useEffect(() => {
-    if (editMode) return;
-    if (userNavigatedRef.current) return;
-    const stepOrder: WizardStep[] = ['basic_info', 'service_area', 'services', 'review'];
-    const nextStep = phaseToStep[phase] ?? 'basic_info';
-    const currentIdx = stepOrder.indexOf(currentStep);
-    const nextIdx = stepOrder.indexOf(nextStep);
-    if (nextIdx > currentIdx) {
-      setCurrentStep(nextStep);
-    }
-  }, [phase, editMode, currentStep]);
-
   // Reset manual navigation lock only when phase actually changes server-side
   useEffect(() => {
     if (!phase) return;
@@ -167,7 +170,7 @@ const ProfessionalOnboarding = () => {
     userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
     // If user came from review (fixing zones), go back to review
-    if (navigatedFromStep === 'review') { navigatedFromStep = null; setCurrentStep('review'); return; }
+    if (navigatedFromStepRef.current === 'review') { navigatedFromStepRef.current = null; setCurrentStep('review'); return; }
     setCurrentStep('services');
   };
 
@@ -175,7 +178,7 @@ const ProfessionalOnboarding = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'services' });
     userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
-    if (navigatedFromStep === 'review') { navigatedFromStep = null; setCurrentStep('review'); return; }
+    if (navigatedFromStepRef.current === 'review') { navigatedFromStepRef.current = null; setCurrentStep('review'); return; }
     setCurrentStep('review');
   };
 
@@ -187,6 +190,9 @@ const ProfessionalOnboarding = () => {
       </div>
     );
   }
+
+  // Auth guard — don't render if no user (redirect effect above will fire)
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -317,7 +323,7 @@ const ProfessionalOnboarding = () => {
               }}
               onNavigate={(step) => {
                 userNavigatedRef.current = true;
-                navigatedFromStep = 'review';
+                navigatedFromStepRef.current = 'review';
                 setCurrentStep(step as WizardStep);
               }}
             />
