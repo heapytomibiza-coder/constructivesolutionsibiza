@@ -100,6 +100,7 @@
     "phoneLabel": "Phone Number",
     "phonePlaceholder": "+34 600 000 000",
     "phoneHint": "We'll send you WhatsApp notifications about new jobs — you'll never miss a lead",
+    "phoneRequired": "Phone number is needed to go live — we use it to reach you when jobs come in",
     "businessNameLabel": "Business Name",
     "businessNameOptional": "(optional — skip if you trade under your own name)",
     "businessNamePlaceholder": "e.g. García Electricidad S.L.",

@@ -100,6 +100,7 @@
     "phoneLabel": "Número de Teléfono",
     "phonePlaceholder": "+34 600 000 000",
     "phoneHint": "Te enviaremos notificaciones de WhatsApp sobre nuevos trabajos — nunca perderás una oportunidad",
+    "phoneRequired": "El número de teléfono es necesario para activarte — lo usamos para contactarte cuando lleguen trabajos",
     "businessNameLabel": "Nombre del Negocio",
     "businessNameOptional": "(opcional — déjalo en blanco si trabajas con tu propio nombre)",
     "businessNamePlaceholder": "ej. García Electricidad S.L.",
