@@ -738,7 +738,37 @@ const DISPUTE_EVENTS = [
   "admin_dispute_deadline_passed", "dispute_auto_advanced",
 ];
 
+function buildOnboardingNudgeEmail(payload: any, siteUrl: string): EmailResult {
+  const name = payload.display_name || payload.business_name || "there";
+  const phase = payload.onboarding_phase || "not_started";
+  const isAlmostDone = phase === "service_setup";
+
+  const phaseMessage = isAlmostDone
+    ? "You're almost there — just finish setting up your service areas and you'll be live."
+    : "Complete your profile to start receiving job matches from clients in Ibiza.";
+
+  return {
+    subject: "Complete your profile — new opportunities are waiting",
+    html: emailShell(
+      "linear-gradient(135deg, #059669, #10b981)",
+      "New Opportunities Are Waiting",
+      `<h2 style="margin: 0 0 8px; color: #111827; font-size: 18px;">Hi ${escapeHtml(name)} 👋</h2>
+      <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">Clients are posting jobs in your area right now, and we'd love to connect you with them.</p>
+      <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">${phaseMessage}</p>
+      ${isAlmostDone ? `<p style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px 16px; color: #166534; font-size: 14px; margin: 0 0 20px;">🎯 <strong>You're 90% done</strong> — just a few more minutes to complete your setup.</p>` : ""}
+      <a href="${siteUrl}/onboarding/professional" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">Complete Your Profile →</a>
+      <p style="color: #9ca3af; font-size: 12px; margin: 16px 0 0; text-align: center;">Need help? Reply to this email anytime.</p>`,
+      `© ${new Date().getFullYear()} ${BRAND_NAME} — <a href="${siteUrl}/dashboard/settings" style="color: #9ca3af;">Manage preferences</a>`
+    ),
+  };
+}
+
 function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResult | null {
+  // Onboarding nudge — dedicated template (not generic nudge)
+  if (eventType === "nudge_onboarding_incomplete") {
+    return buildOnboardingNudgeEmail(payload, siteUrl);
+  }
+
   // Nudge events — payload-driven template
   if (NUDGE_EVENTS.includes(eventType)) {
     return buildNudgeEmail(eventType, payload, siteUrl);
