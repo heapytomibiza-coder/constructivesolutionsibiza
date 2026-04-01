@@ -173,6 +173,9 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
               onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
             />
             <p className="text-sm text-muted-foreground">{t('basicInfo.phoneHint')}</p>
+            {!formData.phone.trim() && (
+              <p className="text-sm text-accent font-medium">{t('basicInfo.phoneRequired')}</p>
+            )}
           </div>
 
           <div className="space-y-2 animate-fade-in">
