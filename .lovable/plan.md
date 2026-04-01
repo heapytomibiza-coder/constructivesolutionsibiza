@@ -1,41 +1,29 @@
 
 
-# Onboarding Health Monitor — Admin Tile + RPC
+# Onboarding QA Checklist — Repeatable Test Plan
 
 ## What
 
-Add an "Onboarding Health" section to the Operator Cockpit that shows real-time counts for the key recovery metrics you outlined, so you can monitor without running manual queries.
+Create a structured, repeatable QA checklist document (`docs/qa/ONBOARDING_QA_CHECKLIST.md`) that the team can run before any onboarding-related deploy. Covers the 10 test scenarios outlined, prioritized by impact.
 
-## Layout
+## Why
 
-A new section between "Needs Attention" and "Latest Jobs" with 5 stat tiles in a grid:
-
-```text
-┌──────────────┬──────────────┬──────────────┬──────────────┬──────────────┐
-│ Stuck by     │ No Zones     │ No Phone     │ 0 Offered    │ Completed    │
-│ Phase        │              │              │ Services     │ Last 24h     │
-│              │              │              │              │              │
-│   20         │   12         │   8          │   15         │   3          │
-│ not_started: │ service_setup│ can't go     │ can't go     │ ✓ recent     │
-│ 14, basic: 2 │ + null zones │ live         │ live         │ completions  │
-│ svc_setup: 4 │              │              │              │              │
-└──────────────┴──────────────┴──────────────┴──────────────┴──────────────┘
-```
+The onboarding flow has been stabilized through multiple rounds of fixes. A documented checklist prevents regression and gives any team member (dev or non-dev) a clear protocol to follow.
 
 ## Changes
 
-### 1. New RPC: `admin_onboarding_health`
+### 1. Create `docs/qa/ONBOARDING_QA_CHECKLIST.md`
 
-A `SECURITY DEFINER` function (admin-only via `has_role` check) that returns a single row:
+A single markdown file with:
 
-```sql
-- stuck_not_started: count where onboarding_phase = 'not_started'
-- stuck_basic_info: count where onboarding_phase = 'basic_info'  
-- stuck_service_setup: count where onboarding_phase = 'service_setup'
-- no_zones: count where onboarding_phase = 'service_setup' AND service_zones IS NULL
-- no_phone: count of pros not at 'complete' who have no phone in profiles
-- zero_offered_services: count of pros not at 'complete' with 0 offered services
-- completed_24h: count where onboarding_phase = 'complete' AND updated_at > now() - interval '24 hours'
-```
+- **Prerequisites** — how to set up a test (new account, existing account, admin access)
+- **10 numbered test scenarios** grouped by priority (🔴 Critical / 🟠 Important / 🟡 Valuable / 🟢 Nice-to-have)
+- Each scenario includes: **What to do**, **What to check**, **Pass criteria**
+- **Quick-run version** — the "If you only do 3" subset for fast pre-deploy checks
+- **Admin metrics validation** section tied to the new Onboarding Health dashboard
 
-Single query joining
+### Test scenarios included
+
+| # | Test | Priority |
+|---|------|----------|
+| 1
