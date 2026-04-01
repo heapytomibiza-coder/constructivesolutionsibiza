@@ -65,6 +65,7 @@ const SEVERITY_STYLES: Record<string, string> = {
 export function OperatorCockpit() {
   const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = useAdminStats();
+  const { data: health, isLoading: healthLoading } = useOnboardingHealth();
   const { data: alerts, isLoading: alertsLoading } = useAdminAlerts();
 
   const handleNewJob = useCallback((job: LatestJob) => {
