@@ -695,7 +695,7 @@ function buildAutoAdvancedEmail(payload: any, siteUrl: string) {
 
 const NUDGE_EVENTS = [
   "nudge_draft_stale", "nudge_quotes_pending", "nudge_conversation_stale",
-  "nudge_pro_no_quote", "nudge_review_reminder",
+  "nudge_pro_no_quote", "nudge_review_reminder", "nudge_onboarding_incomplete",
 ];
 
 function buildNudgeEmail(eventType: string, payload: any, siteUrl: string): EmailResult | null {
