@@ -26,6 +26,8 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { StatTile } from "@/shared/components/StatTile";
 import { useNavigate } from "react-router-dom";
+import { useOnboardingHealth } from "../hooks/useOnboardingHealth";
+import { MapPin, Phone, ShieldCheck } from "lucide-react";
 
 function playNotifySound() {
   try {
