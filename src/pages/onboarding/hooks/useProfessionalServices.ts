@@ -160,7 +160,8 @@ async function updateServicesCount(userId: string) {
   const { count, error: countError } = await supabase
     .from('professional_services')
     .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .eq('status', 'offered');
 
   if (countError) throw countError;
 
