@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 type WizardStep = 'tracker' | 'basic_info' | 'service_area' | 'services' | 'review';
+/** Track which step the user came from for return-navigation */
+let navigatedFromStep: WizardStep | null = null;
 
 interface StepConfig {
   id: string;
