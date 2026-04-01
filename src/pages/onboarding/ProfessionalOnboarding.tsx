@@ -175,6 +175,7 @@ const ProfessionalOnboarding = () => {
     trackEvent('pro_onboarding_step_completed', 'professional', { step: 'services' });
     userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
+    if (navigatedFromStep === 'review') { navigatedFromStep = null; setCurrentStep('review'); return; }
     setCurrentStep('review');
   };
 
