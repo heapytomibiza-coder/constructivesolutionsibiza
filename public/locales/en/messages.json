@@ -26,6 +26,7 @@
     "jobCompleted": "Job completed",
     "jobCompletedSystem": "The job has been marked as complete.",
     "completeFailed": "Failed to complete job",
+    "waitingForQuote": "Waiting for a quote from the professional",
     "leaveReview": "Leave a review",
     "confirmCompleteTitle": "Mark this job as complete?",
     "confirmCompleteDesc": "This confirms the work is finished. Both parties will be prompted to leave a review.",
