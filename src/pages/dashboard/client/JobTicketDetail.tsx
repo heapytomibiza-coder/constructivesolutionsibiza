@@ -434,7 +434,7 @@ export default function JobTicketDetail() {
               />
             </div>
 
-            {/* 5. Quotes section */}
+            {/* 5. Quotes section — secondary reference tier */}
             <div ref={quotesRef} className="space-y-3">
               {!isClient && <ProQuoteSummary jobId={job.id} jobStatus={job.status} />}
               {isClient && <JobTicketQuotes jobId={job.id} jobStatus={job.status} />}
