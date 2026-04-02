@@ -73,26 +73,6 @@ export function ConversationThread({
 
   const canQuote = userRole === 'professional' && jobStatus === 'open' && !hasQuote && !!jobId;
 
-  const handleCompleteJob = useCallback(async () => {
-    if (!jobId) return;
-    const result = await completeJob(jobId);
-    if (result.success) {
-      toast.success(t('lifecycle.jobCompleted', 'Job completed'));
-      // Insert system message
-      await supabase.from('messages').insert({
-        conversation_id: conversationId,
-        sender_id: currentUserId,
-        body: t('lifecycle.jobCompletedSystem', 'The job has been marked as complete.'),
-        message_type: 'system',
-        metadata: { event: 'job_completed' },
-      });
-      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
-      queryClient.invalidateQueries({ queryKey: ['job_timeline', jobId] });
-      queryClient.invalidateQueries({ queryKey: ['job_status_history', jobId] });
-    } else {
-      toast.error(result.error ?? t('lifecycle.completeFailed', 'Failed to complete job'));
-    }
-  }, [jobId, conversationId, currentUserId, t, queryClient]);
 
   const handleQuoteAccepted = useCallback(async (quoteId: string) => {
     await supabase.from('messages').insert({
