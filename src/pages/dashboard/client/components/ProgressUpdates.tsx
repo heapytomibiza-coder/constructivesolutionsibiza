@@ -1,6 +1,6 @@
 /**
  * ProgressUpdates — Feed of progress updates with photo support.
- * Latest update is shown as a prominent card. Older updates in compact timeline.
+ * Latest update is shown as a dominant hero-tier card. Older updates in compact timeline.
  * Includes mobile FAB for professionals during in_progress.
  */
 
@@ -35,6 +35,7 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
+  // Fetch updates with author names
   const { data: updates = [], isLoading } = useQuery({
     queryKey: ['job_progress_updates', jobId],
     queryFn: async () => {
@@ -48,6 +49,32 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
     },
     enabled: !!jobId && !!user,
   });
+
+  // Fetch author display names
+  const authorIds = [...new Set(updates.map(u => u.author_id))];
+  const { data: authorProfiles = [] } = useQuery({
+    queryKey: ['update_authors', authorIds.join(',')],
+    queryFn: async () => {
+      if (!authorIds.length) return [];
+      // Try professional_profiles first, then profiles
+      const { data: proData } = await supabase
+        .from('professional_profiles')
+        .select('user_id, display_name')
+        .in('user_id', authorIds);
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('user_id, display_name')
+        .in('user_id', authorIds);
+      // Merge: prefer professional display_name, fallback to profile
+      const map = new Map<string, string>();
+      profileData?.forEach(p => { if (p.display_name) map.set(p.user_id, p.display_name); });
+      proData?.forEach(p => { if (p.display_name) map.set(p.user_id, p.display_name); });
+      return Array.from(map.entries()).map(([user_id, display_name]) => ({ user_id, display_name }));
+    },
+    enabled: authorIds.length > 0,
+  });
+
+  const authorNameMap = new Map(authorProfiles.map(p => [p.user_id, p.display_name]));
 
   const isAssignedPro = !isClient && user?.id === assignedProId;
   const canPost = jobStatus === 'in_progress' && (isClient || isAssignedPro);
@@ -143,19 +170,37 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : updates.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">
-            {t('progressUpdates.noUpdates', 'No progress updates yet.')}
-          </p>
+          <div className="rounded-3xl border border-dashed border-border/60 bg-muted/10 py-10 px-6 text-center">
+            <Camera className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-sm font-medium text-muted-foreground">
+              {t('progressUpdates.noUpdatesEncouraging', 'No updates yet')}
+            </p>
+            <p className="text-xs text-muted-foreground/60 mt-1">
+              {canPost
+                ? t('progressUpdates.postFirst', 'Post the first update to keep everyone in the loop.')
+                : t('progressUpdates.waitingForUpdates', 'Updates will appear here as work progresses.')}
+            </p>
+          </div>
         ) : (
           <div className="space-y-4">
-            {/* Latest Update — prominent card */}
-            {latestUpdate && <LatestUpdateCard update={latestUpdate} t={t} />}
+            {/* Latest Update — dominant hero-tier centrepiece */}
+            {latestUpdate && (
+              <LatestUpdateCard
+                update={latestUpdate}
+                authorName={authorNameMap.get(latestUpdate.author_id) || null}
+                t={t}
+              />
+            )}
 
             {/* Older updates — compact timeline */}
             {visibleOlder.length > 0 && (
               <div className="space-y-2.5">
                 {visibleOlder.map((update) => (
-                  <CompactUpdateRow key={update.id} update={update} />
+                  <CompactUpdateRow
+                    key={update.id}
+                    update={update}
+                    authorName={authorNameMap.get(update.author_id) || null}
+                  />
                 ))}
               </div>
             )}
@@ -193,37 +238,58 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
   );
 }
 
-/* ─── Latest Update Card ─── */
+/* ─── Latest Update Card — Hero-tier visual anchor ─── */
 
-function LatestUpdateCard({ update, t }: { update: any; t: any }) {
+function LatestUpdateCard({ update, authorName, t }: { update: any; authorName: string | null; t: any }) {
   return (
-    <div className="rounded-[22px] border border-border/70 bg-card p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-lg font-semibold font-display text-foreground">
-          {t('progressUpdates.latestTitle', 'Latest update')}
-        </p>
-        <p className="text-[12px] text-muted-foreground">
-          {formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}
-        </p>
-      </div>
+    <div className="rounded-3xl border border-border/70 bg-card overflow-hidden shadow-sm">
+      {/* Photo-first: edge-to-edge at top */}
       {update.photo_url && (
         <img
           src={update.photo_url}
           alt={update.note || 'Progress photo'}
-          className="rounded-2xl w-full max-h-96 object-cover mb-3"
+          className="w-full max-h-[400px] object-cover"
           loading="lazy"
         />
       )}
-      {update.note && (
-        <p className="text-[15px] text-foreground leading-relaxed">{update.note}</p>
-      )}
+
+      {/* Content area */}
+      <div className="p-6 space-y-3">
+        {/* Header: "Latest update" + human meta */}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-base font-semibold font-display text-foreground">
+              {t('progressUpdates.latestTitle', 'Latest update')}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              {authorName && (
+                <span className="text-[13px] text-muted-foreground font-medium">{authorName}</span>
+              )}
+              {authorName && (
+                <span className="text-muted-foreground/40">·</span>
+              )}
+              <span className="text-[12px] text-muted-foreground">
+                {formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Note — larger text for the latest */}
+        {update.note && (
+          <p className="text-base text-foreground leading-relaxed">{update.note}</p>
+        )}
+      </div>
+
+      {/* Subtle left accent */}
+      <div className="h-1 bg-gradient-to-r from-primary/40 via-primary/20 to-transparent" />
     </div>
   );
 }
 
 /* ─── Compact Update Row ─── */
 
-function CompactUpdateRow({ update }: { update: any }) {
+function CompactUpdateRow({ update, authorName }: { update: any; authorName: string | null }) {
   return (
     <div className="rounded-2xl border border-border/50 bg-card p-3.5 flex gap-3">
       {update.photo_url && (
@@ -238,9 +304,17 @@ function CompactUpdateRow({ update }: { update: any }) {
         {update.note && (
           <p className="text-sm text-foreground line-clamp-2">{update.note}</p>
         )}
-        <p className="text-[11px] text-muted-foreground mt-1">
-          {formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}
-        </p>
+        <div className="flex items-center gap-1.5 mt-1">
+          {authorName && (
+            <>
+              <span className="text-[11px] text-muted-foreground font-medium">{authorName}</span>
+              <span className="text-muted-foreground/40">·</span>
+            </>
+          )}
+          <span className="text-[11px] text-muted-foreground">
+            {formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}
+          </span>
+        </div>
       </div>
     </div>
   );

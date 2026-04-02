@@ -469,12 +469,12 @@ export default function JobTicketDetail() {
             )}
 
             {/* 8. Job Summary (collapsible once past open) */}
-            <div className="rounded-[18px] border border-border/70 bg-card overflow-hidden shadow-sm">
+            <div className="rounded-[18px] border border-border/40 bg-muted/20 overflow-hidden">
               {isPastOpen ? (
                 <>
                   <button
                     onClick={() => setSummaryExpanded(!summaryExpanded)}
-                    className="w-full flex items-center justify-between px-5 py-3.5 bg-muted/30 border-b border-border text-left"
+                    className="w-full flex items-center justify-between px-5 py-3.5 bg-muted/20 border-b border-border/40 text-left"
                   >
                     <span className="text-sm font-medium text-muted-foreground">
                       {t('jobTicket.jobDetails', 'Job Details')}
