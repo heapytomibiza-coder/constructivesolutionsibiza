@@ -240,18 +240,24 @@ export function JobProgressRail({
 
 /* ─── Step node (desktop) ─── */
 
-function StepNode({ state }: { state: 'done' | 'current' | 'upcoming' }) {
+function StepNode({ state, isFinal }: { state: 'done' | 'current' | 'upcoming'; isFinal?: boolean }) {
   if (state === 'done') {
     return (
-      <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center shrink-0">
-        <Check className="h-3.5 w-3.5 text-primary-foreground" />
+      <div className={cn(
+        'h-7 w-7 rounded-full flex items-center justify-center shrink-0',
+        isFinal ? 'bg-success/15 border-2 border-success/40' : 'bg-primary',
+      )}>
+        <Check className={cn('h-3.5 w-3.5', isFinal ? 'text-success' : 'text-primary-foreground')} />
       </div>
     );
   }
   if (state === 'current') {
     return (
-      <div className="h-8 w-8 rounded-full bg-primary/15 border-2 border-primary flex items-center justify-center shrink-0">
-        <div className="h-3 w-3 rounded-full bg-primary" />
+      <div className={cn(
+        'h-8 w-8 rounded-full border-2 flex items-center justify-center shrink-0',
+        isFinal ? 'bg-success/10 border-success' : 'bg-primary/15 border-primary',
+      )}>
+        <div className={cn('h-3 w-3 rounded-full', isFinal ? 'bg-success' : 'bg-primary')} />
       </div>
     );
   }
