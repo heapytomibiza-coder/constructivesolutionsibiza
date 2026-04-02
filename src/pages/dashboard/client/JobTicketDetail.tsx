@@ -419,7 +419,7 @@ export default function JobTicketDetail() {
               cancellationReason={job.cancellation_reason}
             />
 
-            {/* 3. Progress Updates (in_progress / completed) */}
+            {/* 3. Progress Updates + inline completion prompt */}
             {['in_progress', 'completed'].includes(job.status) && (
               <div ref={updatesRef}>
                 <ProgressUpdates
@@ -428,18 +428,29 @@ export default function JobTicketDetail() {
                   isClient={isClient}
                   assignedProId={job.assigned_professional_id}
                 />
+                {/* Pro completion prompt — subtle, under updates */}
+                {!isClient && job.status === 'in_progress' && (
+                  <JobTicketCompletion
+                    jobId={job.id}
+                    jobStatus={job.status}
+                    isClient={isClient}
+                    completionRequested={completionRequested}
+                  />
+                )}
               </div>
             )}
 
-            {/* 4. Completion CTA (both roles during in_progress) */}
-            <div id="completion-section">
-              <JobTicketCompletion
-                jobId={job.id}
-                jobStatus={job.status}
-                isClient={isClient}
-                completionRequested={completionRequested}
-              />
-            </div>
+            {/* 4. Client completion CTA (separate card) */}
+            {isClient && job.status === 'in_progress' && (
+              <div id="completion-section">
+                <JobTicketCompletion
+                  jobId={job.id}
+                  jobStatus={job.status}
+                  isClient={isClient}
+                  completionRequested={completionRequested}
+                />
+              </div>
+            )}
 
             {/* 4. Project Gallery (in_progress / completed) */}
             <ProjectGallery jobId={job.id} jobStatus={job.status} />
