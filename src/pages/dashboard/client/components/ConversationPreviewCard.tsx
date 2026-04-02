@@ -53,7 +53,7 @@ export function ConversationPreviewCard({ jobId, viewerRole }: ConversationPrevi
   return (
     <Link
       to={`/messages/${conversation.id}`}
-      className="block rounded-[20px] border border-border/70 bg-card p-4 sm:p-[18px] shadow-sm hover:border-primary/30 transition-colors"
+      className="block rounded-[20px] border border-border/40 bg-muted/20 p-4 sm:p-[18px] hover:border-primary/30 transition-colors"
     >
       <div className="flex items-start gap-3">
         <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">

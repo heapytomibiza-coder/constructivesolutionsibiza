@@ -1,7 +1,8 @@
 /**
  * JobTicketCompletion — Completion flow with request/confirm pattern.
- * Professional: "Request Completion" → sets completion_requested_at
- * Client: "Confirm Completion" → calls complete_job RPC
+ * Professional: subtle inline prompt under progress updates.
+ * Client: "Confirm Completion" card when completion is requested,
+ *         or "Mark as Complete" option otherwise.
  * Shown when job status is 'in_progress'.
  */
 
@@ -37,31 +38,6 @@ export function JobTicketCompletion({ jobId, jobStatus, isClient, completionRequ
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (jobStatus !== 'in_progress') return null;
-
-  // Client: always show (confirm if requested, or mark complete directly)
-  // Professional: show "Request Completion" button if not yet requested
-  if (!isClient && completionRequested) {
-    // Pro already requested — show waiting state
-    return (
-      <Card className="border-amber-500/30 bg-amber-500/5">
-        <CardContent className="p-5">
-          <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-              <Clock className="h-5 w-5 text-amber-600" />
-            </div>
-            <div className="flex-1 space-y-1">
-              <p className="text-sm font-medium">
-                {t('jobTicket.completionRequestSent', 'Completion requested')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t('jobTicket.completionRequestSentDesc', 'Waiting for the client to review and confirm the work is complete.')}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   const handleRequestCompletion = async () => {
     if (!confirm(t('jobTicket.requestCompleteConfirm', 'Request the client to confirm this job is complete?'))) return;
@@ -105,47 +81,56 @@ export function JobTicketCompletion({ jobId, jobStatus, isClient, completionRequ
     }
   };
 
+  /* ─── Professional: subtle inline prompt ─── */
   if (!isClient) {
-    // Professional: show request button
-    return (
-      <Card className="border-primary/30 bg-primary/5">
-        <CardContent className="p-5">
-          <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1 space-y-2">
-              <p className="text-sm font-medium">
-                {t('jobTicket.workFinished', 'Work finished?')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t('jobTicket.requestCompleteDesc', 'Let the client know the work is done so they can confirm and close the job.')}
-              </p>
-              <Button
-                size="sm"
-                className="gap-1.5 mt-1"
-                onClick={handleRequestCompletion}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                )}
-                {t('jobTicket.requestComplete', 'Request Completion')}
-              </Button>
-            </div>
+    if (completionRequested) {
+      return (
+        <div className="mt-4 px-4 py-3 rounded-xl border border-border/40 bg-muted/30">
+          <div className="flex items-center gap-3">
+            <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+            <p className="text-sm text-muted-foreground">
+              {t('jobTicket.completionRequestSent', 'Completion requested — waiting for client confirmation.')}
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-4 px-4 py-3 rounded-xl border border-border/40 bg-muted/30">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              {t('jobTicket.finishedWork', 'Finished the work?')}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t('jobTicket.letClientKnow', 'Let the client know it\'s ready for review.')}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 shrink-0"
+            onClick={handleRequestCompletion}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-3.5 w-3.5" />
+            )}
+            {t('jobTicket.requestComplete', 'Request completion')}
+          </Button>
+        </div>
+      </div>
     );
   }
 
-  // Client view
+  /* ─── Client view ─── */
   const isConfirmation = completionRequested;
 
   return (
-    <Card className={isConfirmation ? 'border-amber-500/30 bg-amber-500/5' : 'border-primary/30 bg-primary/5'}>
+    <Card className={isConfirmation ? 'border-amber-500/30 bg-amber-500/5' : 'border-border/40 bg-muted/20'}>
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
           <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${isConfirmation ? 'bg-amber-500/10' : 'bg-primary/10'}`}>

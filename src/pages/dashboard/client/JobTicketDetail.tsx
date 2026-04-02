@@ -239,6 +239,11 @@ export default function JobTicketDetail() {
 
   const scrollToUpdates = useCallback(() => {
     updatesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Focus the update textarea after scroll
+    setTimeout(() => {
+      const textarea = updatesRef.current?.querySelector('textarea');
+      textarea?.focus();
+    }, 500);
   }, []);
 
   const scrollToReview = useCallback(() => {
@@ -419,7 +424,7 @@ export default function JobTicketDetail() {
               cancellationReason={job.cancellation_reason}
             />
 
-            {/* 3. Progress Updates (in_progress / completed) */}
+            {/* 3. Progress Updates + inline completion prompt */}
             {['in_progress', 'completed'].includes(job.status) && (
               <div ref={updatesRef}>
                 <ProgressUpdates
@@ -428,18 +433,29 @@ export default function JobTicketDetail() {
                   isClient={isClient}
                   assignedProId={job.assigned_professional_id}
                 />
+                {/* Pro completion prompt — subtle, under updates */}
+                {!isClient && job.status === 'in_progress' && (
+                  <JobTicketCompletion
+                    jobId={job.id}
+                    jobStatus={job.status}
+                    isClient={isClient}
+                    completionRequested={completionRequested}
+                  />
+                )}
               </div>
             )}
 
-            {/* 4. Completion CTA (both roles during in_progress) */}
-            <div id="completion-section">
-              <JobTicketCompletion
-                jobId={job.id}
-                jobStatus={job.status}
-                isClient={isClient}
-                completionRequested={completionRequested}
-              />
-            </div>
+            {/* 4. Client completion CTA (separate card) */}
+            {isClient && job.status === 'in_progress' && (
+              <div id="completion-section">
+                <JobTicketCompletion
+                  jobId={job.id}
+                  jobStatus={job.status}
+                  isClient={isClient}
+                  completionRequested={completionRequested}
+                />
+              </div>
+            )}
 
             {/* 4. Project Gallery (in_progress / completed) */}
             <ProjectGallery jobId={job.id} jobStatus={job.status} />
@@ -484,7 +500,7 @@ export default function JobTicketDetail() {
 
             {/* 7. Client profile card (pro view) */}
             {!isClient && clientProfile?.display_name && (
-              <div className="rounded-[18px] border border-border/70 bg-card p-4 shadow-sm">
+              <div className="rounded-[18px] border border-border/40 bg-muted/20 p-4">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <User className="h-4 w-4 text-primary" />
