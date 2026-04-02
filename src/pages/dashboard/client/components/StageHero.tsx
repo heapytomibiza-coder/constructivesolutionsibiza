@@ -14,6 +14,9 @@ import {
   Eye,
   UserCheck,
   MessageSquare,
+  XCircle,
+  AlertTriangle,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
