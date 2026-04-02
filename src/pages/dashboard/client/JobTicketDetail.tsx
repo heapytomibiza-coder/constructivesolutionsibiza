@@ -38,7 +38,7 @@ import { StageHero } from './components/StageHero';
 import { ProgressUpdates } from './components/ProgressUpdates';
 import { ConversationPreviewCard } from './components/ConversationPreviewCard';
 import { JobTicketQuotes } from './components/JobTicketQuotes';
-import { JobTicketConversations } from './components/JobTicketConversations';
+
 import { JobTicketCompletion } from './components/JobTicketCompletion';
 import { JobTicketReview } from './components/JobTicketReview';
 import { ProQuoteSummary } from './components/ProQuoteSummary';
@@ -514,8 +514,6 @@ export default function JobTicketDetail() {
               </div>
             )}
 
-            {/* Full conversations (fallback — kept for thread access) */}
-            <JobTicketConversations jobId={job.id} viewerRole={isClient ? 'client' : 'professional'} />
           </div>
         </div>
       </div>
