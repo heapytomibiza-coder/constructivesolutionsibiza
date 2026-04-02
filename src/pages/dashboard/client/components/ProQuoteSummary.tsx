@@ -1,6 +1,7 @@
 /**
  * ProQuoteSummary — Shows the professional's own quote for this job.
  * Includes "Add Additional Costs" for accepted quotes on in_progress jobs.
+ * Post-acceptance additions are visually distinct and trackable.
  */
 
 import { useState } from 'react';
@@ -16,6 +17,7 @@ import { DollarSign, CheckCircle2, Clock, XCircle, Plus, Loader2, Send } from 'l
 import { useMyQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { formatDistanceToNow } from 'date-fns';
 
 interface ProQuoteSummaryProps {
   jobId: string;
@@ -57,6 +59,10 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
 
   const canAddCosts = quote.status === 'accepted' && jobStatus === 'in_progress';
 
+  const lineItems = quote.line_items ?? [];
+  const originalItems = lineItems.filter((item: Record<string, unknown>) => !item.is_addition);
+  const addedItems = lineItems.filter((item: Record<string, unknown>) => item.is_addition);
+
   const handleAddCost = async () => {
     const amount = parseFloat(costAmount);
     if (!costDescription.trim() || isNaN(amount) || amount <= 0) {
@@ -66,8 +72,7 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
 
     setIsSubmitting(true);
     try {
-      // Add a new line item to the quote
-      const sortOrder = (quote.line_items?.length ?? 0) + 1;
+      const sortOrder = lineItems.length + 1;
       const { error: lineError } = await supabase.from('quote_line_items').insert({
         quote_id: quote.id,
         description: costDescription.trim(),
@@ -75,11 +80,12 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
         quantity: 1,
         line_total: amount,
         sort_order: sortOrder,
+        is_addition: true,
+        added_by: user!.id,
       });
 
       if (lineError) throw lineError;
 
-      // Update the quote total
       const currentTotal = quote.total ?? quote.price_fixed ?? 0;
       const newTotal = currentTotal + amount;
       const { error: quoteError } = await supabase
@@ -123,15 +129,47 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
           </p>
         </div>
 
-        {/* Line items */}
-        {quote.line_items && quote.line_items.length > 0 && (
+        {/* Original line items */}
+        {originalItems.length > 0 && (
           <div className="space-y-1.5 pt-2 border-t border-border">
-            {quote.line_items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{item.description}</span>
+            {originalItems.map((item: Record<string, unknown>) => (
+              <div key={item.id as string} className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{item.description as string}</span>
                 <span className="font-medium">
-                  €{(item.line_total ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+                  €{((item.line_total as number) ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                 </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Post-acceptance additions — visually distinct */}
+        {addedItems.length > 0 && (
+          <div className="pt-2 border-t border-border space-y-2">
+            <div className="flex items-center gap-1.5">
+              <Plus className="h-3 w-3 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {t('quote.postAcceptanceAdditions', 'Added after acceptance')}
+              </span>
+            </div>
+            {addedItems.map((item: Record<string, unknown>) => (
+              <div key={item.id as string} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-muted-foreground truncate">{item.description as string}</span>
+                  <span className="text-[10px] text-muted-foreground/60 shrink-0">
+                    {formatDistanceToNow(new Date(item.created_at as string), { addSuffix: true })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {item.client_acknowledged_at ? (
+                    <CheckCircle2 className="h-3 w-3 text-primary" />
+                  ) : (
+                    <Clock className="h-3 w-3 text-muted-foreground" />
+                  )}
+                  <span className="font-medium">
+                    €{((item.line_total as number) ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -163,6 +201,9 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
           <div className="pt-2 border-t border-border space-y-3">
             <p className="text-xs font-medium text-foreground">
               {t('quote.additionalCostTitle', 'New cost item')}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {t('quote.additionalCostNote', 'This will be marked as a post-acceptance addition and the client will be notified.')}
             </p>
             <Input
               placeholder={t('quote.costDescPlaceholder', 'e.g. Additional materials')}
