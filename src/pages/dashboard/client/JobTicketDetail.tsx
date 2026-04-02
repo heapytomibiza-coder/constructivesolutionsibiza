@@ -456,7 +456,6 @@ export default function JobTicketDetail() {
                   isClient={isClient}
                   completionRequested={completionRequested}
                   assignedProfessionalId={job.assigned_professional_id}
-                  assignedProfessionalName={assignedProProfile?.display_name}
                   clientId={job.user_id}
                 />
               </div>
