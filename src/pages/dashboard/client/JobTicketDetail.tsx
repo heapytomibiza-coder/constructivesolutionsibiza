@@ -495,7 +495,7 @@ export default function JobTicketDetail() {
 
             {/* 7. Client profile card (pro view) */}
             {!isClient && clientProfile?.display_name && (
-              <div className="rounded-[18px] border border-border/70 bg-card p-4 shadow-sm">
+              <div className="rounded-[18px] border border-border/40 bg-muted/20 p-4">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <User className="h-4 w-4 text-primary" />
