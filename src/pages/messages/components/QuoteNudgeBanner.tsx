@@ -18,7 +18,7 @@ interface QuoteNudgeBannerProps {
   hidden?: boolean;
 }
 
-export function QuoteNudgeBanner({ jobId, jobStatus, messageCount, onStartQuote }: QuoteNudgeBannerProps) {
+export function QuoteNudgeBanner({ jobId, jobStatus, messageCount, onStartQuote, hidden }: QuoteNudgeBannerProps) {
   const { t } = useTranslation('messages');
   const { user, activeRole } = useSession();
 
