@@ -1,58 +1,36 @@
 
 
-# Fix Timeline Query Scoping + Add Quote Acceptance Event
+# Redirect Lifecycle Actions from Chat to Job Ticket Page
 
-## Two confirmed bugs
+## What's happening now
+The `JobLifecycleBar` in the messaging thread duplicates lifecycle actions (Mark Complete, Leave Review) that already exist on the dedicated `JobTicketDetail` page (`/dashboard/jobs/:jobId`). This clutters the conversation with structured workflow actions.
 
-### 1. Timeline messages query is unscoped
-`JobTimeline` queries ALL system messages platform-wide with `quote_submitted` or `quote_accepted` events. No conversation or job filter. This means timelines can show events from other jobs.
+## What should happen
+The messaging thread stays informal. The lifecycle bar in chat should **link to the Job Ticket page** for structured actions instead of handling them inline.
 
-### 2. `quote_accepted` event is never written
-`acceptQuote.action.ts` calls the RPC and fires an analytics event, but never inserts a system message. The timeline queries for `quote_accepted` messages that don't exist.
+## Changes
 
-## Fixes
+### 1. `JobLifecycleBar.tsx` — replace inline actions with links to Job Ticket
+- **`in_progress` state**: Instead of an inline "Mark Complete" button with confirmation dialog, show a "View Job" button that navigates to `/dashboard/jobs/${jobId}`
+- **`completed` state**: Already links to the Job Ticket — no change needed
+- **`open` + quote nudge (professional)**: Keep "Start your quote" as-is — quote composition is inherently a chat action
+- **`open` + quote received (client)**: Keep as-is — reviewing the quote card happens in the thread naturally
+- Remove the `AlertDialog` confirmation for completion (no longer needed in chat)
+- Remove the `onComplete` prop entirely — chat no longer handles completion
 
-### Fix 1: Scope the messages query to the job's conversation
+### 2. `ConversationThread.tsx` — simplify props
+- Remove the `onComplete` handler and `complete_job` RPC call from the thread
+- `JobLifecycleBar` no longer needs `onComplete`
 
-In `JobTimeline.tsx`, the component receives `jobId` but needs the conversation ID to scope the messages query. Two options:
+### 3. Job Ticket page already has everything
+- `JobTicketCompletion` handles mark complete with `complete_job` RPC
+- `JobTicketReview` handles the review form
+- `StatusTimeline` shows progress
+- `JobActivityPanel` shows recent activity
+- No changes needed here
 
-**Option A (no prop change):** Query `conversations` table first to get the conversation ID for this job, then filter messages by `conversation_id`. Adds one extra query but keeps the component interface clean.
-
-**Option B (simpler):** Skip the messages table entirely for `quote_accepted`. The `accept_quote_and_assign` RPC already writes to `job_status_history` with `to_status = 'in_progress'`. The dedupe logic already handles this overlap. For `quote_submitted`, scope by joining through `conversations.job_id`.
-
-**Recommended: Option A** — pass `conversationId` as a prop (it's already available in `ConversationThread`), then filter: `.eq("conversation_id", conversationId)`.
-
-Changes:
-- `JobTimeline.tsx`: Add `conversationId` prop. Filter messages query with `.eq("conversation_id", conversationId)`.
-- `ConversationThread.tsx`: Pass `conversationId` to `JobTimeline`.
-
-### Fix 2: Insert `quote_accepted` system message on acceptance
-
-When a client accepts a quote from the in-thread `QuoteCard`, insert a system message with `metadata: { event: 'quote_accepted', quote_id }`.
-
-The challenge: `QuoteCard` doesn't know the `conversationId` or `senderId`. It's rendered inside `ConversationThread` which does have this context.
-
-Approach: Add an `onAccepted` callback prop to `QuoteCard`. When acceptance succeeds, `ConversationThread` handles inserting the system message (same pattern as `handleCompleteJob`).
-
-Changes:
-- `QuoteCard.tsx`: Add optional `onAccepted?: (quoteId: string) => void` prop. Call it after successful acceptance.
-- `ConversationThread.tsx`: Pass `onAccepted` handler that inserts a system message with `{ event: 'quote_accepted', quote_id }` metadata, then invalidates `messages` and `job_timeline` queries.
-
-### Fix 3: Handle `QuoteComparison` acceptance path
-
-`QuoteComparison.tsx` also calls `acceptQuote` but lives outside the conversation thread. For now, no system message is inserted from that path — the `in_progress` status history entry (written by the RPC) will represent acceptance in the timeline. The dedupe logic already collapses `quote_accepted` + `in_progress` when they're close together, so this is safe.
-
-## Files
-
-| File | Change |
-|---|---|
-| `src/pages/messages/components/JobTimeline.tsx` | Add `conversationId` prop, scope messages query |
-| `src/pages/messages/ConversationThread.tsx` | Pass `conversationId` to timeline, add `onAccepted` handler for QuoteCard |
-| `src/pages/jobs/components/QuoteCard.tsx` | Add optional `onAccepted` callback prop |
-
-## Build order
-
-1. `QuoteCard.tsx` — add `onAccepted` prop
-2. `JobTimeline.tsx` — add `conversationId` prop + scope query
-3. `ConversationThread.tsx` — wire both together
+## Result
+- Chat = informal conversation + quote exchange
+- Job Ticket = structured lifecycle control centre
+- Lifecycle bar becomes a signpost, not a duplicate control panel
 
