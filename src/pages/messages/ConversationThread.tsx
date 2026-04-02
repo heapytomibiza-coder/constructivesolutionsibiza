@@ -24,6 +24,7 @@ interface ConversationThreadProps {
   conversationId: string;
   currentUserId: string;
   clientId?: string;
+  proId?: string;
   jobId?: string | null;
   jobTitle?: string;
   jobStatus?: string;
