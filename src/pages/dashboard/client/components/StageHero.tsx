@@ -231,12 +231,12 @@ function buildStageConfig(
     case 'completed_no_review':
       if (isClient) {
         return {
-          title: t('stageHero.completedTitle', 'Job completed'),
-          meaning: t('stageHero.completedMeaningClient', 'The work has been marked as complete.'),
-          nextStep: t('stageHero.completedNextClient', 'Leave a review based on your experience.'),
-          pillLabel: t('stageHero.pillCompleted', 'Job completed'),
-          pillClass: 'bg-primary/10 text-primary border-primary/20',
-          icon: <CheckCircle2 className="h-6 w-6 text-primary" />,
+          title: t('stageHero.completedTitle', 'Work complete'),
+          meaning: t('stageHero.completedMeaningClient', 'The work has been finished. One last step — your feedback helps build trust on the platform.'),
+          nextStep: t('stageHero.completedNextClient', 'Share your experience with a quick review.'),
+          pillLabel: t('stageHero.pillCompleted', 'Completed'),
+          pillClass: 'bg-success/10 text-success border-success/20',
+          icon: <CheckCircle2 className="h-6 w-6 text-success" />,
           primaryAction: {
             label: t('stageHero.leaveReview', 'Leave a Review'),
             onClick: actions.onScrollToReview,
@@ -245,26 +245,27 @@ function buildStageConfig(
         };
       }
       return {
-        title: t('stageHero.completedTitle', 'Job completed'),
-        meaning: t('stageHero.completedMeaningPro', 'This job has been marked as finished.'),
-        nextStep: t('stageHero.completedNextPro', 'Waiting for client review.'),
-        pillLabel: t('stageHero.pillCompleted', 'Job completed'),
-        pillClass: 'bg-primary/10 text-primary border-primary/20',
-        icon: <CheckCircle2 className="h-6 w-6 text-primary" />,
+        title: t('stageHero.completedTitle', 'Work complete'),
+        meaning: t('stageHero.completedMeaningPro', 'This job has been marked as finished. The client may leave a review.'),
+        nextStep: t('stageHero.completedNextPro', 'You can also rate the client below.'),
+        pillLabel: t('stageHero.pillCompleted', 'Completed'),
+        pillClass: 'bg-success/10 text-success border-success/20',
+        icon: <CheckCircle2 className="h-6 w-6 text-success" />,
       };
 
     case 'completed_reviewed':
       return {
-        title: t('stageHero.reviewedTitle', 'Job complete'),
-        meaning: t('stageHero.reviewedMeaning', 'This job has been successfully completed and reviewed.'),
+        title: t('stageHero.reviewedTitle', 'Project resolved'),
+        meaning: t('stageHero.reviewedMeaning', 'This project has been completed and reviewed. Everything is wrapped up.'),
         nextStep: t('stageHero.reviewedNext', 'No further action needed.'),
-        pillLabel: t('stageHero.pillReviewed', 'Reviewed'),
-        pillClass: 'bg-muted text-muted-foreground border-border',
-        icon: <CheckCircle2 className="h-6 w-6 text-muted-foreground" />,
+        pillLabel: t('stageHero.pillReviewed', 'Resolved'),
+        pillClass: 'bg-muted text-muted-foreground border-border/50',
+        icon: <CheckCircle2 className="h-6 w-6 text-muted-foreground/70" />,
         primaryAction: {
           label: t('stageHero.viewReview', 'View Review'),
           onClick: actions.onScrollToReview,
           icon: <Star className="h-4 w-4" />,
+          variant: 'outline' as const,
         },
       };
   }
