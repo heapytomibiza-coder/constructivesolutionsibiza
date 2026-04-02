@@ -102,23 +102,32 @@ export function JobTicketReview({
   // Already reviewed
   if (existingReview) {
     return (
-      <Card className="border-primary/20">
+      <Card className="border-border/50 bg-muted/30">
         <CardContent className="p-5">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-            <div>
-              <p className="text-sm font-medium">{t('jobTicket.reviewSubmitted', 'Review submitted')}</p>
-              <div className="flex items-center gap-1 mt-1">
+          <div className="flex items-start gap-3">
+            <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="h-4.5 w-4.5 text-success" />
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium text-foreground">
+                {t('jobTicket.reviewSubmitted', 'Review submitted')}
+              </p>
+              <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
                     className={cn(
                       'h-4 w-4',
-                      i < existingReview.rating ? 'fill-primary text-primary' : 'text-muted-foreground/30'
+                      i < existingReview.rating ? 'fill-accent text-accent' : 'text-muted-foreground/20'
                     )}
                   />
                 ))}
               </div>
+              {existingReview.comment && (
+                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                  "{existingReview.comment}"
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
