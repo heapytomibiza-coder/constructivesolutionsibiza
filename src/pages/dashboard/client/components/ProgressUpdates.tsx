@@ -15,6 +15,7 @@ import { Camera, ImagePlus, Loader2, Send, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface ProgressUpdatesProps {
   jobId: string;
