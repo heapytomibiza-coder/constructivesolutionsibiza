@@ -74,7 +74,7 @@ function getStageConfig(
   status: string,
   isClient: boolean,
   hasReview: boolean,
-  t: (key: string, fallback?: string) => string,
+  t: ReturnType<typeof import('react-i18next').useTranslation>['t'],
   actions: {
     onMarkComplete?: () => void;
     onScrollToUpdates?: () => void;

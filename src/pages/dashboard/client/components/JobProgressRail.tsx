@@ -30,7 +30,7 @@ function resolveSteps(
   hasQuote: boolean,
   hasAcceptedQuote: boolean,
   hasReview: boolean,
-  t: (key: string, fallback?: string) => string,
+  t: ReturnType<typeof import('react-i18next').useTranslation>['t'],
 ): Step[] {
   const statusOrder = ['posted', 'quoted', 'accepted', 'in_progress', 'completed', 'review'];
 
