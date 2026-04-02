@@ -42,6 +42,7 @@ import { JobTicketQuotes } from './components/JobTicketQuotes';
 import { JobTicketCompletion } from './components/JobTicketCompletion';
 import { JobTicketReview } from './components/JobTicketReview';
 import { ProQuoteSummary } from './components/ProQuoteSummary';
+import { CancellationRequestCard } from './components/CancellationRequestCard';
 import { useMyQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 
 export default function JobTicketDetail() {
@@ -218,6 +219,21 @@ export default function JobTicketDetail() {
     }
   };
 
+  const handleWithdraw = async () => {
+    if (!jobId || !confirm(t('jobTicket.withdrawConfirm', 'Withdraw from this job? The client will be able to choose another professional.'))) return;
+    try {
+      const { error } = await supabase.rpc('withdraw_from_job', { p_job_id: jobId });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success(t('jobTicket.withdrawnSuccess', 'You have withdrawn from this job.'));
+      queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });
+    } catch {
+      toast.error(t('jobTicket.withdrawFailed', 'Failed to withdraw'));
+    }
+  };
+
   const scrollToUpdates = useCallback(() => {
     updatesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
@@ -261,6 +277,7 @@ export default function JobTicketDetail() {
   const isPastOpen = ['in_progress', 'completed'].includes(job.status);
   const quotesCount = isClient ? quotesForJob.length : (myQuote ? 1 : 0);
   const completionRequested = !!job.completion_requested_at;
+  const cancellationRequested = !!job.cancellation_requested_at;
 
   const railProps = {
     jobId: jobId!,
@@ -337,18 +354,29 @@ export default function JobTicketDetail() {
               quotesCount={quotesCount}
               hasAcceptedQuote={hasAcceptedQuote}
               completionRequested={completionRequested}
+              cancellationRequested={cancellationRequested}
               onMarkComplete={() => {
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
               onRequestCompletion={() => {
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
+              onWithdraw={handleWithdraw}
               onScrollToUpdates={scrollToUpdates}
               onScrollToReview={scrollToReview}
               onScrollToQuotes={scrollToQuotes}
             />
 
-            {/* 2. Progress Updates (in_progress / completed) */}
+            {/* 2. Cancellation request card (in_progress + cancellation requested) */}
+            <CancellationRequestCard
+              jobId={job.id}
+              jobStatus={job.status}
+              isClient={isClient}
+              cancellationRequested={cancellationRequested}
+              cancellationReason={job.cancellation_reason}
+            />
+
+            {/* 3. Progress Updates (in_progress / completed) */}
             {['in_progress', 'completed'].includes(job.status) && (
               <div ref={updatesRef}>
                 <ProgressUpdates
@@ -360,7 +388,7 @@ export default function JobTicketDetail() {
               </div>
             )}
 
-            {/* 3. Completion CTA (both roles during in_progress) */}
+            {/* 4. Completion CTA (both roles during in_progress) */}
             <div id="completion-section">
               <JobTicketCompletion
                 jobId={job.id}

@@ -1387,6 +1387,9 @@ export type Database = {
           budget_min: number | null
           budget_type: string | null
           budget_value: number | null
+          cancellation_reason: string | null
+          cancellation_requested_at: string | null
+          cancellation_requested_by: string | null
           category: string | null
           completed_at: string | null
           completion_requested_at: string | null
@@ -1428,6 +1431,9 @@ export type Database = {
           budget_min?: number | null
           budget_type?: string | null
           budget_value?: number | null
+          cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
+          cancellation_requested_by?: string | null
           category?: string | null
           completed_at?: string | null
           completion_requested_at?: string | null
@@ -1469,6 +1475,9 @@ export type Database = {
           budget_min?: number | null
           budget_type?: string | null
           budget_value?: number | null
+          cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
+          cancellation_requested_by?: string | null
           category?: string | null
           completed_at?: string | null
           completion_requested_at?: string | null
@@ -3679,7 +3688,15 @@ export type Database = {
       mark_nudge_sent: { Args: { p_nudge_id: string }; Returns: undefined }
       purge_stale_telemetry: { Args: never; Returns: undefined }
       refresh_demand_snapshots: { Args: never; Returns: undefined }
+      request_job_cancellation: {
+        Args: { p_job_id: string; p_reason?: string }
+        Returns: undefined
+      }
       request_job_completion: { Args: { p_job_id: string }; Returns: undefined }
+      respond_to_cancellation: {
+        Args: { p_accept: boolean; p_job_id: string }
+        Returns: undefined
+      }
       rpc_admin_dispute_analytics: { Args: never; Returns: Json }
       rpc_admin_dispute_inbox: {
         Args: never
@@ -3819,6 +3836,7 @@ export type Database = {
         Args: { p_event_name: string; p_metadata?: Json; p_role?: string }
         Returns: undefined
       }
+      withdraw_from_job: { Args: { p_job_id: string }; Returns: undefined }
     }
     Enums: {
       dispute_issue_type:

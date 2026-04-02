@@ -14,6 +14,9 @@ import {
   Eye,
   UserCheck,
   MessageSquare,
+  XCircle,
+  AlertTriangle,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +41,7 @@ interface StageConfig {
     label: string;
     onClick?: () => void;
     icon: React.ReactNode;
+    variant?: 'default' | 'outline' | 'destructive';
   };
 }
 
@@ -48,8 +52,10 @@ interface StageHeroProps {
   quotesCount: number;
   hasAcceptedQuote: boolean;
   completionRequested: boolean;
+  cancellationRequested: boolean;
   onMarkComplete?: () => void;
   onRequestCompletion?: () => void;
+  onWithdraw?: () => void;
   onScrollToUpdates?: () => void;
   onScrollToReview?: () => void;
   onScrollToQuotes?: () => void;
@@ -78,9 +84,11 @@ function buildStageConfig(
   isClient: boolean,
   t: ReturnType<typeof import('react-i18next').useTranslation>['t'],
   completionRequested: boolean,
+  cancellationRequested: boolean,
   actions: {
     onMarkComplete?: () => void;
     onRequestCompletion?: () => void;
+    onWithdraw?: () => void;
     onScrollToUpdates?: () => void;
     onScrollToReview?: () => void;
     onScrollToQuotes?: () => void;
@@ -134,9 +142,35 @@ function buildStageConfig(
         pillLabel: t('stageHero.pillAssigned', 'Professional selected'),
         pillClass: 'bg-primary/10 text-primary border-primary/20',
         icon: <UserCheck className="h-6 w-6 text-primary" />,
+        primaryAction: !isClient
+          ? {
+              label: t('stageHero.withdraw', 'Withdraw'),
+              onClick: actions.onWithdraw,
+              icon: <LogOut className="h-4 w-4" />,
+              variant: 'outline' as const,
+            }
+          : undefined,
       };
 
     case 'in_progress':
+      // Cancellation takes priority over completion in hero display
+      if (cancellationRequested) {
+        return {
+          title: isClient
+            ? t('stageHero.cancellationRequestedTitle', 'Cancellation requested')
+            : t('stageHero.cancellationRequestedTitlePro', 'Cancellation requested'),
+          meaning: isClient
+            ? t('stageHero.cancellationRequestedMeaningClient', 'The professional has asked to cancel this job. Review the request below.')
+            : t('stageHero.cancellationRequestedMeaningPro', 'You have requested to cancel. Waiting for the client to respond.'),
+          nextStep: isClient
+            ? t('stageHero.cancellationRequestedNextClient', 'Accept or decline the cancellation request.')
+            : t('stageHero.cancellationRequestedNextPro', 'The client will review your request.'),
+          pillLabel: t('stageHero.pillCancellationRequested', 'Cancellation requested'),
+          pillClass: 'bg-destructive/10 text-destructive border-destructive/20',
+          icon: <AlertTriangle className="h-6 w-6 text-destructive" />,
+        };
+      }
+
       if (isClient) {
         return {
           title: completionRequested
@@ -245,8 +279,10 @@ export function StageHero({
   quotesCount,
   hasAcceptedQuote,
   completionRequested,
+  cancellationRequested,
   onMarkComplete,
   onRequestCompletion,
+  onWithdraw,
   onScrollToUpdates,
   onScrollToReview,
   onScrollToQuotes,
@@ -254,9 +290,10 @@ export function StageHero({
   const { t } = useTranslation('dashboard');
 
   const stage = resolveStage(jobStatus, quotesCount, hasAcceptedQuote, hasReview);
-  const config = buildStageConfig(stage, isClient, t, completionRequested, {
+  const config = buildStageConfig(stage, isClient, t, completionRequested, cancellationRequested, {
     onMarkComplete,
     onRequestCompletion,
+    onWithdraw,
     onScrollToUpdates,
     onScrollToReview,
     onScrollToQuotes,
@@ -301,6 +338,7 @@ export function StageHero({
       {config.primaryAction && (
         <div className="mt-5">
           <Button
+            variant={config.primaryAction.variant || 'default'}
             onClick={config.primaryAction.onClick}
             className="h-12 px-5 rounded-xl text-[15px] font-semibold gap-2 w-full sm:w-auto"
           >
