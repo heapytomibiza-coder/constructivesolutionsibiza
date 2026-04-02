@@ -49,7 +49,8 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
     enabled: !!jobId && !!user,
   });
 
-  const canPost = !isClient && jobStatus === 'in_progress' && user?.id === assignedProId;
+  const isAssignedPro = !isClient && user?.id === assignedProId;
+  const canPost = jobStatus === 'in_progress' && (isClient || isAssignedPro);
 
   const postMutation = useMutation({
     mutationFn: async () => {
