@@ -211,7 +211,7 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
     queryClient.invalidateQueries({ queryKey: quoteKeys.myQuote(jobId) });
     queryClient.invalidateQueries({ queryKey: quoteKeys.forJob(jobId) });
     setSubmitting(false);
-    onSuccess?.();
+    onSuccess?.(quote?.id);
   };
 
   return (

@@ -30,6 +30,7 @@ export function QuoteNudgeBanner({ jobId, jobStatus, messageCount, onStartQuote,
 
   // Only show for professionals on open jobs with 2+ messages and no existing quote
   if (
+    hidden ||
     activeRole !== 'professional' ||
     jobStatus !== 'open' ||
     messageCount < 2 ||
