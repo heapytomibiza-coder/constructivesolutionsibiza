@@ -184,26 +184,26 @@ export default function JobTicketDetail() {
             </Badge>
             <div className="flex items-center gap-2">
               {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => rebook.mutate(job.id)}
-                    disabled={rebook.isPending}
-                  >
-                    <RotateCw className="h-3.5 w-3.5" />
-                    {t('jobTicket.hireAgain', 'Hire Again')}
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" asChild title="Having an issue with this job? Start a structured resolution.">
-                    <Link to={`/disputes/raise?job=${jobId}`}>
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                      {t('jobTicket.raiseIssue', 'Raise Issue')}
-                    </Link>
-                  </Button>
-                </>
+                <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive" asChild title="Having an issue with this job? Start a structured resolution.">
+                  <Link to={`/disputes/raise?job=${jobId}`}>
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    {t('jobTicket.raiseIssue', 'Raise Issue')}
+                  </Link>
+                </Button>
               )}
-              {['ready', 'open', 'posted'].includes(job.status) && (
+              {isClient && ['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => rebook.mutate(job.id)}
+                  disabled={rebook.isPending}
+                >
+                  <RotateCw className="h-3.5 w-3.5" />
+                  {t('jobTicket.hireAgain', 'Hire Again')}
+                </Button>
+              )}
+              {isClient && ['ready', 'open', 'posted'].includes(job.status) && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -214,10 +214,12 @@ export default function JobTicketDetail() {
                   {t('jobTicket.editJob', 'Edit Job')}
                 </Button>
               )}
-              <Button variant="ghost" size="sm" className="gap-1.5 text-destructive" onClick={handleClose}>
-                <XCircle className="h-3.5 w-3.5" />
-                {t('jobTicket.closeJob')}
-              </Button>
+              {isClient && (
+                <Button variant="ghost" size="sm" className="gap-1.5 text-destructive" onClick={handleClose}>
+                  <XCircle className="h-3.5 w-3.5" />
+                  {t('jobTicket.closeJob')}
+                </Button>
+              )}
             </div>
           </div>
           {/* Status Timeline */}
