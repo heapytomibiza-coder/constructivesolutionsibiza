@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { JobsMarketplace } from "@/pages/jobs/JobsMarketplace";
 import { Shield } from "lucide-react";
 import heroJobs from "@/assets/heroes/hero-jobs.jpg";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function JobBoardPage() {
   const navigate = useNavigate();
