@@ -409,7 +409,10 @@ export default function JobTicketDetail() {
               />
             </div>
 
-            {/* 4. Review (completed) */}
+            {/* 4. Project Gallery (in_progress / completed) */}
+            <ProjectGallery jobId={job.id} jobStatus={job.status} />
+
+            {/* 5. Review (completed) */}
             <div ref={reviewRef}>
               <JobTicketReview
                 jobId={job.id}
