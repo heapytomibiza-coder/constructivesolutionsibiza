@@ -162,6 +162,9 @@ export function PublicNav() {
               <Button variant="accent" asChild className="hidden sm:inline-flex">
                 <Link to="/post">{t('nav.postJob')}</Link>
               </Button>
+              <Button variant="outline" asChild className="hidden lg:inline-flex">
+                <Link to="/auth?tab=register&role=professional">{t('nav.joinAsPro')}</Link>
+              </Button>
             </>
           )}
         </div>
