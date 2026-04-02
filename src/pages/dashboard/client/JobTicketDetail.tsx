@@ -151,6 +151,8 @@ export default function JobTicketDetail() {
   }
 
   const statusConfig = STATUS_CONFIG[job.status] || STATUS_CONFIG.ready;
+  const isClient = job.user_id === user?.id;
+  const backPath = isClient ? '/dashboard/client' : '/dashboard/professional';
   const answers = job.answers as Record<string, unknown> | null;
   const selected = (answers?.selected as Record<string, unknown>) || {};
   const microNames = (selected.microNames as string[]) || [];
