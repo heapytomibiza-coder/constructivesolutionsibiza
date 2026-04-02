@@ -15,6 +15,7 @@ interface QuoteNudgeBannerProps {
   jobStatus?: string;
   messageCount: number;
   onStartQuote: () => void;
+  hidden?: boolean;
 }
 
 export function QuoteNudgeBanner({ jobId, jobStatus, messageCount, onStartQuote }: QuoteNudgeBannerProps) {
