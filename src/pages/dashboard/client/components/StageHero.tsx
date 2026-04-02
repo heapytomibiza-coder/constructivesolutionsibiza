@@ -244,7 +244,9 @@ export function StageHero({
   hasReview,
   quotesCount,
   hasAcceptedQuote,
+  completionRequested,
   onMarkComplete,
+  onRequestCompletion,
   onScrollToUpdates,
   onScrollToReview,
   onScrollToQuotes,
@@ -252,8 +254,9 @@ export function StageHero({
   const { t } = useTranslation('dashboard');
 
   const stage = resolveStage(jobStatus, quotesCount, hasAcceptedQuote, hasReview);
-  const config = buildStageConfig(stage, isClient, t, {
+  const config = buildStageConfig(stage, isClient, t, completionRequested, {
     onMarkComplete,
+    onRequestCompletion,
     onScrollToUpdates,
     onScrollToReview,
     onScrollToQuotes,
