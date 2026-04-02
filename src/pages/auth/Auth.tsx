@@ -46,18 +46,8 @@ const Auth = () => {
   const returnUrl = searchParams.get('returnUrl'); // No default - let callback handle role-based routing
   const allowProfessional = searchParams.get('pro') === '1';
 
-  // Double-check: ready can be true before HTTP fetch completes with useSuspense: false
-  // Verify that a known key actually resolves (not to itself)
-  const translationsLoaded = ready && t('page.title') !== 'page.title';
-
-  // Show loading state while translations load (fallback for slow connections)
-  if (!translationsLoaded) {
-    return (
-      <div className="min-h-screen bg-gradient-concrete flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  // Don't return early for translations — it unmounts the form and resets all state.
+  // Instead, let the form render with fallback text while translations load.
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
