@@ -37,7 +37,19 @@ const ICON_MAP: Record<string, typeof Circle> = {
   cancelled: Circle,
 };
 
-async function fetchTimeline(jobId: string): Promise<TimelineEntry[]> {
+async function fetchTimeline(jobId: string, conversationId?: string): Promise<TimelineEntry[]> {
+  // Build scoped messages query
+  let messagesQuery = supabase
+    .from("messages")
+    .select("id, created_at, metadata")
+    .eq("message_type", "system")
+    .in("metadata->>event", ["quote_submitted", "quote_accepted"])
+    .order("created_at", { ascending: true });
+
+  if (conversationId) {
+    messagesQuery = messagesQuery.eq("conversation_id", conversationId);
+  }
+
   // Fetch all three sources in parallel
   const [statusRes, quoteEventsRes, reviewsRes] = await Promise.all([
     supabase
@@ -45,12 +57,7 @@ async function fetchTimeline(jobId: string): Promise<TimelineEntry[]> {
       .select("id, to_status, created_at")
       .eq("job_id", jobId)
       .order("created_at", { ascending: true }),
-    supabase
-      .from("messages")
-      .select("id, created_at, metadata")
-      .eq("message_type", "system")
-      .in("metadata->>event", ["quote_submitted", "quote_accepted"])
-      .order("created_at", { ascending: true }),
+    messagesQuery,
     supabase
       .from("job_reviews")
       .select("id, created_at")
