@@ -136,12 +136,14 @@ export function JobProgressRail({
             {steps.map((step, i) => (
               <div key={step.key} className="flex items-start gap-3">
                 <div className="flex flex-col items-center">
-                  <StepNode state={step.state} />
+                  <StepNode state={step.state} isFinal={isFinalStep(step.key)} />
                   {i < steps.length - 1 && (
                     <div
                       className={cn(
                         'w-0.5 h-7',
-                        step.state === 'done' ? 'bg-primary' : 'bg-border',
+                        step.state === 'done'
+                          ? isFinalStep(step.key) ? 'bg-success/40' : 'bg-primary'
+                          : 'bg-border',
                       )}
                     />
                   )}
@@ -150,7 +152,8 @@ export function JobProgressRail({
                   <p
                     className={cn(
                       'text-sm leading-tight',
-                      step.state === 'current' && 'text-primary font-semibold',
+                      step.state === 'current' && !isFinalStep(step.key) && 'text-primary font-semibold',
+                      step.state === 'current' && isFinalStep(step.key) && 'text-success font-semibold',
                       step.state === 'done' && 'text-foreground font-medium',
                       step.state === 'upcoming' && 'text-muted-foreground',
                     )}
@@ -163,7 +166,12 @@ export function JobProgressRail({
                     </p>
                   )}
                   {step.state === 'current' && (
-                    <span className="inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    <span className={cn(
+                      'inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full',
+                      isFinalStep(step.key)
+                        ? 'text-success bg-success/10'
+                        : 'text-primary bg-primary/10',
+                    )}>
                       {t('progressRail.currentLabel', 'Current')}
                     </span>
                   )}
