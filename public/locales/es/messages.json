@@ -36,6 +36,8 @@
     "status": {
       "draft": "Trabajo creado",
       "open": "Trabajo publicado",
+      "quote_submitted": "Presupuesto enviado",
+      "quote_accepted": "Presupuesto aceptado",
       "in_progress": "Trabajo iniciado",
       "completed": "Completado",
       "cancelled": "Cancelado",
