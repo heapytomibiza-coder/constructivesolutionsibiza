@@ -99,7 +99,7 @@ const Professionals = () => {
       // No filters - just get all publicly listed professionals (no ranking needed)
       const { data, error } = await supabase
         .from('professional_profiles')
-        .select('id, user_id, display_name, avatar_url, services_count, verification_status, bio, tagline')
+        .select('id, user_id, display_name, avatar_url, avatar_thumb_url, services_count, verification_status, bio, tagline, service_zones')
         .eq('is_publicly_listed', true)
         .eq('onboarding_phase', 'complete')
         .not('display_name', 'is', null);
