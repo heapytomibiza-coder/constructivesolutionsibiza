@@ -67,7 +67,6 @@ export function JobLifecycleBar({
 
   if (jobStatus === "open") {
     if (!hasQuote && userRole === "professional") {
-      if (messageCount < 2) return null; // Too early
       const isUrgent = messageCount >= 5;
       icon = <DollarSign className="h-4 w-4 text-primary" />;
       text = isUrgent
@@ -90,6 +89,10 @@ export function JobLifecycleBar({
       icon = <DollarSign className="h-4 w-4 text-primary" />;
       text = t("lifecycle.quoteReceivedClient", "You received a quote — review it above");
       variant = "nudge";
+    } else if (!hasQuote && userRole === "client") {
+      icon = <Clock className="h-4 w-4 text-muted-foreground" />;
+      text = t("lifecycle.waitingForQuote", "Waiting for a quote from the professional");
+      variant = "waiting";
     } else {
       return null;
     }
