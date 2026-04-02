@@ -260,8 +260,10 @@ export function StageHero({
   quotesCount,
   hasAcceptedQuote,
   completionRequested,
+  cancellationRequested,
   onMarkComplete,
   onRequestCompletion,
+  onWithdraw,
   onScrollToUpdates,
   onScrollToReview,
   onScrollToQuotes,
@@ -269,9 +271,10 @@ export function StageHero({
   const { t } = useTranslation('dashboard');
 
   const stage = resolveStage(jobStatus, quotesCount, hasAcceptedQuote, hasReview);
-  const config = buildStageConfig(stage, isClient, t, completionRequested, {
+  const config = buildStageConfig(stage, isClient, t, completionRequested, cancellationRequested, {
     onMarkComplete,
     onRequestCompletion,
+    onWithdraw,
     onScrollToUpdates,
     onScrollToReview,
     onScrollToQuotes,
