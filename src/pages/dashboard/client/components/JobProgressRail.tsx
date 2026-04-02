@@ -65,8 +65,10 @@ function resolveSteps(
     accepted: t('progressRail.accepted', 'Quote Accepted'),
     in_progress: t('progressRail.working', 'Work in Progress'),
     completed: t('progressRail.completed', 'Completed'),
-    review: t('progressRail.review', 'Review'),
+    review: t('progressRail.review', 'Reviewed'),
   };
+
+  const isFinalStep = (key: string) => key === 'review' || key === 'completed';
 
   return statusOrder.map((key, i) => ({
     key,
