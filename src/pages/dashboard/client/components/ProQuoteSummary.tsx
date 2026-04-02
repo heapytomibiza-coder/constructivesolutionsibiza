@@ -61,7 +61,7 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
             </Badge>
           </div>
           <p className="text-lg font-bold text-foreground">
-            €{(quote.total_amount ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+            €{(quote.total ?? quote.price_fixed ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
           </p>
         </div>
 
