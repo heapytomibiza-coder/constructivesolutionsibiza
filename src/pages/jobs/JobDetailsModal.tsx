@@ -396,11 +396,11 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         </Card>
       </section>
 
-      {/* Quotes Section — enabled at service-layer for core conversion flow */}
-      {isRolloutActive('service-layer') && (
+      {/* Quotes Section — only for job owners (clients). Pros quote from the conversation thread. */}
+      {isRolloutActive('service-layer') && !!jobPack.isOwner && (
         <>
           <Separator className="bg-border/60" />
-          <QuotesTab jobId={jobPack.id} isOwner={!!jobPack.isOwner} />
+          <QuotesTab jobId={jobPack.id} isOwner />
         </>
       )}
 

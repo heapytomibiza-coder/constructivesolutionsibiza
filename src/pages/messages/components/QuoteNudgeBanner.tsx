@@ -1,9 +1,9 @@
 /**
  * QuoteNudgeBanner — prompts professionals to submit a structured quote
  * when they've been chatting but haven't quoted yet.
+ * Callback-based: opens the inline quote builder in-context.
  */
 
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMyQuoteForJob } from "@/pages/jobs/queries/quotes.query";
 import { useSession } from "@/contexts/SessionContext";
@@ -14,11 +14,11 @@ interface QuoteNudgeBannerProps {
   jobId: string;
   jobStatus?: string;
   messageCount: number;
+  onStartQuote: () => void;
 }
 
-export function QuoteNudgeBanner({ jobId, jobStatus, messageCount }: QuoteNudgeBannerProps) {
+export function QuoteNudgeBanner({ jobId, jobStatus, messageCount, onStartQuote }: QuoteNudgeBannerProps) {
   const { t } = useTranslation('messages');
-  const navigate = useNavigate();
   const { user, activeRole } = useSession();
 
   const { data: myQuote, isLoading } = useMyQuoteForJob(
@@ -49,7 +49,7 @@ export function QuoteNudgeBanner({ jobId, jobStatus, messageCount }: QuoteNudgeB
         <p className="text-sm font-medium text-foreground">
           {isUrgent
             ? t('nudge.urgentTitle', "You've discussed the job — send your quote to move forward")
-            : t('nudge.title', "Ready to send a quote?")}
+            : t('nudge.title', "You've discussed the details — ready to send a formal quote?")}
         </p>
         <p className="text-xs text-muted-foreground">
           {t('nudge.subtitle', "The client can't hire you until you submit one.")}
@@ -58,10 +58,10 @@ export function QuoteNudgeBanner({ jobId, jobStatus, messageCount }: QuoteNudgeB
       <Button
         size="sm"
         className="shrink-0 gap-1.5"
-        onClick={() => navigate(`/jobs/${jobId}`)}
+        onClick={onStartQuote}
       >
         <DollarSign className="h-3.5 w-3.5" />
-        {t('nudge.cta', 'Send Quote')}
+        {t('nudge.cta', 'Start your quote')}
         <ArrowRight className="h-3.5 w-3.5" />
       </Button>
     </div>

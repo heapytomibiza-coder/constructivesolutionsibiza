@@ -14,6 +14,12 @@
     "untitledJob": "Job",
     "youAreResponding": "You're responding"
   },
+  "nudge": {
+    "title": "You've discussed the details — ready to send a formal quote?",
+    "urgentTitle": "You've discussed the job — send your quote to move forward",
+    "subtitle": "The client can't hire you until you submit one.",
+    "cta": "Start your quote"
+  },
   "thread": {
     "conversation": "Conversation",
     "noMessages": "No messages yet. Start the conversation!",
@@ -21,6 +27,8 @@
     "placeholder": "Type a message...",
     "sendHint": "Enter to send · Shift+Enter for new line",
     "loadFailed": "Failed to load messages: {{error}}",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "buildQuote": "Build Quote",
+    "quoteSent": "sent a formal quote"
   }
 }

@@ -14,6 +14,12 @@
     "untitledJob": "Trabajo",
     "youAreResponding": "Estás respondiendo"
   },
+  "nudge": {
+    "title": "Ya discutiste los detalles — ¿listo para enviar un presupuesto formal?",
+    "urgentTitle": "Ya hablaste del trabajo — envía tu presupuesto para avanzar",
+    "subtitle": "El cliente no puede contratarte sin un presupuesto.",
+    "cta": "Empezar presupuesto"
+  },
   "thread": {
     "conversation": "Conversación",
     "noMessages": "Aún no hay mensajes. ¡Inicia la conversación!",
@@ -21,6 +27,8 @@
     "placeholder": "Escribe un mensaje...",
     "sendHint": "Enter para enviar · Shift+Enter para nueva línea",
     "loadFailed": "No se pudieron cargar los mensajes: {{error}}",
-    "unknownError": "Error desconocido"
+    "unknownError": "Error desconocido",
+    "buildQuote": "Crear presupuesto",
+    "quoteSent": "envió un presupuesto formal"
   }
 }
