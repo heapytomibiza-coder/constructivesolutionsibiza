@@ -1,99 +1,66 @@
 
 
-# Communication-First Quote System
+# Fix Quote System: Tighten the Quote-to-Message Link + Client Visibility
 
-## What we're fixing
+## Problems to fix
 
-The quote form sits on the job detail modal — a cold, context-free location. Builders need to discuss scope before pricing. The platform should match reality: **discuss first, quote second**.
+1. **`submitQuote` returns no quote ID** — `InlineQuoteBuilder` cannot attach the quote to the system message
+2. **System message matched by translated text** (`msg.body.includes(...)`) — brittle, breaks across locales
+3. **Client cannot see the quote in-thread** — `useMyQuoteForJob` queries by `currentUserId` which is the client, not the pro
+4. **Nudge banner + footer button can visually clash** — no coordination when builder is open
 
 ## Changes
 
-### 1. Remove QuotesTab from pro-facing JobDetailsModal
+### 1. `submitQuote.action.ts` — return created quote ID
 
-**File:** `src/pages/jobs/JobDetailsModal.tsx` (lines 399-405)
+Change the insert to use `.select('id').single()` so the action returns `{ success: true, quoteId: string }`. This is a small change to lines 40-52.
 
-For professionals (non-owners), remove the `QuotesTab` render. The modal becomes a pure job brief. The "Message" button remains the only CTA. Client owners keep seeing `QuotesTab` unchanged for quote management.
+### 2. `ProposalBuilder.tsx` — pass quote ID to `onSuccess`
 
-### 2. Create InlineQuoteBuilder wrapper
+Change `onSuccess` prop signature from `() => void` to `(quoteId?: string) => void`. After successful submit, call `onSuccess(quoteId)`. The existing callers that ignore the argument remain compatible.
 
-**New file:** `src/pages/messages/components/InlineQuoteBuilder.tsx`
+### 3. `InlineQuoteBuilder.tsx` — attach `quote_id` to system message metadata
 
-A slide-up panel wrapper around the existing `ProposalBuilder`. Responsibilities:
-- Open/close animation (slide up from bottom, overlay style)
-- Cancel button to dismiss
-- On successful submit: close panel, insert a system message into the conversation ("You sent a formal quote"), and trigger query invalidation
-- Passes `jobId` and `onSuccess` through to `ProposalBuilder` unchanged
+Update `handleSuccess` to accept the `quoteId` from `ProposalBuilder`. Insert the system message with `metadata: { quote_id: quoteId, event: 'quote_submitted' }`. This creates a stable, locale-independent link between the message and the quote.
 
-`ProposalBuilder` itself is not modified.
+### 4. `ConversationThread.tsx` — fix quote rendering logic
 
-### 3. Add quote builder trigger to ConversationThread
+**Replace text-matching with metadata check:**
+Instead of `msg.body.includes(t('thread.quoteSent'))`, check `msg.metadata?.event === 'quote_submitted'`.
 
-**File:** `src/pages/messages/ConversationThread.tsx`
+**Fix client visibility:**
+Replace `useMyQuoteForJob` with `useQuotesForJob` (already exists, fetches all quotes for a job). Both client and pro can then see the relevant quote card. The quote to render is determined by `msg.metadata?.quote_id` matching against the quotes list.
 
-Add state and UI for the inline quote flow:
-- New state: `isQuoteBuilderOpen` (boolean)
-- New derived state: `canQuote` — true when `userRole === 'professional'`, `jobStatus === 'open'`, and no existing quote (reuse `useMyQuoteForJob`)
-- When `canQuote` is true, add a small "Build Quote" icon button next to the send button in the compose bar. Visually secondary (outline/ghost variant) — does not compete with messaging.
-- When clicked, renders `InlineQuoteBuilder` as an overlay above the compose bar
-- On submit success: send a system-style message via `useSendMessage` with `message_type: 'system'` body like "sent a formal quote", then close the builder
+**Hide nudge banner when builder is open:**
+Pass `isQuoteBuilderOpen` to suppress the banner when the builder is already expanded.
 
-### 4. Convert QuoteNudgeBanner to callback-based
+### 5. `QuoteNudgeBanner.tsx` — add `hidden` prop
 
-**File:** `src/pages/messages/components/QuoteNudgeBanner.tsx`
+Accept an optional `hidden: boolean` prop. When `true`, return `null`. Parent passes `hidden={isQuoteBuilderOpen}`.
 
-- Remove `useNavigate` and the navigation onClick
-- Add prop: `onStartQuote: () => void`
-- CTA calls `onStartQuote` instead of navigating away
-- Update copy: "You've discussed the details — ready to send a formal quote?" / CTA: "Start your quote"
-- Parent (`ConversationThread`) passes `onStartQuote={() => setIsQuoteBuilderOpen(true)}`
+## Files to touch
 
-### 5. Render quote cards inline in message thread
-
-**File:** `src/pages/messages/ConversationThread.tsx`
-
-After a quote is submitted, it appears as a system message in the thread (from step 3). Additionally, for richer display:
-- Query quotes for this job+pro using `useMyQuoteForJob`
-- If a quote exists and the last system message references it, render `QuoteCard` inline below that system message as a conversation artifact
-- This makes the quote visible in context for both parties
-
-### 6. Gate hire on quote existence
-
-**File:** `src/pages/jobs/actions/assignProfessional.action.ts`
-
-After the conversation check (around line 62), add:
-```sql
-SELECT id FROM quotes
-WHERE job_id = $1 AND professional_id = $2
-AND status IN ('submitted', 'revised')
-LIMIT 1
-```
-If no quote found: `return { success: false, error: 'A quote is required before hiring this professional.' }`
-
-Server-side enforcement — not UI-only.
+| File | Change |
+|---|---|
+| `src/pages/jobs/actions/submitQuote.action.ts` | Return `quoteId` from insert |
+| `src/pages/jobs/components/ProposalBuilder.tsx` | Pass `quoteId` to `onSuccess` callback |
+| `src/pages/messages/components/InlineQuoteBuilder.tsx` | Attach `quote_id` + `event` to system message metadata |
+| `src/pages/messages/ConversationThread.tsx` | Use metadata-based rendering, switch to `useQuotesForJob`, suppress nudge when builder open |
+| `src/pages/messages/components/QuoteNudgeBanner.tsx` | Add `hidden` prop |
 
 ## What does NOT change
 
-- `ProposalBuilder` — untouched, rendered inside wrapper
-- `QuoteCard` — untouched, reused in thread
-- Database schema — no migrations
-- `submitQuote.action.ts` — unchanged
+- Database schema — `metadata` JSONB column already exists on `messages`
+- `QuoteCard` — untouched
 - `acceptQuote.action.ts` — unchanged
-- Client-side `QuotesTab` in `JobTicketDetail` — unchanged (clients still see all quotes)
+- `assignProfessional.action.ts` — unchanged (quote gate already correct)
+- `QuotesTab` — unchanged
 
 ## Build order
 
-1. `InlineQuoteBuilder.tsx` (new wrapper)
-2. `QuoteNudgeBanner.tsx` (convert to callback)
-3. `ConversationThread.tsx` (add builder trigger + state + inline quote rendering)
-4. `JobDetailsModal.tsx` (remove pro-facing QuotesTab)
-5. `assignProfessional.action.ts` (add quote gate)
-
-## Translation keys needed
-
-Add to `public/locales/en/messages.json`:
-- `nudge.title` → "You've discussed the details — ready to send a formal quote?"
-- `nudge.subtitle` → "The client can't hire you until you submit one."
-- `nudge.cta` → "Start your quote"
-- `thread.buildQuote` → "Build Quote"
-- `thread.quoteSent` → "sent a formal quote"
+1. `submitQuote.action.ts` (return ID)
+2. `ProposalBuilder.tsx` (forward ID to callback)
+3. `InlineQuoteBuilder.tsx` (attach metadata)
+4. `QuoteNudgeBanner.tsx` (add hidden prop)
+5. `ConversationThread.tsx` (metadata-based rendering + `useQuotesForJob` + suppress nudge)
 
