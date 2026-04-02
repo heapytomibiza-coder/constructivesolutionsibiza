@@ -1,129 +1,126 @@
+# Pixel-Perfect Job Ticket UI Redesign
 
+## What changes
 
-# Redesign Job Ticket as a Guided Workflow
-
-## Problem
-The Job Ticket page is a flat stack of cards. It does not visually communicate where the job is, what has happened, or what to do next. Both roles need a process-oriented layout, not a dashboard layout.
-
-## Solution
-
-Restructure the page into three layers: a **progress rail**, a **stage hero**, and **stage-specific content** — plus a new **progress updates** system with photo support.
+Upgrade the existing Job Ticket components from functional-but-flat to a premium guided workflow with proper visual hierarchy, spacing, and interaction states.
 
 ---
 
-## Architecture
+## 1. StageHero.tsx — Complete redesign
 
-```text
-Desktop (lg+)                    Mobile
-┌────────────┬──────────────┐    ┌──────────────────┐
-│ Progress   │  Stage Hero  │    │  Progress Rail    │
-│ Rail       │              │    │  (horizontal)     │
-│ (sticky)   │  Stage       │    ├──────────────────┤
-│            │  Content     │    │  Stage Hero       │
-│ ✓ Posted   │              │    │  Stage Content    │
-│ ✓ Quoted   │  Progress    │    │  ...              │
-│ ✓ Accepted │  Updates     │    └──────────────────┘
-│ → Working  │              │
-│ ○ Complete │  Quote       │
-│ ○ Review   │  Summary     │
-│            │              │
-│            │  Conversation│
-└────────────┴──────────────┘
-```
+Current: small card with icon + text + button inline.
+New: dominant hero panel with status pill, large title (32px desktop / 26px mobile), meaning paragraph, distinct "Next step" inset panel, and separated action row.
 
----
+**Key changes:**
+- Add `quotesCount` and `hasAcceptedQuote` props to support the full 6-state map (open_no_quotes, open_with_quotes, assigned, in_progress, completed_no_review, completed_reviewed)
+- Replace the switch-on-status with a `resolveStage()` function + `STAGE_MAP` config object
+- Role-aware descriptions (client vs professional get different meaning + next step text)
+- Larger card: `rounded-3xl`, padding `28px`, gradient background
+- Status pill top-left (colored badge with stage label)
+- "Next step" rendered in a soft inset panel (`rounded-2xl`, tinted background)
+- Primary action button: `h-12 px-5 rounded-xl` on desktop, full-width on mobile
+- Optional support strip below actions (e.g. "3 updates posted")
 
-## Changes
+## 2. JobProgressRail.tsx — Premium polish
 
-### 1. New DB table: `job_progress_updates`
+Current: functional but visually thin.
+New: wrapped in a card surface with proper padding and footer summary.
 
-```sql
-create table public.job_progress_updates (
-  id uuid primary key default gen_random_uuid(),
-  job_id uuid references public.jobs(id) on delete cascade not null,
-  author_id uuid not null,
-  note text,
-  photo_url text,
-  created_at timestamptz not null default now()
-);
-alter table public.job_progress_updates enable row level security;
--- RLS: author can insert, job owner + assigned pro can read
-```
+**Desktop changes:**
+- Wrap in a `rounded-[20px]` card with border and `p-5`
+- "JOB PROGRESS" header with `tracking-wider uppercase 12px 600`
+- Job title preview below header (16px, 600, max 2 lines)
+- Step nodes: done=`28px` filled, current=`32px` with ring, upcoming=`28px` outline
+- Connector line: `2px` thick, colored for done steps
+- Step row min-height: `52px`, gap `12px`
+- Rail footer: compact summary strip showing last update time, professional name, status
 
-### 2. New storage bucket: `progress-photos`
+**Mobile changes:**
+- Wrap in a card with `rounded-[18px]`, `p-3.5`
+- Each step: min-width `88px`, icon above/label below
+- Status summary row above or inside the card ("Work in progress · Updated today")
 
-Create via migration. Public read, authenticated upload. Path: `{user_id}/{timestamp}.webp`.
+## 3. ProgressUpdates.tsx — Latest Update Card + Timeline
 
-### 3. New component: `JobProgressRail.tsx`
+Current: flat list of updates.
+New: split into "Latest Update Card" (large, prominent) + condensed timeline for older updates.
 
-Vertical progress indicator replacing `StatusTimeline`. Steps:
+**Latest Update Card:**
+- `rounded-[22px]`, `p-5`
+- Full-width image with `max-h-96 object-cover rounded-2xl`
+- Note text `16px`, timestamp + author meta `13px`
 
-- Job Posted (ready/open)
-- Quote Sent (quote exists)
-- Quote Accepted (in_progress or completed)
-- Work in Progress (in_progress)
-- Completed (completed)
-- Review (review exists)
+**Older updates:**
+- Compact list items: `p-3.5 rounded-2xl`, small thumbnail if image exists
+- "View all updates" link if >3 updates
+- Show only latest large + next 2 smaller by default
 
-Each step shows: done / current / upcoming state with icon + optional timestamp from `job_status_history`. The "current" step is visually dominant (larger, coloured, with description text).
+**Pro mobile FAB:**
+- Floating "Update" pill button (`56px`, bottom-right) for professionals during in_progress
+- Only visible on mobile, only for assigned pro
 
-On mobile: renders as a compact horizontal strip at the top (similar to current `StatusTimeline` but richer).
+## 4. JobTicketDetail.tsx — Layout restructure
 
-On desktop (lg+): renders as a sticky left column.
+**Desktop (lg+):**
+- Left rail: `w-[280px]` (up from `w-56`)
+- Gap: `24px`
+- Right column: `max-w-[820px]`
+- Container: `max-w-7xl`, `px-6`, `py-6`
 
-### 4. New component: `StageHero.tsx`
+**Mobile:**
+- `px-4`, `py-3`
+- Section gap: `16px` (down from `20px`)
 
-A prominent banner at the top of the right column:
-- Stage name in large text
-- One-sentence plain-English explanation of what this stage means
-- One clear "next action" button (context-dependent)
+**Content order refined:**
+1. StageHero (always)
+2. ProgressUpdates — latest update card (in_progress / completed)
+3. JobTicketCompletion (client + in_progress) — absorbed into StageHero action
+4. JobTicketReview (completed)
+5. Quotes section (role-dependent)
+6. ConversationPreviewCard (compact: last message + "Open chat" button, not full thread)
+7. Job Summary accordion (collapsed past open stage)
+8. Distribution actions (client + ready/open)
 
-Examples:
-- `in_progress` + client: "Work is underway. Mark complete once the job is finished." → [Mark Complete]
-- `in_progress` + pro: "You're working on this job. Post progress updates to keep the client informed." → [Add Update]
-- `completed` + no review: "The job is done. Leave a review." → [Leave Review]
-- `open` + client: "Your job is live. Waiting for quotes." → (no action)
+**Conversation treatment:**
+- Replace inline `JobTicketConversations` with a compact preview card showing last message + unread badge + "Open chat" button
+- Full conversation stays in messaging thread
 
-### 5. New component: `ProgressUpdates.tsx`
+## 5. New: ConversationPreviewCard component
 
-- Fetches from `job_progress_updates` ordered by `created_at desc`
-- Each update shows: photo (if any), note, timestamp, author label
-- For professionals on `in_progress` jobs: shows an "Add Update" form with photo upload + short text input
-- Photo upload uses `progress-photos` bucket via the existing image pipeline pattern
-- Clients see updates read-only
+Compact card (`rounded-[20px]`, `p-4.5`):
+- Title: "Conversation"
+- Last message preview (truncated)
+- Sender + timestamp
+- Unread badge
+- "Open chat" button linking to `/messages/:conversationId`
 
-### 6. Rewrite `JobTicketDetail.tsx` layout
+## 6. Job Summary — Accordion treatment
 
-Replace the current single-column card stack with:
+- When past open stage: render as a clean accordion (`rounded-[18px]`)
+- Trigger row: `h-14`, "Job summary" label + chevron
+- Category/area preview text in muted on trigger row
+- Quote details also become an accordion below
 
-**Desktop (lg+):** 2-column grid
-- Left (w-64, sticky): `JobProgressRail`
-- Right (flex-1): `StageHero` → stage-specific content in priority order
+## 7. Card hierarchy system
 
-**Mobile:** single column
-- `JobProgressRail` (horizontal mode)
-- `StageHero`
-- Stage content
+Apply consistent card styling:
+- **Level 1 (Hero):** `rounded-3xl`, `p-7`, gradient bg, subtle shadow
+- **Level 2 (Primary content):** `rounded-[22px]`, `p-5`
+- **Level 3 (Secondary):** `rounded-[18px]`, `p-4`, lower contrast
 
-**Content priority order (right column):**
-1. `StageHero` (always)
-2. `ProgressUpdates` (in_progress / completed)
-3. `JobTicketCompletion` (client + in_progress)
-4. `JobTicketReview` (completed)
-5. `ProQuoteSummary` or `JobTicketQuotes` (role-dependent)
-6. Job summary (collapsed by default once past open stage)
-7. `JobTicketConversations`
-8. Distribution actions (client + ready/open only)
+## 8. Spacing system
 
-### 7. Security: conversations visibility fix
+Enforce strict scale: 4, 8, 12, 16, 20, 24, 28, 32
+- Section gap mobile: `16px`
+- Section gap desktop: `20px`
+- Hero padding: `28px`
+- Primary card padding: `20px`
+- Secondary card padding: `16px`
 
-The tasker should only see their own conversation, not all conversations for the job. Update `JobTicketConversations` query to filter:
-- Client: show all conversations for the job
-- Professional: filter `conversations` where `pro_id = user.id`
+## 9. Typography hierarchy
 
-### 8. Remove `StatusTimeline` usage from this page
-
-Replaced by `JobProgressRail`. The old component can remain for use elsewhere.
+Desktop: Hero title 32/700, section title 20/600, card title 18/600, body 15-16/400, meta 13/500, tiny 12/600
+Mobile: Hero title 26/700, section title 18/600, body 15/400, meta 12-13
 
 ---
 
@@ -131,18 +128,11 @@ Replaced by `JobProgressRail`. The old component can remain for use elsewhere.
 
 | File | Action |
 |------|--------|
-| Migration SQL | Create `job_progress_updates` table + RLS + storage bucket |
-| `src/pages/dashboard/client/components/JobProgressRail.tsx` | New |
-| `src/pages/dashboard/client/components/StageHero.tsx` | New |
-| `src/pages/dashboard/client/components/ProgressUpdates.tsx` | New |
-| `src/pages/dashboard/client/JobTicketDetail.tsx` | Major rewrite — 2-column layout |
-| `src/pages/dashboard/client/components/JobTicketConversations.tsx` | Filter by role |
+| `StageHero.tsx` | Major rewrite — 6-state config, premium layout |
+| `JobProgressRail.tsx` | Polish — card wrap, footer, node sizing, mobile card |
+| `ProgressUpdates.tsx` | Split into latest card + timeline, add mobile FAB |
+| `JobTicketDetail.tsx` | Layout widths, spacing, content order, conversation preview |
+| `ConversationPreviewCard.tsx` | New — compact chat preview |
+| `JobTicketConversations.tsx` | Keep for full view, no longer inline on ticket |
 
----
-
-## What this does NOT include
-
-- Payment/holding system integration (separate feature)
-- Image optimization pipeline for progress photos (can use direct upload first, optimize later)
-- Notification triggers for progress updates (follow-up)
-
+No database changes needed.
