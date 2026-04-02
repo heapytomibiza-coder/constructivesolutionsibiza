@@ -197,12 +197,12 @@ export function JobTicketReview({
 
   return (
     <>
-      <Card className="border-primary/30 bg-primary/5">
+      <Card className="border-accent/20 bg-accent/[0.03]">
         <CardContent className="p-5 space-y-4">
           <div className="space-y-1">
-            <p className="text-sm font-medium">{promptText}</p>
-            <p className="text-xs text-muted-foreground">
-              {t('jobTicket.reviewHelps', 'Your review helps other clients and builds trust on the platform.')}
+            <p className="text-sm font-medium text-foreground">{promptText}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {t('jobTicket.reviewHelps', 'Your review helps build trust and helps others make better decisions.')}
             </p>
           </div>
 
