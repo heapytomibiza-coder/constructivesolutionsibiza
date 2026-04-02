@@ -48,8 +48,10 @@ interface StageHeroProps {
   quotesCount: number;
   hasAcceptedQuote: boolean;
   completionRequested: boolean;
+  cancellationRequested: boolean;
   onMarkComplete?: () => void;
   onRequestCompletion?: () => void;
+  onWithdraw?: () => void;
   onScrollToUpdates?: () => void;
   onScrollToReview?: () => void;
   onScrollToQuotes?: () => void;
