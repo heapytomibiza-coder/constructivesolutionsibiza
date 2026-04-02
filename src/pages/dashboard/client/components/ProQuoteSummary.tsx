@@ -78,7 +78,6 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
         description: costDescription.trim(),
         unit_price: amount,
         quantity: 1,
-        line_total: amount,
         sort_order: sortOrder,
         is_addition: true,
         added_by: user!.id,
