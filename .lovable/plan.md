@@ -1,36 +1,53 @@
 
+# Complete the Job Ticket as the Lifecycle Hub
 
-# Redirect Lifecycle Actions from Chat to Job Ticket Page
+## Current state audit
 
-## What's happening now
-The `JobLifecycleBar` in the messaging thread duplicates lifecycle actions (Mark Complete, Leave Review) that already exist on the dedicated `JobTicketDetail` page (`/dashboard/jobs/:jobId`). This clutters the conversation with structured workflow actions.
+### ✅ Already working for BOTH roles:
+- **Job summary card** (title, category, location, timing, budget)
+- **Status badge** (ready/open/in_progress/completed/cancelled)
+- **StatusTimeline** (visual dots: ready → open → in_progress → completed)
+- **Review section** (role-aware — client reviews pro, pro reviews client)
+- **Conversations link** (role-aware unread detection)
+- **Raise Issue button** (links to dispute system)
 
-## What should happen
-The messaging thread stays informal. The lifecycle bar in chat should **link to the Job Ticket page** for structured actions instead of handling them inline.
+### ✅ Working for CLIENT only (correctly gated):
+- Activity panel (invites/conversations/quotes counts)
+- Completion CTA ("Mark as Complete")
+- Quotes section (compare/review incoming quotes)
+- Distribution actions (post to board, invite pros)
+- Edit/Close/Hire Again buttons
+
+### ❌ Missing — needs adding:
+
+1. **JobTimeline on the ticket page** — We built a rich vertical timeline (merges status history + quote events + reviews) but it's only in the messages header. It should be the centrepiece of the Job Ticket page, replacing or supplementing the simple dot-based `StatusTimeline`.
+
+2. **Pro's quote summary** — When a pro views their job ticket, they should see their own submitted quote (amount, status, line items) so they know what was agreed. Currently quotes section is client-only.
+
+3. **Client name for pro view** — The pro should see who the client is (display name from profiles table). Currently no client identity shown.
 
 ## Changes
 
-### 1. `JobLifecycleBar.tsx` — replace inline actions with links to Job Ticket
-- **`in_progress` state**: Instead of an inline "Mark Complete" button with confirmation dialog, show a "View Job" button that navigates to `/dashboard/jobs/${jobId}`
-- **`completed` state**: Already links to the Job Ticket — no change needed
-- **`open` + quote nudge (professional)**: Keep "Start your quote" as-is — quote composition is inherently a chat action
-- **`open` + quote received (client)**: Keep as-is — reviewing the quote card happens in the thread naturally
-- Remove the `AlertDialog` confirmation for completion (no longer needed in chat)
-- Remove the `onComplete` prop entirely — chat no longer handles completion
+### 1. Add `JobTimeline` to the Job Ticket page
+- Import the existing `JobTimeline` from `src/pages/messages/components/JobTimeline.tsx`
+- Show it expanded (not collapsed like in chat header) below the status badge
+- Keep the simple `StatusTimeline` dots as a compact summary, add the rich timeline below it
+- Both roles see this
 
-### 2. `ConversationThread.tsx` — simplify props
-- Remove the `onComplete` handler and `complete_job` RPC call from the thread
-- `JobLifecycleBar` no longer needs `onComplete`
+### 2. Add pro's own quote card
+- New section: when `!isClient`, fetch the pro's quote for this job
+- Show a read-only summary: total amount, status (submitted/accepted/revised), line items
+- Reuse existing `QuoteCard` component or show a simple summary card
 
-### 3. Job Ticket page already has everything
-- `JobTicketCompletion` handles mark complete with `complete_job` RPC
-- `JobTicketReview` handles the review form
-- `StatusTimeline` shows progress
-- `JobActivityPanel` shows recent activity
-- No changes needed here
+### 3. Show client identity to the pro
+- Fetch client `display_name` from `profiles` table using `job.user_id`
+- Show in the job summary card header area as "Client: [name]"
+
+### 4. Tidy the StatusTimeline
+- The simple dot timeline still serves as a quick-glance indicator
+- The rich `JobTimeline` underneath shows the detailed audit trail
 
 ## Result
-- Chat = informal conversation + quote exchange
-- Job Ticket = structured lifecycle control centre
-- Lifecycle bar becomes a signpost, not a duplicate control panel
-
+The Job Ticket becomes the single source of truth for both roles:
+- **Pro sees**: status → timeline → job summary → their quote → conversations → review → raise issue
+- **Client sees**: status → timeline → activity → job summary → completion → review → quotes → conversations → distribution → invites
