@@ -373,9 +373,9 @@ export default function JobTicketDetail() {
               cancellationReason={job.cancellation_reason}
             />
 
-            {/* 3. Progress Updates + inline completion prompt */}
+            {/* 3. Progress Updates — tightly coupled to hero as "the proof" */}
             {['in_progress', 'completed'].includes(job.status) && (
-              <div ref={updatesRef}>
+              <div ref={updatesRef} className="-mt-1">
                 <ProgressUpdates
                   jobId={job.id}
                   jobStatus={job.status}
