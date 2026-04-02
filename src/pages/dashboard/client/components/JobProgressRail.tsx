@@ -28,6 +28,8 @@ interface Step {
   timestamp?: string;
 }
 
+const isFinalStep = (key: string) => key === 'review' || key === 'completed';
+
 function resolveSteps(
   jobStatus: string,
   hasQuote: boolean,
@@ -65,8 +67,10 @@ function resolveSteps(
     accepted: t('progressRail.accepted', 'Quote Accepted'),
     in_progress: t('progressRail.working', 'Work in Progress'),
     completed: t('progressRail.completed', 'Completed'),
-    review: t('progressRail.review', 'Review'),
+    review: t('progressRail.review', 'Reviewed'),
   };
+
+  
 
   return statusOrder.map((key, i) => ({
     key,
@@ -134,12 +138,14 @@ export function JobProgressRail({
             {steps.map((step, i) => (
               <div key={step.key} className="flex items-start gap-3">
                 <div className="flex flex-col items-center">
-                  <StepNode state={step.state} />
+                  <StepNode state={step.state} isFinal={isFinalStep(step.key)} />
                   {i < steps.length - 1 && (
                     <div
                       className={cn(
                         'w-0.5 h-7',
-                        step.state === 'done' ? 'bg-primary' : 'bg-border',
+                        step.state === 'done'
+                          ? isFinalStep(step.key) ? 'bg-success/40' : 'bg-primary'
+                          : 'bg-border',
                       )}
                     />
                   )}
@@ -148,7 +154,8 @@ export function JobProgressRail({
                   <p
                     className={cn(
                       'text-sm leading-tight',
-                      step.state === 'current' && 'text-primary font-semibold',
+                      step.state === 'current' && !isFinalStep(step.key) && 'text-primary font-semibold',
+                      step.state === 'current' && isFinalStep(step.key) && 'text-success font-semibold',
                       step.state === 'done' && 'text-foreground font-medium',
                       step.state === 'upcoming' && 'text-muted-foreground',
                     )}
@@ -161,7 +168,12 @@ export function JobProgressRail({
                     </p>
                   )}
                   {step.state === 'current' && (
-                    <span className="inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    <span className={cn(
+                      'inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full',
+                      isFinalStep(step.key)
+                        ? 'text-success bg-success/10'
+                        : 'text-primary bg-primary/10',
+                    )}>
                       {t('progressRail.currentLabel', 'Current')}
                     </span>
                   )}
@@ -209,8 +221,10 @@ export function JobProgressRail({
                 <div
                   className={cn(
                     'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12px] font-medium min-w-[88px] justify-center',
-                    step.state === 'done' && 'bg-primary/10 text-primary',
-                    step.state === 'current' && 'bg-primary text-primary-foreground',
+                    step.state === 'done' && !isFinalStep(step.key) && 'bg-primary/10 text-primary',
+                    step.state === 'done' && isFinalStep(step.key) && 'bg-success/10 text-success',
+                    step.state === 'current' && !isFinalStep(step.key) && 'bg-primary text-primary-foreground',
+                    step.state === 'current' && isFinalStep(step.key) && 'bg-success text-success-foreground',
                     step.state === 'upcoming' && 'bg-muted text-muted-foreground',
                   )}
                 >
@@ -223,7 +237,7 @@ export function JobProgressRail({
                   <div
                     className={cn(
                       'w-3 h-0.5 shrink-0',
-                      step.state === 'done' ? 'bg-primary' : 'bg-border',
+                      step.state === 'done' ? (isFinalStep(step.key) ? 'bg-success/40' : 'bg-primary') : 'bg-border',
                     )}
                   />
                 )}
@@ -238,18 +252,24 @@ export function JobProgressRail({
 
 /* ─── Step node (desktop) ─── */
 
-function StepNode({ state }: { state: 'done' | 'current' | 'upcoming' }) {
+function StepNode({ state, isFinal }: { state: 'done' | 'current' | 'upcoming'; isFinal?: boolean }) {
   if (state === 'done') {
     return (
-      <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center shrink-0">
-        <Check className="h-3.5 w-3.5 text-primary-foreground" />
+      <div className={cn(
+        'h-7 w-7 rounded-full flex items-center justify-center shrink-0',
+        isFinal ? 'bg-success/15 border-2 border-success/40' : 'bg-primary',
+      )}>
+        <Check className={cn('h-3.5 w-3.5', isFinal ? 'text-success' : 'text-primary-foreground')} />
       </div>
     );
   }
   if (state === 'current') {
     return (
-      <div className="h-8 w-8 rounded-full bg-primary/15 border-2 border-primary flex items-center justify-center shrink-0">
-        <div className="h-3 w-3 rounded-full bg-primary" />
+      <div className={cn(
+        'h-8 w-8 rounded-full border-2 flex items-center justify-center shrink-0',
+        isFinal ? 'bg-success/10 border-success' : 'bg-primary/15 border-primary',
+      )}>
+        <div className={cn('h-3 w-3 rounded-full', isFinal ? 'bg-success' : 'bg-primary')} />
       </div>
     );
   }
