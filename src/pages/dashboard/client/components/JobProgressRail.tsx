@@ -68,7 +68,7 @@ function resolveSteps(
     review: t('progressRail.review', 'Reviewed'),
   };
 
-  const isFinalStep = (key: string) => key === 'review' || key === 'completed';
+  
 
   return statusOrder.map((key, i) => ({
     key,
