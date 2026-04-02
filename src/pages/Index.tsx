@@ -16,6 +16,8 @@ import {
   AlertTriangle, Lock, FileCheck, Scale, Users, Briefcase
 } from 'lucide-react';
 import heroHome from '@/assets/heroes/hero-home.webp';
+import { ProofOfLifeStrip } from '@/components/ProofOfLifeStrip';
+import { SEOHead } from '@/components/SEOHead';
 
 const SERVICE_CARDS = [
   { key: 'svc1', icon: Hammer, link: '/services' },
@@ -58,6 +60,12 @@ const Index = () => {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Find Trusted Builders & Trades in Ibiza | Constructive Solutions Ibiza"
+        description="Post your job and connect with trusted builders, trades, and construction professionals across Ibiza."
+        canonical="https://www.constructivesolutionsibiza.com/"
+      />
+
       {/* ─── 1. HERO ─── */}
       <HeroBanner
         imageSrc={heroHome}
@@ -68,21 +76,26 @@ const Index = () => {
           <div className="flex flex-col gap-6 items-center">
             <UniversalSearchBar className="w-full" />
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
+              <Button size="lg" variant="accent" asChild>
                 <Link to="/post">
                   {t('hero.postJob')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
+              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
+                <Link to="/auth?tab=register&role=professional">
+                  {t('hero.joinAsPro')}
+                </Link>
+              </Button>
             </div>
             <div className="hero-trust-badge mt-2">
-              <CheckCircle className="h-4 w-4" />
-              {t('trust.guided')}
+              <Shield className="h-4 w-4" />
+              {t('trust.verifiedPros')}
               <span className="text-white/50">•</span>
-              <Clock className="h-4 w-4" />
+              <MessageSquare className="h-4 w-4" />
               {t('trust.clarity')}
               <span className="text-white/50">•</span>
-              <Shield className="h-4 w-4" />
+              <MapPin className="h-4 w-4" />
               {t('trust.local')}
             </div>
           </div>
@@ -92,6 +105,9 @@ const Index = () => {
           {PLATFORM.name}
         </p>
       </HeroBanner>
+
+      {/* ─── PROOF OF LIFE STRIP ─── */}
+      <ProofOfLifeStrip />
 
       {/* ─── TRUST STRIP (gated: escrow-beta) ─── */}
       {isRolloutActive('escrow-beta') && (
@@ -590,7 +606,7 @@ const Index = () => {
               <Link to="/post">{t('home.finalCtaStart')}</Link>
             </Button>
             <Button size="lg" variant="outline" className="bg-transparent border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" asChild>
-              <Link to="/register">{t('home.finalCtaJoin')}</Link>
+              <Link to="/auth?tab=register&role=professional">{t('home.finalCtaJoinPro')}</Link>
             </Button>
           </div>
         </div>

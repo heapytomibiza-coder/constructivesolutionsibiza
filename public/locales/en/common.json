@@ -3,7 +3,7 @@
     "home": "Home",
     "services": "Services",
     "jobs": "Jobs",
-    "professionals": "Taskers",
+    "professionals": "Professionals",
     "howItWorks": "How it works",
     "about": "About",
     "community": "Community",
@@ -26,7 +26,8 @@
     "myServices": "My Services",
     "notifications": "Notifications",
     "noNotifications": "No new notifications",
-    "viewAllMessages": "View all messages"
+    "viewAllMessages": "View all messages",
+    "joinAsPro": "Join as Professional"
   },
   "lanes": {
     "discover": "Discover",
@@ -44,15 +45,17 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Bridging the gap between idea and build",
-    "subtitle": "We help you understand the scope, set your expectations, and connect you with the right professionals",
-    "postJob": "Start Your Project",
-    "browsePros": "Browse Taskers"
+    "title": "Find Trusted Builders & Trades in Ibiza",
+    "subtitle": "Post your job and get connected with reliable professionals across Ibiza — from small fixes to full renovations.",
+    "postJob": "Post a Job",
+    "browsePros": "Browse Professionals",
+    "joinAsPro": "Join as a Professional"
   },
   "trust": {
-    "verified": "Verified trades",
+    "verified": "Verified professionals",
+    "verifiedPros": "Verified professionals",
     "sameDay": "Same-day response",
-    "local": "Ibiza-based",
+    "local": "Built for Ibiza",
     "guided": "Guided process",
     "clarity": "Clear communication",
     "realSpecs": "Clear specs",
@@ -191,6 +194,7 @@
     "finalCtaDesc": "Start a project with structure. Work with professionals who are accountable. Build with confidence.",
     "finalCtaStart": "Start Your Project",
     "finalCtaJoin": "Join the Platform",
+    "finalCtaJoinPro": "Join as a Professional",
     "servicesTitle": "Our Services",
     "servicesSubtitle": "Specialist trades and project support across Ibiza",
     "svc1Title": "Renovations & Builds",
@@ -252,7 +256,7 @@
   "services": {
     "title": "Our Services",
     "subtitle": "Find trusted professionals across all construction and property services",
-    "trustBadge": "Verified trades • Ibiza-based Taskers",
+    "trustBadge": "Verified professionals • Ibiza-based",
     "viewServices": "View services",
     "cantFind": "Can't find what you're looking for?",
     "postCustomJob": "Post a Custom Job",
@@ -265,7 +269,7 @@
     "sortBy": "Sort by",
     "sortNewest": "Newest",
     "sortPrice": "Lowest price",
-    "contactTasker": "Contact Tasker"
+    "contactTasker": "Contact Professional"
   },
   "serviceCategory": {
     "whatKindOfWork": "What kind of work do you need?",
@@ -517,12 +521,12 @@
     }
   },
   "professionals": {
-    "title": "Browse Taskers",
-    "titleSelect": "Choose a Tasker",
-    "subtitle": "Discover Taskers offering services across Ibiza",
+    "title": "Browse Professionals",
+    "titleSelect": "Choose a Professional",
+    "subtitle": "Discover professionals offering construction and trade services across Ibiza",
     "subtitleSelect": "Select who you'd like to send your job request to",
-    "trustBadge": "Ibiza-based Taskers",
-    "searchPlaceholder": "Search Taskers...",
+    "trustBadge": "Ibiza-based professionals",
+    "searchPlaceholder": "Search professionals...",
     "searchButton": "Search",
     "filteringBy": "Filtering by:",
     "clearAll": "Clear all",
@@ -530,11 +534,11 @@
     "viewButton": "View",
     "selectButton": "Select",
     "backToJob": "Back to Job",
-    "selectProBanner": "Select a Tasker to send your job to",
-    "noResultsFiltered": "No Taskers found matching these filters.",
-    "noResultsEmpty": "No Taskers listed yet. Check back soon!",
+    "selectProBanner": "Select a professional to send your job to",
+    "noResultsFiltered": "No professionals found matching these filters.",
+    "noResultsEmpty": "No professionals listed yet. Check back soon!",
     "clearFilters": "Clear Filters",
-    "joinAsPro": "Join as Tasker"
+    "joinAsPro": "Join as Professional"
   },
   "about": {
     "heroTitle": "About Us",

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { JobsMarketplace } from "@/pages/jobs/JobsMarketplace";
 import { Shield } from "lucide-react";
 import heroJobs from "@/assets/heroes/hero-jobs.jpg";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function JobBoardPage() {
   const navigate = useNavigate();
@@ -14,6 +15,11 @@ export default function JobBoardPage() {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Construction Jobs in Ibiza | Constructive Solutions"
+        description="Browse active construction and trade jobs across Ibiza. Find projects that match your skills."
+        canonical="https://www.constructivesolutionsibiza.com/jobs"
+      />
       <HeroBanner
         imageSrc={heroJobs}
         title={t('board.title')}
