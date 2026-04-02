@@ -47,7 +47,7 @@ export function JobTicketQuotes({ jobId, jobStatus }: JobTicketQuotesProps) {
   if (activeQuotes.length === 0) {
     if (['open', 'ready'].includes(jobStatus)) {
       return (
-        <Card>
+        <Card className="border-border/40 bg-muted/20 shadow-none">
           <CardContent className="p-5">
             <div className="text-center py-6 space-y-2">
               <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto" />
