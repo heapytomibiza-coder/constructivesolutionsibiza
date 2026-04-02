@@ -303,7 +303,16 @@ export default function JobTicketDetail() {
           <span className="font-display font-semibold text-foreground truncate flex-1">
             {job.title}
           </span>
-          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <BudgetIncreaseCard
+                jobId={job.id}
+                jobStatus={job.status}
+                isClient={isClient}
+                budgetType={job.budget_type}
+                budgetMin={job.budget_min}
+                budgetMax={job.budget_max}
+                budgetValue={job.budget_value}
+              />
             {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
               <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive text-xs" asChild>
                 <Link to={`/disputes/raise?job=${jobId}`}>
