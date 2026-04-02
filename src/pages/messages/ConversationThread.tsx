@@ -12,7 +12,6 @@ import { useQuotesForJob } from "@/pages/jobs/queries/quotes.query";
 import { useSession } from "@/contexts/SessionContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { completeJob } from "@/pages/jobs/actions/completeJob.action";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, ArrowLeft, CheckCheck, DollarSign } from "lucide-react";
 import { toast } from "sonner";
