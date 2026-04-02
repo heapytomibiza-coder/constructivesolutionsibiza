@@ -15,9 +15,10 @@ interface QuoteNudgeBannerProps {
   jobStatus?: string;
   messageCount: number;
   onStartQuote: () => void;
+  hidden?: boolean;
 }
 
-export function QuoteNudgeBanner({ jobId, jobStatus, messageCount, onStartQuote }: QuoteNudgeBannerProps) {
+export function QuoteNudgeBanner({ jobId, jobStatus, messageCount, onStartQuote, hidden }: QuoteNudgeBannerProps) {
   const { t } = useTranslation('messages');
   const { user, activeRole } = useSession();
 
@@ -29,6 +30,7 @@ export function QuoteNudgeBanner({ jobId, jobStatus, messageCount, onStartQuote 
 
   // Only show for professionals on open jobs with 2+ messages and no existing quote
   if (
+    hidden ||
     activeRole !== 'professional' ||
     jobStatus !== 'open' ||
     messageCount < 2 ||

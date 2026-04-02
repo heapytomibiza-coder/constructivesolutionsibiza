@@ -31,7 +31,7 @@ interface ProposalBuilderProps {
   jobId: string;
   /** If provided, builder prefills from this quote and creates a revision on submit. */
   existingQuote?: Quote | null;
-  onSuccess?: () => void;
+  onSuccess?: (quoteId?: string) => void;
 }
 
 function createItem(): LineItem {
@@ -211,7 +211,7 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
     queryClient.invalidateQueries({ queryKey: quoteKeys.myQuote(jobId) });
     queryClient.invalidateQueries({ queryKey: quoteKeys.forJob(jobId) });
     setSubmitting(false);
-    onSuccess?.();
+    onSuccess?.(quote?.id);
   };
 
   return (

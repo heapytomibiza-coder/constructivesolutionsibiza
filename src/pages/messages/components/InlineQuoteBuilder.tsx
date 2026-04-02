@@ -27,13 +27,14 @@ export function InlineQuoteBuilder({
   const { t } = useTranslation("messages");
   const queryClient = useQueryClient();
 
-  const handleSuccess = useCallback(async () => {
-    // Insert a system message so the quote appears as a conversation event
+  const handleSuccess = useCallback(async (quoteId?: string) => {
+    // Insert a system message with structured metadata for stable rendering
     await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: senderId,
       body: t("thread.quoteSent", "sent a formal quote"),
       message_type: "system",
+      metadata: { event: "quote_submitted", quote_id: quoteId ?? null },
     });
 
     // Refresh messages + quotes

@@ -6,7 +6,7 @@ import { RequestSupportButton, SystemMessage } from "./components";
 import { QuoteNudgeBanner } from "./components/QuoteNudgeBanner";
 import { InlineQuoteBuilder } from "./components/InlineQuoteBuilder";
 import { QuoteCard } from "@/pages/jobs/components/QuoteCard";
-import { useMyQuoteForJob } from "@/pages/jobs/queries/quotes.query";
+import { useQuotesForJob, useMyQuoteForJob } from "@/pages/jobs/queries/quotes.query";
 import { useSession } from "@/contexts/SessionContext";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, ArrowLeft, CheckCheck, DollarSign } from "lucide-react";
@@ -54,12 +54,16 @@ export function ConversationThread({
 
   const dateFnsLocale = i18n.language?.startsWith('es') ? es : undefined;
 
-  // Check if pro can quote: professional role, open job, no existing quote
+  // Pro's own quote (for canQuote gating)
   const { data: myQuote } = useMyQuoteForJob(
     jobId ?? null,
     currentUserId,
     userRole === 'professional' && jobStatus === 'open'
   );
+
+  // All quotes for this job (for inline rendering — works for both client and pro)
+  const { data: allQuotes } = useQuotesForJob(jobId ?? null, !!jobId);
+
   const canQuote = userRole === 'professional' && jobStatus === 'open' && !myQuote && !!jobId;
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
@@ -174,14 +178,20 @@ export function ConversationThread({
               msg.message_type === 'system' ? (
                 <React.Fragment key={msg.id}>
                   <SystemMessage message={msg} />
-                  {/* Render QuoteCard inline after system "quote sent" message */}
-                  {msg.body.includes(t('thread.quoteSent', 'sent a formal quote')) && myQuote && (
-                    <div className="flex justify-end">
-                      <div className="max-w-[85%] sm:max-w-[75%]">
-                        <QuoteCard quote={myQuote} role={userRole === 'professional' ? 'pro' : 'client'} />
+                  {/* Render QuoteCard inline — use metadata.quote_id for stable matching */}
+                  {(() => {
+                    const meta = msg.metadata as Record<string, unknown> | null;
+                    if (meta?.event !== 'quote_submitted' || !meta?.quote_id) return null;
+                    const quote = allQuotes?.find(q => q.id === meta.quote_id);
+                    if (!quote) return null;
+                    return (
+                      <div className="flex justify-end">
+                        <div className="max-w-[85%] sm:max-w-[75%]">
+                          <QuoteCard quote={quote} role={userRole === 'professional' ? 'pro' : 'client'} />
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </React.Fragment>
               ) : (
                 <MessageBubble
@@ -216,6 +226,7 @@ export function ConversationThread({
           jobStatus={jobStatus}
           messageCount={messages?.length ?? 0}
           onStartQuote={() => setIsQuoteBuilderOpen(true)}
+          hidden={isQuoteBuilderOpen}
         />
       )}
 
