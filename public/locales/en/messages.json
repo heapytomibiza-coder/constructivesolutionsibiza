@@ -14,11 +14,33 @@
     "untitledJob": "Job",
     "youAreResponding": "You're responding"
   },
-  "nudge": {
-    "title": "You've discussed the details — ready to send a formal quote?",
-    "urgentTitle": "You've discussed the job — send your quote to move forward",
-    "subtitle": "The client can't hire you until you submit one.",
-    "cta": "Start your quote"
+  "lifecycle": {
+    "quoteTitle": "Ready to send a formal quote?",
+    "urgentQuoteTitle": "You've discussed the job — send your quote to move forward",
+    "quoteSubtitle": "The client can't hire you until you submit one.",
+    "startQuote": "Start your quote",
+    "quoteSentWaiting": "Quote sent — waiting for response",
+    "quoteReceivedClient": "You received a quote — review it above",
+    "workInProgress": "Work in progress",
+    "markComplete": "Mark Complete",
+    "jobCompleted": "Job completed",
+    "jobCompletedSystem": "The job has been marked as complete.",
+    "completeFailed": "Failed to complete job",
+    "leaveReview": "Leave a review",
+    "confirmCompleteTitle": "Mark this job as complete?",
+    "confirmCompleteDesc": "This confirms the work is finished. Both parties will be prompted to leave a review.",
+    "cancel": "Cancel",
+    "confirmComplete": "Yes, mark complete"
+  },
+  "timeline": {
+    "status": {
+      "draft": "Job created",
+      "open": "Job posted",
+      "in_progress": "Work started",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "reviewed": "Review left"
+    }
   },
   "thread": {
     "conversation": "Conversation",

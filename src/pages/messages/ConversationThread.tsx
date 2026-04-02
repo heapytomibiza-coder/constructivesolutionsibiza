@@ -245,13 +245,16 @@ export function ConversationThread({
         )}
       </div>
 
-      {/* Quote nudge for professionals */}
+      {/* Lifecycle bar */}
       {jobId && (
-        <QuoteNudgeBanner
+        <JobLifecycleBar
           jobId={jobId}
           jobStatus={jobStatus}
+          userRole={userRole === 'professional' ? 'professional' : 'client'}
           messageCount={messages?.length ?? 0}
+          hasQuote={hasQuote}
           onStartQuote={() => setIsQuoteBuilderOpen(true)}
+          onComplete={handleCompleteJob}
           hidden={isQuoteBuilderOpen}
         />
       )}

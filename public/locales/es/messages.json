@@ -14,11 +14,33 @@
     "untitledJob": "Trabajo",
     "youAreResponding": "Estás respondiendo"
   },
-  "nudge": {
-    "title": "Ya discutiste los detalles — ¿listo para enviar un presupuesto formal?",
-    "urgentTitle": "Ya hablaste del trabajo — envía tu presupuesto para avanzar",
-    "subtitle": "El cliente no puede contratarte sin un presupuesto.",
-    "cta": "Empezar presupuesto"
+  "lifecycle": {
+    "quoteTitle": "¿Listo para enviar un presupuesto formal?",
+    "urgentQuoteTitle": "Ya hablaste del trabajo — envía tu presupuesto para avanzar",
+    "quoteSubtitle": "El cliente no puede contratarte sin un presupuesto.",
+    "startQuote": "Empezar presupuesto",
+    "quoteSentWaiting": "Presupuesto enviado — esperando respuesta",
+    "quoteReceivedClient": "Recibiste un presupuesto — revísalo arriba",
+    "workInProgress": "Trabajo en curso",
+    "markComplete": "Marcar como completado",
+    "jobCompleted": "Trabajo completado",
+    "jobCompletedSystem": "El trabajo ha sido marcado como completado.",
+    "completeFailed": "No se pudo completar el trabajo",
+    "leaveReview": "Dejar una reseña",
+    "confirmCompleteTitle": "¿Marcar este trabajo como completado?",
+    "confirmCompleteDesc": "Esto confirma que el trabajo terminó. Ambas partes podrán dejar una reseña.",
+    "cancel": "Cancelar",
+    "confirmComplete": "Sí, marcar como completado"
+  },
+  "timeline": {
+    "status": {
+      "draft": "Trabajo creado",
+      "open": "Trabajo publicado",
+      "in_progress": "Trabajo iniciado",
+      "completed": "Completado",
+      "cancelled": "Cancelado",
+      "reviewed": "Reseña enviada"
+    }
   },
   "thread": {
     "conversation": "Conversación",
