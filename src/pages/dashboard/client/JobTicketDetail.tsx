@@ -354,18 +354,29 @@ export default function JobTicketDetail() {
               quotesCount={quotesCount}
               hasAcceptedQuote={hasAcceptedQuote}
               completionRequested={completionRequested}
+              cancellationRequested={cancellationRequested}
               onMarkComplete={() => {
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
               onRequestCompletion={() => {
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
+              onWithdraw={handleWithdraw}
               onScrollToUpdates={scrollToUpdates}
               onScrollToReview={scrollToReview}
               onScrollToQuotes={scrollToQuotes}
             />
 
-            {/* 2. Progress Updates (in_progress / completed) */}
+            {/* 2. Cancellation request card (in_progress + cancellation requested) */}
+            <CancellationRequestCard
+              jobId={job.id}
+              jobStatus={job.status}
+              isClient={isClient}
+              cancellationRequested={cancellationRequested}
+              cancellationReason={job.cancellation_reason}
+            />
+
+            {/* 3. Progress Updates (in_progress / completed) */}
             {['in_progress', 'completed'].includes(job.status) && (
               <div ref={updatesRef}>
                 <ProgressUpdates
@@ -377,7 +388,7 @@ export default function JobTicketDetail() {
               </div>
             )}
 
-            {/* 3. Completion CTA (both roles during in_progress) */}
+            {/* 4. Completion CTA (both roles during in_progress) */}
             <div id="completion-section">
               <JobTicketCompletion
                 jobId={job.id}
