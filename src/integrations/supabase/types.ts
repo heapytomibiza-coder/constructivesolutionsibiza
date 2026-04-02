@@ -1389,6 +1389,8 @@ export type Database = {
           budget_value: number | null
           category: string | null
           completed_at: string | null
+          completion_requested_at: string | null
+          completion_requested_by: string | null
           computed_inspection_bias: string | null
           computed_safety: string | null
           created_at: string
@@ -1428,6 +1430,8 @@ export type Database = {
           budget_value?: number | null
           category?: string | null
           completed_at?: string | null
+          completion_requested_at?: string | null
+          completion_requested_by?: string | null
           computed_inspection_bias?: string | null
           computed_safety?: string | null
           created_at?: string
@@ -1467,6 +1471,8 @@ export type Database = {
           budget_value?: number | null
           category?: string | null
           completed_at?: string | null
+          completion_requested_at?: string | null
+          completion_requested_by?: string | null
           computed_inspection_bias?: string | null
           computed_safety?: string | null
           created_at?: string
@@ -3673,6 +3679,7 @@ export type Database = {
       mark_nudge_sent: { Args: { p_nudge_id: string }; Returns: undefined }
       purge_stale_telemetry: { Args: never; Returns: undefined }
       refresh_demand_snapshots: { Args: never; Returns: undefined }
+      request_job_completion: { Args: { p_job_id: string }; Returns: undefined }
       rpc_admin_dispute_analytics: { Args: never; Returns: Json }
       rpc_admin_dispute_inbox: {
         Args: never

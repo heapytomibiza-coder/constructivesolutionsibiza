@@ -260,6 +260,7 @@ export default function JobTicketDetail() {
   const hasReview = !!existingReview;
   const isPastOpen = ['in_progress', 'completed'].includes(job.status);
   const quotesCount = isClient ? quotesForJob.length : (myQuote ? 1 : 0);
+  const completionRequested = !!job.completion_requested_at;
 
   const railProps = {
     jobId: jobId!,
@@ -335,7 +336,11 @@ export default function JobTicketDetail() {
               hasReview={hasReview}
               quotesCount={quotesCount}
               hasAcceptedQuote={hasAcceptedQuote}
+              completionRequested={completionRequested}
               onMarkComplete={() => {
+                document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              onRequestCompletion={() => {
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
               onScrollToUpdates={scrollToUpdates}
@@ -355,12 +360,15 @@ export default function JobTicketDetail() {
               </div>
             )}
 
-            {/* 3. Completion CTA (client + in_progress) */}
-            {isClient && (
-              <div id="completion-section">
-                <JobTicketCompletion jobId={job.id} jobStatus={job.status} />
-              </div>
-            )}
+            {/* 3. Completion CTA (both roles during in_progress) */}
+            <div id="completion-section">
+              <JobTicketCompletion
+                jobId={job.id}
+                jobStatus={job.status}
+                isClient={isClient}
+                completionRequested={completionRequested}
+              />
+            </div>
 
             {/* 4. Review (completed) */}
             <div ref={reviewRef}>
