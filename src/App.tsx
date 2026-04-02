@@ -68,6 +68,7 @@ const JobTicketDetail = lazy(() => import("./pages/dashboard/client/JobTicketDet
 const MatchAndSend = lazy(() => import("./pages/dashboard/client/MatchAndSend"));
 const QuoteComparison = lazy(() => import("./pages/dashboard/client/QuoteComparison"));
 const ProDashboard = lazy(() => import("./pages/dashboard/professional/ProDashboard"));
+const ProJobsList = lazy(() => import("./pages/dashboard/professional/ProJobsList"));
 const DashboardResolver = lazy(() => import("./pages/dashboard/DashboardResolver"));
 
 // Messages
@@ -231,6 +232,7 @@ const App = () => {
 
               {/* Professional Onboarding */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
+              <Route path="/dashboard/professional/jobs" element={<ProJobsList />} />
               <Route path="/professional/services" element={<ManageServices />} />
               <Route path="/professional/service-setup" element={<Navigate to="/professional/listings" replace />} />
               <Route path="/professional/profile" element={<ProfileEdit />} />
