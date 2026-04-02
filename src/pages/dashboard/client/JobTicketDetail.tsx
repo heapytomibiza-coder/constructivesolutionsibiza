@@ -42,6 +42,7 @@ import { JobTicketQuotes } from './components/JobTicketQuotes';
 import { JobTicketCompletion } from './components/JobTicketCompletion';
 import { JobTicketReview } from './components/JobTicketReview';
 import { ProQuoteSummary } from './components/ProQuoteSummary';
+import { CancellationRequestCard } from './components/CancellationRequestCard';
 import { useMyQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 
 export default function JobTicketDetail() {
