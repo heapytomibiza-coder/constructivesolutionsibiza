@@ -305,15 +305,21 @@ export default function JobTicketDetail() {
             {job.title}
           </span>
             <div className="flex items-center gap-1.5">
-              <BudgetIncreaseCard
-                jobId={job.id}
-                jobStatus={job.status}
-                isClient={isClient}
-                budgetType={job.budget_type}
-                budgetMin={job.budget_min}
-                budgetMax={job.budget_max}
-                budgetValue={job.budget_value}
-              />
+            {/* Edit (client, pre-assignment) */}
+            {isClient && ['ready', 'open'].includes(job.status) && (
+              <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/post?edit=${jobId}`)}>
+                <Pencil className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t('jobTicket.editJob', 'Edit')}</span>
+              </Button>
+            )}
+            {/* Hire Again (client, post-completion) */}
+            {isClient && isPastOpen && job.assigned_professional_id && (
+              <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => rebook.mutate(job.id)} disabled={rebook.isPending}>
+                <RotateCw className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t('jobTicket.hireAgain', 'Hire Again')}</span>
+              </Button>
+            )}
+            {/* Raise Issue (either role, in_progress/completed) */}
             {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
               <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive text-xs" asChild>
                 <Link to={`/disputes/raise?job=${jobId}`}>
@@ -322,26 +328,14 @@ export default function JobTicketDetail() {
                 </Link>
               </Button>
             )}
-            {isClient && ['ready', 'open'].includes(job.status) && (
-              <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/post?edit=${jobId}`)}>
-                <Pencil className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{t('jobTicket.editJob', 'Edit')}</span>
-              </Button>
-            )}
-            {isClient && isPastOpen && job.assigned_professional_id && (
-              <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => rebook.mutate(job.id)} disabled={rebook.isPending}>
-                <RotateCw className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{t('jobTicket.hireAgain', 'Hire Again')}</span>
-              </Button>
-            )}
-            {/* Pro: Withdraw (assigned) */}
+            {/* Pro: Withdraw (assigned, before work starts) */}
             {!isClient && ['open', 'assigned'].includes(job.status) && job.assigned_professional_id === user?.id && (
               <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive text-xs" onClick={handleWithdraw}>
                 <XCircle className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t('jobTicket.withdraw', 'Withdraw')}</span>
               </Button>
             )}
-            {/* Pro: Request Cancellation (in_progress) */}
+            {/* Pro: Request Cancellation (in_progress only) */}
             {!isClient && job.status === 'in_progress' && job.assigned_professional_id === user?.id && !cancellationRequested && (
               <Button
                 variant="ghost"
@@ -349,7 +343,7 @@ export default function JobTicketDetail() {
                 className="gap-1 text-destructive hover:text-destructive text-xs"
                 onClick={async () => {
                   const reason = prompt(t('jobTicket.cancellationReasonPrompt', 'Why do you want to cancel? (optional)'));
-                  if (reason === null) return; // user cancelled prompt
+                  if (reason === null) return;
                   try {
                     const { error } = await supabase.rpc('request_job_cancellation', {
                       p_job_id: jobId!,
@@ -370,7 +364,8 @@ export default function JobTicketDetail() {
                 <span className="hidden sm:inline">{t('jobTicket.requestCancellation', 'Cancel Job')}</span>
               </Button>
             )}
-            {isClient && (
+            {/* Client: Close/Cancel job */}
+            {isClient && !['completed', 'cancelled'].includes(job.status) && (
               <Button variant="ghost" size="sm" className="gap-1 text-destructive text-xs" onClick={handleClose}>
                 <XCircle className="h-3.5 w-3.5" />
               </Button>
@@ -469,9 +464,19 @@ export default function JobTicketDetail() {
             </div>
 
             {/* 5. Quotes section */}
-            <div ref={quotesRef}>
+            <div ref={quotesRef} className="space-y-3">
               {!isClient && <ProQuoteSummary jobId={job.id} jobStatus={job.status} />}
               {isClient && <JobTicketQuotes jobId={job.id} jobStatus={job.status} />}
+              {/* Budget increase — financial action, lives with quotes */}
+              <BudgetIncreaseCard
+                jobId={job.id}
+                jobStatus={job.status}
+                isClient={isClient}
+                budgetType={job.budget_type}
+                budgetMin={job.budget_min}
+                budgetMax={job.budget_max}
+                budgetValue={job.budget_value}
+              />
             </div>
 
             {/* 6. Conversation preview */}
