@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 interface JobTimelineProps {
   jobId: string;
   conversationId?: string;
+  /** When true, renders expanded without collapse wrapper */
+  expanded?: boolean;
 }
 
 interface TimelineEntry {
