@@ -31,7 +31,7 @@ interface ProposalBuilderProps {
   jobId: string;
   /** If provided, builder prefills from this quote and creates a revision on submit. */
   existingQuote?: Quote | null;
-  onSuccess?: () => void;
+  onSuccess?: (quoteId?: string) => void;
 }
 
 function createItem(): LineItem {
