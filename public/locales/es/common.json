@@ -44,10 +44,11 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Cerrando la brecha entre la idea y la construcción",
-    "subtitle": "Te ayudamos a comprender el alcance, definir tus expectativas y conectarte con los profesionales adecuados",
-    "postJob": "Empieza Tu Proyecto",
-    "browsePros": "Ver Taskers"
+    "title": "Encuentra constructores y oficios de confianza en Ibiza",
+    "subtitle": "Publica tu trabajo y conecta con profesionales fiables en toda Ibiza — desde pequeñas reparaciones hasta reformas completas.",
+    "postJob": "Publica un trabajo",
+    "browsePros": "Ver Profesionales",
+    "joinAsPro": "Únete como Profesional"
   },
   "trust": {
     "verified": "Oficios verificados",

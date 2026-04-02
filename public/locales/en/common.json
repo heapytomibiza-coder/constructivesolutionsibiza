@@ -51,9 +51,10 @@
     "joinAsPro": "Join as a Professional"
   },
   "trust": {
-    "verified": "Verified trades",
+    "verified": "Verified professionals",
+    "verifiedPros": "Verified professionals",
     "sameDay": "Same-day response",
-    "local": "Ibiza-based",
+    "local": "Built for Ibiza",
     "guided": "Guided process",
     "clarity": "Clear communication",
     "realSpecs": "Clear specs",
