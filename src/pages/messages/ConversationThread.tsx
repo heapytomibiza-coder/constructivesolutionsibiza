@@ -12,7 +12,6 @@ import { useQuotesForJob } from "@/pages/jobs/queries/quotes.query";
 import { useSession } from "@/contexts/SessionContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { completeJob } from "@/pages/jobs/actions/completeJob.action";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, ArrowLeft, CheckCheck, DollarSign } from "lucide-react";
 import { toast } from "sonner";
@@ -74,26 +73,6 @@ export function ConversationThread({
 
   const canQuote = userRole === 'professional' && jobStatus === 'open' && !hasQuote && !!jobId;
 
-  const handleCompleteJob = useCallback(async () => {
-    if (!jobId) return;
-    const result = await completeJob(jobId);
-    if (result.success) {
-      toast.success(t('lifecycle.jobCompleted', 'Job completed'));
-      // Insert system message
-      await supabase.from('messages').insert({
-        conversation_id: conversationId,
-        sender_id: currentUserId,
-        body: t('lifecycle.jobCompletedSystem', 'The job has been marked as complete.'),
-        message_type: 'system',
-        metadata: { event: 'job_completed' },
-      });
-      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
-      queryClient.invalidateQueries({ queryKey: ['job_timeline', jobId] });
-      queryClient.invalidateQueries({ queryKey: ['job_status_history', jobId] });
-    } else {
-      toast.error(result.error ?? t('lifecycle.completeFailed', 'Failed to complete job'));
-    }
-  }, [jobId, conversationId, currentUserId, t, queryClient]);
 
   const handleQuoteAccepted = useCallback(async (quoteId: string) => {
     await supabase.from('messages').insert({
@@ -276,7 +255,6 @@ export function ConversationThread({
           messageCount={messages?.length ?? 0}
           hasQuote={hasQuote}
           onStartQuote={() => setIsQuoteBuilderOpen(true)}
-          onComplete={handleCompleteJob}
           hidden={isQuoteBuilderOpen}
         />
       )}
