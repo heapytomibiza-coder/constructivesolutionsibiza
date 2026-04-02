@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 interface JobTimelineProps {
   jobId: string;
+  conversationId?: string;
 }
 
 interface TimelineEntry {
