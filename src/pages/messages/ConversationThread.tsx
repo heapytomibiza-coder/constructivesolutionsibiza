@@ -85,6 +85,7 @@ export function ConversationThread({
         metadata: { event: 'job_completed' },
       });
       queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['job_timeline', jobId] });
       queryClient.invalidateQueries({ queryKey: ['job_status_history', jobId] });
     } else {
       toast.error(result.error ?? t('lifecycle.completeFailed', 'Failed to complete job'));
