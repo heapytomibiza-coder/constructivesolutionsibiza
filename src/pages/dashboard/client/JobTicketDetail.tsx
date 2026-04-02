@@ -481,6 +481,7 @@ export default function JobTicketDetail() {
                 assignedProfessionalId={job.assigned_professional_id}
                 viewerRole={isClient ? 'client' : 'professional'}
                 clientId={job.user_id}
+                clientName={clientProfile?.display_name ?? undefined}
               />
             </div>
 
