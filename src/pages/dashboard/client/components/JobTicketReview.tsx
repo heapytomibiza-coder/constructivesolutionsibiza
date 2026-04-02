@@ -143,6 +143,9 @@ export function JobTicketReview({
     queryClient.invalidateQueries({ queryKey: ['user_review', jobId] });
     queryClient.invalidateQueries({ queryKey: ['job_review_exists', jobId] });
     queryClient.invalidateQueries({ queryKey: ['pending-reviews'] });
+    queryClient.invalidateQueries({ queryKey: ['pro_reviews'] });
+    queryClient.invalidateQueries({ queryKey: ['pro_review_agg'] });
+    queryClient.invalidateQueries({ queryKey: ['public_pro_reviews'] });
     setShowReviewModal(false);
   };
 
