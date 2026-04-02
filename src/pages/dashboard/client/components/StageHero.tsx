@@ -227,7 +227,6 @@ function buildStageConfig(
               icon: <CheckCircle2 className="h-4 w-4" />,
             },
       };
-      };
 
     case 'completed_no_review':
       if (isClient) {
