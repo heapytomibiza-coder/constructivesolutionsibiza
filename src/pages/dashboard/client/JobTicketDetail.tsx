@@ -464,9 +464,19 @@ export default function JobTicketDetail() {
             </div>
 
             {/* 5. Quotes section */}
-            <div ref={quotesRef}>
+            <div ref={quotesRef} className="space-y-3">
               {!isClient && <ProQuoteSummary jobId={job.id} jobStatus={job.status} />}
               {isClient && <JobTicketQuotes jobId={job.id} jobStatus={job.status} />}
+              {/* Budget increase — financial action, lives with quotes */}
+              <BudgetIncreaseCard
+                jobId={job.id}
+                jobStatus={job.status}
+                isClient={isClient}
+                budgetType={job.budget_type}
+                budgetMin={job.budget_min}
+                budgetMax={job.budget_max}
+                budgetValue={job.budget_value}
+              />
             </div>
 
             {/* 6. Conversation preview */}
