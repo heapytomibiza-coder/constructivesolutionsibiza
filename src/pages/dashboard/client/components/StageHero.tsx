@@ -80,9 +80,11 @@ function buildStageConfig(
   isClient: boolean,
   t: ReturnType<typeof import('react-i18next').useTranslation>['t'],
   completionRequested: boolean,
+  cancellationRequested: boolean,
   actions: {
     onMarkComplete?: () => void;
     onRequestCompletion?: () => void;
+    onWithdraw?: () => void;
     onScrollToUpdates?: () => void;
     onScrollToReview?: () => void;
     onScrollToQuotes?: () => void;
