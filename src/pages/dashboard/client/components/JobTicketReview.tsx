@@ -142,6 +142,7 @@ export function JobTicketReview({
     toast.success(t('client.ratingSuccess', 'Thanks for your rating!'));
     queryClient.invalidateQueries({ queryKey: ['user_review', jobId] });
     queryClient.invalidateQueries({ queryKey: ['job_review_exists', jobId] });
+    queryClient.invalidateQueries({ queryKey: ['pending-reviews'] });
     setShowReviewModal(false);
   };
 
