@@ -54,12 +54,16 @@ export function ConversationThread({
 
   const dateFnsLocale = i18n.language?.startsWith('es') ? es : undefined;
 
-  // Check if pro can quote: professional role, open job, no existing quote
+  // Pro's own quote (for canQuote gating)
   const { data: myQuote } = useMyQuoteForJob(
     jobId ?? null,
     currentUserId,
     userRole === 'professional' && jobStatus === 'open'
   );
+
+  // All quotes for this job (for inline rendering — works for both client and pro)
+  const { data: allQuotes } = useQuotesForJob(jobId ?? null, !!jobId);
+
   const canQuote = userRole === 'professional' && jobStatus === 'open' && !myQuote && !!jobId;
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
