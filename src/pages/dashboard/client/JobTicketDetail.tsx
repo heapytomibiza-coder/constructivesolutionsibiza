@@ -318,8 +318,8 @@ export default function JobTicketDetail() {
         {/* Conversations */}
         <JobTicketConversations jobId={job.id} />
 
-        {/* Distribution Actions */}
-        {['ready', 'open'].includes(job.status) && (
+        {/* Distribution Actions — client only */}
+        {isClient && ['ready', 'open'].includes(job.status) && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base font-display">{t('jobTicket.shareTitle')}</CardTitle>
@@ -364,7 +364,7 @@ export default function JobTicketDetail() {
           </Card>
         )}
 
-        {invites.length > 0 && (
+        {isClient && invites.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base font-display">{t('jobTicket.invitesSent', { count: invites.length })}</CardTitle>
