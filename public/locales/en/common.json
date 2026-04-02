@@ -521,12 +521,12 @@
     }
   },
   "professionals": {
-    "title": "Browse Taskers",
-    "titleSelect": "Choose a Tasker",
-    "subtitle": "Discover Taskers offering services across Ibiza",
+    "title": "Browse Professionals",
+    "titleSelect": "Choose a Professional",
+    "subtitle": "Discover professionals offering construction and trade services across Ibiza",
     "subtitleSelect": "Select who you'd like to send your job request to",
-    "trustBadge": "Ibiza-based Taskers",
-    "searchPlaceholder": "Search Taskers...",
+    "trustBadge": "Ibiza-based professionals",
+    "searchPlaceholder": "Search professionals...",
     "searchButton": "Search",
     "filteringBy": "Filtering by:",
     "clearAll": "Clear all",
@@ -534,11 +534,11 @@
     "viewButton": "View",
     "selectButton": "Select",
     "backToJob": "Back to Job",
-    "selectProBanner": "Select a Tasker to send your job to",
-    "noResultsFiltered": "No Taskers found matching these filters.",
-    "noResultsEmpty": "No Taskers listed yet. Check back soon!",
+    "selectProBanner": "Select a professional to send your job to",
+    "noResultsFiltered": "No professionals found matching these filters.",
+    "noResultsEmpty": "No professionals listed yet. Check back soon!",
     "clearFilters": "Clear Filters",
-    "joinAsPro": "Join as Tasker"
+    "joinAsPro": "Join as Professional"
   },
   "about": {
     "heroTitle": "About Us",
