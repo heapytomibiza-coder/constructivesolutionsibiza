@@ -1,6 +1,7 @@
 /**
  * JobTicketReview — Leave review section.
- * Shown when job is completed and client hasn't reviewed yet.
+ * Role-aware: clients review the professional, professionals review the client.
+ * Shown when job is completed and the current user hasn't reviewed yet.
  */
 
 import { useState } from 'react';
@@ -21,9 +22,19 @@ interface JobTicketReviewProps {
   jobId: string;
   jobStatus: string;
   assignedProfessionalId: string | null;
+  /** Who is viewing this ticket */
+  viewerRole?: 'client' | 'professional';
+  /** The client who owns the job */
+  clientId?: string;
 }
 
-export function JobTicketReview({ jobId, jobStatus, assignedProfessionalId }: JobTicketReviewProps) {
+export function JobTicketReview({
+  jobId,
+  jobStatus,
+  assignedProfessionalId,
+  viewerRole = 'client',
+  clientId,
+}: JobTicketReviewProps) {
   const { t } = useTranslation('dashboard');
   const { user } = useSession();
   const queryClient = useQueryClient();
@@ -32,9 +43,13 @@ export function JobTicketReview({ jobId, jobStatus, assignedProfessionalId }: Jo
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const reviewerRole = viewerRole;
+  const revieweeRole = viewerRole === 'client' ? 'professional' : 'client';
+  const revieweeId = viewerRole === 'client' ? assignedProfessionalId : clientId;
+
   // Check if user already reviewed
   const { data: existingReview, isLoading } = useQuery({
-    queryKey: ['client_review', jobId, user?.id],
+    queryKey: ['user_review', jobId, user?.id, reviewerRole],
     queryFn: async () => {
       if (!user) return null;
       const { data, error } = await supabase
@@ -42,7 +57,7 @@ export function JobTicketReview({ jobId, jobStatus, assignedProfessionalId }: Jo
         .select('id, rating, comment')
         .eq('job_id', jobId)
         .eq('reviewer_user_id', user.id)
-        .eq('reviewer_role', 'client')
+        .eq('reviewer_role', reviewerRole)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -50,7 +65,7 @@ export function JobTicketReview({ jobId, jobStatus, assignedProfessionalId }: Jo
     enabled: !!jobId && !!user && jobStatus === 'completed',
   });
 
-  if (jobStatus !== 'completed' || !assignedProfessionalId || isLoading) return null;
+  if (jobStatus !== 'completed' || !revieweeId || isLoading) return null;
 
   // Already reviewed
   if (existingReview) {
@@ -90,16 +105,16 @@ export function JobTicketReview({ jobId, jobStatus, assignedProfessionalId }: Jo
       const { error } = await supabase.from('job_reviews').insert({
         job_id: jobId,
         reviewer_user_id: user.id,
-        reviewer_role: 'client',
-        reviewee_user_id: assignedProfessionalId,
-        reviewee_role: 'professional',
+        reviewer_role: reviewerRole,
+        reviewee_user_id: revieweeId,
+        reviewee_role: revieweeRole,
         rating,
         comment: comment.trim() || null,
       });
       if (error) throw error;
-      trackEvent(EVENTS.REVIEW_SUBMITTED, 'client', { rating }, { job_id: jobId, worker_id: assignedProfessionalId });
+      trackEvent(EVENTS.REVIEW_SUBMITTED, reviewerRole, { rating }, { job_id: jobId });
       toast.success(t('client.ratingSuccess', 'Thanks for your rating!'));
-      queryClient.invalidateQueries({ queryKey: ['client_review', jobId] });
+      queryClient.invalidateQueries({ queryKey: ['user_review', jobId] });
     } catch {
       toast.error(t('client.ratingFailed', 'Failed to submit rating'));
     } finally {
@@ -107,13 +122,15 @@ export function JobTicketReview({ jobId, jobStatus, assignedProfessionalId }: Jo
     }
   };
 
+  const promptText = viewerRole === 'client'
+    ? t('reviews.rateExperience', 'Rate your experience')
+    : t('reviews.rateClient', 'Rate this client');
+
   return (
     <Card className="border-primary/30 bg-primary/5">
       <CardContent className="p-5 space-y-4">
         <div className="space-y-1">
-          <p className="text-sm font-medium">
-            {t('reviews.rateExperience', 'Rate your experience')}
-          </p>
+          <p className="text-sm font-medium">{promptText}</p>
           <p className="text-xs text-muted-foreground">
             {t('jobTicket.reviewHelps', 'Your review helps other clients and builds trust on the platform.')}
           </p>

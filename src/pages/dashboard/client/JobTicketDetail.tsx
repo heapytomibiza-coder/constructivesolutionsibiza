@@ -174,7 +174,7 @@ export default function JobTicketDetail() {
 
       <div className="container max-w-3xl py-6 space-y-6">
         {/* Job Activity Panel */}
-        <JobActivityPanel jobId={jobId!} jobStatus={job.status} />
+        {isClient && <JobActivityPanel jobId={jobId!} jobStatus={job.status} />}
 
         {/* Status + Timeline + Actions Header */}
         <div className="space-y-3">
@@ -302,21 +302,23 @@ export default function JobTicketDetail() {
           </div>
         )}
 
-        {/* Completion CTA (only when in_progress) */}
-        <JobTicketCompletion jobId={job.id} jobStatus={job.status} />
+        {/* Completion CTA (only client, only when in_progress) */}
+        {isClient && <JobTicketCompletion jobId={job.id} jobStatus={job.status} />}
 
         {/* Review section (only when completed) */}
         <JobTicketReview
           jobId={job.id}
           jobStatus={job.status}
           assignedProfessionalId={job.assigned_professional_id}
+          viewerRole={isClient ? 'client' : 'professional'}
+          clientId={job.user_id}
         />
 
-        {/* Quotes Received */}
-        <JobTicketQuotes jobId={job.id} jobStatus={job.status} />
+        {/* Quotes Received — client only */}
+        {isClient && <JobTicketQuotes jobId={job.id} jobStatus={job.status} />}
 
         {/* Conversations */}
-        <JobTicketConversations jobId={job.id} />
+        <JobTicketConversations jobId={job.id} viewerRole={isClient ? 'client' : 'professional'} />
 
         {/* Distribution Actions — client only */}
         {isClient && ['ready', 'open'].includes(job.status) && (
