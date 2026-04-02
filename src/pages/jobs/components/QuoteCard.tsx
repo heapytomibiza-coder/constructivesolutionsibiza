@@ -34,6 +34,8 @@ interface QuoteCardProps {
   onRevise?: () => void;
   /** Client user_id — needed for trust badges */
   clientId?: string | null;
+  /** Called after a quote is successfully accepted — parent can insert system message */
+  onAccepted?: (quoteId: string) => void;
 }
 
 export function QuoteCard({ quote, role, onRevise, clientId }: QuoteCardProps) {
