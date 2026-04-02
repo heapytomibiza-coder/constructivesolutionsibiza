@@ -28,6 +28,8 @@ interface Step {
   timestamp?: string;
 }
 
+const isFinalStep = (key: string) => key === 'review' || key === 'completed';
+
 function resolveSteps(
   jobStatus: string,
   hasQuote: boolean,
