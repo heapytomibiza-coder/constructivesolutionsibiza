@@ -320,6 +320,7 @@ export function StageHero({
       {config.primaryAction && (
         <div className="mt-5">
           <Button
+            variant={config.primaryAction.variant || 'default'}
             onClick={config.primaryAction.onClick}
             className="h-12 px-5 rounded-xl text-[15px] font-semibold gap-2 w-full sm:w-auto"
           >
