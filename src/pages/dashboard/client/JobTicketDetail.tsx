@@ -219,6 +219,21 @@ export default function JobTicketDetail() {
     }
   };
 
+  const handleWithdraw = async () => {
+    if (!jobId || !confirm(t('jobTicket.withdrawConfirm', 'Withdraw from this job? The client will be able to choose another professional.'))) return;
+    try {
+      const { error } = await supabase.rpc('withdraw_from_job', { p_job_id: jobId });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success(t('jobTicket.withdrawnSuccess', 'You have withdrawn from this job.'));
+      queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });
+    } catch {
+      toast.error(t('jobTicket.withdrawFailed', 'Failed to withdraw'));
+    }
+  };
+
   const scrollToUpdates = useCallback(() => {
     updatesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
