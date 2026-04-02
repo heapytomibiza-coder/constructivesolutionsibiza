@@ -6,7 +6,7 @@ import { RequestSupportButton, SystemMessage } from "./components";
 import { QuoteNudgeBanner } from "./components/QuoteNudgeBanner";
 import { InlineQuoteBuilder } from "./components/InlineQuoteBuilder";
 import { QuoteCard } from "@/pages/jobs/components/QuoteCard";
-import { useMyQuoteForJob } from "@/pages/jobs/queries/quotes.query";
+import { useQuotesForJob, useMyQuoteForJob } from "@/pages/jobs/queries/quotes.query";
 import { useSession } from "@/contexts/SessionContext";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, ArrowLeft, CheckCheck, DollarSign } from "lucide-react";
