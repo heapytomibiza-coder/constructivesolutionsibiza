@@ -174,7 +174,7 @@ export default function JobTicketDetail() {
 
       <div className="container max-w-3xl py-6 space-y-6">
         {/* Job Activity Panel */}
-        <JobActivityPanel jobId={jobId!} jobStatus={job.status} />
+        {isClient && <JobActivityPanel jobId={jobId!} jobStatus={job.status} />}
 
         {/* Status + Timeline + Actions Header */}
         <div className="space-y-3">
