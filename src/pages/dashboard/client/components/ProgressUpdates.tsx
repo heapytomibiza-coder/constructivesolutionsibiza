@@ -245,48 +245,43 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
 /* ─── Latest Update Card — Hero-tier visual anchor ─── */
 
 function LatestUpdateCard({ update, authorName, t }: { update: any; authorName: string | null; t: any }) {
+  const hasPhoto = !!update.photo_url;
+
   return (
-    <div className="rounded-3xl border border-border/70 bg-card overflow-hidden shadow-sm">
-      {/* Photo-first: edge-to-edge at top */}
-      {update.photo_url && (
-        <img
-          src={update.photo_url}
-          alt={update.note || 'Progress photo'}
-          className="w-full max-h-[400px] object-cover"
-          loading="lazy"
-        />
+    <div className="overflow-hidden">
+      {/* Photo-first: edge-to-edge, no border — content flows */}
+      {hasPhoto && (
+        <div className="rounded-3xl overflow-hidden">
+          <img
+            src={update.photo_url}
+            alt={update.note || 'Progress photo'}
+            className="w-full max-h-[420px] object-cover"
+            loading="lazy"
+          />
+        </div>
       )}
 
-      {/* Content area */}
-      <div className="p-6 space-y-3">
-        {/* Header: "Latest update" + human meta */}
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-base font-semibold font-display text-foreground">
-              {t('progressUpdates.latestTitle', 'Latest update')}
-            </p>
-            <div className="flex items-center gap-2 mt-0.5">
-              {authorName && (
-                <span className="text-[13px] text-muted-foreground font-medium">{authorName}</span>
-              )}
-              {authorName && (
-                <span className="text-muted-foreground/40">·</span>
-              )}
-              <span className="text-[12px] text-muted-foreground">
-                {formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}
-              </span>
-            </div>
-          </div>
+      {/* Content — no card border, just content flowing */}
+      <div className={cn(
+        'space-y-2',
+        hasPhoto ? 'pt-4 px-1' : 'pt-1 px-1',
+      )}>
+        {/* Human meta line */}
+        <div className="flex items-center gap-2">
+          {authorName && (
+            <span className="text-[13px] text-foreground font-semibold">{authorName}</span>
+          )}
+          {authorName && <span className="text-muted-foreground/40">·</span>}
+          <span className="text-[12px] text-muted-foreground">
+            {formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}
+          </span>
         </div>
 
-        {/* Note — larger text for the latest */}
+        {/* Note — generous, readable */}
         {update.note && (
-          <p className="text-base text-foreground leading-relaxed">{update.note}</p>
+          <p className="text-[15px] text-foreground leading-relaxed">{update.note}</p>
         )}
       </div>
-
-      {/* Subtle left accent */}
-      <div className="h-1 bg-gradient-to-r from-primary/40 via-primary/20 to-transparent" />
     </div>
   );
 }
