@@ -15,6 +15,11 @@ export default function JobBoardPage() {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Construction Jobs in Ibiza | Constructive Solutions"
+        description="Browse active construction and trade jobs across Ibiza. Find projects that match your skills."
+        canonical="https://www.constructivesolutionsibiza.com/jobs"
+      />
       <HeroBanner
         imageSrc={heroJobs}
         title={t('board.title')}
