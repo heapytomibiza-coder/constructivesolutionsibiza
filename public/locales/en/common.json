@@ -26,7 +26,8 @@
     "myServices": "My Services",
     "notifications": "Notifications",
     "noNotifications": "No new notifications",
-    "viewAllMessages": "View all messages"
+    "viewAllMessages": "View all messages",
+    "joinAsPro": "Join as Professional"
   },
   "lanes": {
     "discover": "Discover",
