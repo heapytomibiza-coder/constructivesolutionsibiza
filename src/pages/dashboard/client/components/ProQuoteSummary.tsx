@@ -72,7 +72,7 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
               <div key={item.id} className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{item.description}</span>
                 <span className="font-medium">
-                  €{(item.amount ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+                  €{(item.line_total ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                 </span>
               </div>
             ))}
