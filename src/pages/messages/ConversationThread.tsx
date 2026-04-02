@@ -177,7 +177,7 @@ export function ConversationThread({
             <p className="text-xs text-muted-foreground truncate">{jobTitle}</p>
           )}
         </div>
-        {jobId && <JobTimeline jobId={jobId} />}
+        {jobId && <JobTimeline jobId={jobId} conversationId={conversationId} />}
         <RequestSupportButton
           conversationId={conversationId}
           jobId={jobId}
