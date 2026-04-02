@@ -178,14 +178,20 @@ export function ConversationThread({
               msg.message_type === 'system' ? (
                 <React.Fragment key={msg.id}>
                   <SystemMessage message={msg} />
-                  {/* Render QuoteCard inline after system "quote sent" message */}
-                  {msg.body.includes(t('thread.quoteSent', 'sent a formal quote')) && myQuote && (
-                    <div className="flex justify-end">
-                      <div className="max-w-[85%] sm:max-w-[75%]">
-                        <QuoteCard quote={myQuote} role={userRole === 'professional' ? 'pro' : 'client'} />
+                  {/* Render QuoteCard inline — use metadata.quote_id for stable matching */}
+                  {(() => {
+                    const meta = msg.metadata as Record<string, unknown> | null;
+                    if (meta?.event !== 'quote_submitted' || !meta?.quote_id) return null;
+                    const quote = allQuotes?.find(q => q.id === meta.quote_id);
+                    if (!quote) return null;
+                    return (
+                      <div className="flex justify-end">
+                        <div className="max-w-[85%] sm:max-w-[75%]">
+                          <QuoteCard quote={quote} role={userRole === 'professional' ? 'pro' : 'client'} />
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </React.Fragment>
               ) : (
                 <MessageBubble
