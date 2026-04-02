@@ -186,7 +186,13 @@ export function ConversationThread({
         )}
         <div className="min-w-0 flex-1">
           <h2 className="font-semibold text-sm text-foreground truncate">
-            {otherPartyName ?? t('thread.conversation')}
+            {userRole === 'client' && proId ? (
+              <Link to={`/professionals/${proId}`} className="hover:underline">
+                {otherPartyName ?? t('thread.conversation')}
+              </Link>
+            ) : (
+              otherPartyName ?? t('thread.conversation')
+            )}
           </h2>
           {jobTitle && (
             <p className="text-xs text-muted-foreground truncate">{jobTitle}</p>
