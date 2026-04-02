@@ -107,10 +107,10 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
   };
 
   return (
-    <Card>
+    <Card className="border-border/40 bg-muted/20 shadow-none">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-display flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-primary" />
+        <CardTitle className="text-sm font-display flex items-center gap-2 text-muted-foreground">
+          <DollarSign className="h-4 w-4 text-primary/70" />
           {t('jobTicket.yourQuote', 'Your Quote')}
         </CardTitle>
       </CardHeader>

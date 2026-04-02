@@ -373,9 +373,9 @@ export default function JobTicketDetail() {
               cancellationReason={job.cancellation_reason}
             />
 
-            {/* 3. Progress Updates + inline completion prompt */}
+            {/* 3. Progress Updates — tightly coupled to hero as "the proof" */}
             {['in_progress', 'completed'].includes(job.status) && (
-              <div ref={updatesRef}>
+              <div ref={updatesRef} className="-mt-1">
                 <ProgressUpdates
                   jobId={job.id}
                   jobStatus={job.status}
@@ -434,7 +434,7 @@ export default function JobTicketDetail() {
               />
             </div>
 
-            {/* 5. Quotes section */}
+            {/* 5. Quotes section — secondary reference tier */}
             <div ref={quotesRef} className="space-y-3">
               {!isClient && <ProQuoteSummary jobId={job.id} jobStatus={job.status} />}
               {isClient && <JobTicketQuotes jobId={job.id} jobStatus={job.status} />}
@@ -469,12 +469,12 @@ export default function JobTicketDetail() {
             )}
 
             {/* 8. Job Summary (collapsible once past open) */}
-            <div className="rounded-[18px] border border-border/70 bg-card overflow-hidden shadow-sm">
+            <div className="rounded-[18px] border border-border/40 bg-muted/20 overflow-hidden">
               {isPastOpen ? (
                 <>
                   <button
                     onClick={() => setSummaryExpanded(!summaryExpanded)}
-                    className="w-full flex items-center justify-between px-5 py-3.5 bg-muted/30 border-b border-border text-left"
+                    className="w-full flex items-center justify-between px-5 py-3.5 bg-muted/20 border-b border-border/40 text-left"
                   >
                     <span className="text-sm font-medium text-muted-foreground">
                       {t('jobTicket.jobDetails', 'Job Details')}
