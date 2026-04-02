@@ -239,6 +239,11 @@ export default function JobTicketDetail() {
 
   const scrollToUpdates = useCallback(() => {
     updatesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Focus the update textarea after scroll
+    setTimeout(() => {
+      const textarea = updatesRef.current?.querySelector('textarea');
+      textarea?.focus();
+    }, 500);
   }, []);
 
   const scrollToReview = useCallback(() => {

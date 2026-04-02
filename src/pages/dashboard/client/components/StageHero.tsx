@@ -222,9 +222,9 @@ function buildStageConfig(
         primaryAction: completionRequested
           ? undefined
           : {
-              label: t('stageHero.requestCompletion', 'Request Completion'),
-              onClick: actions.onRequestCompletion,
-              icon: <CheckCircle2 className="h-4 w-4" />,
+              label: t('stageHero.updateProgress', 'Update Progress'),
+              onClick: actions.onScrollToUpdates,
+              icon: <Sparkles className="h-4 w-4" />,
             },
       };
 
