@@ -45,6 +45,7 @@ import { ProQuoteSummary } from './components/ProQuoteSummary';
 import { CancellationRequestCard } from './components/CancellationRequestCard';
 import { BudgetIncreaseCard } from './components/BudgetIncreaseCard';
 import { ProjectGallery } from './components/ProjectGallery';
+import { PortfolioPrompt } from './components/PortfolioPrompt';
 import { useMyQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 
 export default function JobTicketDetail() {
