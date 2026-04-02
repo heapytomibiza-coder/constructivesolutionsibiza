@@ -47,7 +47,9 @@ interface StageHeroProps {
   hasReview: boolean;
   quotesCount: number;
   hasAcceptedQuote: boolean;
+  completionRequested: boolean;
   onMarkComplete?: () => void;
+  onRequestCompletion?: () => void;
   onScrollToUpdates?: () => void;
   onScrollToReview?: () => void;
   onScrollToQuotes?: () => void;
