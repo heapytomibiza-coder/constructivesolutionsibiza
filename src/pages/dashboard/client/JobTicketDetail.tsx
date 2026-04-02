@@ -1,7 +1,7 @@
 /**
  * Job Ticket Detail Page — Full lifecycle control centre for a job.
- * Shows: summary → status timeline → quotes → conversations →
- *        distribution → invites → completion → review
+ * Role-aware: clients see management tools, professionals see their project view.
+ * Both roles see: timeline, summary, conversations, review, raise issue.
  */
 
 import { useParams, useNavigate, Link } from 'react-router-dom';
@@ -29,14 +29,17 @@ import {
   XCircle,
   Pencil,
   RotateCw,
+  User,
 } from 'lucide-react';
 import { useRebook } from '@/hooks/useRebook';
 import { StatusTimeline } from '@/components/quotes/StatusTimeline';
+import { JobTimeline } from '@/pages/messages/components/JobTimeline';
 import { JobTicketQuotes } from './components/JobTicketQuotes';
 import { JobTicketConversations } from './components/JobTicketConversations';
 import { JobTicketCompletion } from './components/JobTicketCompletion';
 import { JobTicketReview } from './components/JobTicketReview';
 import { JobActivityPanel } from './components/JobActivityPanel';
+import { ProQuoteSummary } from './components/ProQuoteSummary';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
@@ -67,6 +70,21 @@ export default function JobTicketDetail() {
       return data;
     },
     enabled: !!jobId && !!user,
+  });
+
+  // Fetch client profile for pro view
+  const { data: clientProfile } = useQuery({
+    queryKey: ['client_profile', job?.user_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('user_id', job!.user_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!job && job.user_id !== user?.id,
   });
 
   const { data: invites = [] } = useQuery({
@@ -152,7 +170,7 @@ export default function JobTicketDetail() {
 
   const statusConfig = STATUS_CONFIG[job.status] || STATUS_CONFIG.ready;
   const isClient = job.user_id === user?.id;
-  const backPath = isClient ? '/dashboard/client' : '/dashboard/professional';
+  const backPath = isClient ? '/dashboard/client' : '/dashboard/professional/jobs';
   const answers = job.answers as Record<string, unknown> | null;
   const selected = (answers?.selected as Record<string, unknown>) || {};
   const microNames = (selected.microNames as string[]) || [];
@@ -173,7 +191,7 @@ export default function JobTicketDetail() {
       </nav>
 
       <div className="container max-w-3xl py-6 space-y-6">
-        {/* Job Activity Panel */}
+        {/* Job Activity Panel — client only */}
         {isClient && <JobActivityPanel jobId={jobId!} jobStatus={job.status} />}
 
         {/* Status + Timeline + Actions Header */}
@@ -222,9 +240,34 @@ export default function JobTicketDetail() {
               )}
             </div>
           </div>
-          {/* Status Timeline */}
+          {/* Quick-glance status dots */}
           <StatusTimeline currentStatus={job.status} />
         </div>
+
+        {/* Rich timeline — full audit trail for both roles */}
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              {t('jobTicket.timeline', 'Timeline')}
+            </p>
+            <JobTimeline jobId={jobId!} expanded />
+          </CardContent>
+        </Card>
+
+        {/* Client identity — shown to pro */}
+        {!isClient && clientProfile?.display_name && (
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <User className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">{t('jobTicket.client', 'Client')}</p>
+                <p className="text-sm font-medium text-foreground">{clientProfile.display_name}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Job Summary Card */}
         <Card className="overflow-hidden">
@@ -296,7 +339,7 @@ export default function JobTicketDetail() {
           </CardContent>
         </Card>
 
-        {job.status === 'ready' && (
+        {job.status === 'ready' && isClient && (
           <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-sm font-medium">{t('jobTicket.savedBanner')}</p>
           </div>
@@ -304,6 +347,9 @@ export default function JobTicketDetail() {
 
         {/* Completion CTA (only client, only when in_progress) */}
         {isClient && <JobTicketCompletion jobId={job.id} jobStatus={job.status} />}
+
+        {/* Pro's own quote summary */}
+        {!isClient && <ProQuoteSummary jobId={job.id} jobStatus={job.status} />}
 
         {/* Review section (only when completed) */}
         <JobTicketReview

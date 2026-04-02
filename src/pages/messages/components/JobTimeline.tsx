@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 interface JobTimelineProps {
   jobId: string;
   conversationId?: string;
+  /** When true, renders expanded without collapse wrapper */
+  expanded?: boolean;
 }
 
 interface TimelineEntry {
@@ -118,7 +120,7 @@ function deduplicateEntries(entries: TimelineEntry[]): TimelineEntry[] {
   return result;
 }
 
-export function JobTimeline({ jobId, conversationId }: JobTimelineProps) {
+export function JobTimeline({ jobId, conversationId, expanded }: JobTimelineProps) {
   const { t, i18n } = useTranslation("messages");
   const [open, setOpen] = useState(false);
   const isEs = i18n.language?.startsWith("es");
@@ -132,6 +134,37 @@ export function JobTimeline({ jobId, conversationId }: JobTimelineProps) {
 
   if (!entries || entries.length === 0) return null;
 
+  const timelineContent = (
+    <div className={expanded ? "space-y-0" : "px-3 py-2 space-y-0"}>
+      {entries.map((entry, i) => {
+        const Icon = ICON_MAP[entry.event] ?? Circle;
+        const isLast = i === entries.length - 1;
+        return (
+          <div key={entry.id} className="flex gap-2.5 relative">
+            {!isLast && (
+              <div className="absolute left-[9px] top-5 bottom-0 w-px bg-border" />
+            )}
+            <div className="shrink-0 mt-0.5">
+              <Icon className={cn("h-[18px] w-[18px]", isLast ? "text-primary" : "text-muted-foreground/60")} />
+            </div>
+            <div className="pb-3 min-w-0">
+              <p className={cn("text-xs font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>
+                {t(`timeline.status.${entry.event}`, entry.event)}
+              </p>
+              <p className="text-[10px] text-muted-foreground/70">
+                {formatDistanceToNow(new Date(entry.created_at), { addSuffix: true, locale: dateLocale })}
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  if (expanded) {
+    return timelineContent;
+  }
+
   const latestEvent = entries[entries.length - 1].event;
 
   return (
@@ -144,30 +177,7 @@ export function JobTimeline({ jobId, conversationId }: JobTimelineProps) {
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="px-3 py-2 space-y-0">
-          {entries.map((entry, i) => {
-            const Icon = ICON_MAP[entry.event] ?? Circle;
-            const isLast = i === entries.length - 1;
-            return (
-              <div key={entry.id} className="flex gap-2.5 relative">
-                {!isLast && (
-                  <div className="absolute left-[9px] top-5 bottom-0 w-px bg-border" />
-                )}
-                <div className="shrink-0 mt-0.5">
-                  <Icon className={cn("h-[18px] w-[18px]", isLast ? "text-primary" : "text-muted-foreground/60")} />
-                </div>
-                <div className="pb-3 min-w-0">
-                  <p className={cn("text-xs font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>
-                    {t(`timeline.status.${entry.event}`, entry.event)}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground/70">
-                    {formatDistanceToNow(new Date(entry.created_at), { addSuffix: true, locale: dateLocale })}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {timelineContent}
       </CollapsibleContent>
     </Collapsible>
   );
