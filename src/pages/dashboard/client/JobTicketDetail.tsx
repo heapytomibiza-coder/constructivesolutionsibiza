@@ -440,6 +440,8 @@ export default function JobTicketDetail() {
                     jobStatus={job.status}
                     isClient={isClient}
                     completionRequested={completionRequested}
+                    assignedProfessionalId={job.assigned_professional_id}
+                    clientId={job.user_id}
                   />
                 )}
               </div>
