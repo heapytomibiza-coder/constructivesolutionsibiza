@@ -42,7 +42,7 @@ export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
-  const { user } = useSession();
+  const { user, activeRole } = useSession();
   const queryClient = useQueryClient();
   const [isPublishing, setIsPublishing] = useState(false);
   const rebook = useRebook();
