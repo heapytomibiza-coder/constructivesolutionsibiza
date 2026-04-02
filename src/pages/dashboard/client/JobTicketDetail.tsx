@@ -440,6 +440,8 @@ export default function JobTicketDetail() {
                     jobStatus={job.status}
                     isClient={isClient}
                     completionRequested={completionRequested}
+                    assignedProfessionalId={job.assigned_professional_id}
+                    clientId={job.user_id}
                   />
                 )}
               </div>
@@ -453,6 +455,9 @@ export default function JobTicketDetail() {
                   jobStatus={job.status}
                   isClient={isClient}
                   completionRequested={completionRequested}
+                  assignedProfessionalId={job.assigned_professional_id}
+                  assignedProfessionalName={assignedProProfile?.display_name}
+                  clientId={job.user_id}
                 />
               </div>
             )}
@@ -476,6 +481,7 @@ export default function JobTicketDetail() {
                 assignedProfessionalId={job.assigned_professional_id}
                 viewerRole={isClient ? 'client' : 'professional'}
                 clientId={job.user_id}
+                clientName={clientProfile?.display_name ?? undefined}
               />
             </div>
 
