@@ -245,7 +245,14 @@ export default function JobTicketDetail() {
         </div>
 
         {/* Rich timeline — full audit trail for both roles */}
-        <JobTimeline jobId={jobId!} />
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              {t('jobTicket.timeline', 'Timeline')}
+            </p>
+            <JobTimeline jobId={jobId!} expanded />
+          </CardContent>
+        </Card>
 
         {/* Client identity — shown to pro */}
         {!isClient && clientProfile?.display_name && (
