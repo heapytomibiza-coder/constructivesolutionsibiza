@@ -38,7 +38,7 @@ interface QuoteCardProps {
   onAccepted?: (quoteId: string) => void;
 }
 
-export function QuoteCard({ quote, role, onRevise, clientId }: QuoteCardProps) {
+export function QuoteCard({ quote, role, onRevise, clientId, onAccepted }: QuoteCardProps) {
   const { t, i18n } = useTranslation("jobs");
   const queryClient = useQueryClient();
   const [acting, setActing] = useState(false);
