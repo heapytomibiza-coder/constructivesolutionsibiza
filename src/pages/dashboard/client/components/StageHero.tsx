@@ -300,8 +300,20 @@ export function StageHero({
     onScrollToQuotes,
   });
 
+  const isResolved = stage === 'completed_reviewed';
+  const isCompleted = stage === 'completed_no_review' || isResolved;
+
   return (
-    <div className="rounded-3xl border border-border/70 bg-gradient-to-br from-primary/[0.04] to-background p-5 sm:p-7 shadow-sm">
+    <div
+      className={cn(
+        'rounded-3xl border p-5 sm:p-7 shadow-sm transition-colors',
+        isResolved
+          ? 'border-border/50 bg-gradient-to-br from-muted/40 to-background'
+          : isCompleted
+            ? 'border-success/20 bg-gradient-to-br from-success/[0.03] to-background'
+            : 'border-border/70 bg-gradient-to-br from-primary/[0.04] to-background',
+      )}
+    >
       {/* Top row: pill */}
       <div className="flex items-center justify-between mb-5">
         <span
@@ -316,24 +328,34 @@ export function StageHero({
       </div>
 
       {/* Title */}
-      <h1 className="text-[26px] sm:text-[32px] leading-[1.15] font-bold font-display text-foreground">
+      <h1
+        className={cn(
+          'text-[26px] sm:text-[32px] leading-[1.15] font-bold font-display',
+          isResolved ? 'text-muted-foreground' : 'text-foreground',
+        )}
+      >
         {config.title}
       </h1>
 
       {/* Meaning */}
-      <p className="text-[15px] sm:text-base leading-relaxed text-foreground/80 mt-2.5 max-w-[65ch]">
+      <p className={cn(
+        'text-[15px] sm:text-base leading-relaxed mt-2.5 max-w-[65ch]',
+        isResolved ? 'text-muted-foreground' : 'text-foreground/80',
+      )}>
         {config.meaning}
       </p>
 
-      {/* Next step inset panel */}
-      <div className="mt-5 rounded-2xl bg-muted/50 border border-border/50 px-4 py-3.5">
-        <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-          {t('stageHero.nextStepLabel', 'Next step')}
-        </p>
-        <p className="text-[14px] sm:text-[15px] font-medium text-foreground">
-          {config.nextStep}
-        </p>
-      </div>
+      {/* Next step inset panel — hidden when fully resolved */}
+      {!isResolved && (
+        <div className="mt-5 rounded-2xl bg-muted/50 border border-border/50 px-4 py-3.5">
+          <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            {t('stageHero.nextStepLabel', 'Next step')}
+          </p>
+          <p className="text-[14px] sm:text-[15px] font-medium text-foreground">
+            {config.nextStep}
+          </p>
+        </div>
+      )}
 
       {/* Primary action */}
       {config.primaryAction && (
@@ -341,7 +363,10 @@ export function StageHero({
           <Button
             variant={config.primaryAction.variant || 'default'}
             onClick={config.primaryAction.onClick}
-            className="h-12 px-5 rounded-xl text-[15px] font-semibold gap-2 w-full sm:w-auto"
+            className={cn(
+              'h-12 px-5 rounded-xl text-[15px] font-semibold gap-2 w-full sm:w-auto',
+              isResolved && 'h-10 text-[14px]',
+            )}
           >
             {config.primaryAction.icon}
             {config.primaryAction.label}
