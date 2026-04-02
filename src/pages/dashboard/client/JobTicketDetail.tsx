@@ -262,6 +262,7 @@ export default function JobTicketDetail() {
   const isPastOpen = ['in_progress', 'completed'].includes(job.status);
   const quotesCount = isClient ? quotesForJob.length : (myQuote ? 1 : 0);
   const completionRequested = !!job.completion_requested_at;
+  const cancellationRequested = !!job.cancellation_requested_at;
 
   const railProps = {
     jobId: jobId!,
