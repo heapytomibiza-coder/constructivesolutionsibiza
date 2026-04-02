@@ -57,17 +57,37 @@ export function ConversationThread({
 
   const dateFnsLocale = i18n.language?.startsWith('es') ? es : undefined;
 
-  // Pro's own quote (for canQuote gating)
-  const { data: myQuote } = useMyQuoteForJob(
-    jobId ?? null,
-    currentUserId,
-    userRole === 'professional' && jobStatus === 'open'
-  );
-
   // All quotes for this job (for inline rendering — works for both client and pro)
   const { data: allQuotes } = useQuotesForJob(jobId ?? null, !!jobId);
 
-  const canQuote = userRole === 'professional' && jobStatus === 'open' && !myQuote && !!jobId;
+  const queryClient = useQueryClient();
+
+  // Derive hasQuote: any submitted/revised quote from this conversation's pro
+  const hasQuote = !!allQuotes?.some(
+    q => (q.status === 'submitted' || q.status === 'revised') && q.professional_id !== undefined
+  );
+
+  const canQuote = userRole === 'professional' && jobStatus === 'open' && !hasQuote && !!jobId;
+
+  const handleCompleteJob = useCallback(async () => {
+    if (!jobId) return;
+    const result = await completeJob(jobId);
+    if (result.success) {
+      toast.success(t('lifecycle.jobCompleted', 'Job completed'));
+      // Insert system message
+      await supabase.from('messages').insert({
+        conversation_id: conversationId,
+        sender_id: currentUserId,
+        body: t('lifecycle.jobCompletedSystem', 'The job has been marked as complete.'),
+        message_type: 'system',
+        metadata: { event: 'job_completed' },
+      });
+      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['job_status_history', jobId] });
+    } else {
+      toast.error(result.error ?? t('lifecycle.completeFailed', 'Failed to complete job'));
+    }
+  }, [jobId, conversationId, currentUserId, t, queryClient]);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     const container = scrollContainerRef.current;
