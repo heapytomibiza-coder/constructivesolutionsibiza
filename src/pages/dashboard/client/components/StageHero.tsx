@@ -153,6 +153,24 @@ function buildStageConfig(
       };
 
     case 'in_progress':
+      // Cancellation takes priority over completion in hero display
+      if (cancellationRequested) {
+        return {
+          title: isClient
+            ? t('stageHero.cancellationRequestedTitle', 'Cancellation requested')
+            : t('stageHero.cancellationRequestedTitlePro', 'Cancellation requested'),
+          meaning: isClient
+            ? t('stageHero.cancellationRequestedMeaningClient', 'The professional has asked to cancel this job. Review the request below.')
+            : t('stageHero.cancellationRequestedMeaningPro', 'You have requested to cancel. Waiting for the client to respond.'),
+          nextStep: isClient
+            ? t('stageHero.cancellationRequestedNextClient', 'Accept or decline the cancellation request.')
+            : t('stageHero.cancellationRequestedNextPro', 'The client will review your request.'),
+          pillLabel: t('stageHero.pillCancellationRequested', 'Cancellation requested'),
+          pillClass: 'bg-destructive/10 text-destructive border-destructive/20',
+          icon: <AlertTriangle className="h-6 w-6 text-destructive" />,
+        };
+      }
+
       if (isClient) {
         return {
           title: completionRequested
@@ -208,6 +226,7 @@ function buildStageConfig(
               onClick: actions.onRequestCompletion,
               icon: <CheckCircle2 className="h-4 w-4" />,
             },
+      };
       };
 
     case 'completed_no_review':
