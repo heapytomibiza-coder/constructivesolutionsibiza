@@ -36,6 +36,8 @@
     "status": {
       "draft": "Job created",
       "open": "Job posted",
+      "quote_submitted": "Quote sent",
+      "quote_accepted": "Quote accepted",
       "in_progress": "Work started",
       "completed": "Completed",
       "cancelled": "Cancelled",

@@ -114,7 +114,7 @@ export function JobLifecycleBar({
         size="sm"
         variant="outline"
         className="shrink-0 gap-1.5"
-        onClick={() => navigate(`/dashboard/${userRole === "client" ? "client" : "professional"}/jobs/${jobId}`)}
+        onClick={() => navigate(`/dashboard/jobs/${jobId}`)}
       >
         <Star className="h-3.5 w-3.5" />
         {t("lifecycle.leaveReview", "Leave a review")}
