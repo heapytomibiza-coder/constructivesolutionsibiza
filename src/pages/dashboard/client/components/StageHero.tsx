@@ -139,31 +139,59 @@ function buildStageConfig(
     case 'in_progress':
       if (isClient) {
         return {
-          title: t('stageHero.inProgressTitle', 'Work in progress'),
-          meaning: t('stageHero.inProgressMeaningClient', 'The professional is currently carrying out the work.'),
-          nextStep: t('stageHero.inProgressNextClient', 'You can track progress updates below.'),
-          pillLabel: t('stageHero.pillInProgress', 'Work in progress'),
-          pillClass: 'bg-primary/10 text-primary border-primary/20',
-          icon: <Sparkles className="h-6 w-6 text-primary" />,
+          title: completionRequested
+            ? t('stageHero.completionRequestedTitle', 'Completion requested')
+            : t('stageHero.inProgressTitle', 'Work in progress'),
+          meaning: completionRequested
+            ? t('stageHero.completionRequestedMeaningClient', 'The professional has indicated the work is finished and is asking you to confirm.')
+            : t('stageHero.inProgressMeaningClient', 'The professional is currently carrying out the work.'),
+          nextStep: completionRequested
+            ? t('stageHero.completionRequestedNextClient', 'Review the work and confirm completion.')
+            : t('stageHero.inProgressNextClient', 'You can track progress updates below.'),
+          pillLabel: completionRequested
+            ? t('stageHero.pillCompletionRequested', 'Completion requested')
+            : t('stageHero.pillInProgress', 'Work in progress'),
+          pillClass: completionRequested
+            ? 'bg-amber-500/15 text-amber-700 border-amber-500/20'
+            : 'bg-primary/10 text-primary border-primary/20',
+          icon: completionRequested
+            ? <CheckCircle2 className="h-6 w-6 text-amber-600" />
+            : <Sparkles className="h-6 w-6 text-primary" />,
           primaryAction: {
-            label: t('stageHero.markComplete', 'Mark Complete'),
+            label: completionRequested
+              ? t('stageHero.confirmComplete', 'Confirm Completion')
+              : t('stageHero.markComplete', 'Mark Complete'),
             onClick: actions.onMarkComplete,
             icon: <CheckCircle2 className="h-4 w-4" />,
           },
         };
       }
       return {
-        title: t('stageHero.inProgressTitle', 'Work in progress'),
-        meaning: t('stageHero.inProgressMeaningPro', 'You are currently working on this job.'),
-        nextStep: t('stageHero.inProgressNextPro', 'Keep the client updated with progress.'),
-        pillLabel: t('stageHero.pillInProgress', 'Work in progress'),
-        pillClass: 'bg-primary/10 text-primary border-primary/20',
-        icon: <Sparkles className="h-6 w-6 text-primary" />,
-        primaryAction: {
-          label: t('stageHero.addUpdate', 'Add Update'),
-          onClick: actions.onScrollToUpdates,
-          icon: <MessageSquare className="h-4 w-4" />,
-        },
+        title: completionRequested
+          ? t('stageHero.completionRequestedTitlePro', 'Completion requested')
+          : t('stageHero.inProgressTitle', 'Work in progress'),
+        meaning: completionRequested
+          ? t('stageHero.completionRequestedMeaningPro', 'You have requested completion. Waiting for the client to confirm.')
+          : t('stageHero.inProgressMeaningPro', 'You are currently working on this job.'),
+        nextStep: completionRequested
+          ? t('stageHero.completionRequestedNextPro', 'The client will review and confirm.')
+          : t('stageHero.inProgressNextPro', 'Keep the client updated with progress.'),
+        pillLabel: completionRequested
+          ? t('stageHero.pillCompletionRequested', 'Completion requested')
+          : t('stageHero.pillInProgress', 'Work in progress'),
+        pillClass: completionRequested
+          ? 'bg-amber-500/15 text-amber-700 border-amber-500/20'
+          : 'bg-primary/10 text-primary border-primary/20',
+        icon: completionRequested
+          ? <CheckCircle2 className="h-6 w-6 text-amber-600" />
+          : <Sparkles className="h-6 w-6 text-primary" />,
+        primaryAction: completionRequested
+          ? undefined
+          : {
+              label: t('stageHero.requestCompletion', 'Request Completion'),
+              onClick: actions.onRequestCompletion,
+              icon: <CheckCircle2 className="h-4 w-4" />,
+            },
       };
 
     case 'completed_no_review':
