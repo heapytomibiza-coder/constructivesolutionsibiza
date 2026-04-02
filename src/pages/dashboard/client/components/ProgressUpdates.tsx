@@ -15,6 +15,7 @@ import { Camera, ImagePlus, Loader2, Send, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface ProgressUpdatesProps {
   jobId: string;
@@ -134,14 +135,18 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
   const visibleOlder = showAll ? olderUpdates : olderUpdates.slice(0, 2);
   const hasMore = olderUpdates.length > 2 && !showAll;
 
+  const isCompleted = jobStatus === 'completed';
+
   return (
     <>
       <div id="progress-updates" className="space-y-4">
-        {/* Section header */}
+        {/* Section header — contextual microcopy */}
         <div className="flex items-center gap-2">
           <Camera className="h-4 w-4 text-primary" />
           <h3 className="text-lg sm:text-xl font-semibold font-display text-foreground">
-            {t('progressUpdates.title', 'Progress Updates')}
+            {isCompleted
+              ? t('progressUpdates.titleCompleted', 'Work summary')
+              : t('progressUpdates.titleActive', 'Latest from the job')}
           </h3>
           {updates.length > 0 && (
             <span className="text-[12px] text-muted-foreground ml-auto">
@@ -182,8 +187,8 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {/* Latest Update — dominant hero-tier centrepiece */}
+          <div className="space-y-3">
+            {/* Latest Update — borderless, flows from hero */}
             {latestUpdate && (
               <LatestUpdateCard
                 update={latestUpdate}
@@ -192,9 +197,9 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
               />
             )}
 
-            {/* Older updates — compact timeline */}
+            {/* Older updates — progressively lighter */}
             {visibleOlder.length > 0 && (
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {visibleOlder.map((update) => (
                   <CompactUpdateRow
                     key={update.id}
@@ -241,48 +246,43 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
 /* ─── Latest Update Card — Hero-tier visual anchor ─── */
 
 function LatestUpdateCard({ update, authorName, t }: { update: any; authorName: string | null; t: any }) {
+  const hasPhoto = !!update.photo_url;
+
   return (
-    <div className="rounded-3xl border border-border/70 bg-card overflow-hidden shadow-sm">
-      {/* Photo-first: edge-to-edge at top */}
-      {update.photo_url && (
-        <img
-          src={update.photo_url}
-          alt={update.note || 'Progress photo'}
-          className="w-full max-h-[400px] object-cover"
-          loading="lazy"
-        />
+    <div className="overflow-hidden">
+      {/* Photo-first: edge-to-edge, no border — content flows */}
+      {hasPhoto && (
+        <div className="rounded-3xl overflow-hidden">
+          <img
+            src={update.photo_url}
+            alt={update.note || 'Progress photo'}
+            className="w-full max-h-[420px] object-cover"
+            loading="lazy"
+          />
+        </div>
       )}
 
-      {/* Content area */}
-      <div className="p-6 space-y-3">
-        {/* Header: "Latest update" + human meta */}
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-base font-semibold font-display text-foreground">
-              {t('progressUpdates.latestTitle', 'Latest update')}
-            </p>
-            <div className="flex items-center gap-2 mt-0.5">
-              {authorName && (
-                <span className="text-[13px] text-muted-foreground font-medium">{authorName}</span>
-              )}
-              {authorName && (
-                <span className="text-muted-foreground/40">·</span>
-              )}
-              <span className="text-[12px] text-muted-foreground">
-                {formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}
-              </span>
-            </div>
-          </div>
+      {/* Content — no card border, just content flowing */}
+      <div className={cn(
+        'space-y-2',
+        hasPhoto ? 'pt-4 px-1' : 'pt-1 px-1',
+      )}>
+        {/* Human meta line */}
+        <div className="flex items-center gap-2">
+          {authorName && (
+            <span className="text-[13px] text-foreground font-semibold">{authorName}</span>
+          )}
+          {authorName && <span className="text-muted-foreground/40">·</span>}
+          <span className="text-[12px] text-muted-foreground">
+            {formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}
+          </span>
         </div>
 
-        {/* Note — larger text for the latest */}
+        {/* Note — generous, readable */}
         {update.note && (
-          <p className="text-base text-foreground leading-relaxed">{update.note}</p>
+          <p className="text-[15px] text-foreground leading-relaxed">{update.note}</p>
         )}
       </div>
-
-      {/* Subtle left accent */}
-      <div className="h-1 bg-gradient-to-r from-primary/40 via-primary/20 to-transparent" />
     </div>
   );
 }
@@ -291,20 +291,20 @@ function LatestUpdateCard({ update, authorName, t }: { update: any; authorName: 
 
 function CompactUpdateRow({ update, authorName }: { update: any; authorName: string | null }) {
   return (
-    <div className="rounded-2xl border border-border/50 bg-card p-3.5 flex gap-3">
+    <div className="flex gap-3 px-1 py-2 border-t border-border/30">
       {update.photo_url && (
         <img
           src={update.photo_url}
           alt={update.note || 'Progress photo'}
-          className="h-16 w-16 rounded-xl object-cover shrink-0"
+          className="h-14 w-14 rounded-xl object-cover shrink-0"
           loading="lazy"
         />
       )}
       <div className="flex-1 min-w-0">
         {update.note && (
-          <p className="text-sm text-foreground line-clamp-2">{update.note}</p>
+          <p className="text-[13px] text-foreground/80 line-clamp-2">{update.note}</p>
         )}
-        <div className="flex items-center gap-1.5 mt-1">
+        <div className="flex items-center gap-1.5 mt-0.5">
           {authorName && (
             <>
               <span className="text-[11px] text-muted-foreground font-medium">{authorName}</span>
