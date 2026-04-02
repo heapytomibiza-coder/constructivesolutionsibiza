@@ -334,6 +334,42 @@ export default function JobTicketDetail() {
                 <span className="hidden sm:inline">{t('jobTicket.hireAgain', 'Hire Again')}</span>
               </Button>
             )}
+            {/* Pro: Withdraw (assigned) */}
+            {!isClient && ['open', 'assigned'].includes(job.status) && job.assigned_professional_id === user?.id && (
+              <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive text-xs" onClick={handleWithdraw}>
+                <XCircle className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t('jobTicket.withdraw', 'Withdraw')}</span>
+              </Button>
+            )}
+            {/* Pro: Request Cancellation (in_progress) */}
+            {!isClient && job.status === 'in_progress' && job.assigned_professional_id === user?.id && !cancellationRequested && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1 text-destructive hover:text-destructive text-xs"
+                onClick={async () => {
+                  const reason = prompt(t('jobTicket.cancellationReasonPrompt', 'Why do you want to cancel? (optional)'));
+                  if (reason === null) return; // user cancelled prompt
+                  try {
+                    const { error } = await supabase.rpc('request_job_cancellation', {
+                      p_job_id: jobId!,
+                      p_reason: reason || undefined,
+                    });
+                    if (error) {
+                      toast.error(error.message);
+                      return;
+                    }
+                    toast.success(t('jobTicket.cancellationRequested', 'Cancellation requested'));
+                    queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });
+                  } catch {
+                    toast.error(t('jobTicket.cancellationFailed', 'Failed to request cancellation'));
+                  }
+                }}
+              >
+                <XCircle className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t('jobTicket.requestCancellation', 'Cancel Job')}</span>
+              </Button>
+            )}
             {isClient && (
               <Button variant="ghost" size="sm" className="gap-1 text-destructive text-xs" onClick={handleClose}>
                 <XCircle className="h-3.5 w-3.5" />
