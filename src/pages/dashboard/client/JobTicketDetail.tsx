@@ -360,12 +360,15 @@ export default function JobTicketDetail() {
               </div>
             )}
 
-            {/* 3. Completion CTA (client + in_progress) */}
-            {isClient && (
-              <div id="completion-section">
-                <JobTicketCompletion jobId={job.id} jobStatus={job.status} />
-              </div>
-            )}
+            {/* 3. Completion CTA (both roles during in_progress) */}
+            <div id="completion-section">
+              <JobTicketCompletion
+                jobId={job.id}
+                jobStatus={job.status}
+                isClient={isClient}
+                completionRequested={completionRequested}
+              />
+            </div>
 
             {/* 4. Review (completed) */}
             <div ref={reviewRef}>
