@@ -34,21 +34,16 @@ export function HeroBanner({
   className,
   children,
 }: HeroBannerProps) {
-  // Auto-derive srcset: if imageSrc is a Vite-bundled .webp, check for -800w and -400w variants
-  // Also support explicit imageSrcSet override
+  // Build srcset only from explicit imageSrcSet prop.
+  // Auto-derivation from naming convention is disabled because Vite hashes asset URLs.
   const derivedSrcSet = React.useMemo(() => {
     if (imageSrcSet) {
       return Object.entries(imageSrcSet)
         .map(([size, url]) => `${url} ${size}`)
         .join(', ');
     }
-    // Auto-derive from naming convention: hero-X.webp → hero-X-800w.webp, hero-X-400w.webp
-    if (imageSrc && imageSrc.endsWith('.webp')) {
-      const base = imageSrc.replace(/\.webp$/, '');
-      return `${base}-400w.webp 400w, ${base}-800w.webp 800w, ${imageSrc} 1200w`;
-    }
     return undefined;
-  }, [imageSrc, imageSrcSet]);
+  }, [imageSrcSet]);
   const heightClasses = {
     full: "min-h-[60vh] lg:min-h-[70vh]",
     medium: "min-h-[45vh] lg:min-h-[50vh]",
