@@ -413,6 +413,14 @@ export default function JobTicketDetail() {
             {/* 4. Project Gallery (in_progress / completed) */}
             <ProjectGallery jobId={job.id} jobStatus={job.status} />
 
+            {/* 4b. Portfolio prompt (pro, completed) */}
+            <PortfolioPrompt
+              jobId={job.id}
+              jobStatus={job.status}
+              isClient={isClient}
+              jobTitle={job.title}
+            />
+
             {/* 5. Review (completed) */}
             <div ref={reviewRef}>
               <JobTicketReview
