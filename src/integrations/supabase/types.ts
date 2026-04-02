@@ -2259,9 +2259,12 @@ export type Database = {
       }
       quote_line_items: {
         Row: {
+          added_by: string | null
+          client_acknowledged_at: string | null
           created_at: string
           description: string
           id: string
+          is_addition: boolean
           line_total: number | null
           quantity: number
           quote_id: string
@@ -2269,9 +2272,12 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          added_by?: string | null
+          client_acknowledged_at?: string | null
           created_at?: string
           description?: string
           id?: string
+          is_addition?: boolean
           line_total?: number | null
           quantity?: number
           quote_id: string
@@ -2279,9 +2285,12 @@ export type Database = {
           unit_price?: number
         }
         Update: {
+          added_by?: string | null
+          client_acknowledged_at?: string | null
           created_at?: string
           description?: string
           id?: string
+          is_addition?: boolean
           line_total?: number | null
           quantity?: number
           quote_id?: string
