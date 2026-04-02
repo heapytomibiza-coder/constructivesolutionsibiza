@@ -44,10 +44,11 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Bridging the gap between idea and build",
-    "subtitle": "We help you understand the scope, set your expectations, and connect you with the right professionals",
-    "postJob": "Start Your Project",
-    "browsePros": "Browse Taskers"
+    "title": "Find Trusted Builders & Trades in Ibiza",
+    "subtitle": "Post your job and get connected with reliable professionals across Ibiza — from small fixes to full renovations.",
+    "postJob": "Post a Job",
+    "browsePros": "Browse Professionals",
+    "joinAsPro": "Join as a Professional"
   },
   "trust": {
     "verified": "Verified trades",
