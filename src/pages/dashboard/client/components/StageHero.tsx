@@ -141,6 +141,14 @@ function buildStageConfig(
         pillLabel: t('stageHero.pillAssigned', 'Professional selected'),
         pillClass: 'bg-primary/10 text-primary border-primary/20',
         icon: <UserCheck className="h-6 w-6 text-primary" />,
+        primaryAction: !isClient
+          ? {
+              label: t('stageHero.withdraw', 'Withdraw'),
+              onClick: actions.onWithdraw,
+              icon: <LogOut className="h-4 w-4" />,
+              variant: 'outline' as const,
+            }
+          : undefined,
       };
 
     case 'in_progress':
