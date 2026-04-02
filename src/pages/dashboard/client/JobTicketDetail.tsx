@@ -514,8 +514,6 @@ export default function JobTicketDetail() {
               </div>
             )}
 
-            {/* Full conversations (fallback — kept for thread access) */}
-            <JobTicketConversations jobId={job.id} viewerRole={isClient ? 'client' : 'professional'} />
           </div>
         </div>
       </div>
