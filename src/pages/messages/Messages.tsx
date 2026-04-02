@@ -78,6 +78,7 @@ const Messages = () => {
           conversationId={conversationId}
           currentUserId={user.id}
           clientId={selectedConversation?.client_id}
+          proId={selectedConversation?.pro_id}
           jobId={selectedConversation?.job_id}
           jobTitle={selectedConversation?.job_title}
           jobStatus={selectedConversation?.job_status}
@@ -163,6 +164,7 @@ const Messages = () => {
                 conversationId={conversationId}
                 currentUserId={user.id}
                 clientId={selectedConversation?.client_id}
+                proId={selectedConversation?.pro_id}
                 jobId={selectedConversation?.job_id}
                 jobTitle={selectedConversation?.job_title}
                 jobStatus={selectedConversation?.job_status}
