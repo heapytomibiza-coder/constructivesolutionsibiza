@@ -336,7 +336,11 @@ export default function JobTicketDetail() {
               hasReview={hasReview}
               quotesCount={quotesCount}
               hasAcceptedQuote={hasAcceptedQuote}
+              completionRequested={completionRequested}
               onMarkComplete={() => {
+                document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              onRequestCompletion={() => {
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
               onScrollToUpdates={scrollToUpdates}
