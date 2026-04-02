@@ -585,6 +585,66 @@ export default function JobTicketDetail() {
               </div>
             )}
 
+            {/* ─── Footer actions (destructive / secondary) ─── */}
+            {!['cancelled'].includes(job.status) && (
+              <div className="mt-6 pt-5 border-t border-border/50">
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Raise Issue */}
+                  {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" asChild>
+                      <Link to={`/disputes/raise?job=${jobId}`}>
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {t('jobTicket.raiseIssue', 'Raise Issue')}
+                      </Link>
+                    </Button>
+                  )}
+                  {/* Pro: Withdraw */}
+                  {!isClient && ['open', 'assigned'].includes(job.status) && job.assigned_professional_id === user?.id && (
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleWithdraw}>
+                      <XCircle className="h-3.5 w-3.5" />
+                      {t('jobTicket.withdraw', 'Withdraw')}
+                    </Button>
+                  )}
+                  {/* Pro: Request Cancellation */}
+                  {!isClient && job.status === 'in_progress' && job.assigned_professional_id === user?.id && !cancellationRequested && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5 text-muted-foreground hover:text-destructive text-xs"
+                      onClick={async () => {
+                        const reason = prompt(t('jobTicket.cancellationReasonPrompt', 'Why do you want to cancel? (optional)'));
+                        if (reason === null) return;
+                        try {
+                          const { error } = await supabase.rpc('request_job_cancellation', {
+                            p_job_id: jobId!,
+                            p_reason: reason || undefined,
+                          });
+                          if (error) {
+                            toast.error(error.message);
+                            return;
+                          }
+                          toast.success(t('jobTicket.cancellationRequested', 'Cancellation requested'));
+                          queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });
+                        } catch {
+                          toast.error(t('jobTicket.cancellationFailed', 'Failed to request cancellation'));
+                        }
+                      }}
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                      {t('jobTicket.requestCancellation', 'Cancel Job')}
+                    </Button>
+                  )}
+                  {/* Client: Close/Cancel */}
+                  {isClient && !['completed', 'cancelled'].includes(job.status) && (
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleClose}>
+                      <XCircle className="h-3.5 w-3.5" />
+                      {t('jobTicket.cancelJob', 'Cancel Job')}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       </div>
