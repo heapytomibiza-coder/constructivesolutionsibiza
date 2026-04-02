@@ -77,8 +77,10 @@ function buildStageConfig(
   stage: JobStage,
   isClient: boolean,
   t: ReturnType<typeof import('react-i18next').useTranslation>['t'],
+  completionRequested: boolean,
   actions: {
     onMarkComplete?: () => void;
+    onRequestCompletion?: () => void;
     onScrollToUpdates?: () => void;
     onScrollToReview?: () => void;
     onScrollToQuotes?: () => void;
