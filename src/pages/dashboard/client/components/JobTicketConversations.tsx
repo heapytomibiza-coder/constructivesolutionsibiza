@@ -23,13 +23,20 @@ export function JobTicketConversations({ jobId, viewerRole = 'client' }: JobTick
   const { user } = useSession();
 
   const { data: conversations = [] } = useQuery({
-    queryKey: ['job_conversations', jobId],
+    queryKey: ['job_conversations', jobId, viewerRole],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('conversations')
         .select('id, pro_id, client_id, last_message_at, last_message_preview, last_read_at_client, last_read_at_pro')
         .eq('job_id', jobId)
         .order('last_message_at', { ascending: false });
+
+      // Professionals should only see their own conversation
+      if (viewerRole === 'professional' && user?.id) {
+        query = query.eq('pro_id', user.id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
