@@ -2,7 +2,10 @@
  * JobTicketReview — Leave review section.
  * Role-aware: clients review the professional, professionals review the client.
  * Shown when job is completed and the current user hasn't reviewed yet.
- * Auto-opens RatingModal once per session for professionals (soft prompt).
+ *
+ * Auto-opens RatingModal:
+ *  - Client: immediately after completion (via sessionStorage flag from JobTicketCompletion)
+ *  - Professional: once per session on first visit to completed ticket
  */
 
 import { useState, useEffect } from 'react';
@@ -22,6 +25,7 @@ interface JobTicketReviewProps {
   jobId: string;
   jobStatus: string;
   assignedProfessionalId: string | null;
+  assignedProfessionalName?: string;
   viewerRole?: 'client' | 'professional';
   clientId?: string;
   clientName?: string;
@@ -31,6 +35,7 @@ export function JobTicketReview({
   jobId,
   jobStatus,
   assignedProfessionalId,
+  assignedProfessionalName,
   viewerRole = 'client',
   clientId,
   clientName,
@@ -46,6 +51,7 @@ export function JobTicketReview({
 
   const reviewerRole = viewerRole;
   const revieweeId = viewerRole === 'client' ? assignedProfessionalId : clientId;
+  const revieweeName = viewerRole === 'client' ? assignedProfessionalName : clientName;
 
   // Check if user already reviewed
   const { data: existingReview, isLoading } = useQuery({
@@ -65,26 +71,30 @@ export function JobTicketReview({
     enabled: !!jobId && !!user && jobStatus === 'completed',
   });
 
-  // Auto-open review modal for professionals (once per session)
+  // Auto-open review modal for BOTH roles (once per session)
   useEffect(() => {
-    if (
-      viewerRole !== 'professional' ||
-      jobStatus !== 'completed' ||
-      isLoading ||
-      existingReview ||
-      !revieweeId
-    ) return;
+    if (jobStatus !== 'completed' || isLoading || existingReview || !revieweeId) return;
 
-    const sessionKey = `review_prompted_${jobId}`;
-    if (sessionStorage.getItem(sessionKey)) return;
+    if (viewerRole === 'client') {
+      // Client: check flag set by JobTicketCompletion
+      const autoOpenKey = `review_auto_open_${jobId}`;
+      if (!sessionStorage.getItem(autoOpenKey)) return;
 
-    // Small delay so the page settles
-    const timer = setTimeout(() => {
-      sessionStorage.setItem(sessionKey, '1');
-      setShowReviewModal(true);
-    }, 600);
+      // Consume the flag so it only fires once
+      sessionStorage.removeItem(autoOpenKey);
+      const timer = setTimeout(() => setShowReviewModal(true), 400);
+      return () => clearTimeout(timer);
+    } else {
+      // Professional: once per session on first visit
+      const sessionKey = `review_prompted_${jobId}`;
+      if (sessionStorage.getItem(sessionKey)) return;
 
-    return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        sessionStorage.setItem(sessionKey, '1');
+        setShowReviewModal(true);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
   }, [viewerRole, jobStatus, isLoading, existingReview, revieweeId, jobId]);
 
   if (jobStatus !== 'completed' || !revieweeId || isLoading) return null;
@@ -227,11 +237,11 @@ export function JobTicketReview({
         </CardContent>
       </Card>
 
-      {/* Auto-triggered review modal (professional soft prompt) */}
+      {/* Auto-triggered review modal */}
       <RatingModal
         open={showReviewModal}
         onOpenChange={setShowReviewModal}
-        revieweeName={clientName}
+        revieweeName={revieweeName}
         reviewerRole={reviewerRole}
         onSubmit={handleModalSubmit}
         onSkip={() => setShowReviewModal(false)}

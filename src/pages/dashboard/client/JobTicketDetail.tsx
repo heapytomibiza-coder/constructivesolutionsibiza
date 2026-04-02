@@ -456,7 +456,6 @@ export default function JobTicketDetail() {
                   isClient={isClient}
                   completionRequested={completionRequested}
                   assignedProfessionalId={job.assigned_professional_id}
-                  assignedProfessionalName={assignedProProfile?.display_name}
                   clientId={job.user_id}
                 />
               </div>
@@ -479,6 +478,7 @@ export default function JobTicketDetail() {
                 jobId={job.id}
                 jobStatus={job.status}
                 assignedProfessionalId={job.assigned_professional_id}
+                assignedProfessionalName={assignedProProfile?.display_name ?? undefined}
                 viewerRole={isClient ? 'client' : 'professional'}
                 clientId={job.user_id}
                 clientName={clientProfile?.display_name ?? undefined}
