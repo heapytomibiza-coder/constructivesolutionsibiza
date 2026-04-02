@@ -61,6 +61,24 @@ export async function assignProfessional(
     return { success: false, error: 'Professional has not messaged about this job' };
   }
 
+  // Gate: require a submitted/revised quote before hiring
+  const { data: quote, error: quoteError } = await supabase
+    .from('quotes')
+    .select('id')
+    .eq('job_id', jobId)
+    .eq('professional_id', professionalId)
+    .in('status', ['submitted', 'revised'])
+    .maybeSingle();
+
+  if (quoteError) {
+    console.error('Error checking quote:', quoteError);
+    return { success: false, error: 'Unable to verify quote' };
+  }
+
+  if (!quote) {
+    return { success: false, error: 'A quote is required before hiring this professional' };
+  }
+
   // Atomic update: only succeeds if still unassigned + in assignable status
   const { data, error } = await supabase
     .from('jobs')
