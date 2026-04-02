@@ -26,6 +26,7 @@
     "jobCompleted": "Trabajo completado",
     "jobCompletedSystem": "El trabajo ha sido marcado como completado.",
     "completeFailed": "No se pudo completar el trabajo",
+    "waitingForQuote": "Esperando un presupuesto del profesional",
     "leaveReview": "Dejar una reseña",
     "confirmCompleteTitle": "¿Marcar este trabajo como completado?",
     "confirmCompleteDesc": "Esto confirma que el trabajo terminó. Ambas partes podrán dejar una reseña.",
