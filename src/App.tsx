@@ -68,6 +68,7 @@ const JobTicketDetail = lazy(() => import("./pages/dashboard/client/JobTicketDet
 const MatchAndSend = lazy(() => import("./pages/dashboard/client/MatchAndSend"));
 const QuoteComparison = lazy(() => import("./pages/dashboard/client/QuoteComparison"));
 const ProDashboard = lazy(() => import("./pages/dashboard/professional/ProDashboard"));
+const ProJobsList = lazy(() => import("./pages/dashboard/professional/ProJobsList"));
 const DashboardResolver = lazy(() => import("./pages/dashboard/DashboardResolver"));
 
 // Messages
