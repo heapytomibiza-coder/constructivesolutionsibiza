@@ -221,8 +221,10 @@ export function JobProgressRail({
                 <div
                   className={cn(
                     'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12px] font-medium min-w-[88px] justify-center',
-                    step.state === 'done' && 'bg-primary/10 text-primary',
-                    step.state === 'current' && 'bg-primary text-primary-foreground',
+                    step.state === 'done' && !isFinalStep(step.key) && 'bg-primary/10 text-primary',
+                    step.state === 'done' && isFinalStep(step.key) && 'bg-success/10 text-success',
+                    step.state === 'current' && !isFinalStep(step.key) && 'bg-primary text-primary-foreground',
+                    step.state === 'current' && isFinalStep(step.key) && 'bg-success text-success-foreground',
                     step.state === 'upcoming' && 'bg-muted text-muted-foreground',
                   )}
                 >
@@ -235,7 +237,7 @@ export function JobProgressRail({
                   <div
                     className={cn(
                       'w-3 h-0.5 shrink-0',
-                      step.state === 'done' ? 'bg-primary' : 'bg-border',
+                      step.state === 'done' ? (isFinalStep(step.key) ? 'bg-success/40' : 'bg-primary') : 'bg-border',
                     )}
                   />
                 )}
