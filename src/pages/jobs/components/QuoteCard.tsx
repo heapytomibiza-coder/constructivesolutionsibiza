@@ -34,9 +34,11 @@ interface QuoteCardProps {
   onRevise?: () => void;
   /** Client user_id — needed for trust badges */
   clientId?: string | null;
+  /** Called after a quote is successfully accepted — parent can insert system message */
+  onAccepted?: (quoteId: string) => void;
 }
 
-export function QuoteCard({ quote, role, onRevise, clientId }: QuoteCardProps) {
+export function QuoteCard({ quote, role, onRevise, clientId, onAccepted }: QuoteCardProps) {
   const { t, i18n } = useTranslation("jobs");
   const queryClient = useQueryClient();
   const [acting, setActing] = useState(false);
@@ -69,6 +71,7 @@ export function QuoteCard({ quote, role, onRevise, clientId }: QuoteCardProps) {
       queryClient.invalidateQueries({ queryKey: quoteKeys.forJob(quote.job_id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.details(quote.job_id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.board() });
+      onAccepted?.(quote.id);
     } else {
       toast.error(result.error ?? t("quotes.acceptFailed"));
     }

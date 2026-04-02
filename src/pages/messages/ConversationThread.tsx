@@ -92,6 +92,18 @@ export function ConversationThread({
     }
   }, [jobId, conversationId, currentUserId, t, queryClient]);
 
+  const handleQuoteAccepted = useCallback(async (quoteId: string) => {
+    await supabase.from('messages').insert({
+      conversation_id: conversationId,
+      sender_id: currentUserId,
+      body: t('lifecycle.quoteAcceptedSystem', 'The quote has been accepted.'),
+      message_type: 'system',
+      metadata: { event: 'quote_accepted', quote_id: quoteId },
+    });
+    queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+    queryClient.invalidateQueries({ queryKey: ['job_timeline', jobId] });
+  }, [conversationId, currentUserId, jobId, t, queryClient]);
+
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -177,7 +189,7 @@ export function ConversationThread({
             <p className="text-xs text-muted-foreground truncate">{jobTitle}</p>
           )}
         </div>
-        {jobId && <JobTimeline jobId={jobId} />}
+        {jobId && <JobTimeline jobId={jobId} conversationId={conversationId} />}
         <RequestSupportButton
           conversationId={conversationId}
           jobId={jobId}
@@ -214,7 +226,7 @@ export function ConversationThread({
                     return (
                       <div className="flex justify-end">
                         <div className="max-w-[85%] sm:max-w-[75%]">
-                          <QuoteCard quote={quote} role={userRole === 'professional' ? 'pro' : 'client'} />
+                          <QuoteCard quote={quote} role={userRole === 'professional' ? 'pro' : 'client'} onAccepted={handleQuoteAccepted} />
                         </div>
                       </div>
                     );
