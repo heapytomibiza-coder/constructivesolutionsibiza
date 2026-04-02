@@ -41,6 +41,7 @@ interface StageConfig {
     label: string;
     onClick?: () => void;
     icon: React.ReactNode;
+    variant?: 'default' | 'outline' | 'destructive';
   };
 }
 
