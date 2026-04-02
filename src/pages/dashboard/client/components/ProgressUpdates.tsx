@@ -134,14 +134,18 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
   const visibleOlder = showAll ? olderUpdates : olderUpdates.slice(0, 2);
   const hasMore = olderUpdates.length > 2 && !showAll;
 
+  const isCompleted = jobStatus === 'completed';
+
   return (
     <>
       <div id="progress-updates" className="space-y-4">
-        {/* Section header */}
+        {/* Section header — contextual microcopy */}
         <div className="flex items-center gap-2">
           <Camera className="h-4 w-4 text-primary" />
           <h3 className="text-lg sm:text-xl font-semibold font-display text-foreground">
-            {t('progressUpdates.title', 'Progress Updates')}
+            {isCompleted
+              ? t('progressUpdates.titleCompleted', 'Work summary')
+              : t('progressUpdates.titleActive', 'Latest from the job')}
           </h3>
           {updates.length > 0 && (
             <span className="text-[12px] text-muted-foreground ml-auto">
@@ -182,8 +186,8 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {/* Latest Update — dominant hero-tier centrepiece */}
+          <div className="space-y-3">
+            {/* Latest Update — borderless, flows from hero */}
             {latestUpdate && (
               <LatestUpdateCard
                 update={latestUpdate}
@@ -192,9 +196,9 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
               />
             )}
 
-            {/* Older updates — compact timeline */}
+            {/* Older updates — progressively lighter */}
             {visibleOlder.length > 0 && (
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {visibleOlder.map((update) => (
                   <CompactUpdateRow
                     key={update.id}
