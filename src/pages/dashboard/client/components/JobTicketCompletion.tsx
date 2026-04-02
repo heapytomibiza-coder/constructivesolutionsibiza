@@ -16,8 +16,6 @@ import { CheckCircle2, Loader2, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
 import { EVENTS } from '@/lib/eventTaxonomy';
-import { RatingModal } from '@/pages/jobs/components/RatingModal';
-import { submitReview } from '@/pages/jobs/actions/submitReview.action';
 
 interface JobTicketCompletionProps {
   jobId: string;
