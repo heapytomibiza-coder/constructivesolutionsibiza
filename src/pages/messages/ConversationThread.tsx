@@ -226,6 +226,7 @@ export function ConversationThread({
           jobStatus={jobStatus}
           messageCount={messages?.length ?? 0}
           onStartQuote={() => setIsQuoteBuilderOpen(true)}
+          hidden={isQuoteBuilderOpen}
         />
       )}
 
