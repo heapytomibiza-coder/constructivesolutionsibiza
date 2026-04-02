@@ -92,6 +92,18 @@ export function ConversationThread({
     }
   }, [jobId, conversationId, currentUserId, t, queryClient]);
 
+  const handleQuoteAccepted = useCallback(async (quoteId: string) => {
+    await supabase.from('messages').insert({
+      conversation_id: conversationId,
+      sender_id: currentUserId,
+      body: t('lifecycle.quoteAcceptedSystem', 'The quote has been accepted.'),
+      message_type: 'system',
+      metadata: { event: 'quote_accepted', quote_id: quoteId },
+    });
+    queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+    queryClient.invalidateQueries({ queryKey: ['job_timeline', jobId] });
+  }, [conversationId, currentUserId, jobId, t, queryClient]);
+
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     const container = scrollContainerRef.current;
     if (!container) return;
