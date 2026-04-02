@@ -37,6 +37,7 @@ export function ConversationThread({
   conversationId,
   currentUserId,
   clientId,
+  proId,
   jobId,
   jobTitle,
   jobStatus,
