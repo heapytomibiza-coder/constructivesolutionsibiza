@@ -118,7 +118,7 @@ export default function ProJobsList() {
   );
 }
 
-function ProJobCard({ job, locale }: { job: ProJob; locale?: Locale }) {
+function ProJobCard({ job, locale }: { job: ProJob; locale?: Parameters<typeof formatDistanceToNow>[1]['locale'] }) {
   const { t } = useTranslation('dashboard');
   const locationData = job.location as Record<string, unknown> | null;
   const area = (locationData?.area as string) || job.area || 'Ibiza';
