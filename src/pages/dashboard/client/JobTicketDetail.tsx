@@ -1,6 +1,6 @@
 /**
- * Job Ticket Detail Page — Guided workflow layout.
- * Desktop: 2-column (progress rail + stage content). Mobile: single column.
+ * Job Ticket Detail Page — Premium guided workflow layout.
+ * Desktop: 2-column (280px progress rail + stage content). Mobile: single column.
  * Role-aware: clients see management tools, professionals see their project view.
  */
 
@@ -36,11 +36,11 @@ import { useRebook } from '@/hooks/useRebook';
 import { JobProgressRail } from './components/JobProgressRail';
 import { StageHero } from './components/StageHero';
 import { ProgressUpdates } from './components/ProgressUpdates';
+import { ConversationPreviewCard } from './components/ConversationPreviewCard';
 import { JobTicketQuotes } from './components/JobTicketQuotes';
 import { JobTicketConversations } from './components/JobTicketConversations';
 import { JobTicketCompletion } from './components/JobTicketCompletion';
 import { JobTicketReview } from './components/JobTicketReview';
-import { JobActivityPanel } from './components/JobActivityPanel';
 import { ProQuoteSummary } from './components/ProQuoteSummary';
 import { useMyQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 
@@ -55,6 +55,7 @@ export default function JobTicketDetail() {
   const rebook = useRebook();
   const updatesRef = useRef<HTMLDivElement>(null);
   const reviewRef = useRef<HTMLDivElement>(null);
+  const quotesRef = useRef<HTMLDivElement>(null);
 
   const { data: job, isLoading } = useQuery({
     queryKey: ['job_ticket', jobId],
@@ -70,7 +71,6 @@ export default function JobTicketDetail() {
     enabled: !!jobId && !!user,
   });
 
-  // Fetch client profile for pro view
   const { data: clientProfile } = useQuery({
     queryKey: ['client_profile', job?.user_id],
     queryFn: async () => {
@@ -85,7 +85,6 @@ export default function JobTicketDetail() {
     enabled: !!job && job.user_id !== user?.id,
   });
 
-  // Check if quotes exist for progress rail
   const isClient = job?.user_id === user?.id;
   const { data: myQuote } = useMyQuoteForJob(
     jobId ?? null,
@@ -107,7 +106,6 @@ export default function JobTicketDetail() {
     enabled: !!jobId && !!user,
   });
 
-  // Check if review exists
   const { data: existingReview } = useQuery({
     queryKey: ['job_review_exists', jobId, user?.id],
     queryFn: async () => {
@@ -150,6 +148,38 @@ export default function JobTicketDetail() {
       return data || [];
     },
     enabled: invites.length > 0,
+  });
+
+  // Fetch assigned professional name for rail footer
+  const { data: assignedProProfile } = useQuery({
+    queryKey: ['assigned_pro_profile', job?.assigned_professional_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('professional_profiles')
+        .select('display_name')
+        .eq('user_id', job!.assigned_professional_id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!job?.assigned_professional_id,
+  });
+
+  // Latest progress update timestamp for rail
+  const { data: latestUpdate } = useQuery({
+    queryKey: ['latest_progress_update', jobId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('job_progress_updates')
+        .select('created_at')
+        .eq('job_id', jobId!)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!jobId && !!user,
   });
 
   const proNameMap = new Map(inviteProfiles.map(p => [p.user_id, p.display_name || t('client.professionalFallback')]));
@@ -196,6 +226,10 @@ export default function JobTicketDetail() {
     reviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
+  const scrollToQuotes = useCallback(() => {
+    quotesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -225,6 +259,18 @@ export default function JobTicketDetail() {
     : myQuote?.status === 'accepted';
   const hasReview = !!existingReview;
   const isPastOpen = ['in_progress', 'completed'].includes(job.status);
+  const quotesCount = isClient ? quotesForJob.length : (myQuote ? 1 : 0);
+
+  const railProps = {
+    jobId: jobId!,
+    jobStatus: job.status,
+    hasQuote,
+    hasAcceptedQuote,
+    hasReview,
+    jobTitle: job.title,
+    proName: assignedProProfile?.display_name || null,
+    lastUpdateAt: latestUpdate?.created_at || null,
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -237,7 +283,6 @@ export default function JobTicketDetail() {
           <span className="font-display font-semibold text-foreground truncate flex-1">
             {job.title}
           </span>
-          {/* Compact actions in nav */}
           <div className="flex items-center gap-1.5">
             {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
               <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive text-xs" asChild>
@@ -269,30 +314,18 @@ export default function JobTicketDetail() {
       </nav>
 
       {/* Main layout */}
-      <div className="container py-6">
-        <div className="flex gap-8">
-          {/* Left: Progress Rail (desktop only) */}
-          <div className="hidden lg:block w-56 shrink-0">
-            <JobProgressRail
-              jobId={jobId!}
-              jobStatus={job.status}
-              hasQuote={hasQuote}
-              hasAcceptedQuote={hasAcceptedQuote}
-              hasReview={hasReview}
-            />
+      <div className="container py-6 px-4 sm:px-6">
+        <div className="flex gap-6">
+          {/* Left: Progress Rail (desktop — 280px sticky) */}
+          <div className="hidden lg:block w-[280px] shrink-0">
+            <JobProgressRail {...railProps} />
           </div>
 
           {/* Right: Stage content */}
-          <div className="flex-1 max-w-2xl space-y-5">
+          <div className="flex-1 min-w-0 max-w-[820px] space-y-5">
             {/* Mobile progress rail */}
             <div className="lg:hidden">
-              <JobProgressRail
-                jobId={jobId!}
-                jobStatus={job.status}
-                hasQuote={hasQuote}
-                hasAcceptedQuote={hasAcceptedQuote}
-                hasReview={hasReview}
-              />
+              <JobProgressRail {...railProps} />
             </div>
 
             {/* 1. Stage Hero */}
@@ -300,16 +333,15 @@ export default function JobTicketDetail() {
               jobStatus={job.status}
               isClient={isClient}
               hasReview={hasReview}
+              quotesCount={quotesCount}
+              hasAcceptedQuote={hasAcceptedQuote}
               onMarkComplete={() => {
-                // Scroll to completion section
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
               onScrollToUpdates={scrollToUpdates}
               onScrollToReview={scrollToReview}
+              onScrollToQuotes={scrollToQuotes}
             />
-
-            {/* Client activity panel */}
-            {isClient && <JobActivityPanel jobId={jobId!} jobStatus={job.status} />}
 
             {/* 2. Progress Updates (in_progress / completed) */}
             {['in_progress', 'completed'].includes(job.status) && (
@@ -341,42 +373,48 @@ export default function JobTicketDetail() {
               />
             </div>
 
-            {/* 5. Quote summary */}
-            {!isClient && <ProQuoteSummary jobId={job.id} jobStatus={job.status} />}
-            {isClient && <JobTicketQuotes jobId={job.id} jobStatus={job.status} />}
+            {/* 5. Quotes section */}
+            <div ref={quotesRef}>
+              {!isClient && <ProQuoteSummary jobId={job.id} jobStatus={job.status} />}
+              {isClient && <JobTicketQuotes jobId={job.id} jobStatus={job.status} />}
+            </div>
 
-            {/* 6. Job Summary (collapsible once past open) */}
+            {/* 6. Conversation preview */}
+            <ConversationPreviewCard jobId={job.id} viewerRole={isClient ? 'client' : 'professional'} />
+
+            {/* 7. Client profile card (pro view) */}
             {!isClient && clientProfile?.display_name && (
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
+              <div className="rounded-[18px] border border-border/70 bg-card p-4 shadow-sm">
+                <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <User className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">{t('jobTicket.client', 'Client')}</p>
+                    <p className="text-[12px] text-muted-foreground">{t('jobTicket.client', 'Client')}</p>
                     <p className="text-sm font-medium text-foreground">{clientProfile.display_name}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
-            <Card className="overflow-hidden">
+            {/* 8. Job Summary (collapsible once past open) */}
+            <div className="rounded-[18px] border border-border/70 bg-card overflow-hidden shadow-sm">
               {isPastOpen ? (
                 <>
                   <button
                     onClick={() => setSummaryExpanded(!summaryExpanded)}
-                    className="w-full flex items-center justify-between px-5 py-3 bg-primary/5 border-b border-border text-left"
+                    className="w-full flex items-center justify-between px-5 py-3.5 bg-muted/30 border-b border-border text-left"
                   >
                     <span className="text-sm font-medium text-muted-foreground">
                       {t('jobTicket.jobDetails', 'Job Details')}
                     </span>
-                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${summaryExpanded ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${summaryExpanded ? 'rotate-180' : ''}`} />
                   </button>
                   {summaryExpanded && <JobSummaryContent job={job} microNames={microNames} area={area} t={t} />}
                 </>
               ) : (
                 <>
-                  <div className="bg-primary/5 px-5 py-3 border-b border-border">
+                  <div className="bg-muted/30 px-5 py-3 border-b border-border">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="secondary" className="font-medium">
                         {job.category || t('client.uncategorized')}
@@ -389,38 +427,34 @@ export default function JobTicketDetail() {
                   <JobSummaryContent job={job} microNames={microNames} area={area} t={t} />
                 </>
               )}
-            </Card>
+            </div>
 
+            {/* Draft banner */}
             {job.status === 'ready' && isClient && (
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
                 <p className="text-sm font-medium">{t('jobTicket.savedBanner')}</p>
               </div>
             )}
 
-            {/* 7. Conversations */}
-            <JobTicketConversations jobId={job.id} viewerRole={isClient ? 'client' : 'professional'} />
-
-            {/* 8. Distribution — client + ready/open only */}
+            {/* 9. Distribution — client + ready/open only */}
             {isClient && ['ready', 'open'].includes(job.status) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base font-display">{t('jobTicket.shareTitle')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+              <div className="rounded-[18px] border border-border/70 bg-card overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b border-border">
+                  <h3 className="text-base font-semibold font-display">{t('jobTicket.shareTitle')}</h3>
+                </div>
+                <div className="p-5 space-y-3">
                   <button
                     onClick={handlePostToBoard}
                     disabled={isPublishing || job.status === 'open'}
                     className="w-full flex items-start gap-4 p-4 rounded-xl border-2 border-border hover:border-primary/40 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Globe className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-foreground">{t('jobTicket.postToBoard')}</p>
                       <p className="text-sm text-muted-foreground mt-0.5">
-                        {job.status === 'open'
-                          ? t('jobTicket.alreadyPosted')
-                          : t('jobTicket.postToBoardDesc')}
+                        {job.status === 'open' ? t('jobTicket.alreadyPosted') : t('jobTicket.postToBoardDesc')}
                       </p>
                     </div>
                     {job.status === 'open' && (
@@ -432,7 +466,7 @@ export default function JobTicketDetail() {
                     to={`/dashboard/jobs/${jobId}/invite`}
                     className="w-full flex items-start gap-4 p-4 rounded-xl border-2 border-border hover:border-primary/40 transition-all text-left block"
                   >
-                    <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                    <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
                       <UserPlus className="h-5 w-5 text-accent" />
                     </div>
                     <div className="flex-1">
@@ -442,16 +476,17 @@ export default function JobTicketDetail() {
                       </p>
                     </div>
                   </Link>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
+            {/* Invites list */}
             {isClient && invites.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base font-display">{t('jobTicket.invitesSent', { count: invites.length })}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+              <div className="rounded-[18px] border border-border/70 bg-card overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b border-border">
+                  <h3 className="text-base font-semibold font-display">{t('jobTicket.invitesSent', { count: invites.length })}</h3>
+                </div>
+                <div className="p-5 space-y-3">
                   {invites.map((invite) => {
                     const name = proNameMap.get(invite.professional_id) || t('client.professionalFallback');
                     const statusIcon = {
@@ -462,7 +497,7 @@ export default function JobTicketDetail() {
                     }[invite.status] || <Clock className="h-4 w-4 text-muted-foreground" />;
 
                     return (
-                      <div key={invite.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                      <div key={invite.id} className="flex items-center justify-between p-3 rounded-xl border border-border">
                         <div className="flex items-center gap-3">
                           {statusIcon}
                           <div>
@@ -475,9 +510,12 @@ export default function JobTicketDetail() {
                       </div>
                     );
                   })}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
+
+            {/* Full conversations (fallback — kept for thread access) */}
+            <JobTicketConversations jobId={job.id} viewerRole={isClient ? 'client' : 'professional'} />
           </div>
         </div>
       </div>
@@ -485,7 +523,7 @@ export default function JobTicketDetail() {
   );
 }
 
-/** Extracted job summary content to avoid duplication */
+/** Extracted job summary content */
 function JobSummaryContent({
   job,
   microNames,
@@ -498,7 +536,7 @@ function JobSummaryContent({
   t: ReturnType<typeof import('react-i18next').useTranslation>['t'];
 }) {
   return (
-    <CardContent className="p-5 space-y-4">
+    <div className="p-5 space-y-4">
       <section>
         <h4 className="text-sm font-medium text-muted-foreground mb-2">{t('jobTicket.whatYouNeed')}</h4>
         {microNames.length > 0 ? (
@@ -552,6 +590,6 @@ function JobSummaryContent({
           </div>
         )}
       </div>
-    </CardContent>
+    </div>
   );
 }
