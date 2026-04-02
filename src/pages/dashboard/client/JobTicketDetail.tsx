@@ -163,7 +163,7 @@ export default function JobTicketDetail() {
     <div className="min-h-screen bg-background">
       <nav className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
         <div className="container flex h-14 items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/client')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(backPath)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <span className="font-display font-semibold text-foreground truncate">
