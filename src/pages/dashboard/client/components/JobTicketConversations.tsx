@@ -1,5 +1,6 @@
 /**
  * JobTicketConversations — Linked conversations section for Job Ticket Detail.
+ * Role-aware: uses correct unread field for client vs professional.
  */
 
 import { useTranslation } from 'react-i18next';
@@ -14,9 +15,10 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface JobTicketConversationsProps {
   jobId: string;
+  viewerRole?: 'client' | 'professional';
 }
 
-export function JobTicketConversations({ jobId }: JobTicketConversationsProps) {
+export function JobTicketConversations({ jobId, viewerRole = 'client' }: JobTicketConversationsProps) {
   const { t } = useTranslation('dashboard');
   const { user } = useSession();
 
@@ -25,7 +27,7 @@ export function JobTicketConversations({ jobId }: JobTicketConversationsProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('conversations')
-        .select('id, pro_id, client_id, last_message_at, last_message_preview, last_read_at_client')
+        .select('id, pro_id, client_id, last_message_at, last_message_preview, last_read_at_client, last_read_at_pro')
         .eq('job_id', jobId)
         .order('last_message_at', { ascending: false });
       if (error) throw error;
@@ -46,9 +48,10 @@ export function JobTicketConversations({ jobId }: JobTicketConversationsProps) {
       </CardHeader>
       <CardContent className="space-y-2">
         {conversations.map(conv => {
-          const hasUnread = conv.last_message_at && conv.last_read_at_client
-            ? new Date(conv.last_message_at) > new Date(conv.last_read_at_client)
-            : !!conv.last_message_at && !conv.last_read_at_client;
+          const lastReadField = viewerRole === 'client' ? conv.last_read_at_client : conv.last_read_at_pro;
+          const hasUnread = conv.last_message_at && lastReadField
+            ? new Date(conv.last_message_at) > new Date(lastReadField)
+            : !!conv.last_message_at && !lastReadField;
 
           return (
             <Link
@@ -57,7 +60,13 @@ export function JobTicketConversations({ jobId }: JobTicketConversationsProps) {
               className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 transition-colors"
             >
               <div className="flex-1 min-w-0">
-                <ProSummaryCard professionalId={conv.pro_id} compact />
+                {viewerRole === 'client' ? (
+                  <ProSummaryCard professionalId={conv.pro_id} compact />
+                ) : (
+                  <p className="text-sm font-medium text-foreground">
+                    {t('jobTicket.clientConversation', 'Client conversation')}
+                  </p>
+                )}
                 {conv.last_message_preview && (
                   <p className="text-xs text-muted-foreground mt-1 truncate pl-8">
                     {conv.last_message_preview}
