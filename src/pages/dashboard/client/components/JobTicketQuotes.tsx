@@ -70,11 +70,11 @@ export function JobTicketQuotes({ jobId, jobStatus }: JobTicketQuotesProps) {
   const acceptedQuote = activeQuotes.find(q => q.status === 'accepted');
 
   return (
-    <Card>
+    <Card className="border-border/40 bg-muted/20 shadow-none">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-display flex items-center gap-2">
-            <FileText className="h-4 w-4 text-primary" />
+          <CardTitle className="text-sm font-display flex items-center gap-2 text-muted-foreground">
+            <FileText className="h-4 w-4 text-primary/70" />
             {t('jobTicket.quotesReceived', 'Quotes Received')}
             <Badge variant="secondary" className="text-xs">
               {activeQuotes.length}
