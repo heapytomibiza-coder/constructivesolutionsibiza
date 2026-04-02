@@ -214,7 +214,7 @@ export function ConversationThread({
                     return (
                       <div className="flex justify-end">
                         <div className="max-w-[85%] sm:max-w-[75%]">
-                          <QuoteCard quote={quote} role={userRole === 'professional' ? 'pro' : 'client'} />
+                          <QuoteCard quote={quote} role={userRole === 'professional' ? 'pro' : 'client'} onAccepted={handleQuoteAccepted} />
                         </div>
                       </div>
                     );

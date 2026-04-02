@@ -71,6 +71,7 @@ export function QuoteCard({ quote, role, onRevise, clientId, onAccepted }: Quote
       queryClient.invalidateQueries({ queryKey: quoteKeys.forJob(quote.job_id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.details(quote.job_id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.board() });
+      onAccepted?.(quote.id);
     } else {
       toast.error(result.error ?? t("quotes.acceptFailed"));
     }

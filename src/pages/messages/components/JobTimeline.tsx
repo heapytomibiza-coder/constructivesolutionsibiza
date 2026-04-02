@@ -118,7 +118,7 @@ function deduplicateEntries(entries: TimelineEntry[]): TimelineEntry[] {
   return result;
 }
 
-export function JobTimeline({ jobId }: JobTimelineProps) {
+export function JobTimeline({ jobId, conversationId }: JobTimelineProps) {
   const { t, i18n } = useTranslation("messages");
   const [open, setOpen] = useState(false);
   const isEs = i18n.language?.startsWith("es");
@@ -126,7 +126,7 @@ export function JobTimeline({ jobId }: JobTimelineProps) {
 
   const { data: entries } = useQuery({
     queryKey: ["job_timeline", jobId],
-    queryFn: () => fetchTimeline(jobId),
+    queryFn: () => fetchTimeline(jobId, conversationId),
     enabled: !!jobId,
   });
 
