@@ -41,20 +41,22 @@ export async function getRankedProfessionals(
   if (!scores?.length) return [];
 
   // Step 2: Aggregate scores per user
-  const userScores = new Map<string, { totalScore: number; coveredMicros: Set<string> }>();
+  const userScores = new Map<string, { totalScore: number; coveredMicros: Set<string>; hasAnyLiveListing: boolean }>();
   
   for (const row of scores) {
     const userId = row.user_id as string;
     const score = Number(row.match_score ?? 0);
     const microId = row.micro_id as string;
+    const hasLive = row.has_live_listing as boolean;
 
     if (!userScores.has(userId)) {
-      userScores.set(userId, { totalScore: 0, coveredMicros: new Set() });
+      userScores.set(userId, { totalScore: 0, coveredMicros: new Set(), hasAnyLiveListing: false });
     }
     
     const entry = userScores.get(userId)!;
     entry.totalScore += score;
     entry.coveredMicros.add(microId);
+    if (hasLive) entry.hasAnyLiveListing = true;
   }
 
   // Step 3: Rank by coverage first, then score
