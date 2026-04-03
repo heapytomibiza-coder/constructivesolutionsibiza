@@ -38,7 +38,7 @@ import { StageHero } from './components/StageHero';
 import { ProgressUpdates } from './components/ProgressUpdates';
 import { ConversationPreviewCard } from './components/ConversationPreviewCard';
 import { JobTicketQuotes } from './components/JobTicketQuotes';
-
+import { AgreementCard } from './components/AgreementCard';
 import { JobTicketCompletion } from './components/JobTicketCompletion';
 import { JobTicketReview } from './components/JobTicketReview';
 import { ProQuoteSummary } from './components/ProQuoteSummary';
@@ -46,7 +46,7 @@ import { CancellationRequestCard } from './components/CancellationRequestCard';
 import { BudgetIncreaseCard } from './components/BudgetIncreaseCard';
 import { ProjectGallery } from './components/ProjectGallery';
 import { PortfolioPrompt } from './components/PortfolioPrompt';
-import { useMyQuoteForJob } from '@/pages/jobs/queries/quotes.query';
+import { useMyQuoteForJob, useQuotesForJob } from '@/pages/jobs/queries/quotes.query';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
@@ -109,6 +109,13 @@ export default function JobTicketDetail() {
     },
     enabled: !!jobId && !!user,
   });
+
+  // Full quotes with line items for AgreementCard (client only)
+  const { data: fullQuotes = [] } = useQuotesForJob(
+    isClient ? (jobId ?? null) : null,
+    isClient,
+  );
+  const acceptedQuote = fullQuotes.find(q => q.status === 'accepted') ?? null;
 
   const { data: existingReview } = useQuery({
     queryKey: ['job_review_exists', jobId, user?.id],
@@ -385,7 +392,12 @@ export default function JobTicketDetail() {
               cancellationReason={job.cancellation_reason}
             />
 
-            {/* 3. Progress Updates — tightly coupled to hero as "the proof" */}
+            {/* 3. Agreement Card — dominant reference (client, post-acceptance) */}
+            {isClient && acceptedQuote && (
+              <AgreementCard quote={acceptedQuote} />
+            )}
+
+            {/* 4. Progress Updates — tightly coupled to hero as "the proof" */}
             {['in_progress', 'completed'].includes(job.status) && (
               <div ref={updatesRef} className="-mt-1">
                 <ProgressUpdates

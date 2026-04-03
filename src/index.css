@@ -416,3 +416,46 @@
   content-visibility: auto;
   contain-intrinsic-size: auto 400px;
 }
+
+/* ─── Print styles for Agreement Card ─── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #agreement-card,
+  #agreement-card * {
+    visibility: visible;
+  }
+
+  #agreement-card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 2rem;
+  }
+
+  #agreement-card .print\:hidden {
+    display: none !important;
+  }
+
+  /* Remove decorative styles for clean print */
+  #agreement-card [class*="shadow"],
+  #agreement-card [class*="border"] {
+    box-shadow: none;
+    border-color: hsl(var(--border));
+  }
+
+  #agreement-card::before {
+    content: 'Constructive Solutions Ibiza — Project Agreement';
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+    visibility: visible;
+  }
+}

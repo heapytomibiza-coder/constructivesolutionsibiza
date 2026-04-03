@@ -2345,6 +2345,7 @@ export type Database = {
       }
       quotes: {
         Row: {
+          accepted_at: string | null
           created_at: string
           exclusions_text: string | null
           hourly_rate: number | null
@@ -2368,6 +2369,7 @@ export type Database = {
           vat_percent: number | null
         }
         Insert: {
+          accepted_at?: string | null
           created_at?: string
           exclusions_text?: string | null
           hourly_rate?: number | null
@@ -2391,6 +2393,7 @@ export type Database = {
           vat_percent?: number | null
         }
         Update: {
+          accepted_at?: string | null
           created_at?: string
           exclusions_text?: string | null
           hourly_rate?: number | null
