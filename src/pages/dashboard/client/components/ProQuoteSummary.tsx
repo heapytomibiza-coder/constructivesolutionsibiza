@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DollarSign, CheckCircle2, Clock, XCircle, Plus, Loader2, Send } from 'lucide-react';
 import { useMyQuoteForJob } from '@/pages/jobs/queries/quotes.query';
+import { groupLineItems } from '@/pages/jobs/utils/quoteDisplay';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
@@ -59,9 +60,7 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
 
   const canAddCosts = quote.status === 'accepted' && jobStatus === 'in_progress';
 
-  const lineItems = quote.line_items ?? [];
-  const originalItems = lineItems.filter((item: Record<string, unknown>) => !item.is_addition);
-  const addedItems = lineItems.filter((item: Record<string, unknown>) => item.is_addition);
+  const { original: originalItems, additions: addedItems } = groupLineItems(quote.line_items ?? []);
 
   const handleAddCost = async () => {
     const amount = parseFloat(costAmount);
@@ -72,7 +71,7 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
 
     setIsSubmitting(true);
     try {
-      const sortOrder = lineItems.length + 1;
+      const sortOrder = (quote.line_items ?? []).length + 1;
       const { error: lineError } = await supabase.from('quote_line_items').insert({
         quote_id: quote.id,
         description: costDescription.trim(),

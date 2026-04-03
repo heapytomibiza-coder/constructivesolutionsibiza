@@ -8,10 +8,15 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ProSummaryCard } from '@/components/quotes/ProSummaryCard';
 import { FileText, Printer, Plus, CheckCircle2, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  groupLineItems,
+  calculateItemTotals,
+  calculateAdditionsSubtotal,
+  getAcceptedDate,
+} from '@/pages/jobs/utils/quoteDisplay';
 import type { Quote } from '@/pages/jobs/types';
 
 interface AgreementCardProps {
@@ -21,29 +26,10 @@ interface AgreementCardProps {
 export function AgreementCard({ quote }: AgreementCardProps) {
   const { t } = useTranslation('dashboard');
 
-  const lineItems = quote.line_items ?? [];
-  const originalItems = lineItems
-    .filter((item: any) => !item.is_addition)
-    .sort((a, b) => a.sort_order - b.sort_order);
-  const addedItems = lineItems
-    .filter((item: any) => item.is_addition)
-    .sort((a, b) => a.sort_order - b.sort_order);
-
-  // Calculate original-only totals
-  const originalSubtotal = originalItems.reduce(
-    (sum, item) => sum + (item.line_total ?? 0),
-    0
-  );
-  const vatPercent = quote.vat_percent ?? 0;
-  const originalVat = vatPercent > 0 ? (originalSubtotal * vatPercent) / 100 : 0;
-  const originalTotal = originalSubtotal + originalVat;
-
-  const additionsSubtotal = addedItems.reduce(
-    (sum, item: any) => sum + ((item.line_total as number) ?? 0),
-    0
-  );
-
-  const acceptedDate = quote.accepted_at ?? quote.updated_at;
+  const { original: originalItems, additions: addedItems } = groupLineItems(quote.line_items ?? []);
+  const totals = calculateItemTotals(originalItems, quote.vat_percent ?? 0);
+  const additionsSubtotal = calculateAdditionsSubtotal(addedItems);
+  const acceptedDate = getAcceptedDate(quote);
 
   return (
     <div id="agreement-card">
@@ -168,15 +154,15 @@ export function AgreementCard({ quote }: AgreementCardProps) {
           {/* Totals */}
           <div className="border-t border-border pt-3 space-y-1 text-right">
             <div className="text-sm text-muted-foreground">
-              {t('agreement.subtotal', 'Subtotal')}: €{originalSubtotal.toFixed(2)}
+              {t('agreement.subtotal', 'Subtotal')}: €{totals.subtotal.toFixed(2)}
             </div>
-            {originalVat > 0 && (
+            {totals.vatAmount > 0 && (
               <div className="text-sm text-muted-foreground">
-                IVA ({vatPercent}%): €{originalVat.toFixed(2)}
+                IVA ({totals.vatPercent}%): €{totals.vatAmount.toFixed(2)}
               </div>
             )}
             <div className="text-base font-bold">
-              {t('agreement.total', 'Total')}: €{originalTotal.toFixed(2)}
+              {t('agreement.total', 'Total')}: €{totals.total.toFixed(2)}
             </div>
           </div>
         </CardContent>
@@ -192,7 +178,7 @@ export function AgreementCard({ quote }: AgreementCardProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {addedItems.map((item: any) => (
+            {addedItems.map((item) => (
               <div
                 key={item.id}
                 className="flex items-center justify-between text-sm"
@@ -201,11 +187,13 @@ export function AgreementCard({ quote }: AgreementCardProps) {
                   <span className="text-foreground truncate">
                     {item.description}
                   </span>
-                  <span className="text-[10px] text-muted-foreground/60 shrink-0">
-                    {formatDistanceToNow(new Date(item.created_at), {
-                      addSuffix: true,
-                    })}
-                  </span>
+                  {item.created_at && (
+                    <span className="text-[10px] text-muted-foreground/60 shrink-0">
+                      {formatDistanceToNow(new Date(item.created_at), {
+                        addSuffix: true,
+                      })}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {item.client_acknowledged_at ? (
@@ -214,7 +202,7 @@ export function AgreementCard({ quote }: AgreementCardProps) {
                     <Clock className="h-3 w-3 text-muted-foreground" />
                   )}
                   <span className="font-medium">
-                    €{((item.line_total as number) ?? 0).toFixed(2)}
+                    €{(item.line_total ?? 0).toFixed(2)}
                   </span>
                 </div>
               </div>

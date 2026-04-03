@@ -36,6 +36,32 @@ export function useQuotesForJob(jobId: string | null, enabled = true) {
 }
 
 /**
+ * Fetch only the accepted quote for a job (with line items).
+ * Narrower than useQuotesForJob — avoids loading all quotes when
+ * only the agreement is needed.
+ */
+export function useAcceptedQuoteForJob(jobId: string | null, enabled = true) {
+  return useQuery({
+    queryKey: ["quotes", "accepted", jobId ?? "none"] as const,
+    queryFn: async (): Promise<Quote | null> => {
+      if (!jobId) return null;
+      const { data, error } = await supabase
+        .from("quotes")
+        .select("*, quote_line_items(*)")
+        .eq("job_id", jobId)
+        .eq("status", "accepted")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return null;
+      return { ...data, line_items: (data as any).quote_line_items ?? [] } as Quote;
+    },
+    enabled: enabled && !!jobId,
+  });
+}
+
+/**
  * Fetch current user's quote for a job (pro view).
  */
 export function useMyQuoteForJob(jobId: string | null, userId: string | null, enabled = true) {

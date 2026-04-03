@@ -46,7 +46,7 @@ import { CancellationRequestCard } from './components/CancellationRequestCard';
 import { BudgetIncreaseCard } from './components/BudgetIncreaseCard';
 import { ProjectGallery } from './components/ProjectGallery';
 import { PortfolioPrompt } from './components/PortfolioPrompt';
-import { useMyQuoteForJob, useQuotesForJob } from '@/pages/jobs/queries/quotes.query';
+import { useMyQuoteForJob, useAcceptedQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
@@ -110,12 +110,12 @@ export default function JobTicketDetail() {
     enabled: !!jobId && !!user,
   });
 
-  // Full quotes with line items for AgreementCard (client only)
-  const { data: fullQuotes = [] } = useQuotesForJob(
+  // Accepted quote with line items for AgreementCard (client only, narrower than useQuotesForJob)
+  const hasAcceptedQuoteInList = isClient && quotesForJob.some(q => q.status === 'accepted');
+  const { data: acceptedQuote = null } = useAcceptedQuoteForJob(
     isClient ? (jobId ?? null) : null,
-    isClient,
+    hasAcceptedQuoteInList,
   );
-  const acceptedQuote = fullQuotes.find(q => q.status === 'accepted') ?? null;
 
   const { data: existingReview } = useQuery({
     queryKey: ['job_review_exists', jobId, user?.id],
