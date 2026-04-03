@@ -24,10 +24,14 @@ export interface ListingPublishInput {
   hero_image_url?: string | null;
   /** Whether at least one enabled pricing item with price > 0 exists */
   hasPricing: boolean;
+  /** Current count of live listings for this provider (optional — skip check if omitted) */
+  currentLiveCount?: number;
+  /** Tier-based listing limit (optional — skip check if omitted) */
+  listingLimit?: number;
 }
 
 export interface PublishIssue {
-  field: 'display_title' | 'short_description' | 'hero_image_url' | 'pricing';
+  field: 'display_title' | 'short_description' | 'hero_image_url' | 'pricing' | 'listing_limit';
   severity: 'required' | 'recommended';
   messageKey: string;
 }
@@ -74,6 +78,19 @@ export function evaluateListingReadiness(input: ListingPublishInput): PublishRea
       field: 'hero_image_url',
       severity: 'recommended',
       messageKey: 'publish.missingHeroImage',
+    });
+  }
+
+  // Listing limit check — only evaluated when both values are provided
+  if (
+    typeof input.currentLiveCount === 'number' &&
+    typeof input.listingLimit === 'number' &&
+    input.currentLiveCount >= input.listingLimit
+  ) {
+    issues.push({
+      field: 'listing_limit',
+      severity: 'required',
+      messageKey: 'publish.listingLimitReached',
     });
   }
 

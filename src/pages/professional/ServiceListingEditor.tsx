@@ -22,6 +22,8 @@ import { useSession } from '@/contexts/SessionContext';
 import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, type PricingItem } from './hooks/useListingEditor';
 import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones';
 import { evaluateListingReadiness } from '@/lib/listingPublishRules';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { useQuery } from '@tanstack/react-query';
 
 export default function ServiceListingEditor() {
   const { listingId } = useParams<{ listingId: string }>();
@@ -32,6 +34,24 @@ export default function ServiceListingEditor() {
   const updateListing = useUpdateListing();
   const upsertPricing = useUpsertPricingItem();
   const deletePricing = useDeletePricingItem();
+  const { limit: getLimit } = useEntitlements();
+  const listingLimit = getLimit('listing_limit');
+
+  // Count current live listings for this provider (excludes current listing if already live)
+  const { data: liveCount = 0 } = useQuery({
+    queryKey: ['live-listing-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count, error } = await supabase
+        .from('service_listings')
+        .select('id', { count: 'exact', head: true })
+        .eq('provider_id', user.id)
+        .eq('status', 'live');
+      if (error) return 0;
+      return count ?? 0;
+    },
+    enabled: !!user?.id,
+  });
   // publishListing now handled inline in handlePublish for atomic write
 
   // Form state
@@ -133,15 +153,23 @@ export default function ServiceListingEditor() {
   const handlePublish = async () => {
     if (!listingId || !listing) return;
     const hasPricing = pricingItems.some(p => p.is_enabled && p.price_amount && p.price_amount > 0);
+    // If this listing is already live, it doesn't count against the limit for re-publish
+    const effectiveLiveCount = listing.status === 'live' ? liveCount - 1 : liveCount;
     const { canPublish, issues } = evaluateListingReadiness({
       display_title: title,
       short_description: description,
       hero_image_url: heroUrl,
       hasPricing,
+      currentLiveCount: effectiveLiveCount,
+      listingLimit,
     });
     if (!canPublish) {
       const requiredIssues = issues.filter(i => i.severity === 'required');
-      toast.error(requiredIssues.map(i => t(i.messageKey, i.field)).join('. '));
+      if (requiredIssues.some(i => i.field === 'listing_limit')) {
+        toast.error(t('listingEditor.listingLimitReached', 'You have reached your live listing limit. Upgrade your plan to publish more listings.'));
+      } else {
+        toast.error(requiredIssues.map(i => t(i.messageKey, i.field)).join('. '));
+      }
       return;
     }
 
