@@ -19,11 +19,11 @@ const FALLBACK_MESSAGES: Record<string, string> = {
 
 /**
  * Resolve a publish issue to a user-friendly message string.
- * Uses i18n `t()` with a hardcoded fallback if the key is missing.
+ * Accepts any t()-like function. Falls back to hardcoded copy.
  */
 export function resolveIssueMessage(
   issue: PublishIssue,
-  t: (key: string, fallback?: string) => string,
+  t: (key: string, defaultValue: string) => string,
 ): string {
   return t(issue.messageKey, FALLBACK_MESSAGES[issue.messageKey] ?? issue.field);
 }
