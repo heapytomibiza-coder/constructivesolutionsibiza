@@ -211,7 +211,7 @@ export default function ServiceListingEditor() {
     } catch (err: any) {
       const msg = err?.message || err?.toString() || '';
       if (msg.includes('LISTING_LIMIT_REACHED')) {
-        toast.error(t('listingEditor.listingLimitReached', 'You've reached your live listing limit. Upgrade your plan to publish more listings.'));
+        toast.error(t('listingEditor.listingLimitReached', 'You have reached your live listing limit. Upgrade your plan to publish more listings.'));
       } else {
         toast.error(t('listingEditor.publishFailed', 'Failed to publish listing'));
       }
