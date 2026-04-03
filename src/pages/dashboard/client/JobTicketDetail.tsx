@@ -392,7 +392,12 @@ export default function JobTicketDetail() {
               cancellationReason={job.cancellation_reason}
             />
 
-            {/* 3. Progress Updates — tightly coupled to hero as "the proof" */}
+            {/* 3. Agreement Card — dominant reference (client, post-acceptance) */}
+            {isClient && acceptedQuote && (
+              <AgreementCard quote={acceptedQuote} />
+            )}
+
+            {/* 4. Progress Updates — tightly coupled to hero as "the proof" */}
             {['in_progress', 'completed'].includes(job.status) && (
               <div ref={updatesRef} className="-mt-1">
                 <ProgressUpdates
