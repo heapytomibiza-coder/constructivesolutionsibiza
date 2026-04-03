@@ -65,7 +65,7 @@ export function JobTicketCompletion({
     try {
       const { error } = await supabase.rpc('request_job_completion', { p_job_id: jobId });
       if (error) {
-        const friendlyMsg = RPC_ERROR_MAP[error.message] ?? error.message;
+        const friendlyMsg = RPC_REQUEST_ERROR_MAP[error.message] ?? error.message;
         toast.error(friendlyMsg);
         return;
       }
