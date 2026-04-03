@@ -104,6 +104,7 @@ export async function getRankedProfessionals(
       match_score: r.score,
       coverage: r.coverage,
       ranking_labels: labelMap.get(r.userId) ?? [],
+      has_live_listing: r.hasLiveListing,
       _rankingScore: scoreMap.get(r.userId) ?? 0, // temporary for sorting
     }))
     .sort((a, b) => {
