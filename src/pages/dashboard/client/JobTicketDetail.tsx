@@ -258,10 +258,17 @@ export default function JobTicketDetail() {
   };
 
   const handleMarkComplete = async () => {
-    if (!jobId) return;
+    if (!jobId || !job) return;
 
     try {
-      const result = await completeJob(jobId);
+      const result = await completeJob(jobId, {
+        caller: 'hero',
+        userId: user?.id,
+        jobOwnerId: job.user_id,
+        assignedProId: job.assigned_professional_id ?? undefined,
+        jobStatus: job.status,
+        completionRequestedAt: job.completion_requested_at,
+      });
 
       if (!result.success) {
         toast.error(result.error ?? t('client.completeFailed', 'Failed to complete job'));

@@ -81,10 +81,16 @@ export function JobTicketCompletion({
   const handleConfirmCompletion = async () => {
     setIsSubmitting(true);
     try {
-      const result = await completeJob(jobId);
+      const result = await completeJob(jobId, {
+        caller: 'completion_card',
+        userId: undefined, // not available here, action logs it server-side
+        jobOwnerId: clientId,
+        assignedProId: assignedProfessionalId ?? undefined,
+        jobStatus: jobStatus,
+        completionRequestedAt: completionRequested ? 'yes' : null,
+      });
       if (!result.success) {
-        const friendlyMsg = result.error ? (RPC_ERROR_MAP[result.error] ?? result.error) : 'Failed to complete job';
-        toast.error(t('client.completeFailed', friendlyMsg));
+        toast.error(result.error ?? t('client.completeFailed', 'Failed to complete job'));
         return;
       }
       toast.success(t('client.completedSuccess', 'Job marked as completed!'));
