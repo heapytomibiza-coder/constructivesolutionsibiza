@@ -69,6 +69,23 @@ export function PortfolioPrompt({ jobId, jobStatus, isClient, jobTitle }: Portfo
     enabled: showForm && !!user,
   });
 
+  // Advisory portfolio count check — if this query fails, the DB trigger is authoritative
+  const { data: portfolioCount = 0 } = useQuery({
+    queryKey: ['portfolio_count', user?.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('portfolio_projects')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user!.id)
+        .eq('is_published', true);
+      if (error) return 0;
+      return count ?? 0;
+    },
+    enabled: !!user,
+  });
+
+  const isAtPortfolioLimit = portfolioCount >= portfolioLimit;
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('portfolio_projects').insert({
@@ -79,15 +96,25 @@ export function PortfolioPrompt({ jobId, jobStatus, isClient, jobTitle }: Portfo
         photo_urls: selectedPhotos,
         is_published: true,
       });
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('PORTFOLIO_LIMIT_REACHED')) {
+          throw new Error('portfolio_limit');
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success(t('portfolio.saved', 'Added to your portfolio!'));
       queryClient.invalidateQueries({ queryKey: ['portfolio_entry', jobId] });
+      queryClient.invalidateQueries({ queryKey: ['portfolio_count'] });
       setShowForm(false);
     },
-    onError: () => {
-      toast.error(t('portfolio.saveFailed', 'Failed to save'));
+    onError: (err: Error) => {
+      if (err.message === 'portfolio_limit') {
+        toast.error(t('portfolio.limitReached', 'You have reached your portfolio limit. Upgrade your plan to add more projects.'));
+      } else {
+        toast.error(t('portfolio.saveFailed', 'Failed to save'));
+      }
     },
   });
 
