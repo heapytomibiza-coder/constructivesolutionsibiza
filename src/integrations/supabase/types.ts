@@ -3969,7 +3969,7 @@ export type Database = {
           p_price_fixed?: number
           p_price_max?: number
           p_price_min?: number
-          p_price_type?: string
+          p_price_type: string
           p_revision_number?: number
           p_scope_text?: string
           p_start_date_estimate?: string
