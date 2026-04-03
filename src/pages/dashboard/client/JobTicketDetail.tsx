@@ -111,9 +111,10 @@ export default function JobTicketDetail() {
   });
 
   // Accepted quote with line items for AgreementCard (client only, narrower than useQuotesForJob)
+  const hasAcceptedQuoteInList = isClient && quotesForJob.some(q => q.status === 'accepted');
   const { data: acceptedQuote = null } = useAcceptedQuoteForJob(
     isClient ? (jobId ?? null) : null,
-    isClient && hasAcceptedQuote,
+    hasAcceptedQuoteInList,
   );
 
   const { data: existingReview } = useQuery({
