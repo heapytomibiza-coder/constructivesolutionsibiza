@@ -220,7 +220,7 @@ export default function JobTicketDetail() {
         .from('jobs')
         .update({ status: 'cancelled' })
         .eq('id', jobId)
-        .in('status', ['draft', 'open'])
+        .in('status', ['draft', 'ready', 'open'])
         .select('id');
       if (error) throw error;
       if (!updated || updated.length === 0) {
