@@ -121,96 +121,48 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
 
     setSubmitting(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Not authenticated");
-      setSubmitting(false);
-      return;
-    }
-
-    // If revising, mark old quote as revised first
-    if (isRevision && existingQuote) {
-      const { error: revErr } = await supabase
-        .from("quotes")
-        .update({ status: "revised" })
-        .eq("id", existingQuote.id)
-        .eq("professional_id", user.id);
-
-      if (revErr) {
-        console.error("Error marking quote revised:", revErr);
-        toast.error(t("quotes.submitFailed"));
-        setSubmitting(false);
-        return;
-      }
-    }
-
     // Build scope text from line items for backward compat
     const scopeText = items
       .filter(i => i.description.trim())
       .map(i => `${i.description} (×${i.quantity} @ €${i.unitPrice})`)
       .join("\n");
 
-    // Insert new quote (or new revision)
-    const { data: quote, error: quoteErr } = await supabase
-      .from("quotes")
-      .insert({
-        job_id: jobId,
-        professional_id: user.id,
-        price_type: "fixed" as const,
-        price_fixed: total,
-        scope_text: scopeText,
-        exclusions_text: exclusions.trim() || null,
-        notes: notes.trim() || null,
-        time_estimate_days: timeEstimateDays ? Number(timeEstimateDays) : null,
-        start_date_estimate: startDateEstimate || null,
-        vat_percent: vatEnabled ? vatPercent : 0,
-        subtotal,
-        total,
-        revision_number: isRevision && existingQuote
-          ? existingQuote.revision_number + 1
-          : 1,
-      })
-      .select("id")
-      .single();
+    const validItems = items.filter(i => i.description.trim());
 
-    if (quoteErr) {
-      console.error("Error submitting proposal:", quoteErr);
-      toast.error(t("quotes.submitFailed"));
-      setSubmitting(false);
+    const result = await submitQuote({
+      jobId,
+      priceType: "fixed",
+      priceFixed: total,
+      scopeText,
+      exclusionsText: exclusions.trim() || null,
+      notes: notes.trim() || null,
+      timeEstimateDays: timeEstimateDays ? Number(timeEstimateDays) : null,
+      startDateEstimate: startDateEstimate || null,
+      vatPercent: vatEnabled ? vatPercent : 0,
+      subtotal,
+      total,
+      revisionNumber: isRevision && existingQuote
+        ? existingQuote.revision_number + 1
+        : 1,
+      previousQuoteId: isRevision && existingQuote ? existingQuote.id : null,
+      lineItems: validItems.map(item => ({
+        description: item.description.trim(),
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+      })),
+    });
+
+    setSubmitting(false);
+
+    if (!result.success) {
+      toast.error(result.error || t("quotes.submitFailed"));
       return;
     }
-
-    // Insert line items
-    const validItems = items.filter(i => i.description.trim());
-    if (validItems.length > 0 && quote) {
-      const { error: lineErr } = await supabase
-        .from("quote_line_items")
-        .insert(
-          validItems.map((item, idx) => ({
-            quote_id: quote.id,
-            description: item.description.trim(),
-            quantity: item.quantity,
-            unit_price: item.unitPrice,
-            sort_order: idx,
-          }))
-        );
-
-      if (lineErr) {
-        console.error("Error inserting line items:", lineErr);
-      }
-    }
-
-    trackEvent(
-      isRevision ? "quote_revised" : "quote_submitted",
-      "professional",
-      { jobId, type: "proposal_builder" }
-    );
 
     toast.success(t("quotes.submitted"));
     queryClient.invalidateQueries({ queryKey: quoteKeys.myQuote(jobId) });
     queryClient.invalidateQueries({ queryKey: quoteKeys.forJob(jobId) });
-    setSubmitting(false);
-    onSuccess?.(quote?.id);
+    onSuccess?.(result.quoteId);
   };
 
   return (
