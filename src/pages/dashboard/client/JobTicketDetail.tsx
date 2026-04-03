@@ -192,10 +192,16 @@ export default function JobTicketDetail() {
     if (!jobId) return;
     setIsPublishing(true);
     try {
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from('jobs')
         .update({ status: 'open', is_publicly_listed: true })
-        .eq('id', jobId);
+        .eq('id', jobId)
+        .eq('status', 'draft')
+        .select('id');
+      if (!error && (!updated || updated.length === 0)) {
+        toast.error(t('jobTicket.postNotAllowed', 'Only draft jobs can be posted to the board.'));
+        return;
+      }
       if (error) throw error;
       toast.success(t('jobTicket.jobPosted'));
       queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });
