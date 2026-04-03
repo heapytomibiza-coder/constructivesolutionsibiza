@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,8 @@ interface PortfolioPromptProps {
 export function PortfolioPrompt({ jobId, jobStatus, isClient, jobTitle }: PortfolioPromptProps) {
   const { t } = useTranslation('dashboard');
   const { user } = useSession();
+  const { limit: getLimit } = useEntitlements();
+  const portfolioLimit = getLimit('portfolio_limit');
   const queryClient = useQueryClient();
 
   const [title, setTitle] = useState(jobTitle);
@@ -66,6 +69,23 @@ export function PortfolioPrompt({ jobId, jobStatus, isClient, jobTitle }: Portfo
     enabled: showForm && !!user,
   });
 
+  // Advisory portfolio count check — if this query fails, the DB trigger is authoritative
+  const { data: portfolioCount = 0 } = useQuery({
+    queryKey: ['portfolio_count', user?.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('portfolio_projects')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user!.id)
+        .eq('is_published', true);
+      if (error) return 0;
+      return count ?? 0;
+    },
+    enabled: !!user,
+  });
+
+  const isAtPortfolioLimit = portfolioCount >= portfolioLimit;
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('portfolio_projects').insert({
@@ -76,15 +96,25 @@ export function PortfolioPrompt({ jobId, jobStatus, isClient, jobTitle }: Portfo
         photo_urls: selectedPhotos,
         is_published: true,
       });
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('PORTFOLIO_LIMIT_REACHED')) {
+          throw new Error('portfolio_limit');
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success(t('portfolio.saved', 'Added to your portfolio!'));
       queryClient.invalidateQueries({ queryKey: ['portfolio_entry', jobId] });
+      queryClient.invalidateQueries({ queryKey: ['portfolio_count'] });
       setShowForm(false);
     },
-    onError: () => {
-      toast.error(t('portfolio.saveFailed', 'Failed to save'));
+    onError: (err: Error) => {
+      if (err.message === 'portfolio_limit') {
+        toast.error(t('portfolio.limitReached', 'You have reached your portfolio limit. Upgrade your plan to add more projects.'));
+      } else {
+        toast.error(t('portfolio.saveFailed', 'Failed to save'));
+      }
     },
   });
 
@@ -125,9 +155,11 @@ export function PortfolioPrompt({ jobId, jobStatus, isClient, jobTitle }: Portfo
                 {t('portfolio.promptTitle', 'Add this to your portfolio?')}
               </p>
               <p className="text-xs text-muted-foreground">
-                {t('portfolio.promptDesc', 'Showcase this completed project on your profile to attract new clients.')}
+                {isAtPortfolioLimit
+                  ? t('portfolio.limitReached', 'You have reached your portfolio limit. Upgrade your plan to add more projects.')
+                  : t('portfolio.promptDesc', 'Showcase this completed project on your profile to attract new clients.')}
               </p>
-              <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5">
+              <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5" disabled={isAtPortfolioLimit}>
                 <Briefcase className="h-3.5 w-3.5" />
                 {t('portfolio.addToPortfolio', 'Add to Portfolio')}
               </Button>

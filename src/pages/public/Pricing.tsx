@@ -56,11 +56,10 @@ const COMPARISON_ROWS = [
   { label: 'Portfolio gallery', icon: Briefcase, bronze: true, silver: true, gold: true, elite: true },
   { label: 'Client reviews', icon: Star, bronze: true, silver: true, gold: true, elite: true },
   { label: 'Job notifications', icon: Bell, bronze: true, silver: true, gold: true, elite: true },
-  { label: 'Priority visibility', icon: Search, bronze: false, silver: true, gold: true, elite: true },
+  { label: 'More listings & quotes', icon: FileText, bronze: false, silver: true, gold: true, elite: true },
   { label: 'Reduced commission', icon: Calculator, bronze: false, silver: true, gold: true, elite: true },
-  { label: 'Top search placement', icon: ArrowRight, bronze: false, silver: false, gold: true, elite: true },
-  { label: 'Market data insights', icon: FileText, bronze: false, silver: false, gold: true, elite: true },
-  { label: 'Company branding', icon: Shield, bronze: false, silver: false, gold: false, elite: true },
+  { label: 'Market data insights', icon: Search, bronze: false, silver: false, gold: true, elite: true },
+  { label: 'Expanded portfolio', icon: Briefcase, bronze: false, silver: true, gold: true, elite: true },
 ];
 
 const Pricing = () => {

@@ -27,13 +27,16 @@
 export type SubscriptionTier = 'bronze' | 'silver' | 'gold' | 'elite';
 
 export interface TierEntitlements {
+  /** @planned — not yet consumed by ranking/matching logic */
   visibility_boost: number;
   portfolio_limit: number;
   listing_limit: number;
   quote_daily_limit: number;
   insights: boolean;
+  /** @planned — not yet consumed by matching logic */
   priority_matching: boolean;
   demand_data: boolean;
+  /** @planned — not yet consumed by any UI or backend */
   featured_slots: boolean;
 }
 

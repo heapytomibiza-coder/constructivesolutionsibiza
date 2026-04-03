@@ -22,6 +22,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, type PricingItem } from './hooks/useListingEditor';
 import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones';
 import { evaluateListingReadiness } from '@/lib/listingPublishRules';
+import { resolveRequiredIssuesMessage } from '@/lib/publishIssueMessages';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useQuery } from '@tanstack/react-query';
 
@@ -37,7 +38,10 @@ export default function ServiceListingEditor() {
   const { limit: getLimit } = useEntitlements();
   const listingLimit = getLimit('listing_limit');
 
-  // Count current live listings for this provider (excludes current listing if already live)
+  // Advisory pre-check: count live listings for this provider.
+  // If this query fails (returns 0), the publish attempt proceeds and the
+  // DB trigger (validate_service_listing_live) remains the authoritative gate.
+  // This is intentional — the server is the source of truth.
   const { data: liveCount = 0 } = useQuery({
     queryKey: ['live-listing-count', user?.id],
     queryFn: async () => {
@@ -164,12 +168,7 @@ export default function ServiceListingEditor() {
       listingLimit,
     });
     if (!canPublish) {
-      const requiredIssues = issues.filter(i => i.severity === 'required');
-      if (requiredIssues.some(i => i.field === 'listing_limit')) {
-        toast.error(t('listingEditor.listingLimitReached', 'You have reached your live listing limit. Upgrade your plan to publish more listings.'));
-      } else {
-        toast.error(requiredIssues.map(i => t(i.messageKey, i.field)).join('. '));
-      }
+      toast.error(resolveRequiredIssuesMessage(issues, t));
       return;
     }
 

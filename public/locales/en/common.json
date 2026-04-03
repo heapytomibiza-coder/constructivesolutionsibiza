@@ -416,22 +416,17 @@
     "introP1": "It doesn't replace how people work.",
     "introP2": "It improves how jobs begin.",
     "introP3": "Clear structure at the start removes confusion later.",
-
     "forClients": "For Clients",
     "forClientsAka": "(Askers)",
-
     "clientStep1Title": "Choose the Exact Service",
     "clientStep1Desc": "Select the specific service you need — not just a broad trade. This allows the system to tailor the right questions to your job.",
     "clientStep1Why": "Clear service selection prevents vague posts and misunderstandings from the beginning.",
-
     "clientStep2Title": "Answer Guided Questions",
     "clientStep2Desc": "You're guided through practical, trade-specific questions. No long paragraphs. No repeating yourself in multiple messages.",
     "clientStep2Why": "Professionals understand the scope before messaging you — sometimes even before needing a site visit. That reduces back-and-forth and leads to more realistic pricing.",
-
     "clientStep3Title": "Add Budget & Timing",
     "clientStep3Desc": "Set a budget range and preferred timeframe.",
     "clientStep3Why": "It prevents misalignment. Professionals can respond honestly, and you avoid unrealistic quotes.",
-
     "clientStep4Title": "Intelligent Matching",
     "clientStep4Desc": "Your job is analysed properly before notifications are sent.",
     "clientStep4Why": "Only relevant professionals are notified. You then speak directly and agree terms personally.",
@@ -441,27 +436,20 @@
     "clientStep4Match3": "Professional work preferences",
     "clientStep4Match4": "Profile completeness",
     "clientStep4Match5": "Reliability signals built over time",
-
     "clientClosing": "The system supports the beginning — the relationship remains human.",
     "postJobButton": "Start Your Project",
-
     "forProfessionals": "For Professionals",
     "forProfessionalsAka": "(Taskers)",
-
     "proStep1Title": "Define What You Actually Want to Do",
     "proStep1Desc": "You don't just select a trade. You choose exact services, sub-services, your working area, and the type of work you prefer. You decide what reaches you.",
     "proStep1Why": "You receive work aligned with your strengths and interests — not just anything under your trade label.",
-
     "proStep2Title": "Receive Structured Jobs",
     "proStep2Desc": "When a job matches you, it already includes clear service type, scope questions answered, budget range, and timing.",
     "proStep2Why": "You're not chasing basic information. You can decide calmly whether it's worth pursuing. That protects your time and standards.",
-
     "proStep3Title": "Communicate Directly",
     "proStep3Desc": "Once matched, you speak directly with the client. You agree details in your own way.",
     "proStep3Why": "The system does not interfere with how you work. It simply improves how the job begins.",
-
     "joinAsProButton": "Join as a Professional",
-
     "whyExistsTitle": "Why This Structure Exists",
     "whyExistsIntro": "Because too much time is wasted in construction:",
     "whyExists1": "Vague job posts",
@@ -471,7 +459,6 @@
     "whyExists5": "Quotes given without budget clarity",
     "whyExists6": "100+ unread WhatsApp messages",
     "whyExistsClosing": "Structure at the beginning prevents frustration later.",
-
     "standardsTitle": "Standards — For Both Sides",
     "standards1": "Clients are guided to provide proper detail.",
     "standards2": "Professionals are expected to communicate clearly and respectfully.",
@@ -483,7 +470,6 @@
     "standardsVerify4": "Consistent standards",
     "standardsClosing": "Trust is built through action.",
     "whyThisMatters": "Why this matters",
-
     "faqTitle": "Frequently Asked Questions",
     "faq": {
       "account": {
@@ -673,10 +659,18 @@
       "upgradeNote": "Gold status is earned through exceptional service and reliability — not available for purchase."
     },
     "tiers": {
-      "bronze": { "tag": "Entry Level Professional" },
-      "silver": { "tag": "Verified Professional" },
-      "gold": { "tag": "Elite Reputation Status" },
-      "elite": { "tag": "Company & Teams" }
+      "bronze": {
+        "tag": "Entry Level Professional"
+      },
+      "silver": {
+        "tag": "Verified Professional"
+      },
+      "gold": {
+        "tag": "Elite Reputation Status"
+      },
+      "elite": {
+        "tag": "Company & Teams"
+      }
     },
     "tax": {
       "title": "A Business Expense",
@@ -718,22 +712,22 @@
       "silver": {
         "tag": "Verified Professional",
         "f1": "Everything in Bronze",
-        "f2": "Priority job visibility",
-        "f3": "Stronger profile ranking",
+        "f2": "10 live listings & 15 daily quotes",
+        "f3": "Expanded portfolio (15 projects)",
         "f4": "Reduced commission (12%)"
       },
       "gold": {
         "tag": "Elite Reputation Status",
-        "f1": "Top search placement",
-        "f2": "Premium job opportunities",
-        "f3": "Advanced market insights",
+        "f1": "Everything in Silver",
+        "f2": "Advanced market insights",
+        "f3": "25 live listings & 30 daily quotes",
         "f4": "Lowest earned commission (9%)"
       },
       "elite": {
         "tag": "Company & Teams",
         "f1": "Everything in Silver",
-        "f2": "Company branding",
-        "f3": "Maximum exposure",
+        "f2": "50 live listings & 50 daily quotes",
+        "f3": "100 portfolio projects",
         "f4": "Lowest commission (6%)"
       }
     },
@@ -797,10 +791,22 @@
       "tip": "Tip: Focus on communication and reliability early — they have the fastest impact on your score."
     },
     "metrics": {
-      "quality": { "label": "Quality", "desc": "Client rating of workmanship" },
-      "reliability": { "label": "Reliability", "desc": "Punctuality, scheduling, and commitment" },
-      "communication": { "label": "Communication", "desc": "Responsiveness and professionalism" },
-      "completion": { "label": "Completion Rate", "desc": "Jobs completed without cancellation" }
+      "quality": {
+        "label": "Quality",
+        "desc": "Client rating of workmanship"
+      },
+      "reliability": {
+        "label": "Reliability",
+        "desc": "Punctuality, scheduling, and commitment"
+      },
+      "communication": {
+        "label": "Communication",
+        "desc": "Responsiveness and professionalism"
+      },
+      "completion": {
+        "label": "Completion Rate",
+        "desc": "Jobs completed without cancellation"
+      }
     },
     "ladder": {
       "title": "Status Ladder",
