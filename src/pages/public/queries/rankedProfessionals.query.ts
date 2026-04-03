@@ -65,6 +65,7 @@ export async function getRankedProfessionals(
       userId,
       score: data.totalScore,
       coverage: data.coveredMicros.size / microIds.length,
+      hasLiveListing: data.hasAnyLiveListing,
     }))
     .sort((a, b) => {
       if (b.coverage !== a.coverage) return b.coverage - a.coverage;
