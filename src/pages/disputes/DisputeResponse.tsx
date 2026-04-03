@@ -124,7 +124,7 @@ export default function DisputeResponse() {
       <div className="container max-w-2xl py-8 space-y-6">
         {/* Header */}
         <div>
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/disputes/${disputeId}`)} className="mb-2">
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
           <h1 className="text-2xl font-bold text-foreground">Respond to Dispute</h1>

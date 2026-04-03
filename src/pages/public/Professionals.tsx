@@ -180,7 +180,7 @@ const Professionals = () => {
       {selectMode && (
         <div className="bg-primary/10 border-b border-primary/20 py-3">
           <div className="container flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/professionals')} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
               {t('professionals.backToJob')}
             </Button>
