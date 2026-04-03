@@ -28,7 +28,7 @@ export default function ClientJobsList() {
 
       const { data, error } = await supabase
         .from('jobs')
-        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id, area, budget_type, budget_value, budget_min, budget_max, start_timing, answers')
+        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id, area, budget_type, budget_value, budget_min, budget_max, start_timing, answers, completion_requested_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 

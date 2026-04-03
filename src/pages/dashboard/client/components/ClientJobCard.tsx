@@ -90,7 +90,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
   const rebook = useRebook();
   const canRebook = ['completed', 'in_progress'].includes(job.status) && !!job.assigned_professional_id;
 
-  const canComplete = job.status === 'in_progress' && job.assigned_professional_id;
+  const canComplete = job.status === 'in_progress' && job.assigned_professional_id && !!job.completion_requested_at;
   const { canEdit, canDuplicate, canClose } = getActions(job.status);
   const budgetLabel = formatBudgetLabel(job, t);
   const timingLabel = formatTimingLabel(job.start_timing, t);

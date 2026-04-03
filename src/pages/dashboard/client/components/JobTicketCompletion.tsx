@@ -32,6 +32,7 @@ const RPC_ERROR_MAP: Record<string, string> = {
   job_not_in_progress: 'Job must be in progress to complete',
   no_professional_assigned: 'Assign a professional before completing',
   already_requested: 'Completion already requested',
+  completion_not_requested: 'The professional must request completion first',
 };
 
 export function JobTicketCompletion({
@@ -138,25 +139,43 @@ export function JobTicketCompletion({
   }
 
   /* ─── Client view ─── */
-  const isConfirmation = completionRequested;
+
+  // If completion not yet requested by the pro, show a waiting hint
+  if (!completionRequested) {
+    return (
+      <Card className="border-border/40 bg-muted/20">
+        <CardContent className="p-5">
+          <div className="flex items-start gap-4">
+            <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0 bg-muted/40">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-sm font-medium">
+                {t('jobTicket.workInProgress', 'Work in progress')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t('jobTicket.waitingForProCompletion', "When the professional finishes, they'll request completion and you can confirm here.")}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card className={isConfirmation ? 'border-amber-500/30 bg-amber-500/5' : 'border-border/40 bg-muted/20'}>
+    <Card className="border-amber-500/30 bg-amber-500/5">
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
-          <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${isConfirmation ? 'bg-amber-500/10' : 'bg-primary/10'}`}>
-            <CheckCircle2 className={`h-5 w-5 ${isConfirmation ? 'text-amber-600' : 'text-primary'}`} />
+          <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0 bg-amber-500/10">
+            <CheckCircle2 className="h-5 w-5 text-amber-600" />
           </div>
           <div className="flex-1 space-y-2">
             <p className="text-sm font-medium">
-              {isConfirmation
-                ? t('jobTicket.proRequestedCompletion', 'The professional says the work is complete')
-                : t('jobTicket.readyToComplete', 'Is the work finished?')}
+              {t('jobTicket.proRequestedCompletion', 'The professional says the work is complete')}
             </p>
             <p className="text-xs text-muted-foreground">
-              {isConfirmation
-                ? t('jobTicket.confirmCompleteDesc', 'Review the work and confirm if you are satisfied. You will be asked to leave a review next.')
-                : t('jobTicket.completeDesc', "Once you mark the job as complete, you'll be asked to leave a review.")}
+              {t('jobTicket.confirmCompleteDesc', 'Review the work and confirm if you are satisfied. You will be asked to leave a review next.')}
             </p>
             <Button
               size="sm"
@@ -169,9 +188,7 @@ export function JobTicketCompletion({
               ) : (
                 <CheckCircle2 className="h-3.5 w-3.5" />
               )}
-              {isConfirmation
-                ? t('jobTicket.confirmComplete', 'Confirm Completion')
-                : t('jobTicket.markComplete', 'Mark as Complete')}
+              {t('jobTicket.confirmComplete', 'Confirm Completion')}
             </Button>
           </div>
         </div>
