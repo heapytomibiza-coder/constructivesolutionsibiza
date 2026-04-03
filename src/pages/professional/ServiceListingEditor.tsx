@@ -22,6 +22,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, type PricingItem } from './hooks/useListingEditor';
 import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones';
 import { evaluateListingReadiness } from '@/lib/listingPublishRules';
+import { resolveRequiredIssuesMessage } from '@/lib/publishIssueMessages';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useQuery } from '@tanstack/react-query';
 
