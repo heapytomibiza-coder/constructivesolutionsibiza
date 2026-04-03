@@ -33,7 +33,7 @@ export async function getRankedProfessionals(
   // Step 1: Get match scores from the view
   const { data: scores, error: scoresError } = await supabase
     .from('professional_matching_scores')
-    .select('user_id, micro_id, match_score, status, preference, verification_level')
+    .select('user_id, micro_id, match_score, status, preference, verification_level, has_live_listing')
     .in('micro_id', microIds)
     .neq('status', 'paused');
 
