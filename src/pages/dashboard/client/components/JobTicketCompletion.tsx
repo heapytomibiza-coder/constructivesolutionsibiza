@@ -32,6 +32,7 @@ const RPC_ERROR_MAP: Record<string, string> = {
   job_not_in_progress: 'Job must be in progress to complete',
   no_professional_assigned: 'Assign a professional before completing',
   already_requested: 'Completion already requested',
+  completion_not_requested: 'The professional must request completion first',
 };
 
 export function JobTicketCompletion({
