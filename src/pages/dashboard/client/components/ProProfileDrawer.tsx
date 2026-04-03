@@ -23,6 +23,7 @@ import {
   UserCheck,
   Briefcase,
   Clock,
+  Globe,
 } from 'lucide-react';
 
 interface ProProfileDrawerProps {
