@@ -73,7 +73,7 @@ export function useClientStats() {
       // Fetch jobs with extra fields
       const { data: jobs, error } = await supabase
         .from('jobs')
-        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id, answers, area, budget_type, budget_value, budget_min, budget_max, start_timing')
+        .select('id, title, status, category, subcategory, created_at, is_publicly_listed, assigned_professional_id, answers, area, budget_type, budget_value, budget_min, budget_max, start_timing, completion_requested_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(20);
