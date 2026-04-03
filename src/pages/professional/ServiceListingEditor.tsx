@@ -22,6 +22,8 @@ import { useSession } from '@/contexts/SessionContext';
 import { useListingDetail, useUpdateListing, useUpsertPricingItem, useDeletePricingItem, type PricingItem } from './hooks/useListingEditor';
 import { IBIZA_ZONES, getAllZones } from '@/shared/components/professional/zones';
 import { evaluateListingReadiness } from '@/lib/listingPublishRules';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { useQuery } from '@tanstack/react-query';
 
 export default function ServiceListingEditor() {
   const { listingId } = useParams<{ listingId: string }>();
