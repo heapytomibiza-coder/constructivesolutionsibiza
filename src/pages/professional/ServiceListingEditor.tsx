@@ -34,6 +34,24 @@ export default function ServiceListingEditor() {
   const updateListing = useUpdateListing();
   const upsertPricing = useUpsertPricingItem();
   const deletePricing = useDeletePricingItem();
+  const { limit: getLimit } = useEntitlements();
+  const listingLimit = getLimit('listing_limit');
+
+  // Count current live listings for this provider (excludes current listing if already live)
+  const { data: liveCount = 0 } = useQuery({
+    queryKey: ['live-listing-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count, error } = await supabase
+        .from('service_listings')
+        .select('id', { count: 'exact', head: true })
+        .eq('provider_id', user.id)
+        .eq('status', 'live');
+      if (error) return 0;
+      return count ?? 0;
+    },
+    enabled: !!user?.id,
+  });
   // publishListing now handled inline in handlePublish for atomic write
 
   // Form state
