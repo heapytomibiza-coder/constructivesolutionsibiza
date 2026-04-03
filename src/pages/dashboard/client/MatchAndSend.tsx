@@ -162,6 +162,12 @@ export default function MatchAndSend() {
       </div>
 
       <div className="container max-w-4xl py-6">
+        {fromPost && (
+          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 mb-5">
+            <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+            <p className="text-sm font-medium text-foreground">{t('matchAndSend.postSuccess')}</p>
+          </div>
+        )}
         <h2 className="font-display text-xl font-bold mb-1">{t('matchAndSend.matchingTitle')}</h2>
         <p className="text-sm text-muted-foreground mb-6">
           {t('matchAndSend.found', { count: matchedPros.length })}
