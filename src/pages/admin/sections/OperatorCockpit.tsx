@@ -28,6 +28,7 @@ import { StatTile } from "@/shared/components/StatTile";
 import { useNavigate } from "react-router-dom";
 import { useOnboardingHealth } from "../hooks/useOnboardingHealth";
 import { MapPin, Phone, ShieldCheck } from "lucide-react";
+import { QuoteFunnelCard } from "../components/QuoteFunnelCard";
 
 function playNotifySound() {
   try {
@@ -250,6 +251,9 @@ export function OperatorCockpit() {
           </div>
         )}
       </section>
+
+      {/* ── Quote Journey ── */}
+      <QuoteFunnelCard />
 
       {/* ── Quick Stats ── */}
       <section className="space-y-3">

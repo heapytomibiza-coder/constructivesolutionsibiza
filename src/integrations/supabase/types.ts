@@ -3733,6 +3733,7 @@ export type Database = {
           job_count: number
         }[]
       }
+      get_quote_funnel_metrics: { Args: never; Returns: Json }
       get_repeat_hire_pair: {
         Args: { p_client_id: string; p_pro_id: string }
         Returns: {
