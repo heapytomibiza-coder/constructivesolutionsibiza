@@ -155,7 +155,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
         .from('jobs')
         .update({ status: 'cancelled' })
         .eq('id', job.id)
-        .in('status', ['draft', 'open'])
+        .in('status', ['draft', 'ready', 'open'])
         .select('id');
       if (error) throw error;
       if (!updated || updated.length === 0) {
