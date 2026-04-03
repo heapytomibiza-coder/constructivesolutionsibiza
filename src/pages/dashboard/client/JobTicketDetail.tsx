@@ -110,6 +110,13 @@ export default function JobTicketDetail() {
     enabled: !!jobId && !!user,
   });
 
+  // Full quotes with line items for AgreementCard (client only)
+  const { data: fullQuotes = [] } = useQuotesForJob(
+    isClient ? (jobId ?? null) : null,
+    isClient,
+  );
+  const acceptedQuote = fullQuotes.find(q => q.status === 'accepted') ?? null;
+
   const { data: existingReview } = useQuery({
     queryKey: ['job_review_exists', jobId, user?.id],
     queryFn: async () => {
