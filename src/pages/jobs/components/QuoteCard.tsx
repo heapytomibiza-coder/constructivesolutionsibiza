@@ -199,13 +199,11 @@ export function QuoteCard({ quote, role, onRevise, clientId, onAccepted }: Quote
           <div className="flex flex-wrap gap-2 pt-1">
             {role === "client" && (
               <>
-                <Button size="sm" onClick={handleAccept} disabled={acting} className="gap-1.5">
+                <Button size="sm" onClick={() => setConfirmOpen(true)} disabled={acting} className="gap-1.5">
                   {acting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                  {t("quotes.accept")}
+                  {t("quotes.acceptAndHire", "Accept & Hire")}
                 </Button>
-                <Button size="sm" variant="outline" disabled={acting} onClick={() => {
-                  // Reject is implicit when accepting another — just a visual placeholder
-                }}>
+                <Button size="sm" variant="outline" disabled={acting} onClick={() => {}}>
                   <X className="h-3.5 w-3.5 mr-1" />
                   {t("quotes.reject")}
                 </Button>
