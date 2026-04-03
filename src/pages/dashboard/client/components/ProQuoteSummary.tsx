@@ -71,7 +71,7 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
 
     setIsSubmitting(true);
     try {
-      const sortOrder = lineItems.length + 1;
+      const sortOrder = (quote.line_items ?? []).length + 1;
       const { error: lineError } = await supabase.from('quote_line_items').insert({
         quote_id: quote.id,
         description: costDescription.trim(),
