@@ -153,11 +153,15 @@ export default function ServiceListingEditor() {
   const handlePublish = async () => {
     if (!listingId || !listing) return;
     const hasPricing = pricingItems.some(p => p.is_enabled && p.price_amount && p.price_amount > 0);
+    // If this listing is already live, it doesn't count against the limit for re-publish
+    const effectiveLiveCount = listing.status === 'live' ? liveCount - 1 : liveCount;
     const { canPublish, issues } = evaluateListingReadiness({
       display_title: title,
       short_description: description,
       hero_image_url: heroUrl,
       hasPricing,
+      currentLiveCount: effectiveLiveCount,
+      listingLimit,
     });
     if (!canPublish) {
       const requiredIssues = issues.filter(i => i.severity === 'required');
