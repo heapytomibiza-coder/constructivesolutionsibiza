@@ -26,6 +26,7 @@ export interface ClientJob {
   budget_min: number | null;
   budget_max: number | null;
   start_timing: string | null;
+  completion_requested_at: string | null;
   conversation_count: number;
 }
 
