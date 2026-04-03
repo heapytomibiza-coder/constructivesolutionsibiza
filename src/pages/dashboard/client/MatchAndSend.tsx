@@ -141,7 +141,7 @@ export default function MatchAndSend() {
             <p className="text-sm font-semibold text-foreground truncate">
               {t('matchAndSend.sending', { category: job.category, subcategory: job.subcategory || job.title })}
             </p>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+            <div className="flex items-center gap-3 flex-wrap text-xs text-muted-foreground mt-0.5">
               <span className="flex items-center gap-1">
                 <MapPin className="h-3 w-3" /> {area}
               </span>
@@ -202,7 +202,7 @@ export default function MatchAndSend() {
               return (
                 <Card key={pro.user_id} className="border-border/70 hover:border-primary/30 transition-all">
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-medium text-foreground truncate">
@@ -231,7 +231,7 @@ export default function MatchAndSend() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                         <Button
                           variant="outline"
                           size="sm"
