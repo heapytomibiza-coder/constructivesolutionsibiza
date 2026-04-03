@@ -66,9 +66,9 @@ export function ConversationThread({
 
   const queryClient = useQueryClient();
 
-  // Derive hasQuote: any submitted/revised quote from this conversation's pro
+  // Derive hasQuote: scoped to THIS conversation's professional only
   const hasQuote = !!allQuotes?.some(
-    q => (q.status === 'submitted' || q.status === 'revised') && q.professional_id !== undefined
+    q => (q.status === 'submitted' || q.status === 'revised') && q.professional_id === proId
   );
 
   const canQuote = userRole === 'professional' && jobStatus === 'open' && !hasQuote && !!jobId;
