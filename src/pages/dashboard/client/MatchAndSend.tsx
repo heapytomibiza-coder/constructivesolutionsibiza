@@ -23,6 +23,7 @@ import {
   Send,
   UserCheck,
   ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import { getRankedProfessionals, getMicroIdsForFilter } from '@/pages/public/queries/rankedProfessionals.query';
 import ProProfileDrawer from './components/ProProfileDrawer';
