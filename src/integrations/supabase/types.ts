@@ -3506,6 +3506,10 @@ export type Database = {
         Returns: Json
       }
       admin_email_queue_details: { Args: never; Returns: Json }
+      admin_force_complete_job: {
+        Args: { p_job_id: string; p_reason?: string }
+        Returns: Json
+      }
       admin_health_snapshot: { Args: never; Returns: Json }
       admin_market_gap: {
         Args: { p_from_ts?: string; p_to_ts?: string }
