@@ -156,6 +156,13 @@ export function JobTicketCompletion({
               <p className="text-xs text-muted-foreground">
                 {t('jobTicket.waitingForProCompletion', "When the professional finishes, they'll request completion and you can confirm here.")}
               </p>
+              <button
+                type="button"
+                className="text-xs text-primary hover:underline mt-1"
+                onClick={() => document.getElementById('agreement-card')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                {t('jobTicket.viewAgreement', 'View original agreement')}
+              </button>
             </div>
           </div>
         </CardContent>
