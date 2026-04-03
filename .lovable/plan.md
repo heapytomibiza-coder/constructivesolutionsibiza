@@ -1,135 +1,61 @@
 
 
-# Agreement Layer — Implementation Plan
+## Plan: Tighten completion fix — two specific issues
 
-## Summary
+### Context
 
-Add a confirmation step before quote acceptance, a professional Agreement Card for the client job ticket, and supporting touches (terminology, completion reference, print styles). One new DB column, two new components, four file updates.
+The completion flow fix is mostly in place. Two specific loose ends need tightening before it's done.
 
-## 1. Database Migration
+### Issue 1: Misleading comment in `JobTicketCompletion.tsx`
 
-Add `accepted_at` to quotes table and update the RPC:
+Line 87: `userId: undefined, // not available here, action logs it server-side`
 
-```sql
-ALTER TABLE public.quotes ADD COLUMN accepted_at TIMESTAMPTZ;
+This is wrong — `completeJob()` does **not** log anything server-side. It only logs the `debugCtx` object client-side before the RPC call. Passing `undefined` means the debug log has no user ID for the completion-card path, reducing its diagnostic value.
 
-CREATE OR REPLACE FUNCTION public.accept_quote_and_assign(p_quote_id UUID, p_job_id UUID)
--- Same body as current, but the accepted quote UPDATE becomes:
--- SET status = 'accepted', updated_at = now(), accepted_at = now()
+**Fix:** Import `useSession` in `JobTicketCompletion` (or pass `userId` as a prop from `JobTicketDetail` which already has `user?.id`) and pass the real value. Remove the misleading comment.
+
+The cleanest approach: add a `viewerId?: string` prop to `JobTicketCompletionProps` and pass `user?.id` from `JobTicketDetail.tsx` at both render sites (lines 437-444 and 452-459). Then use it in the `debugCtx`.
+
+### Issue 2: `friendlyError` exact-key lookup is brittle
+
+`completeJob.action.ts` line 14-16:
+```ts
+function friendlyError(raw: string): string {
+  return RPC_ERROR_MAP[raw] ?? raw;
+}
 ```
 
-Preserves all existing logic. No new tables.
+If Supabase ever wraps the exception message (e.g., `"not_authorized"` arrives as `"ERROR: not_authorized"` or with extra context), this exact-key lookup silently falls through and shows the raw database message to the user.
 
-## 2. New: `AcceptConfirmationModal`
+**Fix:** Change to a substring/includes check:
 
-**File**: `src/components/quotes/AcceptConfirmationModal.tsx`
-
-A `Dialog` triggered from QuoteCard instead of immediate acceptance. Shows:
-- Professional name via `ProSummaryCard`
-- Scope text
-- Line items table (description, qty, unit price, line total)
-- Exclusions
-- Subtotal / IVA / Total
-- Timing (start date estimate, duration)
-- Notes
-- Microcopy: "Review the scope, pricing, and timing before hiring this professional."
-- Footer: "Accept & Hire" primary button + Cancel
-
-Uses existing `Quote` type, `ProSummaryCard`, `Dialog` primitives. Calls the existing `acceptQuote()` action on confirm — no new acceptance path.
-
-## 3. Update: `QuoteCard.tsx`
-
-Replace the direct `handleAccept` call with opening `AcceptConfirmationModal`. Add state `confirmOpen` and pass quote + callbacks to the modal. The modal calls `handleAccept` internally on confirm.
-
-## 4. New: `AgreementCard`
-
-**File**: `src/pages/dashboard/client/components/AgreementCard.tsx`
-
-Renders when an accepted quote exists. Uses `useQuotesForJob` (already fetches line items).
-
-**Structure**:
-- Header: "Project Agreement" + accepted date (use `accepted_at ?? updated_at`)
-- Professional name via `ProSummaryCard`
-- Scope (`scope_text`)
-- Original line items only (`!is_addition`)
-- Exclusions (`exclusions_text`)
-- Subtotal / IVA / Total (from original items)
-- Timing (`start_date_estimate`, `time_estimate_days`)
-- Notes
-- Print button: `window.print()`
-
-**Separated below**: Additions section (items where `is_addition === true`). Header: "Added after agreement". Each with date, acknowledgment icon (✓/⏳), amount. Separate additions subtotal. Reuses the same display pattern from `ProQuoteSummary`.
-
-Visual: `rounded-2xl border bg-card p-6` — clean, dominant, document-like. Wrapped in a `div` with `id="agreement-card"` for scroll targeting and print isolation.
-
-## 5. Update: `JobTicketDetail.tsx`
-
-Insert `AgreementCard` after CancellationCard, before ProgressUpdates:
-
-```
-StageHero
-CancellationCard
-AgreementCard          ← NEW
-ProgressUpdates
-Completion
-Gallery
-Review
-Quotes (secondary)
-Conversation
-JobSummary
+```ts
+function friendlyError(raw: string): string {
+  for (const [key, msg] of Object.entries(RPC_ERROR_MAP)) {
+    if (raw.includes(key)) return msg;
+  }
+  return raw;
+}
 ```
 
-Condition: render when `hasAcceptedQuote && isClient`. Uses existing `quotesForJob` data or the already-available `useQuotesForJob` hook. Add `agreementRef` for scroll targeting.
+This is safe because the error tokens (`job_not_found`, `not_authorized`, `completion_not_requested`, etc.) are distinctive enough to not produce false matches.
 
-## 6. Update: `ProQuoteSummary.tsx`
+### Files to change
 
-Line 114: change `t('jobTicket.yourQuote', 'Your Quote')` to conditionally show "Agreement" when `quote.status === 'accepted'`. Single ternary, no redesign.
-
-## 7. Update: `JobTicketCompletion.tsx`
-
-In the client completion card (both the "waiting" and "confirm" variants), add a quiet line below the description:
-"Refer back to the original agreement if needed." with a text button that scrolls to `#agreement-card`.
-
-## 8. Print Styles in `src/index.css`
-
-Append a `@media print` block:
-- Hide everything except `#agreement-card`
-- Full-width, no margins
-- Clean typography, no shadows/borders
-- Hide the print button itself
-- Add a simple "Constructive Solutions Ibiza" header via `::before` pseudo-element
-
-## Files Changed
-
-| File | Type |
+| File | Change |
 |---|---|
-| Migration SQL | New column + RPC update |
-| `src/components/quotes/AcceptConfirmationModal.tsx` | **New** |
-| `src/pages/dashboard/client/components/AgreementCard.tsx` | **New** |
-| `src/pages/jobs/components/QuoteCard.tsx` | Update (modal trigger) |
-| `src/pages/dashboard/client/JobTicketDetail.tsx` | Update (layout insert) |
-| `src/pages/dashboard/client/components/ProQuoteSummary.tsx` | Update (1 line) |
-| `src/pages/dashboard/client/components/JobTicketCompletion.tsx` | Update (add reference) |
-| `src/index.css` | Update (print block) |
+| `src/pages/jobs/actions/completeJob.action.ts` | Make `friendlyError` use substring matching |
+| `src/pages/dashboard/client/components/JobTicketCompletion.tsx` | Add `viewerId` prop, pass real user ID in debugCtx, remove misleading comment |
+| `src/pages/dashboard/client/JobTicketDetail.tsx` | Pass `viewerId={user?.id}` to both `JobTicketCompletion` render sites |
 
-## Reuse
+### What this does NOT change
 
-- `acceptQuote()` action: unchanged, single acceptance path
-- `useQuotesForJob`: existing hook, already fetches line items
-- `ProSummaryCard`: reused for professional display
-- `Dialog` primitives: existing component
-- `formatQuotePrice`: reused where compact price needed
-- `ProQuoteSummary` additions pattern: replicated in AgreementCard
-- `formatDistanceToNow`: existing date-fns usage
+- No backend changes
+- No business logic changes  
+- No component restructuring
+- No new dependencies
 
-## Edge Cases
+### Verification
 
-- Existing accepted quotes with `accepted_at = null`: fall back to `updated_at`
-- Quotes with no line items: show scope text fallback (same pattern as QuoteCard)
-- IVA at 0%: hide the IVA line
-- No additions: hide additions section entirely
-
-## What Stays Untouched
-
-Quote creation, ProposalBuilder, InlineQuoteBuilder, matching/invites, messaging, disputes, subscriptions.
+After these two changes, the debug log from either entry point will show the real `userId` alongside `jobOwnerId`, making ownership mismatches immediately visible in console. And the error mapping will be resilient to Supabase message format variations.
 
