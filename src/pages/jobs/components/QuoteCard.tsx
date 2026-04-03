@@ -226,6 +226,14 @@ export function QuoteCard({ quote, role, onRevise, clientId, onAccepted }: Quote
           </div>
         )}
       </CardContent>
+
+      {/* Confirmation modal for acceptance */}
+      <AcceptConfirmationModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        quote={quote}
+        onConfirm={handleAccept}
+      />
     </Card>
   );
 }

@@ -184,6 +184,13 @@ export function JobTicketCompletion({
             <p className="text-xs text-muted-foreground">
               {t('jobTicket.confirmCompleteDesc', 'Review the work and confirm if you are satisfied. You will be asked to leave a review next.')}
             </p>
+            <button
+              type="button"
+              className="text-xs text-primary hover:underline"
+              onClick={() => document.getElementById('agreement-card')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              {t('jobTicket.referToAgreement', 'Refer back to the original agreement if needed')}
+            </button>
             <Button
               size="sm"
               className="gap-1.5 mt-1"
