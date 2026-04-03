@@ -148,7 +148,7 @@ const Pricing = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {PLANS.map((plan) => {
             const price = TIER_PRICES[plan.tier];
-            const commission = COMMISSION_RATES[plan.tier];
+            const commission = COMMISSION_RATES_DISPLAY[plan.tier];
             const meta = TIER_META[plan.tier];
             const isCurrentPlan = subscription.tier === plan.tier && subscription.status === 'active';
 
