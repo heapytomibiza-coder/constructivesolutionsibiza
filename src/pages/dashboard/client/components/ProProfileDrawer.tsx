@@ -57,7 +57,7 @@ export default function ProProfileDrawer({
     enabled: !!proUserId && open,
   });
 
-  // Fetch their services
+  // Fetch their services (capability tags)
   const { data: services = [] } = useQuery({
     queryKey: ['pro_services_detail', proUserId],
     queryFn: async () => {
@@ -65,10 +65,26 @@ export default function ProProfileDrawer({
         .from('professional_services')
         .select(`
           id,
+          micro_id,
           service_micro_categories:micro_id (name, slug)
         `)
         .eq('user_id', proUserId!)
         .eq('status', 'offered');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!proUserId && open,
+  });
+
+  // Fetch their live service listings (public pages)
+  const { data: liveListings = [] } = useQuery({
+    queryKey: ['pro_live_listings', proUserId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('service_listings')
+        .select('id, micro_id, display_title, slug')
+        .eq('provider_id', proUserId!)
+        .eq('status', 'live');
       if (error) throw error;
       return data || [];
     },
