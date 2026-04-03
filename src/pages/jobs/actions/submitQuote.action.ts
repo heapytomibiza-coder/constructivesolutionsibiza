@@ -66,7 +66,7 @@ export async function submitQuote(
     p_total: payload.total ?? null,
     p_revision_number: payload.revisionNumber ?? 1,
     p_previous_quote_id: payload.previousQuoteId ?? null,
-    p_line_items: JSON.stringify(payload.lineItems ?? []),
+    p_line_items: JSON.parse(JSON.stringify(payload.lineItems ?? [])),
   });
 
   if (error) {
