@@ -54,7 +54,7 @@ function getStatusLabel(status: string, t: (key: string) => string) {
 function getActions(status: string) {
   const canEdit = ['draft', 'ready', 'open'].includes(status);
   const canDuplicate = ['draft', 'ready', 'open', 'in_progress', 'completed'].includes(status);
-  const canClose = ['draft', 'ready', 'open', 'in_progress'].includes(status);
+  const canClose = ['draft', 'ready', 'open'].includes(status);
   return { canEdit, canDuplicate, canClose };
 }
 
