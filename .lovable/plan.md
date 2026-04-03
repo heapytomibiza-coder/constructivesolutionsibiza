@@ -1,44 +1,37 @@
 
 
-# Plan: Post-Submit → Matched Professionals Redirect
+# Audit: MatchAndSend Mobile Layout
 
-## What Changes
+## Findings
 
-One small, targeted change: after a successful job post, navigate the asker to `/dashboard/jobs/:jobId/invite` instead of `/jobs`.
+### 1. Professional cards — button overflow (ISSUE)
+**Lines 205-263**: The card uses `flex items-start justify-between gap-4` with two side-by-side buttons ("View Profile" + "Invite") in a `flex-shrink-0` container on the right. On a 375px screen, the name/metadata column and two buttons will compete for ~340px of usable space. The buttons alone consume ~200px, leaving ~140px for the name — workable for short names but will squeeze or clip with longer ones. More critically, the buttons never stack, so on very narrow screens the card content will compress uncomfortably.
 
-## Files to Change
+**Fix**: On mobile, stack the card vertically — name/metadata on top, buttons below in a row. Use `flex-col sm:flex-row` on the outer wrapper and `w-full sm:w-auto` + `justify-end` on the button group.
 
-### 1. `src/features/wizard/canonical/CanonicalJobWizard.tsx`
-- **Line 873**: Change `navigate('/jobs')` → `navigate(`/dashboard/jobs/${data.id}/invite`)`
-- The `data.id` is already available from the insert response on line 841
+### 2. Sticky header metadata row — horizontal overflow (MINOR ISSUE)
+**Lines 144-159**: The metadata row shows location, timing, and budget in a single `flex` row with `gap-3`. On narrow screens with long area names or timing text, this can overflow horizontally without wrapping.
 
-### 2. `src/pages/dashboard/client/MatchAndSend.tsx`
-- Add a URL-param or location-state check for `fromPost=true`
-- When detected, show a small success banner at the top: "Your job has been posted — review matched professionals below"
-- The back button already navigates to the job ticket (`/dashboard/jobs/${jobId}`), so ticket access is preserved with no extra work
+**Fix**: Add `flex-wrap` to the metadata row so items wrap naturally.
 
-### 3. `public/locales/en/dashboard.json`
-- Add one translation key under `matchAndSend`: `"postSuccess": "Your job has been posted — review matched professionals below"`
+### 3. Success banner — already acceptable
+**Lines 165-170**: Uses `flex items-center gap-2` with `flex-shrink-0` on the icon. Text will wrap naturally. No issue.
 
-## What Stays the Same
+### 4. Container padding — already acceptable
+Uses `container max-w-4xl` which applies default responsive padding. Fine.
 
-- Matching query, ranking logic, scoring — untouched
-- Manual path from job ticket → invite — still works
-- MatchAndSend component logic, ProProfileDrawer — unchanged
-- All other wizard navigation (edit mode, direct mode, duplicate) — unchanged
-- Toast message `toasts.postSuccess` still fires for confirmation feeling
+### 5. Touch targets — borderline
+The `size="sm"` buttons are ~32px tall which is below the 56px mobile-first standard from project memory. However, changing button size is a broader design decision, not a targeted fix. Note it but do not change in this pass.
 
-## Edge Cases to Check
+## Plan — Minimal Fixes
 
-- Edit mode submits: line 873 is inside the `!isEditMode` branch — edits navigate differently, unaffected
-- Direct/pro-targeted submissions: handled in a separate branch (lines before 872), unaffected
-- Unauthenticated: submit is gated by auth check, so the invite page's `user` dependency is always satisfied post-submit
-- Job with no micro IDs: MatchAndSend already handles empty matches gracefully
+### File: `src/pages/dashboard/client/MatchAndSend.tsx`
 
-## Verification Plan
+**Fix 1 — Card layout stacking** (line 205):
+Change the card's inner flex from `flex items-start justify-between gap-4` to `flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3`. Change the button container (line 234) from `flex items-center gap-2 flex-shrink-0` to `flex items-center gap-2 w-full sm:w-auto justify-end`.
 
-- Post a job → confirm redirect lands on invite page with success banner
-- Confirm back button goes to job ticket
-- Confirm edit-mode submit still behaves as before
-- Confirm the manual ticket → invite path still works independently
+**Fix 2 — Header metadata wrapping** (line 144):
+Add `flex-wrap` to the metadata div: `flex items-center gap-3 flex-wrap text-xs text-muted-foreground mt-0.5`.
+
+No other files changed. No logic changes. No redesign.
 
