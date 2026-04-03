@@ -1,6 +1,7 @@
 /**
- * Admin action: Force complete a job
- * Used when a job is stuck and needs to be marked as completed by admin.
+ * Admin action: Force complete a job via atomic RPC.
+ * Bypasses the normal completion_requested gate but records
+ * the transition in job_status_history with change_source = 'admin_override'.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -18,45 +19,30 @@ export async function forceCompleteJob(
     return { success: false, error: "Not authenticated" };
   }
 
-  // Verify admin role
-  const { data: hasAdmin } = await supabase.rpc("has_role", {
-    _user_id: user.id,
-    _role: "admin",
+  const { error } = await supabase.rpc("admin_force_complete_job" as any, {
+    p_job_id: jobId,
+    p_reason: reason,
   });
 
-  if (!hasAdmin) {
-    return { success: false, error: "Admin access required" };
-  }
-
-  // Update job status to completed
-  const { error: updateError } = await supabase
-    .from("jobs")
-    .update({
-      status: "completed",
-      completed_at: new Date().toISOString(),
-    })
-    .eq("id", jobId)
-    .in("status", ["open", "in_progress"]); // Can only force complete non-completed jobs
-
-  if (updateError) {
-    console.error("Error force completing job:", updateError);
+  if (error) {
+    console.error("Error force completing job:", error);
+    const msg = error.message || "";
+    if (msg.includes("not_authorized")) return { success: false, error: "Admin access required" };
+    if (msg.includes("job_not_found")) return { success: false, error: "Job not found" };
+    if (msg.includes("job_already_closed")) return { success: false, error: "Job is already completed or cancelled" };
     return { success: false, error: "Failed to complete job. Please try again." };
   }
 
-  trackEvent('admin_force_completed_job', 'admin', {}, { job_id: jobId });
+  trackEvent("admin_force_completed_job", "admin", {}, { job_id: jobId });
 
-  // Log admin action
-  const { error: logError } = await supabase.from("admin_actions_log").insert({
+  // Log admin action for admin audit trail
+  await supabase.from("admin_actions_log").insert({
     admin_user_id: user.id,
     action_type: "force_complete_job",
     target_type: "job",
     target_id: jobId,
     metadata: { reason },
   });
-
-  if (logError) {
-    console.error("Error logging admin action:", logError);
-  }
 
   return { success: true };
 }
