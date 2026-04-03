@@ -870,7 +870,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         }).catch(() => { /* translation is best-effort */ });
 
         toast.success(t('toasts.postSuccess'));
-        navigate('/jobs');
+        navigate(`/dashboard/jobs/${data.id}/invite`, { state: { fromPost: true } });
       }
     } catch (error: any) {
       console.error('Submit error:', error);
