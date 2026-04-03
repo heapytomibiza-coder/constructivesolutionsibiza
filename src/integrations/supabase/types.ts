@@ -3757,6 +3757,10 @@ export type Database = {
           stall_type: string
         }[]
       }
+      get_tier_limit: {
+        Args: { _feature: string; _user_id: string }
+        Returns: number
+      }
       get_user_tier: {
         Args: { p_user_id: string }
         Returns: {
