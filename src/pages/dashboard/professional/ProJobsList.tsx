@@ -57,7 +57,7 @@ export default function ProJobsList() {
       <div className="border-b border-border bg-card/90 sticky top-0 z-40">
         <div className="container flex h-14 items-center gap-3">
           <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-            <Link to="/dashboard/professional">
+            <Link to="/dashboard/pro">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
