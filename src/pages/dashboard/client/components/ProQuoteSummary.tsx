@@ -60,9 +60,7 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
 
   const canAddCosts = quote.status === 'accepted' && jobStatus === 'in_progress';
 
-  const lineItems = quote.line_items ?? [];
-  const originalItems = lineItems.filter((item: Record<string, unknown>) => !item.is_addition);
-  const addedItems = lineItems.filter((item: Record<string, unknown>) => item.is_addition);
+  const { original: originalItems, additions: addedItems } = groupLineItems(quote.line_items ?? []);
 
   const handleAddCost = async () => {
     const amount = parseFloat(costAmount);
