@@ -98,7 +98,7 @@ export default function DisputeDetail() {
       <div className="container max-w-3xl py-8 space-y-6">
         {/* Header */}
         <div>
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate(d?.job_id ? `/dashboard/jobs/${d.job_id}` : '/dashboard')} className="mb-2">
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
           <div className="flex items-start justify-between">

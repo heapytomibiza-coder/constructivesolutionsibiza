@@ -59,7 +59,7 @@ export default function MessagingPulsePage() {
     <div className="min-h-screen bg-background">
       <div className="border-b bg-card">
         <div className="container py-6">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/admin?tab=insights')} className="mb-2">
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
           <div className="flex items-center gap-3">
