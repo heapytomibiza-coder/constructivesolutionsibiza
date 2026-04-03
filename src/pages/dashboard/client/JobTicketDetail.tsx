@@ -47,6 +47,7 @@ import { BudgetIncreaseCard } from './components/BudgetIncreaseCard';
 import { ProjectGallery } from './components/ProjectGallery';
 import { PortfolioPrompt } from './components/PortfolioPrompt';
 import { useMyQuoteForJob, useAcceptedQuoteForJob } from '@/pages/jobs/queries/quotes.query';
+import { completeJob } from '@/pages/jobs/actions/completeJob.action';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
@@ -256,6 +257,26 @@ export default function JobTicketDetail() {
     }
   };
 
+  const handleMarkComplete = async () => {
+    if (!jobId) return;
+
+    try {
+      const result = await completeJob(jobId);
+
+      if (!result.success) {
+        toast.error(result.error ?? t('client.completeFailed', 'Failed to complete job'));
+        return;
+      }
+
+      sessionStorage.setItem(`review_auto_open_${jobId}`, '1');
+      toast.success(t('client.completedSuccess', 'Job marked as completed!'));
+      queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });
+      queryClient.invalidateQueries({ queryKey: ['job_review_exists', jobId] });
+    } catch {
+      toast.error(t('client.completeFailed', 'Failed to complete job'));
+    }
+  };
+
   const scrollToUpdates = useCallback(() => {
     updatesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     // Focus the update textarea after scroll
@@ -371,9 +392,7 @@ export default function JobTicketDetail() {
               hasAcceptedQuote={hasAcceptedQuote}
               completionRequested={completionRequested}
               cancellationRequested={cancellationRequested}
-              onMarkComplete={() => {
-                document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onMarkComplete={handleMarkComplete}
               onRequestCompletion={() => {
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
               }}

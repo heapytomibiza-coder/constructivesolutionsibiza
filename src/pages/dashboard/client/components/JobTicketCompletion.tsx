@@ -27,6 +27,7 @@ import { CheckCircle2, Loader2, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
 import { EVENTS } from '@/lib/eventTaxonomy';
+import { completeJob } from '@/pages/jobs/actions/completeJob.action';
 
 interface JobTicketCompletionProps {
   jobId: string;
@@ -80,13 +81,12 @@ export function JobTicketCompletion({
   const handleConfirmCompletion = async () => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.rpc('complete_job', { p_job_id: jobId });
-      if (error) {
-        const friendlyMsg = RPC_ERROR_MAP[error.message] ?? error.message;
+      const result = await completeJob(jobId);
+      if (!result.success) {
+        const friendlyMsg = result.error ? (RPC_ERROR_MAP[result.error] ?? result.error) : 'Failed to complete job';
         toast.error(t('client.completeFailed', friendlyMsg));
         return;
       }
-      trackEvent(EVENTS.JOB_COMPLETED, 'client', {}, { job_id: jobId });
       toast.success(t('client.completedSuccess', 'Job marked as completed!'));
 
       // Set flag so JobTicketReview auto-opens the rating modal after status changes
