@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DollarSign, CheckCircle2, Clock, XCircle, Plus, Loader2, Send } from 'lucide-react';
 import { useMyQuoteForJob } from '@/pages/jobs/queries/quotes.query';
+import { groupLineItems } from '@/pages/jobs/utils/quoteDisplay';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
