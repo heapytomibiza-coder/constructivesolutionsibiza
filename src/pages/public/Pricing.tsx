@@ -13,7 +13,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  TIER_PRICES, COMMISSION_RATES, TIER_META, STRIPE_CHECKOUT_LIVE,
+  TIER_PRICES, COMMISSION_RATES_DISPLAY, TIER_META, STRIPE_CHECKOUT_LIVE,
   type SubscriptionTier,
 } from '@/domain/entitlements';
 
@@ -148,7 +148,7 @@ const Pricing = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {PLANS.map((plan) => {
             const price = TIER_PRICES[plan.tier];
-            const commission = COMMISSION_RATES[plan.tier];
+            const commission = COMMISSION_RATES_DISPLAY[plan.tier];
             const meta = TIER_META[plan.tier];
             const isCurrentPlan = subscription.tier === plan.tier && subscription.status === 'active';
 

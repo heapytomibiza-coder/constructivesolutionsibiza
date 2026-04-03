@@ -3,6 +3,25 @@
  *
  * Feature map per tier. All tier checks use hasFeature() / getLimit().
  * Never use raw `tier === 'gold'` checks.
+ *
+ * ── ENTITLEMENT ENFORCEMENT PATTERN ──
+ *
+ * When gating a feature or enforcing a limit:
+ *
+ *   1. Read the user's current tier from useEntitlements()
+ *   2. Call hasFeature(tier, 'feature_name') or getLimit(tier, 'limit_name')
+ *   3. If denied, show a fallback/upgrade state — never silently hide
+ *   4. Never use ad-hoc inline tier checks (e.g. tier === 'gold')
+ *   5. Backend RPCs should join subscriptions to enforce server-side
+ *
+ * The database subscription record is the authoritative source for:
+ *   - commission_rate (not the code constant)
+ *   - current tier
+ *   - subscription status
+ *
+ * COMMISSION_RATES below is kept only as a display reference for the
+ * pricing page. It is NOT authoritative for billing or platform fees.
+ * The DB column subscriptions.commission_rate is the source of truth.
  */
 
 export type SubscriptionTier = 'bronze' | 'silver' | 'gold' | 'elite';
@@ -10,6 +29,8 @@ export type SubscriptionTier = 'bronze' | 'silver' | 'gold' | 'elite';
 export interface TierEntitlements {
   visibility_boost: number;
   portfolio_limit: number;
+  listing_limit: number;
+  quote_daily_limit: number;
   insights: boolean;
   priority_matching: boolean;
   demand_data: boolean;
@@ -20,6 +41,8 @@ export const FEATURE_MAP: Record<SubscriptionTier, TierEntitlements> = {
   bronze: {
     visibility_boost: 0,
     portfolio_limit: 5,
+    listing_limit: 3,
+    quote_daily_limit: 5,
     insights: false,
     priority_matching: false,
     demand_data: false,
@@ -28,6 +51,8 @@ export const FEATURE_MAP: Record<SubscriptionTier, TierEntitlements> = {
   silver: {
     visibility_boost: 0.05,
     portfolio_limit: 15,
+    listing_limit: 10,
+    quote_daily_limit: 15,
     insights: true,
     priority_matching: false,
     demand_data: false,
@@ -36,6 +61,8 @@ export const FEATURE_MAP: Record<SubscriptionTier, TierEntitlements> = {
   gold: {
     visibility_boost: 0.1,
     portfolio_limit: 50,
+    listing_limit: 25,
+    quote_daily_limit: 30,
     insights: true,
     priority_matching: true,
     demand_data: true,
@@ -44,6 +71,8 @@ export const FEATURE_MAP: Record<SubscriptionTier, TierEntitlements> = {
   elite: {
     visibility_boost: 0.2,
     portfolio_limit: 100,
+    listing_limit: 50,
+    quote_daily_limit: 50,
     insights: true,
     priority_matching: true,
     demand_data: true,
@@ -51,13 +80,23 @@ export const FEATURE_MAP: Record<SubscriptionTier, TierEntitlements> = {
   },
 };
 
-/** Commission rates per tier (percentage) */
-export const COMMISSION_RATES: Record<SubscriptionTier, number> = {
+/**
+ * Commission rates per tier — DISPLAY REFERENCE ONLY.
+ *
+ * The authoritative commission rate lives in subscriptions.commission_rate (DB).
+ * Use useSubscription().commissionRate for any billing/platform-fee logic.
+ */
+export const COMMISSION_RATES_DISPLAY: Record<SubscriptionTier, number> = {
   bronze: 18,
   silver: 12,
   gold: 9,
   elite: 6,
 };
+
+/**
+ * @deprecated Use COMMISSION_RATES_DISPLAY for display or useSubscription().commissionRate for logic.
+ */
+export const COMMISSION_RATES = COMMISSION_RATES_DISPLAY;
 
 /** Tier metadata — earned vs purchasable */
 export const TIER_META: Record<SubscriptionTier, {
