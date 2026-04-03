@@ -189,7 +189,8 @@
     "flexible": "Flexible",
     "notFound": "Job not found.",
     "services": "{{count}} services",
-    "match": "{{percent}}% match"
+    "match": "{{percent}}% match",
+    "postSuccess": "Your job has been posted — review matched professionals below"
   },
   "reviews": {
     "rateExperience": "Rate your experience",
