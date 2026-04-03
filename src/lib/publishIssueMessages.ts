@@ -33,7 +33,7 @@ export function resolveIssueMessage(
  */
 export function resolveRequiredIssuesMessage(
   issues: PublishIssue[],
-  t: (key: string, fallback?: string) => string,
+  t: (key: string, defaultValue: string) => string,
 ): string {
   return issues
     .filter(i => i.severity === 'required')
