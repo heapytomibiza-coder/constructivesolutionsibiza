@@ -24,6 +24,10 @@ export interface ListingPublishInput {
   hero_image_url?: string | null;
   /** Whether at least one enabled pricing item with price > 0 exists */
   hasPricing: boolean;
+  /** Current count of live listings for this provider (optional — skip check if omitted) */
+  currentLiveCount?: number;
+  /** Tier-based listing limit (optional — skip check if omitted) */
+  listingLimit?: number;
 }
 
 export interface PublishIssue {
