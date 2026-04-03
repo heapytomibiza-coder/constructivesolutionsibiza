@@ -10,6 +10,8 @@ export interface RankedProfessional {
   match_score: number;
   coverage: number;
   ranking_labels: string[];
+  /** Whether the pro has at least one live listing for matched micros */
+  has_live_listing: boolean;
 }
 
 /**
