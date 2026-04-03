@@ -31,7 +31,7 @@ export interface ListingPublishInput {
 }
 
 export interface PublishIssue {
-  field: 'display_title' | 'short_description' | 'hero_image_url' | 'pricing';
+  field: 'display_title' | 'short_description' | 'hero_image_url' | 'pricing' | 'listing_limit';
   severity: 'required' | 'recommended';
   messageKey: string;
 }
