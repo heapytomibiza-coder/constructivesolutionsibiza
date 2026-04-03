@@ -36,6 +36,7 @@ interface JobTicketCompletionProps {
   completionRequested: boolean;
   assignedProfessionalId?: string | null;
   clientId?: string;
+  viewerId?: string;
 }
 
 const RPC_REQUEST_ERROR_MAP: Record<string, string> = {
