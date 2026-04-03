@@ -3901,6 +3901,28 @@ export type Database = {
         Returns: undefined
       }
       run_platform_alert_rules: { Args: { p_date?: string }; Returns: number }
+      submit_quote_with_items: {
+        Args: {
+          p_exclusions_text?: string
+          p_hourly_rate?: number
+          p_job_id: string
+          p_line_items?: Json
+          p_notes?: string
+          p_previous_quote_id?: string
+          p_price_fixed?: number
+          p_price_max?: number
+          p_price_min?: number
+          p_price_type?: string
+          p_revision_number?: number
+          p_scope_text?: string
+          p_start_date_estimate?: string
+          p_subtotal?: number
+          p_time_estimate_days?: number
+          p_total?: number
+          p_vat_percent?: number
+        }
+        Returns: string
+      }
       suppress_nudge: {
         Args: { p_job_id: string; p_nudge_type: string }
         Returns: undefined
