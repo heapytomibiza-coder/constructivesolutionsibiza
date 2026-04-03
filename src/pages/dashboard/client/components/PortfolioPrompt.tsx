@@ -27,6 +27,8 @@ interface PortfolioPromptProps {
 export function PortfolioPrompt({ jobId, jobStatus, isClient, jobTitle }: PortfolioPromptProps) {
   const { t } = useTranslation('dashboard');
   const { user } = useSession();
+  const { limit: getLimit } = useEntitlements();
+  const portfolioLimit = getLimit('portfolio_limit');
   const queryClient = useQueryClient();
 
   const [title, setTitle] = useState(jobTitle);
