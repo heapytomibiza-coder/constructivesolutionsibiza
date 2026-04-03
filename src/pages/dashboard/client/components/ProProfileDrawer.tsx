@@ -189,7 +189,7 @@ export default function ProProfileDrawer({
               </section>
             )}
 
-            {/* Services */}
+            {/* Services — live listings shown distinctly from tag-only capabilities */}
             {services.length > 0 && (
               <section>
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
@@ -198,11 +198,19 @@ export default function ProProfileDrawer({
                 <div className="flex flex-wrap gap-1.5">
                   {services.map((s) => {
                     const micro = s.service_micro_categories as { name: string; slug: string } | null;
-                    return micro ? (
+                    const microId = (s as any).micro_id as string;
+                    const hasLivePage = liveListings.some(ll => ll.micro_id === microId);
+                    if (!micro) return null;
+                    return hasLivePage ? (
+                      <Badge key={s.id} variant="default" className="text-xs gap-1">
+                        <Globe className="h-3 w-3" />
+                        {micro.name}
+                      </Badge>
+                    ) : (
                       <Badge key={s.id} variant="secondary" className="text-xs">
                         {micro.name}
                       </Badge>
-                    ) : null;
+                    );
                   })}
                 </div>
               </section>
