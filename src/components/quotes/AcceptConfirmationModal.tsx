@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import { ProSummaryCard } from '@/components/quotes/ProSummaryCard';
+import { groupLineItems, calculateQuoteTotals } from '@/pages/jobs/utils/quoteDisplay';
 import type { Quote } from '@/pages/jobs/types';
 
 interface AcceptConfirmationModalProps {
@@ -35,14 +36,8 @@ export function AcceptConfirmationModal({
   const { t } = useTranslation('jobs');
   const [confirming, setConfirming] = useState(false);
 
-  const originalItems = (quote.line_items ?? [])
-    .filter((item: any) => !item.is_addition)
-    .sort((a, b) => a.sort_order - b.sort_order);
-
-  const vatAmount =
-    quote.subtotal != null && (quote.vat_percent ?? 0) > 0
-      ? (quote.subtotal * (quote.vat_percent ?? 0)) / 100
-      : 0;
+  const { original: originalItems } = groupLineItems(quote.line_items ?? []);
+  const totals = calculateQuoteTotals(quote);
 
   const handleConfirm = async () => {
     setConfirming(true);
@@ -165,19 +160,18 @@ export function AcceptConfirmationModal({
           )}
 
           {/* Totals */}
-          {quote.subtotal != null && (
+          {totals.subtotal > 0 && (
             <div className="border-t border-border pt-3 space-y-1 text-right">
               <div className="text-sm text-muted-foreground">
-                {t('proposal.subtotal', 'Subtotal')}: €{quote.subtotal.toFixed(2)}
+                {t('proposal.subtotal', 'Subtotal')}: €{totals.subtotal.toFixed(2)}
               </div>
-              {vatAmount > 0 && (
+              {totals.vatAmount > 0 && (
                 <div className="text-sm text-muted-foreground">
-                  IVA ({quote.vat_percent}%): €{vatAmount.toFixed(2)}
+                  IVA ({totals.vatPercent}%): €{totals.vatAmount.toFixed(2)}
                 </div>
               )}
               <div className="text-base font-bold">
-                {t('proposal.total', 'Total')}: €
-                {(quote.total ?? quote.subtotal).toFixed(2)}
+                {t('proposal.total', 'Total')}: €{totals.total.toFixed(2)}
               </div>
             </div>
           )}
