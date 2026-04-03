@@ -66,7 +66,7 @@ export async function submitQuote(
     p_total: payload.total ?? null,
     p_revision_number: payload.revisionNumber ?? 1,
     p_previous_quote_id: payload.previousQuoteId ?? null,
-    p_line_items: payload.lineItems ?? [],
+    p_line_items: (payload.lineItems ?? []) as unknown as Record<string, unknown>[],
   });
 
   if (error) {
