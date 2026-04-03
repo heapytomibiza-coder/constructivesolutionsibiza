@@ -3745,6 +3745,18 @@ export type Database = {
           last_hired_at: string
         }[]
       }
+      get_stalled_quote_journeys: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          hours_since_activity: number
+          job_id: string
+          job_title: string
+          pro_display_name: string
+          pro_id: string
+          stall_type: string
+        }[]
+      }
       get_user_tier: {
         Args: { p_user_id: string }
         Returns: {
