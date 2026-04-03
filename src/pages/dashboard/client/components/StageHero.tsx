@@ -191,13 +191,18 @@ function buildStageConfig(
           icon: completionRequested
             ? <CheckCircle2 className="h-6 w-6 text-amber-600" />
             : <Sparkles className="h-6 w-6 text-primary" />,
-          primaryAction: {
-            label: completionRequested
-              ? t('stageHero.confirmComplete', 'Confirm Completion')
-              : t('stageHero.markComplete', 'Mark Complete'),
-            onClick: actions.onMarkComplete,
-            icon: <CheckCircle2 className="h-4 w-4" />,
-          },
+          primaryAction: completionRequested
+            ? {
+                label: t('stageHero.confirmComplete', 'Confirm Completion'),
+                onClick: actions.onMarkComplete,
+                icon: <CheckCircle2 className="h-4 w-4" />,
+              }
+            : {
+                label: t('stageHero.viewProgress', 'View Progress'),
+                onClick: actions.onScrollToUpdates,
+                icon: <Sparkles className="h-4 w-4" />,
+                variant: 'outline' as const,
+              },
         };
       }
       return {
