@@ -10,6 +10,8 @@ export interface RankedProfessional {
   match_score: number;
   coverage: number;
   ranking_labels: string[];
+  /** Whether the pro has at least one live listing for matched micros */
+  has_live_listing: boolean;
 }
 
 /**
@@ -31,7 +33,7 @@ export async function getRankedProfessionals(
   // Step 1: Get match scores from the view
   const { data: scores, error: scoresError } = await supabase
     .from('professional_matching_scores')
-    .select('user_id, micro_id, match_score, status, preference, verification_level')
+    .select('user_id, micro_id, match_score, status, preference, verification_level, has_live_listing')
     .in('micro_id', microIds)
     .neq('status', 'paused');
 
@@ -39,20 +41,22 @@ export async function getRankedProfessionals(
   if (!scores?.length) return [];
 
   // Step 2: Aggregate scores per user
-  const userScores = new Map<string, { totalScore: number; coveredMicros: Set<string> }>();
+  const userScores = new Map<string, { totalScore: number; coveredMicros: Set<string>; hasAnyLiveListing: boolean }>();
   
   for (const row of scores) {
     const userId = row.user_id as string;
     const score = Number(row.match_score ?? 0);
     const microId = row.micro_id as string;
+    const hasLive = row.has_live_listing as boolean;
 
     if (!userScores.has(userId)) {
-      userScores.set(userId, { totalScore: 0, coveredMicros: new Set() });
+      userScores.set(userId, { totalScore: 0, coveredMicros: new Set(), hasAnyLiveListing: false });
     }
     
     const entry = userScores.get(userId)!;
     entry.totalScore += score;
     entry.coveredMicros.add(microId);
+    if (hasLive) entry.hasAnyLiveListing = true;
   }
 
   // Step 3: Rank by coverage first, then score
@@ -61,6 +65,7 @@ export async function getRankedProfessionals(
       userId,
       score: data.totalScore,
       coverage: data.coveredMicros.size / microIds.length,
+      hasLiveListing: data.hasAnyLiveListing,
     }))
     .sort((a, b) => {
       if (b.coverage !== a.coverage) return b.coverage - a.coverage;
@@ -99,6 +104,7 @@ export async function getRankedProfessionals(
       match_score: r.score,
       coverage: r.coverage,
       ranking_labels: labelMap.get(r.userId) ?? [],
+      has_live_listing: r.hasLiveListing,
       _rankingScore: scoreMap.get(r.userId) ?? 0, // temporary for sorting
     }))
     .sort((a, b) => {

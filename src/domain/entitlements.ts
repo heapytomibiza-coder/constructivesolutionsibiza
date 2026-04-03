@@ -40,11 +40,19 @@ export interface TierEntitlements {
   featured_slots: boolean;
 }
 
+/** Internal ceiling representing "unlimited" — UI should display "Unlimited" */
+export const UNLIMITED_CEILING = 9999;
+
+/** Check if a numeric limit is effectively unlimited */
+export function isEffectivelyUnlimited(limit: number): boolean {
+  return limit >= UNLIMITED_CEILING;
+}
+
 export const FEATURE_MAP: Record<SubscriptionTier, TierEntitlements> = {
   bronze: {
     visibility_boost: 0,
     portfolio_limit: 5,
-    listing_limit: 3,
+    listing_limit: 15,
     quote_daily_limit: 5,
     insights: false,
     priority_matching: false,
@@ -54,7 +62,7 @@ export const FEATURE_MAP: Record<SubscriptionTier, TierEntitlements> = {
   silver: {
     visibility_boost: 0.05,
     portfolio_limit: 15,
-    listing_limit: 10,
+    listing_limit: 30,
     quote_daily_limit: 15,
     insights: true,
     priority_matching: false,
@@ -64,7 +72,7 @@ export const FEATURE_MAP: Record<SubscriptionTier, TierEntitlements> = {
   gold: {
     visibility_boost: 0.1,
     portfolio_limit: 50,
-    listing_limit: 25,
+    listing_limit: UNLIMITED_CEILING,
     quote_daily_limit: 30,
     insights: true,
     priority_matching: true,
@@ -74,7 +82,7 @@ export const FEATURE_MAP: Record<SubscriptionTier, TierEntitlements> = {
   elite: {
     visibility_boost: 0.2,
     portfolio_limit: 100,
-    listing_limit: 50,
+    listing_limit: UNLIMITED_CEILING,
     quote_daily_limit: 50,
     insights: true,
     priority_matching: true,

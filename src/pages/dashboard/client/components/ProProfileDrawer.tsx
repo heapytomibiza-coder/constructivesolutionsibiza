@@ -23,6 +23,7 @@ import {
   UserCheck,
   Briefcase,
   Clock,
+  Globe,
 } from 'lucide-react';
 
 interface ProProfileDrawerProps {
@@ -56,7 +57,7 @@ export default function ProProfileDrawer({
     enabled: !!proUserId && open,
   });
 
-  // Fetch their services
+  // Fetch their services (capability tags)
   const { data: services = [] } = useQuery({
     queryKey: ['pro_services_detail', proUserId],
     queryFn: async () => {
@@ -64,10 +65,26 @@ export default function ProProfileDrawer({
         .from('professional_services')
         .select(`
           id,
+          micro_id,
           service_micro_categories:micro_id (name, slug)
         `)
         .eq('user_id', proUserId!)
         .eq('status', 'offered');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!proUserId && open,
+  });
+
+  // Fetch their live service listings (public pages)
+  const { data: liveListings = [] } = useQuery({
+    queryKey: ['pro_live_listings', proUserId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('service_listings')
+        .select('id, micro_id, display_title')
+        .eq('provider_id', proUserId!)
+        .eq('status', 'live');
       if (error) throw error;
       return data || [];
     },
@@ -172,7 +189,7 @@ export default function ProProfileDrawer({
               </section>
             )}
 
-            {/* Services */}
+            {/* Services — live listings shown distinctly from tag-only capabilities */}
             {services.length > 0 && (
               <section>
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
@@ -181,11 +198,19 @@ export default function ProProfileDrawer({
                 <div className="flex flex-wrap gap-1.5">
                   {services.map((s) => {
                     const micro = s.service_micro_categories as { name: string; slug: string } | null;
-                    return micro ? (
+                    const microId = (s as any).micro_id as string;
+                    const hasLivePage = liveListings.some(ll => ll.micro_id === microId);
+                    if (!micro) return null;
+                    return hasLivePage ? (
+                      <Badge key={s.id} variant="default" className="text-xs gap-1">
+                        <Globe className="h-3 w-3" />
+                        {micro.name}
+                      </Badge>
+                    ) : (
                       <Badge key={s.id} variant="secondary" className="text-xs">
                         {micro.name}
                       </Badge>
-                    ) : null;
+                    );
                   })}
                 </div>
               </section>

@@ -712,7 +712,7 @@
       "silver": {
         "tag": "Verified Professional",
         "f1": "Everything in Bronze",
-        "f2": "10 live listings & 15 daily quotes",
+        "f2": "30 live listings & 15 daily quotes",
         "f3": "Expanded portfolio (15 projects)",
         "f4": "Reduced commission (12%)"
       },
@@ -720,13 +720,13 @@
         "tag": "Elite Reputation Status",
         "f1": "Everything in Silver",
         "f2": "Advanced market insights",
-        "f3": "25 live listings & 30 daily quotes",
+        "f3": "Unlimited live listings & 30 daily quotes",
         "f4": "Lowest earned commission (9%)"
       },
       "elite": {
         "tag": "Company & Teams",
         "f1": "Everything in Silver",
-        "f2": "50 live listings & 50 daily quotes",
+        "f2": "Unlimited live listings & 50 daily quotes",
         "f3": "100 portfolio projects",
         "f4": "Lowest commission (6%)"
       }

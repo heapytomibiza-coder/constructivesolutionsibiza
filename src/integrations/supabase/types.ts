@@ -1512,6 +1512,42 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_addons: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          extra_listings: number
+          id: string
+          purchased_at: string
+          status: string
+          stripe_payment_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          extra_listings?: number
+          id?: string
+          purchased_at?: string
+          status?: string
+          stripe_payment_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          extra_listings?: number
+          id?: string
+          purchased_at?: string
+          status?: string
+          stripe_payment_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string
@@ -3350,6 +3386,7 @@ export type Database = {
         Row: {
           avg_rating: number | null
           completed_jobs_count: number | null
+          has_live_listing: boolean | null
           match_score: number | null
           micro_id: string | null
           notify: boolean | null
