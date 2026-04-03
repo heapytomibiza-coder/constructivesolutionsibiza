@@ -30,6 +30,34 @@ export async function submitReview({
     return { success: false, error: 'Not authenticated' };
   }
 
+  // Defense-in-depth: verify job is completed and reviewer is a valid party
+  const { data: job, error: jobError } = await supabase
+    .from('jobs')
+    .select('status, user_id, assigned_professional_id')
+    .eq('id', jobId)
+    .single();
+
+  if (jobError || !job) {
+    return { success: false, error: 'Job not found' };
+  }
+
+  if (job.status !== 'completed') {
+    return { success: false, error: 'Reviews can only be submitted for completed jobs' };
+  }
+
+  const isClient = job.user_id === user.id;
+  const isPro = job.assigned_professional_id === user.id;
+  if (!isClient && !isPro) {
+    return { success: false, error: 'Not authorized to review this job' };
+  }
+
+  if (isClient && reviewerRole !== 'client') {
+    return { success: false, error: 'Role mismatch' };
+  }
+  if (isPro && reviewerRole !== 'professional') {
+    return { success: false, error: 'Role mismatch' };
+  }
+
   // Determine visibility based on reviewer role
   const visibility = reviewerRole === 'client' ? 'public' : 'private';
   const revieweeRole = reviewerRole === 'client' ? 'professional' : 'client';
