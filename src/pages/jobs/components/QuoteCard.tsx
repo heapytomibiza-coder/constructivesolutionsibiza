@@ -43,6 +43,7 @@ export function QuoteCard({ quote, role, onRevise, clientId, onAccepted }: Quote
   const { t, i18n } = useTranslation("jobs");
   const queryClient = useQueryClient();
   const [acting, setActing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const isEs = i18n.language?.startsWith("es");
   const dateLocale = isEs ? { locale: es } : undefined;
 
