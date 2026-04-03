@@ -208,8 +208,13 @@ export default function ServiceListingEditor() {
 
       toast.success(t('listingEditor.listingPublished', 'Listing published'));
       navigate('/professional/listings');
-    } catch (err) {
-      toast.error(t('listingEditor.publishFailed', 'Failed to publish listing'));
+    } catch (err: any) {
+      const msg = err?.message || err?.toString() || '';
+      if (msg.includes('LISTING_LIMIT_REACHED')) {
+        toast.error(t('listingEditor.listingLimitReached', 'You've reached your live listing limit. Upgrade your plan to publish more listings.'));
+      } else {
+        toast.error(t('listingEditor.publishFailed', 'Failed to publish listing'));
+      }
     } finally {
       setIsPublishing(false);
     }
