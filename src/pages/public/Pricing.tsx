@@ -13,7 +13,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  TIER_PRICES, COMMISSION_RATES, TIER_META, STRIPE_CHECKOUT_LIVE,
+  TIER_PRICES, COMMISSION_RATES_DISPLAY, TIER_META, STRIPE_CHECKOUT_LIVE,
   type SubscriptionTier,
 } from '@/domain/entitlements';
 
