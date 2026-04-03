@@ -155,9 +155,11 @@ export function PortfolioPrompt({ jobId, jobStatus, isClient, jobTitle }: Portfo
                 {t('portfolio.promptTitle', 'Add this to your portfolio?')}
               </p>
               <p className="text-xs text-muted-foreground">
-                {t('portfolio.promptDesc', 'Showcase this completed project on your profile to attract new clients.')}
+                {isAtPortfolioLimit
+                  ? t('portfolio.limitReached', 'You have reached your portfolio limit. Upgrade your plan to add more projects.')
+                  : t('portfolio.promptDesc', 'Showcase this completed project on your profile to attract new clients.')}
               </p>
-              <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5">
+              <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5" disabled={isAtPortfolioLimit}>
                 <Briefcase className="h-3.5 w-3.5" />
                 {t('portfolio.addToPortfolio', 'Add to Portfolio')}
               </Button>
