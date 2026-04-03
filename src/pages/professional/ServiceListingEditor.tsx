@@ -165,12 +165,7 @@ export default function ServiceListingEditor() {
       listingLimit,
     });
     if (!canPublish) {
-      const requiredIssues = issues.filter(i => i.severity === 'required');
-      if (requiredIssues.some(i => i.field === 'listing_limit')) {
-        toast.error(t('listingEditor.listingLimitReached', 'You have reached your live listing limit. Upgrade your plan to publish more listings.'));
-      } else {
-        toast.error(requiredIssues.map(i => t(i.messageKey, i.field)).join('. '));
-      }
+      toast.error(resolveRequiredIssuesMessage(issues, t));
       return;
     }
 
