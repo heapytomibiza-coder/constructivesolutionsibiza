@@ -165,7 +165,11 @@ export default function ServiceListingEditor() {
     });
     if (!canPublish) {
       const requiredIssues = issues.filter(i => i.severity === 'required');
-      toast.error(requiredIssues.map(i => t(i.messageKey, i.field)).join('. '));
+      if (requiredIssues.some(i => i.field === 'listing_limit')) {
+        toast.error(t('listingEditor.listingLimitReached', 'You have reached your live listing limit. Upgrade your plan to publish more listings.'));
+      } else {
+        toast.error(requiredIssues.map(i => t(i.messageKey, i.field)).join('. '));
+      }
       return;
     }
 
