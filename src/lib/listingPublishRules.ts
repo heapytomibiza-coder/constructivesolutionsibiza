@@ -81,6 +81,19 @@ export function evaluateListingReadiness(input: ListingPublishInput): PublishRea
     });
   }
 
+  // Listing limit check — only evaluated when both values are provided
+  if (
+    typeof input.currentLiveCount === 'number' &&
+    typeof input.listingLimit === 'number' &&
+    input.currentLiveCount >= input.listingLimit
+  ) {
+    issues.push({
+      field: 'listing_limit',
+      severity: 'required',
+      messageKey: 'publish.listingLimitReached',
+    });
+  }
+
   const canPublish = issues.every(i => i.severity !== 'required');
 
   return { canPublish, issues };
