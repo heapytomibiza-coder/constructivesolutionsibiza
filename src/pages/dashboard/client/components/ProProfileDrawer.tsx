@@ -82,7 +82,7 @@ export default function ProProfileDrawer({
     queryFn: async () => {
       const { data, error } = await supabase
         .from('service_listings')
-        .select('id, micro_id, display_title, slug')
+        .select('id, micro_id, display_title')
         .eq('provider_id', proUserId!)
         .eq('status', 'live');
       if (error) throw error;
