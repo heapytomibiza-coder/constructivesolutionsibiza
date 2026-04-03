@@ -151,11 +151,17 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
   const handleClose = async () => {
     setIsClosing(true);
     try {
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from('jobs')
         .update({ status: 'cancelled' })
-        .eq('id', job.id);
+        .eq('id', job.id)
+        .in('status', ['draft', 'open'])
+        .select('id');
       if (error) throw error;
+      if (!updated || updated.length === 0) {
+        toast.error(t('client.closeNotAllowed', 'This job can no longer be closed directly. Use the cancellation request flow instead.'));
+        return;
+      }
       toast.success(t('client.jobClosed'));
       onJobUpdated();
     } catch {
