@@ -29,6 +29,7 @@ import { useNavigate } from "react-router-dom";
 import { useOnboardingHealth } from "../hooks/useOnboardingHealth";
 import { MapPin, Phone, ShieldCheck } from "lucide-react";
 import { QuoteFunnelCard } from "../components/QuoteFunnelCard";
+import { StalledJourneysCard } from "../components/StalledJourneysCard";
 
 function playNotifySound() {
   try {
