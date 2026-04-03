@@ -1,56 +1,62 @@
 
-# Next Hardening Pass
+# Current Hardening State
 
-Three targeted changes in priority order. No ranking/matching changes. No billing changes.
-
----
-
-## 1. Strip Unenforced Premium Claims from Pricing UI
-
-**Problem:** `visibility_boost`, `priority_matching`, and `featured_slots` appear in the entitlement contract but are not consumed by any ranking, matching, or UI logic. If these are shown on a pricing page, they are false promises.
-
-**Action:**
-- Audit the pricing/plan comparison UI for references to these three features
-- Remove or hide them from customer-facing plan presentation
-- Keep them in `entitlements.ts` as future placeholders (with a clear `@planned` comment)
-- No SQL changes
-
-**Files to check:** pricing page components, any tier comparison table
+Completed. No active tasks.
 
 ---
 
-## 2. Enforce `portfolio_limit` at Creation Time
+## What Was Done
 
-**Problem:** `portfolio_limit` is defined per tier (bronze=5, silver=15, gold=50, elite=100) but not enforced anywhere.
-
-**Action:**
-- Add a DB trigger on `portfolio_projects` that checks count against tier limit on INSERT (same pattern as listing limit trigger)
-- Default to bronze (5) when no subscription row exists
-- Add client-side pre-check in the portfolio creation flow (same pattern as listing limit pre-check)
-- Surface a clear error message when limit is reached
-
-**Files involved:**
-- New migration (portfolio limit trigger)
-- Portfolio creation component (client-side guard)
-- `src/lib/` or existing portfolio hook (pre-check logic)
+1. **Stripped unenforced premium claims** from pricing UI (`visibility_boost`, `priority_matching`, `featured_slots`)
+2. **Enforced `portfolio_limit`** via DB trigger using same pattern as listing limit
+3. **Consolidated tier-limit logic** into `get_tier_limit(user_id, feature)` — single SQL source of truth
+4. **Hardened listing-limit toast copy** — centralized in `publishIssueMessages.ts`
+5. **Full journey audit** completed and delivered
 
 ---
 
-## 3. Harden Listing-Limit Toast Copy
+## Current Source of Truth
 
-Two small refinements to the previous listing-limit work:
+| Layer | File | Role |
+|-------|------|------|
+| SQL (authoritative) | `get_tier_limit(user_id, feature)` | Enforcement for listing, portfolio, quote limits |
+| Code (advisory) | `src/domain/entitlements.ts` | UX guidance, feature gates, display values |
+| DB table | `subscriptions` | Authoritative tier, status, commission_rate |
 
-**3a. Centralize issue message resolution**
-- Move the special-case `listing_limit` message out of the inline toast path in `ServiceListingEditor.tsx`
-- Add a small presenter helper or extend `listingPublishRules.ts` with a `resolveIssueMessage(issue, t)` function so the editor just renders resolved text
-
-**3b. Document advisory nature of pre-check**
-- Add a code comment in the live-count query making explicit that if the query fails (returns 0), the server trigger remains authoritative — this is intentional, not a bug
+**Drift risk:** SQL and `entitlements.ts` both define limit values. SQL wins. Both must be updated on plan changes.
 
 ---
 
-## Not Touched
+## Recommended Next Hardening (Not Started)
+
+### 1. Server-Derived Entitlements Payload
+
+Feed client-side advisory UI from backend-defined limits so SQL and code share a single source.
+- Add an RPC like `get_my_entitlements()` that returns limits + features for the current user
+- `useEntitlements()` reads from this instead of hardcoded `FEATURE_MAP`
+- Eliminates dual-definition drift entirely
+
+### 2. Verify Quote RPC Uses `get_tier_limit()`
+
+Audit `submit_quote_with_items` to confirm it uses `get_tier_limit()` rather than a hardcoded daily cap.
+
+### 3. Tier-Based RLS on `demand_snapshots`
+
+Currently insights gate is client-side only. Add RLS that joins subscriptions to check tier.
+
+### 4. Gold Tier Award Mechanism
+
+No mechanism to grant gold tier. Needs admin RPC + UI.
+
+### 5. Subscription Management Page
+
+No self-service cancel/manage UI exists. Needs Stripe Customer Portal integration.
+
+---
+
+## Not Touched (By Design)
+
 - Ranking engine (merit-based, stays tier-blind)
-- Matching view (stays tier-blind)
+- Matching logic (stays tier-blind)
 - Visibility boost implementation (deferred until product decision)
-- Billing / checkout
+- Billing / Stripe checkout (gated by `STRIPE_CHECKOUT_LIVE`)
