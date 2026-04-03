@@ -2,7 +2,7 @@
  * JobTicketCompletion — Completion flow with request/confirm pattern.
  * Professional: subtle inline prompt under progress updates.
  * Client: "Confirm Completion" card when completion is requested,
- *         or "Mark as Complete" option otherwise.
+ *         or passive waiting hint otherwise.
  * Sets a sessionStorage flag on completion so JobTicketReview can auto-open the rating modal.
  */
 
@@ -12,6 +12,17 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { CheckCircle2, Loader2, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
@@ -48,8 +59,6 @@ export function JobTicketCompletion({
   if (jobStatus !== 'in_progress') return null;
 
   const handleRequestCompletion = async () => {
-    if (!confirm(t('jobTicket.requestCompleteConfirm', 'Request the client to confirm this job is complete?'))) return;
-
     setIsSubmitting(true);
     try {
       const { error } = await supabase.rpc('request_job_completion', { p_job_id: jobId });
@@ -69,8 +78,6 @@ export function JobTicketCompletion({
   };
 
   const handleConfirmCompletion = async () => {
-    if (!confirm(t('jobTicket.completeConfirm', 'Mark this job as completed? This confirms the work is done.'))) return;
-
     setIsSubmitting(true);
     try {
       const { error } = await supabase.rpc('complete_job', { p_job_id: jobId });
@@ -119,20 +126,39 @@ export function JobTicketCompletion({
               {t('jobTicket.letClientKnow', 'Let the client know it\'s ready for review.')}
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 shrink-0"
-            onClick={handleRequestCompletion}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <CheckCircle2 className="h-3.5 w-3.5" />
-            )}
-            {t('jobTicket.requestComplete', 'Request completion')}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 shrink-0"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                )}
+                {t('jobTicket.requestComplete', 'Request completion')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {t('jobTicket.requestCompleteTitle', 'Request completion?')}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('jobTicket.requestCompleteConfirm', 'This will notify the client that the work is finished and ask them to confirm.')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRequestCompletion}>
+                  {t('jobTicket.requestComplete', 'Request completion')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     );
@@ -191,19 +217,38 @@ export function JobTicketCompletion({
             >
               {t('jobTicket.referToAgreement', 'Refer back to the original agreement if needed')}
             </button>
-            <Button
-              size="sm"
-              className="gap-1.5 mt-1"
-              onClick={handleConfirmCompletion}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-3.5 w-3.5" />
-              )}
-              {t('jobTicket.confirmComplete', 'Confirm Completion')}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="sm"
+                  className="gap-1.5 mt-1"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  )}
+                  {t('jobTicket.confirmComplete', 'Confirm Completion')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {t('jobTicket.completeTitle', 'Mark job as completed?')}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t('jobTicket.completeConfirm', 'This confirms the work is done. You will be asked to leave a review next.')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleConfirmCompletion}>
+                    {t('jobTicket.confirmComplete', 'Confirm Completion')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </CardContent>
