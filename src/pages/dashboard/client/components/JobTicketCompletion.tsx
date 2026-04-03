@@ -36,6 +36,7 @@ interface JobTicketCompletionProps {
   completionRequested: boolean;
   assignedProfessionalId?: string | null;
   clientId?: string;
+  viewerId?: string;
 }
 
 const RPC_REQUEST_ERROR_MAP: Record<string, string> = {
@@ -53,6 +54,7 @@ export function JobTicketCompletion({
   completionRequested,
   assignedProfessionalId,
   clientId,
+  viewerId,
 }: JobTicketCompletionProps) {
   const { t } = useTranslation('dashboard');
   const queryClient = useQueryClient();
@@ -84,7 +86,7 @@ export function JobTicketCompletion({
     try {
       const result = await completeJob(jobId, {
         caller: 'completion_card',
-        userId: undefined, // not available here, action logs it server-side
+        userId: viewerId,
         jobOwnerId: clientId,
         assignedProId: assignedProfessionalId ?? undefined,
         jobStatus: jobStatus,

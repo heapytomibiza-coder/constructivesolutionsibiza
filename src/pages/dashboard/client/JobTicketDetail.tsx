@@ -441,6 +441,7 @@ export default function JobTicketDetail() {
                     completionRequested={completionRequested}
                     assignedProfessionalId={job.assigned_professional_id}
                     clientId={job.user_id}
+                    viewerId={user?.id}
                   />
                 )}
               </div>
@@ -456,6 +457,7 @@ export default function JobTicketDetail() {
                   completionRequested={completionRequested}
                   assignedProfessionalId={job.assigned_professional_id}
                   clientId={job.user_id}
+                  viewerId={user?.id}
                 />
               </div>
             )}
