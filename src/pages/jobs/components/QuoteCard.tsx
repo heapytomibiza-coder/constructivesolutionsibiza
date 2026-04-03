@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AcceptConfirmationModal } from "@/components/quotes/AcceptConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
