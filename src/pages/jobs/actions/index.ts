@@ -6,7 +6,7 @@
 export * from "./messageJob.action";
 export * from "./completeJob.action";
 export * from "./submitReview.action";
-export * from "./assignProfessional.action";
+// assignProfessional.action is deprecated — use acceptQuote.action instead
 export * from "./awardProStats.action";
 export * from "./submitQuote.action";
 export * from "./reviseQuote.action";
