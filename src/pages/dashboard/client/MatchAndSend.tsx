@@ -11,8 +11,8 @@ import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
 import { useState } from 'react';
+import { CheckCircle } from 'lucide-react';
 import {
   ArrowLeft,
   Loader2,
