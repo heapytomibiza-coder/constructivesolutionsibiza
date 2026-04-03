@@ -19,7 +19,7 @@ function useQuoteFunnelMetrics() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_quote_funnel_metrics");
       if (error) throw error;
-      return data as FunnelMetrics;
+      return data as unknown as FunnelMetrics;
     },
     staleTime: 5 * 60 * 1000,
   });
