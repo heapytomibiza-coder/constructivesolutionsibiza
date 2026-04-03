@@ -46,7 +46,7 @@ import { CancellationRequestCard } from './components/CancellationRequestCard';
 import { BudgetIncreaseCard } from './components/BudgetIncreaseCard';
 import { ProjectGallery } from './components/ProjectGallery';
 import { PortfolioPrompt } from './components/PortfolioPrompt';
-import { useMyQuoteForJob, useQuotesForJob } from '@/pages/jobs/queries/quotes.query';
+import { useMyQuoteForJob, useAcceptedQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
