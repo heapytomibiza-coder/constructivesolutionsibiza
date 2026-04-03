@@ -254,6 +254,7 @@ export function OperatorCockpit() {
 
       {/* ── Quote Journey ── */}
       <QuoteFunnelCard />
+      <StalledJourneysCard />
 
       {/* ── Quick Stats ── */}
       <section className="space-y-3">
