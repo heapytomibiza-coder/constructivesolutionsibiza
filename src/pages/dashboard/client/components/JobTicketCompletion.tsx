@@ -38,13 +38,12 @@ interface JobTicketCompletionProps {
   clientId?: string;
 }
 
-const RPC_ERROR_MAP: Record<string, string> = {
+const RPC_REQUEST_ERROR_MAP: Record<string, string> = {
   job_not_found: 'Job not found',
   not_authorized: 'Not authorized',
   job_not_in_progress: 'Job must be in progress to complete',
   no_professional_assigned: 'Assign a professional before completing',
   already_requested: 'Completion already requested',
-  completion_not_requested: 'The professional must request completion first',
 };
 
 export function JobTicketCompletion({
@@ -52,6 +51,8 @@ export function JobTicketCompletion({
   jobStatus,
   isClient,
   completionRequested,
+  assignedProfessionalId,
+  clientId,
 }: JobTicketCompletionProps) {
   const { t } = useTranslation('dashboard');
   const queryClient = useQueryClient();
@@ -64,7 +65,7 @@ export function JobTicketCompletion({
     try {
       const { error } = await supabase.rpc('request_job_completion', { p_job_id: jobId });
       if (error) {
-        const friendlyMsg = RPC_ERROR_MAP[error.message] ?? error.message;
+        const friendlyMsg = RPC_REQUEST_ERROR_MAP[error.message] ?? error.message;
         toast.error(friendlyMsg);
         return;
       }
@@ -81,10 +82,16 @@ export function JobTicketCompletion({
   const handleConfirmCompletion = async () => {
     setIsSubmitting(true);
     try {
-      const result = await completeJob(jobId);
+      const result = await completeJob(jobId, {
+        caller: 'completion_card',
+        userId: undefined, // not available here, action logs it server-side
+        jobOwnerId: clientId,
+        assignedProId: assignedProfessionalId ?? undefined,
+        jobStatus: jobStatus,
+        completionRequestedAt: completionRequested ? 'yes' : null,
+      });
       if (!result.success) {
-        const friendlyMsg = result.error ? (RPC_ERROR_MAP[result.error] ?? result.error) : 'Failed to complete job';
-        toast.error(t('client.completeFailed', friendlyMsg));
+        toast.error(result.error ?? t('client.completeFailed', 'Failed to complete job'));
         return;
       }
       toast.success(t('client.completedSuccess', 'Job marked as completed!'));
