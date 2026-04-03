@@ -38,7 +38,10 @@ export default function ServiceListingEditor() {
   const { limit: getLimit } = useEntitlements();
   const listingLimit = getLimit('listing_limit');
 
-  // Count current live listings for this provider (excludes current listing if already live)
+  // Advisory pre-check: count live listings for this provider.
+  // If this query fails (returns 0), the publish attempt proceeds and the
+  // DB trigger (validate_service_listing_live) remains the authoritative gate.
+  // This is intentional — the server is the source of truth.
   const { data: liveCount = 0 } = useQuery({
     queryKey: ['live-listing-count', user?.id],
     queryFn: async () => {
