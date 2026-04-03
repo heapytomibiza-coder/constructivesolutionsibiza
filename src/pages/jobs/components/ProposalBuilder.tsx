@@ -4,7 +4,7 @@
  * Revision-aware: prefills from existing quote when revising.
  */
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Send, Plus, Trash2, GripVertical, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { trackEvent } from "@/lib/trackEvent";
+import { submitQuote } from "../actions/submitQuote.action";
 import { quoteKeys } from "../queries/quotes.query";
 import type { Quote } from "../types";
 
