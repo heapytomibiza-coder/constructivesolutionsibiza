@@ -12,7 +12,10 @@ const RPC_ERROR_MAP: Record<string, string> = {
 };
 
 function friendlyError(raw: string): string {
-  return RPC_ERROR_MAP[raw] ?? raw;
+  for (const [key, msg] of Object.entries(RPC_ERROR_MAP)) {
+    if (raw.includes(key)) return msg;
+  }
+  return raw;
 }
 
 /**
