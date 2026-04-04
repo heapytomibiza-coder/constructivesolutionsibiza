@@ -190,10 +190,12 @@ export function classifyIntent(query: string): SearchIntent {
     return "TRADE";
   }
 
-  // 3. Project detection — exact terms, includes(), or prefix+object pattern
+  // 3. Project detection — exact terms, word-boundary phrase match, or prefix+object pattern
   if (PROJECT_TERMS.has(normalized)) return "PROJECT";
   for (const term of PROJECT_TERMS) {
-    if (normalized.includes(term)) return "PROJECT";
+    // Use word-boundary regex instead of broad includes()
+    const re = new RegExp(`\\b${term.replace(/\s+/g, "\\s+")}\\b`);
+    if (re.test(normalized)) return "PROJECT";
   }
   if (matchesProjectPattern(words)) return "PROJECT";
 
