@@ -262,9 +262,9 @@ const App = () => {
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
 
               {/* Disputes */}
-              <Route path="/disputes/raise" element={<RolloutGate min="escrow-beta"><RaiseDispute /></RolloutGate>} />
-              <Route path="/disputes/:disputeId" element={<RolloutGate min="escrow-beta"><DisputeDetail /></RolloutGate>} />
-              <Route path="/disputes/:disputeId/respond" element={<RolloutGate min="escrow-beta"><DisputeResponse /></RolloutGate>} />
+              <Route path="/disputes/raise" element={<RolloutGate min="escrow-beta" fallbackTitle="Issue Resolution Coming Soon" fallbackMessage="This protection flow is not live yet. For now, please contact support or message the other party from your Job Ticket." ><RaiseDispute /></RolloutGate>} />
+              <Route path="/disputes/:disputeId" element={<RolloutGate min="escrow-beta" fallbackTitle="Issue Resolution Coming Soon" fallbackMessage="The dispute detail view is not yet available. Please contact support for assistance." ><DisputeDetail /></RolloutGate>} />
+              <Route path="/disputes/:disputeId/respond" element={<RolloutGate min="escrow-beta" fallbackTitle="Issue Resolution Coming Soon" fallbackMessage="The dispute response flow is not yet available. Please contact support for assistance." ><DisputeResponse /></RolloutGate>} />
 
               {/* Admin Dashboard */}
               <Route path="/dashboard/admin" element={<AdminRouteLayout />}>
