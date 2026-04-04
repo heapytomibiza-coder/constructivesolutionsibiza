@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useSession } from '@/contexts/SessionContext';
-import { CheckCircle2, ArrowRight, ArrowLeft, User, MapPin, Briefcase, Rocket } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ArrowLeft, User, Briefcase, Rocket } from 'lucide-react';
 import { PLATFORM } from '@/domain/scope';
 import { trackEvent } from '@/lib/trackEvent';
-import { BasicInfoStep, ServiceAreaStep, ServiceUnlockStep, ReviewStep } from './steps';
+import { BasicInfoStep, ServiceUnlockStep, ReviewStep } from './steps';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
-type WizardStep = 'tracker' | 'basic_info' | 'service_area' | 'services' | 'review';
+type WizardStep = 'tracker' | 'basic_info' | 'services' | 'review';
 
 interface StepConfig {
   id: string;
@@ -22,7 +22,6 @@ interface StepConfig {
 
 const STEPS: StepConfig[] = [
   { id: 'basic_info', labelKey: 'wizard.stepLabels.basic_info', icon: User },
-  { id: 'service_area', labelKey: 'wizard.stepLabels.service_area', icon: MapPin },
   { id: 'services', labelKey: 'wizard.stepLabels.services', icon: Briefcase },
   { id: 'review', labelKey: 'wizard.stepLabels.review', icon: Rocket },
 ];
@@ -30,7 +29,7 @@ const STEPS: StepConfig[] = [
 /**
  * PROFESSIONAL ONBOARDING WIZARD
  * 
- * Simple linear 4-step flow for first-time onboarding.
+ * 3-step activation flow: Get Set Up → Choose Your Jobs → Go Live
  * Edit mode shows a tracker overview for jumping between steps.
  */
 const ProfessionalOnboarding = () => {
@@ -39,15 +38,17 @@ const ProfessionalOnboarding = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const editMode = params.get('edit') === '1';
-  const stepParam = params.get('step') as WizardStep | null;
+  const rawStepParam = params.get('step');
+  // Deep-link fallback: service_area → basic_info (zones merged into step 1)
+  const stepParam = (rawStepParam === 'service_area' ? 'basic_info' : rawStepParam) as WizardStep | null;
 
   const { user, professionalProfile, isLoading } = useSession();
   const phase = professionalProfile?.onboardingPhase || 'not_started';
 
-  // Determine the starting step based on phase
+  // Phase-to-step mapping (service_area phase means zones done → go to services)
   const phaseToStep: Record<string, WizardStep> = {
     not_started: 'basic_info',
-    basic_info: 'service_area',
+    basic_info: 'basic_info',
     service_area: 'services',
     services: 'review',
     service_setup: 'review',
@@ -63,15 +64,15 @@ const ProfessionalOnboarding = () => {
   const userNavigatedRef = useRef(false);
   const lastPhaseRef = useRef<string | null>(null);
 
-  // Track which step the user came from for return-navigation (useRef, not module-level)
+  // Track which step the user came from for return-navigation
   const navigatedFromStepRef = useRef<WizardStep | null>(null);
 
   // Current step index (0-based) for progress display
   const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
-  const progress = currentStepIndex >= 0 ? ((currentStepIndex + 1) / STEPS.length) * 100 : 25;
+  const progress = currentStepIndex >= 0 ? ((currentStepIndex + 1) / STEPS.length) * 100 : 33;
 
-  // Fresh DB checks for accurate stepper ticks (not index-based)
-  const [stepCompletion, setStepCompletion] = useState([false, false, false, false]);
+  // Fresh DB checks for accurate stepper ticks
+  const [stepCompletion, setStepCompletion] = useState([false, false, false]);
 
   useEffect(() => {
     if (!user?.id || isLoading) return;
@@ -95,7 +96,7 @@ const ProfessionalOnboarding = () => {
       const hasPhone = !!profRes.data?.phone?.trim();
       const hasZones = (pp?.service_zones?.length ?? 0) > 0;
       const hasServices = (svcRes.count ?? 0) > 0;
-      setStepCompletion([hasName && hasPhone, hasZones, hasServices, false]);
+      setStepCompletion([hasName && hasPhone && hasZones, hasServices, false]);
     })();
     return () => { cancelled = true; };
   }, [user?.id, isLoading, currentStep]);
@@ -108,12 +109,11 @@ const ProfessionalOnboarding = () => {
   }, [isLoading, user, navigate]);
 
   // Set correct step once profile has loaded, but do not override explicit manual navigation.
-  // Also handles forward-only phase advancement in a single consolidated effect.
   useEffect(() => {
     if (isLoading || editMode) return;
     if (userNavigatedRef.current) return;
     const nextStep = phaseToStep[phase] ?? 'basic_info';
-    const stepOrder: WizardStep[] = ['basic_info', 'service_area', 'services', 'review'];
+    const stepOrder: WizardStep[] = ['basic_info', 'services', 'review'];
     const currentIdx = stepOrder.indexOf(currentStep);
     const nextIdx = stepOrder.indexOf(nextStep);
     // Only advance forward — never regress
@@ -133,8 +133,8 @@ const ProfessionalOnboarding = () => {
   useEffect(() => {
     if (!stepParam) return;
     const allowed: WizardStep[] = editMode
-      ? ['tracker', 'basic_info', 'service_area', 'services', 'review']
-      : ['basic_info', 'service_area', 'services', 'review'];
+      ? ['tracker', 'basic_info', 'services', 'review']
+      : ['basic_info', 'services', 'review'];
     if (allowed.includes(stepParam)) {
       userNavigatedRef.current = true;
       setCurrentStep(stepParam);
@@ -157,20 +157,11 @@ const ProfessionalOnboarding = () => {
     lastPhaseRef.current = phase;
   }, [phase]);
 
-  // Step completion handlers - always advance to next step
+  // Step completion handlers
   const handleBasicInfoComplete = () => {
     trackEvent('pro_onboarding_started', 'professional', { step: 'basic_info' });
     userNavigatedRef.current = false;
     if (editMode) { setCurrentStep('tracker'); return; }
-    setCurrentStep('service_area');
-  };
-
-  const handleServiceAreaComplete = () => {
-    trackEvent('pro_onboarding_step_completed', 'professional', { step: 'service_area' });
-    userNavigatedRef.current = false;
-    if (editMode) { setCurrentStep('tracker'); return; }
-    // If user came from review (fixing zones), go back to review
-    if (navigatedFromStepRef.current === 'review') { navigatedFromStepRef.current = null; setCurrentStep('review'); return; }
     setCurrentStep('services');
   };
 
@@ -298,20 +289,12 @@ const ProfessionalOnboarding = () => {
             />
           ) : currentStep === 'basic_info' ? (
             <BasicInfoStep onComplete={handleBasicInfoComplete} />
-          ) : currentStep === 'service_area' ? (
-            <ServiceAreaStep
-              onComplete={handleServiceAreaComplete}
-              onBack={() => {
-                userNavigatedRef.current = true;
-                editMode ? setCurrentStep('tracker') : setCurrentStep('basic_info');
-              }}
-            />
           ) : currentStep === 'services' ? (
             <ServiceUnlockStep
               onComplete={handleServicesComplete}
               onBack={() => {
                 userNavigatedRef.current = true;
-                editMode ? setCurrentStep('tracker') : setCurrentStep('service_area');
+                editMode ? setCurrentStep('tracker') : setCurrentStep('basic_info');
               }}
               editMode={editMode}
             />
@@ -347,11 +330,11 @@ interface TrackerViewProps {
 
 function TrackerView({ steps, phase, editMode, onStepClick }: TrackerViewProps) {
   const { t } = useTranslation('onboarding');
-  const stepOrder = ['basic_info', 'service_area', 'services', 'review'] as const;
+  const stepOrder = ['basic_info', 'services', 'review'] as const;
   
   const phaseToCurrentStep: Record<string, string | 'done'> = {
     not_started: 'basic_info',
-    basic_info: 'service_area',
+    basic_info: 'basic_info',
     service_area: 'services',
     services: 'review',
     service_setup: 'review',
