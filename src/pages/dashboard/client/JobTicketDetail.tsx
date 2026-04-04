@@ -658,7 +658,7 @@ export default function JobTicketDetail() {
                     </Button>
                   )}
                   {/* Pro: Withdraw */}
-                  {!isClient && ['open', 'assigned'].includes(job.status) && job.assigned_professional_id === user?.id && (
+                  {!isClient && canWithdrawQuote(job.status) && job.assigned_professional_id === user?.id && (
                     <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleWithdraw}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.withdraw', 'Withdraw')}
@@ -693,11 +693,20 @@ export default function JobTicketDetail() {
                       {t('jobTicket.requestCancellation', 'Cancel Job')}
                     </Button>
                   )}
-                  {/* Client: Close/Cancel */}
-                  {isClient && !['completed', 'cancelled'].includes(job.status) && (
+                  {/* Client: Close/Cancel (draft/ready/open only) */}
+                  {canCancelJob(job.status, isClient) && (
                     <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleClose}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.cancelJob', 'Cancel Job')}
+                    </Button>
+                  )}
+                  {/* Client: In-progress cancel guidance */}
+                  {isClient && job.status === 'in_progress' && (
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground text-xs" asChild>
+                      <Link to={`/disputes/raise?job=${jobId}`}>
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {t('jobTicket.needToCancel', 'Need to cancel? Raise an issue')}
+                      </Link>
                     </Button>
                   )}
                 </div>
