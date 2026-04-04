@@ -79,7 +79,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
       setRetryCount(prev => prev + 1);
       setTimedOut(false);
       refresh().catch(() => {});
-      return <LoadingSpinner />;
+      return <LoadingSpinner showRetry onRetry={() => { refresh().catch(() => {}); }} />;
     }
 
     // All retries exhausted — only redirect to auth if there's no persisted session
