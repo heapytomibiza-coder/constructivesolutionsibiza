@@ -113,10 +113,10 @@ export default function JobTicketDetail() {
     enabled: !!jobId && !!user,
   });
 
-  // Accepted quote with line items for AgreementCard (client only, narrower than useQuotesForJob)
-  const hasAcceptedQuoteInList = isClient && quotesForJob.some(q => q.status === 'accepted');
+  // Accepted quote with line items for AgreementCard (both roles)
+  const hasAcceptedQuoteInList = quotesForJob.some(q => q.status === 'accepted');
   const { data: acceptedQuote = null } = useAcceptedQuoteForJob(
-    isClient ? (jobId ?? null) : null,
+    jobId ?? null,
     hasAcceptedQuoteInList,
   );
 
