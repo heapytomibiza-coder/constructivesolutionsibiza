@@ -3,16 +3,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
-import { Loader2, User, Phone, FileText, ArrowRight } from 'lucide-react';
+import { Loader2, User, Phone, ArrowRight, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
 import { useTranslation } from 'react-i18next';
+import {
+  ZoneTile,
+  IslandWideTile,
+  IBIZA_ZONES,
+  allZoneIds,
+} from '@/shared/components/professional';
 
 interface BasicInfoStepProps {
   onComplete: () => void;
@@ -21,9 +26,6 @@ interface BasicInfoStepProps {
 interface BasicInfoData {
   display_name: string;
   phone: string;
-  bio: string;
-  business_name: string;
-  tagline: string;
 }
 
 export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
@@ -35,10 +37,11 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
   const [formData, setFormData] = useState<BasicInfoData>({
     display_name: '',
     phone: '',
-    bio: '',
-    business_name: '',
-    tagline: '',
   });
+
+  // Zone state
+  const [selectedZones, setSelectedZones] = useState<string[]>([]);
+  const [islandWide, setIslandWide] = useState(false);
 
   // Load existing data
   const { data: existingData, isLoading } = useQuery({
@@ -53,28 +56,38 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
 
       const { data: proProfile } = await supabase
         .from('professional_profiles')
-        .select('display_name, bio, business_name, tagline')
+        .select('display_name, service_zones')
         .eq('user_id', user!.id)
         .maybeSingle();
 
       return {
         display_name: proProfile?.display_name || profile?.display_name || '',
         phone: profile?.phone || '',
-        bio: proProfile?.bio || '',
-        business_name: (proProfile as { business_name?: string })?.business_name || '',
-        tagline: (proProfile as { tagline?: string })?.tagline || '',
+        service_zones: (proProfile as { service_zones?: string[] })?.service_zones || [],
       };
     },
   });
 
   useEffect(() => {
     if (existingData) {
-      setFormData(existingData);
+      setFormData({
+        display_name: existingData.display_name,
+        phone: existingData.phone,
+      });
+      // Hydrate zones
+      const zones = existingData.service_zones || [];
+      const allIds = allZoneIds();
+      if (zones.includes('island-wide') || zones.length === allIds.length) {
+        setIslandWide(true);
+        setSelectedZones(allIds);
+      } else {
+        setSelectedZones(zones);
+      }
     }
   }, [existingData]);
 
   const saveMutation = useMutation({
-    mutationFn: async (data: BasicInfoData) => {
+    mutationFn: async (data: BasicInfoData & { zones: string[] }) => {
       if (!user?.id) throw new Error('Not authenticated');
 
       const { error: profileError } = await supabase
@@ -83,20 +96,21 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
         .eq('user_id', user.id);
       if (profileError) throw profileError;
 
+      // Upsert professional_profiles — covers both identity and zones in one save
       const { error: proProfileError } = await supabase
         .from('professional_profiles')
-        .update({
+        .upsert({
+          user_id: user.id,
           display_name: data.display_name,
-          bio: data.bio,
-          business_name: data.business_name,
-          tagline: data.tagline,
-          onboarding_phase: nextPhase(currentPhase, 'basic_info'),
-        })
-        .eq('user_id', user.id);
+          service_zones: data.zones,
+          service_area_type: 'zones',
+          onboarding_phase: nextPhase(currentPhase, 'service_area'),
+        }, { onConflict: 'user_id' });
       if (proProfileError) throw proProfileError;
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['professional-basic-info'] });
+      queryClient.invalidateQueries({ queryKey: ['professional-service-area'] });
       try { await refresh(); } catch (e) { console.warn('Session refresh failed after basic info save:', e); }
       toast.success(t('basicInfo.saved'));
       onComplete();
@@ -109,17 +123,37 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
     },
   });
 
+  // Zone handlers
+  const handleZoneToggle = (zoneId: string) => {
+    setSelectedZones(prev => prev.includes(zoneId) ? prev.filter(id => id !== zoneId) : [...prev, zoneId]);
+    setIslandWide(false);
+  };
+
+  const handleIslandWide = () => {
+    if (islandWide) { setIslandWide(false); setSelectedZones([]); }
+    else { setIslandWide(true); setSelectedZones(allZoneIds()); }
+  };
+
+  const handleSelectGroup = (groupZones: { id: string }[]) => {
+    const groupIds = groupZones.map(z => z.id);
+    const allSelected = groupIds.every(id => selectedZones.includes(id));
+    if (allSelected) { setSelectedZones(prev => prev.filter(id => !groupIds.includes(id))); }
+    else { setSelectedZones(prev => [...new Set([...prev, ...groupIds])]); }
+    setIslandWide(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.display_name.trim()) {
       toast.error(t('basicInfo.enterName'));
       return;
     }
-    saveMutation.mutate(formData);
+    if (selectedZones.length === 0) {
+      toast.error(t('basicInfo.selectZone'));
+      return;
+    }
+    saveMutation.mutate({ ...formData, zones: selectedZones });
   };
-
-  const bioNearLimit = formData.bio.length > 400;
-  const taglineNearLimit = formData.tagline.length > 80;
 
   if (isLoading) {
     return (
@@ -147,6 +181,7 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-7">
+          {/* Name */}
           <div className="space-y-2 animate-fade-in">
             <Label htmlFor="display_name" className="text-base font-medium">
               {t('basicInfo.nameLabel')} <span className="text-destructive">{t('basicInfo.nameRequired')}</span>
@@ -160,6 +195,7 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
             />
           </div>
 
+          {/* Phone */}
           <div className="space-y-2 animate-fade-in">
             <Label htmlFor="phone" className="text-base font-medium flex items-center gap-2">
               <Phone className="h-5 w-5 text-muted-foreground" />
@@ -178,49 +214,44 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
             )}
           </div>
 
-          <div className="space-y-2 animate-fade-in">
-            <Label htmlFor="business_name" className="text-base font-medium">
-              {t('basicInfo.businessNameLabel')} <span className="text-muted-foreground text-sm">{t('basicInfo.businessNameOptional')}</span>
+          {/* Zone Picker */}
+          <div className="space-y-4 animate-fade-in">
+            <Label className="text-base font-medium flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-muted-foreground" />
+              {t('serviceArea.title')}
             </Label>
-            <Input
-              id="business_name"
-              placeholder={t('basicInfo.businessNamePlaceholder')}
-              value={formData.business_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, business_name: e.target.value }))}
-            />
-          </div>
+            <p className="text-sm text-muted-foreground">{t('serviceArea.description')}</p>
 
-          <div className="space-y-2 animate-fade-in">
-            <Label htmlFor="tagline" className="text-base font-medium flex items-center gap-2">
-              <FileText className="h-5 w-5 text-muted-foreground" />
-              {t('basicInfo.taglineLabel')}
-            </Label>
-            <Input
-              id="tagline"
-              placeholder={t('basicInfo.taglinePlaceholder')}
-              value={formData.tagline}
-              onChange={(e) => setFormData(prev => ({ ...prev, tagline: e.target.value }))}
-              maxLength={100}
-            />
-            <p className={cn('text-sm transition-colors', taglineNearLimit ? 'text-accent' : 'text-muted-foreground')}>
-              {t('basicInfo.taglineHint')} • {t('basicInfo.taglineCount', { count: formData.tagline.length })}
-            </p>
-          </div>
+            <IslandWideTile selected={islandWide} onClick={handleIslandWide} />
 
-          <div className="space-y-2 animate-fade-in">
-            <Label htmlFor="bio" className="text-base font-medium">{t('basicInfo.bioLabel')}</Label>
-            <Textarea
-              id="bio"
-              placeholder={t('basicInfo.bioPlaceholder')}
-              value={formData.bio}
-              onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-              rows={4}
-              maxLength={500}
-              className="resize-none text-lg"
-            />
-            <p className={cn('text-sm transition-colors', bioNearLimit ? 'text-accent' : 'text-muted-foreground')}>
-              {t('basicInfo.bioCount', { count: formData.bio.length })}
-            </p>
+            <div className="space-y-5">
+              {IBIZA_ZONES.map((group) => (
+                <div key={group.group} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-base font-semibold text-foreground">{t(`serviceArea.${group.group}`)}</h4>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => handleSelectGroup(group.zones)} className="text-sm text-primary hover:text-primary/80">
+                      {group.zones.every(z => selectedZones.includes(z.id)) ? t('serviceArea.deselectAll') : t('serviceArea.selectAll')}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {group.zones.map((zone) => (
+                      <ZoneTile key={zone.id} selected={selectedZones.includes(zone.id)} onClick={() => handleZoneToggle(zone.id)} label={zone.label} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {selectedZones.length > 0 && (
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 text-base text-foreground animate-fade-in">
+                <MapPin className="h-5 w-5 text-primary shrink-0" />
+                <span>
+                  {islandWide
+                    ? t('serviceArea.islandWide')
+                    : t('serviceArea.areasSelected', { count: selectedZones.length })}
+                </span>
+              </div>
+            )}
           </div>
 
           <Button type="submit" size="lg" className="w-full animate-fade-in" disabled={saveMutation.isPending}>

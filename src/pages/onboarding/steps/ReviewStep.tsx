@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle2, Rocket, Loader2, User, MapPin, Briefcase, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Rocket, Loader2, User, Briefcase, AlertCircle } from 'lucide-react';
 import { getCategoryIconByName } from '@/lib/categoryIcons';
 import { txCategory, txMicro } from '@/i18n/taxonomyTranslations';
 import { toast } from 'sonner';
@@ -80,8 +80,8 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
       if (error) throw error;
       try { await refresh(); } catch (e) { console.warn('Session refresh failed after go-live:', e); }
       trackEvent('pro_profile_published', 'professional', { onboardingPhase: 'complete' });
-      // Don't toast here — the listings page shows a welcome banner instead
-      navigate('/professional/listings?welcome=1');
+      toast.success(t('review.liveSuccess'));
+      navigate('/dashboard/pro?welcome=1');
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error('Error going live:', error);
@@ -121,8 +121,8 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
           <CardTitle className="text-lg font-semibold">{t('review.checklist')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <ChecklistItem icon={User} label={t('review.aboutYou')} description={t('review.aboutYouDesc')} isComplete={hasBasicInfo && hasPhone} onClick={() => onNavigate?.('basic_info')} />
-          <ChecklistItem icon={MapPin} label={t('review.whereYouWork')} description={t('review.whereYouWorkDesc')} isComplete={hasServiceArea} onClick={() => onNavigate?.('service_area')} />
+          {/* Merged: name + phone + zones into one checklist item */}
+          <ChecklistItem icon={User} label={t('review.aboutYou')} description={t('review.aboutYouDesc')} isComplete={hasBasicInfo && hasPhone && hasServiceArea} onClick={() => onNavigate?.('basic_info')} />
           <ChecklistItem icon={Briefcase} label={t('review.jobsSelected')} description={t('review.jobsSelectedDesc', { count: selectedMicroIds.size })} isComplete={hasServices} onClick={() => onNavigate?.('services')} />
         </CardContent>
       </Card>
