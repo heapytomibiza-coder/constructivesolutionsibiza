@@ -1,19 +1,16 @@
 /**
  * My Service Listings - Provider management page
  * Tabs: Draft / Live / Paused
- *
- * Supports ?welcome=1 query param after first Go Live to show
- * a clear "profile is live, now publish services" banner.
  */
 import { useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench, CheckCircle2, Rocket } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench } from 'lucide-react';
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
 import { useTranslation } from 'react-i18next';
@@ -171,8 +168,6 @@ function ListingCard({ listing }: { listing: MyListing }) {
 export default function MyServiceListings() {
   const { t } = useTranslation('dashboard');
   const { data: listings, isLoading } = useMyListings();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const isWelcome = searchParams.get('welcome') === '1';
   const { user } = useSession();
   const queryClient = useQueryClient();
 
@@ -186,12 +181,6 @@ export default function MyServiceListings() {
         }
       });
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Clear welcome param from URL after first render (keeps URL clean)
-  const handleDismissWelcome = () => {
-    searchParams.delete('welcome');
-    setSearchParams(searchParams, { replace: true });
-  };
 
   const drafts = listings?.filter(l => l.status === 'draft') ?? [];
   const live = listings?.filter(l => l.status === 'live') ?? [];
@@ -211,40 +200,6 @@ export default function MyServiceListings() {
       </nav>
 
       <div className="container py-5 sm:py-8">
-        {/* Post-onboarding welcome banner */}
-        {isWelcome && (
-          <div className="mb-6 rounded-xl border-2 border-primary/40 bg-primary/10 p-5">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 shrink-0">
-                <Rocket className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                  <h2 className="font-semibold text-base text-foreground">
-                    {t('pro.welcomeTitle', 'Your profile is live!')}
-                  </h2>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {t('pro.welcomeDescription', 'Clients can now find you in the directory. To appear in the services marketplace, edit and publish your service listings below.')}
-                </p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {drafts.length > 0 && (
-                    <Button size="sm" asChild>
-                      <Link to={`/dashboard/pro/listings/${drafts[0].id}/edit`}>
-                        <Edit className="h-3.5 w-3.5 mr-1.5" />
-                        {t('pro.editFirstListing', 'Complete Your First Listing')}
-                      </Link>
-                    </Button>
-                  )}
-                  <Button size="sm" variant="ghost" onClick={handleDismissWelcome} className="text-xs text-muted-foreground">
-                    {t('common.dismiss', 'Dismiss')}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-5">
           <p className="text-sm text-muted-foreground">
             {t('pro.manageListingsPageHint', 'Edit and publish your services to appear on the platform.')}
