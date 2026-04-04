@@ -406,7 +406,7 @@ const ProDashboard = () => {
             <>
               <MenuGroupLabel>{t('pro.menuGroup.grow', 'Grow')}</MenuGroupLabel>
               <MenuItem to="/dashboard/pro/insights" icon={BarChart3} label={t('pro.myInsights', 'Market Insights')} hint={t('pro.myInsightsHint', 'Market demand and trends')} />
-              <MenuItem to="/forum" icon={MessageCircle} label={t('pro.forumHelp', 'Community Forum & Help')} />
+              <MenuItem to="/forum" icon={MessageCircle} label={t('pro.forumHelp', 'Community Forum & Help')} hint={t('pro.communityForumHint', 'Ask questions, share tips, get help')} />
             </>
           )}
 
