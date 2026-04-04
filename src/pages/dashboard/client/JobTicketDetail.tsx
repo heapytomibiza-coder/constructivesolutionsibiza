@@ -48,6 +48,7 @@ import { ProjectGallery } from './components/ProjectGallery';
 import { PortfolioPrompt } from './components/PortfolioPrompt';
 import { useMyQuoteForJob, useAcceptedQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 import { completeJob } from '@/pages/jobs/actions/completeJob.action';
+import { canCancelJob, canPostJob, canWithdrawQuote } from '@/pages/jobs/utils/jobActions';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
