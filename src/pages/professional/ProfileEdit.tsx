@@ -5,7 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Check, User, Phone, FileText, Eye, Store, Wrench, Star, ChevronRight, SkipForward } from "lucide-react";
+import { ArrowLeft, Loader2, Check, User, Phone, FileText, Eye, Store, Wrench, Star, ChevronRight, SkipForward, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,7 @@ import { useProfessionalServices } from "@/pages/onboarding/hooks/useProfessiona
 import { useMicroPreferences } from "@/pages/onboarding/hooks/useMicroPreferences";
 // Phase 1 shared components
 import { GradientIconHeader, QuietSaveIndicator } from "@/shared/components/professional";
+import { BioBuilder } from "@/components/professional/BioBuilder";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "Name must be at least 2 characters"),
@@ -58,6 +59,7 @@ export default function ProfileEdit() {
 
   // Track which step of the edit flow we're on
   const [editStep, setEditStep] = useState<'profile' | 'services' | 'priorities'>('profile');
+  const [showBioBuilder, setShowBioBuilder] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
@@ -535,6 +537,33 @@ export default function ProfileEdit() {
                         Tip: mention your specialties, reliability, and what makes your finish clean.
                       </FormDescription>
                       <FormMessage />
+
+                      {/* Bio Builder trigger */}
+                      {!showBioBuilder && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowBioBuilder(true)}
+                          className="gap-2 mt-2"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          Help me write this
+                        </Button>
+                      )}
+
+                      {showBioBuilder && (
+                        <div className="mt-3">
+                          <BioBuilder
+                            businessName={form.getValues("businessName")}
+                            onBioGenerated={(bio) => {
+                              form.setValue("bio", bio, { shouldDirty: true });
+                              setShowBioBuilder(false);
+                            }}
+                            onClose={() => setShowBioBuilder(false)}
+                          />
+                        </div>
+                      )}
                     </FormItem>
                   )}
                 />
