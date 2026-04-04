@@ -168,8 +168,6 @@ function ListingCard({ listing }: { listing: MyListing }) {
 export default function MyServiceListings() {
   const { t } = useTranslation('dashboard');
   const { data: listings, isLoading } = useMyListings();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const isWelcome = searchParams.get('welcome') === '1';
   const { user } = useSession();
   const queryClient = useQueryClient();
 
@@ -183,12 +181,6 @@ export default function MyServiceListings() {
         }
       });
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Clear welcome param from URL after first render (keeps URL clean)
-  const handleDismissWelcome = () => {
-    searchParams.delete('welcome');
-    setSearchParams(searchParams, { replace: true });
-  };
 
   const drafts = listings?.filter(l => l.status === 'draft') ?? [];
   const live = listings?.filter(l => l.status === 'live') ?? [];
