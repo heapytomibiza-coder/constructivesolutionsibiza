@@ -260,8 +260,8 @@ export default function JobTicketDetail() {
   };
 
   const handleMarkComplete = async () => {
-    if (!jobId || !job) return;
-
+    if (!jobId || !job || isCompleting) return;
+    setIsCompleting(true);
     try {
       const result = await completeJob(jobId, {
         caller: 'hero',
