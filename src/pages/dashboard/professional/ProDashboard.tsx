@@ -355,7 +355,7 @@ const ProDashboard = () => {
                     {t('pro.draftNudgeDesc', 'Add a title, description and price to each listing so clients can find and book you in the marketplace.')}
                   </p>
                   <Button asChild size="sm">
-                    <Link to="/professional/listings">
+                    <Link to="/dashboard/pro/listings">
                       {t('pro.completeListings', 'Complete Your Listings')}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Link>
