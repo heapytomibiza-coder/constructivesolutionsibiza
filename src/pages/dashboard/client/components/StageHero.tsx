@@ -353,13 +353,15 @@ export function StageHero({
     <div
       className={cn(
         'rounded-3xl border p-5 sm:p-7 transition-colors',
-        isResolved
+        isResolved || isCancelled
           ? 'border-border/50 bg-gradient-to-br from-muted/40 to-background shadow-none'
           : isCompleted
             ? 'border-success/20 bg-gradient-to-br from-success/[0.03] to-background shadow-sm'
-            : stage === 'in_progress'
-              ? 'border-primary/20 bg-gradient-to-br from-primary/[0.06] via-primary/[0.02] to-background shadow-sm'
-              : 'border-border/70 bg-gradient-to-br from-primary/[0.04] to-background shadow-sm',
+            : isDraft
+              ? 'border-border/50 bg-gradient-to-br from-muted/30 to-background shadow-sm'
+              : stage === 'in_progress'
+                ? 'border-primary/20 bg-gradient-to-br from-primary/[0.06] via-primary/[0.02] to-background shadow-sm'
+                : 'border-border/70 bg-gradient-to-br from-primary/[0.04] to-background shadow-sm',
       )}
     >
       {/* Top row: pill */}
