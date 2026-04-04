@@ -1,10 +1,11 @@
 /**
  * StageHero — Premium hero panel showing current stage, meaning, next step, and primary action.
- * Uses a single resolveStage() function and STAGE_MAP config for all 6 job states.
+ * Uses a single resolveStage() function and STAGE_MAP config for all job states.
  */
 
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import {
   CheckCircle2,
   Star,
@@ -23,12 +24,15 @@ import { cn } from '@/lib/utils';
 /* ─── Types ─── */
 
 type JobStage =
+  | 'draft'
+  | 'ready'
   | 'open_no_quotes'
   | 'open_with_quotes'
   | 'assigned'
   | 'in_progress'
   | 'completed_no_review'
-  | 'completed_reviewed';
+  | 'completed_reviewed'
+  | 'cancelled';
 
 interface StageConfig {
   title: string;
@@ -53,6 +57,7 @@ interface StageHeroProps {
   hasAcceptedQuote: boolean;
   completionRequested: boolean;
   cancellationRequested: boolean;
+  isCompleting?: boolean;
   onMarkComplete?: () => void;
   onRequestCompletion?: () => void;
   onWithdraw?: () => void;
@@ -69,6 +74,9 @@ function resolveStage(
   hasAcceptedQuote: boolean,
   hasReview: boolean,
 ): JobStage {
+  if (status === 'draft') return 'draft';
+  if (status === 'ready') return 'ready';
+  if (status === 'cancelled') return 'cancelled';
   if (hasReview) return 'completed_reviewed';
   if (status === 'completed') return 'completed_no_review';
   if (status === 'in_progress') return 'in_progress';
@@ -95,6 +103,36 @@ function buildStageConfig(
   },
 ): StageConfig {
   switch (stage) {
+    case 'draft':
+      return {
+        title: t('stageHero.draftTitle', 'Draft'),
+        meaning: t('stageHero.draftMeaning', 'Your job has been saved as a draft. Complete the details and post when you are ready.'),
+        nextStep: t('stageHero.draftNext', 'Finalise your job details and post it to the board.'),
+        pillLabel: t('stageHero.pillDraft', 'Draft'),
+        pillClass: 'bg-muted text-muted-foreground border-border/50',
+        icon: <Clock className="h-6 w-6 text-muted-foreground" />,
+      };
+
+    case 'ready':
+      return {
+        title: t('stageHero.readyTitle', 'Ready to post'),
+        meaning: t('stageHero.readyMeaning', 'Your job is saved and ready. Post it to the board or invite professionals directly.'),
+        nextStep: t('stageHero.readyNext', 'Post your job or send invitations to get started.'),
+        pillLabel: t('stageHero.pillReady', 'Ready'),
+        pillClass: 'bg-accent/15 text-accent-foreground border-accent/20',
+        icon: <Eye className="h-6 w-6 text-accent-foreground" />,
+      };
+
+    case 'cancelled':
+      return {
+        title: t('stageHero.cancelledTitle', 'Cancelled'),
+        meaning: t('stageHero.cancelledMeaning', 'This job has been cancelled and is no longer active.'),
+        nextStep: t('stageHero.cancelledNext', 'No further action needed.'),
+        pillLabel: t('stageHero.pillCancelled', 'Cancelled'),
+        pillClass: 'bg-destructive/10 text-destructive border-destructive/20',
+        icon: <XCircle className="h-6 w-6 text-destructive" />,
+      };
+
     case 'open_no_quotes':
       return {
         title: t('stageHero.openNoQuotesTitle', 'Waiting for quotes'),
@@ -286,6 +324,7 @@ export function StageHero({
   hasAcceptedQuote,
   completionRequested,
   cancellationRequested,
+  isCompleting,
   onMarkComplete,
   onRequestCompletion,
   onWithdraw,
@@ -307,18 +346,22 @@ export function StageHero({
 
   const isResolved = stage === 'completed_reviewed';
   const isCompleted = stage === 'completed_no_review' || isResolved;
+  const isCancelled = stage === 'cancelled';
+  const isDraft = stage === 'draft';
 
   return (
     <div
       className={cn(
         'rounded-3xl border p-5 sm:p-7 transition-colors',
-        isResolved
+        isResolved || isCancelled
           ? 'border-border/50 bg-gradient-to-br from-muted/40 to-background shadow-none'
           : isCompleted
             ? 'border-success/20 bg-gradient-to-br from-success/[0.03] to-background shadow-sm'
-            : stage === 'in_progress'
-              ? 'border-primary/20 bg-gradient-to-br from-primary/[0.06] via-primary/[0.02] to-background shadow-sm'
-              : 'border-border/70 bg-gradient-to-br from-primary/[0.04] to-background shadow-sm',
+            : isDraft
+              ? 'border-border/50 bg-gradient-to-br from-muted/30 to-background shadow-sm'
+              : stage === 'in_progress'
+                ? 'border-primary/20 bg-gradient-to-br from-primary/[0.06] via-primary/[0.02] to-background shadow-sm'
+                : 'border-border/70 bg-gradient-to-br from-primary/[0.04] to-background shadow-sm',
       )}
     >
       {/* Top row: pill */}
@@ -370,12 +413,13 @@ export function StageHero({
           <Button
             variant={config.primaryAction.variant || 'default'}
             onClick={config.primaryAction.onClick}
+            disabled={isCompleting}
             className={cn(
               'h-12 px-5 rounded-xl text-[15px] font-semibold gap-2 w-full sm:w-auto',
               isResolved && 'h-10 text-[14px]',
             )}
           >
-            {config.primaryAction.icon}
+            {isCompleting ? <Loader2 className="h-4 w-4 animate-spin" /> : config.primaryAction.icon}
             {config.primaryAction.label}
           </Button>
         </div>

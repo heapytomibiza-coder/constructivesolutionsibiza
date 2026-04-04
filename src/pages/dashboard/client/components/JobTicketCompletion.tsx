@@ -37,6 +37,7 @@ interface JobTicketCompletionProps {
   assignedProfessionalId?: string | null;
   clientId?: string;
   viewerId?: string;
+  externalDisabled?: boolean;
 }
 
 const RPC_REQUEST_ERROR_MAP: Record<string, string> = {
@@ -55,6 +56,7 @@ export function JobTicketCompletion({
   assignedProfessionalId,
   clientId,
   viewerId,
+  externalDisabled,
 }: JobTicketCompletionProps) {
   const { t } = useTranslation('dashboard');
   const queryClient = useQueryClient();
@@ -231,7 +233,7 @@ export function JobTicketCompletion({
                 <Button
                   size="sm"
                   className="gap-1.5 mt-1"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || externalDisabled}
                 >
                   {isSubmitting ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />

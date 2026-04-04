@@ -137,7 +137,7 @@ export const PublicOnlyGuard = forwardRef<HTMLDivElement, RouteGuardProps>(funct
   if (isReady && !isLoading && isAuthenticated && !hasRole('admin')) {
     const dashboardPath = activeRole === 'professional' 
       ? '/dashboard/pro' 
-      : '/';
+      : '/dashboard/client';
     return <Navigate to={dashboardPath} replace />;
   }
 

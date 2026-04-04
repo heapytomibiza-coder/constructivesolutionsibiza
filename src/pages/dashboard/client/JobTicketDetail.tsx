@@ -48,6 +48,7 @@ import { ProjectGallery } from './components/ProjectGallery';
 import { PortfolioPrompt } from './components/PortfolioPrompt';
 import { useMyQuoteForJob, useAcceptedQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 import { completeJob } from '@/pages/jobs/actions/completeJob.action';
+import { canCancelJob, canPostJob, canWithdrawQuote } from '@/pages/jobs/utils/jobActions';
 
 export default function JobTicketDetail() {
   const { t } = useTranslation('dashboard');
@@ -56,6 +57,7 @@ export default function JobTicketDetail() {
   const { user, activeRole } = useSession();
   const queryClient = useQueryClient();
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const rebook = useRebook();
   const updatesRef = useRef<HTMLDivElement>(null);
@@ -111,10 +113,10 @@ export default function JobTicketDetail() {
     enabled: !!jobId && !!user,
   });
 
-  // Accepted quote with line items for AgreementCard (client only, narrower than useQuotesForJob)
-  const hasAcceptedQuoteInList = isClient && quotesForJob.some(q => q.status === 'accepted');
+  // Accepted quote with line items for AgreementCard (both roles)
+  const hasAcceptedQuoteInList = quotesForJob.some(q => q.status === 'accepted');
   const { data: acceptedQuote = null } = useAcceptedQuoteForJob(
-    isClient ? (jobId ?? null) : null,
+    jobId ?? null,
     hasAcceptedQuoteInList,
   );
 
@@ -204,7 +206,7 @@ export default function JobTicketDetail() {
         .from('jobs')
         .update({ status: 'open', is_publicly_listed: true })
         .eq('id', jobId)
-        .eq('status', 'draft')
+        .in('status', ['draft', 'ready'])
         .select('id');
       if (!error && (!updated || updated.length === 0)) {
         toast.error(t('jobTicket.postNotAllowed', 'Only draft jobs can be posted to the board.'));
@@ -258,8 +260,8 @@ export default function JobTicketDetail() {
   };
 
   const handleMarkComplete = async () => {
-    if (!jobId || !job) return;
-
+    if (!jobId || !job || isCompleting) return;
+    setIsCompleting(true);
     try {
       const result = await completeJob(jobId, {
         caller: 'hero',
@@ -281,6 +283,8 @@ export default function JobTicketDetail() {
       queryClient.invalidateQueries({ queryKey: ['job_review_exists', jobId] });
     } catch {
       toast.error(t('client.completeFailed', 'Failed to complete job'));
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -399,6 +403,7 @@ export default function JobTicketDetail() {
               hasAcceptedQuote={hasAcceptedQuote}
               completionRequested={completionRequested}
               cancellationRequested={cancellationRequested}
+              isCompleting={isCompleting}
               onMarkComplete={handleMarkComplete}
               onRequestCompletion={() => {
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -418,8 +423,8 @@ export default function JobTicketDetail() {
               cancellationReason={job.cancellation_reason}
             />
 
-            {/* 3. Agreement Card — dominant reference (client, post-acceptance) */}
-            {isClient && acceptedQuote && (
+            {/* 3. Agreement Card — dominant reference (both roles, post-acceptance) */}
+            {acceptedQuote && (
               <AgreementCard quote={acceptedQuote} />
             )}
 
@@ -442,6 +447,7 @@ export default function JobTicketDetail() {
                     assignedProfessionalId={job.assigned_professional_id}
                     clientId={job.user_id}
                     viewerId={user?.id}
+                    externalDisabled={isCompleting}
                   />
                 )}
               </div>
@@ -458,6 +464,7 @@ export default function JobTicketDetail() {
                   assignedProfessionalId={job.assigned_professional_id}
                   clientId={job.user_id}
                   viewerId={user?.id}
+                  externalDisabled={isCompleting}
                 />
               </div>
             )}
@@ -651,7 +658,7 @@ export default function JobTicketDetail() {
                     </Button>
                   )}
                   {/* Pro: Withdraw */}
-                  {!isClient && ['open', 'assigned'].includes(job.status) && job.assigned_professional_id === user?.id && (
+                  {!isClient && canWithdrawQuote(job.status) && job.assigned_professional_id === user?.id && (
                     <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleWithdraw}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.withdraw', 'Withdraw')}
@@ -686,11 +693,20 @@ export default function JobTicketDetail() {
                       {t('jobTicket.requestCancellation', 'Cancel Job')}
                     </Button>
                   )}
-                  {/* Client: Close/Cancel */}
-                  {isClient && !['completed', 'cancelled'].includes(job.status) && (
+                  {/* Client: Close/Cancel (draft/ready/open only) */}
+                  {canCancelJob(job.status, isClient) && (
                     <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleClose}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.cancelJob', 'Cancel Job')}
+                    </Button>
+                  )}
+                  {/* Client: In-progress cancel guidance */}
+                  {isClient && job.status === 'in_progress' && (
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground text-xs" asChild>
+                      <Link to={`/disputes/raise?job=${jobId}`}>
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {t('jobTicket.needToCancel', 'Need to cancel? Raise an issue')}
+                      </Link>
                     </Button>
                   )}
                 </div>

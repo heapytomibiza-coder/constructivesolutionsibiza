@@ -103,7 +103,7 @@ const Auth = () => {
           const phase = profileData?.onboarding_phase || 'not_started';
           navigate(phase === 'complete' ? '/dashboard/pro' : '/onboarding/professional');
         } else {
-          navigate('/');
+          navigate('/dashboard/client');
         }
       } else {
         navigate('/auth/callback');
