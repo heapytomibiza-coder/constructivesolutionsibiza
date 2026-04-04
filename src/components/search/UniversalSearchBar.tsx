@@ -442,9 +442,16 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         )}
       </Command>
 
-      {/* Keyboard hint - desktop only */}
-      <div className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-        <kbd className="px-2 py-1 text-xs text-muted-foreground bg-muted rounded border">
+      {/* Voice + Keyboard hint - positioned inside the search bar */}
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-auto">
+        <VoiceInput
+          onTranscript={(text) => {
+            setQuery(text);
+            setIsOpen(true);
+          }}
+          className="pointer-events-auto"
+        />
+        <kbd className="hidden sm:inline-block px-2 py-1 text-xs text-muted-foreground bg-muted rounded border pointer-events-none">
           ⌘K
         </kbd>
       </div>
