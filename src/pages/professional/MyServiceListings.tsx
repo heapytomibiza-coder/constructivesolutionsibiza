@@ -200,40 +200,6 @@ export default function MyServiceListings() {
       </nav>
 
       <div className="container py-5 sm:py-8">
-        {/* Post-onboarding welcome banner */}
-        {isWelcome && (
-          <div className="mb-6 rounded-xl border-2 border-primary/40 bg-primary/10 p-5">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 shrink-0">
-                <Rocket className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                  <h2 className="font-semibold text-base text-foreground">
-                    {t('pro.welcomeTitle', 'Your profile is live!')}
-                  </h2>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {t('pro.welcomeDescription', 'Clients can now find you in the directory. To appear in the services marketplace, edit and publish your service listings below.')}
-                </p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {drafts.length > 0 && (
-                    <Button size="sm" asChild>
-                      <Link to={`/dashboard/pro/listings/${drafts[0].id}/edit`}>
-                        <Edit className="h-3.5 w-3.5 mr-1.5" />
-                        {t('pro.editFirstListing', 'Complete Your First Listing')}
-                      </Link>
-                    </Button>
-                  )}
-                  <Button size="sm" variant="ghost" onClick={handleDismissWelcome} className="text-xs text-muted-foreground">
-                    {t('common.dismiss', 'Dismiss')}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-5">
           <p className="text-sm text-muted-foreground">
             {t('pro.manageListingsPageHint', 'Edit and publish your services to appear on the platform.')}
