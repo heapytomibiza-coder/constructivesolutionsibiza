@@ -28,6 +28,10 @@ import {
   Eye,
   CheckCircle2,
   Hammer,
+  X,
+  Sparkles,
+  FileText,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
