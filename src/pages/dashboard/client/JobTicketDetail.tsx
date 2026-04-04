@@ -48,6 +48,7 @@ import { ProjectGallery } from './components/ProjectGallery';
 import { PortfolioPrompt } from './components/PortfolioPrompt';
 import { useMyQuoteForJob, useAcceptedQuoteForJob } from '@/pages/jobs/queries/quotes.query';
 import { completeJob } from '@/pages/jobs/actions/completeJob.action';
+import { useJobTicketRealtime } from './hooks/useJobTicketRealtime';
 import { canCancelJob, canPostJob, canWithdrawQuote } from '@/pages/jobs/utils/jobActions';
 
 export default function JobTicketDetail() {
@@ -63,6 +64,9 @@ export default function JobTicketDetail() {
   const updatesRef = useRef<HTMLDivElement>(null);
   const reviewRef = useRef<HTMLDivElement>(null);
   const quotesRef = useRef<HTMLDivElement>(null);
+
+  // Realtime subscription — refetches on quote/status/progress/review changes
+  useJobTicketRealtime(jobId);
 
   const { data: job, isLoading } = useQuery({
     queryKey: ['job_ticket', jobId],

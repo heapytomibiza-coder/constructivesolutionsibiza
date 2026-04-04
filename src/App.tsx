@@ -188,9 +188,9 @@ const App = () => {
             <Route path="/terms" element={<Terms />} />
             <Route path="/dispute-policy" element={<DisputePolicy />} />
             <Route path="/about" element={<About />} />
-            <Route path="/for-professionals" element={<RolloutGate min="trust-engine"><ForProfessionals /></RolloutGate>} />
-            <Route path="/pricing" element={<RolloutGate min="trust-engine"><PricingPublicPage /></RolloutGate>} />
-            <Route path="/reputation" element={<RolloutGate min="trust-engine"><ReputationPage /></RolloutGate>} />
+            <Route path="/for-professionals" element={<RolloutGate min="trust-engine" fallbackTitle="Professional Membership Coming Soon" fallbackMessage="This page is part of the next rollout. You can still sign up and complete onboarding now." ><ForProfessionals /></RolloutGate>} />
+            <Route path="/pricing" element={<RolloutGate min="trust-engine" fallbackTitle="Pricing Details Coming Soon" fallbackMessage="Pricing tiers are being finalised. Check back soon for full details." ><PricingPublicPage /></RolloutGate>} />
+            <Route path="/reputation" element={<RolloutGate min="trust-engine" fallbackTitle="Reputation System Coming Soon" fallbackMessage="Our trust and reputation system is being built. It will be available in a future release." ><ReputationPage /></RolloutGate>} />
             <Route path="/services/listing/:listingId" element={<RolloutGate min="service-layer"><ServiceListingDetail /></RolloutGate>} />
             {/* Backward-compat redirects */}
             <Route path="/marketplace" element={<Navigate to="/services" replace />} />
@@ -262,9 +262,9 @@ const App = () => {
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
 
               {/* Disputes */}
-              <Route path="/disputes/raise" element={<RolloutGate min="escrow-beta"><RaiseDispute /></RolloutGate>} />
-              <Route path="/disputes/:disputeId" element={<RolloutGate min="escrow-beta"><DisputeDetail /></RolloutGate>} />
-              <Route path="/disputes/:disputeId/respond" element={<RolloutGate min="escrow-beta"><DisputeResponse /></RolloutGate>} />
+              <Route path="/disputes/raise" element={<RolloutGate min="escrow-beta" fallbackTitle="Issue Resolution Coming Soon" fallbackMessage="This protection flow is not live yet. For now, please contact support or message the other party from your Job Ticket." ><RaiseDispute /></RolloutGate>} />
+              <Route path="/disputes/:disputeId" element={<RolloutGate min="escrow-beta" fallbackTitle="Issue Resolution Coming Soon" fallbackMessage="The dispute detail view is not yet available. Please contact support for assistance." ><DisputeDetail /></RolloutGate>} />
+              <Route path="/disputes/:disputeId/respond" element={<RolloutGate min="escrow-beta" fallbackTitle="Issue Resolution Coming Soon" fallbackMessage="The dispute response flow is not yet available. Please contact support for assistance." ><DisputeResponse /></RolloutGate>} />
 
               {/* Admin Dashboard */}
               <Route path="/dashboard/admin" element={<AdminRouteLayout />}>
