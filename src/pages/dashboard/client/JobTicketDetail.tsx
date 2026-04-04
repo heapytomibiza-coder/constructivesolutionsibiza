@@ -777,7 +777,7 @@ function JobSummaryContent({
         </div>
         {(job.budget_min || job.budget_max) && (
           <div className="flex items-start gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <Euro className="h-4 w-4 text-muted-foreground mt-0.5" />
             <div>
               <span className="text-xs text-muted-foreground block">{t('jobTicket.budget')}</span>
               <p className="text-sm font-medium text-primary">
