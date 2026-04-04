@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { buildSearchOrClause } from "@/features/search/lib/searchSynonyms";
+import { classifyIntent, getIntentBoosts } from "@/features/search/lib/searchIntent";
+import type { SearchIntent } from "@/features/search/lib/searchIntent";
 import { txCategory, txMicro, txSubcategory } from "@/i18n/taxonomyTranslations";
 import { useGlobalSearchShortcut } from "@/hooks/useGlobalSearchShortcut";
 import {
