@@ -318,7 +318,7 @@ const ProDashboard = () => {
             <CardContent className="py-4 px-4">
               <div className="flex items-start gap-3">
                 <div className="rounded-lg bg-primary/10 p-2 shrink-0">
-                  <profilePrompt.icon className="h-5 w-5 text-primary" />
+                  {(() => { const Icon = profilePrompt.icon; return <Icon className="h-5 w-5 text-primary" />; })()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
