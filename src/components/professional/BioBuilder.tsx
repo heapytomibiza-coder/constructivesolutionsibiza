@@ -68,7 +68,7 @@ export function BioBuilder({ onBioGenerated, onClose, businessName }: BioBuilder
           .from("professional_services")
           .select("micro_id, service_micro_categories!inner(name)")
           .eq("user_id", user.id)
-          .eq("status", "active");
+          .eq("status", "offered");
 
         const names = (data ?? []).map(
           (r: any) => r.service_micro_categories?.name ?? ""
@@ -193,7 +193,7 @@ export function BioBuilder({ onBioGenerated, onClose, businessName }: BioBuilder
         )}
 
         <p className="text-sm text-muted-foreground">
-          We'll ask 4–5 short questions. Skip any you like — we'll work with what you give us.
+          We'll ask up to 5 short questions. Skip any you like — we'll work with what you give us.
         </p>
 
         <div className="flex gap-2">
