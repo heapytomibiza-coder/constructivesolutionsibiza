@@ -21,12 +21,22 @@ interface RouteGuardProps {
   children?: React.ReactNode;
 }
 
-function LoadingSpinner() {
+function LoadingSpinner({ showRetry, onRetry }: { showRetry?: boolean; onRetry?: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <p className="text-sm text-muted-foreground">
+          {showRetry ? 'Still connecting — please wait…' : 'Loading...'}
+        </p>
+        {showRetry && onRetry && (
+          <button
+            onClick={onRetry}
+            className="text-sm font-medium text-primary hover:text-primary/80 underline underline-offset-2"
+          >
+            Retry
+          </button>
+        )}
       </div>
     </div>
   );
