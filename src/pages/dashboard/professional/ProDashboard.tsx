@@ -275,8 +275,69 @@ const ProDashboard = () => {
 
         <RoleSwitchPanel className="mb-5 md:hidden" />
 
+        {/* Welcome banner — shown after Go Live redirect */}
+        {showWelcomeBanner && (
+          <Card className="mb-5 border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20 shadow-md relative">
+            <CardContent className="py-4 px-4">
+              <button
+                onClick={dismissWelcome}
+                className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+                aria-label="Dismiss"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg bg-emerald-100 dark:bg-emerald-900/40 p-2 shrink-0">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex-1 min-w-0 pr-4">
+                  <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
+                    {t('pro.welcomeTitle', "You're live!")}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {t('pro.welcomeBody')}
+                  </p>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/jobs">
+                      {t('pro.welcomeCta', 'View Matching Jobs')}
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stage guidance card */}
         {getStageCard(dashboardStage, t)}
+
+        {/* Delayed profile prompt — one at a time, highest priority */}
+        {profilePrompt && (
+          <Card className="mb-5 border-primary/20 bg-primary/5 shadow-sm">
+            <CardContent className="py-4 px-4">
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg bg-primary/10 p-2 shrink-0">
+                  <profilePrompt.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
+                    {t(`pro.${profilePrompt.key}Title`)}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {t(`pro.${profilePrompt.key}Body`)}
+                  </p>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to={profilePrompt.link}>
+                      {t(`pro.${profilePrompt.key}Cta`)}
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Draft listings nudge — shown when pro is active but has unpublished listings */}
         {isSetupComplete && !!draftCount && draftCount > 0 && (
