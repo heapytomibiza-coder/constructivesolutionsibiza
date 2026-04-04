@@ -59,6 +59,7 @@ export default function ProfileEdit() {
 
   // Track which step of the edit flow we're on
   const [editStep, setEditStep] = useState<'profile' | 'services' | 'priorities'>('profile');
+  const [showBioBuilder, setShowBioBuilder] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
