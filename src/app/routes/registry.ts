@@ -146,6 +146,10 @@ export const clientRoutes: RouteConfig[] = [
     lane: 'client',
     titleKey: 'nav.clientJobs',
   },
+  // Shared job ticket routes (accessible by both client and pro via role check in component)
+  { path: '/dashboard/jobs/:jobId', access: 'auth', redirectTo: '/auth', lane: 'shared' },
+  { path: '/dashboard/jobs/:jobId/invite', access: 'auth', redirectTo: '/auth', lane: 'shared' },
+  { path: '/dashboard/jobs/:jobId/compare', access: 'auth', redirectTo: '/auth', lane: 'shared' },
   
   // Shared hub routes
   { 
