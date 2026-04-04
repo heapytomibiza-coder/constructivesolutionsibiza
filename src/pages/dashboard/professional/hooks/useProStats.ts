@@ -53,6 +53,24 @@ function deriveDashboardStage(
 export function useProStats() {
   const { user, professionalProfile } = useSession();
   const servicesCount = professionalProfile?.servicesCount ?? 0;
+  const businessName = professionalProfile?.businessName ?? null;
+
+  // Fetch bio + tagline (not on session context)
+  const profileExtrasQuery = useQuery({
+    queryKey: ['pro_profile_extras', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { bio: null, tagline: null };
+      const { data, error } = await supabase
+        .from('professional_profiles')
+        .select('bio, tagline')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return { bio: data?.bio ?? null, tagline: data?.tagline ?? null };
+    },
+    enabled: !!user?.id,
+    staleTime: 120000,
+  });
 
   const dashboardStage = deriveDashboardStage(
     professionalProfile?.displayName,
