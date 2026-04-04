@@ -18,7 +18,7 @@ import {
   Loader2,
   MapPin,
   Calendar,
-  DollarSign,
+  Euro,
   Star,
   Send,
   UserCheck,
