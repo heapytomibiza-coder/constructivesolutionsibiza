@@ -1,67 +1,81 @@
 
 
-# Motivational Microcopy Layer — Professional Pages
+# Dashboard Hierarchy Rebalance — Calm Home Base
 
-## What this is
-A copy-only pass that adds soft motivational headlines and "why this matters" framing across professional pages. No design changes, no routes, no new features.
+## Problem
+The dashboard stacks up to 3 large guidance cards (stage card + profile prompt + draft listings nudge) above the menu, making it feel like a to-do list attack instead of a calm hub.
 
-## Tone
-Encouraging, simple, confident, helpful. Not cheesy. Written for normal users.
+## Principle
+**One blocker card at most. Everything else moves down or gets compact.**
 
 ---
 
-## Changes by page
+## Changes
 
-### 1. Dashboard Home (`ProDashboard.tsx`)
-**Menu group labels** get motivational reframes:
-- "Your Work" → **"Want more opportunities?"**
-- "Grow" → **"Want to grow smarter?"**
-- "Account" → stays as "Account" (no motivation needed here)
+### 1. Card priority — only the highest-priority card renders prominently
 
-**Menu item hints** get light motivation added:
-- Browse Matching Jobs hint: "Open jobs that match your services" → **"Find and respond to open client requests"**
-- My Listings hint: "Your public service pages on the marketplace" → **"Complete these so clients can discover and book you"**
-- Market Insights hint: "Market demand and trends" → **"See what clients are searching for in your area"**
-- Community Forum hint: (add) **"Ask questions, share tips, get help"**
+Current rendering order (all can appear simultaneously):
+1. Welcome banner
+2. Stage card (needs_profile / needs_services / needs_review / needs_visibility)
+3. Profile prompt (prompt1 / prompt2 / prompt3)
+4. Draft listings nudge
 
-**Empty matched jobs card** — add motivational framing:
-- Current body: "We'll show new jobs here when they match your services and areas."
-- Add: **"Want more? Add more services to widen your reach."**
+**New rule**: Render at most **one** card above the menu, using this priority:
+- Welcome banner (if present) — wins, nothing else shown
+- Stage card (if not `active`) — wins, nothing else shown
+- If `active`: show nothing above the menu
 
-### 2. My Jobs (`ProJobsList.tsx`)
-No changes needed — subtitle and empty state already guide well. The empty state already links to the job board.
+### 2. Profile prompts → move below the menu
 
-### 3. My Listings (`MyServiceListings.tsx`)
-**Subtitle** gets motivational reframe:
-- Current: "These are the service pages clients see when browsing the marketplace. Edit, publish, or pause them here."
-- New: **"Want to be seen more? Complete and publish your service pages so clients can discover you in the marketplace."**
+The "Want to look more professional?" / "Add a bio" / "Update job preferences" prompts become **compact reminder rows** rendered *after* the menu section, not before it. They use a smaller, inline style — no large card, no prominent CTA button. Just a text link row with an arrow.
 
-**Empty draft state**:
-- Current: "No drafts yet. Add service categories to generate listing drafts automatically."
-- New: **"No drafts yet. Add service categories and we'll create listing drafts for you automatically."**
+### 3. Draft listings nudge → move below the menu
 
-### 4. Edit Listing (`ServiceListingEditor`)
-No changes — page is already task-focused. Adding motivation here would slow the user down.
+The "You have N unpublished listings" nudge also moves below the menu, rendered as a compact reminder row alongside the profile prompts. This information is already surfaced inside My Listings itself.
 
-### 5. Choose Your Services (`ManageServices.tsx`)
-**Subtitle** gets motivational reframe:
-- Current: "Select the types of work you do. We use these to match you with relevant client requests."
-- New: **"Want more opportunities? Select the types of work you do — we use these to match you with real client requests."**
+### 4. Compact reminder row component
 
-### 6. Profile Edit (`ProfileEdit.tsx`)
-**Intro text** gets motivational reframe:
-- Current: "Keep it fresh — clients love seeing who they're working with."
-- New: **"Want clients to trust you faster? A strong profile helps you stand out and win more work."**
+Replace the large `Card` wrapper for secondary nudges with a simple row:
+```
+[icon]  Want to look more professional? Complete profile basics  →
+[icon]  You have 28 unpublished listings. Complete them  →
+```
+Muted styling, small text, no prominent button. Feels like a helpful suggestion, not homework.
 
-### 7. Job Priorities (`JobPriorities.tsx`)
-**Subtitle** gets motivational reframe:
-- Current: "Tell us which jobs to send you first. Your choices update instantly."
-- New: **"Want better-fit jobs? Tell us which work you prefer and we'll prioritise it for you."**
+### 5. Menu moves up
 
-### 8. Insights (`ProInsights.tsx`)
-**Locked description** — add motivational line:
-- Current: "See which services are trending, where demand is hottest, and how the market is moving — available on Gold and Elite plans."
-- New: **"Want to grow smarter? See which services are trending, where demand is hottest, and how the market is moving."**
+With secondary cards removed from above, the menu (`Your Work` / `Grow` / `Account`) sits directly below the header + at most one stage card. The dashboard immediately feels like a navigation hub.
+
+---
+
+## Resulting layout
+
+```text
+┌─────────────────────────────┐
+│  Professional Dashboard     │
+│  Welcome back, user@email   │
+├─────────────────────────────┤
+│  [One stage card OR nothing]│  ← only if blocker exists
+├─────────────────────────────┤
+│  YOUR WORK                  │
+│  Edit Profile               │
+│  Browse Matching Jobs       │
+│  My Jobs                    │
+│  Messages                   │
+│  My Listings                │
+│  GROW                       │
+│  Market Insights            │
+│  Community Forum            │
+│  ACCOUNT                    │
+│  Settings                   │
+├─────────────────────────────┤
+│  ── Suggestions ──          │  ← compact rows, muted
+│  💡 Complete profile basics │
+│  💡 28 unpublished listings │
+├─────────────────────────────┤
+│  [Empty matched jobs card]  │  ← if applicable
+└─────────────────────────────┘
+```
 
 ---
 
@@ -69,17 +83,13 @@ No changes — page is already task-focused. Adding motivation here would slow t
 
 | File | Change |
 |------|--------|
-| `public/locales/en/dashboard.json` | ~8 translation value updates (hints, subtitles, empty states, menu labels) |
-| `public/locales/es/dashboard.json` | Spanish equivalents |
-| `public/locales/en/professional.json` | Priorities subtitle update |
-| `public/locales/es/professional.json` | Spanish equivalent |
-| `src/pages/professional/ProfileEdit.tsx` | Update hardcoded intro text (line ~304) |
+| `ProDashboard.tsx` | Move profile prompt + draft nudge below menu; add compact `ReminderRow` component; enforce one-card-max rule above menu |
 
 ## What does NOT change
 - No routes
-- No components
-- No features
-- No layout or design changes
-- ProJobsList and ServiceListingEditor untouched
-- Dashboard stage cards untouched (already motivational)
+- No new features
+- No translation key changes (reuses existing keys)
+- Stage cards keep their existing design (they are real blockers)
+- Welcome banner keeps its existing design
+- Menu structure unchanged
 
