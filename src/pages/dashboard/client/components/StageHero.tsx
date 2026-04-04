@@ -74,6 +74,9 @@ function resolveStage(
   hasAcceptedQuote: boolean,
   hasReview: boolean,
 ): JobStage {
+  if (status === 'draft') return 'draft';
+  if (status === 'ready') return 'ready';
+  if (status === 'cancelled') return 'cancelled';
   if (hasReview) return 'completed_reviewed';
   if (status === 'completed') return 'completed_no_review';
   if (status === 'in_progress') return 'in_progress';
