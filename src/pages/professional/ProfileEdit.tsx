@@ -30,6 +30,7 @@ import { useProfessionalServices } from "@/pages/onboarding/hooks/useProfessiona
 import { useMicroPreferences } from "@/pages/onboarding/hooks/useMicroPreferences";
 // Phase 1 shared components
 import { GradientIconHeader, QuietSaveIndicator } from "@/shared/components/professional";
+import { BioBuilder } from "@/components/professional/BioBuilder";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "Name must be at least 2 characters"),
