@@ -283,8 +283,9 @@ export default function JobTicketDetail() {
       queryClient.invalidateQueries({ queryKey: ['job_review_exists', jobId] });
     } catch {
       toast.error(t('client.completeFailed', 'Failed to complete job'));
+    } finally {
+      setIsCompleting(false);
     }
-  };
 
   const scrollToUpdates = useCallback(() => {
     updatesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
