@@ -156,6 +156,20 @@
       "needsVisibilityDesc": "Your profile is ready but hidden. Toggle visibility so clients can find you.",
       "goVisible": "Edit Visibility"
     },
+    "welcomeTitle": "You're live!",
+    "welcomeBody": "When a client posts a matching job, it'll appear here. You can update your profile later as you start receiving work.",
+    "welcomeCta": "View Matching Jobs",
+    "emptyMatchedTitle": "No matching jobs yet",
+    "emptyMatchedBody": "We'll show new jobs here when they match your services and areas.",
+    "prompt1Title": "Want to look more professional?",
+    "prompt1Body": "Add your business name and tagline so clients know who you are.",
+    "prompt1Cta": "Complete profile basics",
+    "prompt2Title": "Clients check profiles before hiring",
+    "prompt2Body": "Add a short bio to help them trust you.",
+    "prompt2Cta": "Add bio",
+    "prompt3Title": "Getting jobs you don't want?",
+    "prompt3Body": "Fine-tune the work you receive.",
+    "prompt3Cta": "Update job preferences",
     "myListings": "Create a Service Page"
   },
   "proProfile": {

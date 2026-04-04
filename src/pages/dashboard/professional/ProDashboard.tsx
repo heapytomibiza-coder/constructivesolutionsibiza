@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSession } from '@/contexts/SessionContext';
@@ -27,6 +28,10 @@ import {
   Eye,
   CheckCircle2,
   Hammer,
+  X,
+  Sparkles,
+  FileText,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -161,8 +166,19 @@ function getStageCard(stage: DashboardStage, t: any) {
 const ProDashboard = () => {
   const { t } = useTranslation('dashboard');
   const { user, roles } = useSession();
-  const { stats, dashboardStage } = useProStats();
+  const { stats, dashboardStage, bio, tagline, businessName } = useProStats();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const showWelcome = searchParams.get('welcome') === '1';
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+
+  const dismissWelcome = () => {
+    setWelcomeDismissed(true);
+    setSearchParams((prev) => {
+      prev.delete('welcome');
+      return prev;
+    }, { replace: true });
+  };
 
   // Fetch count of incomplete draft listings for nudge
   const { data: draftCount } = useQuery({
@@ -183,18 +199,33 @@ const ProDashboard = () => {
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut({ scope: 'local' });
-
     if (error) {
       toast.error(t('auth.signOutError', 'Log out failed'));
       return;
     }
-
     toast.success(t('auth.signedOut'));
     navigate('/', { replace: true });
   };
 
   const isSetupComplete = dashboardStage === 'active' || dashboardStage === 'needs_visibility';
   const hasServices = stats.servicesCount > 0;
+  const showWelcomeBanner = showWelcome && !welcomeDismissed;
+
+  // Delayed profile prompt — show only highest priority, only when active + no welcome banner
+  const profilePrompt = (() => {
+    if (!isSetupComplete || showWelcomeBanner) return null;
+    const matchCount = stats.matchedJobsCount;
+    if (matchCount >= 1 && (!businessName || !tagline)) {
+      return { key: 'prompt1', icon: Sparkles, link: '/onboarding/professional?edit=1&step=basic_info' };
+    }
+    if (matchCount >= 3 && !bio) {
+      return { key: 'prompt2', icon: FileText, link: '/onboarding/professional?edit=1&step=basic_info' };
+    }
+    if (matchCount >= 5) {
+      return { key: 'prompt3', icon: SlidersHorizontal, link: '/onboarding/professional?edit=1&step=services' };
+    }
+    return null;
+  })();
 
   return (
     <div className="min-h-screen bg-background">
@@ -244,8 +275,69 @@ const ProDashboard = () => {
 
         <RoleSwitchPanel className="mb-5 md:hidden" />
 
+        {/* Welcome banner — shown after Go Live redirect */}
+        {showWelcomeBanner && (
+          <Card className="mb-5 border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20 shadow-md relative">
+            <CardContent className="py-4 px-4">
+              <button
+                onClick={dismissWelcome}
+                className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+                aria-label="Dismiss"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg bg-emerald-100 dark:bg-emerald-900/40 p-2 shrink-0">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex-1 min-w-0 pr-4">
+                  <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
+                    {t('pro.welcomeTitle', "You're live!")}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {t('pro.welcomeBody')}
+                  </p>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/jobs">
+                      {t('pro.welcomeCta', 'View Matching Jobs')}
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stage guidance card */}
         {getStageCard(dashboardStage, t)}
+
+        {/* Delayed profile prompt — one at a time, highest priority */}
+        {profilePrompt && (
+          <Card className="mb-5 border-primary/20 bg-primary/5 shadow-sm">
+            <CardContent className="py-4 px-4">
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg bg-primary/10 p-2 shrink-0">
+                  <profilePrompt.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
+                    {t(`pro.${profilePrompt.key}Title`)}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {t(`pro.${profilePrompt.key}Body`)}
+                  </p>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to={profilePrompt.link}>
+                      {t(`pro.${profilePrompt.key}Cta`)}
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Draft listings nudge — shown when pro is active but has unpublished listings */}
         {isSetupComplete && !!draftCount && draftCount > 0 && (
@@ -314,6 +406,21 @@ const ProDashboard = () => {
           <MenuGroupLabel>{t('pro.menuGroup.account', 'Account')}</MenuGroupLabel>
           <MenuItem to="/settings" icon={Settings} label={t('common.settings', 'Settings')} />
         </div>
+
+        {/* Empty matched jobs state — below menu when active but no matches */}
+        {isSetupComplete && stats.matchedJobsCount === 0 && (
+          <Card className="mt-5 border-border/50 bg-muted/30">
+            <CardContent className="py-6 px-4 text-center">
+              <Briefcase className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+              <h3 className="font-display text-sm font-semibold text-foreground mb-1">
+                {t('pro.emptyMatchedTitle', 'No matching jobs yet')}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {t('pro.emptyMatchedBody')}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
