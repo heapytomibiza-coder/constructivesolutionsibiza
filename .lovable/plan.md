@@ -1,46 +1,37 @@
 
 
-# Fix: AI Bio Builder Edge Function Auth Bug
-
-## Problem
-The `generate-bio` edge function uses `_authClient.auth.getClaims()` (line 23), which **does not exist** on the Supabase JS client. This causes every request to fail silently with an auth error, resulting in the "Failed to generate bio" toast.
-
-## Root cause
-When the edge function was created, `getClaims` was used instead of the standard `getUser()` pattern used by every other edge function in the project.
-
-## Fix
-
-### `supabase/functions/generate-bio/index.ts`
-Replace lines 23-31:
-
-```typescript
-// Before (broken)
-const { error: claimsErr } = await _authClient.auth.getClaims(
-  authHeader.replace("Bearer ", "")
-);
-if (claimsErr) { ... }
-
-// After (correct — matches existing edge function pattern)
-const { data: { user }, error: userErr } = await _authClient.auth.getUser();
-if (userErr || !user) {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
-    status: 401,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-```
+# Add Voice Input to UniversalSearchBar
 
 ## What changes
-| File | Change |
-|------|--------|
-| `supabase/functions/generate-bio/index.ts` | Replace `getClaims()` with `getUser()` on lines 23-31 |
 
-## After fix
-- Deploy the edge function
-- Re-test the full flow: click "Generate now" or "Generate my bio" and confirm the bio appears in the textarea
+Add the existing `VoiceInput` component to `UniversalSearchBar` so users can speak their search query instead of typing. The mic button sits inside the search input, to the left of the ⌘K hint.
+
+## File changes
+
+### `src/components/search/UniversalSearchBar.tsx`
+
+1. Import `VoiceInput` from `@/components/professional/VoiceInput`
+2. Add a `VoiceInput` inside the search bar area, positioned absolute right (before the ⌘K kbd hint)
+3. `onTranscript` sets the query and opens results: `setQuery(text); setIsOpen(true);`
+4. Adjust `CommandInput` right padding (`pr-24`) to avoid overlapping the mic button
+5. Move the ⌘K hint left slightly to accommodate the mic icon
+
+### Layout
+
+```text
+┌──────────────────────────────────────────┐
+│ 🔍  Fix a leaking tap...        🎤  ⌘K  │
+└──────────────────────────────────────────┘
+```
+
+- Mic button renders only when browser supports SpeechRecognition (existing `VoiceInput` behavior)
+- On mobile (no ⌘K hint shown), mic sits alone on the right
+- When listening, mic turns red (existing styling)
 
 ## What does NOT change
-- No frontend changes
-- No new files
-- No database changes
+
+- No new components or files
+- No backend changes
+- Existing keyboard, typing, and result selection flows unchanged
+- VoiceInput component unchanged
 
