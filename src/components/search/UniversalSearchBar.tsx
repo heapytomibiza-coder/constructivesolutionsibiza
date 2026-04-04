@@ -203,6 +203,9 @@ export function UniversalSearchBar({ className }: { className?: string }) {
     queryFn: async (): Promise<SearchHit[]> => {
       if (!debouncedQuery || debouncedQuery.length < 2) return [];
 
+      // Classify intent for score boosting
+      const intent = classifyIntent(debouncedQuery);
+
       // Build sanitized OR clause with synonym expansion
       const orClause = buildSearchOrClause(debouncedQuery);
       if (!orClause) return [];
@@ -211,10 +214,10 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         .from("service_search_index")
         .select("*")
         .or(orClause)
-        .limit(20); // Fetch more to ensure variety across types
+        .limit(20);
 
       if (error) throw error;
-      return transformServiceResults(data || []);
+      return transformServiceResults(data || [], intent);
     },
     enabled: debouncedQuery.length >= 2,
     staleTime: 30000,
