@@ -346,6 +346,8 @@ export function StageHero({
 
   const isResolved = stage === 'completed_reviewed';
   const isCompleted = stage === 'completed_no_review' || isResolved;
+  const isCancelled = stage === 'cancelled';
+  const isDraft = stage === 'draft';
 
   return (
     <div
