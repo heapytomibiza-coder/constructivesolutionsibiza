@@ -206,7 +206,7 @@ export default function JobTicketDetail() {
         .from('jobs')
         .update({ status: 'open', is_publicly_listed: true })
         .eq('id', jobId)
-        .eq('status', 'draft')
+        .in('status', ['draft', 'ready'])
         .select('id');
       if (!error && (!updated || updated.length === 0)) {
         toast.error(t('jobTicket.postNotAllowed', 'Only draft jobs can be posted to the board.'));
