@@ -67,7 +67,7 @@ export default function ProInsights() {
             {t('pro.insightsLocked', 'Unlock Demand Intelligence')}
           </h2>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-6">
-            {t('pro.insightsLockedDesc', 'See which services are trending, where demand is hottest, and how the market is moving — available on Gold and Elite plans.')}
+            {t('pro.insightsLockedDesc', 'Want to grow smarter? See which services are trending, where demand is hottest, and how the market is moving.')}
           </p>
           <Button asChild>
             <Link to="/pricing">{t('pro.viewPlans', 'View Plans')}</Link>
