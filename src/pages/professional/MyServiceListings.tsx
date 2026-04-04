@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench, CheckCircle2, Rocket } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, Globe, Pause, Play, Wrench } from 'lucide-react';
 import { useMyListings, type MyListing } from './hooks/useMyListings';
 import { usePublishListing, usePauseListing, useUnpauseListing } from './hooks/useListingEditor';
 import { useTranslation } from 'react-i18next';
