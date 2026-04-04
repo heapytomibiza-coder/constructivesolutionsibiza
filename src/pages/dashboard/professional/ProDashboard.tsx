@@ -387,9 +387,9 @@ const ProDashboard = () => {
                 <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
               )}
               <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} />
-              <MenuItem to="/dashboard/professional/jobs" icon={Hammer} label={t('pro.myJobs', 'My Jobs')} />
+              <MenuItem to="/dashboard/pro/jobs" icon={Hammer} label={t('pro.myJobs', 'My Jobs')} />
               <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
-              <MenuItem to="/professional/listings" icon={Store} label={t('pro.myListings', 'My Listings')} />
+              <MenuItem to="/dashboard/pro/listings" icon={Store} label={t('pro.myListings', 'My Listings')} />
             </>
           )}
 
