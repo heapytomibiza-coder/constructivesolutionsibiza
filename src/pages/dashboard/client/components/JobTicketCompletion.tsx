@@ -56,6 +56,7 @@ export function JobTicketCompletion({
   assignedProfessionalId,
   clientId,
   viewerId,
+  externalDisabled,
 }: JobTicketCompletionProps) {
   const { t } = useTranslation('dashboard');
   const queryClient = useQueryClient();
