@@ -23,7 +23,7 @@ interface IntentSelectorProps {
   allowProfessional?: boolean;
 }
 
-export function IntentSelector({ value, onChange, allowProfessional = false }: IntentSelectorProps) {
+export function IntentSelector({ value, onChange, allowProfessional = true }: IntentSelectorProps) {
   const { t } = useTranslation('auth');
 
   const intentOptions: IntentOption[] = useMemo(

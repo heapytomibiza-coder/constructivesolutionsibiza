@@ -71,16 +71,16 @@
     "jumpToStep": "Salta a cualquier paso y actualiza tus datos.",
     "stepOf": "Paso {{current}} de {{total}}",
     "stepLabels": {
-      "basic_info": "Sobre Ti",
+      "basic_info": "Prepárate",
       "service_area": "Dónde Trabajas",
-      "services": "El Trabajo que Haces",
+      "services": "Elige Tus Trabajos",
       "review": "Empieza"
     },
     "stepHeaders": {
-      "basic_info": "Paso 1: Sobre Ti",
+      "basic_info": "Paso 1: Prepárate",
       "service_area": "Paso 2: Dónde Trabajas",
-      "services": "Paso 3: El Trabajo que Haces",
-      "review": "Paso 4: ¡Empieza!"
+      "services": "Paso 2: Elige Tus Trabajos",
+      "review": "Paso 3: Empieza"
     },
     "tracker": {
       "yourProgress": "Tu progreso",
@@ -91,8 +91,8 @@
   },
 
   "basicInfo": {
-    "title": "Cuéntanos sobre ti",
-    "description": "Esto es lo que los clientes verán al visitar tu perfil.",
+    "title": "Vamos a prepararte para recibir trabajos",
+    "description": "Tu nombre, teléfono y zonas de trabajo — es todo lo que necesitamos para empezar a conectarte.",
     "whyThisMatters": "💡 Los clientes contratan a personas en las que confían. Un nombre real y un teléfono te hace parecer profesional y nos permite contactarte rápido cuando llegue trabajo.",
     "nameLabel": "Tu Nombre",
     "nameRequired": "*",
@@ -111,9 +111,10 @@
     "bioLabel": "Sobre Ti",
     "bioPlaceholder": "¿Qué haces mejor? ¿Cuánto tiempo llevas haciéndolo? A los clientes les encanta la experiencia real — sé directo, sin rodeos.",
     "bioCount": "{{count}}/500 caracteres",
-    "nextStep": "Siguiente Paso",
+    "nextStep": "Siguiente: Elige Tus Trabajos",
     "saved": "¡Guardado!",
     "enterName": "Por favor, introduce tu nombre",
+    "selectZone": "Por favor, selecciona al menos una zona de trabajo",
     "somethingWrong": "Algo salió mal. Por favor, inténtalo de nuevo."
   },
 
@@ -157,7 +158,7 @@
     "clearSearch": "Limpiar búsqueda",
     "addMoreLater": "Puedes añadir o quitar trabajos cuando quieras — nada está cerrado.",
     "goBack": "Volver",
-    "continue": "Continuar",
+    "continue": "Empezar a Recibir Trabajos",
     "saving": "Guardando...",
     "selectMinimum": "Selecciona al menos 1 trabajo para continuar",
     "jobsAvailable": "{{count}} trabajos disponibles",
@@ -173,8 +174,8 @@
     "almostDescription": "Completa los puntos de abajo para empezar.",
     "whyThisMatters": "💡 Una vez activo, los clientes que publiquen trabajos en tus categorías aparecerán automáticamente en tu panel. No necesitas llamar a nadie.",
     "checklist": "Tu checklist de perfil",
-    "aboutYou": "Sobre ti",
-    "aboutYouDesc": "Nombre y datos de contacto",
+    "aboutYou": "Tus datos",
+    "aboutYouDesc": "Nombre, teléfono y zonas de trabajo",
     "whereYouWork": "Dónde trabajas",
     "whereYouWorkDesc": "Zonas de Ibiza",
     "jobsSelected": "Trabajos seleccionados",
@@ -183,7 +184,7 @@
     "sendJobsFor": "Solo te enviaremos trabajos de:",
     "changeAnytime": "Puedes cambiar todo esto en cualquier momento desde tu panel — nada está grabado en piedra.",
     "goBack": "Volver",
-    "goLive": "Empezar",
+    "goLive": "Empezar — Recibir Trabajos",
     "completeAll": "Completa todos los puntos del checklist para empezar",
     "liveSuccess": "🎉 ¡Estás activo! Relájate — cuando un cliente publique un trabajo que coincida, aparecerá en tu panel.",
     "completeFirst": "Por favor, completa todos los pasos primero",
