@@ -406,6 +406,21 @@ const ProDashboard = () => {
           <MenuGroupLabel>{t('pro.menuGroup.account', 'Account')}</MenuGroupLabel>
           <MenuItem to="/settings" icon={Settings} label={t('common.settings', 'Settings')} />
         </div>
+
+        {/* Empty matched jobs state — below menu when active but no matches */}
+        {isSetupComplete && stats.matchedJobsCount === 0 && (
+          <Card className="mt-5 border-border/50 bg-muted/30">
+            <CardContent className="py-6 px-4 text-center">
+              <Briefcase className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+              <h3 className="font-display text-sm font-semibold text-foreground mb-1">
+                {t('pro.emptyMatchedTitle', 'No matching jobs yet')}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {t('pro.emptyMatchedBody')}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
