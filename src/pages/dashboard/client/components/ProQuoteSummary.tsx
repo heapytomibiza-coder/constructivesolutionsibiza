@@ -109,7 +109,7 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
     <Card className="border-border/40 bg-muted/20 shadow-none">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-display flex items-center gap-2 text-muted-foreground">
-          <DollarSign className="h-4 w-4 text-primary/70" />
+          <Euro className="h-4 w-4 text-primary/70" />
           {quote.status === 'accepted'
             ? t('jobTicket.agreement', 'Agreement')
             : t('jobTicket.yourQuote', 'Your Quote')}

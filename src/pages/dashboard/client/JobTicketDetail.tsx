@@ -662,7 +662,7 @@ export default function JobTicketDetail() {
                     </Button>
                   )}
                   {/* Pro: Withdraw */}
-                  {!isClient && canWithdrawQuote(job.status) && job.assigned_professional_id === user?.id && (
+                  {!isClient && canWithdrawQuote(job.status) && (
                     <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleWithdraw}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.withdraw', 'Withdraw')}
