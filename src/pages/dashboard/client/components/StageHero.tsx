@@ -103,6 +103,36 @@ function buildStageConfig(
   },
 ): StageConfig {
   switch (stage) {
+    case 'draft':
+      return {
+        title: t('stageHero.draftTitle', 'Draft'),
+        meaning: t('stageHero.draftMeaning', 'Your job has been saved as a draft. Complete the details and post when you are ready.'),
+        nextStep: t('stageHero.draftNext', 'Finalise your job details and post it to the board.'),
+        pillLabel: t('stageHero.pillDraft', 'Draft'),
+        pillClass: 'bg-muted text-muted-foreground border-border/50',
+        icon: <Clock className="h-6 w-6 text-muted-foreground" />,
+      };
+
+    case 'ready':
+      return {
+        title: t('stageHero.readyTitle', 'Ready to post'),
+        meaning: t('stageHero.readyMeaning', 'Your job is saved and ready. Post it to the board or invite professionals directly.'),
+        nextStep: t('stageHero.readyNext', 'Post your job or send invitations to get started.'),
+        pillLabel: t('stageHero.pillReady', 'Ready'),
+        pillClass: 'bg-accent/15 text-accent-foreground border-accent/20',
+        icon: <Eye className="h-6 w-6 text-accent-foreground" />,
+      };
+
+    case 'cancelled':
+      return {
+        title: t('stageHero.cancelledTitle', 'Cancelled'),
+        meaning: t('stageHero.cancelledMeaning', 'This job has been cancelled and is no longer active.'),
+        nextStep: t('stageHero.cancelledNext', 'No further action needed.'),
+        pillLabel: t('stageHero.pillCancelled', 'Cancelled'),
+        pillClass: 'bg-destructive/10 text-destructive border-destructive/20',
+        icon: <XCircle className="h-6 w-6 text-destructive" />,
+      };
+
     case 'open_no_quotes':
       return {
         title: t('stageHero.openNoQuotesTitle', 'Waiting for quotes'),
