@@ -233,7 +233,7 @@ export function JobTicketCompletion({
                 <Button
                   size="sm"
                   className="gap-1.5 mt-1"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || externalDisabled}
                 >
                   {isSubmitting ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
