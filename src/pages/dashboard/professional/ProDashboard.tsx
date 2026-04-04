@@ -395,16 +395,43 @@ const ProDashboard = () => {
           </div>
         )}
 
-        {/* Empty matched jobs state — below menu when active but no matches */}
+        {/* Empty matched jobs state — calm guided state when active but no matches */}
         {isSetupComplete && stats.matchedJobsCount === 0 && (
-          <Card className="mt-5 border-border/50 bg-muted/30">
-            <CardContent className="py-6 px-4 text-center">
-              <Briefcase className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-              <h3 className="font-display text-sm font-semibold text-foreground mb-1">
-                {t('pro.emptyMatchedTitle', 'No matching jobs yet')}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {t('pro.emptyMatchedBody')}
+          <Card className="mt-5 border-border/50 bg-muted/20">
+            <CardContent className="py-8 px-5 space-y-4">
+              <div className="text-center">
+                <CheckCircle2 className="h-9 w-9 text-primary/50 mx-auto mb-2" />
+                <h3 className="font-display text-base font-semibold text-foreground mb-1">
+                  {t('pro.emptyMatchedTitle', "You're all set")}
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                  {t('pro.emptyMatchedBody', "Your profile is live. We'll send you relevant work as matching jobs come in.")}
+                </p>
+              </div>
+
+              <div className="border-t border-border/40 pt-4 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground mb-2">
+                  {t('pro.whatNext', 'What to do next')}
+                </p>
+                <Link to="/onboarding/professional?edit=1&step=basic_info" className="flex items-center gap-2 text-sm text-foreground hover:text-primary py-1.5 transition-colors">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  {t('pro.completeProfile', 'Complete your profile')}
+                  <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
+                </Link>
+                <Link to="/onboarding/professional?edit=1&step=services" className="flex items-center gap-2 text-sm text-foreground hover:text-primary py-1.5 transition-colors">
+                  <Wrench className="h-4 w-4 text-muted-foreground" />
+                  {t('pro.manageServices', 'Manage services')}
+                  <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
+                </Link>
+                <Link to="/professional/priorities" className="flex items-center gap-2 text-sm text-foreground hover:text-primary py-1.5 transition-colors">
+                  <Settings className="h-4 w-4 text-muted-foreground" />
+                  {t('pro.setJobPriorities', 'Set job priorities')}
+                  <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
+                </Link>
+              </div>
+
+              <p className="text-xs text-muted-foreground/70 text-center pt-1">
+                {t('pro.matchHint', 'The better your services, coverage, and profile details, the better your matches.')}
               </p>
             </CardContent>
           </Card>
