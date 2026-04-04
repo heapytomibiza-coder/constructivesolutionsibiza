@@ -22,7 +22,7 @@ import {
   Loader2,
   MapPin,
   Calendar,
-  DollarSign,
+  Euro,
   Clock,
   CheckCircle2,
   Eye,
@@ -655,14 +655,14 @@ export default function JobTicketDetail() {
                   {/* Raise Issue */}
                   {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
                     <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" asChild>
-                      <Link to={`/disputes/raise?job=${jobId}`}>
+                      <Link to={`/contact?subject=issue&job=${jobId}`}>
                         <AlertTriangle className="h-3.5 w-3.5" />
                         {t('jobTicket.raiseIssue', 'Raise Issue')}
                       </Link>
                     </Button>
                   )}
                   {/* Pro: Withdraw */}
-                  {!isClient && canWithdrawQuote(job.status) && job.assigned_professional_id === user?.id && (
+                  {!isClient && canWithdrawQuote(job.status) && (
                     <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleWithdraw}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.withdraw', 'Withdraw')}
@@ -707,7 +707,7 @@ export default function JobTicketDetail() {
                   {/* Client: In-progress cancel guidance */}
                   {isClient && job.status === 'in_progress' && (
                     <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground text-xs" asChild>
-                      <Link to={`/disputes/raise?job=${jobId}`}>
+                      <Link to={`/contact?subject=issue&job=${jobId}`}>
                         <AlertTriangle className="h-3.5 w-3.5" />
                         {t('jobTicket.needToCancel', 'Need to cancel? Raise an issue')}
                       </Link>
@@ -777,7 +777,7 @@ function JobSummaryContent({
         </div>
         {(job.budget_min || job.budget_max) && (
           <div className="flex items-start gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <Euro className="h-4 w-4 text-muted-foreground mt-0.5" />
             <div>
               <span className="text-xs text-muted-foreground block">{t('jobTicket.budget')}</span>
               <p className="text-sm font-medium text-primary">

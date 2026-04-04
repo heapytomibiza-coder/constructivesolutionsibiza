@@ -18,7 +18,7 @@ import {
   Loader2,
   MapPin,
   Calendar,
-  DollarSign,
+  Euro,
   Star,
   Send,
   UserCheck,
@@ -150,7 +150,7 @@ export default function MatchAndSend() {
               </span>
               {(job.budget_min || job.budget_max) && (
                 <span className="flex items-center gap-1">
-                  <DollarSign className="h-3 w-3" />
+                  <Euro className="h-3 w-3" />
                   {job.budget_min && job.budget_max
                     ? `€${job.budget_min}–€${job.budget_max}`
                     : `€${job.budget_min || job.budget_max}`}
