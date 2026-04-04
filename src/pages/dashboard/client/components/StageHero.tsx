@@ -413,12 +413,13 @@ export function StageHero({
           <Button
             variant={config.primaryAction.variant || 'default'}
             onClick={config.primaryAction.onClick}
+            disabled={isCompleting}
             className={cn(
               'h-12 px-5 rounded-xl text-[15px] font-semibold gap-2 w-full sm:w-auto',
               isResolved && 'h-10 text-[14px]',
             )}
           >
-            {config.primaryAction.icon}
+            {isCompleting ? <Loader2 className="h-4 w-4 animate-spin" /> : config.primaryAction.icon}
             {config.primaryAction.label}
           </Button>
         </div>
