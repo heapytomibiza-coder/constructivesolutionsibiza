@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Wrench, MessageSquare, ArrowRight, Layers, FolderOpen } from "lucide-react";
+import { VoiceInput } from "@/components/professional/VoiceInput";
 import {
   Command,
   CommandInput,
@@ -307,7 +308,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
           value={query}
           onValueChange={setQuery}
           onFocus={() => setIsOpen(true)}
-          className="h-14 text-base pr-16"
+          className="h-14 text-base pr-24"
         />
 
         {isOpen && (query.length >= 2 || hasResults) && (
@@ -441,9 +442,16 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         )}
       </Command>
 
-      {/* Keyboard hint - desktop only */}
-      <div className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-        <kbd className="px-2 py-1 text-xs text-muted-foreground bg-muted rounded border">
+      {/* Voice + Keyboard hint - positioned inside the search bar */}
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-auto">
+        <VoiceInput
+          onTranscript={(text) => {
+            setQuery(text);
+            setIsOpen(true);
+          }}
+          className="pointer-events-auto"
+        />
+        <kbd className="hidden sm:inline-block px-2 py-1 text-xs text-muted-foreground bg-muted rounded border pointer-events-none">
           ⌘K
         </kbd>
       </div>
