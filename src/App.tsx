@@ -83,6 +83,12 @@ const ServiceListingEditor = lazy(() => import("./pages/professional/ServiceList
 const ManageServices = lazy(() => import("./pages/professional/ManageServices"));
 const ProInsights = lazy(() => import("./pages/professional/ProInsights"));
 
+/** Redirect legacy /professional/listings/:listingId/edit → canonical path, preserving param */
+function LegacyListingEditRedirect() {
+  const { listingId } = useParams<{ listingId: string }>();
+  return <Navigate to={`/dashboard/pro/listings/${listingId}/edit`} replace />;
+}
+
 // Settings
 const Settings = lazy(() => import("./pages/settings/Settings"));
 
@@ -248,7 +254,7 @@ const App = () => {
 
               {/* Legacy professional redirects */}
               <Route path="/dashboard/professional/jobs" element={<Navigate to="/dashboard/pro/jobs" replace />} />
-              <Route path="/professional/listings/:listingId/edit" element={<Navigate to="/dashboard/pro/listings" replace />} />
+              <Route path="/professional/listings/:listingId/edit" element={<LegacyListingEditRedirect />} />
               <Route path="/professional/listings" element={<Navigate to="/dashboard/pro/listings" replace />} />
               <Route path="/professional/insights" element={<Navigate to="/dashboard/pro/insights" replace />} />
 
