@@ -1,68 +1,85 @@
 
 
-# Clarity and Guidance Pass — Professional Pages
+# Motivational Microcopy Layer — Professional Pages
 
-## What this covers
-A copy-only pass across professional pages to improve titles, descriptions, hints, empty states, and action labels. No route changes, no new features, no redesign.
+## What this is
+A copy-only pass that adds soft motivational headlines and "why this matters" framing across professional pages. No design changes, no routes, no new features.
+
+## Tone
+Encouraging, simple, confident, helpful. Not cheesy. Written for normal users.
+
+---
 
 ## Changes by page
 
-### 1. Dashboard Home (`/dashboard/pro`)
-- **Menu labels**: Add hint text beneath key menu items to distinguish them
-  - "Browse Matching Jobs" → add hint: "Open jobs that match your services"
-  - "My Jobs" → add hint: "Jobs you've been hired for" (new key `pro.myJobsHint`)
-  - "My Listings" → add hint: "Your public service pages on the marketplace" (new key `pro.myListingsHint`)
-  - "My Insights" → add hint: "Market demand and trends" (new key `pro.myInsightsHint`)
-- **"Edit Profile"** hint: Change from "Update your Tasker profile" → "Update your professional profile" (both EN and ES)
-- **Dashboard title**: "Tasker Dashboard" → "Professional Dashboard" (both EN and ES)
+### 1. Dashboard Home (`ProDashboard.tsx`)
+**Menu group labels** get motivational reframes:
+- "Your Work" → **"Want more opportunities?"**
+- "Grow" → **"Want to grow smarter?"**
+- "Account" → stays as "Account" (no motivation needed here)
 
-### 2. My Jobs (`/dashboard/pro/jobs` — `ProJobsList.tsx`)
-- Add subtitle below header: "Jobs where a client has accepted your quote or hired you directly."
-- Empty state copy improvement: current is fine but add: "Browse the job board to find and respond to open requests."
+**Menu item hints** get light motivation added:
+- Browse Matching Jobs hint: "Open jobs that match your services" → **"Find and respond to open client requests"**
+- My Listings hint: "Your public service pages on the marketplace" → **"Complete these so clients can discover and book you"**
+- Market Insights hint: "Market demand and trends" → **"See what clients are searching for in your area"**
+- Community Forum hint: (add) **"Ask questions, share tips, get help"**
 
-### 3. Browse Matching Jobs (`/jobs` — `JobBoardPage.tsx`)
-- No changes needed — this is a public page with its own hero. The copy is already clear.
+**Empty matched jobs card** — add motivational framing:
+- Current body: "We'll show new jobs here when they match your services and areas."
+- Add: **"Want more? Add more services to widen your reach."**
 
-### 4. My Listings (`/dashboard/pro/listings` — `MyServiceListings.tsx`)
-- Page title: "Manage Listings" → "My Listings" (aligns with dashboard menu label)
-- Subtitle: Change from "Edit and publish your services to appear on the platform." → "These are the service pages clients see when browsing the marketplace. Edit, publish, or pause them here."
-- Empty drafts: "No draft listings. Add categories to create drafts." → "No drafts yet. Add service categories to generate listing drafts automatically."
-- Empty live: "No live listings yet. Edit and publish your drafts to go live." → "No live listings yet. Complete and publish a draft to appear in the marketplace."
+### 2. My Jobs (`ProJobsList.tsx`)
+No changes needed — subtitle and empty state already guide well. The empty state already links to the job board.
 
-### 5. Edit Listing (`ServiceListingEditor.tsx`)
-- Header: "Edit Listing" → "Edit Service Page" — reinforces that this is a public-facing page, not internal config
-- Update EN and ES translation keys
+### 3. My Listings (`MyServiceListings.tsx`)
+**Subtitle** gets motivational reframe:
+- Current: "These are the service pages clients see when browsing the marketplace. Edit, publish, or pause them here."
+- New: **"Want to be seen more? Complete and publish your service pages so clients can discover you in the marketplace."**
 
-### 6. Manage Services (`ManageServices.tsx`)
-- Header: "Manage Services" → "Choose Your Services"
-- Subtitle: "Add or remove the jobs you want to be matched with." → "Select the types of work you do. We use these to match you with relevant client requests."
-- This clearly distinguishes from Listings (which are public pages) — services are internal matching config.
+**Empty draft state**:
+- Current: "No drafts yet. Add service categories to generate listing drafts automatically."
+- New: **"No drafts yet. Add service categories and we'll create listing drafts for you automatically."**
 
-### 7. Insights (`ProInsights.tsx`)
-- Title: "My Insights" → "Market Insights"
-- Locked description is already good. No changes needed.
+### 4. Edit Listing (`ServiceListingEditor`)
+No changes — page is already task-focused. Adding motivation here would slow the user down.
 
-### 8. Profile Edit (`ProfileEdit.tsx`)
-- No structural changes. Fix "Tasker" reference in hint text.
+### 5. Choose Your Services (`ManageServices.tsx`)
+**Subtitle** gets motivational reframe:
+- Current: "Select the types of work you do. We use these to match you with relevant client requests."
+- New: **"Want more opportunities? Select the types of work you do — we use these to match you with real client requests."**
 
-### 9. Job Priorities (`JobPriorities.tsx`)
-- Already clear. No changes needed.
+### 6. Profile Edit (`ProfileEdit.tsx`)
+**Intro text** gets motivational reframe:
+- Current: "Keep it fresh — clients love seeing who they're working with."
+- New: **"Want clients to trust you faster? A strong profile helps you stand out and win more work."**
+
+### 7. Job Priorities (`JobPriorities.tsx`)
+**Subtitle** gets motivational reframe:
+- Current: "Tell us which jobs to send you first. Your choices update instantly."
+- New: **"Want better-fit jobs? Tell us which work you prefer and we'll prioritise it for you."**
+
+### 8. Insights (`ProInsights.tsx`)
+**Locked description** — add motivational line:
+- Current: "See which services are trending, where demand is hottest, and how the market is moving — available on Gold and Elite plans."
+- New: **"Want to grow smarter? See which services are trending, where demand is hottest, and how the market is moving."**
+
+---
 
 ## Files changed
 
 | File | Change |
 |------|--------|
-| `public/locales/en/dashboard.json` | Updated ~12 translation keys (titles, hints, empty states) |
-| `public/locales/es/dashboard.json` | Spanish equivalents of above |
-| `public/locales/en/professional.json` | `editListing` → "Edit Service Page" |
+| `public/locales/en/dashboard.json` | ~8 translation value updates (hints, subtitles, empty states, menu labels) |
+| `public/locales/es/dashboard.json` | Spanish equivalents |
+| `public/locales/en/professional.json` | Priorities subtitle update |
 | `public/locales/es/professional.json` | Spanish equivalent |
-| `src/pages/dashboard/professional/ProJobsList.tsx` | Add subtitle text below header |
-| `src/pages/dashboard/professional/ProDashboard.tsx` | Add hint props to MenuItem components (if MenuItem supports hints — otherwise add inline hint text) |
+| `src/pages/professional/ProfileEdit.tsx` | Update hardcoded intro text (line ~304) |
 
 ## What does NOT change
 - No routes
 - No components
 - No features
 - No layout or design changes
-- Job board page (`/jobs`) is untouched — it's a public page with its own clear copy
+- ProJobsList and ServiceListingEditor untouched
+- Dashboard stage cards untouched (already motivational)
 
