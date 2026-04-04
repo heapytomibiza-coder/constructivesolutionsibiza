@@ -298,7 +298,7 @@ const ProDashboard = () => {
                     {t('pro.welcomeBody')}
                   </p>
                   <Button asChild size="sm" variant="outline">
-                    <Link to="/dashboard/professional/jobs">
+                    <Link to="/dashboard/pro/jobs">
                       {t('pro.welcomeCta', 'View Matching Jobs')}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Link>
@@ -355,7 +355,7 @@ const ProDashboard = () => {
                     {t('pro.draftNudgeDesc', 'Add a title, description and price to each listing so clients can find and book you in the marketplace.')}
                   </p>
                   <Button asChild size="sm">
-                    <Link to="/professional/listings">
+                    <Link to="/dashboard/pro/listings">
                       {t('pro.completeListings', 'Complete Your Listings')}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Link>
@@ -387,9 +387,9 @@ const ProDashboard = () => {
                 <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
               )}
               <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} />
-              <MenuItem to="/dashboard/professional/jobs" icon={Hammer} label={t('pro.myJobs', 'My Jobs')} />
+              <MenuItem to="/dashboard/pro/jobs" icon={Hammer} label={t('pro.myJobs', 'My Jobs')} />
               <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
-              <MenuItem to="/professional/listings" icon={Store} label={t('pro.myListings', 'My Listings')} />
+              <MenuItem to="/dashboard/pro/listings" icon={Store} label={t('pro.myListings', 'My Listings')} />
             </>
           )}
 
@@ -397,7 +397,7 @@ const ProDashboard = () => {
           {isSetupComplete && (
             <>
               <MenuGroupLabel>{t('pro.menuGroup.grow', 'Grow')}</MenuGroupLabel>
-              <MenuItem to="/professional/insights" icon={BarChart3} label={t('pro.myInsights', 'My Insights')} />
+              <MenuItem to="/dashboard/pro/insights" icon={BarChart3} label={t('pro.myInsights', 'My Insights')} />
               <MenuItem to="/forum" icon={MessageCircle} label={t('pro.forumHelp', 'Community Forum & Help')} />
             </>
           )}

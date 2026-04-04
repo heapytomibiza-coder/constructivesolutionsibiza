@@ -411,7 +411,7 @@ function buildWelcomeEmail(payload: any, siteUrl: string) {
       `Welcome to ${BRAND_NAME}!`,
       `<h2 style="margin: 0 0 8px; color: #111827; font-size: 18px;">Hi ${payload.display_name || "there"} 👋</h2>
       <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 16px;">Thanks for joining ${BRAND_NAME}. ${isTasker ? "You're now registered as a professional. Complete your profile to start receiving job matches." : "You can now post jobs and connect with trusted professionals in Ibiza."}</p>
-      <a href="${siteUrl}${isTasker ? "/dashboard/professional" : "/post-job"}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">${isTasker ? "Complete Your Profile →" : "Post Your First Job →"}</a>
+      <a href="${siteUrl}${isTasker ? "/dashboard/pro" : "/post-job"}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">${isTasker ? "Complete Your Profile →" : "Post Your First Job →"}</a>
       <p style="color: #9ca3af; font-size: 12px; margin: 16px 0 0; text-align: center;">Need help? Reply to this email anytime.</p>`
     ),
   };
@@ -466,7 +466,7 @@ function buildQuoteStatusEmail(payload: any, siteUrl: string) {
         ? "Great news! The client has accepted your quote. You can now coordinate directly to get started."
         : "The client has decided to go with another option for this job. Keep an eye out for new matches!"
       }</p>
-      <a href="${siteUrl}/dashboard/professional" style="display: inline-block; background: ${accepted ? "#059669" : "#6b7280"}; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">${accepted ? "View Job →" : "Browse Jobs →"}</a>`
+      <a href="${siteUrl}/dashboard/pro" style="display: inline-block; background: ${accepted ? "#059669" : "#6b7280"}; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">${accepted ? "View Job →" : "Browse Jobs →"}</a>`
     ),
   };
 }
@@ -503,7 +503,7 @@ function buildJobCompletedEmail(payload: any, siteUrl: string) {
       "Job Completed! 🎉",
       `<h2 style="margin: 0 0 8px; color: #111827; font-size: 18px;">${payload.title}</h2>
       <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 20px;">This job has been marked as completed. ${payload.is_tasker ? "Great work! Your profile reputation has been updated." : "We hope you had a great experience."}</p>
-      <a href="${siteUrl}/${payload.is_tasker ? "dashboard/professional" : "dashboard"}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Dashboard →</a>`
+      <a href="${siteUrl}/${payload.is_tasker ? "dashboard/pro" : "dashboard"}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Dashboard →</a>`
     ),
   };
 }
