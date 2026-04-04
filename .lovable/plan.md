@@ -1,61 +1,100 @@
 
 
-## Plan: Tighten completion fix — two specific issues
+## Plan: Implement Tasker Onboarding 3-Step Flow
 
-### Context
+### Summary
 
-The completion flow fix is mostly in place. Two specific loose ends need tightening before it's done.
+Convert the 4-step professional onboarding wizard into a 3-step activation flow by merging zones into Step 1, stripping profile-building fields, fixing the auth gate, updating copy, and correcting the post-activation redirect.
 
-### Issue 1: Misleading comment in `JobTicketCompletion.tsx`
+### Phase 1: Quick Wins (no structural risk)
 
-Line 87: `userId: undefined, // not available here, action logs it server-side`
+**1. `src/pages/auth/Auth.tsx` — line 47**
+- Change `const allowProfessional = searchParams.get('pro') === '1'` → `const allowProfessional = searchParams.get('pro') !== '0'`
 
-This is wrong — `completeJob()` does **not** log anything server-side. It only logs the `debugCtx` object client-side before the RPC call. Passing `undefined` means the debug log has no user ID for the completion-card path, reducing its diagnostic value.
+**2. `src/components/auth/IntentSelector.tsx` — line 28**
+- Change `allowProfessional = false` → `allowProfessional = true`
 
-**Fix:** Import `useSession` in `JobTicketCompletion` (or pass `userId` as a prop from `JobTicketDetail` which already has `user?.id`) and pass the real value. Remove the misleading comment.
+**3. `src/pages/onboarding/steps/ReviewStep.tsx` — line 84**
+- Change `navigate('/professional/listings?welcome=1')` → `navigate('/dashboard/pro?welcome=1')`
+- Add `toast.success(t('review.liveSuccess'))` before the navigate call
 
-The cleanest approach: add a `viewerId?: string` prop to `JobTicketCompletionProps` and pass `user?.id` from `JobTicketDetail.tsx` at both render sites (lines 437-444 and 452-459). Then use it in the `debugCtx`.
+**4. `public/locales/en/onboarding.json` — copy updates**
+- `wizard.stepLabels.basic_info`: "About You" → "Get Set Up"
+- `wizard.stepLabels.services`: "The Work You Do" → "Choose Your Jobs"
+- `wizard.stepHeaders.basic_info`: "Step 1: About You" → "Step 1: Get Set Up"
+- `wizard.stepHeaders.services`: "Step 3: The Work You Do" → "Step 2: Choose Your Jobs"
+- `wizard.stepHeaders.review`: "Step 4: Go Live!" → "Step 3: Go Live"
+- `basicInfo.title`: "Tell us about yourself" → "Let's get you ready to receive jobs"
+- `basicInfo.description`: "This is what clients will see when they view your profile." → "Your name, number, and work areas — that's all we need to start matching you."
+- `basicInfo.nextStep`: "Next Step" → "Next: Choose Your Jobs"
+- `serviceUnlock.continue`: "Continue" → "Start Receiving Jobs"
+- `review.goLive`: "Go Live" → "Go Live — Start Receiving Jobs"
+- `review.aboutYou` → "Your details"
+- `review.aboutYouDesc` → "Name, phone, and work areas"
+- Remove `wizard.stepLabels.service_area` and `wizard.stepHeaders.service_area` (keep keys but they won't render)
 
-### Issue 2: `friendlyError` exact-key lookup is brittle
+**5. `public/locales/es/onboarding.json`** — mirror all copy changes in Spanish
 
-`completeJob.action.ts` line 14-16:
-```ts
-function friendlyError(raw: string): string {
-  return RPC_ERROR_MAP[raw] ?? raw;
-}
-```
+### Phase 2: Structural Merge
 
-If Supabase ever wraps the exception message (e.g., `"not_authorized"` arrives as `"ERROR: not_authorized"` or with extra context), this exact-key lookup silently falls through and shows the raw database message to the user.
+**6. `src/pages/onboarding/steps/BasicInfoStep.tsx`**
+- Remove `bio`, `tagline`, `business_name` from: interface, state, query, mutation, and form JSX (lines 181-224)
+- Remove unused imports (`Textarea`, `FileText`)
+- Import zone components: `ZoneTile`, `IslandWideTile`, `IBIZA_ZONES`, `allZoneIds` from `@/shared/components/professional`
+- Add zone state (`selectedZones`, `islandWide`) and zone toggle/island-wide handlers (reuse logic from ServiceAreaStep)
+- Add zone picker UI below phone field (island-wide tile + grouped zone tiles)
+- Update mutation to also upsert `professional_profiles` with `service_zones`, `service_area_type: 'zones'`, and `onboarding_phase: nextPhase(currentPhase, 'service_area')` — use upsert pattern from ServiceAreaStep
+- Update validation: require name non-empty AND zones ≥ 1
+- Load existing zones in the query (add `service_zones` to the `professional_profiles` select)
 
-**Fix:** Change to a substring/includes check:
+**7. `src/pages/onboarding/ProfessionalOnboarding.tsx`**
+- Remove `'service_area'` from `WizardStep` type union
+- Remove `service_area` entry from `STEPS` array (result: 3 items with icons `User`, `Briefcase`, `Rocket`)
+- Remove `MapPin` import
+- Update `phaseToStep`: `service_area` phase → `'services'` (user already saved zones in step 1)
+- `handleBasicInfoComplete`: change `setCurrentStep('service_area')` → `setCurrentStep('services')`
+- Remove `handleServiceAreaComplete` handler entirely
+- Remove `ServiceAreaStep` render branch (lines 301-308)
+- Update `ServiceUnlockStep` `onBack`: `setCurrentStep('service_area')` → `setCurrentStep('basic_info')`
+- Update `stepCompletion` array from 4 items to 3: `[hasName && hasPhone && hasZones, hasServices, false]`
+- Deep-link fallback: if `stepParam === 'service_area'`, treat as `'basic_info'`
+- TrackerView: remove `'service_area'` from `stepOrder`, update `phaseToCurrentStep` accordingly
 
-```ts
-function friendlyError(raw: string): string {
-  for (const [key, msg] of Object.entries(RPC_ERROR_MAP)) {
-    if (raw.includes(key)) return msg;
-  }
-  return raw;
-}
-```
+**8. `src/pages/onboarding/steps/ReviewStep.tsx`**
+- Merge "About you" and "Where you work" checklist items into one: "Your details — Name, phone, and work areas"
+- Remove the `service_area` checklist item
+- Update the merged item's `onClick` to navigate to `'basic_info'`
 
-This is safe because the error tokens (`job_not_found`, `not_authorized`, `completion_not_requested`, etc.) are distinctive enough to not produce false matches.
+**9. `src/pages/onboarding/steps/index.ts`**
+- Keep `ServiceAreaStep` export (may be used elsewhere) — no change needed
 
-### Files to change
+### Implementation Notes
 
-| File | Change |
-|---|---|
-| `src/pages/jobs/actions/completeJob.action.ts` | Make `friendlyError` use substring matching |
-| `src/pages/dashboard/client/components/JobTicketCompletion.tsx` | Add `viewerId` prop, pass real user ID in debugCtx, remove misleading comment |
-| `src/pages/dashboard/client/JobTicketDetail.tsx` | Pass `viewerId={user?.id}` to both `JobTicketCompletion` render sites |
+- **Phase progression**: `nextPhase(currentPhase, 'service_area')` in BasicInfoStep advances through both `basic_info` and `service_area` phases in one save. The existing `nextPhase` utility handles forward-only advancement correctly.
+- **Existing users at `service_area` phase**: `phaseToStep['service_area']` → `'services'` means they skip to the job picker. Their zones are already saved. Safe.
+- **Edit mode deep link `?step=service_area`**: Falls back to `'basic_info'` so zone editing goes to the merged step.
+- **ServiceAreaStep file**: Not deleted — removed from wizard only. May be used in standalone editing contexts.
+- **BasicInfoStep mutation**: Changes from `update` to `upsert` on `professional_profiles` to handle edge cases where the row doesn't exist yet.
 
-### What this does NOT change
+### Acceptance Checklist
 
-- No backend changes
-- No business logic changes  
-- No component restructuring
-- No new dependencies
+- [ ] `/auth` shows "I'm a tradesperson" by default (no `?pro=1` needed)
+- [ ] Step 1 shows name, phone, and zone tiles — no bio/tagline/business name
+- [ ] Step 1 CTA: "Next: Choose Your Jobs"
+- [ ] Cannot proceed from Step 1 without name and ≥1 zone
+- [ ] Step 2 is the service picker, CTA: "Start Receiving Jobs"
+- [ ] Step 3 checklist shows 2 items (details + jobs), CTA: "Go Live — Start Receiving Jobs"
+- [ ] Go Live redirects to `/dashboard/pro?welcome=1` with success toast
+- [ ] Progress bar shows 3 steps, labels: "Get Set Up / Choose Your Jobs / Go Live"
+- [ ] Returning user at `service_area` phase lands on services step
+- [ ] Edit mode `?step=service_area` deep link opens Step 1
+- [ ] Edit mode tracker shows 3 steps
 
-### Verification
+### Build Order
 
-After these two changes, the debug log from either entry point will show the real `userId` alongside `jobOwnerId`, making ownership mismatches immediately visible in console. And the error mapping will be resilient to Supabase message format variations.
+1. Auth gate fix (Auth.tsx + IntentSelector.tsx)
+2. Copy/translation updates (en + es JSON files)
+3. ReviewStep redirect + toast + checklist merge
+4. BasicInfoStep — strip fields + merge zones
+5. ProfessionalOnboarding — remove service_area step, update navigation/tracker
 
