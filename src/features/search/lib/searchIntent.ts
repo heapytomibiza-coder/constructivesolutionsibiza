@@ -95,9 +95,9 @@ const PROJECT_TERMS = new Set([
   "kitchen renovation", "bathroom renovation", "loft conversion",
   "pool installation", "house build", "garage conversion",
   "office fit out", "fit out", "fitout",
-  // Spanish
-  "reforma", "rehabilitación", "ampliación", "construcción",
-  "reforma de cocina", "reforma de baño",
+  // Spanish (accent-folded)
+  "reforma", "rehabilitacion", "ampliacion", "construccion",
+  "reforma de cocina", "reforma de bano",
 ]);
 
 /**

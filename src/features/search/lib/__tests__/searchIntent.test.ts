@@ -55,13 +55,12 @@ describe("searchIntent — classifyIntent", () => {
       expect(classifyIntent("pool cleaning")).toBe("TRADE");
     });
 
-    it('"aircon repair" → TASK (repair is a task verb)', () => {
-      expect(classifyIntent("aircon repair")).toBe("TASK");
+    it('"aircon repair" → TRADE (aircon is a trade term, wins over non-leading verb)', () => {
+      expect(classifyIntent("aircon repair")).toBe("TRADE");
     });
 
-    it('"bathroom fitter" → EXPLORATORY (no exact trade or verb)', () => {
-      // "fitter" is not in TRADE_TERMS, "bathroom" alone is not a trade
-      expect(classifyIntent("bathroom fitter")).toBe("EXPLORATORY");
+    it('"bathroom fitter" → TASK ("fit" verb found via broad check)', () => {
+      expect(classifyIntent("bathroom fitter")).toBe("TASK");
     });
 
     it('"legal advice" → EXPLORATORY', () => {
