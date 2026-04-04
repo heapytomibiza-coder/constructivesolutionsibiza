@@ -57,6 +57,7 @@ export default function JobTicketDetail() {
   const { user, activeRole } = useSession();
   const queryClient = useQueryClient();
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const rebook = useRebook();
   const updatesRef = useRef<HTMLDivElement>(null);
