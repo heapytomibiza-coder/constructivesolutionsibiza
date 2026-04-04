@@ -22,7 +22,7 @@ import {
   Loader2,
   MapPin,
   Calendar,
-  DollarSign,
+  Euro,
   Clock,
   CheckCircle2,
   Eye,
