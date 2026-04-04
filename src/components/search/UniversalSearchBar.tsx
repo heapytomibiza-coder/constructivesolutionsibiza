@@ -249,7 +249,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         .limit(20);
 
       if (error) throw error;
-      return transformServiceResults(data || [], intent);
+      return transformServiceResults(data || [], intent, debouncedQuery);
     },
     enabled: debouncedQuery.length >= 2,
     staleTime: 30000,
