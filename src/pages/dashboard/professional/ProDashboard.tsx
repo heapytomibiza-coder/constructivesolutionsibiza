@@ -298,7 +298,7 @@ const ProDashboard = () => {
                     {t('pro.welcomeBody')}
                   </p>
                   <Button asChild size="sm" variant="outline">
-                    <Link to="/dashboard/pro/jobs">
+                    <Link to="/jobs">
                       {t('pro.welcomeCta', 'View Matching Jobs')}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Link>
