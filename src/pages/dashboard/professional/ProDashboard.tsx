@@ -221,7 +221,7 @@ const ProDashboard = () => {
     if (matchCount >= 3 && !bio) {
       return { key: 'prompt2', icon: FileText, link: '/onboarding/professional?edit=1&step=basic_info' };
     }
-    if (matchCount >= 5) {
+    if (matchCount >= 5 && businessName && tagline && bio) {
       return { key: 'prompt3', icon: SlidersHorizontal, link: '/onboarding/professional?edit=1&step=services' };
     }
     return null;
