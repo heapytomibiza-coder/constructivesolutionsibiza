@@ -87,7 +87,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
       // Session token exists but hydration failed — keep showing spinner
       // rather than force-logging the user out
       console.warn('RouteGuard: retries exhausted but session token found in storage — not redirecting');
-      return <LoadingSpinner />;
+      return <LoadingSpinner showRetry onRetry={() => { setRetryCount(0); setTimedOut(false); refresh().catch(() => {}); }} />;
     }
 
     const returnUrl = buildReturnUrl(location.pathname, location.search);
