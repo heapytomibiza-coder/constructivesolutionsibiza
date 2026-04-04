@@ -234,7 +234,7 @@ export default function ServiceListingEditor() {
       }
 
       toast.success(t('listingEditor.listingPublished', 'Listing published'));
-      navigate('/professional/listings');
+      navigate('/dashboard/pro/listings');
     } catch (err: any) {
       const msg = err?.message || err?.toString() || '';
       if (msg.includes('LISTING_LIMIT_REACHED')) {
