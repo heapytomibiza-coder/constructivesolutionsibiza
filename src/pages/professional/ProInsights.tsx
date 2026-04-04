@@ -47,7 +47,7 @@ export default function ProInsights() {
             </Link>
           </Button>
           <h1 className="font-display text-lg font-bold text-foreground">
-            {t('pro.myInsights', 'My Insights')}
+            {t('pro.myInsights', 'Market Insights')}
           </h1>
           {hasDemandAccess && (
             <Badge variant="secondary" className="ml-auto text-xs">

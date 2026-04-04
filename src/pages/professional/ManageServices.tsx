@@ -129,7 +129,7 @@ export default function ManageServices() {
                 <div>
                   <CardTitle className="text-xl font-semibold">{t('serviceUnlock.title')}</CardTitle>
                   <p className="text-base text-muted-foreground">
-                    {tDash('pro.manageServicesHint', 'Add or remove the jobs you want to be matched with.')}
+                    {tDash('pro.manageServicesHint', 'Select the types of work you do. We use these to match you with relevant client requests.')}
                   </p>
                 </div>
               </div>
