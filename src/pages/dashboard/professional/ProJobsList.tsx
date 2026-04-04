@@ -66,6 +66,11 @@ export default function ProJobsList() {
           </h1>
         </div>
       </div>
+      <div className="container pt-4 max-w-2xl">
+        <p className="text-sm text-muted-foreground">
+          {t('pro.myJobsSubtitle', 'Jobs where a client has accepted your quote or hired you directly.')}
+        </p>
+      </div>
 
       <div className="container py-5 max-w-2xl">
         {isLoading ? (

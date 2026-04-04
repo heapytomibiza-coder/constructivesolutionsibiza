@@ -46,11 +46,12 @@ interface MenuItemProps {
   to: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
+  hint?: string;
   primary?: boolean;
   badge?: number;
 }
 
-function MenuItem({ to, icon: Icon, label, primary, badge }: MenuItemProps) {
+function MenuItem({ to, icon: Icon, label, hint, primary, badge }: MenuItemProps) {
   return (
     <Link
       to={to}
@@ -62,9 +63,16 @@ function MenuItem({ to, icon: Icon, label, primary, badge }: MenuItemProps) {
       )}
     >
       <Icon className={cn('h-5 w-5 shrink-0', primary ? 'text-primary-foreground' : 'text-primary')} />
-      <span className={cn('text-sm font-medium flex-1', primary ? 'text-primary-foreground' : 'text-foreground')}>
-        {label}
-      </span>
+      <div className="flex-1 min-w-0">
+        <span className={cn('text-sm font-medium block', primary ? 'text-primary-foreground' : 'text-foreground')}>
+          {label}
+        </span>
+        {hint && (
+          <span className={cn('text-[11px] block', primary ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+            {hint}
+          </span>
+        )}
+      </div>
       {badge != null && badge > 0 && (
         <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 shrink-0">
           {badge}
@@ -372,7 +380,7 @@ const ProDashboard = () => {
           {!isSetupComplete && (
             <>
               <MenuGroupLabel>{t('pro.menuGroup.getStarted', 'Get Started')}</MenuGroupLabel>
-              <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
+              <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} hint={t('pro.editProfileHint')} primary />
               {dashboardStage !== 'needs_profile' && (
                 <MenuItem to="/onboarding/professional?step=services" icon={Wrench} label={t('pro.chooseServices', 'Choose Your Services')} />
               )}
@@ -384,12 +392,12 @@ const ProDashboard = () => {
             <>
               <MenuGroupLabel>{t('pro.menuGroup.yourWork', 'Your Work')}</MenuGroupLabel>
               {isSetupComplete && (
-                <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
+                <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} hint={t('pro.editProfileHint')} primary />
               )}
-              <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} />
-              <MenuItem to="/dashboard/pro/jobs" icon={Hammer} label={t('pro.myJobs', 'My Jobs')} />
+              <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} hint={t('pro.browseMatchingJobsHint', 'Open jobs that match your services')} />
+              <MenuItem to="/dashboard/pro/jobs" icon={Hammer} label={t('pro.myJobs', 'My Jobs')} hint={t('pro.myJobsHint', 'Jobs you\'ve been hired for')} />
               <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
-              <MenuItem to="/dashboard/pro/listings" icon={Store} label={t('pro.myListings', 'My Listings')} />
+              <MenuItem to="/dashboard/pro/listings" icon={Store} label={t('pro.myListings', 'My Listings')} hint={t('pro.myListingsHint', 'Your public service pages on the marketplace')} />
             </>
           )}
 
@@ -397,7 +405,7 @@ const ProDashboard = () => {
           {isSetupComplete && (
             <>
               <MenuGroupLabel>{t('pro.menuGroup.grow', 'Grow')}</MenuGroupLabel>
-              <MenuItem to="/dashboard/pro/insights" icon={BarChart3} label={t('pro.myInsights', 'My Insights')} />
+              <MenuItem to="/dashboard/pro/insights" icon={BarChart3} label={t('pro.myInsights', 'Market Insights')} hint={t('pro.myInsightsHint', 'Market demand and trends')} />
               <MenuItem to="/forum" icon={MessageCircle} label={t('pro.forumHelp', 'Community Forum & Help')} />
             </>
           )}
