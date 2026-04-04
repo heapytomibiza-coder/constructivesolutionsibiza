@@ -157,8 +157,22 @@ function matchesProjectPattern(words: string[]): boolean {
  * Priority: TASK verb > TRADE term (anywhere) > PROJECT > EXPLORATORY
  * Exception: TRADE term wins over task verb only when task verb is NOT the first word.
  */
+/**
+ * Strip punctuation and fold accents so "fontanería?" matches "fontaneria".
+ */
+function normalizeQuery(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")   // strip accent marks
+    .replace(/[^\w\s]/g, "")           // strip punctuation
+    .replace(/\s+/g, " ")             // collapse whitespace
+    .trim();
+}
+
 export function classifyIntent(query: string): SearchIntent {
-  const normalized = query.trim().toLowerCase();
+  const normalized = normalizeQuery(query);
   if (!normalized) return "EXPLORATORY";
 
   const words = normalized.split(/\s+/);
