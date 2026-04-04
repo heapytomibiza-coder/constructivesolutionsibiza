@@ -65,7 +65,10 @@ export default function JobTicketDetail() {
   const reviewRef = useRef<HTMLDivElement>(null);
   const quotesRef = useRef<HTMLDivElement>(null);
 
-  const { data: job, isLoading } = useQuery({
+  // Realtime subscription — refetches on quote/status/progress/review changes
+  useJobTicketRealtime(jobId);
+
+
     queryKey: ['job_ticket', jobId],
     queryFn: async () => {
       const { data, error } = await supabase
