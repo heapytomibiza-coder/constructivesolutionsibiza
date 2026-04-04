@@ -52,8 +52,8 @@ const TRADE_TERMS = new Set([
   "surveyor",
   "demolition",
   "scaffolding",
-  // Spanish equivalents
-  "fontanero", "fontanería", "electricista", "albañil", "pintor",
+  // Spanish equivalents (stored accent-folded to match normalized queries)
+  "fontanero", "fontaneria", "electricista", "albanil", "pintor",
   "carpintero", "cerrajero", "cristalero", "jardinero", "limpieza",
 ]);
 
