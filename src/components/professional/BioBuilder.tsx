@@ -193,7 +193,7 @@ export function BioBuilder({ onBioGenerated, onClose, businessName }: BioBuilder
         )}
 
         <p className="text-sm text-muted-foreground">
-          We'll ask 4–5 short questions. Skip any you like — we'll work with what you give us.
+          We'll ask up to 5 short questions. Skip any you like — we'll work with what you give us.
         </p>
 
         <div className="flex gap-2">
