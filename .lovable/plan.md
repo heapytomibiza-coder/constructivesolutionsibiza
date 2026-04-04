@@ -1,100 +1,106 @@
 
 
-## Plan: Implement Tasker Onboarding 3-Step Flow
+## Plan: Welcome Banner + Legacy Deep-Link Hardening + Delayed Profile Prompts
 
-### Summary
+### 1. Dashboard Welcome Banner (`ProDashboard.tsx`)
 
-Convert the 4-step professional onboarding wizard into a 3-step activation flow by merging zones into Step 1, stripping profile-building fields, fixing the auth gate, updating copy, and correcting the post-activation redirect.
+**What to build:**
+- Read `?welcome=1` from URL using `useSearchParams`
+- Add local `useState` for `dismissed`
+- When `dismissed` → call `setSearchParams` to remove `welcome` key (no page reload)
+- Render a success-styled `Card` above the stage guidance card when `welcome=1` and not dismissed
 
-### Phase 1: Quick Wins (no structural risk)
+**Banner content:**
+- Icon: `CheckCircle2` in green/emerald
+- Title: "You're live!"
+- Body: "When a client posts a matching job, it'll appear here. You can update your profile later as you start receiving work."
+- Primary CTA: `Link` to `/jobs` — "View Matching Jobs"
+- Dismiss button (X icon top-right or "Dismiss" text button)
+- Styled with `border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20` — success state, not warning
 
-**1. `src/pages/auth/Auth.tsx` — line 47**
-- Change `const allowProfessional = searchParams.get('pro') === '1'` → `const allowProfessional = searchParams.get('pro') !== '0'`
+**Empty-state card below menu (when `matchedJobsCount === 0` and `isSetupComplete`):**
+- Title: "No matching jobs yet"
+- Body: "We'll show new jobs here when they match your services and areas."
+- Subtle/muted styling, no CTA
 
-**2. `src/components/auth/IntentSelector.tsx` — line 28**
-- Change `allowProfessional = false` → `allowProfessional = true`
+**Import changes:** Add `useSearchParams` from `react-router-dom`, add `X` from `lucide-react`
 
-**3. `src/pages/onboarding/steps/ReviewStep.tsx` — line 84**
-- Change `navigate('/professional/listings?welcome=1')` → `navigate('/dashboard/pro?welcome=1')`
-- Add `toast.success(t('review.liveSuccess'))` before the navigate call
+### 2. Legacy Deep-Link Hardening (`ProfessionalOnboarding.tsx`)
 
-**4. `public/locales/en/onboarding.json` — copy updates**
-- `wizard.stepLabels.basic_info`: "About You" → "Get Set Up"
-- `wizard.stepLabels.services`: "The Work You Do" → "Choose Your Jobs"
-- `wizard.stepHeaders.basic_info`: "Step 1: About You" → "Step 1: Get Set Up"
-- `wizard.stepHeaders.services`: "Step 3: The Work You Do" → "Step 2: Choose Your Jobs"
-- `wizard.stepHeaders.review`: "Step 4: Go Live!" → "Step 3: Go Live"
-- `basicInfo.title`: "Tell us about yourself" → "Let's get you ready to receive jobs"
-- `basicInfo.description`: "This is what clients will see when they view your profile." → "Your name, number, and work areas — that's all we need to start matching you."
-- `basicInfo.nextStep`: "Next Step" → "Next: Choose Your Jobs"
-- `serviceUnlock.continue`: "Continue" → "Start Receiving Jobs"
-- `review.goLive`: "Go Live" → "Go Live — Start Receiving Jobs"
-- `review.aboutYou` → "Your details"
-- `review.aboutYouDesc` → "Name, phone, and work areas"
-- Remove `wizard.stepLabels.service_area` and `wizard.stepHeaders.service_area` (keep keys but they won't render)
+Already handled: `service_area` → `basic_info` fallback on line 43. Additional hardening:
 
-**5. `public/locales/es/onboarding.json`** — mirror all copy changes in Spanish
+- After computing `stepParam`, validate it against the allowed step list (`basic_info`, `services`, `review`, `tracker`). If `stepParam` is truthy but not in the list, ignore it (set to `null`).
+- This is a ~3-line addition after line 43.
 
-### Phase 2: Structural Merge
+### 3. Delayed Profile Prompts
 
-**6. `src/pages/onboarding/steps/BasicInfoStep.tsx`**
-- Remove `bio`, `tagline`, `business_name` from: interface, state, query, mutation, and form JSX (lines 181-224)
-- Remove unused imports (`Textarea`, `FileText`)
-- Import zone components: `ZoneTile`, `IslandWideTile`, `IBIZA_ZONES`, `allZoneIds` from `@/shared/components/professional`
-- Add zone state (`selectedZones`, `islandWide`) and zone toggle/island-wide handlers (reuse logic from ServiceAreaStep)
-- Add zone picker UI below phone field (island-wide tile + grouped zone tiles)
-- Update mutation to also upsert `professional_profiles` with `service_zones`, `service_area_type: 'zones'`, and `onboarding_phase: nextPhase(currentPhase, 'service_area')` — use upsert pattern from ServiceAreaStep
-- Update validation: require name non-empty AND zones ≥ 1
-- Load existing zones in the query (add `service_zones` to the `professional_profiles` select)
+**Data source:** Extend `useProStats` to query `bio` and `tagline` from `professional_profiles` for the current user. Add these to the returned object.
 
-**7. `src/pages/onboarding/ProfessionalOnboarding.tsx`**
-- Remove `'service_area'` from `WizardStep` type union
-- Remove `service_area` entry from `STEPS` array (result: 3 items with icons `User`, `Briefcase`, `Rocket`)
-- Remove `MapPin` import
-- Update `phaseToStep`: `service_area` phase → `'services'` (user already saved zones in step 1)
-- `handleBasicInfoComplete`: change `setCurrentStep('service_area')` → `setCurrentStep('services')`
-- Remove `handleServiceAreaComplete` handler entirely
-- Remove `ServiceAreaStep` render branch (lines 301-308)
-- Update `ServiceUnlockStep` `onBack`: `setCurrentStep('service_area')` → `setCurrentStep('basic_info')`
-- Update `stepCompletion` array from 4 items to 3: `[hasName && hasPhone && hasZones, hasServices, false]`
-- Deep-link fallback: if `stepParam === 'service_area'`, treat as `'basic_info'`
-- TrackerView: remove `'service_area'` from `stepOrder`, update `phaseToCurrentStep` accordingly
+**Prompt logic in `ProDashboard.tsx`:**
+- Compute which prompt to show (highest priority unfinished):
+  1. `matchedJobsCount >= 1 && (!businessName || !tagline)` → Prompt 1
+  2. `matchedJobsCount >= 3 && !bio` → Prompt 2
+  3. `matchedJobsCount >= 5` → Prompt 3
+- Show only ONE prompt at a time (first matching wins)
+- Render as a dashboard Card between the stage card and the menu
+- Each prompt has: icon, title, body, CTA linking to the edit step
 
-**8. `src/pages/onboarding/steps/ReviewStep.tsx`**
-- Merge "About you" and "Where you work" checklist items into one: "Your details — Name, phone, and work areas"
-- Remove the `service_area` checklist item
-- Update the merged item's `onClick` to navigate to `'basic_info'`
+**Prompt specs:**
 
-**9. `src/pages/onboarding/steps/index.ts`**
-- Keep `ServiceAreaStep` export (may be used elsewhere) — no change needed
+| # | Condition | Title | Body | CTA | Link |
+|---|---|---|---|---|---|
+| 1 | ≥1 match, missing biz name or tagline | "Want to look more professional?" | "Add your business name and tagline so clients know who you are." | "Complete profile basics" | `/onboarding/professional?edit=1&step=basic_info` |
+| 2 | ≥3 matches, missing bio | "Clients check profiles before hiring" | "Add a short bio to help them trust you." | "Add bio" | `/onboarding/professional?edit=1&step=basic_info` |
+| 3 | ≥5 matches | "Getting jobs you don't want?" | "Fine-tune the work you receive." | "Update job preferences" | `/onboarding/professional?edit=1&step=services` |
 
-### Implementation Notes
+**Note:** Prompts only show when `isSetupComplete` is true. They do NOT show alongside the welcome banner.
 
-- **Phase progression**: `nextPhase(currentPhase, 'service_area')` in BasicInfoStep advances through both `basic_info` and `service_area` phases in one save. The existing `nextPhase` utility handles forward-only advancement correctly.
-- **Existing users at `service_area` phase**: `phaseToStep['service_area']` → `'services'` means they skip to the job picker. Their zones are already saved. Safe.
-- **Edit mode deep link `?step=service_area`**: Falls back to `'basic_info'` so zone editing goes to the merged step.
-- **ServiceAreaStep file**: Not deleted — removed from wizard only. May be used in standalone editing contexts.
-- **BasicInfoStep mutation**: Changes from `update` to `upsert` on `professional_profiles` to handle edge cases where the row doesn't exist yet.
+### 4. `useProStats` Changes
 
-### Acceptance Checklist
+Add a secondary query for `bio` and `tagline` from `professional_profiles`:
+- Query: `select bio, tagline from professional_profiles where user_id = userId`
+- Return `bio` and `tagline` on the hook's return object
+- `businessName` is already available via `professionalProfile?.businessName` from the session, so no change needed there
 
-- [ ] `/auth` shows "I'm a tradesperson" by default (no `?pro=1` needed)
-- [ ] Step 1 shows name, phone, and zone tiles — no bio/tagline/business name
-- [ ] Step 1 CTA: "Next: Choose Your Jobs"
-- [ ] Cannot proceed from Step 1 without name and ≥1 zone
-- [ ] Step 2 is the service picker, CTA: "Start Receiving Jobs"
-- [ ] Step 3 checklist shows 2 items (details + jobs), CTA: "Go Live — Start Receiving Jobs"
-- [ ] Go Live redirects to `/dashboard/pro?welcome=1` with success toast
-- [ ] Progress bar shows 3 steps, labels: "Get Set Up / Choose Your Jobs / Go Live"
-- [ ] Returning user at `service_area` phase lands on services step
-- [ ] Edit mode `?step=service_area` deep link opens Step 1
-- [ ] Edit mode tracker shows 3 steps
+### 5. Translation Keys (`public/locales/en/dashboard.json` + `es/dashboard.json`)
+
+Add under `pro`:
+- `pro.welcomeTitle`: "You're live!"
+- `pro.welcomeBody`: "When a client posts a matching job, it'll appear here. You can update your profile later as you start receiving work."
+- `pro.welcomeCta`: "View Matching Jobs"
+- `pro.emptyMatchedTitle`: "No matching jobs yet"
+- `pro.emptyMatchedBody`: "We'll show new jobs here when they match your services and areas."
+- `pro.prompt1Title`, `pro.prompt1Body`, `pro.prompt1Cta`
+- `pro.prompt2Title`, `pro.prompt2Body`, `pro.prompt2Cta`
+- `pro.prompt3Title`, `pro.prompt3Body`, `pro.prompt3Cta`
+
+### Files to Change
+
+| File | Change | Size |
+|---|---|---|
+| `src/pages/dashboard/professional/ProDashboard.tsx` | Welcome banner, empty state, profile prompts | Medium |
+| `src/pages/dashboard/professional/hooks/useProStats.ts` | Add bio/tagline query | Small |
+| `src/pages/onboarding/ProfessionalOnboarding.tsx` | Invalid step param fallback (~3 lines) | Small |
+| `public/locales/en/dashboard.json` | Add welcome + prompt translation keys | Small |
+| `public/locales/es/dashboard.json` | Mirror in Spanish | Small |
 
 ### Build Order
 
-1. Auth gate fix (Auth.tsx + IntentSelector.tsx)
-2. Copy/translation updates (en + es JSON files)
-3. ReviewStep redirect + toast + checklist merge
-4. BasicInfoStep — strip fields + merge zones
-5. ProfessionalOnboarding — remove service_area step, update navigation/tracker
+1. Translation keys (both locales)
+2. `useProStats` — add bio/tagline
+3. `ProDashboard` — welcome banner + empty state + prompts
+4. `ProfessionalOnboarding` — invalid step hardening
+
+### Acceptance Criteria
+
+- [ ] `/dashboard/pro?welcome=1` shows success banner with "You're live!" title
+- [ ] Dismissing the banner removes `?welcome=1` from URL
+- [ ] Refreshing after dismiss does not re-show the banner
+- [ ] When `matchedJobsCount === 0` and setup complete, empty-state card shows below menu
+- [ ] Welcome banner does not show when `?welcome` is absent
+- [ ] Profile prompts show only when `isSetupComplete` and no welcome banner
+- [ ] Only one prompt shows at a time (highest priority)
+- [ ] Prompt CTAs link to correct edit steps
+- [ ] Invalid `?step=xyz` in onboarding URL is ignored safely
+- [ ] `?step=service_area` still falls back to `basic_info`
 
