@@ -301,7 +301,7 @@ export default function ProfileEdit() {
         {/* Encouraging intro */}
         <div className="text-center space-y-2 py-4">
           <p className="text-lg text-muted-foreground">
-            Keep it fresh — clients love seeing who they're working with.
+            Want clients to trust you faster? A strong profile helps you stand out and win more work.
           </p>
         </div>
 
