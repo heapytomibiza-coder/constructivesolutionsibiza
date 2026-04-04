@@ -466,7 +466,7 @@ function buildQuoteStatusEmail(payload: any, siteUrl: string) {
         ? "Great news! The client has accepted your quote. You can now coordinate directly to get started."
         : "The client has decided to go with another option for this job. Keep an eye out for new matches!"
       }</p>
-      <a href="${siteUrl}/dashboard/professional" style="display: inline-block; background: ${accepted ? "#059669" : "#6b7280"}; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">${accepted ? "View Job →" : "Browse Jobs →"}</a>`
+      <a href="${siteUrl}/dashboard/pro" style="display: inline-block; background: ${accepted ? "#059669" : "#6b7280"}; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">${accepted ? "View Job →" : "Browse Jobs →"}</a>`
     ),
   };
 }
