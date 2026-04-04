@@ -1,95 +1,76 @@
 
 
-# Dashboard Hierarchy Rebalance — Calm Home Base
+# AI Bio Builder — Implementation Plan
 
-## Problem
-The dashboard stacks up to 3 large guidance cards (stage card + profile prompt + draft listings nudge) above the menu, making it feel like a to-do list attack instead of a calm hub.
+## What this is
+A "Help me write this" button inside the bio section of ProfileEdit. Opens an inline guided flow that uses the pro's already-selected services as context, asks 4 optional questions, calls AI, and drops a polished bio into the existing textarea.
 
-## Principle
-**One blocker card at most. Everything else moves down or gets compact.**
+## UX Flow
 
----
+1. User clicks "Help me write this" below the bio textarea
+2. Inline panel appears showing their selected services as context
+3. Four questions presented one at a time (all skippable):
+   - What are you best known for on site?
+   - What do you take most pride in?
+   - What kind of projects do you usually work on?
+   - How do you usually work day-to-day?
+4. Optional fifth: "Anything else clients should know?"
+5. Click "Generate my bio" → loading state → bio appears in textarea
+6. User edits and saves normally through existing form
 
-## Changes
+Minimum requirement: at least one selected service OR one answered question.
 
-### 1. Card priority — only the highest-priority card renders prominently
+## Voice Input
+- Browser Web Speech API via mic icon on each input
+- Tap to record, transcript fills input, fallback to typing
+- No external dependencies
 
-Current rendering order (all can appear simultaneously):
-1. Welcome banner
-2. Stage card (needs_profile / needs_services / needs_review / needs_visibility)
-3. Profile prompt (prompt1 / prompt2 / prompt3)
-4. Draft listings nudge
+## Technical Shape
 
-**New rule**: Render at most **one** card above the menu, using this priority:
-- Welcome banner (if present) — wins, nothing else shown
-- Stage card (if not `active`) — wins, nothing else shown
-- If `active`: show nothing above the menu
+### New files
 
-### 2. Profile prompts → move below the menu
+**`src/components/professional/BioBuilder.tsx`**
+- Receives `onBioGenerated: (bio: string) => void` callback
+- Fetches user's services via `professional_services` joined to `service_micro_categories` for display names
+- Manages step state (intro → q1 → q2 → q3 → q4 → optional q5 → generate)
+- Calls edge function via `supabase.functions.invoke('generate-bio', { body })`
+- Shows loading state during generation
 
-The "Want to look more professional?" / "Add a bio" / "Update job preferences" prompts become **compact reminder rows** rendered *after* the menu section, not before it. They use a smaller, inline style — no large card, no prominent CTA button. Just a text link row with an arrow.
+**`src/components/professional/VoiceInput.tsx`**
+- Wraps browser `SpeechRecognition` API
+- Small mic button component
+- Returns transcript to parent via callback
+- Graceful fallback if browser doesn't support it
 
-### 3. Draft listings nudge → move below the menu
+**`supabase/functions/generate-bio/index.ts`**
+- Auth-gated (same pattern as `listing-description-assist`)
+- Uses shared CORS (`getCorsHeaders`)
+- Calls Lovable AI gateway (`google/gemini-3-flash-preview`)
+- Non-streaming (single response)
+- System prompt enforces grounded, trade-appropriate tone
+- Inputs: services array, business_name, 4-5 answer fields
+- Output: plain text bio, max 500 chars
 
-The "You have N unpublished listings" nudge also moves below the menu, rendered as a compact reminder row alongside the profile prompts. This information is already surfaced inside My Listings itself.
+### Modified file
 
-### 4. Compact reminder row component
+**`src/pages/professional/ProfileEdit.tsx`**
+- Import BioBuilder
+- Add "Help me write this" button below the bio textarea (inside the existing FormField)
+- On bio generated: `form.setValue('bio', generatedBio)` to populate the textarea
+- Toggle state to show/hide the builder panel
 
-Replace the large `Card` wrapper for secondary nudges with a simple row:
-```
-[icon]  Want to look more professional? Complete profile basics  →
-[icon]  You have 28 unpublished listings. Complete them  →
-```
-Muted styling, small text, no prominent button. Feels like a helpful suggestion, not homework.
+### Prompt (in edge function)
+Uses the adapted prompt from the user's specification — grounded tone, no buzzwords, first person, 2-4 sentences, max 500 chars, only uses provided information.
 
-### 5. Menu moves up
-
-With secondary cards removed from above, the menu (`Your Work` / `Grow` / `Account`) sits directly below the header + at most one stage card. The dashboard immediately feels like a navigation hub.
-
----
-
-## Resulting layout
-
-```text
-┌─────────────────────────────┐
-│  Professional Dashboard     │
-│  Welcome back, user@email   │
-├─────────────────────────────┤
-│  [One stage card OR nothing]│  ← only if blocker exists
-├─────────────────────────────┤
-│  YOUR WORK                  │
-│  Edit Profile               │
-│  Browse Matching Jobs       │
-│  My Jobs                    │
-│  Messages                   │
-│  My Listings                │
-│  GROW                       │
-│  Market Insights            │
-│  Community Forum            │
-│  ACCOUNT                    │
-│  Settings                   │
-├─────────────────────────────┤
-│  ── Suggestions ──          │  ← compact rows, muted
-│  💡 Complete profile basics │
-│  💡 28 unpublished listings │
-├─────────────────────────────┤
-│  [Empty matched jobs card]  │  ← if applicable
-└─────────────────────────────┘
-```
-
----
-
-## Files changed
-
-| File | Change |
-|------|--------|
-| `ProDashboard.tsx` | Move profile prompt + draft nudge below menu; add compact `ReminderRow` component; enforce one-card-max rule above menu |
+### Error handling
+- 429 → toast "Too many requests, try again shortly"
+- 402 → toast "AI credits exhausted"
+- Network/other → toast "Failed to generate bio, try again"
 
 ## What does NOT change
-- No routes
-- No new features
-- No translation key changes (reuses existing keys)
-- Stage cards keep their existing design (they are real blockers)
-- Welcome banner keeps its existing design
-- Menu structure unchanged
+- No new routes
+- No new database tables
+- No redesign of profile page
+- Manual bio writing still works
+- Bio saves through existing form to `professional_profiles.bio`
 
