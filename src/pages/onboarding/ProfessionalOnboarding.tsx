@@ -40,7 +40,12 @@ const ProfessionalOnboarding = () => {
   const editMode = params.get('edit') === '1';
   const rawStepParam = params.get('step');
   // Deep-link fallback: service_area → basic_info (zones merged into step 1)
-  const stepParam = (rawStepParam === 'service_area' ? 'basic_info' : rawStepParam) as WizardStep | null;
+  // Also ignore any step param not in the allowed list
+  const ALLOWED_STEPS: WizardStep[] = ['basic_info', 'services', 'review', 'tracker'];
+  const normalizedStep = rawStepParam === 'service_area' ? 'basic_info' : rawStepParam;
+  const stepParam = (normalizedStep && ALLOWED_STEPS.includes(normalizedStep as WizardStep)
+    ? normalizedStep
+    : null) as WizardStep | null;
 
   const { user, professionalProfile, isLoading } = useSession();
   const phase = professionalProfile?.onboardingPhase || 'not_started';

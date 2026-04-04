@@ -125,6 +125,9 @@ export function useProStats() {
     stats,
     dashboardStage,
     matchedJobs: matchedJobsQuery.data || [],
+    bio: profileExtrasQuery.data?.bio ?? null,
+    tagline: profileExtrasQuery.data?.tagline ?? null,
+    businessName,
     isLoading: matchedJobsQuery.isLoading || unreadQuery.isLoading,
     error: matchedJobsQuery.error || unreadQuery.error,
     refetch: () => {
