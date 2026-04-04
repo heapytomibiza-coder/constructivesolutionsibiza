@@ -162,7 +162,14 @@
     "view": "Ver",
     "noImage": "Sin imagen",
     "fromPrice": "Desde {{price}} €",
-    "untitled": "Sin título"
+    "untitled": "Sin título",
+    "menuGroup": {
+      "getStarted": "Comenzar",
+      "yourWork": "¿Quieres más oportunidades?",
+      "grow": "¿Quieres crecer más?",
+      "account": "Cuenta",
+      "suggestions": "Sugerencias"
+    }
   },
   "proProfile": {
     "title": "Perfil Profesional",
