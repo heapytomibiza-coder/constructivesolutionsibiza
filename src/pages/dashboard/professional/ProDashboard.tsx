@@ -298,8 +298,8 @@ const ProDashboard = () => {
 
         <RoleSwitchPanel className="mb-5 md:hidden" />
 
-        {/* Welcome banner — shown after Go Live redirect */}
-        {showWelcomeBanner && (
+        {/* ── Primary card area: at most ONE card ── */}
+        {showWelcomeBanner ? (
           <Card className="mb-5 border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20 shadow-md relative">
             <CardContent className="py-4 px-4">
               <button
@@ -330,63 +330,9 @@ const ProDashboard = () => {
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* Stage guidance card */}
-        {getStageCard(dashboardStage, t)}
-
-        {/* Delayed profile prompt — one at a time, highest priority */}
-        {profilePrompt && (
-          <Card className="mb-5 border-primary/20 bg-primary/5 shadow-sm">
-            <CardContent className="py-4 px-4">
-              <div className="flex items-start gap-3">
-                <div className="rounded-lg bg-primary/10 p-2 shrink-0">
-                  {(() => { const Icon = profilePrompt.icon; return <Icon className="h-5 w-5 text-primary" />; })()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
-                    {t(`pro.${profilePrompt.key}Title`)}
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    {t(`pro.${profilePrompt.key}Body`)}
-                  </p>
-                  <Button asChild size="sm" variant="outline">
-                    <Link to={profilePrompt.link}>
-                      {t(`pro.${profilePrompt.key}Cta`)}
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Draft listings nudge — shown when pro is active but has unpublished listings */}
-        {isSetupComplete && !!draftCount && draftCount > 0 && (
-          <Card className="mb-5 border-accent/30 bg-accent/5 shadow-sm">
-            <CardContent className="py-4 px-4">
-              <div className="flex items-start gap-3">
-                <div className="rounded-lg bg-accent/10 p-2 shrink-0">
-                  <Store className="h-5 w-5 text-accent-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
-                    {t('pro.draftNudgeTitle', 'You have {{count}} unpublished listing', { count: draftCount })}
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    {t('pro.draftNudgeDesc', 'Add a title, description and price to each listing so clients can find and book you in the marketplace.')}
-                  </p>
-                  <Button asChild size="sm">
-                    <Link to="/dashboard/pro/listings">
-                      {t('pro.completeListings', 'Complete Your Listings')}
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        ) : (
+          /* Stage card — only if not yet active */
+          getStageCard(dashboardStage, t)
         )}
 
         {/* Menu — grouped by context */}
@@ -429,6 +375,25 @@ const ProDashboard = () => {
           <MenuGroupLabel>{t('pro.menuGroup.account', 'Account')}</MenuGroupLabel>
           <MenuItem to="/settings" icon={Settings} label={t('common.settings', 'Settings')} />
         </div>
+
+        {/* ── Secondary suggestions — compact rows below the menu ── */}
+        {(profilePrompt || (isSetupComplete && !!draftCount && draftCount > 0)) && (
+          <div className="mt-5 flex flex-col gap-0.5 border-t border-border/30 pt-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">
+              {t('pro.menuGroup.suggestions', 'Suggestions')}
+            </p>
+            {profilePrompt && (
+              <ReminderRow to={profilePrompt.link} icon={profilePrompt.icon}>
+                {t(`pro.${profilePrompt.key}Title`)} — {t(`pro.${profilePrompt.key}Body`)}
+              </ReminderRow>
+            )}
+            {isSetupComplete && !!draftCount && draftCount > 0 && (
+              <ReminderRow to="/dashboard/pro/listings" icon={Store}>
+                {t('pro.draftNudgeTitle', 'You have {{count}} unpublished listing', { count: draftCount })} — {t('pro.completeListings', 'Complete Your Listings')}
+              </ReminderRow>
+            )}
+          </div>
+        )}
 
         {/* Empty matched jobs state — below menu when active but no matches */}
         {isSetupComplete && stats.matchedJobsCount === 0 && (
