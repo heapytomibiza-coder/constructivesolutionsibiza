@@ -23,12 +23,15 @@ import { cn } from '@/lib/utils';
 /* ─── Types ─── */
 
 type JobStage =
+  | 'draft'
+  | 'ready'
   | 'open_no_quotes'
   | 'open_with_quotes'
   | 'assigned'
   | 'in_progress'
   | 'completed_no_review'
-  | 'completed_reviewed';
+  | 'completed_reviewed'
+  | 'cancelled';
 
 interface StageConfig {
   title: string;

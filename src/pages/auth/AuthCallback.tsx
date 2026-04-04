@@ -93,7 +93,7 @@ const AuthCallback = () => {
         }
       } else {
         // Clients go straight to the wizard to build the habit
-        navigate('/');
+        navigate('/dashboard/client');
       }
     };
 
