@@ -21,12 +21,22 @@ interface RouteGuardProps {
   children?: React.ReactNode;
 }
 
-function LoadingSpinner() {
+function LoadingSpinner({ showRetry, onRetry }: { showRetry?: boolean; onRetry?: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <p className="text-sm text-muted-foreground">
+          {showRetry ? 'Still connecting — please wait…' : 'Loading...'}
+        </p>
+        {showRetry && onRetry && (
+          <button
+            onClick={onRetry}
+            className="text-sm font-medium text-primary hover:text-primary/80 underline underline-offset-2"
+          >
+            Retry
+          </button>
+        )}
       </div>
     </div>
   );
@@ -69,7 +79,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
       setRetryCount(prev => prev + 1);
       setTimedOut(false);
       refresh().catch(() => {});
-      return <LoadingSpinner />;
+      return <LoadingSpinner showRetry onRetry={() => { refresh().catch(() => {}); }} />;
     }
 
     // All retries exhausted — only redirect to auth if there's no persisted session
@@ -77,7 +87,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
       // Session token exists but hydration failed — keep showing spinner
       // rather than force-logging the user out
       console.warn('RouteGuard: retries exhausted but session token found in storage — not redirecting');
-      return <LoadingSpinner />;
+      return <LoadingSpinner showRetry onRetry={() => { setRetryCount(0); setTimedOut(false); refresh().catch(() => {}); }} />;
     }
 
     const returnUrl = buildReturnUrl(location.pathname, location.search);
