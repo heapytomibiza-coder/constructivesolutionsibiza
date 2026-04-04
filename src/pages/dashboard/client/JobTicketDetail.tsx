@@ -317,7 +317,7 @@ export default function JobTicketDetail() {
     );
   }
 
-  const backPath = isClient ? '/dashboard/client' : '/dashboard/professional/jobs';
+  const backPath = isClient ? '/dashboard/client' : '/dashboard/pro/jobs';
   const answers = job.answers as Record<string, unknown> | null;
   const selected = (answers?.selected as Record<string, unknown>) || {};
   const microNames = (selected.microNames as string[]) || [];

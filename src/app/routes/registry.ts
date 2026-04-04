@@ -233,8 +233,6 @@ export const proOnboardingRoutes: RouteConfig[] = [
 ];
 
 export const proDashboardRoutes: RouteConfig[] = [
-  // Dashboard accessible to any professional role - the UI handles "not ready" states
-  // proReady gating reserved for marketplace actions (applying to jobs, etc.)
   { 
     path: '/dashboard/pro', 
     access: 'role:professional', 
@@ -242,6 +240,30 @@ export const proDashboardRoutes: RouteConfig[] = [
     lane: 'professional', 
     nav: { section: 'working', labelKey: 'nav.proDashboard', order: 1, hideWhenPublic: true },
     titleKey: 'nav.proDashboard',
+  },
+  {
+    path: '/dashboard/pro/jobs',
+    access: 'role:professional',
+    redirectTo: '/auth',
+    lane: 'professional',
+    titleKey: 'nav.proJobs',
+  },
+  { path: '/dashboard/pro/job/:jobId', access: 'role:professional', redirectTo: '/auth', lane: 'professional' },
+  {
+    path: '/dashboard/pro/listings',
+    access: 'role:professional',
+    redirectTo: '/auth',
+    lane: 'professional',
+    nav: { section: 'working', labelKey: 'nav.myListings', order: 2, hideWhenPublic: true },
+    titleKey: 'nav.myListings',
+  },
+  { path: '/dashboard/pro/listings/:listingId/edit', access: 'role:professional', redirectTo: '/auth', lane: 'professional' },
+  {
+    path: '/dashboard/pro/insights',
+    access: 'role:professional',
+    redirectTo: '/auth',
+    lane: 'professional',
+    titleKey: 'nav.proInsights',
   },
 ];
 

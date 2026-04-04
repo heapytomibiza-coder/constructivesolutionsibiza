@@ -230,17 +230,27 @@ const App = () => {
               {/* Settings (shared) */}
               <Route path="/settings" element={<Settings />} />
 
-              {/* Professional Onboarding */}
+              {/* Professional Onboarding & Setup (not dashboard sub-pages) */}
               <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
-              <Route path="/dashboard/professional/jobs" element={<ProJobsList />} />
               <Route path="/professional/services" element={<ManageServices />} />
-              <Route path="/professional/service-setup" element={<Navigate to="/professional/listings" replace />} />
+              <Route path="/professional/service-setup" element={<Navigate to="/dashboard/pro/listings" replace />} />
               <Route path="/professional/profile" element={<ProfileEdit />} />
               <Route path="/professional/priorities" element={<JobPriorities />} />
               <Route path="/professional/portfolio" element={<Navigate to="/dashboard/pro" replace />} />
-              <Route path="/professional/listings" element={<MyServiceListings />} />
-              <Route path="/professional/listings/:listingId/edit" element={<ServiceListingEditor />} />
-              <Route path="/professional/insights" element={<ProInsights />} />
+
+              {/* Professional Dashboard — canonical routes under /dashboard/pro/* */}
+              <Route path="/dashboard/pro" element={<ProDashboard />} />
+              <Route path="/dashboard/pro/jobs" element={<ProJobsList />} />
+              <Route path="/dashboard/pro/job/:jobId" element={<JobTicketDetail />} />
+              <Route path="/dashboard/pro/listings" element={<MyServiceListings />} />
+              <Route path="/dashboard/pro/listings/:listingId/edit" element={<ServiceListingEditor />} />
+              <Route path="/dashboard/pro/insights" element={<ProInsights />} />
+
+              {/* Legacy professional redirects */}
+              <Route path="/dashboard/professional/jobs" element={<Navigate to="/dashboard/pro/jobs" replace />} />
+              <Route path="/professional/listings/:listingId/edit" element={<Navigate to="/dashboard/pro/listings" replace />} />
+              <Route path="/professional/listings" element={<Navigate to="/dashboard/pro/listings" replace />} />
+              <Route path="/professional/insights" element={<Navigate to="/dashboard/pro/insights" replace />} />
 
               {/* Forum - New Post (requires auth) */}
               <Route path="/forum/:categorySlug/new" element={<ForumNewPost />} />
@@ -249,9 +259,6 @@ const App = () => {
               <Route path="/disputes/raise" element={<RolloutGate min="escrow-beta"><RaiseDispute /></RolloutGate>} />
               <Route path="/disputes/:disputeId" element={<RolloutGate min="escrow-beta"><DisputeDetail /></RolloutGate>} />
               <Route path="/disputes/:disputeId/respond" element={<RolloutGate min="escrow-beta"><DisputeResponse /></RolloutGate>} />
-
-              {/* Professional Dashboard */}
-              <Route path="/dashboard/pro" element={<ProDashboard />} />
 
               {/* Admin Dashboard */}
               <Route path="/dashboard/admin" element={<AdminRouteLayout />}>

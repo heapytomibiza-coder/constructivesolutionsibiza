@@ -126,7 +126,7 @@ function ProJobCard({ job, locale }: { job: ProJob; locale?: Parameters<typeof f
 
   return (
     <Link
-      to={`/dashboard/jobs/${job.id}`}
+      to={`/dashboard/pro/job/${job.id}`}
       className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border/50 hover:border-primary/20 hover:bg-muted/30 transition-all active:scale-[0.99]"
     >
       <div className={cn(

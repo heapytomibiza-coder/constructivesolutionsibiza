@@ -503,7 +503,7 @@ function buildJobCompletedEmail(payload: any, siteUrl: string) {
       "Job Completed! 🎉",
       `<h2 style="margin: 0 0 8px; color: #111827; font-size: 18px;">${payload.title}</h2>
       <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 20px;">This job has been marked as completed. ${payload.is_tasker ? "Great work! Your profile reputation has been updated." : "We hope you had a great experience."}</p>
-      <a href="${siteUrl}/${payload.is_tasker ? "dashboard/professional" : "dashboard"}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Dashboard →</a>`
+      <a href="${siteUrl}/${payload.is_tasker ? "dashboard/pro" : "dashboard"}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px;">View Dashboard →</a>`
     ),
   };
 }
