@@ -52,8 +52,8 @@ const TRADE_TERMS = new Set([
   "surveyor",
   "demolition",
   "scaffolding",
-  // Spanish equivalents
-  "fontanero", "fontanería", "electricista", "albañil", "pintor",
+  // Spanish equivalents (stored accent-folded to match normalized queries)
+  "fontanero", "fontaneria", "electricista", "albanil", "pintor",
   "carpintero", "cerrajero", "cristalero", "jardinero", "limpieza",
 ]);
 
@@ -95,9 +95,9 @@ const PROJECT_TERMS = new Set([
   "kitchen renovation", "bathroom renovation", "loft conversion",
   "pool installation", "house build", "garage conversion",
   "office fit out", "fit out", "fitout",
-  // Spanish
-  "reforma", "rehabilitación", "ampliación", "construcción",
-  "reforma de cocina", "reforma de baño",
+  // Spanish (accent-folded)
+  "reforma", "rehabilitacion", "ampliacion", "construccion",
+  "reforma de cocina", "reforma de bano",
 ]);
 
 /**
@@ -157,8 +157,22 @@ function matchesProjectPattern(words: string[]): boolean {
  * Priority: TASK verb > TRADE term (anywhere) > PROJECT > EXPLORATORY
  * Exception: TRADE term wins over task verb only when task verb is NOT the first word.
  */
+/**
+ * Strip punctuation and fold accents so "fontanería?" matches "fontaneria".
+ */
+function normalizeQuery(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")   // strip accent marks
+    .replace(/[^\w\s]/g, "")           // strip punctuation
+    .replace(/\s+/g, " ")             // collapse whitespace
+    .trim();
+}
+
 export function classifyIntent(query: string): SearchIntent {
-  const normalized = query.trim().toLowerCase();
+  const normalized = normalizeQuery(query);
   if (!normalized) return "EXPLORATORY";
 
   const words = normalized.split(/\s+/);
@@ -176,10 +190,12 @@ export function classifyIntent(query: string): SearchIntent {
     return "TRADE";
   }
 
-  // 3. Project detection — exact terms, includes(), or prefix+object pattern
+  // 3. Project detection — exact terms, word-boundary phrase match, or prefix+object pattern
   if (PROJECT_TERMS.has(normalized)) return "PROJECT";
   for (const term of PROJECT_TERMS) {
-    if (normalized.includes(term)) return "PROJECT";
+    // Use word-boundary regex instead of broad includes()
+    const re = new RegExp(`\\b${term.replace(/\s+/g, "\\s+")}\\b`);
+    if (re.test(normalized)) return "PROJECT";
   }
   if (matchesProjectPattern(words)) return "PROJECT";
 
