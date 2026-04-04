@@ -116,7 +116,7 @@ function ListingCard({ listing }: { listing: MyListing }) {
 
           <div className="flex items-center gap-2 flex-wrap">
             <Button variant="outline" size="sm" className="h-8 gap-1.5" asChild>
-              <Link to={`/professional/listings/${listing.id}/edit`}>
+              <Link to={`/dashboard/pro/listings/${listing.id}/edit`}>
                 <Edit className="h-3.5 w-3.5" /> {t('common.edit', 'Edit')}
               </Link>
             </Button>
