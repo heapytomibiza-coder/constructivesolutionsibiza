@@ -557,7 +557,9 @@ export default function ProfileEdit() {
                           <BioBuilder
                             businessName={form.getValues("businessName")}
                             onBioGenerated={(bio) => {
+                              console.log("setting bio field", bio);
                               form.setValue("bio", bio, { shouldDirty: true });
+                              console.log("bio field set");
                               setShowBioBuilder(false);
                             }}
                             onClose={() => setShowBioBuilder(false)}
