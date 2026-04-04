@@ -39,7 +39,7 @@ export function RequestSupportButton({
         </Button>
         {jobId && (
           <Link
-            to={`/disputes/raise?job=${jobId}`}
+            to={`/contact?subject=issue&job=${jobId}`}
             className="text-xs text-destructive hover:underline"
           >
             Not resolved? Escalate to formal dispute

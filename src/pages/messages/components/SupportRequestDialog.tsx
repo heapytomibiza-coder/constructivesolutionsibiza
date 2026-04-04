@@ -223,7 +223,7 @@ export function SupportRequestDialog({
                 className="mt-2 gap-1.5 text-destructive hover:text-destructive"
                 onClick={() => {
                   onOpenChange(false);
-                  navigate(`/disputes/raise?job=${jobId}`);
+                  navigate(`/contact?subject=issue&job=${jobId}`);
                 }}
               >
                 <AlertTriangle className="h-3.5 w-3.5" />

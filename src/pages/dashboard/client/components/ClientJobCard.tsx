@@ -292,7 +292,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
             )}
             {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
               <Button variant="outline" size="sm" className="gap-1 text-destructive hover:text-destructive" asChild title="Having an issue with this job? Start a structured resolution.">
-                <Link to={`/disputes/raise?job=${job.id}`}>
+                <Link to={`/contact?subject=issue&job=${job.id}`}>
                   <AlertTriangle className="h-3.5 w-3.5" />
                   {t('client.raiseIssue', 'Raise Issue')}
                 </Link>
