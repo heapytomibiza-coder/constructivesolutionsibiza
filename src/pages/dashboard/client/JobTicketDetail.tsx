@@ -655,7 +655,7 @@ export default function JobTicketDetail() {
                   {/* Raise Issue */}
                   {['in_progress', 'completed'].includes(job.status) && job.assigned_professional_id && (
                     <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" asChild>
-                      <Link to={`/disputes/raise?job=${jobId}`}>
+                      <Link to={`/contact?subject=issue&job=${jobId}`}>
                         <AlertTriangle className="h-3.5 w-3.5" />
                         {t('jobTicket.raiseIssue', 'Raise Issue')}
                       </Link>
