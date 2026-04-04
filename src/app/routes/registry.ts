@@ -209,20 +209,11 @@ export const proOnboardingRoutes: RouteConfig[] = [
     lane: 'professional',
     titleKey: 'nav.proProfile',
   },
-  { 
-    path: '/professional/listings', 
-    access: 'role:professional', 
-    redirectTo: '/auth', 
-    lane: 'professional',
-    nav: { section: 'working', labelKey: 'nav.myListings', order: 2, hideWhenPublic: true },
-    titleKey: 'nav.myListings',
-  },
-  { 
-    path: '/professional/listings/:listingId/edit', 
-    access: 'role:professional', 
-    redirectTo: '/auth', 
-    lane: 'professional',
-  },
+  // Legacy: /professional/listings and /professional/insights now redirect to /dashboard/pro/*
+  // Kept in registry for RouteGuard awareness only
+  { path: '/professional/listings', access: 'role:professional', redirectTo: '/auth', lane: 'professional' },
+  { path: '/professional/listings/:listingId/edit', access: 'role:professional', redirectTo: '/auth', lane: 'professional' },
+  { path: '/professional/insights', access: 'role:professional', redirectTo: '/auth', lane: 'professional' },
   { 
     path: '/professional/insights', 
     access: 'role:professional', 

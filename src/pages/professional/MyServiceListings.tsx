@@ -231,7 +231,7 @@ export default function MyServiceListings() {
                 <div className="flex items-center gap-2 flex-wrap">
                   {drafts.length > 0 && (
                     <Button size="sm" asChild>
-                      <Link to={`/professional/listings/${drafts[0].id}/edit`}>
+                      <Link to={`/dashboard/pro/listings/${drafts[0].id}/edit`}>
                         <Edit className="h-3.5 w-3.5 mr-1.5" />
                         {t('pro.editFirstListing', 'Complete Your First Listing')}
                       </Link>
