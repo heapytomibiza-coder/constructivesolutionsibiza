@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Wrench, MessageSquare, ArrowRight, Layers, FolderOpen } from "lucide-react";
+import { VoiceInput } from "@/components/professional/VoiceInput";
 import {
   Command,
   CommandInput,
