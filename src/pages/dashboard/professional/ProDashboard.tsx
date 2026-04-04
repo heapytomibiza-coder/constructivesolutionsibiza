@@ -380,7 +380,7 @@ const ProDashboard = () => {
           {!isSetupComplete && (
             <>
               <MenuGroupLabel>{t('pro.menuGroup.getStarted', 'Get Started')}</MenuGroupLabel>
-              <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
+              <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} hint={t('pro.editProfileHint')} primary />
               {dashboardStage !== 'needs_profile' && (
                 <MenuItem to="/onboarding/professional?step=services" icon={Wrench} label={t('pro.chooseServices', 'Choose Your Services')} />
               )}
@@ -392,12 +392,12 @@ const ProDashboard = () => {
             <>
               <MenuGroupLabel>{t('pro.menuGroup.yourWork', 'Your Work')}</MenuGroupLabel>
               {isSetupComplete && (
-                <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} primary />
+                <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} hint={t('pro.editProfileHint')} primary />
               )}
-              <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} />
-              <MenuItem to="/dashboard/pro/jobs" icon={Hammer} label={t('pro.myJobs', 'My Jobs')} />
+              <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} hint={t('pro.browseMatchingJobsHint', 'Open jobs that match your services')} />
+              <MenuItem to="/dashboard/pro/jobs" icon={Hammer} label={t('pro.myJobs', 'My Jobs')} hint={t('pro.myJobsHint', 'Jobs you\'ve been hired for')} />
               <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
-              <MenuItem to="/dashboard/pro/listings" icon={Store} label={t('pro.myListings', 'My Listings')} />
+              <MenuItem to="/dashboard/pro/listings" icon={Store} label={t('pro.myListings', 'My Listings')} hint={t('pro.myListingsHint', 'Your public service pages on the marketplace')} />
             </>
           )}
 
