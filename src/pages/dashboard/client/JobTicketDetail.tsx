@@ -286,6 +286,7 @@ export default function JobTicketDetail() {
     } finally {
       setIsCompleting(false);
     }
+  };
 
   const scrollToUpdates = useCallback(() => {
     updatesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
