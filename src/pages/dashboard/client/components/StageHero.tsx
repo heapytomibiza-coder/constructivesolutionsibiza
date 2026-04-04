@@ -1,10 +1,11 @@
 /**
  * StageHero — Premium hero panel showing current stage, meaning, next step, and primary action.
- * Uses a single resolveStage() function and STAGE_MAP config for all 6 job states.
+ * Uses a single resolveStage() function and STAGE_MAP config for all job states.
  */
 
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import {
   CheckCircle2,
   Star,
