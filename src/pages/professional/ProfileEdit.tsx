@@ -537,6 +537,33 @@ export default function ProfileEdit() {
                         Tip: mention your specialties, reliability, and what makes your finish clean.
                       </FormDescription>
                       <FormMessage />
+
+                      {/* Bio Builder trigger */}
+                      {!showBioBuilder && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowBioBuilder(true)}
+                          className="gap-2 mt-2"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          Help me write this
+                        </Button>
+                      )}
+
+                      {showBioBuilder && (
+                        <div className="mt-3">
+                          <BioBuilder
+                            businessName={form.getValues("businessName")}
+                            onBioGenerated={(bio) => {
+                              form.setValue("bio", bio, { shouldDirty: true });
+                              setShowBioBuilder(false);
+                            }}
+                            onClose={() => setShowBioBuilder(false)}
+                          />
+                        </div>
+                      )}
                     </FormItem>
                   )}
                 />
