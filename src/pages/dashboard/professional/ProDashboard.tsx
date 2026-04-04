@@ -166,8 +166,19 @@ function getStageCard(stage: DashboardStage, t: any) {
 const ProDashboard = () => {
   const { t } = useTranslation('dashboard');
   const { user, roles } = useSession();
-  const { stats, dashboardStage } = useProStats();
+  const { stats, dashboardStage, bio, tagline, businessName } = useProStats();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const showWelcome = searchParams.get('welcome') === '1';
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+
+  const dismissWelcome = () => {
+    setWelcomeDismissed(true);
+    setSearchParams((prev) => {
+      prev.delete('welcome');
+      return prev;
+    }, { replace: true });
+  };
 
   // Fetch count of incomplete draft listings for nudge
   const { data: draftCount } = useQuery({
@@ -188,18 +199,33 @@ const ProDashboard = () => {
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut({ scope: 'local' });
-
     if (error) {
       toast.error(t('auth.signOutError', 'Log out failed'));
       return;
     }
-
     toast.success(t('auth.signedOut'));
     navigate('/', { replace: true });
   };
 
   const isSetupComplete = dashboardStage === 'active' || dashboardStage === 'needs_visibility';
   const hasServices = stats.servicesCount > 0;
+  const showWelcomeBanner = showWelcome && !welcomeDismissed;
+
+  // Delayed profile prompt — show only highest priority, only when active + no welcome banner
+  const profilePrompt = (() => {
+    if (!isSetupComplete || showWelcomeBanner) return null;
+    const matchCount = stats.matchedJobsCount;
+    if (matchCount >= 1 && (!businessName || !tagline)) {
+      return { key: 'prompt1', icon: Sparkles, link: '/onboarding/professional?edit=1&step=basic_info' };
+    }
+    if (matchCount >= 3 && !bio) {
+      return { key: 'prompt2', icon: FileText, link: '/onboarding/professional?edit=1&step=basic_info' };
+    }
+    if (matchCount >= 5) {
+      return { key: 'prompt3', icon: SlidersHorizontal, link: '/onboarding/professional?edit=1&step=services' };
+    }
+    return null;
+  })();
 
   return (
     <div className="min-h-screen bg-background">
