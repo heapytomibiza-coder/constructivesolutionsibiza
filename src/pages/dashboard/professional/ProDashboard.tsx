@@ -221,7 +221,7 @@ const ProDashboard = () => {
     if (matchCount >= 3 && !bio) {
       return { key: 'prompt2', icon: FileText, link: '/onboarding/professional?edit=1&step=basic_info' };
     }
-    if (matchCount >= 5) {
+    if (matchCount >= 5 && businessName && tagline && bio) {
       return { key: 'prompt3', icon: SlidersHorizontal, link: '/onboarding/professional?edit=1&step=services' };
     }
     return null;
@@ -298,7 +298,7 @@ const ProDashboard = () => {
                     {t('pro.welcomeBody')}
                   </p>
                   <Button asChild size="sm" variant="outline">
-                    <Link to="/jobs">
+                    <Link to="/dashboard/professional/jobs">
                       {t('pro.welcomeCta', 'View Matching Jobs')}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Link>
@@ -318,7 +318,7 @@ const ProDashboard = () => {
             <CardContent className="py-4 px-4">
               <div className="flex items-start gap-3">
                 <div className="rounded-lg bg-primary/10 p-2 shrink-0">
-                  <profilePrompt.icon className="h-5 w-5 text-primary" />
+                  {(() => { const Icon = profilePrompt.icon; return <Icon className="h-5 w-5 text-primary" />; })()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display text-sm font-bold text-foreground mb-0.5">
