@@ -464,6 +464,7 @@ export default function JobTicketDetail() {
                   assignedProfessionalId={job.assigned_professional_id}
                   clientId={job.user_id}
                   viewerId={user?.id}
+                  externalDisabled={isCompleting}
                 />
               </div>
             )}
