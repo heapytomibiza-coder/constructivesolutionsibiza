@@ -403,6 +403,7 @@ export default function JobTicketDetail() {
               hasAcceptedQuote={hasAcceptedQuote}
               completionRequested={completionRequested}
               cancellationRequested={cancellationRequested}
+              isCompleting={isCompleting}
               onMarkComplete={handleMarkComplete}
               onRequestCompletion={() => {
                 document.getElementById('completion-section')?.scrollIntoView({ behavior: 'smooth' });
