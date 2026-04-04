@@ -1,70 +1,103 @@
 
 
-# Intent-Aware Search Upgrade
+# Publish Blocker Fixes — 3 Patch Batches
 
-## Problem
-Searching "plumber" returns "Fix a leaking tap" (a task) as the top result instead of "Plumbing" (the category). The current system scores by type tier (micro=300, sub=200, cat=100) but applies these *after* flat text matching — so structure is ignored and results feel random.
+## Batch 1 — State Alignment
 
-## Root cause
-The `search_text` column is `lower(micro_name || ' ' || subcategory_name || ' ' || category_name)`. Every row contains the category name, so "plumber" matches everything under Plumbing. Micros score highest (300) regardless of *where* the match occurred — a category-name match on a micro row outranks the actual category.
+### New file: `src/pages/jobs/utils/jobActions.ts`
+Create a shared helper module with pure functions:
+- `canCancelJob(status: string, isClient: boolean): boolean` — clients: only `draft | ready | open`; pros: only `in_progress` (via cancellation request)
+- `canPostJob(status: string): boolean` — `draft` or `ready`
+- `canWithdrawQuote(status: string, isAssigned: boolean): boolean` — `open` only (remove dead `assigned` reference)
+- Exported for use in `JobTicketDetail.tsx` and `StageHero.tsx`
 
-## Solution (3 steps, no backend changes needed)
+### Edit: `src/pages/dashboard/client/JobTicketDetail.tsx`
 
-### Step 1: Add intent classification
-New file: `src/features/search/lib/searchIntent.ts`
+**Cancel button (line 690):** Change condition from `!['completed', 'cancelled'].includes(job.status)` to use `canCancelJob(job.status, isClient)` — hides for `in_progress`. Add a text hint directing client to "Raise Issue" for in-progress disputes.
 
-A lightweight rule-based classifier that categorizes queries into:
-- **TRADE** — matches a category name or trade synonym ("plumber", "electrician")
-- **TASK** — matches action verbs + objects ("fix leaking tap", "install sockets")
-- **PROJECT** — matches subcategory-level terms ("kitchen renovation", "pool installation")  
-- **EXPLORATORY** — everything else ("garden", "cleaning")
+**Post to board (line 207):** Change `.eq('status', 'draft')` to `.in('status', ['draft', 'ready'])` so `ready` jobs can also post.
 
-Uses existing synonym dictionary + a small trade-terms list derived from the 16 locked categories. No AI needed.
+**Withdraw button (line 654):** Remove `'assigned'` from the condition. Keep only `'open'`.
 
-### Step 2: Apply intent-based score boosting in `transformServiceResults`
-In `UniversalSearchBar.tsx`, after DB results return and before rendering:
+### Edit: `src/pages/dashboard/client/components/StageHero.tsx`
 
-- Pass the classified intent into `transformServiceResults`
-- Apply multipliers to the base scores:
+**`resolveStage` (line 66-78):** Add explicit handling:
+- `status === 'draft'` → new `'draft'` stage
+- `status === 'ready'` → new `'ready'` stage
+- `status === 'cancelled'` → new `'cancelled'` stage
 
-| Intent | Category boost | Subcategory boost | Micro boost |
-|--------|---------------|-------------------|-------------|
-| TRADE | ×3 | ×2 | ×0.8 |
-| TASK | ×0.7 | ×1.5 | ×3 |
-| PROJECT | ×2 | ×3 | ×1 |
-| EXPLORATORY | ×2 | ×2 | ×1 |
+**`buildStageConfig`:** Add config entries for `draft` (pill: "Draft", message: "Complete your job details and post when ready"), `ready` (pill: "Ready to post", message: "Your job is saved. Post it to the board or invite professionals"), and `cancelled`.
 
-- Sort all results by boosted score (not grouped by type)
-- Still cap: max 3 categories, 3 subcategories, 5 micros — but order by score
+**`JobStage` type:** Add `'draft' | 'ready' | 'cancelled'` to the union.
 
-Result: "plumber" → Plumbing (cat) shows first, then plumbing services, then specific tasks.
+---
 
-### Step 3: Add weighted synonyms
-Update `searchSynonyms.ts` to support optional weights:
+## Batch 2 — Action Safety
 
-```text
-plumber: [
-  { term: "plumbing", weight: 1.0 },
-  { term: "leak repair", weight: 0.8 },
-  { term: "pipes", weight: 0.3 },
-  { term: "water", weight: 0.2 }
-]
+### Edit: `src/pages/dashboard/client/JobTicketDetail.tsx`
+
+Add `const [isCompleting, setIsCompleting] = useState(false);` at the component level.
+
+Wrap `handleMarkComplete` with `isCompleting` guard:
+```
+if (isCompleting) return;
+setIsCompleting(true);
+try { ... } finally { setIsCompleting(false); }
 ```
 
-Backward-compatible: existing string arrays still work (default weight 1.0). Low-weight synonyms are included in the OR clause but their matches get a reduced score multiplier, reducing noise from weak associations.
+Pass `isCompleting` as a prop to:
+- `StageHero` (disable "Confirm Completion" button)
+- `JobTicketCompletion` (disable its "Confirm Completion" button)
 
-## Files changed
+### Edit: `src/pages/dashboard/client/components/StageHero.tsx`
 
-| File | Change |
-|------|--------|
-| `src/features/search/lib/searchIntent.ts` | New — intent classifier |
-| `src/features/search/lib/searchSynonyms.ts` | Add weight support to synonym entries |
-| `src/features/search/index.ts` | Export new intent utilities |
-| `src/components/search/UniversalSearchBar.tsx` | Integrate intent classification + boosted scoring in `transformServiceResults` |
+Add `isCompleting?: boolean` to `StageHeroProps`. When `isCompleting` is true, disable the `onMarkComplete` action button and show a spinner.
+
+### Edit: `src/pages/dashboard/client/components/JobTicketCompletion.tsx`
+
+Add `externalDisabled?: boolean` prop. When true, disable the confirm button even if local `isSubmitting` is false. This prevents the card from firing while `StageHero` already triggered completion.
+
+---
+
+## Batch 3 — Trust + Routing
+
+### Edit: `src/pages/auth/Auth.tsx` (line 106)
+Change `navigate('/')` to `navigate('/dashboard/client')`.
+
+### Edit: `src/pages/auth/AuthCallback.tsx` (line 96)
+Change `navigate('/')` to `navigate('/dashboard/client')`.
+
+### Edit: `src/guard/RouteGuard.tsx` (line 138-141)
+In `PublicOnlyGuard`, change the non-professional redirect from `'/'` to `'/dashboard/client'`.
+
+### Edit: `src/pages/dashboard/client/JobTicketDetail.tsx` (line 422)
+Remove the `isClient &&` condition from AgreementCard rendering. Change to:
+```tsx
+{acceptedQuote && <AgreementCard quote={acceptedQuote} />}
+```
+Both clients and professionals see the same agreement reference.
+
+### Client cancellation on `in_progress`
+In the footer actions section (line 690), for `in_progress` jobs where `isClient` is true, instead of showing "Cancel Job", show a clear text link: "Need to cancel? Raise an issue" pointing to `/disputes/raise?job=${jobId}`. This gives the client a real path without building a new RPC.
+
+---
+
+## Files changed summary
+
+| File | Batch | Change |
+|------|-------|--------|
+| `src/pages/jobs/utils/jobActions.ts` | 1 | New — shared action helpers |
+| `src/pages/dashboard/client/JobTicketDetail.tsx` | 1,2,3 | Cancel visibility, post-to-board fix, withdraw fix, isCompleting state, agreement for both roles, in-progress cancel guidance |
+| `src/pages/dashboard/client/components/StageHero.tsx` | 1,2 | draft/ready/cancelled stages, isCompleting prop |
+| `src/pages/dashboard/client/components/JobTicketCompletion.tsx` | 2 | externalDisabled prop |
+| `src/pages/auth/Auth.tsx` | 3 | Client redirect to dashboard |
+| `src/pages/auth/AuthCallback.tsx` | 3 | Client redirect to dashboard |
+| `src/guard/RouteGuard.tsx` | 3 | PublicOnlyGuard redirect fix |
 
 ## What does NOT change
-- No database/migration changes
-- No backend changes
-- Voice input, ⌘K shortcut, forum search, Smart Ladder navigation — all unchanged
-- Synonym expansion logic still works the same (just adds optional weights)
+- No database migrations
+- No RPC changes
+- No new components
+- No styling redesigns
+- Existing pro flows, forum, admin — untouched
 
