@@ -123,6 +123,21 @@ function StageCard({ icon, title, description, ctaLabel, ctaTo }: StageCardProps
   );
 }
 
+/* ── Compact reminder row for secondary nudges ── */
+
+function ReminderRow({ to, icon: Icon, children }: { to: string; icon: React.ComponentType<{ className?: string }>; children: React.ReactNode }) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors group"
+    >
+      <Icon className="h-4 w-4 shrink-0 text-primary/60 group-hover:text-primary" />
+      <span className="text-xs flex-1 min-w-0">{children}</span>
+      <ArrowRight className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-60 transition-opacity" />
+    </Link>
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getStageCard(stage: DashboardStage, t: any) {
   switch (stage) {
