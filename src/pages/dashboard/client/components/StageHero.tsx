@@ -324,6 +324,7 @@ export function StageHero({
   hasAcceptedQuote,
   completionRequested,
   cancellationRequested,
+  isCompleting,
   onMarkComplete,
   onRequestCompletion,
   onWithdraw,
