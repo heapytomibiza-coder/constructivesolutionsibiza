@@ -423,8 +423,8 @@ export default function JobTicketDetail() {
               cancellationReason={job.cancellation_reason}
             />
 
-            {/* 3. Agreement Card — dominant reference (client, post-acceptance) */}
-            {isClient && acceptedQuote && (
+            {/* 3. Agreement Card — dominant reference (both roles, post-acceptance) */}
+            {acceptedQuote && (
               <AgreementCard quote={acceptedQuote} />
             )}
 
