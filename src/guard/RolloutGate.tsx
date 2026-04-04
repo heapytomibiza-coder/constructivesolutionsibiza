@@ -6,16 +6,21 @@
  * redirects to home page — unless the user is an admin.
  */
 
-import { Navigate } from 'react-router-dom';
 import { isRolloutActive, type RolloutPhase } from '@/domain/rollout';
 import { useSession } from '@/contexts/SessionContext';
+import { lazy, Suspense } from 'react';
+
+const ComingSoonPage = lazy(() => import('@/pages/public/ComingSoonPage'));
 
 interface RolloutGateProps {
   min: RolloutPhase;
   children: React.ReactNode;
+  /** Fallback copy when gated. If omitted, shows generic message. */
+  fallbackTitle?: string;
+  fallbackMessage?: string;
 }
 
-export function RolloutGate({ min, children }: RolloutGateProps) {
+export function RolloutGate({ min, children, fallbackTitle, fallbackMessage }: RolloutGateProps) {
   const { hasRole, isReady } = useSession();
 
   // If rollout phase is active, show immediately (no auth needed)
@@ -33,5 +38,12 @@ export function RolloutGate({ min, children }: RolloutGateProps) {
     return <>{children}</>;
   }
 
-  return <Navigate to="/" replace />;
+  return (
+    <Suspense fallback={null}>
+      <ComingSoonPage
+        title={fallbackTitle ?? 'Coming Soon'}
+        message={fallbackMessage ?? 'This feature is part of an upcoming release. Check back soon.'}
+      />
+    </Suspense>
+  );
 }
