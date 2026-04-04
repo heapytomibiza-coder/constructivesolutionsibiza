@@ -58,19 +58,17 @@ function transformServiceResults(
     micro_name: string | null;
     micro_slug: string | null;
   }>,
-  intent: SearchIntent
+  intent: SearchIntent,
+  rawQuery: string
 ): SearchHit[] {
   const seen = new Set<string>();
   const boosts = getIntentBoosts(intent);
+  const queryLower = rawQuery.trim().toLowerCase();
+  const queryWords = queryLower.split(/\s+/).filter(w => w.length >= 2);
 
   const micros: SearchHit[] = [];
   const subs: SearchHit[] = [];
   const cats: SearchHit[] = [];
-
-  // Base scores per type, then multiplied by intent boost
-  let microBase = 300;
-  let subBase = 200;
-  let catBase = 100;
 
   for (const row of data) {
     // 1) Micros (Tasks)
@@ -78,6 +76,7 @@ function transformServiceResults(
       const key = `micro-${row.micro_id}`;
       if (!seen.has(key)) {
         seen.add(key);
+        const relevance = computeRelevanceBonus(row.micro_name, queryLower, queryWords);
         micros.push({
           type: "micro",
           id: row.micro_id,
@@ -87,7 +86,7 @@ function transformServiceResults(
           subcategoryId: row.subcategory_id || undefined,
           subcategoryName: row.subcategory_name || undefined,
           microSlug: row.micro_slug || undefined,
-          score: (microBase--) * boosts.micro,
+          score: (300 + relevance) * boosts.micro,
         });
       }
     }
@@ -97,13 +96,14 @@ function transformServiceResults(
       const key = `sub-${row.subcategory_id}`;
       if (!seen.has(key)) {
         seen.add(key);
+        const relevance = computeRelevanceBonus(row.subcategory_name, queryLower, queryWords);
         subs.push({
           type: "subcategory",
           id: row.subcategory_id,
           label: row.subcategory_name,
           categoryId: row.category_id || undefined,
           categoryName: row.category_name || undefined,
-          score: (subBase--) * boosts.subcategory,
+          score: (200 + relevance) * boosts.subcategory,
         });
       }
     }
@@ -113,26 +113,58 @@ function transformServiceResults(
       const key = `cat-${row.category_id}`;
       if (!seen.has(key)) {
         seen.add(key);
+        const relevance = computeRelevanceBonus(row.category_name, queryLower, queryWords);
         cats.push({
           type: "category",
           id: row.category_id,
           label: row.category_name,
-          score: (catBase--) * boosts.category,
+          score: (100 + relevance) * boosts.category,
         });
       }
     }
   }
 
   // Cap per type
-  const topMicros = micros.slice(0, 5);
-  const topSubs = subs.slice(0, 3);
-  const topCats = cats.slice(0, 3);
+  const topMicros = micros.sort((a, b) => b.score - a.score).slice(0, 5);
+  const topSubs = subs.sort((a, b) => b.score - a.score).slice(0, 3);
+  const topCats = cats.sort((a, b) => b.score - a.score).slice(0, 3);
 
   // Merge all and sort by boosted score (intent-aware ordering)
   const all = [...topMicros, ...topSubs, ...topCats];
   all.sort((a, b) => b.score - a.score);
 
   return all;
+}
+
+/**
+ * Compute a relevance bonus based on how well the query matches the label.
+ * 
+ * Exact match:     +120  (label IS the query)
+ * Starts-with:     +80   (label begins with query)
+ * Whole-word:      +40   (query appears as a complete word in label)
+ * Partial/substr:  +10   (query appears somewhere in label)
+ * No match:        +0    (matched via synonym/description only)
+ */
+function computeRelevanceBonus(label: string | null, queryLower: string, queryWords: string[]): number {
+  if (!label) return 0;
+  const labelLower = label.toLowerCase();
+
+  // Exact match
+  if (labelLower === queryLower) return 120;
+
+  // Starts-with
+  if (labelLower.startsWith(queryLower)) return 80;
+
+  // Whole-word match: any query word appears as a whole word in the label
+  const labelWords = labelLower.split(/[\s\-_&/]+/);
+  const hasWholeWord = queryWords.some(qw => labelWords.includes(qw));
+  if (hasWholeWord) return 40;
+
+  // Partial/substring match
+  if (labelLower.includes(queryLower)) return 20;
+  if (queryWords.some(qw => labelLower.includes(qw))) return 10;
+
+  return 0;
 }
 
 const ROTATING_EXAMPLES_EN = [
@@ -217,7 +249,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         .limit(20);
 
       if (error) throw error;
-      return transformServiceResults(data || [], intent);
+      return transformServiceResults(data || [], intent, debouncedQuery);
     },
     enabled: debouncedQuery.length >= 2,
     staleTime: 30000,

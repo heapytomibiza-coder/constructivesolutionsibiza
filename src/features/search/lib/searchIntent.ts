@@ -5,7 +5,7 @@
  * BEFORE scoring, so results are ordered by meaning not just text match.
  * 
  * Intent types:
- * - TRADE: user wants a trade/category ("plumber", "electrician")
+ * - TRADE: user wants a trade/category ("plumber", "electrician", "emergency plumber")
  * - TASK: user wants a specific micro-service ("fix leaking tap")
  * - PROJECT: user wants a subcategory-level service ("kitchen renovation")
  * - EXPLORATORY: user is browsing broadly ("garden", "outdoor")
@@ -58,34 +58,104 @@ const TRADE_TERMS = new Set([
 ]);
 
 /**
+ * Noise words stripped before trade-term matching.
+ * Allows "plumber near me", "best electrician ibiza", "cheap cleaner" to classify as TRADE.
+ */
+const TRADE_NOISE_WORDS = new Set([
+  "near", "me", "best", "good", "cheap", "affordable", "local", "professional",
+  "reliable", "trusted", "certified", "licensed", "qualified", "experienced",
+  "find", "get", "need", "want", "looking", "search", "hire",
+  "ibiza", "san", "antonio", "jose", "santa", "eulalia",
+  "emergency", "urgent", "24h", "asap",
+  // Spanish
+  "cerca", "mejor", "barato", "bueno", "buscar", "encontrar", "necesito",
+  "urgente", "profesional", "confiable",
+]);
+
+/**
  * Task action verbs — when a query starts with one of these,
  * the user likely wants a specific micro-service.
  */
-const TASK_VERBS = [
+const TASK_VERBS = new Set([
   "fix", "repair", "replace", "install", "fit", "mount", "remove",
   "unblock", "unclog", "rewire", "repaint", "regrout", "reseal",
   "change", "swap", "upgrade", "connect", "disconnect",
   // Spanish
   "reparar", "instalar", "cambiar", "arreglar", "montar", "desmontar",
   "sustituir", "limpiar",
-];
+]);
 
 /**
  * Project-level terms — subcategory-scale work.
+ * Includes action prefixes ("new", "redo", "full") that signal project intent.
  */
 const PROJECT_TERMS = new Set([
   "renovation", "remodel", "conversion", "extension", "build",
   "refurbishment", "restoration", "installation", "fitting",
   "kitchen renovation", "bathroom renovation", "loft conversion",
   "pool installation", "house build", "garage conversion",
+  "office fit out", "fit out", "fitout",
   // Spanish
   "reforma", "rehabilitación", "ampliación", "construcción",
   "reforma de cocina", "reforma de baño",
 ]);
 
 /**
+ * Project action prefixes — "new bathroom", "redo kitchen", "full house refurb"
+ * signal project intent when combined with a known object.
+ */
+const PROJECT_PREFIXES = ["new", "redo", "full", "complete", "total", "whole", "nuevo", "nueva"];
+
+/**
+ * Objects that combine with PROJECT_PREFIXES to form project intent.
+ */
+const PROJECT_OBJECTS = new Set([
+  "bathroom", "kitchen", "house", "home", "apartment", "flat", "villa",
+  "garden", "pool", "office", "shop", "terrace", "patio", "roof",
+  "floor", "flooring", "exterior", "interior", "facade",
+  // Spanish
+  "baño", "cocina", "casa", "piso", "jardín", "piscina", "oficina",
+  "terraza", "tejado", "suelo", "fachada",
+]);
+
+/**
+ * Extract trade terms from a multi-word query by stripping noise words.
+ * Returns the remaining meaningful words.
+ */
+function extractCoreTerm(words: string[]): string[] {
+  return words.filter(w => !TRADE_NOISE_WORDS.has(w));
+}
+
+/**
+ * Check if any word in the query is a known trade term.
+ */
+function containsTradeTerm(words: string[]): boolean {
+  // Check individual words
+  if (words.some(w => TRADE_TERMS.has(w))) return true;
+  // Check bigrams for multi-word trade terms ("pest control", "interior design")
+  for (let i = 0; i < words.length - 1; i++) {
+    if (TRADE_TERMS.has(`${words[i]} ${words[i + 1]}`)) return true;
+  }
+  return false;
+}
+
+/**
+ * Check if query matches project intent via prefix + object pattern.
+ */
+function matchesProjectPattern(words: string[]): boolean {
+  if (words.length < 2) return false;
+  const first = words[0];
+  if (!PROJECT_PREFIXES.includes(first)) return false;
+  // Check if remaining words contain a project object
+  return words.slice(1).some(w => PROJECT_OBJECTS.has(w));
+}
+
+/**
  * Classify a search query into an intent type.
  * Runs synchronously, no DB or API calls needed.
+ * 
+ * Priority: TASK verb > TRADE term (anywhere) > PROJECT > EXPLORATORY
+ * Exception: TRADE term wins over task verb only when task verb is NOT the first word.
  */
 export function classifyIntent(query: string): SearchIntent {
   const normalized = query.trim().toLowerCase();
@@ -93,29 +163,28 @@ export function classifyIntent(query: string): SearchIntent {
 
   const words = normalized.split(/\s+/);
   const firstWord = words[0];
+  const hasTaskVerb = TASK_VERBS.has(firstWord);
 
-  // 1. Check if the full query or first word is a trade term
-  if (TRADE_TERMS.has(normalized) || TRADE_TERMS.has(firstWord)) {
-    return "TRADE";
-  }
-
-  // 2. Check if query starts with a task verb
-  if (TASK_VERBS.some(verb => firstWord === verb)) {
+  // 1. Task verb as first word = strong task signal (overrides trade)
+  if (hasTaskVerb && words.length >= 2) {
     return "TASK";
   }
 
-  // 3. Check if query contains a project-level term
-  if (PROJECT_TERMS.has(normalized)) {
-    return "PROJECT";
-  }
-  for (const term of PROJECT_TERMS) {
-    if (normalized.includes(term)) {
-      return "PROJECT";
-    }
+  // 2. Trade term anywhere in query (after stripping noise)
+  //    "plumber near me", "best electrician ibiza", "emergency plumber" → TRADE
+  if (TRADE_TERMS.has(normalized) || containsTradeTerm(extractCoreTerm(words))) {
+    return "TRADE";
   }
 
-  // 4. Multi-word queries with an object tend to be tasks
-  if (words.length >= 3 && TASK_VERBS.some(verb => normalized.includes(verb))) {
+  // 3. Project detection — exact terms, includes(), or prefix+object pattern
+  if (PROJECT_TERMS.has(normalized)) return "PROJECT";
+  for (const term of PROJECT_TERMS) {
+    if (normalized.includes(term)) return "PROJECT";
+  }
+  if (matchesProjectPattern(words)) return "PROJECT";
+
+  // 4. Multi-word queries with a task verb somewhere
+  if (words.length >= 2 && Array.from(TASK_VERBS).some(verb => normalized.includes(verb))) {
     return "TASK";
   }
 
