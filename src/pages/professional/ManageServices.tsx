@@ -113,7 +113,7 @@ export default function ManageServices() {
             <Link to="/dashboard/pro"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <h1 className="font-display text-lg font-semibold">
-            {tDash('pro.manageServices', 'Manage Services')}
+            {tDash('pro.manageServices', 'Choose Your Services')}
           </h1>
         </div>
       </nav>
