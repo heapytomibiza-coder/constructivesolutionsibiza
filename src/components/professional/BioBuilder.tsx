@@ -68,7 +68,7 @@ export function BioBuilder({ onBioGenerated, onClose, businessName }: BioBuilder
           .from("professional_services")
           .select("micro_id, service_micro_categories!inner(name)")
           .eq("user_id", user.id)
-          .eq("status", "active");
+          .eq("status", "offered");
 
         const names = (data ?? []).map(
           (r: any) => r.service_micro_categories?.name ?? ""
