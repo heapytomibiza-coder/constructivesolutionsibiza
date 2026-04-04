@@ -1,9 +1,6 @@
 /**
  * My Service Listings - Provider management page
  * Tabs: Draft / Live / Paused
- *
- * Supports ?welcome=1 query param after first Go Live to show
- * a clear "profile is live, now publish services" banner.
  */
 import { useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
