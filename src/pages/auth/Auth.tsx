@@ -44,7 +44,7 @@ const Auth = () => {
   );
 
   const returnUrl = searchParams.get('returnUrl'); // No default - let callback handle role-based routing
-  const allowProfessional = searchParams.get('pro') === '1';
+  const allowProfessional = searchParams.get('pro') !== '0';
 
   // Don't return early for translations — it unmounts the form and resets all state.
   // Instead, let the form render with fallback text while translations load.
