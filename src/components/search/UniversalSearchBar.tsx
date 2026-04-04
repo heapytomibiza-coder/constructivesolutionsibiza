@@ -308,7 +308,7 @@ export function UniversalSearchBar({ className }: { className?: string }) {
           value={query}
           onValueChange={setQuery}
           onFocus={() => setIsOpen(true)}
-          className="h-14 text-base pr-16"
+          className="h-14 text-base pr-24"
         />
 
         {isOpen && (query.length >= 2 || hasResults) && (
