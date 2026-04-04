@@ -83,6 +83,12 @@ const ServiceListingEditor = lazy(() => import("./pages/professional/ServiceList
 const ManageServices = lazy(() => import("./pages/professional/ManageServices"));
 const ProInsights = lazy(() => import("./pages/professional/ProInsights"));
 
+/** Redirect legacy /professional/listings/:listingId/edit → canonical path, preserving param */
+function LegacyListingEditRedirect() {
+  const { listingId } = useParams<{ listingId: string }>();
+  return <Navigate to={`/dashboard/pro/listings/${listingId}/edit`} replace />;
+}
+
 // Settings
 const Settings = lazy(() => import("./pages/settings/Settings"));
 
