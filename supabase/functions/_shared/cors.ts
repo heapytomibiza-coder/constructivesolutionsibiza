@@ -6,6 +6,7 @@ const ALLOWED_ORIGINS = [
   "https://constructivesolutionsibiza.com",
   "https://www.constructivesolutionsibiza.com",
   "https://id-preview--c31efcb5-ae5c-4284-990c-e746238ecde8.lovable.app",
+  "https://c31efcb5-ae5c-4284-990c-e746238ecde8.lovableproject.com",
 ];
 
 const CORS_HEADERS_BASE = {
