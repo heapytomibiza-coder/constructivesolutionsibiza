@@ -138,10 +138,16 @@ export function BioBuilder({ onBioGenerated, onClose, businessName }: BioBuilder
       }
 
       const data = await res.json();
+      console.log("generate-bio status", res.status);
+      console.log("generate-bio body", data);
+
       if (data.bio) {
+        console.log("before onBioGenerated");
         onBioGenerated(data.bio);
+        console.log("after onBioGenerated");
         toast.success("Bio generated! Review and edit before saving.");
       } else {
+        console.log("missing bio in response", data);
         throw new Error("No bio returned");
       }
     } catch (err) {
