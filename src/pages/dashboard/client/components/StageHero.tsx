@@ -57,6 +57,7 @@ interface StageHeroProps {
   hasAcceptedQuote: boolean;
   completionRequested: boolean;
   cancellationRequested: boolean;
+  isCompleting?: boolean;
   onMarkComplete?: () => void;
   onRequestCompletion?: () => void;
   onWithdraw?: () => void;
