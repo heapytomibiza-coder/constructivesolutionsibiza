@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { buildSearchOrClause } from "@/features/search/lib/searchSynonyms";
+import { classifyIntent, getIntentBoosts } from "@/features/search/lib/searchIntent";
+import type { SearchIntent } from "@/features/search/lib/searchIntent";
 import { txCategory, txMicro, txSubcategory } from "@/i18n/taxonomyTranslations";
 import { useGlobalSearchShortcut } from "@/hooks/useGlobalSearchShortcut";
 import {
@@ -46,28 +48,32 @@ function useDebounce<T>(value: T, delay: number): T {
  * INDEPENDENT collection: extracts all 3 entity types from each row (no else-if)
  * This ensures categories + subcategories + micros all appear in results
  */
-function transformServiceResults(data: Array<{
-  category_id: string | null;
-  category_name: string | null;
-  subcategory_id: string | null;
-  subcategory_name: string | null;
-  micro_id: string | null;
-  micro_name: string | null;
-  micro_slug: string | null;
-}>): SearchHit[] {
+function transformServiceResults(
+  data: Array<{
+    category_id: string | null;
+    category_name: string | null;
+    subcategory_id: string | null;
+    subcategory_name: string | null;
+    micro_id: string | null;
+    micro_name: string | null;
+    micro_slug: string | null;
+  }>,
+  intent: SearchIntent
+): SearchHit[] {
   const seen = new Set<string>();
+  const boosts = getIntentBoosts(intent);
 
   const micros: SearchHit[] = [];
   const subs: SearchHit[] = [];
   const cats: SearchHit[] = [];
 
-  // Separate score buckets to maintain type grouping
-  let microScore = 300;
-  let subScore = 200;
-  let catScore = 100;
+  // Base scores per type, then multiplied by intent boost
+  let microBase = 300;
+  let subBase = 200;
+  let catBase = 100;
 
   for (const row of data) {
-    // 1) Micros (Tasks) - most specific
+    // 1) Micros (Tasks)
     if (row.micro_id && row.micro_name) {
       const key = `micro-${row.micro_id}`;
       if (!seen.has(key)) {
@@ -81,12 +87,12 @@ function transformServiceResults(data: Array<{
           subcategoryId: row.subcategory_id || undefined,
           subcategoryName: row.subcategory_name || undefined,
           microSlug: row.micro_slug || undefined,
-          score: microScore--,
+          score: (microBase--) * boosts.micro,
         });
       }
     }
 
-    // 2) Subcategories (Services) - independently collected
+    // 2) Subcategories (Services)
     if (row.subcategory_id && row.subcategory_name) {
       const key = `sub-${row.subcategory_id}`;
       if (!seen.has(key)) {
@@ -97,12 +103,12 @@ function transformServiceResults(data: Array<{
           label: row.subcategory_name,
           categoryId: row.category_id || undefined,
           categoryName: row.category_name || undefined,
-          score: subScore--,
+          score: (subBase--) * boosts.subcategory,
         });
       }
     }
 
-    // 3) Categories (broadest) - independently collected
+    // 3) Categories (broadest)
     if (row.category_id && row.category_name) {
       const key = `cat-${row.category_id}`;
       if (!seen.has(key)) {
@@ -111,18 +117,22 @@ function transformServiceResults(data: Array<{
           type: "category",
           id: row.category_id,
           label: row.category_name,
-          score: catScore--,
+          score: (catBase--) * boosts.category,
         });
       }
     }
   }
 
-  // Limit each type, then merge (order: tasks first, then services, then categories)
+  // Cap per type
   const topMicros = micros.slice(0, 5);
   const topSubs = subs.slice(0, 3);
   const topCats = cats.slice(0, 3);
 
-  return [...topMicros, ...topSubs, ...topCats];
+  // Merge all and sort by boosted score (intent-aware ordering)
+  const all = [...topMicros, ...topSubs, ...topCats];
+  all.sort((a, b) => b.score - a.score);
+
+  return all;
 }
 
 const ROTATING_EXAMPLES_EN = [
@@ -193,6 +203,9 @@ export function UniversalSearchBar({ className }: { className?: string }) {
     queryFn: async (): Promise<SearchHit[]> => {
       if (!debouncedQuery || debouncedQuery.length < 2) return [];
 
+      // Classify intent for score boosting
+      const intent = classifyIntent(debouncedQuery);
+
       // Build sanitized OR clause with synonym expansion
       const orClause = buildSearchOrClause(debouncedQuery);
       if (!orClause) return [];
@@ -201,10 +214,10 @@ export function UniversalSearchBar({ className }: { className?: string }) {
         .from("service_search_index")
         .select("*")
         .or(orClause)
-        .limit(20); // Fetch more to ensure variety across types
+        .limit(20);
 
       if (error) throw error;
-      return transformServiceResults(data || []);
+      return transformServiceResults(data || [], intent);
     },
     enabled: debouncedQuery.length >= 2,
     staleTime: 30000,

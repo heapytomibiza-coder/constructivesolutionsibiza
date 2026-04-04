@@ -1,25 +1,47 @@
 /**
- * Search Synonyms
+ * Search Synonyms (with optional weights)
  * Expand user queries to match more results.
  * Fast, controlled, no AI required.
  * 
  * HOW IT WORKS:
  * - User types "sparky" → expands to ["sparky", "electrician", "electrical", "electrics"]
  * - Query uses OR clause to match any expanded term
+ * 
+ * WEIGHTS (optional):
+ * - High weight (1.0) = strong semantic match, keeps score high
+ * - Low weight (0.3) = weak association, result score is reduced
+ * - Plain strings default to weight 1.0 (backward-compatible)
  */
 
-export const SEARCH_SYNONYMS: Record<string, string[]> = {
+export type WeightedSynonym = { term: string; weight: number };
+export type SynonymEntry = string | WeightedSynonym;
+
+function toWeighted(entry: SynonymEntry): WeightedSynonym {
+  return typeof entry === "string" ? { term: entry, weight: 1.0 } : entry;
+}
+
+export const SEARCH_SYNONYMS: Record<string, SynonymEntry[]> = {
   // === PLUMBING ===
   leak: ["water leak", "pipe leak", "sink leak", "leaking", "dripping"],
   drain: ["blocked drain", "drain blockage", "unblock drain", "clogged", "clog"],
   toilet: ["wc", "loo", "toilet repair", "cistern", "flush"],
   tap: ["faucet", "mixer tap", "tap repair", "dripping tap"],
   pipe: ["pipes", "piping", "pipework", "burst pipe"],
-  plumber: ["plumbing", "pipes", "water"],
+  plumber: [
+    { term: "plumbing", weight: 1.0 },
+    { term: "leak repair", weight: 0.8 },
+    { term: "pipes", weight: 0.3 },
+    { term: "water", weight: 0.2 },
+  ],
   boiler: ["boiler repair", "boiler service", "heating"],
   
   // === ELECTRICAL ===
-  electrician: ["sparky", "electrical", "electrics", "wiring"],
+  electrician: [
+    { term: "sparky", weight: 1.0 },
+    { term: "electrical", weight: 1.0 },
+    { term: "electrics", weight: 1.0 },
+    { term: "wiring", weight: 0.7 },
+  ],
   sparky: ["electrician", "electrical", "electrics"],
   socket: ["plug socket", "power outlet", "outlet", "plug"],
   light: ["lighting", "lights", "lamp", "fixture"],
@@ -66,50 +88,78 @@ const MAX_EXPANSIONS = 8;
 const MIN_TERM_LENGTH = 2;
 
 /**
- * Expand a query into multiple search terms
- * Bidirectional: "sparky" → ["sparky", "electrician", ...] AND "electrician" → ["electrician", "sparky", ...]
+ * Expand a query into multiple search terms.
+ * Returns terms with their associated synonym weight (for score reduction).
  */
-export function expandQuery(query: string): string[] {
+export interface ExpandedTerm {
+  term: string;
+  weight: number;
+}
+
+export function expandQueryWeighted(query: string): ExpandedTerm[] {
   const normalized = query.trim().toLowerCase();
   if (!normalized || normalized.length < MIN_TERM_LENGTH) return [];
-  
-  const expansions = new Set<string>();
 
-  // Split into individual words so multi-word queries match per-word synonyms
+  const expansions = new Map<string, number>(); // term → best weight
+
   const words = normalized.split(/\s+/).filter(w => w.length >= MIN_TERM_LENGTH);
-  
-  // Add each individual word as a search term
-  words.forEach(w => expansions.add(w));
 
-  // Also add the full phrase for exact-phrase matching
+  // Add each word with full weight
+  words.forEach(w => expansions.set(w, 1.0));
+
+  // Full phrase with full weight
   if (words.length > 1) {
-    expansions.add(normalized);
+    expansions.set(normalized, 1.0);
   }
 
   // Expand each word through synonyms
   for (const word of words) {
     for (const [key, values] of Object.entries(SEARCH_SYNONYMS)) {
+      const weighted = values.map(toWeighted);
+
       if (word === key || word.includes(key)) {
-        expansions.add(key);
-        values.forEach(v => {
-          if (v.length >= MIN_TERM_LENGTH) expansions.add(v);
-        });
+        // Key itself is a direct match → full weight
+        expansions.set(key, Math.max(expansions.get(key) ?? 0, 1.0));
+        for (const { term, weight } of weighted) {
+          if (term.length >= MIN_TERM_LENGTH) {
+            expansions.set(term, Math.max(expansions.get(term) ?? 0, weight));
+          }
+        }
       }
-      
-      for (const synonym of values) {
-        if (word === synonym || word.includes(synonym)) {
-          expansions.add(key);
-          values.forEach(v => {
-            if (v.length >= MIN_TERM_LENGTH) expansions.add(v);
-          });
+
+      for (const { term } of weighted) {
+        if (word === term || word.includes(term)) {
+          expansions.set(key, Math.max(expansions.get(key) ?? 0, 1.0));
+          for (const { term: t, weight: w } of weighted) {
+            if (t.length >= MIN_TERM_LENGTH) {
+              expansions.set(t, Math.max(expansions.get(t) ?? 0, w));
+            }
+          }
           break;
         }
       }
     }
   }
 
-  // Cap expansions to prevent slow queries
-  return Array.from(expansions).slice(0, MAX_EXPANSIONS);
+  return Array.from(expansions.entries())
+    .map(([term, weight]) => ({ term, weight }))
+    .slice(0, MAX_EXPANSIONS);
+}
+
+/**
+ * Backward-compatible: expand query to plain string array.
+ */
+export function expandQuery(query: string): string[] {
+  return expandQueryWeighted(query).map(e => e.term);
+}
+
+/**
+ * Get the minimum synonym weight for a query's expansion set.
+ * Used by the scoring system to reduce scores for weak synonym matches.
+ */
+export function getSynonymWeightMap(query: string): Map<string, number> {
+  const expanded = expandQueryWeighted(query);
+  return new Map(expanded.map(e => [e.term, e.weight]));
 }
 
 /**
