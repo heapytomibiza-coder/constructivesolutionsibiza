@@ -82,6 +82,49 @@ Deno.serve(async (req) => {
       .gte("created_at", new Date(Date.now() - 14 * 86400000).toISOString())
       .order("created_at", { ascending: false });
 
+    // Job interpretation signals (flags, inspection_bias, safety) from recent jobs
+    const { data: flaggedJobs } = await supabase
+      .from("jobs")
+      .select("id, title, micro_slug, category, status, flags, computed_inspection_bias, computed_safety, created_at")
+      .not("flags", "is", null)
+      .gte("created_at", fourteenDaysAgo)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    // Aggregate flag and safety distributions
+    const flagCounts: Record<string, number> = {};
+    const biasCounts: Record<string, number> = {};
+    const safetyCounts: Record<string, number> = {};
+    let totalFlaggedJobs = 0;
+
+    for (const job of flaggedJobs || []) {
+      if (job.flags && Array.isArray(job.flags) && job.flags.length > 0) {
+        totalFlaggedJobs++;
+        for (const flag of job.flags) {
+          flagCounts[flag] = (flagCounts[flag] || 0) + 1;
+        }
+      }
+      if (job.computed_inspection_bias) {
+        biasCounts[job.computed_inspection_bias] = (biasCounts[job.computed_inspection_bias] || 0) + 1;
+      }
+      if (job.computed_safety) {
+        safetyCounts[job.computed_safety] = (safetyCounts[job.computed_safety] || 0) + 1;
+      }
+    }
+
+    const jobInterpretation = {
+      total_flagged_jobs: totalFlaggedJobs,
+      flag_distribution: flagCounts,
+      inspection_bias_distribution: biasCounts,
+      safety_distribution: safetyCounts,
+      safety_red_jobs: (flaggedJobs || [])
+        .filter((j: any) => j.computed_safety === "red")
+        .map((j: any) => ({ id: j.id, title: j.title, micro_slug: j.micro_slug, flags: j.flags })),
+      inspection_mandatory_jobs: (flaggedJobs || [])
+        .filter((j: any) => j.computed_inspection_bias === "mandatory")
+        .map((j: any) => ({ id: j.id, title: j.title, micro_slug: j.micro_slug, flags: j.flags })),
+    };
+
     // Aggregate summary
     const aggregate = (metrics: any[] | null) => {
       if (!metrics?.length) return null;
@@ -135,6 +178,7 @@ Deno.serve(async (req) => {
         category: a.category,
         metric_date: a.metric_date,
       })),
+      job_interpretation: jobInterpretation,
     };
 
     // 2. Call AI for analysis
@@ -160,9 +204,20 @@ ${JSON.stringify(catRollup, null, 2)}
 ACTIVE ALERTS (${activeAlerts?.length || 0}):
 ${JSON.stringify((activeAlerts || []).slice(0, 10).map(a => ({ severity: a.severity, title: a.title, body: a.body })), null, 2)}
 
+JOB INTERPRETATION SIGNALS (from rules engine):
+${JSON.stringify(jobInterpretation, null, 2)}
+
+Flag meanings:
+- safety: red = emergency/danger, amber = urgency or caution
+- inspection_bias: mandatory = must visit site before quoting, high = strongly recommended, medium = helpful
+- Flags like EMERGENCY, ISOLATE = immediate safety risk
+- Flags like MULTI_TRADE, ELECTRICIAN_NEEDED = scope complexity requiring coordination
+- Flags like INSPECTION_MANDATORY, SITE_VISIT_MANDATORY = cannot quote remotely
+- Flags like NEW_PIPEWORK_NEEDED, NEW_CIRCUIT_LIKELY = hidden scope expansion risk
+
 Respond in valid JSON with this exact structure:
 {
-  "analysis": "2-3 paragraph narrative of what happened this week, what changed vs last week, and why",
+  "analysis": "2-3 paragraph narrative of what happened this week, what changed vs last week, and why. Include a paragraph on job risk and complexity signals if any flagged jobs exist.",
   "issues": [{"title": "...", "severity": "high|medium|low", "description": "..."}],
   "recommendations": [{"title": "...", "priority": "high|medium|low", "action": "specific action to take", "expected_impact": "..."}]
 }
@@ -170,6 +225,8 @@ Respond in valid JSON with this exact structure:
 Focus on:
 - What changed week-over-week and likely causes
 - Operational risks (zero-response jobs, dispute spikes, worker inactivity)
+- Safety and inspection signals: highlight any safety:red jobs as critical, recommend operator review for inspection:mandatory jobs
+- Multi-trade and scope complexity: flag jobs that may need coordination or are at risk of scope creep
 - Top 3-5 specific actions the operator should take
 - Be direct and practical, not generic`;
 
