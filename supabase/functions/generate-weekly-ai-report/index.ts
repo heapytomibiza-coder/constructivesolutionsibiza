@@ -178,6 +178,7 @@ Deno.serve(async (req) => {
         category: a.category,
         metric_date: a.metric_date,
       })),
+      job_interpretation: jobInterpretation,
     };
 
     // 2. Call AI for analysis
