@@ -206,17 +206,18 @@ export default function JobTicketDetail() {
     if (!jobId) return;
     setIsPublishing(true);
     try {
-      const { data: updated, error } = await supabase
-        .from('jobs')
-        .update({ status: 'open', is_publicly_listed: true })
-        .eq('id', jobId)
-        .in('status', ['draft', 'ready'])
-        .select('id');
-      if (!error && (!updated || updated.length === 0)) {
-        toast.error(t('jobTicket.postNotAllowed', 'Only draft jobs can be posted to the board.'));
+      const { error } = await supabase.rpc('post_job' as any, { p_job_id: jobId });
+      if (error) {
+        const msg = error.message || '';
+        if (msg.includes('not_authorized')) {
+          toast.error(t('jobTicket.postNotAllowed', 'You are not authorized to post this job.'));
+        } else if (msg.includes('job_not_postable')) {
+          toast.error(t('jobTicket.postNotAllowed', 'Only draft jobs can be posted to the board.'));
+        } else {
+          throw error;
+        }
         return;
       }
-      if (error) throw error;
       toast.success(t('jobTicket.jobPosted'));
       queryClient.invalidateQueries({ queryKey: ['job_ticket', jobId] });
       queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
