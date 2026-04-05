@@ -82,6 +82,49 @@ Deno.serve(async (req) => {
       .gte("created_at", new Date(Date.now() - 14 * 86400000).toISOString())
       .order("created_at", { ascending: false });
 
+    // Job interpretation signals (flags, inspection_bias, safety) from recent jobs
+    const { data: flaggedJobs } = await supabase
+      .from("jobs")
+      .select("id, title, micro_slug, category, status, flags, computed_inspection_bias, computed_safety, created_at")
+      .not("flags", "is", null)
+      .gte("created_at", fourteenDaysAgo)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    // Aggregate flag and safety distributions
+    const flagCounts: Record<string, number> = {};
+    const biasCounts: Record<string, number> = {};
+    const safetyCounts: Record<string, number> = {};
+    let totalFlaggedJobs = 0;
+
+    for (const job of flaggedJobs || []) {
+      if (job.flags && Array.isArray(job.flags) && job.flags.length > 0) {
+        totalFlaggedJobs++;
+        for (const flag of job.flags) {
+          flagCounts[flag] = (flagCounts[flag] || 0) + 1;
+        }
+      }
+      if (job.computed_inspection_bias) {
+        biasCounts[job.computed_inspection_bias] = (biasCounts[job.computed_inspection_bias] || 0) + 1;
+      }
+      if (job.computed_safety) {
+        safetyCounts[job.computed_safety] = (safetyCounts[job.computed_safety] || 0) + 1;
+      }
+    }
+
+    const jobInterpretation = {
+      total_flagged_jobs: totalFlaggedJobs,
+      flag_distribution: flagCounts,
+      inspection_bias_distribution: biasCounts,
+      safety_distribution: safetyCounts,
+      safety_red_jobs: (flaggedJobs || [])
+        .filter((j: any) => j.computed_safety === "red")
+        .map((j: any) => ({ id: j.id, title: j.title, micro_slug: j.micro_slug, flags: j.flags })),
+      inspection_mandatory_jobs: (flaggedJobs || [])
+        .filter((j: any) => j.computed_inspection_bias === "mandatory")
+        .map((j: any) => ({ id: j.id, title: j.title, micro_slug: j.micro_slug, flags: j.flags })),
+    };
+
     // Aggregate summary
     const aggregate = (metrics: any[] | null) => {
       if (!metrics?.length) return null;
