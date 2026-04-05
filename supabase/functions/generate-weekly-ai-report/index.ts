@@ -204,9 +204,20 @@ ${JSON.stringify(catRollup, null, 2)}
 ACTIVE ALERTS (${activeAlerts?.length || 0}):
 ${JSON.stringify((activeAlerts || []).slice(0, 10).map(a => ({ severity: a.severity, title: a.title, body: a.body })), null, 2)}
 
+JOB INTERPRETATION SIGNALS (from rules engine):
+${JSON.stringify(jobInterpretation, null, 2)}
+
+Flag meanings:
+- safety: red = emergency/danger, amber = urgency or caution
+- inspection_bias: mandatory = must visit site before quoting, high = strongly recommended, medium = helpful
+- Flags like EMERGENCY, ISOLATE = immediate safety risk
+- Flags like MULTI_TRADE, ELECTRICIAN_NEEDED = scope complexity requiring coordination
+- Flags like INSPECTION_MANDATORY, SITE_VISIT_MANDATORY = cannot quote remotely
+- Flags like NEW_PIPEWORK_NEEDED, NEW_CIRCUIT_LIKELY = hidden scope expansion risk
+
 Respond in valid JSON with this exact structure:
 {
-  "analysis": "2-3 paragraph narrative of what happened this week, what changed vs last week, and why",
+  "analysis": "2-3 paragraph narrative of what happened this week, what changed vs last week, and why. Include a paragraph on job risk and complexity signals if any flagged jobs exist.",
   "issues": [{"title": "...", "severity": "high|medium|low", "description": "..."}],
   "recommendations": [{"title": "...", "priority": "high|medium|low", "action": "specific action to take", "expected_impact": "..."}]
 }
@@ -214,6 +225,8 @@ Respond in valid JSON with this exact structure:
 Focus on:
 - What changed week-over-week and likely causes
 - Operational risks (zero-response jobs, dispute spikes, worker inactivity)
+- Safety and inspection signals: highlight any safety:red jobs as critical, recommend operator review for inspection:mandatory jobs
+- Multi-trade and scope complexity: flag jobs that may need coordination or are at risk of scope creep
 - Top 3-5 specific actions the operator should take
 - Be direct and practical, not generic`;
 
