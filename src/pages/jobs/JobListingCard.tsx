@@ -39,7 +39,7 @@ function statusVariant(status?: string | null): "default" | "warning" | "success
 const STATUS_KEYS: Record<string, string> = {
   open: 'status.open',
   draft: 'status.draft',
-  ready: 'status.ready',
+  
   in_progress: 'status.inProgress',
   completed: 'status.completed',
   cancelled: 'status.cancelled',
