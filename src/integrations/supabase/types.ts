@@ -3642,6 +3642,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: number
       }
+      cancel_job: { Args: { p_job_id: string }; Returns: undefined }
       check_rate_limit: {
         Args: {
           p_action: string
@@ -3824,6 +3825,7 @@ export type Database = {
       }
       is_admin_email: { Args: never; Returns: boolean }
       mark_nudge_sent: { Args: { p_nudge_id: string }; Returns: undefined }
+      post_job: { Args: { p_job_id: string }; Returns: undefined }
       purge_stale_telemetry: { Args: never; Returns: undefined }
       refresh_demand_snapshots: { Args: never; Returns: undefined }
       request_job_cancellation: {
