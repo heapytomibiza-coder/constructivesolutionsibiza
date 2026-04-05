@@ -74,7 +74,7 @@ export interface ProblemCard {
   description?: string;
   
   // State machine
-  status: 'draft' | 'open' | 'assigned' | 'completed' | 'cancelled';
+  status: 'draft' | 'open' | 'in_progress' | 'completed' | 'cancelled';
   
   // Timestamps
   created_at: string;

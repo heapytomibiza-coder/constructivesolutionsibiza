@@ -231,15 +231,16 @@ export default function JobTicketDetail() {
   const handleClose = async () => {
     if (!jobId || !confirm(t('jobTicket.closeConfirm'))) return;
     try {
-      const { data: updated, error } = await supabase
-        .from('jobs')
-        .update({ status: 'cancelled' })
-        .eq('id', jobId)
-        .in('status', ['draft', 'ready', 'open'])
-        .select('id');
-      if (error) throw error;
-      if (!updated || updated.length === 0) {
-        toast.error(t('jobTicket.closeNotAllowed', 'This job can no longer be closed directly. Use the cancellation request flow instead.'));
+      const { error } = await supabase.rpc('cancel_job' as any, { p_job_id: jobId });
+      if (error) {
+        const msg = error.message || '';
+        if (msg.includes('not_authorized')) {
+          toast.error(t('jobTicket.closeNotAllowed', 'You are not authorized to cancel this job.'));
+        } else if (msg.includes('job_not_cancellable')) {
+          toast.error(t('jobTicket.closeNotAllowed', 'This job can no longer be closed directly. Use the cancellation request flow instead.'));
+        } else {
+          throw error;
+        }
         return;
       }
       toast.success(t('jobTicket.jobClosed'));
