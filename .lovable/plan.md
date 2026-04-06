@@ -1,136 +1,135 @@
 
+
 # Price Calculator — Implementation Plan
 
-## Adaptation Notes (Dev Handover vs Our Platform)
+## Context
 
-The handover doc proposes generic REST endpoints and a separate API layer. Our platform uses Supabase directly (RLS + RPCs + React Query). The plan below translates their intent into our architecture:
+Nothing has been built yet. No tables, no files, no routes exist. The handover doc is a guideline — several details don't match our platform (REST endpoints, category names, some micro services). This plan adapts everything to our architecture.
 
-- **No REST endpoints** — all data flows through Supabase client + RPCs
-- **Taxonomy already exists** — `service_categories` (16), `service_subcategories` (90), `service_micro_categories` (316) are live. Reuse `useServiceTaxonomy()` hook
-- **Routes use `/prototype/` prefix** — kept outside main nav, not wired to rollout system
-- **Terminology** — "Asker/Tasker" in UI copy, "client/professional" in code (per `scope.ts`)
-- **Categories in handover doc** (e.g. "Home & Property Services") don't match ours — we use the 16 construction-only categories from `MAIN_CATEGORIES`
+## Key Adaptations from Handover
 
----
+| Handover says | Our platform does |
+|---|---|
+| REST endpoints (`GET /pricing/...`) | Direct Supabase client queries, no API layer |
+| Separate `/results` page | Inline estimate card on same page (simpler, faster) |
+| Categories like "Home & Property Services" | Our 16 construction categories (`Painting & Decorating`, `Carpentry`, etc.) |
+| "Flat-pack furniture assembly", "Plaster repair", "Garden clearance" | These micro slugs don't exist in our taxonomy. We'll seed rules for real micros only |
+| `user_role` column on estimates | Not needed — derive from `user_roles` table at read time |
+| `linked_to_job` estimate status | Keep as future; Phase 1 uses `draft`, `calculated`, `saved`, `archived` only |
 
-## Phase 1 Scope (This Build)
+## Seed Services (Real Taxonomy Matches)
 
-### 1. Database: Two New Tables
+These 6 micros exist and are active:
 
-**`pricing_rules`** — admin-managed base rates per micro service
+1. **Wall Painting** (`wall-painting`) — Painting & Decorating → Interior Painting
+2. **Paint walls** (`paint-walls`) — Painting & Decorating → Interior
+3. **Build shelving** (`build-shelving`) — Construction → Carpentry
+4. **Shelving Units** (`shelving-units`) — Carpentry → Custom Furniture
+5. **Install ceiling lights** (`install-ceiling-lights`) — Electrical → Lighting
+6. **Tree pruning** (`tree-pruning`) — Gardening & Landscaping → Maintenance
+
+We'll seed 5 rules (combining the two painting variants into one rule keyed on `wall-painting`).
+
+## Implementation Steps
+
+### Step 1: Database Migration
+
+**Table: `pricing_rules`**
+- `id`, `category`, `subcategory`, `micro_slug` (unique), `micro_name`
+- `base_labour_unit` (hour/day/m2/item/project), `base_labour_min`, `base_labour_max`
+- `base_material_min`, `base_material_max`
+- `location_modifier` (default 1.0), `difficulty_modifier`, `urgency_modifier`
+- `adjustment_factors` (jsonb — drives dynamic input form fields)
+- `is_active`, `created_by`, `created_at`, `updated_at`
+- RLS: public read for active rules, admin-only write (using `has_role` + `is_admin_email`)
+
+**Table: `price_estimates`**
+- `id`, `user_id` (not null, references auth), `category`, `subcategory`, `micro_slug`, `micro_name`
+- `inputs` (jsonb), `materials_min/max`, `labour_min/max`, `additional_min/max`, `total_min/max`
+- `currency` (default EUR), `confidence_level`, `pricing_source`, `disclaimer_version`
+- `status` (draft/calculated/saved/archived), `linked_job_id` (nullable)
+- `created_at`, `updated_at`
+- RLS: users CRUD own, admins read all
+
+**Seed**: 5 pricing rules with realistic Ibiza rates and `adjustment_factors.fields` jsonb defining the dynamic inputs for each service.
+
+### Step 2: Frontend — Core Logic (3 files)
+
+- `src/pages/prototype/lib/calculateEstimate.ts` — pure function: rule + inputs → min/max ranges
+- `src/pages/prototype/hooks/usePricingRules.ts` — React Query hook to fetch active rules
+- `src/pages/prototype/hooks/useEstimateHistory.ts` — CRUD hooks for saved estimates
+
+### Step 3: Frontend — Components (4 files)
+
+- `ServiceSelector.tsx` — category → subcategory → micro cascading selects, reusing `useServiceTaxonomy()` pattern, then loads pricing rule for selected micro
+- `DynamicInputForm.tsx` — renders inputs from `adjustment_factors.fields` jsonb (number, select, boolean types)
+- `EstimateCard.tsx` — materials/labour/additional/total ranges with confidence badge
+- `DisclaimerBanner.tsx` — persistent "ballpark only" warning
+
+### Step 4: Frontend — Pages (3 files)
+
+- `PriceCalculatorPage.tsx` — main page: desktop left/right split, mobile stacked, sticky summary
+- `EstimateHistoryPage.tsx` — list saved estimates with duplicate action
+- `EstimateDetailPage.tsx` — full breakdown view
+
+### Step 5: Admin Page (1 file)
+
+- `AdminPricingRulesPage.tsx` — CRUD table for pricing rules, coverage gaps view, activate/deactivate toggle
+
+### Step 6: Route Wiring
+
+**Registry** — add `prototypeRoutes` array (no nav, no rollout gating):
 ```
-id, category, subcategory, micro_slug, micro_name,
-base_labour_unit (hour|day|m2|item|project),
-base_labour_min, base_labour_max,
-base_material_min, base_material_max,
-location_modifier (default 1.0 for Ibiza),
-difficulty_modifier, urgency_modifier,
-adjustment_factors (jsonb),
-is_active, created_by,
-created_at, updated_at
-```
-RLS: Admin-only write. Public read for active rules.
-
-**`price_estimates`** — saved user estimates
-```
-id, user_id (nullable for concept but required by RLS),
-category, subcategory, micro_slug, micro_name,
-inputs (jsonb),
-materials_min, materials_max,
-labour_min, labour_max,
-additional_min, additional_max,
-total_min, total_max,
-currency (default EUR),
-confidence_level (low|medium|high),
-pricing_source (manual_rule|template_rule|historical_average),
-disclaimer_version (default v1),
-status (draft|calculated|saved|archived),
-linked_job_id (nullable),
-created_at, updated_at
-```
-RLS: Users can CRUD own estimates. Admins can read all.
-
-Seed 6 starter pricing rules for the initial covered services:
-- Painting a room
-- Plaster repair
-- Flat-pack furniture assembly
-- Built-in shelving
-- Basic electrical light fitting replacement
-- Garden clearance
-
-### 2. Routes (4 pages)
-
-Add to route registry under a new `prototypeRoutes` array:
-
-| Route | Access | Component |
-|---|---|---|
-| `/prototype/price-calculator` | public | `PriceCalculatorPage` |
-| `/prototype/price-calculator/history` | auth | `EstimateHistoryPage` |
-| `/prototype/price-calculator/history/:id` | auth | `EstimateDetailPage` |
-| `/prototype/admin/price-calculator` | admin | `AdminPricingRulesPage` |
-
-Not added to nav. Accessed via direct URL or future CTA.
-
-### 3. Frontend Components
-
-**PriceCalculatorPage** (main page)
-- Desktop: left panel (selection + inputs) / right panel (live estimate card)
-- Mobile: stacked, sticky total summary
-- Reuses `useServiceTaxonomy()` for category/subcategory/micro selection
-- Dynamic input form driven by `adjustment_factors` jsonb from the pricing rule
-- Disclaimer banner always visible
-- "Save Estimate" button (auth-gated, shows login prompt for guests)
-- "View History" link for authenticated users
-
-**EstimateCard** — materials/labour/additional/total ranges with confidence badge
-
-**EstimateHistoryPage** — table/cards of saved estimates with duplicate action
-
-**EstimateDetailPage** — full saved record with breakdown
-
-**AdminPricingRulesPage** — CRUD for pricing rules, coverage gaps view
-
-### 4. Calculation Logic
-
-Client-side calculation from the pricing rule (no edge function needed for Phase 1):
-
-```
-base_labour = rule.base_labour_min..max × quantity_or_area
-base_material = rule.base_material_min..max × quantity_or_area
-adjustments = apply difficulty/urgency/access modifiers
-total = (labour + material) × location_modifier × adjustments
-confidence = rule exists ? "medium" : "low"
+/prototype/price-calculator        → public
+/prototype/price-calculator/history → auth
+/prototype/price-calculator/history/:id → auth
 ```
 
-### 5. Files to Create/Modify
+Add admin route under existing `adminRoutes`:
+```
+/dashboard/admin/pricing-rules → admin
+```
 
-**New files:**
-- `src/pages/prototype/PriceCalculatorPage.tsx`
-- `src/pages/prototype/EstimateHistoryPage.tsx`
-- `src/pages/prototype/EstimateDetailPage.tsx`
-- `src/pages/prototype/components/ServiceSelector.tsx`
-- `src/pages/prototype/components/DynamicInputForm.tsx`
-- `src/pages/prototype/components/EstimateCard.tsx`
-- `src/pages/prototype/components/DisclaimerBanner.tsx`
-- `src/pages/prototype/hooks/usePricingRule.ts`
-- `src/pages/prototype/hooks/useEstimateHistory.ts`
-- `src/pages/prototype/lib/calculateEstimate.ts`
-- `src/pages/admin/pricing/AdminPricingRulesPage.tsx`
+**App.tsx** — 4 lazy imports + routes: 3 prototype routes (public + protected), 1 admin route nested under existing admin layout.
 
-**Modified files:**
-- `src/App.tsx` — add 4 lazy routes
-- `src/app/routes/registry.ts` — add prototype routes (no nav)
+### Calculation Formula
 
-**Migrations:**
-- Create `pricing_rules` table + RLS
-- Create `price_estimates` table + RLS
-- Seed 6 starter pricing rules
+```
+multiplier = area_m2 || quantity || 1
+modifiers  = product of select-field modifier values
+coats      = inputs.coats || 1
 
-### 6. What's NOT in Phase 1
+labour     = rule.base_labour_[min|max] × multiplier × modifiers × coats × location_modifier
+materials  = rule.base_material_[min|max] × multiplier × modifiers × coats × location_modifier
+additional = 5–15% of labour (transport/access/waste)
+total      = labour + materials + additional
+confidence = "medium" if rule exists, "low" if no rule
+```
 
-- No link to job posting flow
+### What's NOT included (Phase 1)
+
+- No job-posting integration
 - No historical quote comparison
-- No notifications
-- No edge function (calculation is client-side from rules)
-- No i18n (English-only prototype copy)
-- Not in main nav or rollout gating
+- No notifications or i18n
+- Not in main navigation
+- No edge functions
+
+### Files Summary
+
+| Action | File |
+|---|---|
+| Create | `src/pages/prototype/PriceCalculatorPage.tsx` |
+| Create | `src/pages/prototype/EstimateHistoryPage.tsx` |
+| Create | `src/pages/prototype/EstimateDetailPage.tsx` |
+| Create | `src/pages/prototype/components/ServiceSelector.tsx` |
+| Create | `src/pages/prototype/components/DynamicInputForm.tsx` |
+| Create | `src/pages/prototype/components/EstimateCard.tsx` |
+| Create | `src/pages/prototype/components/DisclaimerBanner.tsx` |
+| Create | `src/pages/prototype/hooks/usePricingRules.ts` |
+| Create | `src/pages/prototype/hooks/useEstimateHistory.ts` |
+| Create | `src/pages/prototype/lib/calculateEstimate.ts` |
+| Create | `src/pages/admin/pricing/AdminPricingRulesPage.tsx` |
+| Modify | `src/App.tsx` — add 4 lazy routes |
+| Modify | `src/app/routes/registry.ts` — add prototype + admin route entries |
+| Migration | Create `pricing_rules` + `price_estimates` tables, RLS, seed data |
+
