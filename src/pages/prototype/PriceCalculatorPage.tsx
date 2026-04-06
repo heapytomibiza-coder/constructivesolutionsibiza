@@ -24,12 +24,21 @@ export default function PriceCalculatorPage() {
 
   const { data: allRules } = usePricingRules();
   const { data: rule } = usePricingRuleBySlug(microSlug || null);
+  const { data: taxonomy } = useServiceTaxonomy();
   const saveEstimate = useSaveEstimate();
 
   const coveredSlugs = useMemo(
     () => new Set((allRules ?? []).map((r) => r.micro_slug)),
     [allRules]
   );
+
+  // Auto-select category from URL param (e.g. ?category=Painting+%26+Decorating)
+  useEffect(() => {
+    const paramCategory = searchParams.get('category');
+    if (!paramCategory || !taxonomy || categoryId) return;
+    const match = taxonomy.find((c) => c.name === paramCategory);
+    if (match) setCategoryId(match.id);
+  }, [searchParams, taxonomy, categoryId]);
 
   // Initialize default values when rule changes
   const fields = rule?.adjustment_factors?.fields ?? [];
