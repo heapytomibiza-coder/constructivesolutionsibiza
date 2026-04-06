@@ -288,7 +288,12 @@ const App = () => {
                 <Route path="insights/:metricKey" element={<MetricInsightPage />} />
                 <Route path="monitoring" element={<MonitoringPage />} />
                 <Route path="qa/disputes" element={<DisputeQADashboard />} />
+                <Route path="pricing-rules" element={<AdminPricingRulesPage />} />
               </Route>
+
+              {/* Estimate History (auth required) */}
+              <Route path="/prototype/price-calculator/history" element={<EstimateHistoryPage />} />
+              <Route path="/prototype/price-calculator/history/:id" element={<EstimateDetailPage />} />
             </Route>
 
             {/* ============================================
