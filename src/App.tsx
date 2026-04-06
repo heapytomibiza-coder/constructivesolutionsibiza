@@ -211,6 +211,9 @@ const App = () => {
             {/* Post Job Wizard - Public, auth checkpoint at publish */}
             <Route path="/post" element={<PostJob />} />
 
+            {/* Prototype - Price Calculator (public) */}
+            <Route path="/prototype/price-calculator" element={<PriceCalculatorPage />} />
+
             {/* ============================================
                 AUTH ROUTES - Public only (redirect if authed)
                 ============================================ */}
