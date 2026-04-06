@@ -88,6 +88,15 @@ export default function PriceCalculatorPage() {
         micro_name: rule.micro_name,
         inputs,
         result,
+        ruleSnapshot: {
+          rule_id: rule.id,
+          location_modifier: rule.location_modifier,
+          base_labour_min: rule.base_labour_min,
+          base_labour_max: rule.base_labour_max,
+          base_material_min: rule.base_material_min,
+          base_material_max: rule.base_material_max,
+          rule_updated_at: rule.updated_at ?? '',
+        },
       },
       {
         onSuccess: () => toast.success('Estimate saved to your history.'),

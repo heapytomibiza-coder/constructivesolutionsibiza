@@ -106,6 +106,7 @@ export function useSaveEstimate() {
           total_max: args.result.total_max,
           confidence_level: args.result.confidence_level,
           pricing_source: args.result.pricing_source,
+          rule_snapshot: args.ruleSnapshot as any,
           status: 'saved',
         } as any)
         .select()
