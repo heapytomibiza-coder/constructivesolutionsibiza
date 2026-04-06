@@ -278,6 +278,7 @@ export const adminRoutes: RouteConfig[] = [
   { path: '/dashboard/admin/insights/top-sources', access: 'admin', redirectTo: '/auth', lane: 'admin' },
   { path: '/dashboard/admin/insights/messaging-pulse', access: 'admin', redirectTo: '/auth', lane: 'admin' },
   { path: '/dashboard/admin/monitoring', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/pricing-rules', access: 'admin', redirectTo: '/auth', lane: 'admin' },
 ];
 
 // ============================================
