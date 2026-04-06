@@ -61,8 +61,16 @@ export function calculateEstimate(
 ): EstimateResult {
   const fields = rule.adjustment_factors?.fields ?? [];
 
-  // Determine multiplier: area_m2 or quantity, fallback to 1
-  const multiplier = Number(inputs.area_m2 || inputs.quantity || 1);
+  // Determine multiplier: room dimensions → wall area, or area_m2, or quantity
+  let multiplier: number;
+  const roomLength = Number(inputs.room_length);
+  const roomWidth = Number(inputs.room_width);
+  const roomHeight = Number(inputs.room_height);
+  if (roomLength > 0 && roomWidth > 0 && roomHeight > 0) {
+    multiplier = 2 * (roomLength + roomWidth) * roomHeight;
+  } else {
+    multiplier = Number(inputs.area_m2 || inputs.quantity || 1);
+  }
 
   // Coats (painting-specific)
   const coats = Number(inputs.coats || 1);
