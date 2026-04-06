@@ -37,7 +37,7 @@ export default function CostGuidesPage() {
       return {
         categoryId: cat.id,
         categoryName: cat.name,
-        categorySlug: cat.slug ?? '',
+        categorySlug: '',
         rulesCount: catRules.length,
         microNames: catRules.map((r) => r.micro_name),
       };
