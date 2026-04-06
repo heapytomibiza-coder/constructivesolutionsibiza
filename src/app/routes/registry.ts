@@ -308,6 +308,15 @@ export const disputeRoutes: RouteConfig[] = [
 // ============================================
 
 // ============================================
+// PROTOTYPE ROUTES - Isolated, not in nav
+// ============================================
+export const prototypeRoutes: RouteConfig[] = [
+  { path: '/prototype/price-calculator', access: 'public', lane: 'public' },
+  { path: '/prototype/price-calculator/history', access: 'auth', redirectTo: '/auth', lane: 'shared' },
+  { path: '/prototype/price-calculator/history/:id', access: 'auth', redirectTo: '/auth', lane: 'shared' },
+];
+
+// ============================================
 // ALL ROUTES - Combined for lookup
 // ============================================
 export const allRoutes: RouteConfig[] = [
@@ -318,4 +327,5 @@ export const allRoutes: RouteConfig[] = [
   ...proDashboardRoutes,
   ...disputeRoutes,
   ...adminRoutes,
+  ...prototypeRoutes,
 ];
