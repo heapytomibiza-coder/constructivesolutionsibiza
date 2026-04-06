@@ -120,6 +120,7 @@ const AdminPricingRulesPage = lazy(() => import("./pages/admin/pricing/AdminPric
 const PriceCalculatorPage = lazy(() => import("./pages/prototype/PriceCalculatorPage"));
 const EstimateHistoryPage = lazy(() => import("./pages/prototype/EstimateHistoryPage"));
 const EstimateDetailPage = lazy(() => import("./pages/prototype/EstimateDetailPage"));
+const CostGuidesPage = lazy(() => import("./pages/prototype/CostGuidesPage"));
 
 // Disputes
 const RaiseDispute = lazy(() => import("./pages/disputes/RaiseDispute"));
@@ -211,7 +212,8 @@ const App = () => {
             {/* Post Job Wizard - Public, auth checkpoint at publish */}
             <Route path="/post" element={<PostJob />} />
 
-            {/* Prototype - Price Calculator (public) */}
+            {/* Prototype - Cost Guides & Price Calculator (public) */}
+            <Route path="/prototype/cost-guides" element={<CostGuidesPage />} />
             <Route path="/prototype/price-calculator" element={<PriceCalculatorPage />} />
 
             {/* ============================================
