@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Calculator, History, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useServiceTaxonomy } from '@/pages/onboarding/hooks/useServiceTaxonomy';
 import { toast } from 'sonner';
 import { ServiceSelector } from './components/ServiceSelector';
 import { DynamicInputForm } from './components/DynamicInputForm';
