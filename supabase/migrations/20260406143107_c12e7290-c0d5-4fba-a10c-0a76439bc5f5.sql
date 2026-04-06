@@ -1,0 +1,1 @@
+ALTER TABLE public.pricing_rules ADD COLUMN guide_content jsonb DEFAULT NULL;
