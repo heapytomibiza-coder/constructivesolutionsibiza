@@ -278,6 +278,7 @@ export const adminRoutes: RouteConfig[] = [
   { path: '/dashboard/admin/insights/top-sources', access: 'admin', redirectTo: '/auth', lane: 'admin' },
   { path: '/dashboard/admin/insights/messaging-pulse', access: 'admin', redirectTo: '/auth', lane: 'admin' },
   { path: '/dashboard/admin/monitoring', access: 'admin', redirectTo: '/auth', lane: 'admin' },
+  { path: '/dashboard/admin/pricing-rules', access: 'admin', redirectTo: '/auth', lane: 'admin' },
 ];
 
 // ============================================
@@ -308,6 +309,15 @@ export const disputeRoutes: RouteConfig[] = [
 // ============================================
 
 // ============================================
+// PROTOTYPE ROUTES - Isolated, not in nav
+// ============================================
+export const prototypeRoutes: RouteConfig[] = [
+  { path: '/prototype/price-calculator', access: 'public', lane: 'public' },
+  { path: '/prototype/price-calculator/history', access: 'auth', redirectTo: '/auth', lane: 'shared' },
+  { path: '/prototype/price-calculator/history/:id', access: 'auth', redirectTo: '/auth', lane: 'shared' },
+];
+
+// ============================================
 // ALL ROUTES - Combined for lookup
 // ============================================
 export const allRoutes: RouteConfig[] = [
@@ -318,4 +328,5 @@ export const allRoutes: RouteConfig[] = [
   ...proDashboardRoutes,
   ...disputeRoutes,
   ...adminRoutes,
+  ...prototypeRoutes,
 ];

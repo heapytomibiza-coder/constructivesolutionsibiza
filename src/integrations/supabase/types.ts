@@ -1843,6 +1843,147 @@ export type Database = {
           },
         ]
       }
+      price_estimates: {
+        Row: {
+          additional_max: number
+          additional_min: number
+          category: string
+          confidence_level: string
+          created_at: string
+          currency: string
+          disclaimer_version: string
+          id: string
+          inputs: Json
+          labour_max: number
+          labour_min: number
+          linked_job_id: string | null
+          materials_max: number
+          materials_min: number
+          micro_name: string
+          micro_slug: string
+          pricing_source: string
+          status: string
+          subcategory: string
+          total_max: number
+          total_min: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_max?: number
+          additional_min?: number
+          category: string
+          confidence_level?: string
+          created_at?: string
+          currency?: string
+          disclaimer_version?: string
+          id?: string
+          inputs?: Json
+          labour_max?: number
+          labour_min?: number
+          linked_job_id?: string | null
+          materials_max?: number
+          materials_min?: number
+          micro_name: string
+          micro_slug: string
+          pricing_source?: string
+          status?: string
+          subcategory: string
+          total_max?: number
+          total_min?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_max?: number
+          additional_min?: number
+          category?: string
+          confidence_level?: string
+          created_at?: string
+          currency?: string
+          disclaimer_version?: string
+          id?: string
+          inputs?: Json
+          labour_max?: number
+          labour_min?: number
+          linked_job_id?: string | null
+          materials_max?: number
+          materials_min?: number
+          micro_name?: string
+          micro_slug?: string
+          pricing_source?: string
+          status?: string
+          subcategory?: string
+          total_max?: number
+          total_min?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pricing_rules: {
+        Row: {
+          adjustment_factors: Json
+          base_labour_max: number
+          base_labour_min: number
+          base_labour_unit: string
+          base_material_max: number
+          base_material_min: number
+          category: string
+          created_at: string
+          created_by: string | null
+          difficulty_modifier: number
+          id: string
+          is_active: boolean
+          location_modifier: number
+          micro_name: string
+          micro_slug: string
+          subcategory: string
+          updated_at: string
+          urgency_modifier: number
+        }
+        Insert: {
+          adjustment_factors?: Json
+          base_labour_max?: number
+          base_labour_min?: number
+          base_labour_unit?: string
+          base_material_max?: number
+          base_material_min?: number
+          category: string
+          created_at?: string
+          created_by?: string | null
+          difficulty_modifier?: number
+          id?: string
+          is_active?: boolean
+          location_modifier?: number
+          micro_name: string
+          micro_slug: string
+          subcategory: string
+          updated_at?: string
+          urgency_modifier?: number
+        }
+        Update: {
+          adjustment_factors?: Json
+          base_labour_max?: number
+          base_labour_min?: number
+          base_labour_unit?: string
+          base_material_max?: number
+          base_material_min?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          difficulty_modifier?: number
+          id?: string
+          is_active?: boolean
+          location_modifier?: number
+          micro_name?: string
+          micro_slug?: string
+          subcategory?: string
+          updated_at?: string
+          urgency_modifier?: number
+        }
+        Relationships: []
+      }
       professional_documents: {
         Row: {
           created_at: string | null

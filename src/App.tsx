@@ -114,6 +114,12 @@ const TopSourcesPage = lazy(() => import("./pages/admin/insights/TopSourcesPage"
 const MessagingPulsePage = lazy(() => import("./pages/admin/insights/MessagingPulsePage"));
 const MonitoringPage = lazy(() => import("./pages/admin/monitoring/MonitoringPage"));
 const DisputeQADashboard = lazy(() => import("./pages/admin/qa/DisputeQADashboard"));
+const AdminPricingRulesPage = lazy(() => import("./pages/admin/pricing/AdminPricingRulesPage"));
+
+// Prototype
+const PriceCalculatorPage = lazy(() => import("./pages/prototype/PriceCalculatorPage"));
+const EstimateHistoryPage = lazy(() => import("./pages/prototype/EstimateHistoryPage"));
+const EstimateDetailPage = lazy(() => import("./pages/prototype/EstimateDetailPage"));
 
 // Disputes
 const RaiseDispute = lazy(() => import("./pages/disputes/RaiseDispute"));
@@ -205,6 +211,9 @@ const App = () => {
             {/* Post Job Wizard - Public, auth checkpoint at publish */}
             <Route path="/post" element={<PostJob />} />
 
+            {/* Prototype - Price Calculator (public) */}
+            <Route path="/prototype/price-calculator" element={<PriceCalculatorPage />} />
+
             {/* ============================================
                 AUTH ROUTES - Public only (redirect if authed)
                 ============================================ */}
@@ -282,7 +291,12 @@ const App = () => {
                 <Route path="insights/:metricKey" element={<MetricInsightPage />} />
                 <Route path="monitoring" element={<MonitoringPage />} />
                 <Route path="qa/disputes" element={<DisputeQADashboard />} />
+                <Route path="pricing-rules" element={<AdminPricingRulesPage />} />
               </Route>
+
+              {/* Estimate History (auth required) */}
+              <Route path="/prototype/price-calculator/history" element={<EstimateHistoryPage />} />
+              <Route path="/prototype/price-calculator/history/:id" element={<EstimateDetailPage />} />
             </Route>
 
             {/* ============================================
