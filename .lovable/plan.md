@@ -1,104 +1,81 @@
 
 
-# Price Calculator — Hardening Pass
+# Upgrade Painting Pricing Rule — Ibiza-Adjusted Model
 
-## Findings from audit
+## What this does
 
-### 1. Seed rules: 5, not 6
+Enriches the `wall-painting` pricing rule with a proper room-based input model inspired by MyJobQuote's field structure, but with Ibiza-adjusted rates and modifiers. Also updates the calculation engine to support room-dimension-based area computation.
 
-**Current DB**: `wall-painting`, `build-shelving`, `shelving-units`, `install-ceiling-lights`, `tree-pruning` — exactly 5 rules.
+## Current state
 
-**Missing from handover**: "Plaster Repair" and "Furniture Assembly" do not exist in the taxonomy. The closest matches are `venetian-plaster` (different service) and `furniture-selection`/`furniture-delivery` (neither is assembly). These cannot be seeded without creating fake taxonomy entries.
+The existing rule has 4 fields: `area_m2` (manual entry), `coats`, `finish_level`, `surface_prep`. Base rates are €8–15/m² labour, €3–7/m² materials, with 1.15 location modifier.
 
-**Overlap**: `build-shelving` (Construction → Carpentry) and `shelving-units` (Carpentry → Custom Furniture) are genuinely different micro services in our taxonomy. One is basic wall-mounted shelving, the other is custom furniture-grade units. Both are valid — no overlap to fix.
+This is functional but primitive. Users must calculate wall area themselves, and key cost drivers (ceiling, trim, furniture, wallpaper removal) are missing.
 
-**Action**: Keep 5 rules. Document that Plaster Repair and Furniture Assembly are not in our taxonomy. No seed changes needed.
+## What changes
 
-### 2. Confidence level hardcoded to `'medium'`
+### 1. Update `adjustment_factors` JSON for `wall-painting`
 
-`calculateEstimate.ts` line 113 returns `confidence_level: 'medium'` for all manual-rule calculations. The DB column defaults to `'low'`, but the client-side function overrides it.
+Replace the current 4-field schema with a richer 9-field schema:
 
-**Action**: Change `calculateEstimate.ts` to return `'low'` for `pricing_source: 'manual_rule'`. Phase 1 has no historical data, so `medium` is misleading.
+**Number fields** (drive area calculation):
+- `room_length` — Room length (m), min 1, max 20, default 4
+- `room_width` — Room width (m), min 1, max 15, default 3
+- `room_height` — Room height (m), min 2, max 5, default 2.5
+- `coats` — Number of coats, min 1, max 4, default 2
 
-### 3. No rule snapshot saved with estimates
+**Select fields** (multiply modifiers):
+- `paint_quality` — Standard (1.0) / Washable (1.15) / Premium (1.35)
+- `wall_condition` — Good (1.0) / Minor repairs (1.15) / Major prep needed (1.4)
+- `finish_level` — Standard (1.0) / Premium (1.25) / High-end (1.5)
 
-Currently `useSaveEstimate` saves inputs and result values, but nothing about which rule or rule version was used. When rules change, old estimates become unauditable.
+**Boolean fields** (toggle modifiers):
+- `include_ceiling` — Yes adds ~25% more area (modifier_true: 1.25, modifier_false: 1.0)
+- `include_trim` — Skirting/trim adds ~15% (modifier_true: 1.15, modifier_false: 1.0)
+- `furniture_moving` — Furniture in room adds time (modifier_true: 1.1, modifier_false: 1.0)
+- `wallpaper_removal` — Significant prep uplift (modifier_true: 1.35, modifier_false: 1.0)
 
-**Action**: 
-- Add `rule_snapshot` jsonb column to `price_estimates` (nullable, default null)
-- Add `EstimateResult.rule_snapshot` to the return type
-- Save `{ rule_id, location_modifier, base_labour_min, base_labour_max, base_material_min, base_material_max, rule_updated_at }` at save time
+### 2. Update calculation engine
 
-### 4. Duplicate behavior — already correct
+Add room-dimension area auto-calculation to `calculateEstimate.ts`:
 
-`useDuplicateEstimate` creates with `status: 'draft'`. This is the right behavior. No change needed.
-
-### 5. "No pricing rule" empty state is a dead end
-
-Current empty state (line 140-145 of PriceCalculatorPage) says "Post a job to receive real quotes" but has no link or CTA button.
-
-**Action**: Add a "Post a Job" button linking to `/post-job` and a secondary note about requesting quotes. Keep it simple — one real CTA instead of plain text.
-
-### 6. Query shape — no action needed now
-
-All pricing rules are fetched once with `staleTime: 5min`. History is only loaded on `/history` page. This is fine for 5–50 rules. Flag for future only.
-
----
-
-## Implementation
-
-### Step 1: Migration — add `rule_snapshot` column
-
-```sql
-ALTER TABLE price_estimates 
-  ADD COLUMN rule_snapshot jsonb DEFAULT NULL;
+```
+if room_length && room_width && room_height exist in inputs:
+  wall_area = 2 * (length + width) * height
+  use wall_area as multiplier instead of area_m2
+else:
+  fall back to area_m2 or quantity as before
 ```
 
-### Step 2: Update `calculateEstimate.ts`
+This means users enter room dimensions and the engine calculates paintable wall area automatically — much better UX than asking "how many m²?"
 
-- Change line 113 from `confidence_level: 'medium'` to `confidence_level: 'low'`
-- Add `rule_snapshot` to `EstimateResult` interface (optional field, populated by caller)
+### 3. Adjust base rates for Ibiza
 
-### Step 3: Update `useEstimateHistory.ts` — save rule snapshot
+Current: €8–15/m² labour, €3–7/m² materials.
 
-In `useSaveEstimate`, accept the rule object and save a snapshot:
-```typescript
-rule_snapshot: {
-  rule_id: args.rule.id,
-  location_modifier: args.rule.location_modifier,
-  base_labour_min: args.rule.base_labour_min,
-  base_labour_max: args.rule.base_labour_max,
-  base_material_min: args.rule.base_material_min,
-  base_material_max: args.rule.base_material_max,
-  rule_updated_at: args.rule.updated_at,
-}
-```
+MyJobQuote UK data suggests ~£10–16/m² labour for decorators. Ibiza professional rates are typically 20–40% higher than UK mainland due to island logistics, smaller labour pool, and import costs.
 
-Update `SaveEstimateArgs` interface to include the rule.
+Proposed Ibiza-adjusted rates:
+- **Labour**: €12–22/m² (up from €8–15)
+- **Materials**: €4–8/m² (modest increase for import costs)
 
-### Step 4: Update `PriceCalculatorPage.tsx` — pass rule to save, fix empty state
+These are still ballpark — the confidence stays `low`.
 
-- Pass `rule` object into `saveEstimate.mutate()` args
-- Replace plain-text empty state with a CTA button to `/post-job`
+### 4. No code structure changes
 
-### Step 5: Update `PriceCalculatorPage.tsx` — wire rule into save call
-
-Update `handleSave` to include the rule in the mutation args.
-
----
+The existing `DynamicInputForm` already handles number, select, and boolean field types. The `calculateEstimate` engine already processes select modifiers and boolean modifiers. The only code change is adding the room-dimension area calculation fallback.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `src/pages/prototype/lib/calculateEstimate.ts` | confidence → `'low'`, add `rule_snapshot` to interface |
-| `src/pages/prototype/hooks/useEstimateHistory.ts` | accept rule in save args, persist snapshot |
-| `src/pages/prototype/PriceCalculatorPage.tsx` | pass rule to save, improve empty state with CTA |
-| Migration | add `rule_snapshot` column to `price_estimates` |
+| `src/pages/prototype/lib/calculateEstimate.ts` | Add room-dimension area calculation (6 lines) |
+| Database (UPDATE via insert tool) | Update `adjustment_factors` JSON and base rates for `wall-painting` rule |
 
-## What this does NOT change
+## What this does NOT do
 
-- No new seed rules (taxonomy doesn't support the missing services)
-- No duplicate behavior change (already correct)
-- No query optimization (not needed at current scale)
+- Does not add new pricing rules or micro services
+- Does not change the UI components (DynamicInputForm already renders all field types)
+- Does not change RLS or table schema
+- Does not copy UK prices — uses Ibiza-adjusted assumptions
 
