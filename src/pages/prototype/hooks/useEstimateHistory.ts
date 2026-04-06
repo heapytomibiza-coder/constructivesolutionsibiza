@@ -61,6 +61,16 @@ export function useEstimateById(id: string | undefined) {
   });
 }
 
+interface RuleSnapshot {
+  rule_id: string;
+  location_modifier: number;
+  base_labour_min: number;
+  base_labour_max: number;
+  base_material_min: number;
+  base_material_max: number;
+  rule_updated_at: string;
+}
+
 interface SaveEstimateArgs {
   userId: string;
   category: string;
@@ -69,6 +79,7 @@ interface SaveEstimateArgs {
   micro_name: string;
   inputs: EstimateInputs;
   result: EstimateResult;
+  ruleSnapshot: RuleSnapshot;
 }
 
 export function useSaveEstimate() {

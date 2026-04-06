@@ -137,11 +137,16 @@ export default function PriceCalculatorPage() {
               <div className="rounded-xl border bg-card p-6 space-y-6">
                 <h2 className="font-semibold text-foreground">2. Project details</h2>
                 {noRuleForSelection ? (
-                  <div className="rounded-lg bg-muted p-4 text-center">
+                  <div className="rounded-lg bg-muted p-4 text-center space-y-3">
                     <p className="text-sm text-muted-foreground">
                       We don't have pricing data for <strong>{microName}</strong> yet.
                       Post a job to receive real quotes from professionals.
                     </p>
+                    <Link to="/post-job">
+                      <Button variant="default" size="sm">
+                        Post a Job
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
                   <>

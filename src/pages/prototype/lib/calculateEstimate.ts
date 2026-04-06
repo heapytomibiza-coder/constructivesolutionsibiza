@@ -110,7 +110,7 @@ export function calculateEstimate(
     additional_max,
     total_min,
     total_max,
-    confidence_level: 'medium',
+    confidence_level: 'low',
     pricing_source: 'manual_rule',
   };
 }
