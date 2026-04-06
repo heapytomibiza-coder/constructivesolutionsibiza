@@ -114,6 +114,12 @@ const TopSourcesPage = lazy(() => import("./pages/admin/insights/TopSourcesPage"
 const MessagingPulsePage = lazy(() => import("./pages/admin/insights/MessagingPulsePage"));
 const MonitoringPage = lazy(() => import("./pages/admin/monitoring/MonitoringPage"));
 const DisputeQADashboard = lazy(() => import("./pages/admin/qa/DisputeQADashboard"));
+const AdminPricingRulesPage = lazy(() => import("./pages/admin/pricing/AdminPricingRulesPage"));
+
+// Prototype
+const PriceCalculatorPage = lazy(() => import("./pages/prototype/PriceCalculatorPage"));
+const EstimateHistoryPage = lazy(() => import("./pages/prototype/EstimateHistoryPage"));
+const EstimateDetailPage = lazy(() => import("./pages/prototype/EstimateDetailPage"));
 
 // Disputes
 const RaiseDispute = lazy(() => import("./pages/disputes/RaiseDispute"));
