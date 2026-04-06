@@ -312,6 +312,7 @@ export const disputeRoutes: RouteConfig[] = [
 // PROTOTYPE ROUTES - Isolated, not in nav
 // ============================================
 export const prototypeRoutes: RouteConfig[] = [
+  { path: '/prototype/cost-guides', access: 'public', lane: 'public' },
   { path: '/prototype/price-calculator', access: 'public', lane: 'public' },
   { path: '/prototype/price-calculator/history', access: 'auth', redirectTo: '/auth', lane: 'shared' },
   { path: '/prototype/price-calculator/history/:id', access: 'auth', redirectTo: '/auth', lane: 'shared' },

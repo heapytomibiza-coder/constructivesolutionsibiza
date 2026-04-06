@@ -212,7 +212,8 @@ const App = () => {
             {/* Post Job Wizard - Public, auth checkpoint at publish */}
             <Route path="/post" element={<PostJob />} />
 
-            {/* Prototype - Price Calculator (public) */}
+            {/* Prototype - Cost Guides & Price Calculator (public) */}
+            <Route path="/prototype/cost-guides" element={<CostGuidesPage />} />
             <Route path="/prototype/price-calculator" element={<PriceCalculatorPage />} />
 
             {/* ============================================
