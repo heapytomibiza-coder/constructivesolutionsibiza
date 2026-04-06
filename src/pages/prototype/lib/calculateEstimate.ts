@@ -19,6 +19,7 @@ export interface PricingRule {
   urgency_modifier: number;
   adjustment_factors: AdjustmentFactors;
   is_active: boolean;
+  updated_at?: string;
 }
 
 export interface AdjustmentFactors {
