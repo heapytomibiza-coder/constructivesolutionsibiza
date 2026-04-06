@@ -1862,6 +1862,7 @@ export type Database = {
           micro_name: string
           micro_slug: string
           pricing_source: string
+          rule_snapshot: Json | null
           status: string
           subcategory: string
           total_max: number
@@ -1887,6 +1888,7 @@ export type Database = {
           micro_name: string
           micro_slug: string
           pricing_source?: string
+          rule_snapshot?: Json | null
           status?: string
           subcategory: string
           total_max?: number
@@ -1912,6 +1914,7 @@ export type Database = {
           micro_name?: string
           micro_slug?: string
           pricing_source?: string
+          rule_snapshot?: Json | null
           status?: string
           subcategory?: string
           total_max?: number

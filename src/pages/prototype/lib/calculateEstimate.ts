@@ -19,6 +19,7 @@ export interface PricingRule {
   urgency_modifier: number;
   adjustment_factors: AdjustmentFactors;
   is_active: boolean;
+  updated_at?: string;
 }
 
 export interface AdjustmentFactors {
@@ -110,7 +111,7 @@ export function calculateEstimate(
     additional_max,
     total_min,
     total_max,
-    confidence_level: 'medium',
+    confidence_level: 'low',
     pricing_source: 'manual_rule',
   };
 }
