@@ -120,6 +120,7 @@ const AdminPricingRulesPage = lazy(() => import("./pages/admin/pricing/AdminPric
 const PriceCalculatorPage = lazy(() => import("./pages/prototype/PriceCalculatorPage"));
 const EstimateHistoryPage = lazy(() => import("./pages/prototype/EstimateHistoryPage"));
 const EstimateDetailPage = lazy(() => import("./pages/prototype/EstimateDetailPage"));
+const CostGuidesPage = lazy(() => import("./pages/prototype/CostGuidesPage"));
 
 // Disputes
 const RaiseDispute = lazy(() => import("./pages/disputes/RaiseDispute"));
