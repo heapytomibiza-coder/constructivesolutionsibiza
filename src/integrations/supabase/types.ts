@@ -1936,6 +1936,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           difficulty_modifier: number
+          guide_content: Json | null
           id: string
           is_active: boolean
           location_modifier: number
@@ -1956,6 +1957,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           difficulty_modifier?: number
+          guide_content?: Json | null
           id?: string
           is_active?: boolean
           location_modifier?: number
@@ -1976,6 +1978,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           difficulty_modifier?: number
+          guide_content?: Json | null
           id?: string
           is_active?: boolean
           location_modifier?: number
