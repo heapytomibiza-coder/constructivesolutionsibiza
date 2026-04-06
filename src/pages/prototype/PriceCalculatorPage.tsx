@@ -14,6 +14,7 @@ import { calculateEstimate, type EstimateInputs, type EstimateResult } from './l
 import { supabase } from '@/integrations/supabase/client';
 
 export default function PriceCalculatorPage() {
+  const [searchParams] = useSearchParams();
   const [categoryId, setCategoryId] = useState('');
   const [subcategoryId, setSubcategoryId] = useState('');
   const [microSlug, setMicroSlug] = useState('');
