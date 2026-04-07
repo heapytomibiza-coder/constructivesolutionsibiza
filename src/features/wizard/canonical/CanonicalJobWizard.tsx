@@ -358,7 +358,11 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     processDeepLink();
   }, [modeResolution]);
   
-  // === DRAFT SAVE (debounced) ===
+  // === DRAFT SAVE (debounced, dual-storage) ===
+  // Writes to BOTH sessionStorage (same tab) and localStorage (cross-tab).
+  // Critical for iPhone Safari where email confirmation opens a new tab,
+  // losing sessionStorage. Without localStorage backup, users lose their
+  // entire wizard progress after signing up.
   useEffect(() => {
     if (!isInitialized) return;
     
@@ -374,7 +378,11 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             ),
           },
         };
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draftState));
+        const draftJson = JSON.stringify(draftState);
+        sessionStorage.setItem(STORAGE_KEY, draftJson);
+        // Mirror to localStorage so new-tab auth flows (email confirmation)
+        // can recover the draft even without sessionStorage access
+        try { localStorage.setItem('wizardState_authDraft', draftJson); } catch {}
       } catch (e) {
         // Quota exceeded — clear old drafts and retry once
         try {
@@ -724,6 +732,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
   const handleStartFresh = useCallback(() => {
     sessionStorage.removeItem(STORAGE_KEY);
+    try { localStorage.removeItem('wizardState_authDraft'); } catch {}
     setWizardState(EMPTY_WIZARD_STATE);
     setCurrentStep(WizardStep.Category);
     markDraftChecked();
