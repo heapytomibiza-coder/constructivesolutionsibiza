@@ -45,6 +45,17 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 }
 
+// Spanish translations for timing values
+const timingEs: Record<string, string> = {
+  "Flexible": "Flexible",
+  "ASAP": "Lo antes posible",
+  "Within 1 week": "En 1 semana",
+  "Within 2 weeks": "En 2 semanas",
+  "Within 1 month": "En 1 mes",
+  "Within 3 months": "En 3 meses",
+  "Not urgent": "Sin prisa",
+};
+
 async function sendTelegramAlert(job: any, siteUrl: string) {
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
@@ -58,18 +69,28 @@ async function sendTelegramAlert(job: any, siteUrl: string) {
   const tradeParts = [job.category, job.subcategory, job.micro_slug?.replace(/-/g, " ")].filter(Boolean);
   const tradeLine = tradeParts.length > 0 ? tradeParts.join(" › ") : "General";
 
+  const timing = job.start_timing || "Flexible";
+  const timingSpanish = timingEs[timing] || timing;
+
+  // Get Spanish title from i18n if available
+  const titleEn = job.title || "Untitled";
+  const titleEs = job.title_i18n?.es || titleEn;
+  const titleLine = titleEs !== titleEn
+    ? `${escapeHtml(titleEn)} / ${escapeHtml(titleEs)}`
+    : escapeHtml(titleEn);
+
   const text = [
-    `🚨 <b>NEW JOB POSTED</b>`,
+    `🚨 <b>NEW JOB / NUEVO TRABAJO</b>`,
     ``,
-    `📌 <b>${escapeHtml(job.title || "Untitled")}</b>`,
+    `📌 <b>${titleLine}</b>`,
     ``,
-    `🔧 <b>Trade:</b> ${escapeHtml(tradeLine)}`,
-    `📍 <b>Area:</b> ${escapeHtml(job.area || "Ibiza")}`,
-    `💶 <b>Budget:</b> ${escapeHtml(budget)}`,
-    `⏱️ <b>When:</b> ${escapeHtml(job.start_timing || "Flexible")}`,
+    `🔧 <b>Trade / Oficio:</b> ${escapeHtml(tradeLine)}`,
+    `📍 <b>Area / Zona:</b> ${escapeHtml(job.area || "Ibiza")}`,
+    `💶 <b>Budget / Presupuesto:</b> ${escapeHtml(budget)}`,
+    `⏱️ <b>When / Cuándo:</b> ${escapeHtml(timing)} / ${escapeHtml(timingSpanish)}`,
     ``,
-    `👉 <a href="${jobUrl}">View Job Details</a>`,
-    `📋 <a href="${boardUrl}">Browse All Jobs</a>`,
+    `👉 <a href="${jobUrl}">View Job / Ver Trabajo</a>`,
+    `📋 <a href="${boardUrl}">All Jobs / Todos los Trabajos</a>`,
   ].join("\n");
 
   // Extract first photo from job answers if available
@@ -267,7 +288,7 @@ const handler = async (req: Request): Promise<Response> => {
         // Load job details
         const { data: job, error: jobError } = await supabaseAdmin
           .from("jobs")
-          .select("id, title, category, subcategory, micro_slug, area, budget_type, budget_value, budget_min, budget_max, start_timing, description, status, answers")
+          .select("id, title, title_i18n, category, subcategory, micro_slug, area, budget_type, budget_value, budget_min, budget_max, start_timing, description, status, answers")
           .eq("id", item.job_id)
           .single();
 
