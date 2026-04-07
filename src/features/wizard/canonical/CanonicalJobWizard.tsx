@@ -488,19 +488,26 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
   const handleSubcategorySelect = useCallback((subcategoryName: string, subcategoryId: string) => {
     flushSync(() => {
-      setWizardState(prev => ({
-        ...prev,
-        subcategory: subcategoryName,
-        subcategoryId: subcategoryId,
-        // Reset downstream selections
-        microNames: [],
-        microIds: [],
-        microSlugs: [],
-        answers: { microAnswers: {} },
-        // Reset custom mode when picking structured
-        wizardMode: 'structured',
-        customRequest: undefined,
-      }));
+      setWizardState(prev => {
+        // If re-selecting the same subcategory (e.g. after tapping Back),
+        // preserve existing micro selections to prevent the "loop" feeling
+        const isSameSubcategory = prev.subcategoryId === subcategoryId;
+        return {
+          ...prev,
+          subcategory: subcategoryName,
+          subcategoryId: subcategoryId,
+          // Only reset downstream if subcategory actually changed
+          ...(isSameSubcategory ? {} : {
+            microNames: [],
+            microIds: [],
+            microSlugs: [],
+            answers: { microAnswers: {} },
+          }),
+          // Reset custom mode when picking structured
+          wizardMode: 'structured',
+          customRequest: undefined,
+        };
+      });
     });
     setCurrentStep(WizardStep.Micro);
   }, []);
