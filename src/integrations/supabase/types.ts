@@ -3772,6 +3772,10 @@ export type Database = {
         Returns: Json
       }
       aggregate_daily_metrics: { Args: { p_date: string }; Returns: undefined }
+      aggregate_daily_metrics_internal: {
+        Args: { p_date: string }
+        Returns: undefined
+      }
       calculate_client_reputation: {
         Args: { p_user_id: string }
         Returns: undefined
