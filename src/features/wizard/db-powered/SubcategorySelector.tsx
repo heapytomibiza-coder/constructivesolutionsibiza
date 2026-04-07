@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,8 +28,12 @@ export default function SubcategorySelector({
   const { t } = useTranslation(['wizard', 'common']);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
+  const autoAdvancedRef = useRef(false);
 
   useEffect(() => {
+    // Reset auto-advance guard when category changes
+    autoAdvancedRef.current = false;
+    
     if (!categoryId) {
       setSubcategories([]);
       return;
@@ -55,6 +59,19 @@ export default function SubcategorySelector({
     fetchSubcategories();
   }, [categoryId]);
 
+  // Auto-advance when only one subcategory exists (skip unnecessary tap)
+  const filtered = allowedSubcategoryIds
+    ? subcategories.filter(s => allowedSubcategoryIds.includes(s.id))
+    : subcategories;
+
+  useEffect(() => {
+    if (!loading && filtered.length === 1 && !autoAdvancedRef.current && !selectedSubcategoryId) {
+      autoAdvancedRef.current = true;
+      const only = filtered[0];
+      onSelect(only.name, only.id);
+    }
+  }, [loading, filtered, selectedSubcategoryId, onSelect]);
+
   if (!categoryId) {
     return null;
   }
@@ -72,9 +89,7 @@ export default function SubcategorySelector({
     return human.charAt(0).toUpperCase() + human.slice(1);
   };
 
-  const filtered = allowedSubcategoryIds
-    ? subcategories.filter(s => allowedSubcategoryIds.includes(s.id))
-    : subcategories;
+  // filtered is computed above (before the auto-advance effect)
 
   return (
     <div className="space-y-2">
