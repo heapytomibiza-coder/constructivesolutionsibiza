@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
       for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().split("T")[0];
-        const { error: aggErr } = await supabase.rpc("aggregate_daily_metrics", { p_date: dateStr });
+        const { error: aggErr } = await supabase.rpc("aggregate_daily_metrics_internal", { p_date: dateStr });
         if (aggErr) {
           console.error(`Backfill failed for ${dateStr}:`, aggErr.message);
         } else {
