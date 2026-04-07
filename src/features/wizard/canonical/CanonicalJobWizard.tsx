@@ -732,6 +732,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
 
   const handleStartFresh = useCallback(() => {
     sessionStorage.removeItem(STORAGE_KEY);
+    try { localStorage.removeItem('wizardState_authDraft'); } catch {}
     setWizardState(EMPTY_WIZARD_STATE);
     setCurrentStep(WizardStep.Category);
     markDraftChecked();
