@@ -424,6 +424,11 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     trackEvent('job_wizard_step_viewed', 'client', {
       step: currentStep,
       step_index: getStepIndex(currentStep),
+      subcategory_id: wizardState.subcategoryId || null,
+      subcategory: wizardState.subcategory || null,
+      micro_slugs: wizardState.microSlugs.length > 0 ? wizardState.microSlugs : null,
+      micro_count: wizardState.microIds.length,
+      wizard_mode: wizardState.wizardMode || 'structured',
     }, { category: wizardState.mainCategory });
     if (currentStep === WizardStep.Review) {
       trackEvent('review_step_entered', 'client', {}, { category: wizardState.mainCategory });
