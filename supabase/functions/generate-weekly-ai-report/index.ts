@@ -43,15 +43,51 @@ Deno.serve(async (req) => {
       });
     }
 
+    // 0. Auto-backfill missing daily metrics before generating report
+    const today = new Date().toISOString().split("T")[0];
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 86400000).toISOString().split("T")[0];
+
+    // Find the latest aggregated date
+    const { data: latestMetric } = await supabase
+      .from("daily_platform_metrics")
+      .select("metric_date")
+      .order("metric_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const lastAggregated = latestMetric?.metric_date || fourteenDaysAgo;
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+
+    // Backfill any missing days (from day after last aggregated to yesterday)
+    if (lastAggregated < yesterday) {
+      const startDate = new Date(lastAggregated);
+      startDate.setDate(startDate.getDate() + 1);
+      const endDate = new Date(yesterday);
+      let backfillCount = 0;
+
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        const { error: aggErr } = await supabase.rpc("aggregate_daily_metrics", { p_date: dateStr });
+        if (aggErr) {
+          console.error(`Backfill failed for ${dateStr}:`, aggErr.message);
+        } else {
+          backfillCount++;
+        }
+        // Also run alert rules
+        await supabase.rpc("run_platform_alert_rules", { p_date: dateStr });
+      }
+      if (backfillCount > 0) {
+        console.log(`Auto-backfilled ${backfillCount} days of metrics (${lastAggregated} → ${yesterday})`);
+      }
+    }
+
     // 1. Assemble structured weekly summary
     const reportWeek = new Date();
     reportWeek.setDate(reportWeek.getDate() - reportWeek.getDay()); // Start of week
     const reportWeekStr = reportWeek.toISOString().split("T")[0];
 
     // Get this week's metrics (last 7 days)
-    const today = new Date().toISOString().split("T")[0];
     const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
-    const fourteenDaysAgo = new Date(Date.now() - 14 * 86400000).toISOString().split("T")[0];
 
     const { data: thisWeekMetrics } = await supabase
       .from("daily_platform_metrics")
