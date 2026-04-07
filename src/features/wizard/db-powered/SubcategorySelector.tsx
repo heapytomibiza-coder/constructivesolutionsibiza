@@ -28,8 +28,12 @@ export default function SubcategorySelector({
   const { t } = useTranslation(['wizard', 'common']);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
+  const autoAdvancedRef = useRef(false);
 
   useEffect(() => {
+    // Reset auto-advance guard when category changes
+    autoAdvancedRef.current = false;
+    
     if (!categoryId) {
       setSubcategories([]);
       return;
