@@ -668,6 +668,8 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
       trackEvent('job_wizard_step_completed', 'client', {
         step: currentStep,
         step_index: getStepIndex(currentStep),
+        subcategory_id: wizardState.subcategoryId || null,
+        micro_slugs: wizardState.microSlugs.length > 0 ? wizardState.microSlugs : null,
       }, { category: wizardState.mainCategory });
 
       let nextStep = getNextStep(currentStep);
