@@ -59,6 +59,19 @@ export default function SubcategorySelector({
     fetchSubcategories();
   }, [categoryId]);
 
+  // Auto-advance when only one subcategory exists (skip unnecessary tap)
+  const filtered = allowedSubcategoryIds
+    ? subcategories.filter(s => allowedSubcategoryIds.includes(s.id))
+    : subcategories;
+
+  useEffect(() => {
+    if (!loading && filtered.length === 1 && !autoAdvancedRef.current && !selectedSubcategoryId) {
+      autoAdvancedRef.current = true;
+      const only = filtered[0];
+      onSelect(only.name, only.id);
+    }
+  }, [loading, filtered, selectedSubcategoryId, onSelect]);
+
   if (!categoryId) {
     return null;
   }
