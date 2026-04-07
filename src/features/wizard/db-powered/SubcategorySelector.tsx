@@ -89,9 +89,7 @@ export default function SubcategorySelector({
     return human.charAt(0).toUpperCase() + human.slice(1);
   };
 
-  const filtered = allowedSubcategoryIds
-    ? subcategories.filter(s => allowedSubcategoryIds.includes(s.id))
-    : subcategories;
+  // filtered is computed above (before the auto-advance effect)
 
   return (
     <div className="space-y-2">
