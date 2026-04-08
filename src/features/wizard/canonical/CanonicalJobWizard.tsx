@@ -1203,6 +1203,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               onChange={handleAnswersChange}
               onPacksLoaded={handlePacksLoaded}
               onComplete={handleNext}
+              onAutoSkip={handleQuestionsAutoSkip}
               errors={questionErrors}
             />
           )}
