@@ -6,6 +6,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
+import { trackEvent } from '@/lib/trackEvent';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, Check, ChevronLeft, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
