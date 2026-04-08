@@ -4,6 +4,11 @@
  * - Reduced retry count (1)
  * - Manual retry with escalation (retry → fallback → skip)
  * - Auto-tracking of timeout/failure events
+ *
+ * Escalation ladder:
+ *   retryCount 0 = initial load (Plan A)
+ *   retryCount 1 = first manual retry — re-fetch live data (Plan B)
+ *   retryCount 2+ = escalated — useFallback flips, CTA becomes "Keep going"
  */
 
 import { useQuery, type UseQueryOptions, type QueryKey } from '@tanstack/react-query';
@@ -100,11 +105,11 @@ export function useResilientQuery<TData>({
     });
 
     if (next < 2) {
-      // Re-fetch live data
+      // Plan B: re-fetch live data one more time
       query.refetch();
     }
     // If next >= 2, the escalatedFallback flag flips and the component
-    // should render Plan C content — no refetch needed.
+    // should render Plan C content or trigger onAutoSkip — no refetch needed.
   }, [retryCount, stepName, query]);
 
   return {

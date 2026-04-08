@@ -33,11 +33,6 @@ export default function MicroStep({
   onAutoSkip,
 }: Props) {
   const { t } = useTranslation(['wizard', 'micros']);
-  const autoSkipFiredRef = useRef(false);
-
-  useEffect(() => {
-    autoSkipFiredRef.current = false;
-  }, [subcategoryId]);
 
   const { data: rawMicros = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<MicroCategory[]>({
     queryKey: ['service-micros-wizard', subcategoryId],
@@ -64,14 +59,15 @@ export default function MicroStep({
     ? rawMicros.filter(m => allowedMicroIds.includes(m.id))
     : rawMicros;
 
-  // Auto-skip when empty after initial load/timeout
+  // Auto-skip ONLY after retry escalation exhausted (not on initial empty)
   useEffect(() => {
-    if (!isLoading && microCategories.length === 0 && !autoSkipFiredRef.current && onAutoSkip) {
-      autoSkipFiredRef.current = true;
-      trackEvent('wizard_auto_skip', 'client', { step: 'micro', reason: useFallback ? 'timeout' : 'empty' });
-      onAutoSkip();
+    if (useFallback && microCategories.length === 0 && !isLoading && onAutoSkip) {
+      if (retryCount >= 2) {
+        trackEvent('wizard_auto_skip', 'client', { step: 'micro', reason: 'escalation_exhausted' });
+        onAutoSkip();
+      }
     }
-  }, [isLoading, microCategories.length, useFallback, onAutoSkip]);
+  }, [useFallback, microCategories.length, isLoading, retryCount, onAutoSkip]);
 
   if (!subcategoryId) {
     return null;
@@ -106,6 +102,7 @@ export default function MicroStep({
 
   // Error or empty state with escalating recovery
   if ((isError || microCategories.length === 0) && !isLoading) {
+    const hasRetried = retryCount >= 1;
     return (
       <div>
         <label className="block text-sm font-medium mb-2">
@@ -114,22 +111,23 @@ export default function MicroStep({
         <div className="flex flex-col items-center gap-3 py-6 text-center">
           <AlertCircle className="h-5 w-5 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            {retryCount >= 1
+            {hasRetried
               ? t('wizard:fallback.simplifying', "We'll simplify things to keep you moving")
-              : t('wizard:micro.noServices')}
+              : t('wizard:micro.noServices', 'No services found')}
           </p>
           <Button
             variant="outline"
             size="sm"
             onClick={() => {
-              if (retryCount >= 1 && onAutoSkip) {
+              if (hasRetried && onAutoSkip) {
+                trackEvent('wizard_auto_skip', 'client', { step: 'micro', reason: 'user_chose_keep_going' });
                 onAutoSkip();
               } else {
                 manualRetry();
               }
             }}
           >
-            {retryCount >= 1
+            {hasRetried
               ? t('wizard:fallback.keepGoing', 'Keep going')
               : t('common:actions.retry', 'Try again')}
           </Button>

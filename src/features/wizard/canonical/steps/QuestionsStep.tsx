@@ -263,8 +263,45 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
           step: 'questions',
           micro_slugs: microSlugs,
         });
+
+        // Plan B: try the general-project fallback pack before giving up
+        try {
+          const { data: fallback } = await supabase
+            .from('question_packs')
+            .select('id, micro_slug, title, questions')
+            .eq('micro_slug', 'general-project')
+            .eq('is_active', true)
+            .single();
+
+          if (fallback && !cancelled) {
+            const fallbackPack: QuestionPack = {
+              id: fallback.id,
+              micro_slug: 'general-project',
+              title: fallback.title,
+              questions: (fallback.questions as unknown as QuestionDef[]) || [],
+            };
+            setPacks([fallbackPack]);
+            setLoading(false);
+            trackEvent('wizard_step_fallback', 'client', {
+              step: 'questions',
+              tier: 'B',
+              reason: 'primary_fetch_failed',
+            });
+            if (onPacksLoaded) onPacksLoaded([fallbackPack]);
+            return;
+          }
+        } catch {
+          // Fallback fetch also failed — skip entirely
+        }
+
+        // Plan C: no packs at all — auto-skip to next step
         setPacks([]);
         setLoading(false);
+        trackEvent('wizard_step_fallback', 'client', {
+          step: 'questions',
+          tier: 'C',
+          reason: 'all_fetches_failed',
+        });
         onAutoSkip?.();
       } finally {
         clearTimeout(timeout);
