@@ -1,151 +1,92 @@
 
 
-# Fail-Safe Job Wizard: Architecture Hardening Plan
+# Plan: Progressive Retry with Escalating Recovery
 
-## Current State
+## Problem
+Currently, the retry button on CategorySelector endlessly reloads the same broken state. There's no escalation — users can click "Try again" forever with no improvement. The auto-skip handlers also jump directly to skip without giving the user a retry chance first.
 
-The wizard already has a solid 7-step structure (Category → Subcategory → Micro → Questions → Logistics → Extras → Review), draft persistence (dual-storage), deep-link hydration, custom request escape hatch, and a `general-project` fallback question pack with 4 questions.
+## What Changes
 
-**Gaps identified:**
-- No timeout handling on any DB fetch (categories, subcategories, micros, question packs)
-- SubcategorySelector and MicroStep show empty states ("No services available") with no escape
-- CategorySelector shows error state with retry but no fallback content
-- QuestionsStep loading state has no timeout — infinite spinner possible
-- No auto-skip logic when steps return empty data
-- No "safe mode" / minimal backup for DB-down scenarios
-- No error/timeout tracking for wizard step failures
+### 1. Add retry counter to `useResilientQuery`
+Track how many times the user has manually retried. Expose `retryCount` and a wrapped `retryWithEscalation` function that:
+- **Retry 0 (initial load)**: Normal DB fetch with 5s timeout
+- **Retry 1 (first manual retry)**: Re-fetch live data one more time
+- **Retry 2+ (second retry)**: Switch to `useFallback = true` immediately, change CTA from "Try again" to "Keep going"
 
----
+Track `wizard_retry_pressed` event with retry count.
 
-## Architecture: 3-Tier Resilience Per Step
+### 2. Update CategorySelector error UI
+- Retry 0-1: Show "Try again" button (current behavior)
+- Retry 2+: Show fallback categories automatically AND change button to "Keep going" (renders Plan C tiles)
+- Track `wizard_fallback_triggered` when Plan C activates via retry escalation
 
-```text
-┌─────────────┐     ┌──────────────┐     ┌──────────────┐
-│   PLAN A    │────▶│   PLAN B     │────▶│   PLAN C     │
-│  DB Query   │ 5s  │  Cached /    │     │  Universal   │
-│  (live)     │ out │  Retry once  │fail │  Fallback    │
-└─────────────┘     └──────────────┘     └──────────────┘
-```
+### 3. Update SubcategorySelector empty/error state
+Currently shows "No subcategories" text with no escape. Change to:
+- First appearance of error/empty: Show "Try again" button
+- After 1 failed retry: Show "Keep going" button that calls `onAutoSkip`
+- Friendly copy: "We'll simplify things to keep you moving"
 
-Each DB-powered selector gets a `useResilientQuery` wrapper that enforces:
-- 5-second timeout (AbortController)
-- 1 retry on failure
-- Fallback trigger after retry exhaustion
+### 4. Update MicroStep empty/error state  
+Same pattern as SubcategorySelector:
+- First error: "Try again"
+- Second error: "Keep going" → triggers `onAutoSkip` (custom mode → Logistics)
 
----
+### 5. Fix auto-skip handlers in CanonicalJobWizard
+Per user's instructions, update the three handlers:
 
-## Step-by-Step Hardening
+**handleSubcategoryAutoSkip**: Switch to custom mode, clear structured fields, jump to Logistics (NOT Micro — Micro depends on subcategoryId which is empty).
 
-### Step 1 — Category (required)
-- **Plan A**: DB query (existing)
-- **Plan B**: Retry once (existing via React Query `retry: 3` — reduce to `retry: 1` + 5s timeout)
-- **Plan C**: Hardcoded category list (16 known categories from taxonomy) rendered as static tiles
-- **Escape**: Custom Request CTA already exists — always visible
+**handleMicroAutoSkip**: Switch to custom mode, clear micro fields, jump to Logistics.
 
-### Step 2 — Subcategory (required, but auto-skippable)
-- **Plan A**: DB query (existing)
-- **Plan B**: Retry once + 5s timeout
-- **Plan C**: If empty/failed after timeout → auto-skip to Micro step with subcategory marked as "General"
-- **Escape**: Custom Request CTA already exists
+**handleQuestionsAutoSkip**: New handler. Track event, jump to Logistics.
 
-### Step 3 — Micro (required, but has escape)
-- **Plan A**: DB query (existing)
-- **Plan B**: Retry once + 5s timeout
-- **Plan C**: If empty/failed → show "Describe your project" free-text input (uses custom request path internally)
-- **Escape**: Custom Request CTA already exists — promote it to primary CTA when micro list is empty
+### 6. Add `onAutoSkip` prop to QuestionsStep
+On fetch timeout/failure (after the existing 5s abort), call `onAutoSkip?.()` so the wizard advances instead of showing an empty state.
 
-### Step 4 — Questions (optional, already skippable)
-- **Plan A**: DB question packs (existing)
-- **Plan B**: `general-project` fallback pack (existing — 4 questions)
-- **Plan C**: Auto-skip with "All set!" state (existing behavior)
-- **Add**: 5-second timeout on pack fetch; if exceeded, trigger Plan C
-- **Add**: Track `question_pack_timeout` event
+## Technical Details
 
-### Step 5 — Logistics (required)
-- Pure frontend — no DB dependency. Already fail-safe.
-- No changes needed.
+### useResilientQuery changes
+- Add `retryCount` state (number), increment on each manual `refetch` call
+- Expose `retryCount` and `manualRetry()` (wraps refetch + increments counter)
+- After `retryCount >= 2`, force `useFallback = true`
+- Track `wizard_retry_pressed` on each manual retry
 
-### Step 6 — Extras (optional)
-- Pure frontend — no DB dependency. Already fail-safe.
-- No changes needed.
+### CategorySelector changes (~15 lines)
+- Use `retryCount` and `manualRetry` from hook
+- Error block: conditionally show "Try again" vs render fallback tiles + "Keep going"
 
-### Step 7 — Review (required)
-- Pure frontend render of collected state. Already fail-safe.
-- No changes needed.
+### SubcategorySelector changes (~20 lines)
+- Add `retryCount` / `manualRetry` from hook
+- Replace static "No subcategories" text with retry/escalation UI
+- After 1 failed retry on empty/error, show "Keep going" button → `onAutoSkip()`
 
----
+### MicroStep changes (~20 lines)
+- Same pattern as SubcategorySelector
 
-## New Shared Hook: `useResilientQuery`
+### CanonicalJobWizard changes (~40 lines)
+- Rewrite `handleSubcategoryAutoSkip` per user's exact code (custom mode → Logistics)
+- Rewrite `handleMicroAutoSkip` per user's exact code
+- Add `handleQuestionsAutoSkip` 
+- Pass `onAutoSkip={handleQuestionsAutoSkip}` to QuestionsStep
 
-A thin wrapper around React Query that adds:
-- `AbortController` with configurable timeout (default 5s)
-- `onTimeout` callback for fallback triggering
-- Reduced retry count (1 instead of 3)
-- Auto-tracking of timeout/failure events via `trackEvent`
+### QuestionsStep changes (~5 lines)
+- Add `onAutoSkip?: () => void` to Props
+- Call `onAutoSkip?.()` in the catch block after timeout/failure
 
-Used by: CategorySelector, SubcategorySelector, MicroStep, QuestionsStep
+### Event taxonomy
+- Add `wizard_retry_pressed` to eventTaxonomy.ts
 
----
+## Files to Edit
 
-## Hardcoded Category Fallback
-
-Create `src/features/wizard/canonical/lib/fallbackCategories.ts` containing the 16 known category names and IDs (sourced from current DB). This is the Plan C for Step 1 — only rendered when DB is unreachable.
-
----
-
-## Auto-Skip Logic
-
-Add to `CanonicalJobWizard.tsx`:
-- When SubcategorySelector reports empty results after timeout → auto-advance to Micro
-- When MicroStep reports empty results after timeout → switch to custom mode and advance to Logistics
-- When QuestionsStep times out → auto-advance to Logistics
-
-Each auto-skip shows a toast: "Let's keep things simple — we'll fill in details later"
-
----
-
-## UX Guarantees
-
-1. **No blank screens**: Every loading state has a max 5s visible duration before fallback renders
-2. **No infinite spinners**: Timeout forces resolution to fallback or skip
-3. **Always show progress**: Progress bar already renders before content — no change needed
-4. **Always a way forward**: Custom Request CTA on steps 1-3; steps 4-6 are optional/pure-frontend; step 7 always has submit
-5. **Fallback messaging**: Friendly copy like "Let's keep this simple" when degrading
-
----
-
-## Error Tracking
-
-Add `trackEvent` calls for:
-- `wizard_step_timeout` — step name, timeout duration
-- `wizard_step_fallback` — step name, fallback tier (B or C)
-- `wizard_step_empty` — step name (no results from DB)
-- `wizard_auto_skip` — step name, reason
-
-These feed into the existing `daily_platform_metrics` pipeline.
-
----
-
-## Auto-Save (Already Implemented)
-
-- Draft saves to both `sessionStorage` and `localStorage` every 600ms (existing)
-- Resume flow with draft modal (existing)
-- Auth redirect preserves draft (existing)
-- No changes needed
-
----
-
-## Files to Create/Edit
-
-| File | Action |
+| File | Change |
 |---|---|
-| `src/features/wizard/canonical/hooks/useResilientQuery.ts` | **Create** — timeout + fallback wrapper |
-| `src/features/wizard/canonical/lib/fallbackCategories.ts` | **Create** — hardcoded Plan C data |
-| `src/features/wizard/db-powered/CategorySelector.tsx` | **Edit** — use resilient query, add Plan C |
-| `src/features/wizard/db-powered/SubcategorySelector.tsx` | **Edit** — add timeout, auto-skip on empty |
-| `src/features/wizard/db-powered/MicroStep.tsx` | **Edit** — add timeout, promote custom CTA on empty |
-| `src/features/wizard/canonical/steps/QuestionsStep.tsx` | **Edit** — add 5s timeout on pack fetch |
-| `src/features/wizard/canonical/CanonicalJobWizard.tsx` | **Edit** — add auto-skip handlers, fallback toasts |
+| `useResilientQuery.ts` | Add retryCount, manualRetry, escalation logic |
+| `CategorySelector.tsx` | Use escalating retry UI |
+| `SubcategorySelector.tsx` | Add retry/escalation UI for empty/error states |
+| `MicroStep.tsx` | Add retry/escalation UI for empty/error states |
+| `CanonicalJobWizard.tsx` | Fix 3 auto-skip handlers, add QuestionsStep onAutoSkip |
+| `QuestionsStep.tsx` | Add onAutoSkip prop, call on failure |
+| `eventTaxonomy.ts` | Add wizard_retry_pressed |
 
-No database changes required. No edge function changes.
+No database or edge function changes needed.
 
