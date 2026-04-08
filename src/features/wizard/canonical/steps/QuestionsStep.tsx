@@ -174,86 +174,99 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
     trackingInjectedRef.current = false;
   }, [microSlugs]);
 
-  // Fetch packs
+  // Fetch packs with timeout
   useEffect(() => {
     if (!microSlugs.length) {
       setLoading(false);
       return;
     }
 
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort('timeout'), 5000);
+
     const fetchPacks = async () => {
       setLoading(true);
       
-      const { data, error } = await supabase
-        .from('question_packs')
-        .select('id, micro_slug, title, questions')
-        .in('micro_slug', microSlugs)
-        .eq('is_active', true)
-        .order('micro_slug');
-
-      if (error) {
-        console.error('Failed to fetch question packs:', error);
-        setLoading(false);
-        return;
-      }
-
-      const foundSlugs = new Set((data || []).map(p => p.micro_slug));
-      const missing = microSlugs.filter(slug => !foundSlugs.has(slug));
-      
-      let parsedPacks: QuestionPack[] = (data || []).map(p => ({
-        id: p.id,
-        micro_slug: p.micro_slug,
-        title: p.title,
-        questions: (p.questions as unknown as QuestionDef[]) || [],
-      }));
-
-      if (parsedPacks.length === 0) {
-        const { data: fallback } = await supabase
+      try {
+        const { data, error } = await supabase
           .from('question_packs')
           .select('id, micro_slug, title, questions')
-          .eq('micro_slug', 'general-project')
+          .in('micro_slug', microSlugs)
           .eq('is_active', true)
-          .single();
+          .order('micro_slug')
+          .abortSignal(controller.signal);
 
-        if (fallback) {
-          parsedPacks = [{
-            id: fallback.id,
-            micro_slug: 'general-project',
-            title: fallback.title,
-            questions: (fallback.questions as unknown as QuestionDef[]) || [],
-          }];
-        }
-      }
-      
-      if (!trackingInjectedRef.current) {
-        const primarySlug = microSlugs[0] || null;
-        const { source, missing: isMissing } = determinePackTracking(primarySlug, parsedPacks);
+        if (cancelled) return;
+        if (error) throw error;
+
+        const foundSlugs = new Set((data || []).map(p => p.micro_slug));
+        const missing = microSlugs.filter(slug => !foundSlugs.has(slug));
         
-        const shouldUpdate =
-          answersRef.current._pack_source !== source ||
-          answersRef.current._pack_slug !== primarySlug ||
-          answersRef.current._pack_missing !== isMissing;
-        
-        if (shouldUpdate) {
-          onChangeRef.current({
-            ...answersRef.current,
-            _pack_source: source,
-            _pack_slug: primarySlug,
-            _pack_missing: isMissing,
-          });
+        let parsedPacks: QuestionPack[] = (data || []).map(p => ({
+          id: p.id,
+          micro_slug: p.micro_slug,
+          title: p.title,
+          questions: (p.questions as unknown as QuestionDef[]) || [],
+        }));
+
+        if (parsedPacks.length === 0) {
+          const { data: fallback } = await supabase
+            .from('question_packs')
+            .select('id, micro_slug, title, questions')
+            .eq('micro_slug', 'general-project')
+            .eq('is_active', true)
+            .single();
+
+          if (fallback) {
+            parsedPacks = [{
+              id: fallback.id,
+              micro_slug: 'general-project',
+              title: fallback.title,
+              questions: (fallback.questions as unknown as QuestionDef[]) || [],
+            }];
+          }
         }
-        trackingInjectedRef.current = true;
-      }
-      
-      setPacks(parsedPacks);
-      setLoading(false);
-      
-      if (onPacksLoaded) {
-        onPacksLoaded(parsedPacks);
+        
+        if (!trackingInjectedRef.current) {
+          const primarySlug = microSlugs[0] || null;
+          const { source, missing: isMissing } = determinePackTracking(primarySlug, parsedPacks);
+          
+          const shouldUpdate =
+            answersRef.current._pack_source !== source ||
+            answersRef.current._pack_slug !== primarySlug ||
+            answersRef.current._pack_missing !== isMissing;
+          
+          if (shouldUpdate) {
+            onChangeRef.current({
+              ...answersRef.current,
+              _pack_source: source,
+              _pack_slug: primarySlug,
+              _pack_missing: isMissing,
+            });
+          }
+          trackingInjectedRef.current = true;
+        }
+        
+        setPacks(parsedPacks);
+        setLoading(false);
+        
+        if (onPacksLoaded) {
+          onPacksLoaded(parsedPacks);
+        }
+      } catch (err: any) {
+        if (cancelled) return;
+        // Timeout or network error — auto-complete (skip questions)
+        console.warn('Question packs fetch failed/timed out:', err?.message);
+        setPacks([]);
+        setLoading(false);
+      } finally {
+        clearTimeout(timeout);
       }
     };
 
     fetchPacks();
+    return () => { cancelled = true; controller.abort('cleanup'); clearTimeout(timeout); };
   }, [microSlugs, onPacksLoaded]);
 
   // Initialize answers structure

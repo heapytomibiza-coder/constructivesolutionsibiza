@@ -1,9 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORY_KEYS } from "@/i18n/categoryTranslations";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useResilientQuery } from "@/features/wizard/canonical/hooks/useResilientQuery";
+import { FALLBACK_CATEGORIES } from "@/features/wizard/canonical/lib/fallbackCategories";
 
 interface Category {
   id: string;
@@ -21,23 +22,29 @@ interface Props {
 export default function CategorySelector({ selectedCategory, onSelect, onNext, allowedCategoryIds }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
 
-  const { data: categories = [], isLoading, isError, refetch } = useQuery({
+  const { data: categories = [], isLoading, isError, refetch, useFallback } = useResilientQuery<Category[]>({
     queryKey: ['service-categories-wizard'],
-    queryFn: async (): Promise<Category[]> => {
+    queryFn: async (signal) => {
       const { data, error } = await supabase
         .from("service_categories")
         .select("id, name")
         .eq("is_active", true)
-        .order("display_order");
+        .order("display_order")
+        .abortSignal(signal);
 
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 5 * 60 * 1000,
-    retry: 3,
+    stepName: 'category',
+    queryOptions: {
+      staleTime: 5 * 60 * 1000,
+    },
   });
 
-  if (isLoading) {
+  // Plan C: use hardcoded fallback when DB is unreachable
+  const displayCategories = useFallback ? FALLBACK_CATEGORIES : categories;
+
+  if (isLoading && !useFallback) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -45,7 +52,7 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext, a
     );
   }
 
-  if (isError) {
+  if (isError && !useFallback) {
     return (
       <div className="flex flex-col items-center gap-3 py-8 text-center">
         <AlertCircle className="h-6 w-6 text-destructive" />
@@ -64,8 +71,8 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext, a
   };
 
   const filtered = allowedCategoryIds
-    ? categories.filter(c => allowedCategoryIds.includes(c.id))
-    : categories;
+    ? displayCategories.filter(c => allowedCategoryIds.includes(c.id))
+    : displayCategories;
 
   return (
     <div className="space-y-2">

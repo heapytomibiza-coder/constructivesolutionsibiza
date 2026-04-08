@@ -463,6 +463,19 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // === AUTO-SKIP HANDLERS (fail-safe resilience) ===
+  
+  const handleSubcategoryAutoSkip = useCallback(() => {
+    toast(t('fallback.keepSimple', "Let's keep things simple — we'll fill in details later"), { icon: '⚡' });
+    setCurrentStep(WizardStep.Micro);
+  }, [t]);
+
+  const handleMicroAutoSkip = useCallback(() => {
+    toast(t('fallback.keepSimple', "Let's keep things simple — we'll fill in details later"), { icon: '⚡' });
+    setWizardState(prev => ({ ...prev, wizardMode: 'custom' }));
+    setCurrentStep(WizardStep.Logistics);
+  }, [t]);
+
   // === STEP HANDLERS ===
   
   const handleCategorySelect = useCallback((categoryName: string, categoryId: string) => {
@@ -1076,6 +1089,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                     selectedSubcategoryId={wizardState.subcategoryId}
                     onSelect={handleSubcategorySelect}
                     allowedSubcategoryIds={isDirectMode ? proScope.subcategoryIds : undefined}
+                    onAutoSkip={handleSubcategoryAutoSkip}
                   />
 
                   {/* Custom Request CTA */}
@@ -1109,6 +1123,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                     selectedMicroIds={wizardState.microIds}
                     onSelect={handleMicroSelect}
                     allowedMicroIds={isDirectMode ? proScope.microIds : undefined}
+                    onAutoSkip={handleMicroAutoSkip}
                   />
 
                   {/* Custom Request CTA */}

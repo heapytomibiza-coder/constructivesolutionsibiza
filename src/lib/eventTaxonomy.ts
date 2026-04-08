@@ -34,6 +34,12 @@ export const EVENTS = {
   JOB_POST_SUBMIT_FAIL: "job_post_submit_fail",
   CUSTOM_REQUEST_SUBMITTED: "custom_request_submitted",
 
+  // Wizard resilience
+  WIZARD_STEP_TIMEOUT: "wizard_step_timeout",
+  WIZARD_STEP_FALLBACK: "wizard_step_fallback",
+  WIZARD_STEP_EMPTY: "wizard_step_empty",
+  WIZARD_AUTO_SKIP: "wizard_auto_skip",
+
   // Worker
   WORKER_NOTIFIED: "worker_notified",
   WORKER_VIEWED_JOB: "worker_viewed_job",
