@@ -467,14 +467,66 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
   
   const handleSubcategoryAutoSkip = useCallback(() => {
     toast(t('fallback.keepSimple', "Let's keep things simple — we'll fill in details later"), { icon: '⚡' });
-    setCurrentStep(WizardStep.Micro);
-  }, [t]);
+
+    flushSync(() => {
+      setWizardState(prev => ({
+        ...prev,
+        wizardMode: 'custom',
+        subcategory: '',
+        subcategoryId: '',
+        microNames: [],
+        microIds: [],
+        microSlugs: [],
+        answers: { microAnswers: {} },
+      }));
+    });
+
+    trackEvent('wizard_auto_skip', 'client', {
+      step: 'subcategory',
+      reason: 'empty_or_timeout',
+      destination: 'logistics',
+      wizard_mode: 'custom',
+    }, { category: wizardState.mainCategory });
+
+    setCurrentStep(WizardStep.Logistics);
+  }, [t, wizardState.mainCategory]);
 
   const handleMicroAutoSkip = useCallback(() => {
     toast(t('fallback.keepSimple', "Let's keep things simple — we'll fill in details later"), { icon: '⚡' });
-    setWizardState(prev => ({ ...prev, wizardMode: 'custom' }));
+
+    flushSync(() => {
+      setWizardState(prev => ({
+        ...prev,
+        wizardMode: 'custom',
+        microNames: [],
+        microIds: [],
+        microSlugs: [],
+        answers: { microAnswers: {} },
+      }));
+    });
+
+    trackEvent('wizard_auto_skip', 'client', {
+      step: 'micro',
+      reason: 'empty_or_timeout',
+      destination: 'logistics',
+      wizard_mode: 'custom',
+    }, { category: wizardState.mainCategory });
+
     setCurrentStep(WizardStep.Logistics);
-  }, [t]);
+  }, [t, wizardState.mainCategory]);
+
+  const handleQuestionsAutoSkip = useCallback(() => {
+    toast(t('fallback.keepSimple', "Let's keep things simple — we'll fill in details later"), { icon: '⚡' });
+
+    trackEvent('wizard_auto_skip', 'client', {
+      step: 'questions',
+      reason: 'empty_or_timeout',
+      destination: 'logistics',
+      wizard_mode: wizardState.wizardMode,
+    }, { category: wizardState.mainCategory });
+
+    setCurrentStep(WizardStep.Logistics);
+  }, [t, wizardState.mainCategory, wizardState.wizardMode]);
 
   // === STEP HANDLERS ===
   
@@ -1151,6 +1203,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               onChange={handleAnswersChange}
               onPacksLoaded={handlePacksLoaded}
               onComplete={handleNext}
+              onAutoSkip={handleQuestionsAutoSkip}
               errors={questionErrors}
             />
           )}

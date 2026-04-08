@@ -6,6 +6,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
+import { trackEvent } from '@/lib/trackEvent';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, Check, ChevronLeft, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -112,11 +113,12 @@ interface Props {
   answers: WizardState['answers'];
   onChange: (answers: WizardState['answers']) => void;
   onPacksLoaded?: (packs: QuestionPack[]) => void;
-  onComplete?: () => void; // Called when user finishes all questions
+  onComplete?: () => void;
+  onAutoSkip?: () => void;
   errors?: Record<string, Record<string, string>>;
 }
 
-export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, onComplete, errors }: Props) {
+export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, onComplete, onAutoSkip, errors }: Props) {
   const { t } = useTranslation(['wizard', 'questions']);
 
   /** Normalize a key string to avoid misses from dash/quote/spacing differences */
@@ -256,10 +258,14 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
         }
       } catch (err: any) {
         if (cancelled) return;
-        // Timeout or network error — auto-complete (skip questions)
         console.warn('Question packs fetch failed/timed out:', err?.message);
+        trackEvent('wizard_step_timeout', 'client', {
+          step: 'questions',
+          micro_slugs: microSlugs,
+        });
         setPacks([]);
         setLoading(false);
+        onAutoSkip?.();
       } finally {
         clearTimeout(timeout);
       }

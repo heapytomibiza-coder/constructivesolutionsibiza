@@ -2,12 +2,12 @@
  * useResilientQuery — wrapper around React Query that enforces:
  * - Configurable timeout (default 5s) via AbortController
  * - Reduced retry count (1)
- * - onTimeout / onFallback callbacks
+ * - Manual retry with escalation (retry → fallback → skip)
  * - Auto-tracking of timeout/failure events
  */
 
 import { useQuery, type UseQueryOptions, type QueryKey } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { trackEvent } from '@/lib/trackEvent';
 
 interface ResilientQueryOptions<TData> {
@@ -32,16 +32,15 @@ export function useResilientQuery<TData>({
   queryOptions,
 }: ResilientQueryOptions<TData>) {
   const [timedOut, setTimedOut] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const timeoutFiredRef = useRef(false);
 
   const query = useQuery<TData, Error>({
     queryKey,
     queryFn: ({ signal }) => {
-      // Layer an AbortController with a timeout on top of React Query's signal
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort('timeout'), timeoutMs);
 
-      // If React Query's own signal aborts, forward it
       signal?.addEventListener('abort', () => controller.abort('cancelled'));
 
       return queryFn(controller.signal).finally(() => clearTimeout(timer));
@@ -74,6 +73,7 @@ export function useResilientQuery<TData>({
   useEffect(() => {
     timeoutFiredRef.current = false;
     setTimedOut(false);
+    setRetryCount(0);
   }, [JSON.stringify(queryKey)]);
 
   // Track errors
@@ -87,10 +87,32 @@ export function useResilientQuery<TData>({
     }
   }, [query.isError, query.error, stepName]);
 
+  // After 2+ manual retries, force fallback mode
+  const escalatedFallback = retryCount >= 2;
+
+  /** Manual retry with escalation tracking. Returns the new retry count. */
+  const manualRetry = useCallback(() => {
+    const next = retryCount + 1;
+    setRetryCount(next);
+    trackEvent('wizard_retry_pressed', 'client', {
+      step: stepName,
+      retry_count: next,
+    });
+
+    if (next < 2) {
+      // Re-fetch live data
+      query.refetch();
+    }
+    // If next >= 2, the escalatedFallback flag flips and the component
+    // should render Plan C content — no refetch needed.
+  }, [retryCount, stepName, query]);
+
   return {
     ...query,
     timedOut,
-    /** True when data should come from fallback (timeout or error after retries) */
-    useFallback: timedOut || (query.isError && !query.isLoading),
+    retryCount,
+    manualRetry,
+    /** True when data should come from fallback (timeout, error, or retry escalation) */
+    useFallback: escalatedFallback || timedOut || (query.isError && !query.isLoading),
   };
 }

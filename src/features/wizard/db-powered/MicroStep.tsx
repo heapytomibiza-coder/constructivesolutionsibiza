@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Loader2 } from "lucide-react";
+import { Check, AlertCircle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useResilientQuery } from "@/features/wizard/canonical/hooks/useResilientQuery";
 import { trackEvent } from "@/lib/trackEvent";
 
@@ -38,7 +39,7 @@ export default function MicroStep({
     autoSkipFiredRef.current = false;
   }, [subcategoryId]);
 
-  const { data: rawMicros = [], isLoading, useFallback } = useResilientQuery<MicroCategory[]>({
+  const { data: rawMicros = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<MicroCategory[]>({
     queryKey: ['service-micros-wizard', subcategoryId],
     queryFn: async (signal) => {
       const { data, error } = await supabase
@@ -63,7 +64,7 @@ export default function MicroStep({
     ? rawMicros.filter(m => allowedMicroIds.includes(m.id))
     : rawMicros;
 
-  // Auto-skip when empty after load/timeout
+  // Auto-skip when empty after initial load/timeout
   useEffect(() => {
     if (!isLoading && microCategories.length === 0 && !autoSkipFiredRef.current && onAutoSkip) {
       autoSkipFiredRef.current = true;
@@ -76,7 +77,6 @@ export default function MicroStep({
     return null;
   }
 
-  /** Get localized micro name: check micros namespace, fall back to DB name */
   const getMicroLabel = (micro: MicroCategory): string => {
     const translated = t(`micros:${micro.slug}`, { defaultValue: '' });
     return translated || micro.name;
@@ -104,6 +104,40 @@ export default function MicroStep({
     }
   };
 
+  // Error or empty state with escalating recovery
+  if ((isError || microCategories.length === 0) && !isLoading) {
+    return (
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {multiSelect ? t('wizard:micro.selectMultiple') : t('wizard:micro.selectSingle')}
+        </label>
+        <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <AlertCircle className="h-5 w-5 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            {retryCount >= 1
+              ? t('wizard:fallback.simplifying', "We'll simplify things to keep you moving")
+              : t('wizard:micro.noServices')}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (retryCount >= 1 && onAutoSkip) {
+                onAutoSkip();
+              } else {
+                manualRetry();
+              }
+            }}
+          >
+            {retryCount >= 1
+              ? t('wizard:fallback.keepGoing', 'Keep going')
+              : t('common:actions.retry', 'Try again')}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <label className="block text-sm font-medium mb-2">
@@ -114,8 +148,6 @@ export default function MicroStep({
         <div className="flex items-center justify-center py-6">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
-      ) : microCategories.length === 0 ? (
-        <p className="text-muted-foreground">{t('wizard:micro.noServices')}</p>
       ) : (
         <div className="space-y-2">
           {microCategories.map((micro) => {
