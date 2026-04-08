@@ -112,7 +112,8 @@ interface Props {
   answers: WizardState['answers'];
   onChange: (answers: WizardState['answers']) => void;
   onPacksLoaded?: (packs: QuestionPack[]) => void;
-  onComplete?: () => void; // Called when user finishes all questions
+  onComplete?: () => void;
+  onAutoSkip?: () => void;
   errors?: Record<string, Record<string, string>>;
 }
 
