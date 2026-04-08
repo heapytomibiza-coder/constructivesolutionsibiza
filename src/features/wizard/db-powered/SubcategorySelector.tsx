@@ -34,12 +34,10 @@ export default function SubcategorySelector({
 }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
   const autoAdvancedRef = useRef(false);
-  const autoSkipFiredRef = useRef(false);
 
   // Reset guards when category changes
   useEffect(() => {
     autoAdvancedRef.current = false;
-    autoSkipFiredRef.current = false;
   }, [categoryId]);
 
   const { data: subcategories = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<Subcategory[]>({
@@ -76,16 +74,17 @@ export default function SubcategorySelector({
     }
   }, [isLoading, filtered, selectedSubcategoryId, onSelect]);
 
-  // Auto-skip when empty after load/timeout (only on initial load, not after manual retry)
+  // Auto-skip ONLY on timeout (not on initial empty — let user see retry UI first)
   useEffect(() => {
-    if (!isLoading && (filtered.length === 0 || useFallback) && !autoSkipFiredRef.current && onAutoSkip) {
-      if (filtered.length === 0) {
-        autoSkipFiredRef.current = true;
-        trackEvent('wizard_auto_skip', 'client', { step: 'subcategory', reason: useFallback ? 'timeout' : 'empty' });
+    if (useFallback && filtered.length === 0 && !isLoading && onAutoSkip) {
+      // Timeout/error escalation already exhausted — skip automatically
+      // (this handles the case where useResilientQuery timed out)
+      if (retryCount >= 2) {
+        trackEvent('wizard_auto_skip', 'client', { step: 'subcategory', reason: 'escalation_exhausted' });
         onAutoSkip();
       }
     }
-  }, [isLoading, filtered.length, useFallback, onAutoSkip]);
+  }, [useFallback, filtered.length, isLoading, retryCount, onAutoSkip]);
 
   if (!categoryId) {
     return null;
@@ -109,26 +108,28 @@ export default function SubcategorySelector({
 
   // Error or empty state with escalating recovery
   if ((isError || filtered.length === 0) && !isLoading) {
+    const hasRetried = retryCount >= 1;
     return (
       <div className="flex flex-col items-center gap-3 py-6 text-center">
         <AlertCircle className="h-5 w-5 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          {retryCount >= 1
+          {hasRetried
             ? t('wizard:fallback.simplifying', "We'll simplify things to keep you moving")
-            : t('wizard:subcategory.noSubcategories')}
+            : t('wizard:subcategory.noSubcategories', 'No subcategories found')}
         </p>
         <Button
           variant="outline"
           size="sm"
           onClick={() => {
-            if (retryCount >= 1 && onAutoSkip) {
+            if (hasRetried && onAutoSkip) {
+              trackEvent('wizard_auto_skip', 'client', { step: 'subcategory', reason: 'user_chose_keep_going' });
               onAutoSkip();
             } else {
               manualRetry();
             }
           }}
         >
-          {retryCount >= 1
+          {hasRetried
             ? t('wizard:fallback.keepGoing', 'Keep going')
             : t('common:actions.retry', 'Try again')}
         </Button>
