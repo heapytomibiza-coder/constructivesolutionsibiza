@@ -39,6 +39,7 @@ export const EVENTS = {
   WIZARD_STEP_FALLBACK: "wizard_step_fallback",
   WIZARD_STEP_EMPTY: "wizard_step_empty",
   WIZARD_AUTO_SKIP: "wizard_auto_skip",
+  WIZARD_RETRY_PRESSED: "wizard_retry_pressed",
 
   // Worker
   WORKER_NOTIFIED: "worker_notified",

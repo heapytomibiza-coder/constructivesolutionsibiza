@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useResilientQuery } from "@/features/wizard/canonical/hooks/useResilientQuery";
 import { trackEvent } from "@/lib/trackEvent";
 
@@ -41,7 +42,7 @@ export default function SubcategorySelector({
     autoSkipFiredRef.current = false;
   }, [categoryId]);
 
-  const { data: subcategories = [], isLoading, useFallback } = useResilientQuery<Subcategory[]>({
+  const { data: subcategories = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<Subcategory[]>({
     queryKey: ['service-subcategories-wizard', categoryId],
     queryFn: async (signal) => {
       const { data, error } = await supabase
@@ -75,10 +76,9 @@ export default function SubcategorySelector({
     }
   }, [isLoading, filtered, selectedSubcategoryId, onSelect]);
 
-  // Auto-skip when empty after load/timeout
+  // Auto-skip when empty after load/timeout (only on initial load, not after manual retry)
   useEffect(() => {
     if (!isLoading && (filtered.length === 0 || useFallback) && !autoSkipFiredRef.current && onAutoSkip) {
-      // Only fire if we actually got results back (or timed out) and they're empty
       if (filtered.length === 0) {
         autoSkipFiredRef.current = true;
         trackEvent('wizard_auto_skip', 'client', { step: 'subcategory', reason: useFallback ? 'timeout' : 'empty' });
@@ -107,29 +107,54 @@ export default function SubcategorySelector({
     return human.charAt(0).toUpperCase() + human.slice(1);
   };
 
+  // Error or empty state with escalating recovery
+  if ((isError || filtered.length === 0) && !isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-6 text-center">
+        <AlertCircle className="h-5 w-5 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
+          {retryCount >= 1
+            ? t('wizard:fallback.simplifying', "We'll simplify things to keep you moving")
+            : t('wizard:subcategory.noSubcategories')}
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (retryCount >= 1 && onAutoSkip) {
+              onAutoSkip();
+            } else {
+              manualRetry();
+            }
+          }}
+        >
+          {retryCount >= 1
+            ? t('wizard:fallback.keepGoing', 'Keep going')
+            : t('common:actions.retry', 'Try again')}
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
-      {filtered.length === 0 ? (
-        <p className="text-muted-foreground">{t('wizard:subcategory.noSubcategories')}</p>
-      ) : (
-        filtered.map((subcategory) => {
-          const isSelected = selectedSubcategoryId === subcategory.id;
-          return (
-            <button
-              key={subcategory.id}
-              type="button"
-              onClick={() => onSelect(subcategory.name, subcategory.id)}
-              className={`w-full text-left p-4 rounded-lg border transition-colors ${
-                isSelected
-                  ? 'border-primary bg-primary/10 text-foreground'
-                  : 'border-border bg-card hover:border-primary/50'
-              }`}
-            >
-              {getSubcategoryLabel(subcategory)}
-            </button>
-          );
-        })
-      )}
+      {filtered.map((subcategory) => {
+        const isSelected = selectedSubcategoryId === subcategory.id;
+        return (
+          <button
+            key={subcategory.id}
+            type="button"
+            onClick={() => onSelect(subcategory.name, subcategory.id)}
+            className={`w-full text-left p-4 rounded-lg border transition-colors ${
+              isSelected
+                ? 'border-primary bg-primary/10 text-foreground'
+                : 'border-border bg-card hover:border-primary/50'
+            }`}
+          >
+            {getSubcategoryLabel(subcategory)}
+          </button>
+        );
+      })}
     </div>
   );
 }
