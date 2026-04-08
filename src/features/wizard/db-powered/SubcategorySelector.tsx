@@ -1,6 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
+import { useResilientQuery } from "@/features/wizard/canonical/hooks/useResilientQuery";
+import { trackEvent } from "@/lib/trackEvent";
 
 interface Subcategory {
   id: string;
@@ -17,6 +20,8 @@ interface Props {
   onBack?: () => void;
   /** When set, only show subcategories whose IDs are in this list (direct mode scoping) */
   allowedSubcategoryIds?: string[];
+  /** Called when step should be auto-skipped (empty results after timeout) */
+  onAutoSkip?: () => void;
 }
 
 export default function SubcategorySelector({
@@ -24,72 +29,83 @@ export default function SubcategorySelector({
   selectedSubcategoryId,
   onSelect,
   allowedSubcategoryIds,
+  onAutoSkip,
 }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [loading, setLoading] = useState(false);
   const autoAdvancedRef = useRef(false);
+  const autoSkipFiredRef = useRef(false);
 
+  // Reset guards when category changes
   useEffect(() => {
-    // Reset auto-advance guard when category changes
     autoAdvancedRef.current = false;
-    
-    if (!categoryId) {
-      setSubcategories([]);
-      return;
-    }
+    autoSkipFiredRef.current = false;
+  }, [categoryId]);
 
-    const fetchSubcategories = async () => {
-      setLoading(true);
-
+  const { data: subcategories = [], isLoading, useFallback } = useResilientQuery<Subcategory[]>({
+    queryKey: ['service-subcategories-wizard', categoryId],
+    queryFn: async (signal) => {
       const { data, error } = await supabase
         .from("service_subcategories")
         .select("id, name, slug")
         .eq("category_id", categoryId)
         .eq("is_active", true)
-        .order("display_order");
+        .order("display_order")
+        .abortSignal(signal);
 
-      if (!error && data) {
-        setSubcategories(data);
-      }
+      if (error) throw error;
+      return data ?? [];
+    },
+    stepName: 'subcategory',
+    queryOptions: {
+      enabled: !!categoryId,
+      staleTime: 5 * 60 * 1000,
+    },
+  });
 
-      setLoading(false);
-    };
-
-    fetchSubcategories();
-  }, [categoryId]);
-
-  // Auto-advance when only one subcategory exists (skip unnecessary tap)
   const filtered = allowedSubcategoryIds
     ? subcategories.filter(s => allowedSubcategoryIds.includes(s.id))
     : subcategories;
 
+  // Auto-advance when only one subcategory exists
   useEffect(() => {
-    if (!loading && filtered.length === 1 && !autoAdvancedRef.current && !selectedSubcategoryId) {
+    if (!isLoading && filtered.length === 1 && !autoAdvancedRef.current && !selectedSubcategoryId) {
       autoAdvancedRef.current = true;
       const only = filtered[0];
       onSelect(only.name, only.id);
     }
-  }, [loading, filtered, selectedSubcategoryId, onSelect]);
+  }, [isLoading, filtered, selectedSubcategoryId, onSelect]);
+
+  // Auto-skip when empty after load/timeout
+  useEffect(() => {
+    if (!isLoading && (filtered.length === 0 || useFallback) && !autoSkipFiredRef.current && onAutoSkip) {
+      // Only fire if we actually got results back (or timed out) and they're empty
+      if (filtered.length === 0) {
+        autoSkipFiredRef.current = true;
+        trackEvent('wizard_auto_skip', 'client', { step: 'subcategory', reason: useFallback ? 'timeout' : 'empty' });
+        onAutoSkip();
+      }
+    }
+  }, [isLoading, filtered.length, useFallback, onAutoSkip]);
 
   if (!categoryId) {
     return null;
   }
 
-  if (loading) {
-    return <p className="text-muted-foreground">{t('wizard:subcategory.loading')}</p>;
+  if (isLoading && !useFallback) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   const getSubcategoryLabel = (sub: Subcategory): string => {
     const key = `common:subcategories.${sub.slug}`;
     const translated = t(key, { defaultValue: '' });
     if (translated && translated !== key) return translated;
-    // Humanize slug as fallback — sentence case (not Title Case) for Spanish compatibility
     const human = sub.slug.replace(/-/g, ' ');
     return human.charAt(0).toUpperCase() + human.slice(1);
   };
-
-  // filtered is computed above (before the auto-advance effect)
 
   return (
     <div className="space-y-2">

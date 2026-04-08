@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
+import { useResilientQuery } from "@/features/wizard/canonical/hooks/useResilientQuery";
+import { trackEvent } from "@/lib/trackEvent";
 
 interface MicroCategory {
   id: string;
@@ -17,6 +19,8 @@ interface Props {
   multiSelect?: boolean;
   /** When set, only show micros whose IDs are in this list (direct mode scoping) */
   allowedMicroIds?: string[];
+  /** Called when step should be auto-skipped (empty results after timeout) */
+  onAutoSkip?: () => void;
 }
 
 export default function MicroStep({
@@ -25,39 +29,48 @@ export default function MicroStep({
   onSelect,
   multiSelect = true,
   allowedMicroIds,
+  onAutoSkip,
 }: Props) {
   const { t } = useTranslation(['wizard', 'micros']);
-  const [microCategories, setMicroCategories] = useState<MicroCategory[]>([]);
-  const [loading, setLoading] = useState(false);
+  const autoSkipFiredRef = useRef(false);
 
   useEffect(() => {
-    if (!subcategoryId) {
-      setMicroCategories([]);
-      return;
-    }
+    autoSkipFiredRef.current = false;
+  }, [subcategoryId]);
 
-    const fetchMicroCategories = async () => {
-      setLoading(true);
-
+  const { data: rawMicros = [], isLoading, useFallback } = useResilientQuery<MicroCategory[]>({
+    queryKey: ['service-micros-wizard', subcategoryId],
+    queryFn: async (signal) => {
       const { data, error } = await supabase
         .from("service_micro_categories")
         .select("id, name, slug, description")
         .eq("subcategory_id", subcategoryId)
         .eq("is_active", true)
-        .order("display_order");
+        .order("display_order")
+        .abortSignal(signal);
 
-      if (!error && data) {
-        const filtered = allowedMicroIds
-          ? data.filter(m => allowedMicroIds.includes(m.id))
-          : data;
-        setMicroCategories(filtered);
-      }
+      if (error) throw error;
+      return data ?? [];
+    },
+    stepName: 'micro',
+    queryOptions: {
+      enabled: !!subcategoryId,
+      staleTime: 5 * 60 * 1000,
+    },
+  });
 
-      setLoading(false);
-    };
+  const microCategories = allowedMicroIds
+    ? rawMicros.filter(m => allowedMicroIds.includes(m.id))
+    : rawMicros;
 
-    fetchMicroCategories();
-  }, [subcategoryId]);
+  // Auto-skip when empty after load/timeout
+  useEffect(() => {
+    if (!isLoading && microCategories.length === 0 && !autoSkipFiredRef.current && onAutoSkip) {
+      autoSkipFiredRef.current = true;
+      trackEvent('wizard_auto_skip', 'client', { step: 'micro', reason: useFallback ? 'timeout' : 'empty' });
+      onAutoSkip();
+    }
+  }, [isLoading, microCategories.length, useFallback, onAutoSkip]);
 
   if (!subcategoryId) {
     return null;
@@ -97,8 +110,10 @@ export default function MicroStep({
         {multiSelect ? t('wizard:micro.selectMultiple') : t('wizard:micro.selectSingle')}
       </label>
       
-      {loading ? (
-        <p className="text-muted-foreground">{t('wizard:micro.loading')}</p>
+      {isLoading && !useFallback ? (
+        <div className="flex items-center justify-center py-6">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
       ) : microCategories.length === 0 ? (
         <p className="text-muted-foreground">{t('wizard:micro.noServices')}</p>
       ) : (
@@ -119,7 +134,6 @@ export default function MicroStep({
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="font-medium">{getMicroLabel(micro)}</p>
-                    {/* Description hidden: DB values are English-only, micro name is translated */}
                   </div>
                   {isSelected && (
                     <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-3 shrink-0">
