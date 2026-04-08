@@ -1123,6 +1123,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                     selectedMicroIds={wizardState.microIds}
                     onSelect={handleMicroSelect}
                     allowedMicroIds={isDirectMode ? proScope.microIds : undefined}
+                    onAutoSkip={handleMicroAutoSkip}
                   />
 
                   {/* Custom Request CTA */}
