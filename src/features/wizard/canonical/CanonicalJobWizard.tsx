@@ -1089,6 +1089,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
                     selectedSubcategoryId={wizardState.subcategoryId}
                     onSelect={handleSubcategorySelect}
                     allowedSubcategoryIds={isDirectMode ? proScope.subcategoryIds : undefined}
+                    onAutoSkip={handleSubcategoryAutoSkip}
                   />
 
                   {/* Custom Request CTA */}
