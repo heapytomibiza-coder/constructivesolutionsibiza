@@ -117,7 +117,7 @@ interface Props {
   errors?: Record<string, Record<string, string>>;
 }
 
-export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, onComplete, errors }: Props) {
+export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, onComplete, onAutoSkip, errors }: Props) {
   const { t } = useTranslation(['wizard', 'questions']);
 
   /** Normalize a key string to avoid misses from dash/quote/spacing differences */
