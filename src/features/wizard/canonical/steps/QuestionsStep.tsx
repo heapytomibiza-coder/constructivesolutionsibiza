@@ -257,10 +257,14 @@ export function QuestionsStep({ microSlugs, answers, onChange, onPacksLoaded, on
         }
       } catch (err: any) {
         if (cancelled) return;
-        // Timeout or network error — auto-complete (skip questions)
         console.warn('Question packs fetch failed/timed out:', err?.message);
+        trackEvent('wizard_step_timeout', 'client', {
+          step: 'questions',
+          micro_slugs: microSlugs,
+        });
         setPacks([]);
         setLoading(false);
+        onAutoSkip?.();
       } finally {
         clearTimeout(timeout);
       }
