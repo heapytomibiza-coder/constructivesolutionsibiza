@@ -63,7 +63,7 @@ const AuthCallback = () => {
         .from('user_roles')
         .select('active_role')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (rolesError && rolesError.code !== 'PGRST116') {
         console.error('Error fetching user roles:', rolesError);
@@ -77,7 +77,7 @@ const AuthCallback = () => {
           .from('professional_profiles')
           .select('onboarding_phase')
           .eq('user_id', session.user.id)
-          .single();
+          .maybeSingle();
 
         if (profileError && profileError.code !== 'PGRST116') {
           console.error('Error fetching professional profile:', profileError);

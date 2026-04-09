@@ -214,7 +214,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             .from('professional_profiles')
             .select('display_name')
             .eq('user_id', targetProfessionalId)
-            .single();
+            .maybeSingle();
           
           newState = {
             ...newState,

@@ -89,7 +89,7 @@ const Auth = () => {
           .from('user_roles')
           .select('active_role')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
 
         const activeRole = rolesData?.active_role || 'client';
 
@@ -98,7 +98,7 @@ const Auth = () => {
             .from('professional_profiles')
             .select('onboarding_phase')
             .eq('user_id', userId)
-            .single();
+            .maybeSingle();
 
           const phase = profileData?.onboarding_phase || 'not_started';
           navigate(phase === 'complete' ? '/dashboard/pro' : '/onboarding/professional');
