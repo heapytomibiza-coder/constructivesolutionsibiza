@@ -92,8 +92,9 @@ export default function MicroStep({
     }
   };
 
-  // Error or empty state with escalating recovery
-  if ((isError || microCategories.length === 0) && !isLoading) {
+  // Recovery UI when no options available
+  const hasOptions = microCategories.length > 0;
+  if (!hasOptions && !isLoading) {
     const hasRetried = retryCount >= 1;
     return (
       <div>
@@ -110,6 +111,7 @@ export default function MicroStep({
           <Button
             variant="outline"
             size="sm"
+            disabled={isFetching}
             onClick={() => {
               if (hasRetried && onAutoSkip) {
                 trackEvent('wizard_auto_skip', 'client', { step: 'micro', reason: 'user_chose_keep_going' });
@@ -119,7 +121,9 @@ export default function MicroStep({
               }
             }}
           >
-            {hasRetried
+            {isFetching ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : hasRetried
               ? t('wizard:fallback.keepGoing', 'Keep going')
               : t('common:actions.retry', 'Try again')}
           </Button>

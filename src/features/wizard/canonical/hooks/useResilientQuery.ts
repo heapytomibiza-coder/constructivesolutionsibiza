@@ -118,5 +118,7 @@ export function useResilientQuery<TData>({
     manualRetry,
     /** True when data should come from fallback (timeout, error, or retry escalation) */
     useFallback: escalatedFallback || timedOut || (query.isError && !query.isLoading),
+    /** Expose isFetching for disabling retry buttons during active requests */
+    isFetching: query.isFetching,
   };
 }
