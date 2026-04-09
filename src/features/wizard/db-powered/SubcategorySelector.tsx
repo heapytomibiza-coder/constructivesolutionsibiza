@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, Loader2 } from "lucide-react";
@@ -25,13 +25,13 @@ interface Props {
   onAutoSkip?: () => void;
 }
 
-export default function SubcategorySelector({
+const SubcategorySelector = forwardRef<HTMLDivElement, Props>(function SubcategorySelector({
   categoryId,
   selectedSubcategoryId,
   onSelect,
   allowedSubcategoryIds,
   onAutoSkip,
-}: Props) {
+}, ref) {
   const { t } = useTranslation(['wizard', 'common']);
   const autoAdvancedRef = useRef(false);
 
@@ -132,7 +132,7 @@ export default function SubcategorySelector({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" ref={ref}>
       {filtered.map((subcategory) => {
         const isSelected = selectedSubcategoryId === subcategory.id;
         return (
@@ -152,4 +152,6 @@ export default function SubcategorySelector({
       })}
     </div>
   );
-}
+});
+
+export default SubcategorySelector;

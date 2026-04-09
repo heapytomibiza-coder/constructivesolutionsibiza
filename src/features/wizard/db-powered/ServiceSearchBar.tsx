@@ -8,7 +8,7 @@
  * - Job-like signals + match → Step 4 (Questions) with extracted data
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, forwardRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Search, ChevronRight, Loader2, Tag, Folder, Wrench, FileText } from 'lucide-react';
@@ -138,10 +138,10 @@ const DEPTH_COLORS: Record<SearchDepth, string> = {
   questions: 'bg-primary/10 text-primary',
 };
 
-export function ServiceSearchBar({ 
+export const ServiceSearchBar = forwardRef<HTMLDivElement, ServiceSearchBarProps>(function ServiceSearchBar({ 
   onSelect, 
   placeholder
-}: ServiceSearchBarProps) {
+}, ref) {
   const { t } = useTranslation('wizard');
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
@@ -259,7 +259,7 @@ export function ServiceSearchBar({
   const hasResults = results && results.length > 0;
 
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       <Command className="border border-border rounded-lg bg-card shadow-sm" shouldFilter={false}>
         <div className="flex items-center px-3 border-b border-border">
           <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -335,6 +335,6 @@ export function ServiceSearchBar({
       </Command>
     </div>
   );
-}
+});
 
 export default ServiceSearchBar;
