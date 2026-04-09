@@ -265,6 +265,7 @@ const App = () => {
 
               {/* Legacy professional redirects */}
               <Route path="/dashboard/professional/jobs" element={<Navigate to="/dashboard/pro/jobs" replace />} />
+              <Route path="/dashboard/professional" element={<Navigate to="/dashboard/pro" replace />} />
               <Route path="/professional/listings/:listingId/edit" element={<LegacyListingEditRedirect />} />
               <Route path="/professional/listings" element={<Navigate to="/dashboard/pro/listings" replace />} />
               <Route path="/professional/insights" element={<Navigate to="/dashboard/pro/insights" replace />} />

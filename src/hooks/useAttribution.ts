@@ -20,6 +20,9 @@ const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/collect-
 
 async function sendAttribution(data: AttributionData): Promise<void> {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
     // Include JWT if available (enables server-side user binding)
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -35,9 +38,11 @@ async function sendAttribution(data: AttributionData): Promise<void> {
       method: 'POST',
       headers,
       body: JSON.stringify(data),
+      signal: controller.signal,
     });
-  } catch (err) {
-    console.warn('[attribution] collect failed:', err);
+    clearTimeout(timeout);
+  } catch {
+    // fire-and-forget — attribution must never block user experience
   }
 }
 
