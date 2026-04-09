@@ -75,11 +75,12 @@ export function useResilientQuery<TData>({
   }, [query.isLoading, timeoutMs, stepName, onTimeout]);
 
   // Reset timeout state when query key changes
+  const resetKey = Array.isArray(queryKey) ? queryKey.join('|') : String(queryKey);
   useEffect(() => {
     timeoutFiredRef.current = false;
     setTimedOut(false);
     setRetryCount(0);
-  }, [JSON.stringify(queryKey)]);
+  }, [resetKey]);
 
   // Track errors
   useEffect(() => {
