@@ -22,7 +22,7 @@ interface Props {
 export default function CategorySelector({ selectedCategory, onSelect, onNext, allowedCategoryIds }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
 
-  const { data: categories = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<Category[]>({
+  const { data: categories = [], isLoading, isError, useFallback, retryCount, manualRetry, isFetching } = useResilientQuery<Category[]>({
     queryKey: ['service-categories-wizard'],
     queryFn: async (signal) => {
       const { data, error } = await supabase
