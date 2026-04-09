@@ -1,43 +1,42 @@
 
 
-# Plan: Post-Fix Validation + Route Cleanup
+# Plan: Route Validation — /auth, /post, /messages
 
-## Issues Found
+## Findings
 
-### 1. RouteGuard: State mutations during render (HIGH)
+### 1. Auth: `.single()` still used in Auth.tsx and AuthCallback.tsx (MEDIUM)
 
-Lines 79-81 of `RouteGuard.tsx` call `setRetryCount`, `setTimedOut`, and `refresh()` directly inside the render body. This violates React rules and can cause:
-- "Cannot update a component while rendering" warnings
-- Double-fire in StrictMode
-- Unpredictable retry behavior
+Both `Auth.tsx` (lines 92, 101) and `AuthCallback.tsx` (lines 66, 80) query `user_roles` and `professional_profiles` using `.single()`. The session snapshot was fixed to use `.maybeSingle()`, but these two files were missed. New users who haven't had their trigger-created `user_roles` row yet, or non-professional users, will get 406 errors here.
 
-**Fix:** Move the retry logic into a `useEffect` that triggers when `timedOut` becomes true. The render body should only read state, never mutate it.
+**Fix:** Replace `.single()` with `.maybeSingle()` in both files (4 call sites total). The fallback defaults (`'client'`, `'not_started'`) already handle null correctly.
 
-Same issue exists in `PublicOnlyGuard` (less critical but should be consistent).
+**Files:** `src/pages/auth/Auth.tsx`, `src/pages/auth/AuthCallback.tsx`
 
-### 2. Messages: No guard for invalid conversation ID (MEDIUM)
+### 2. Auth: Deep-link professional profile query in wizard uses `.single()` (LOW)
 
-When a user navigates to `/messages/some-invalid-id`, `selectedConversation` is `null` but `conversationId` is truthy. The `ConversationThread` renders with all metadata props as `undefined`. The thread itself handles this gracefully (fetches messages by ID, shows error if RLS blocks), but there's no user-facing "conversation not found" state.
+`CanonicalJobWizard.tsx` line 216 uses `.single()` for the target professional lookup. If the professional doesn't exist, this throws instead of returning null.
 
-**Fix:** Add a guard in `Messages.tsx`: if `conversationId` is set, conversations have loaded, but `selectedConversation` is null → show a "Conversation not found" message with a back link.
+**Fix:** Change to `.maybeSingle()`. The fallback name `'Professional'` is already handled.
 
-### 3. OperatorCockpit: Empty catch blocks (LOW)
+**File:** `src/features/wizard/canonical/CanonicalJobWizard.tsx`
 
-Lines 38-39 and 46 have empty `catch {}`. These are intentionally fire-and-forget (audio play, notification constructor), but per workspace standards they should have minimal logging.
+### 3. Messages: `useMemo` missing dependency (LOW)
 
-**Fix:** Add `console.debug` inside each catch so failures are traceable without being noisy.
+Line 35: `useMemo` for `selectedConversation` depends on `conversations` but the dependency array only lists `[conversationId, conversations]` — this is actually correct as written. No change needed.
 
-### 4. Messages useMemo missing dependency (LOW)
+### 4. PublicOnlyGuard: no retry mechanism (LOW)
 
-Line 35: `useMemo` for `selectedConversation` depends on `conversationId` and `conversations` but only lists `[conversationId, conversations]` — this is actually correct. No change needed.
+`PublicOnlyGuard` times out after 3s but has no retry. If session hydration is slow (mobile, poor connection), authenticated users see the /auth page instead of being redirected to their dashboard. This is unlikely to cause real issues since the auth page itself handles sign-in, but it's inconsistent with `RouteGuard`.
+
+**Fix:** Not critical — note for future hardening. No change now.
 
 ## Files to Edit
 
 | File | Change |
 |---|---|
-| `src/guard/RouteGuard.tsx` | Move retry logic from render body into `useEffect`; same for `PublicOnlyGuard` |
-| `src/pages/messages/Messages.tsx` | Add "conversation not found" guard when ID doesn't match |
-| `src/pages/admin/sections/OperatorCockpit.tsx` | Replace empty `catch {}` with `console.debug` |
+| `src/pages/auth/Auth.tsx` | Replace 2x `.single()` with `.maybeSingle()` (lines 92, 101) |
+| `src/pages/auth/AuthCallback.tsx` | Replace 2x `.single()` with `.maybeSingle()` (lines 66, 80) |
+| `src/features/wizard/canonical/CanonicalJobWizard.tsx` | Replace `.single()` with `.maybeSingle()` (line 216) |
 
-No database or edge function changes.
+No database or edge function changes. Five one-line replacements total.
 
