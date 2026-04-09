@@ -74,17 +74,7 @@ export default function SubcategorySelector({
     }
   }, [isLoading, filtered, selectedSubcategoryId, onSelect]);
 
-  // Auto-skip ONLY on timeout (not on initial empty — let user see retry UI first)
-  useEffect(() => {
-    if (useFallback && filtered.length === 0 && !isLoading && onAutoSkip) {
-      // Timeout/error escalation already exhausted — skip automatically
-      // (this handles the case where useResilientQuery timed out)
-      if (retryCount >= 2) {
-        trackEvent('wizard_auto_skip', 'client', { step: 'subcategory', reason: 'escalation_exhausted' });
-        onAutoSkip();
-      }
-    }
-  }, [useFallback, filtered.length, isLoading, retryCount, onAutoSkip]);
+  // Recovery is user-driven — no auto-skip effects
 
   if (!categoryId) {
     return null;
