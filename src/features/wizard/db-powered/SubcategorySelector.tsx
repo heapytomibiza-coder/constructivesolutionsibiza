@@ -40,7 +40,7 @@ export default function SubcategorySelector({
     autoAdvancedRef.current = false;
   }, [categoryId]);
 
-  const { data: subcategories = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<Subcategory[]>({
+  const { data: subcategories = [], isLoading, useFallback, retryCount, manualRetry, isFetching } = useResilientQuery<Subcategory[]>({
     queryKey: ['service-subcategories-wizard', categoryId],
     queryFn: async (signal) => {
       const { data, error } = await supabase
