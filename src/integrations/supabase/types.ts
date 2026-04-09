@@ -4147,6 +4147,10 @@ export type Database = {
         Returns: undefined
       }
       run_platform_alert_rules: { Args: { p_date?: string }; Returns: number }
+      run_platform_alert_rules_cron: {
+        Args: { p_date: string }
+        Returns: number
+      }
       submit_quote_with_items: {
         Args: {
           p_exclusions_text?: string
