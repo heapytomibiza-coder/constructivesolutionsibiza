@@ -1,67 +1,43 @@
 
 
-# Plan: Phase 2 — Validate, Clean, and Harden
+# Plan: Post-Fix Validation + Route Cleanup
 
-## Current State
+## Issues Found
 
-Phase 1 stabilization is complete. The platform is materially healthier. The remaining work is validation, cleanup, and prevention.
+### 1. RouteGuard: State mutations during render (HIGH)
 
-## What This Plan Covers
+Lines 79-81 of `RouteGuard.tsx` call `setRetryCount`, `setTimedOut`, and `refresh()` directly inside the render body. This violates React rules and can cause:
+- "Cannot update a component while rendering" warnings
+- Double-fire in StrictMode
+- Unpredictable retry behavior
 
-Three workstreams executed in priority order:
+**Fix:** Move the retry logic into a `useEffect` that triggers when `timedOut` becomes true. The render body should only read state, never mutate it.
 
-### Workstream 1: Fix Active Console Errors
+Same issue exists in `PublicOnlyGuard` (less critical but should be consistent).
 
-Two React warnings are firing on every wizard load:
+### 2. Messages: No guard for invalid conversation ID (MEDIUM)
 
-- `CategorySelector` — "Function components cannot be given refs"
-- `ServiceSearchBar` — same warning
+When a user navigates to `/messages/some-invalid-id`, `selectedConversation` is `null` but `conversationId` is truthy. The `ConversationThread` renders with all metadata props as `undefined`. The thread itself handles this gracefully (fetches messages by ID, shows error if RLS blocks), but there's no user-facing "conversation not found" state.
 
-**Root cause:** These are `default export` function components. React's internal reconciliation is attempting to pass refs. The fix is wrapping both with `React.forwardRef`.
+**Fix:** Add a guard in `Messages.tsx`: if `conversationId` is set, conversations have loaded, but `selectedConversation` is null → show a "Conversation not found" message with a back link.
 
-**Files:**
-- `src/features/wizard/db-powered/CategorySelector.tsx` — wrap with `forwardRef`
-- `src/features/wizard/db-powered/ServiceSearchBar.tsx` — wrap with `forwardRef`
-- `src/features/wizard/db-powered/SubcategorySelector.tsx` — same pattern, preemptive fix
-- `src/features/wizard/db-powered/MicroStep.tsx` — same pattern, preemptive fix
+### 3. OperatorCockpit: Empty catch blocks (LOW)
 
-### Workstream 2: Logging Cleanup
+Lines 38-39 and 46 have empty `catch {}`. These are intentionally fire-and-forget (audio play, notification constructor), but per workspace standards they should have minimal logging.
 
-Replace empty `catch {}` blocks and noisy low-value console output with structured logging through the existing `handleSupabaseError` utility.
+**Fix:** Add `console.debug` inside each catch so failures are traceable without being noisy.
 
-**Targets:**
-- `src/pages/admin/sections/OperatorCockpit.tsx` — empty `catch {}` on audio/notification
-- `src/guard/RouteGuard.tsx` — `.catch(() => {})` on refresh calls
-- General audit: ensure Supabase errors pass through `handleSupabaseError` instead of raw `console.error`
+### 4. Messages useMemo missing dependency (LOW)
 
-### Workstream 3: Remaining Route Hardening
-
-**`/messages/{id}`** — Add error and empty-state UI for when conversation ID doesn't match any conversation (currently renders nothing). Add loading state for messages fetch.
-
-**`/forum`** — Forum upload errors already have proper logging. Low priority. Only change: ensure storage bucket exists and RLS is configured.
-
-**`/prototype/price-calculator`** — Prototype route. If errors exist, they're from AI edge function calls. Add timeout protection and user-friendly error state if the estimate generation fails.
-
-**`/auth`** — The auth page errors were from stale token refresh, already fixed in Phase 1. Verify no remaining issues.
-
-### Workstream 4: Post-Fix Verification
-
-Run TypeScript compilation check and review edge function logs to confirm:
-- `daily-health-check` is executing without errors
-- `saved_professionals` RPCs respond correctly
-- No new 406 errors on `professional_profiles`
-- Auth token refresh failures have decreased
+Line 35: `useMemo` for `selectedConversation` depends on `conversationId` and `conversations` but only lists `[conversationId, conversations]` — this is actually correct. No change needed.
 
 ## Files to Edit
 
 | File | Change |
 |---|---|
-| `CategorySelector.tsx` | Wrap with `forwardRef` |
-| `ServiceSearchBar.tsx` | Wrap with `forwardRef` |
-| `SubcategorySelector.tsx` | Wrap with `forwardRef` |
-| `MicroStep.tsx` | Wrap with `forwardRef` |
-| `OperatorCockpit.tsx` | Replace empty catch with minimal logging |
-| `Messages.tsx` | Add null-conversation guard with user-facing message |
+| `src/guard/RouteGuard.tsx` | Move retry logic from render body into `useEffect`; same for `PublicOnlyGuard` |
+| `src/pages/messages/Messages.tsx` | Add "conversation not found" guard when ID doesn't match |
+| `src/pages/admin/sections/OperatorCockpit.tsx` | Replace empty `catch {}` with `console.debug` |
 
-No database or edge function changes needed.
+No database or edge function changes.
 
