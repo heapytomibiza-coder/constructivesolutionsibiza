@@ -59,15 +59,7 @@ export default function MicroStep({
     ? rawMicros.filter(m => allowedMicroIds.includes(m.id))
     : rawMicros;
 
-  // Auto-skip ONLY after retry escalation exhausted (not on initial empty)
-  useEffect(() => {
-    if (useFallback && microCategories.length === 0 && !isLoading && onAutoSkip) {
-      if (retryCount >= 2) {
-        trackEvent('wizard_auto_skip', 'client', { step: 'micro', reason: 'escalation_exhausted' });
-        onAutoSkip();
-      }
-    }
-  }, [useFallback, microCategories.length, isLoading, retryCount, onAutoSkip]);
+  // Recovery is user-driven — no auto-skip effects
 
   if (!subcategoryId) {
     return null;
