@@ -75,11 +75,12 @@ export function useResilientQuery<TData>({
   }, [query.isLoading, timeoutMs, stepName, onTimeout]);
 
   // Reset timeout state when query key changes
+  const resetKey = Array.isArray(queryKey) ? queryKey.join('|') : String(queryKey);
   useEffect(() => {
     timeoutFiredRef.current = false;
     setTimedOut(false);
     setRetryCount(0);
-  }, [JSON.stringify(queryKey)]);
+  }, [resetKey]);
 
   // Track errors
   useEffect(() => {
@@ -95,22 +96,20 @@ export function useResilientQuery<TData>({
   // After 2+ manual retries, force fallback mode
   const escalatedFallback = retryCount >= 2;
 
-  /** Manual retry with escalation tracking. Returns the new retry count. */
+  /** Manual retry with escalation tracking */
   const manualRetry = useCallback(() => {
-    const next = retryCount + 1;
-    setRetryCount(next);
-    trackEvent('wizard_retry_pressed', 'client', {
-      step: stepName,
-      retry_count: next,
+    setRetryCount(prev => {
+      const next = prev + 1;
+      trackEvent('wizard_retry_pressed', 'client', {
+        step: stepName,
+        retry_count: next,
+      });
+      if (next < 2) {
+        query.refetch();
+      }
+      return next;
     });
-
-    if (next < 2) {
-      // Plan B: re-fetch live data one more time
-      query.refetch();
-    }
-    // If next >= 2, the escalatedFallback flag flips and the component
-    // should render Plan C content or trigger onAutoSkip — no refetch needed.
-  }, [retryCount, stepName, query]);
+  }, [stepName, query]);
 
   return {
     ...query,
@@ -119,5 +118,7 @@ export function useResilientQuery<TData>({
     manualRetry,
     /** True when data should come from fallback (timeout, error, or retry escalation) */
     useFallback: escalatedFallback || timedOut || (query.isError && !query.isLoading),
+    /** Expose isFetching for disabling retry buttons during active requests */
+    isFetching: query.isFetching,
   };
 }

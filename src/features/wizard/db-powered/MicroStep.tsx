@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
@@ -34,7 +34,7 @@ export default function MicroStep({
 }: Props) {
   const { t } = useTranslation(['wizard', 'micros']);
 
-  const { data: rawMicros = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<MicroCategory[]>({
+  const { data: rawMicros = [], isLoading, useFallback, retryCount, manualRetry, isFetching } = useResilientQuery<MicroCategory[]>({
     queryKey: ['service-micros-wizard', subcategoryId],
     queryFn: async (signal) => {
       const { data, error } = await supabase
@@ -59,15 +59,7 @@ export default function MicroStep({
     ? rawMicros.filter(m => allowedMicroIds.includes(m.id))
     : rawMicros;
 
-  // Auto-skip ONLY after retry escalation exhausted (not on initial empty)
-  useEffect(() => {
-    if (useFallback && microCategories.length === 0 && !isLoading && onAutoSkip) {
-      if (retryCount >= 2) {
-        trackEvent('wizard_auto_skip', 'client', { step: 'micro', reason: 'escalation_exhausted' });
-        onAutoSkip();
-      }
-    }
-  }, [useFallback, microCategories.length, isLoading, retryCount, onAutoSkip]);
+  // Recovery is user-driven — no auto-skip effects
 
   if (!subcategoryId) {
     return null;
@@ -100,8 +92,9 @@ export default function MicroStep({
     }
   };
 
-  // Error or empty state with escalating recovery
-  if ((isError || microCategories.length === 0) && !isLoading) {
+  // Recovery UI when no options available
+  const hasOptions = microCategories.length > 0;
+  if (!hasOptions && !isLoading) {
     const hasRetried = retryCount >= 1;
     return (
       <div>
@@ -118,6 +111,7 @@ export default function MicroStep({
           <Button
             variant="outline"
             size="sm"
+            disabled={isFetching}
             onClick={() => {
               if (hasRetried && onAutoSkip) {
                 trackEvent('wizard_auto_skip', 'client', { step: 'micro', reason: 'user_chose_keep_going' });
@@ -127,7 +121,9 @@ export default function MicroStep({
               }
             }}
           >
-            {hasRetried
+            {isFetching ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : hasRetried
               ? t('wizard:fallback.keepGoing', 'Keep going')
               : t('common:actions.retry', 'Try again')}
           </Button>

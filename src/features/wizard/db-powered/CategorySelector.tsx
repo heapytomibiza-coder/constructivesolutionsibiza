@@ -22,7 +22,7 @@ interface Props {
 export default function CategorySelector({ selectedCategory, onSelect, onNext, allowedCategoryIds }: Props) {
   const { t } = useTranslation(['wizard', 'common']);
 
-  const { data: categories = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<Category[]>({
+  const { data: categories = [], isLoading, isError, useFallback, retryCount, manualRetry, isFetching } = useResilientQuery<Category[]>({
     queryKey: ['service-categories-wizard'],
     queryFn: async (signal) => {
       const { data, error } = await supabase
@@ -58,8 +58,10 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext, a
       <div className="flex flex-col items-center gap-3 py-8 text-center">
         <AlertCircle className="h-6 w-6 text-destructive" />
         <p className="text-sm text-muted-foreground">{t('wizard:category.loadError', 'Could not load categories')}</p>
-        <Button variant="outline" size="sm" onClick={manualRetry}>
-          {retryCount >= 1
+        <Button variant="outline" size="sm" onClick={manualRetry} disabled={isFetching}>
+          {isFetching ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : retryCount >= 1
             ? t('wizard:fallback.keepGoing', 'Keep going')
             : t('common:actions.retry', 'Try again')}
         </Button>

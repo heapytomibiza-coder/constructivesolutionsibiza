@@ -40,7 +40,7 @@ export default function SubcategorySelector({
     autoAdvancedRef.current = false;
   }, [categoryId]);
 
-  const { data: subcategories = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<Subcategory[]>({
+  const { data: subcategories = [], isLoading, useFallback, retryCount, manualRetry, isFetching } = useResilientQuery<Subcategory[]>({
     queryKey: ['service-subcategories-wizard', categoryId],
     queryFn: async (signal) => {
       const { data, error } = await supabase
@@ -74,17 +74,7 @@ export default function SubcategorySelector({
     }
   }, [isLoading, filtered, selectedSubcategoryId, onSelect]);
 
-  // Auto-skip ONLY on timeout (not on initial empty — let user see retry UI first)
-  useEffect(() => {
-    if (useFallback && filtered.length === 0 && !isLoading && onAutoSkip) {
-      // Timeout/error escalation already exhausted — skip automatically
-      // (this handles the case where useResilientQuery timed out)
-      if (retryCount >= 2) {
-        trackEvent('wizard_auto_skip', 'client', { step: 'subcategory', reason: 'escalation_exhausted' });
-        onAutoSkip();
-      }
-    }
-  }, [useFallback, filtered.length, isLoading, retryCount, onAutoSkip]);
+  // Recovery is user-driven — no auto-skip effects
 
   if (!categoryId) {
     return null;
@@ -106,8 +96,9 @@ export default function SubcategorySelector({
     return human.charAt(0).toUpperCase() + human.slice(1);
   };
 
-  // Error or empty state with escalating recovery
-  if ((isError || filtered.length === 0) && !isLoading) {
+  // Recovery UI when no options available
+  const hasOptions = filtered.length > 0;
+  if (!hasOptions && !isLoading) {
     const hasRetried = retryCount >= 1;
     return (
       <div className="flex flex-col items-center gap-3 py-6 text-center">
@@ -120,6 +111,7 @@ export default function SubcategorySelector({
         <Button
           variant="outline"
           size="sm"
+          disabled={isFetching}
           onClick={() => {
             if (hasRetried && onAutoSkip) {
               trackEvent('wizard_auto_skip', 'client', { step: 'subcategory', reason: 'user_chose_keep_going' });
@@ -129,7 +121,9 @@ export default function SubcategorySelector({
             }
           }}
         >
-          {hasRetried
+          {isFetching ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : hasRetried
             ? t('wizard:fallback.keepGoing', 'Keep going')
             : t('common:actions.retry', 'Try again')}
         </Button>
