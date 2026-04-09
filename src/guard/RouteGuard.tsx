@@ -5,7 +5,7 @@
  * Wrapped in forwardRef to silence React Router ref warnings.
  */
 
-import { useState, useEffect, forwardRef } from 'react';
+import { useState, useEffect, useRef, forwardRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -48,46 +48,64 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
   const [retryCount, setRetryCount] = useState(0);
   const [timedOut, setTimedOut] = useState(false);
   const isMobile = useIsMobile();
+  const retryInFlight = useRef(false);
 
   const MAX_RETRIES = 3;
 
+  // Timeout timer: triggers retry logic via state, never during render
   useEffect(() => {
     if (isReady && !isLoading) return;
-    // Progressive delays: 5s → 4s → 3s (mobile gets +2s each)
     const baseDelay = Math.max(3000, 5000 - retryCount * 1000);
     const delay = isMobile ? baseDelay + 2000 : baseDelay;
     const timer = setTimeout(() => setTimedOut(true), delay);
     return () => clearTimeout(timer);
   }, [isReady, isLoading, isMobile, retryCount]);
 
-  if ((isLoading || !isReady) && !timedOut) {
-    return <LoadingSpinner />;
-  }
-
-  if ((isLoading || !isReady) && timedOut) {
-    // Check if there's a persisted session token before giving up.
-    // This prevents force-logout when the session is just slow to hydrate
-    // (e.g. slow network, multi-tab token rotation, mobile cold start).
-    const hasPersistedSession = Object.keys(localStorage).some(
-      (key) => key.startsWith('sb-') && key.endsWith('-auth-token')
-    );
+  // Retry effect: runs when timedOut flips to true while still loading
+  useEffect(() => {
+    if (!timedOut || (isReady && !isLoading) || retryInFlight.current) return;
 
     if (retryCount < MAX_RETRIES) {
+      retryInFlight.current = true;
       if (retryCount >= 1) {
         toast.error('Still connecting — retrying…', { id: 'auth-retry' });
       }
       setRetryCount(prev => prev + 1);
       setTimedOut(false);
-      refresh().catch((e) => console.warn('[RouteGuard] refresh failed during retry', e));
-      return <LoadingSpinner showRetry onRetry={() => { refresh().catch((e) => console.warn('[RouteGuard] manual refresh failed', e)); }} />;
+      refresh()
+        .catch((e) => console.warn('[RouteGuard] refresh failed during retry', e))
+        .finally(() => { retryInFlight.current = false; });
     }
+  }, [timedOut, isReady, isLoading, retryCount, refresh]);
 
-    // All retries exhausted — only redirect to auth if there's no persisted session
+  // Still loading, no timeout yet
+  if ((isLoading || !isReady) && !timedOut) {
+    return <LoadingSpinner />;
+  }
+
+  // Still loading, timed out, retries not yet exhausted → show spinner with retry
+  if ((isLoading || !isReady) && timedOut && retryCount < MAX_RETRIES) {
+    return <LoadingSpinner showRetry onRetry={() => { refresh().catch((e) => console.warn('[RouteGuard] manual refresh failed', e)); }} />;
+  }
+
+  // Retries exhausted, still not ready
+  if ((isLoading || !isReady) && retryCount >= MAX_RETRIES) {
+    const hasPersistedSession = Object.keys(localStorage).some(
+      (key) => key.startsWith('sb-') && key.endsWith('-auth-token')
+    );
+
     if (hasPersistedSession) {
-      // Session token exists but hydration failed — keep showing spinner
-      // rather than force-logging the user out
       console.warn('RouteGuard: retries exhausted but session token found in storage — not redirecting');
-      return <LoadingSpinner showRetry onRetry={() => { setRetryCount(0); setTimedOut(false); refresh().catch((e) => console.warn('[RouteGuard] retry-all refresh failed', e)); }} />;
+      return (
+        <LoadingSpinner
+          showRetry
+          onRetry={() => {
+            setRetryCount(0);
+            setTimedOut(false);
+            refresh().catch((e) => console.warn('[RouteGuard] retry-all refresh failed', e));
+          }}
+        />
+      );
     }
 
     const returnUrl = buildReturnUrl(location.pathname, location.search);

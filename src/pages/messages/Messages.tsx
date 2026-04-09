@@ -70,6 +70,28 @@ const Messages = () => {
     );
   }
 
+  // Guard: conversation ID provided but not found after data loads
+  const conversationsLoaded = !!conversations;
+  const conversationNotFound = conversationId && conversationsLoaded && !selectedConversation;
+
+  if (conversationNotFound) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <MessageSquare className="h-10 w-10 text-muted-foreground mx-auto" />
+          <p className="text-muted-foreground">{t('conversationNotFound', 'Conversation not found')}</p>
+          <button
+            onClick={() => navigate('/messages')}
+            className="text-sm font-medium text-primary hover:text-primary/80 underline underline-offset-2 flex items-center gap-1 mx-auto"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t('backToMessages', 'Back to messages')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Mobile: full-screen thread
   if (isMobile && conversationId) {
     return (

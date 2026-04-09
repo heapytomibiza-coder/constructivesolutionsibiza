@@ -35,15 +35,15 @@ function playNotifySound() {
   try {
     const audio = new Audio("/sounds/notify.mp3");
     audio.volume = 0.5;
-    audio.play().catch(() => {});
-  } catch {}
+    audio.play().catch((e) => console.debug('[OperatorCockpit] audio play blocked:', e));
+  } catch (e) { console.debug('[OperatorCockpit] audio init failed:', e); }
 }
 
 function showBrowserNotification(title: string, body: string) {
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
   try {
     new Notification(title, { body, icon: "/favicon.ico" });
-  } catch {}
+  } catch (e) { console.debug('[OperatorCockpit] browser notification failed:', e); }
 }
 
 const SEVERITY_ORDER: Record<string, number> = { red: 0, yellow: 1, blue: 2 };
