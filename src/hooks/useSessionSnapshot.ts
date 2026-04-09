@@ -348,6 +348,11 @@ export function useSessionSnapshot(): SessionSnapshot {
             if (event === 'SIGNED_IN') {
               bindAttributionOnSignIn().catch(() => {});
             }
+          } else if (event === 'TOKEN_REFRESHED' && !newSession) {
+            // Token refresh returned no session — stale auth state
+            console.warn('[Auth] Token refresh returned null session — clearing stale auth');
+            authStateRef.current = 'signed_out';
+            clearAuthState();
           }
         } else if (event === 'SIGNED_OUT') {
           authStateRef.current = 'signed_out';
