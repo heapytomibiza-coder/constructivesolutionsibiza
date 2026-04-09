@@ -128,7 +128,7 @@ export function useSessionSnapshot(): SessionSnapshot {
           .from('professional_profiles')
           .select('onboarding_phase, verification_status, services_count, is_publicly_listed, display_name, business_name, service_zones')
           .eq('user_id', userId)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('profiles')
           .select('phone')
