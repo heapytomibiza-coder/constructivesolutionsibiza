@@ -128,7 +128,7 @@ export function useSessionSnapshot(): SessionSnapshot {
           .from('professional_profiles')
           .select('onboarding_phase, verification_status, services_count, is_publicly_listed, display_name, business_name, service_zones')
           .eq('user_id', userId)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('profiles')
           .select('phone')
@@ -348,6 +348,11 @@ export function useSessionSnapshot(): SessionSnapshot {
             if (event === 'SIGNED_IN') {
               bindAttributionOnSignIn().catch(() => {});
             }
+          } else if (event === 'TOKEN_REFRESHED' && !newSession) {
+            // Token refresh returned no session — stale auth state
+            console.warn('[Auth] Token refresh returned null session — clearing stale auth');
+            authStateRef.current = 'signed_out';
+            clearAuthState();
           }
         } else if (event === 'SIGNED_OUT') {
           authStateRef.current = 'signed_out';

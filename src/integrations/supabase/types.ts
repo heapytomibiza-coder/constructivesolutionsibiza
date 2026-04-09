@@ -2618,6 +2618,27 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_professionals: {
+        Row: {
+          created_at: string
+          id: string
+          professional_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          professional_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          professional_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       service_categories: {
         Row: {
           category_group: string | null
@@ -3937,6 +3958,18 @@ export type Database = {
           last_hired_at: string
         }[]
       }
+      get_saved_pros: {
+        Args: never
+        Returns: {
+          avatar_thumb_url: string
+          avatar_url: string
+          display_name: string
+          professional_id: string
+          saved_at: string
+          tagline: string
+          verification_status: string
+        }[]
+      }
       get_stalled_quote_journeys: {
         Args: never
         Returns: {
@@ -4145,6 +4178,7 @@ export type Database = {
         Args: { p_provider_id: string }
         Returns: Json
       }
+      toggle_saved_pro: { Args: { p_professional_id: string }; Returns: Json }
       track_event: {
         Args: { p_event_name: string; p_metadata?: Json; p_role?: string }
         Returns: undefined
