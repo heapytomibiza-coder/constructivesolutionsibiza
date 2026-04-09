@@ -69,11 +69,14 @@ export default function Settings() {
     const result = await Notification.requestPermission();
     setBrowserPermission(result);
     if (result === 'granted') {
-      // Show a test notification
-      new Notification('✅ Notifications enabled!', {
-        body: 'You\'ll now receive alerts when someone messages you.',
-        icon: '/favicon.ico',
-      });
+      try {
+        new Notification('✅ Notifications enabled!', {
+          body: 'You\'ll now receive alerts when someone messages you.',
+          icon: '/favicon.ico',
+        });
+      } catch {
+        // Some browsers don't support Notification constructor
+      }
     }
   }, []);
 
