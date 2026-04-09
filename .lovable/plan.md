@@ -1,92 +1,67 @@
 
 
-# Plan: Progressive Retry with Escalating Recovery
+# Plan: Polish Resilient Query + Recovery UI
 
-## Problem
-Currently, the retry button on CategorySelector endlessly reloads the same broken state. There's no escalation — users can click "Try again" forever with no improvement. The auto-skip handlers also jump directly to skip without giving the user a retry chance first.
+Six targeted fixes based on the user's feedback. No new features — just tightening existing logic.
 
-## What Changes
+## Changes
 
-### 1. Add retry counter to `useResilientQuery`
-Track how many times the user has manually retried. Expose `retryCount` and a wrapped `retryWithEscalation` function that:
-- **Retry 0 (initial load)**: Normal DB fetch with 5s timeout
-- **Retry 1 (first manual retry)**: Re-fetch live data one more time
-- **Retry 2+ (second retry)**: Switch to `useFallback = true` immediately, change CTA from "Try again" to "Keep going"
+### 1. Fix stale `retryCount` race in `useResilientQuery.ts`
 
-Track `wizard_retry_pressed` event with retry count.
+Replace the current `manualRetry` with a functional state update to avoid race conditions on rapid clicks:
 
-### 2. Update CategorySelector error UI
-- Retry 0-1: Show "Try again" button (current behavior)
-- Retry 2+: Show fallback categories automatically AND change button to "Keep going" (renders Plan C tiles)
-- Track `wizard_fallback_triggered` when Plan C activates via retry escalation
+```typescript
+const manualRetry = useCallback(() => {
+  setRetryCount(prev => {
+    const next = prev + 1;
+    trackEvent('wizard_retry_pressed', 'client', {
+      step: stepName,
+      retry_count: next,
+    });
+    if (next < 2) {
+      query.refetch();
+    }
+    return next;
+  });
+}, [stepName, query]);
+```
 
-### 3. Update SubcategorySelector empty/error state
-Currently shows "No subcategories" text with no escape. Change to:
-- First appearance of error/empty: Show "Try again" button
-- After 1 failed retry: Show "Keep going" button that calls `onAutoSkip`
-- Friendly copy: "We'll simplify things to keep you moving"
+### 2. Replace `JSON.stringify(queryKey)` with stable reset key
 
-### 4. Update MicroStep empty/error state  
-Same pattern as SubcategorySelector:
-- First error: "Try again"
-- Second error: "Keep going" → triggers `onAutoSkip` (custom mode → Logistics)
+```typescript
+const resetKey = Array.isArray(queryKey) ? queryKey.join('|') : String(queryKey);
 
-### 5. Fix auto-skip handlers in CanonicalJobWizard
-Per user's instructions, update the three handlers:
+useEffect(() => {
+  timeoutFiredRef.current = false;
+  setTimedOut(false);
+  setRetryCount(0);
+}, [resetKey]);
+```
 
-**handleSubcategoryAutoSkip**: Switch to custom mode, clear structured fields, jump to Logistics (NOT Micro — Micro depends on subcategoryId which is empty).
+### 3. Remove auto-skip on `retryCount >= 2` from SubcategorySelector and MicroStep
 
-**handleMicroAutoSkip**: Switch to custom mode, clear micro fields, jump to Logistics.
+The auto-skip effect that fires when `retryCount >= 2` is redundant — the user always clicks "Keep going" explicitly at `retryCount >= 1`. Remove those `useEffect` blocks entirely. Recovery is user-driven only.
 
-**handleQuestionsAutoSkip**: New handler. Track event, jump to Logistics.
+### 4. Render based on `hasOptions` not `isError` in SubcategorySelector and MicroStep
 
-### 6. Add `onAutoSkip` prop to QuestionsStep
-On fetch timeout/failure (after the existing 5s abort), call `onAutoSkip?.()` so the wizard advances instead of showing an empty state.
+Change the condition from `(isError || filtered.length === 0) && !isLoading` to just `!hasOptions && !isLoading` after computing `const hasOptions = filtered.length > 0`. This prevents swallowing future Plan B fallback data.
 
-## Technical Details
+### 5. Disable retry buttons while refetching
 
-### useResilientQuery changes
-- Add `retryCount` state (number), increment on each manual `refetch` call
-- Expose `retryCount` and `manualRetry()` (wraps refetch + increments counter)
-- After `retryCount >= 2`, force `useFallback = true`
-- Track `wizard_retry_pressed` on each manual retry
+Add `disabled={query.isFetching}` and a loading indicator to retry buttons in CategorySelector, SubcategorySelector, and MicroStep to prevent click-spam.
 
-### CategorySelector changes (~15 lines)
-- Use `retryCount` and `manualRetry` from hook
-- Error block: conditionally show "Try again" vs render fallback tiles + "Keep going"
+### 6. Attach `_pack_source` tracking metadata in QuestionsStep
 
-### SubcategorySelector changes (~20 lines)
-- Add `retryCount` / `manualRetry` from hook
-- Replace static "No subcategories" text with retry/escalation UI
-- After 1 failed retry on empty/error, show "Keep going" button → `onAutoSkip()`
-
-### MicroStep changes (~20 lines)
-- Same pattern as SubcategorySelector
-
-### CanonicalJobWizard changes (~40 lines)
-- Rewrite `handleSubcategoryAutoSkip` per user's exact code (custom mode → Logistics)
-- Rewrite `handleMicroAutoSkip` per user's exact code
-- Add `handleQuestionsAutoSkip` 
-- Pass `onAutoSkip={handleQuestionsAutoSkip}` to QuestionsStep
-
-### QuestionsStep changes (~5 lines)
-- Add `onAutoSkip?: () => void` to Props
-- Call `onAutoSkip?.()` in the catch block after timeout/failure
-
-### Event taxonomy
-- Add `wizard_retry_pressed` to eventTaxonomy.ts
+Already implemented — the `determinePackTracking` function writes `_pack_source`, `_pack_slug`, and `_pack_missing` into answers. No change needed here, just confirming it's covered.
 
 ## Files to Edit
 
 | File | Change |
 |---|---|
-| `useResilientQuery.ts` | Add retryCount, manualRetry, escalation logic |
-| `CategorySelector.tsx` | Use escalating retry UI |
-| `SubcategorySelector.tsx` | Add retry/escalation UI for empty/error states |
-| `MicroStep.tsx` | Add retry/escalation UI for empty/error states |
-| `CanonicalJobWizard.tsx` | Fix 3 auto-skip handlers, add QuestionsStep onAutoSkip |
-| `QuestionsStep.tsx` | Add onAutoSkip prop, call on failure |
-| `eventTaxonomy.ts` | Add wizard_retry_pressed |
+| `useResilientQuery.ts` | Fix manualRetry race, replace JSON.stringify reset key, expose `isFetching` |
+| `SubcategorySelector.tsx` | Remove auto-skip effect, use `hasOptions` condition, disable button while fetching |
+| `MicroStep.tsx` | Same as SubcategorySelector |
+| `CategorySelector.tsx` | Disable button while fetching |
 
-No database or edge function changes needed.
+No database or edge function changes.
 
