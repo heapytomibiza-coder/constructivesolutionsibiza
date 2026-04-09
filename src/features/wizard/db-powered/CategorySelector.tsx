@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORY_KEYS } from "@/i18n/categoryTranslations";
@@ -19,7 +20,7 @@ interface Props {
   allowedCategoryIds?: string[];
 }
 
-export default function CategorySelector({ selectedCategory, onSelect, onNext, allowedCategoryIds }: Props) {
+const CategorySelector = forwardRef<HTMLDivElement, Props>(function CategorySelector({ selectedCategory, onSelect, onNext, allowedCategoryIds }, ref) {
   const { t } = useTranslation(['wizard', 'common']);
 
   const { data: categories = [], isLoading, isError, useFallback, retryCount, manualRetry, isFetching } = useResilientQuery<Category[]>({
@@ -80,7 +81,7 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext, a
     : displayCategories;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" ref={ref}>
       {filtered.map((category) => {
         const isSelected = selectedCategory === category.name;
         return (
@@ -100,4 +101,6 @@ export default function CategorySelector({ selectedCategory, onSelect, onNext, a
       })}
     </div>
   );
-}
+});
+
+export default CategorySelector;

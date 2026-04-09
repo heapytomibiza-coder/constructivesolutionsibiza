@@ -78,8 +78,8 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
       }
       setRetryCount(prev => prev + 1);
       setTimedOut(false);
-      refresh().catch(() => {});
-      return <LoadingSpinner showRetry onRetry={() => { refresh().catch(() => {}); }} />;
+      refresh().catch((e) => console.warn('[RouteGuard] refresh failed during retry', e));
+      return <LoadingSpinner showRetry onRetry={() => { refresh().catch((e) => console.warn('[RouteGuard] manual refresh failed', e)); }} />;
     }
 
     // All retries exhausted — only redirect to auth if there's no persisted session
@@ -87,7 +87,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
       // Session token exists but hydration failed — keep showing spinner
       // rather than force-logging the user out
       console.warn('RouteGuard: retries exhausted but session token found in storage — not redirecting');
-      return <LoadingSpinner showRetry onRetry={() => { setRetryCount(0); setTimedOut(false); refresh().catch(() => {}); }} />;
+      return <LoadingSpinner showRetry onRetry={() => { setRetryCount(0); setTimedOut(false); refresh().catch((e) => console.warn('[RouteGuard] retry-all refresh failed', e)); }} />;
     }
 
     const returnUrl = buildReturnUrl(location.pathname, location.search);

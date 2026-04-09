@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
@@ -24,14 +24,14 @@ interface Props {
   onAutoSkip?: () => void;
 }
 
-export default function MicroStep({
+const MicroStep = forwardRef<HTMLDivElement, Props>(function MicroStep({
   subcategoryId,
   selectedMicroIds,
   onSelect,
   multiSelect = true,
   allowedMicroIds,
   onAutoSkip,
-}: Props) {
+}, ref) {
   const { t } = useTranslation(['wizard', 'micros']);
 
   const { data: rawMicros = [], isLoading, useFallback, retryCount, manualRetry, isFetching } = useResilientQuery<MicroCategory[]>({
@@ -133,7 +133,7 @@ export default function MicroStep({
   }
 
   return (
-    <div>
+    <div ref={ref}>
       <label className="block text-sm font-medium mb-2">
         {multiSelect ? t('wizard:micro.selectMultiple') : t('wizard:micro.selectSingle')}
       </label>
@@ -180,4 +180,6 @@ export default function MicroStep({
       )}
     </div>
   );
-}
+});
+
+export default MicroStep;
