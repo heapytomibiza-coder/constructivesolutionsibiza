@@ -72,11 +72,13 @@ export function useMessageNotifications(userId: string | null) {
   }, []);
 
   const showBrowserNotification = useCallback((preview: string, conversationId: string) => {
-    if ('Notification' in window && Notification.permission === 'granted') {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    try {
       const notification = new Notification('New message — CS Ibiza', {
         body: preview.length > 100 ? preview.slice(0, 100) + '…' : preview,
         icon: '/favicon.ico',
-        tag: `msg-${conversationId}`, // Prevents duplicate notifications per convo
+        tag: `msg-${conversationId}`,
       });
 
       notification.onclick = () => {
@@ -85,8 +87,9 @@ export function useMessageNotifications(userId: string | null) {
         notification.close();
       };
 
-      // Auto-close after 6 seconds
       setTimeout(() => notification.close(), 6000);
+    } catch {
+      // Some browsers (e.g. mobile Safari) require ServiceWorker API — silently skip
     }
   }, []);
 
