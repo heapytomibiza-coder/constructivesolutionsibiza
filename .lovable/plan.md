@@ -1,90 +1,67 @@
 
 
-# Plan: Daily Health System + Immediate Fixes
+# Plan: Phase 2 — Validate, Clean, and Harden
 
-## What this builds
+## Current State
 
-An automated daily health system that catches problems before users feel them, plus immediate fixes for the 4 critical issues found in today's audit.
+Phase 1 stabilization is complete. The platform is materially healthier. The remaining work is validation, cleanup, and prevention.
 
-## Part A: Immediate Fixes
+## What This Plan Covers
 
-### 1. Fix missing `get_saved_pros` RPC (190 failures/week)
-Find all code calling this RPC. Either create the database function or remove/replace the calls. This is the single largest source of network failures.
+Three workstreams executed in priority order:
 
-### 2. Fix `professional_profiles` 406 errors (70/week)
-Find the query producing the 406 and fix the select/filter shape to match the table schema.
+### Workstream 1: Fix Active Console Errors
 
-### 3. Add chunk-load error recovery
-Wrap React.lazy dynamic imports with an error handler that detects "Failed to fetch dynamically imported module" and does a single page reload. This prevents the hard crash seen on admin insight pages.
+Two React warnings are firing on every wizard load:
 
-### 4. Harden auth token refresh
-Add a listener for auth token refresh failures that clears the stale session and redirects to login with a friendly message, instead of leaving users in a broken half-logged-in state.
+- `CategorySelector` — "Function components cannot be given refs"
+- `ServiceSearchBar` — same warning
 
-## Part B: Daily Health Edge Function
+**Root cause:** These are `default export` function components. React's internal reconciliation is attempting to pass refs. The fix is wrapping both with `React.forwardRef`.
 
-### New edge function: `daily-health-check`
+**Files:**
+- `src/features/wizard/db-powered/CategorySelector.tsx` — wrap with `forwardRef`
+- `src/features/wizard/db-powered/ServiceSearchBar.tsx` — wrap with `forwardRef`
+- `src/features/wizard/db-powered/SubcategorySelector.tsx` — same pattern, preemptive fix
+- `src/features/wizard/db-powered/MicroStep.tsx` — same pattern, preemptive fix
 
-Runs daily at 7:00 AM via cron. Queries the database for the last 24 hours and produces a structured health report. Sends it to Telegram (same admin channel as existing notifications).
+### Workstream 2: Logging Cleanup
 
-**What it checks:**
-- Error events count (24h) — flag if > 20
-- Network failures count (24h) — flag if > 50
-- React crashes (24h) — flag if > 0
-- Auth token failures (24h) — flag if > 10
-- Jobs created / posted (24h)
-- New signups (24h)
-- Wizard completion rate
-- Email queue: pending + failed count
-- Edge function failures from logs
+Replace empty `catch {}` blocks and noisy low-value console output with structured logging through the existing `handleSupabaseError` utility.
 
-**Output format (Telegram message):**
-```
-🏥 Daily Health Report — Apr 10
+**Targets:**
+- `src/pages/admin/sections/OperatorCockpit.tsx` — empty `catch {}` on audio/notification
+- `src/guard/RouteGuard.tsx` — `.catch(() => {})` on refresh calls
+- General audit: ensure Supabase errors pass through `handleSupabaseError` instead of raw `console.error`
 
-Status: 🟢 GREEN / 🟡 AMBER / 🔴 RED
+### Workstream 3: Remaining Route Hardening
 
-Errors (24h): 3 ✅
-Network fails (24h): 12 ✅
-React crashes: 0 ✅
-Auth failures: 2 ✅
+**`/messages/{id}`** — Add error and empty-state UI for when conversation ID doesn't match any conversation (currently renders nothing). Add loading state for messages fetch.
 
-Jobs created: 1
-Jobs posted: 1
-New users: 3
-Wizard completion: 67%
+**`/forum`** — Forum upload errors already have proper logging. Low priority. Only change: ensure storage bucket exists and RLS is configured.
 
-Emails pending: 0
-Emails failed: 0
+**`/prototype/price-calculator`** — Prototype route. If errors exist, they're from AI edge function calls. Add timeout protection and user-friendly error state if the estimate generation fails.
 
-Top failing route: /messages (4 errors)
-Top network issue: collect-attribution (6 fails)
-```
+**`/auth`** — The auth page errors were from stale token refresh, already fixed in Phase 1. Verify no remaining issues.
 
-Thresholds for status:
-- RED: React crashes > 0, OR errors > 50, OR auth failures > 20
-- AMBER: errors > 20, OR network fails > 100, OR wizard completion = 0%
-- GREEN: everything else
+### Workstream 4: Post-Fix Verification
 
-### 2. Cron job
-Schedule `daily-health-check` at 7:00 AM daily via pg_cron.
+Run TypeScript compilation check and review edge function logs to confirm:
+- `daily-health-check` is executing without errors
+- `saved_professionals` RPCs respond correctly
+- No new 406 errors on `professional_profiles`
+- Auth token refresh failures have decreased
 
-## Part C: Chunk-Load Recovery (App-wide)
+## Files to Edit
 
-Add a global handler in the app entry point that catches dynamic import errors and performs one automatic reload, using a sessionStorage flag to prevent infinite loops.
-
-## Files to Create/Edit
-
-| File | Action |
+| File | Change |
 |---|---|
-| `supabase/functions/daily-health-check/index.ts` | **Create** — daily health check edge function |
-| `supabase/config.toml` | **Edit** — add function config |
-| `src/App.tsx` or router file | **Edit** — add chunk-load error recovery |
-| Code calling `get_saved_pros` | **Edit** — fix or remove broken RPC call |
-| Code querying `professional_profiles` with 406 | **Edit** — fix select shape |
-| `src/integrations/supabase/client.ts` | **No edit** (auto-generated) — auth recovery goes in a wrapper |
-| pg_cron | **Insert** — schedule daily-health-check at 7 AM |
+| `CategorySelector.tsx` | Wrap with `forwardRef` |
+| `ServiceSearchBar.tsx` | Wrap with `forwardRef` |
+| `SubcategorySelector.tsx` | Wrap with `forwardRef` |
+| `MicroStep.tsx` | Wrap with `forwardRef` |
+| `OperatorCockpit.tsx` | Replace empty catch with minimal logging |
+| `Messages.tsx` | Add null-conversation guard with user-facing message |
 
-### Database changes
-- One cron job insert (not a migration)
-- No new tables needed — uses existing `error_events`, `network_failures`, `daily_platform_metrics`, `email_notifications_queue`
+No database or edge function changes needed.
 
