@@ -34,7 +34,7 @@ export default function MicroStep({
 }: Props) {
   const { t } = useTranslation(['wizard', 'micros']);
 
-  const { data: rawMicros = [], isLoading, isError, useFallback, retryCount, manualRetry } = useResilientQuery<MicroCategory[]>({
+  const { data: rawMicros = [], isLoading, useFallback, retryCount, manualRetry, isFetching } = useResilientQuery<MicroCategory[]>({
     queryKey: ['service-micros-wizard', subcategoryId],
     queryFn: async (signal) => {
       const { data, error } = await supabase
