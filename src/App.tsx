@@ -202,7 +202,7 @@ const App = () => {
             {/* Backward-compat redirects */}
             <Route path="/marketplace" element={<Navigate to="/services" replace />} />
             <Route path="/marketplace/:listingId" element={<MarketplaceListingRedirect />} />
-            <Route path="/launch-checklist" element={<RouteGuard access="admin"><LaunchChecklist /></RouteGuard>} />
+            {/* launch-checklist moved inside admin routes below */}
             
             {/* Forum - Public read, auth for new posts */}
             <Route path="/forum" element={<ForumIndex />} />
