@@ -4,7 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Quote } from "../types";
+import type { Quote, QuoteLineItem } from "../types";
 
 export const quoteKeys = {
   forJob: (jobId: string) => ["quotes", "job", jobId] as const,
