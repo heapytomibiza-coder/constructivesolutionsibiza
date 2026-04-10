@@ -91,6 +91,9 @@ const Auth = () => {
           .eq('user_id', userId)
           .maybeSingle();
 
+        if (!rolesData) {
+          console.debug('[Auth] No user_roles row — defaulting to client', { userId });
+        }
         const activeRole = rolesData?.active_role || 'client';
 
         if (activeRole === 'professional') {
@@ -100,6 +103,9 @@ const Auth = () => {
             .eq('user_id', userId)
             .maybeSingle();
 
+          if (!profileData) {
+            console.debug('[Auth] No professional_profiles row — defaulting to not_started', { userId });
+          }
           const phase = profileData?.onboarding_phase || 'not_started';
           navigate(phase === 'complete' ? '/dashboard/pro' : '/onboarding/professional');
         } else {
