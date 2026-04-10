@@ -1,30 +1,135 @@
 # Constructive Solutions Ibiza
 
+**Infrastructure for a broken industry.**
+
 A construction-focused platform built to connect clients, workers, and projects across Ibiza — bringing structure, trust, and efficiency to a fragmented industry.
+
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-73%20passing-blue)]()
+[![Security](https://img.shields.io/badge/security-0%20blocking%20issues-green)]()
+
+---
+
+## 📊 Project Status
+
+| | |
+|---|---|
+| **Stage** | Active Development — Pre-launch |
+| **Version** | v0.9 |
+| **Environment** | Staging / Preview |
+| **Last Update** | April 2026 |
+| **Current Focus** | Security hardening, UX polish, real-user testing |
+
+### 🗺️ Roadmap
+
+- [x] User authentication (email + Google)
+- [x] Job posting wizard with structured scope
+- [x] Worker matching system (skills, location, availability)
+- [x] In-platform messaging
+- [x] Quote system with line items
+- [x] Review and rating system
+- [x] Dispute resolution flow (28-day structured system)
+- [x] Admin dashboard with platform metrics
+- [x] i18n (English / Spanish)
+- [x] CI/CD pipeline (smoke → interaction → full suite)
+- [x] Security hardening (RLS, storage policies, audit)
+- [ ] Payment protection (secure holding system)
+- [ ] WhatsApp notification bridge
+- [ ] Public professional directory
+- [ ] Mobile-optimised experience polish
+
+---
 
 ## 🚀 What It Does
 
 - Connects clients with verified construction professionals
-- Streamlines job posting and matching
-- Improves communication and project visibility
-- Builds trust through structured reviews and workflows
+- Streamlines job posting and intelligent matching
+- Improves communication with structured in-platform messaging
+- Builds trust through reviews, dispute resolution, and payment protection
+- Provides transparency with progress tracking and photo updates
 
 ## 👷 Who It's For
 
-- **Clients** → find reliable workers faster
-- **Workers** → access better, verified jobs
-- **Project managers** → organize and track work efficiently
-
-## 🔄 How It Works
-
-1. Client posts a job with structured scope and budget
-2. Workers are matched based on skills, location, and availability
-3. Communication happens inside the platform
-4. Work is completed, reviewed, and protected
+| Role | Value |
+|------|-------|
+| **Clients** | Find reliable workers faster, with clear scope and protection |
+| **Workers** | Access serious, verified jobs with structured briefs |
+| **Project managers** | Organise and track work efficiently across teams |
 
 ---
 
-## Quick Start
+## 🌍 Real-World Context
+
+This platform is built from direct experience in Ibiza's construction industry, where:
+
+- **Jobs are managed through WhatsApp** — no structure, no records, no accountability
+- **Trust is inconsistent** — clients gamble on recommendations; workers chase unreliable leads
+- **Coordination is fragmented** — scope changes, payment disputes, and miscommunication are the norm
+- **No system exists** to protect either side when things go wrong
+
+Constructive Solutions exists to replace this chaos with **structured workflows, verified professionals, and built-in protection**.
+
+> This is not a generic freelance marketplace. This is purpose-built infrastructure for construction.
+
+---
+
+## 🎥 Demo Preview
+
+🔗 **Live preview:** [constructivesolutionsibiza.lovable.app](https://constructivesolutionsibiza.lovable.app)
+
+Screenshots and screen recordings — *coming soon*.
+
+---
+
+## 🔄 How It Works
+
+1. **Client posts a job** with structured scope, budget, and requirements
+2. **Workers are matched** based on skills, location, and availability
+3. **Communication happens inside the platform** — structured, recorded, clear
+4. **Work is completed, reviewed, and protected** through the resolution system
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── pages/           → Route-level page components (domain-organised)
+├── domain/          → Domain logic, resolvers, formatters
+├── features/        → Feature modules (job wizard, messaging, disputes)
+├── components/      → Shared UI components
+├── shared/          → Generic helpers and utilities
+├── hooks/           → Custom React hooks
+├── contexts/        → React context providers (auth, role, language)
+├── core/            → Core app configuration and setup
+├── guard/           → Route guards and auth protection
+├── i18n/            → Internationalisation (EN/ES)
+├── integrations/    → Backend client and type definitions
+├── lib/             → Utility libraries
+├── app/             → App shell and layout
+└── assets/          → Static assets
+
+supabase/
+├── migrations/      → 93+ versioned SQL migrations
+└── functions/       → Edge functions (notifications, translations)
+
+docs/
+├── START_HERE.md    → 10-minute technical tour
+├── ARCHITECTURE_PACK.md → Full system blueprint
+├── BACKEND_AUDIT.md → Security audit and RLS review
+└── dev/             → Developer workspace and review notes
+```
+
+---
+
+## ⚙️ Setup
+
+### Prerequisites
+
+- Node.js 18+
+- npm or bun
+
+### Install and Run
 
 ```sh
 git clone <REPO_URL>
@@ -35,60 +140,62 @@ npm run dev
 
 Opens at `http://localhost:5173`
 
----
+### Environment
 
-## First-Time Code Review
+The backend is managed via Lovable Cloud — no external database setup required.
 
-Start here: **[docs/START_HERE.md](docs/START_HERE.md)**
-
-A 10-minute guided walkthrough covering routing, matching, messaging, quotes, and database security.
+For local development, the `.env` file is auto-configured with the necessary connection details.
 
 ---
 
-## Architecture
+## 🧪 Testing
 
-Full system blueprint: **[docs/ARCHITECTURE_PACK.md](docs/ARCHITECTURE_PACK.md)**
+| Suite | Coverage |
+|-------|----------|
+| Smoke tests | Route stability, render safety, state resilience |
+| Interaction tests | User journey validation |
+| Type checking | Compile-time safety |
+| Full suite | Runs on main after merge |
 
-Includes user journeys, route map, job lifecycle state machine, feature-page matrix, and data spine.
+```sh
+npm test
+```
+
+73 tests across smoke and interaction suites.
+
+See [`docs/ci/RELEASE_DISCIPLINE.md`](docs/ci/RELEASE_DISCIPLINE.md) for the full CI/CD policy.
 
 ---
 
-## Backend Security
+## 🏗️ Tech Stack
 
-All schema migrations and Row-Level Security policies are versioned in `supabase/migrations/` (93+ migration files).
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18 · TypeScript · Vite · Tailwind · shadcn/ui |
+| Backend | Supabase (Postgres · Realtime · Auth · Edge Functions) |
+| i18n | i18next (EN / ES) |
+| Testing | Vitest (73 tests) |
+| CI | GitHub Actions (smoke → interaction → full suite) |
 
-Security functions include `has_role()` (SECURITY DEFINER), `is_admin_email()`, and `switch_active_role()`.
+---
+
+## 🔐 Security
+
+Security is enforced at every layer. See **[SECURITY.md](SECURITY.md)** for the full policy.
+
+Key measures:
+
+- **Row-Level Security (RLS)** on all tables — access scoped to authenticated users
+- **SECURITY DEFINER functions** — `has_role()`, `is_admin_email()`, `switch_active_role()`
+- **Private storage buckets** — dispute evidence and progress photos are party-scoped
+- **93+ versioned migrations** — full audit trail of every schema change
+- **0 blocking security issues** — confirmed by latest security scan
 
 Full audit: **[docs/BACKEND_AUDIT.md](docs/BACKEND_AUDIT.md)**
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 18 · TypeScript · Vite · Tailwind · shadcn-ui |
-| Backend | Supabase (Postgres · Realtime · Auth · Edge Functions) |
-| i18n | i18next (EN / ES) |
-| Testing | Vitest (73 tests — smoke + interaction suites) |
-| CI | GitHub Actions (smoke → interaction → full suite) |
-
----
-
-## ⚙️ CI/CD Pipeline
-
-Automated pipelines ensure code quality on every change:
-
-- **Smoke tests** — route stability, render safety, state resilience
-- **Interaction tests** — user journey validation
-- **Type checking** — compile-time safety
-- **Full suite** — runs on main after merge
-
-See [`docs/ci/RELEASE_DISCIPLINE.md`](docs/ci/RELEASE_DISCIPLINE.md) for the full policy.
-
----
-
-## Platform Scope
+## 🌐 Platform Scope
 
 Construction and property services only. Categories include:
 
@@ -101,16 +208,45 @@ Construction and property services only. Categories include:
 - Pools & spas
 - Smart home · Testing & certification
 
-Lifestyle, concierge, and general freelance services are intentionally excluded.
+> Lifestyle, concierge, and general freelance services are intentionally excluded.
 
 ---
 
-## Contributing
+## 📦 Version
 
-See **[CONTRIBUTING.md](CONTRIBUTING.md)** for code standards and conventions.
+**v0.9** — Pre-launch
+
+Recent changes:
+- Security hardening: dispute evidence storage locked down, progress photos privatised
+- Duplicate RLS policies cleaned
+- Realtime defensive guards added
+- CI pipeline stabilised (73 tests passing)
 
 ---
 
-## Documentation
+## 📌 Development Board
 
-See **[docs/README.md](docs/README.md)** for a full index of all project documentation.
+Track progress → *[GitHub Projects board — coming soon]*
+
+---
+
+## 🤝 Contributing
+
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for code standards, branch naming, and PR rules.
+
+---
+
+## 📚 Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [START_HERE.md](docs/START_HERE.md) | 10-minute technical tour |
+| [ARCHITECTURE_PACK.md](docs/ARCHITECTURE_PACK.md) | Full system blueprint |
+| [BACKEND_AUDIT.md](docs/BACKEND_AUDIT.md) | Security audit and RLS review |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Domain structure guide |
+
+See **[docs/README.md](docs/README.md)** for the full documentation index.
+
+---
+
+**Built for Ibiza. Built for trust. Built to last.**
