@@ -18,7 +18,7 @@ export type RolloutPhase =
   | 'founding-members'
   | 'service-layer'
   | 'trust-engine'
-  | 'escrow-beta'
+  | 'protection-beta'
   | 'scale-ready';
 
 const ORDER: RolloutPhase[] = [
@@ -26,7 +26,7 @@ const ORDER: RolloutPhase[] = [
   'founding-members',
   'service-layer',
   'trust-engine',
-  'escrow-beta',
+  'protection-beta',
   'scale-ready',
 ];
 
