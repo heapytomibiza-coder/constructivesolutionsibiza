@@ -1,28 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle2, AlertCircle, Circle } from 'lucide-react';
-
-interface CompletenessData {
-  has_statement: boolean;
-  has_questionnaire: boolean;
-  evidence_count: number;
-  has_counterparty_response: boolean;
-  has_scope: boolean;
-  score: number;
-  max_score: number;
-  level: 'low' | 'medium' | 'high';
-}
+import { fetchDisputeCompleteness, type CompletenessData } from '../queries/completeness.query';
 
 export function CompletenessIndicator({ disputeId }: { disputeId: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ['dispute-completeness', disputeId],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('rpc_dispute_completeness', {
-        p_dispute_id: disputeId,
-      } as any);
-      if (error) throw error;
-      return data as unknown as CompletenessData;
-    },
+    queryFn: () => fetchDisputeCompleteness(disputeId),
   });
 
   if (isLoading || !data) return null;

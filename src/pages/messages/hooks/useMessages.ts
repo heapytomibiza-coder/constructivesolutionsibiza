@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { trackEvent } from "@/lib/trackEvent";
@@ -59,38 +59,68 @@ export function useMessages(conversationId: string | undefined) {
     staleTime: 10_000,
   });
 
-  // Realtime subscription for new messages
+  // Defense-in-depth: verify current user is a participant before subscribing.
+  // RLS on the messages table already prevents unauthorized data from being
+  // delivered via Postgres Changes, but this application-level guard adds an
+  // extra layer and avoids holding a channel open unnecessarily.
+  const participantVerified = useRef<string | null>(null);
+
   useEffect(() => {
     if (!conversationId) return;
 
     let channel: RealtimeChannel | null = null;
+    let cancelled = false;
 
-    channel = supabase
-      .channel(`messages:${conversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          // Optimistically add new message to cache
-          queryClient.setQueryData<Message[]>(
-            ["messages", conversationId],
-            (old) => {
-              if (!old) return [payload.new as Message];
-              // Avoid duplicates
-              if (old.some((m) => m.id === (payload.new as Message).id)) return old;
-              return [...old, payload.new as Message];
-            }
-          );
+    async function verifyAndSubscribe() {
+      // Only re-verify if the conversationId changed
+      if (participantVerified.current !== conversationId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+
+        const { data: convo } = await supabase
+          .from("conversations")
+          .select("client_id, pro_id")
+          .eq("id", conversationId!)
+          .maybeSingle();
+
+        if (cancelled) return;
+
+        if (!convo || (convo.client_id !== user.id && convo.pro_id !== user.id)) {
+          // Not a participant — skip subscription
+          console.warn("[useMessages] User is not a participant; skipping realtime subscription.");
+          return;
         }
-      )
-      .subscribe();
+        participantVerified.current = conversationId!;
+      }
+
+      channel = supabase
+        .channel(`messages:${conversationId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            queryClient.setQueryData<Message[]>(
+              ["messages", conversationId],
+              (old) => {
+                if (!old) return [payload.new as Message];
+                if (old.some((m) => m.id === (payload.new as Message).id)) return old;
+                return [...old, payload.new as Message];
+              }
+            );
+          }
+        )
+        .subscribe();
+    }
+
+    verifyAndSubscribe();
 
     return () => {
+      cancelled = true;
       if (channel) {
         supabase.removeChannel(channel);
       }
