@@ -1,13 +1,26 @@
 # Constructive Solutions Ibiza
 
-A digital platform designed to improve how construction jobs, workers, and clients connect across Ibiza.
+A construction-focused platform built to connect clients, workers, and projects across Ibiza — bringing structure, trust, and efficiency to a fragmented industry.
 
-The construction industry in Ibiza often relies on scattered communication, word-of-mouth, and inconsistent standards — creating wasted time, unreliable hiring, and poor project visibility. Constructive Solutions brings structure to the process through a dedicated app for construction services, job coordination, and trusted connections.
+## 🚀 What It Does
 
-**Who it's for:**
-- **Clients** looking for reliable construction professionals
-- **Workers** wanting access to better quality leads
-- **Project coordinators** needing clearer job flow
+- Connects clients with verified construction professionals
+- Streamlines job posting and matching
+- Improves communication and project visibility
+- Builds trust through structured reviews and workflows
+
+## 👷 Who It's For
+
+- **Clients** → find reliable workers faster
+- **Workers** → access better, verified jobs
+- **Project managers** → organize and track work efficiently
+
+## 🔄 How It Works
+
+1. Client posts a job with structured scope and budget
+2. Workers are matched based on skills, location, and availability
+3. Communication happens inside the platform
+4. Work is completed, reviewed, and protected
 
 ---
 
@@ -57,7 +70,21 @@ Full audit: **[docs/BACKEND_AUDIT.md](docs/BACKEND_AUDIT.md)**
 | Frontend | React 18 · TypeScript · Vite · Tailwind · shadcn-ui |
 | Backend | Supabase (Postgres · Realtime · Auth · Edge Functions) |
 | i18n | i18next (EN / ES) |
+| Testing | Vitest (73 tests — smoke + interaction suites) |
 | CI | GitHub Actions (smoke → interaction → full suite) |
+
+---
+
+## ⚙️ CI/CD Pipeline
+
+Automated pipelines ensure code quality on every change:
+
+- **Smoke tests** — route stability, render safety, state resilience
+- **Interaction tests** — user journey validation
+- **Type checking** — compile-time safety
+- **Full suite** — runs on main after merge
+
+See [`docs/ci/RELEASE_DISCIPLINE.md`](docs/ci/RELEASE_DISCIPLINE.md) for the full policy.
 
 ---
 
