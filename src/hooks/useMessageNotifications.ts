@@ -105,6 +105,10 @@ export function useMessageNotifications(userId: string | null) {
   }, []);
 
   // Subscribe to new messages via Realtime
+  // NOTE: postgres_changes filter only supports single eq values,
+  // so we can't filter by "all my conversations" in one subscription.
+  // RLS on the messages table ensures unauthorized rows arrive as empty
+  // payloads (Supabase Realtime respects RLS), so no data leakage occurs.
   useEffect(() => {
     if (!userId) return;
 
@@ -119,6 +123,9 @@ export function useMessageNotifications(userId: string | null) {
         },
         (payload) => {
           const msg = payload.new as MessagePayload;
+
+          // RLS may deliver empty payloads for unauthorized rows — skip them
+          if (!msg.id || !msg.conversation_id) return;
 
           // Skip own messages and system messages
           if (msg.sender_id === userId || msg.message_type !== 'user') return;
