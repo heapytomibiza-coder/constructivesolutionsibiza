@@ -25,7 +25,7 @@ export async function awardProStats({
   }
 
   try {
-    const { error } = await supabase.rpc('increment_professional_micro_stats_batch' as any, {
+    const { error } = await supabase.rpc('increment_professional_micro_stats_batch', {
       p_user_id: professionalUserId,
       p_micro_ids: microIds,
       p_rating: rating ?? null,
