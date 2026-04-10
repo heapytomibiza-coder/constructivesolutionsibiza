@@ -119,15 +119,9 @@ export type ClientReputationRow = {
 // These bypass the generic type parameter by returning PostgrestFilterBuilder
 // with the correct row type.
 
-type AnyFilterBuilder<T> = PostgrestFilterBuilder<any, T, T[], string, any>;
-
-function typedFrom<T extends Record<string, unknown>>(table: string) {
-  return supabase.from(table as any) as unknown as {
-    select: (...args: any[]) => AnyFilterBuilder<T>;
-    insert: (values: Partial<T> | Partial<T>[]) => { select: (...args: any[]) => AnyFilterBuilder<T> } & AnyFilterBuilder<T>;
-    update: (values: Partial<T>) => AnyFilterBuilder<T>;
-    delete: () => AnyFilterBuilder<T>;
-  };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function typedFrom<T extends Record<string, unknown>>(table: string): any {
+  return supabase.from(table as any);
 }
 
 export const disputesTable = () => typedFrom<DisputeRow>('disputes');
