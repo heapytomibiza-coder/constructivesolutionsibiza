@@ -4,9 +4,12 @@
 
 A construction-focused platform built to connect clients, workers, and projects across Ibiza — bringing structure, trust, and efficiency to a fragmented industry.
 
+🔗 **Explore the platform →** [constructivesolutionsibiza.lovable.app](https://constructivesolutionsibiza.lovable.app)
+
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen)]()
 [![Tests](https://img.shields.io/badge/tests-73%20passing-blue)]()
 [![Security](https://img.shields.io/badge/security-0%20blocking%20issues-green)]()
+[![Stage](https://img.shields.io/badge/stage-v0.9%20pre--launch-orange)]()
 
 ---
 
@@ -70,6 +73,32 @@ This platform is built from direct experience in Ibiza's construction industry, 
 Constructive Solutions exists to replace this chaos with **structured workflows, verified professionals, and built-in protection**.
 
 > This is not a generic freelance marketplace. This is purpose-built infrastructure for construction.
+
+---
+
+## ⚡ What Makes This Different
+
+This is not a generic freelance marketplace.
+
+Constructive Solutions Ibiza is **purpose-built infrastructure**:
+
+- **Structured job data** — not free-text chaos
+- **Role-based workflows** — client, worker, admin — each with clear permissions
+- **Built-in dispute resolution** — 28-day structured system, not "figure it out"
+- **Security-first architecture** — RLS, scoped storage, SECURITY DEFINER functions
+- **Designed for repeat, long-term use** — not one-off gigs
+
+---
+
+## 🌍 Adoption (Early Stage)
+
+Currently being developed and tested with real workflows in Ibiza's construction network.
+
+- Initial job flows being validated with real clients and workers
+- Worker matching logic under live testing
+- Feedback loops integrated directly into development
+
+> This platform is being shaped from real-world usage, not isolated development.
 
 ---
 
@@ -224,6 +253,30 @@ Recent changes:
 
 ---
 
+## 📈 Metrics (Early Stage)
+
+| Metric | Value |
+|--------|-------|
+| Active development | v0.9 |
+| Database migrations | 93+ |
+| Passing tests | 73 |
+| Blocking security issues | 0 |
+
+---
+
+## 🧠 Future Infrastructure
+
+Planned system extensions include:
+
+- Secure payment holding system (payment protection)
+- AI-assisted job scoping and matching
+- Worker reputation scoring with trust metrics
+- Multi-project management dashboards
+- WhatsApp notification bridge
+- Cross-platform integration with related service systems
+
+---
+
 ## 📌 Development Board
 
 Track progress → *[GitHub Projects board — coming soon]*
@@ -249,4 +302,4 @@ See **[docs/README.md](docs/README.md)** for the full documentation index.
 
 ---
 
-**Built for Ibiza. Built for trust. Built to last.**
+**Built for Ibiza. Built on trust. Designed to scale.**
