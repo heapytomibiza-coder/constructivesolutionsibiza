@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
+import { respondToResolution } from '../actions/respondToResolution.action';
 
 interface ResolutionBannerProps {
   disputeId: string;
@@ -44,14 +44,8 @@ export function ResolutionBanner({
   if (!isVisible || !resolutionType) return null;
 
   const respondMutation = useMutation({
-    mutationFn: async ({ accept, reason }: { accept: boolean; reason?: string }) => {
-      const { error } = await supabase.rpc('rpc_respond_to_resolution', {
-        p_dispute_id: disputeId,
-        p_accept: accept,
-        p_rejection_reason: reason ?? null,
-      } as any);
-      if (error) throw error;
-    },
+    mutationFn: ({ accept, reason }: { accept: boolean; reason?: string }) =>
+      respondToResolution({ disputeId, accept, reason }),
     onSuccess: (_, { accept }) => {
       toast.success(accept ? 'Resolution accepted' : 'Resolution rejected — case escalated');
       setRejectOpen(false);

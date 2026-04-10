@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,22 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-
-interface PricingRuleRow {
-  id: string;
-  category: string;
-  subcategory: string;
-  micro_slug: string;
-  micro_name: string;
-  base_labour_unit: string;
-  base_labour_min: number;
-  base_labour_max: number;
-  base_material_min: number;
-  base_material_max: number;
-  location_modifier: number;
-  is_active: boolean;
-  created_at: string;
-}
+import { fetchPricingRules } from '../queries/pricingRules.query';
+import { togglePricingRuleActive, createPricingRule } from '../actions/pricingRules.action';
 
 function formatEur(n: number): string {
   return `€${Math.round(n)}`;
@@ -42,24 +27,12 @@ export default function AdminPricingRulesPage() {
 
   const { data: rules, isLoading } = useQuery({
     queryKey: ['admin-pricing-rules'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('pricing_rules')
-        .select('*')
-        .order('category');
-      if (error) throw error;
-      return data as unknown as PricingRuleRow[];
-    },
+    queryFn: fetchPricingRules,
   });
 
   const toggleActive = useMutation({
-    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase
-        .from('pricing_rules')
-        .update({ is_active } as any)
-        .eq('id', id);
-      if (error) throw error;
-    },
+    mutationFn: ({ id, is_active }: { id: string; is_active: boolean }) =>
+      togglePricingRuleActive(id, is_active),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-pricing-rules'] });
       qc.invalidateQueries({ queryKey: ['pricing-rules'] });
@@ -67,7 +40,6 @@ export default function AdminPricingRulesPage() {
     onError: () => toast.error('Failed to update rule.'),
   });
 
-  // Simple form state for adding a new rule
   const [newRule, setNewRule] = useState({
     category: '',
     subcategory: '',
@@ -80,17 +52,8 @@ export default function AdminPricingRulesPage() {
     base_material_max: 0,
   });
 
-  const createRule = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('pricing_rules')
-        .insert({
-          ...newRule,
-          location_modifier: 1.15,
-          adjustment_factors: { fields: [] },
-        } as any);
-      if (error) throw error;
-    },
+  const createRuleMutation = useMutation({
+    mutationFn: () => createPricingRule(newRule),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-pricing-rules'] });
       setDialogOpen(false);
@@ -101,7 +64,7 @@ export default function AdminPricingRulesPage() {
         base_material_min: 0, base_material_max: 0,
       });
     },
-    onError: (e: any) => toast.error(e.message || 'Failed to create rule.'),
+    onError: (e: Error) => toast.error(e.message || 'Failed to create rule.'),
   });
 
   const activeCount = rules?.filter(r => r.is_active).length ?? 0;
@@ -157,8 +120,8 @@ export default function AdminPricingRulesPage() {
                   <Input type="number" value={newRule.base_material_max} onChange={(e) => setNewRule((p) => ({ ...p, base_material_max: Number(e.target.value) }))} />
                 </div>
               </div>
-              <Button onClick={() => createRule.mutate()} disabled={createRule.isPending} className="w-full">
-                {createRule.isPending ? 'Creating…' : 'Create Rule'}
+              <Button onClick={() => createRuleMutation.mutate()} disabled={createRuleMutation.isPending} className="w-full">
+                {createRuleMutation.isPending ? 'Creating…' : 'Create Rule'}
               </Button>
             </div>
           </DialogContent>
