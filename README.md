@@ -1,8 +1,13 @@
 # Constructive Solutions Ibiza
 
-Construction job platform connecting clients with trusted tradespeople in Ibiza.
+A digital platform designed to improve how construction jobs, workers, and clients connect across Ibiza.
 
-Clients post construction jobs, professionals send structured quotes, and work is completed with real-time messaging, project tracking, and reviews.
+The construction industry in Ibiza often relies on scattered communication, word-of-mouth, and inconsistent standards — creating wasted time, unreliable hiring, and poor project visibility. Constructive Solutions brings structure to the process through a dedicated app for construction services, job coordination, and trusted connections.
+
+**Who it's for:**
+- **Clients** looking for reliable construction professionals
+- **Workers** wanting access to better quality leads
+- **Project coordinators** needing clearer job flow
 
 ---
 
