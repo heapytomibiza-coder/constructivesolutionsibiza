@@ -5,7 +5,7 @@
  * to describe bugs. Auto-attaches monitor context.
  */
 
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { Bug, X, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getMonitorContext } from '@/lib/lighthouse-monitor';
 
-export function ReportIssueWidget() {
+export const ReportIssueWidget = forwardRef<HTMLDivElement>(function ReportIssueWidget(_props, _ref) {
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -140,4 +140,6 @@ export function ReportIssueWidget() {
       )}
     </>
   );
-}
+});
+
+ReportIssueWidget.displayName = 'ReportIssueWidget';
