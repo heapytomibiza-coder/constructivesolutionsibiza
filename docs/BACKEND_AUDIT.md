@@ -164,12 +164,12 @@
 
 ---
 
-### 2. Payments & Escrow — NOT BUILT
-> No Stripe integration, no payment processing, no escrow.
+### 2. Structured Payments — NOT BUILT
+> No Stripe integration, no payment processing, no milestone payment system.
 
 **Blueprint proposes:**
 - `payment_intents` (Stripe integration)
-- `escrow_ledger` (held → released → refunded)
+- `payment_ledger` (pending → released → refunded)
 - `milestones` (deposit + staged release for construction)
 
 **Do we need it?** 🟡 **DECISION NEEDED**
@@ -184,11 +184,11 @@
 
 **Blueprint proposes:**
 - `disputes` table (reason_code, evidence, mediation status, resolution)
-- Tied to escrow (release / refund / partial)
+- Tied to payment milestones (release / refund / partial)
 
 **Do we need it?** 🔴 **Only if payments are on-platform**
-- Without escrow, disputes are just support tickets (which we already have)
-- With escrow, disputes become critical — must block fund release
+- Without structured payments, disputes are just support tickets (which we already have)
+- With milestone payments, disputes become critical — must block fund release
 
 ---
 
@@ -247,7 +247,7 @@
 | Phase 3 | Messaging, Notifications, Support | ✅ **DONE** | — |
 | Phase 3.5 | Admin Ops, Analytics, Monitoring | ✅ **DONE** | — |
 | Phase 4 | **Quotes System** | ❌ Not built | 🟡 Decision needed |
-| Phase 5 | **Payments / Stripe / Escrow** | ❌ Not built | 🟡 Decision needed |
+| Phase 5 | **Payments / Stripe / Milestones** | ❌ Not built | 🟡 Decision needed |
 | Phase 5 | **Disputes (payment-linked)** | ❌ Not built | 🔴 Only with payments |
 | Phase 6 | Flags/fraud table | ❌ Not built | 🟢 Low priority |
 | Phase 6 | Soft deletes | ❌ Not built | 🟢 Recommended |
@@ -262,24 +262,24 @@ Your platform is currently a **matchmaker + lead-gen** model:
 > Client posts job → Pros see it → They message → Deal happens offline
 
 The blueprint describes a **full transactional marketplace**:
-> Client posts → Pro quotes → Client accepts → Payment through platform → Escrow → Release
+> Client posts → Pro quotes → Client accepts → Payment through platform → Milestone release
 
 **You're at the fork.** Everything in Phases 1–3.5 is built and solid. The question is:
 
 ### Do you want to add on-platform payments?
 
-**If YES:** Build Quotes → Stripe Connect → Escrow → Disputes (Phases 4–5)
+**If YES:** Build Quotes → Stripe Connect → Milestone Payments → Disputes (Phases 4–5)
 **If NO:** Your backend is essentially complete. Focus on UX polish, SEO, and growth.
 
 ---
 
 ## 💡 MY RECOMMENDATION
 
-1. **Don't build payments yet.** Get job volume first. Payments add massive complexity (Stripe Connect, escrow law, refund handling).
+1. **Don't build payments yet.** Get job volume first. Payments add massive complexity (Stripe Connect, compliance, refund handling).
 2. **Do build a simple Quotes table** — even without payments, letting pros submit structured quotes on-platform (price, scope, timeline) dramatically improves the experience vs. raw messaging.
 3. **Do add soft deletes** — cheap insurance for moderation.
 4. **Do add rate limiting** — protects against spam as you grow.
-5. **Skip disputes and escrow** until payments are live.
+5. **Skip disputes and milestone payments** until payments are live.
 6. **Skip multi-dimensional reviews** — current system works fine.
 
 ### Recommended Next Phase: "Structured Quotes (no payments)"
