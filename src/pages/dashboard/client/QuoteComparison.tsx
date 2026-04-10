@@ -56,7 +56,7 @@ export default function QuoteComparison() {
         .from('jobs')
         .select('id, title, status')
         .eq('id', jobId!)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },

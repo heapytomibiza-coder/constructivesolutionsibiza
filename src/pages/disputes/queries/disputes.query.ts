@@ -50,7 +50,7 @@ export async function fetchDisputeDetail(disputeId: string): Promise<DisputeDeta
   const { data: dispute, error } = await disputesTable()
     .select('*, jobs!inner(title, category, area, description, user_id, assigned_professional_id)')
     .eq('id', disputeId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
 
