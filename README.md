@@ -57,7 +57,7 @@ Full audit: **[docs/BACKEND_AUDIT.md](docs/BACKEND_AUDIT.md)**
 | Frontend | React 18 · TypeScript · Vite · Tailwind · shadcn-ui |
 | Backend | Supabase (Postgres · Realtime · Auth · Edge Functions) |
 | i18n | i18next (EN / ES) |
-| Testing | Vitest · ESLint |
+| CI | GitHub Actions (smoke → interaction → full suite) |
 
 ---
 
