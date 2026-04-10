@@ -71,7 +71,8 @@ export default function DisputeDetail() {
     },
   });
 
-  if (isLoading) {
+  const [reAnalyzeOpen, setReAnalyzeOpen] = useState(false);
+
     return (
       <PublicLayout>
         <div className="min-h-[50vh] flex items-center justify-center">
