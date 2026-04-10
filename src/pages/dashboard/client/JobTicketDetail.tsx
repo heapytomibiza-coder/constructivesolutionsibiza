@@ -679,7 +679,7 @@ export default function JobTicketDetail() {
                   )}
                   {/* Pro: Withdraw */}
                   {!isClient && canWithdrawQuote(job.status) && (
-                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleWithdraw}>
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={() => setWithdrawDialogOpen(true)}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.withdraw', 'Withdraw')}
                     </Button>
@@ -715,7 +715,7 @@ export default function JobTicketDetail() {
                   )}
                   {/* Client: Close/Cancel (draft/ready/open only) */}
                   {canCancelJob(job.status, isClient) && (
-                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleClose}>
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={() => setCloseDialogOpen(true)}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.cancelJob', 'Cancel Job')}
                     </Button>
