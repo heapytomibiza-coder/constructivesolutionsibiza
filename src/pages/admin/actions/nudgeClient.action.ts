@@ -9,7 +9,7 @@ export async function nudgeClient(conversationId: string) {
 }
 
 export async function suppressNudge(jobId: string) {
-  const { error } = await (supabase.rpc as any)("suppress_nudge", {
+  const { error } = await supabase.rpc("suppress_nudge", {
     p_job_id: jobId,
     p_nudge_type: "conversation_stale",
   });

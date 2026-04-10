@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
+import { disputesTable, disputeInputsTable } from '@/lib/supabaseTyped';
 import type { DisputeIssueType } from '../types';
 import { PROTECTION_GUARDRAILS } from '@/domain/protectionGuardrails';
+import type { DisputeRow } from '@/lib/supabaseTyped';
 
 interface CreateDisputeParams {
   job_id: string;
@@ -10,7 +12,7 @@ interface CreateDisputeParams {
   questionnaire_answers: Record<string, string>;
 }
 
-export async function createDispute(params: CreateDisputeParams) {
+export async function createDispute(params: CreateDisputeParams): Promise<DisputeRow> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
@@ -27,12 +29,9 @@ export async function createDispute(params: CreateDisputeParams) {
   const counterpartyId = isClient ? job.assigned_professional_id : job.user_id;
 
   const evidenceDeadlineMs = PROTECTION_GUARDRAILS.autoProgressionHours * 60 * 60 * 1000;
-  const responseDeadlineMs = PROTECTION_GUARDRAILS.responseWarningHours * 2 * 60 * 60 * 1000; // 96h (2x warning window)
+  const responseDeadlineMs = PROTECTION_GUARDRAILS.responseWarningHours * 2 * 60 * 60 * 1000;
 
-  // Create dispute — skip 'open' and go straight to 'awaiting_counterparty'
-  // since we always have a counterparty identified from the job
-  const { data: dispute, error } = await supabase
-    .from('disputes' as any)
+  const { data: dispute, error } = await disputesTable()
     .insert({
       job_id: params.job_id,
       raised_by: user.id,
@@ -43,31 +42,33 @@ export async function createDispute(params: CreateDisputeParams) {
       status: 'awaiting_counterparty',
       evidence_deadline: new Date(Date.now() + evidenceDeadlineMs).toISOString(),
       response_deadline: new Date(Date.now() + responseDeadlineMs).toISOString(),
-    } as any)
+    })
     .select()
     .single();
 
   if (error) throw error;
 
+  const disputeId = (dispute as unknown as DisputeRow).id;
+
   // Add questionnaire input
   if (params.questionnaire_answers && Object.keys(params.questionnaire_answers).length > 0) {
-    await supabase.from('dispute_inputs' as any).insert({
-      dispute_id: (dispute as any).id,
+    await disputeInputsTable().insert({
+      dispute_id: disputeId,
       user_id: user.id,
       input_type: 'multiple_choice',
       questionnaire_answers: params.questionnaire_answers,
-    } as any);
+    });
   }
 
   // Add description as text input
   if (params.description) {
-    await supabase.from('dispute_inputs' as any).insert({
-      dispute_id: (dispute as any).id,
+    await disputeInputsTable().insert({
+      dispute_id: disputeId,
       user_id: user.id,
       input_type: 'text',
       raw_text: params.description,
-    } as any);
+    });
   }
 
-  return dispute as any;
+  return dispute as unknown as DisputeRow;
 }

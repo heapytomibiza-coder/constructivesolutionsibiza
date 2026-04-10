@@ -86,12 +86,12 @@ export default function DisputeRowActions({ dispute }: { dispute: AdminDisputeRo
     mutationFn: async (text: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-      const { error } = await supabase.from('dispute_inputs' as any).insert({
+      const { error } = await supabase.from('dispute_inputs').insert({
         dispute_id: dispute.id,
         user_id: user.id,
         input_type: 'admin_note',
         raw_text: text,
-      } as any);
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -109,7 +109,7 @@ export default function DisputeRowActions({ dispute }: { dispute: AdminDisputeRo
         p_dispute_id: dispute.id,
         p_resolution_type: resolutionType,
         p_resolution_description: resolutionDesc,
-      } as any);
+      });
       if (error) throw error;
     },
     onSuccess: () => {

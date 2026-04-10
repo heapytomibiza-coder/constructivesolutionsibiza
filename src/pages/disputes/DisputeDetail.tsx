@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchDisputeDetail } from './queries/disputes.query';
+import type { DisputeDetailResult } from './queries/disputes.query';
 import { analyzeDispute } from './actions/analyzeDispute.action';
 import { AnalysisDisplay } from './components/AnalysisDisplay';
 import { CompletenessIndicator } from './components/CompletenessIndicator';
@@ -15,6 +16,7 @@ import { CounterpartyBanner } from './components/CounterpartyBanner';
 import { ResolutionBanner } from './components/ResolutionBanner';
 import { DisputeTimeline } from './components/DisputeTimeline';
 import type { DisputeStatus } from './types';
+import type { DisputeInputRow, DisputeEvidenceRow } from '@/lib/supabaseTyped';
 
 const STATUS_META: Record<DisputeStatus, { label: string; color: string }> = {
   draft: { label: 'Draft', color: 'bg-muted text-muted-foreground' },
@@ -81,8 +83,7 @@ export default function DisputeDetail() {
     );
   }
 
-  const { dispute, inputs, evidence, analysis, history, aiEvents } = data;
-  const d = dispute as any;
+  const { dispute: d, inputs, evidence, analysis, history, aiEvents } = data;
   const statusMeta = STATUS_META[d.status as DisputeStatus] || STATUS_META.open;
   const job = d.jobs;
   const hasCurrentAnalysis = !!analysis;
@@ -90,7 +91,7 @@ export default function DisputeDetail() {
   const isCounterparty = currentUser?.id === d.counterparty_id;
   const isParty = currentUser?.id === d.raised_by || currentUser?.id === d.counterparty_id;
   const hasResponded = !!d.counterparty_responded_at || inputs.some(
-    (i: any) => i.user_id === d.counterparty_id
+    (i: DisputeInputRow) => i.user_id === d.counterparty_id
   );
 
   return (
@@ -98,7 +99,7 @@ export default function DisputeDetail() {
       <div className="container max-w-3xl py-8 space-y-6">
         {/* Header */}
         <div>
-          <Button variant="ghost" size="sm" onClick={() => navigate(d?.job_id ? `/dashboard/jobs/${d.job_id}` : '/dashboard')} className="mb-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate(d.job_id ? `/dashboard/jobs/${d.job_id}` : '/dashboard')} className="mb-2">
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
           <div className="flex items-start justify-between">
@@ -176,7 +177,7 @@ export default function DisputeDetail() {
             <h2 className="text-sm font-semibold flex items-center gap-1.5">
               <FileText className="h-4 w-4" /> Statements
             </h2>
-            {inputs.map((input: any) => (
+            {inputs.map((input: DisputeInputRow) => (
               <div key={input.id} className="p-3 rounded-lg border bg-card">
                 <p className="text-xs text-muted-foreground mb-1 capitalize">
                   {input.input_type} statement
@@ -204,7 +205,7 @@ export default function DisputeDetail() {
           <div className="space-y-3">
             <h2 className="text-sm font-semibold">Evidence ({evidence.length})</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {evidence.map((e: any) => (
+              {evidence.map((e: DisputeEvidenceRow) => (
                 <div key={e.id} className="p-2 rounded-lg border bg-card text-center">
                   <div className="w-full h-16 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground capitalize">
                     {e.evidence_category || e.file_type}
@@ -226,7 +227,7 @@ export default function DisputeDetail() {
         {/* AI Analysis */}
         {hasCurrentAnalysis ? (
           <div className="space-y-3">
-            <AnalysisDisplay analysis={analysis as any} />
+            <AnalysisDisplay analysis={analysis as unknown as import('./types').DisputeAnalysis} />
             <div className="flex justify-end">
               <Button
                 variant="outline"

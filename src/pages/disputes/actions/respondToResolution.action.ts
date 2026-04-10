@@ -9,6 +9,6 @@ export async function respondToResolution(params: {
     p_dispute_id: params.disputeId,
     p_accept: params.accept,
     p_rejection_reason: params.reason ?? null,
-  } as any);
+  });
   if (error) throw error;
 }

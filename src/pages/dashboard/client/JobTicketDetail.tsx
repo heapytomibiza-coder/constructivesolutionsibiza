@@ -206,7 +206,7 @@ export default function JobTicketDetail() {
     if (!jobId) return;
     setIsPublishing(true);
     try {
-      const { error } = await supabase.rpc('post_job' as any, { p_job_id: jobId });
+      const { error } = await supabase.rpc('post_job', { p_job_id: jobId });
       if (error) {
         const msg = error.message || '';
         if (msg.includes('not_authorized')) {
@@ -231,7 +231,7 @@ export default function JobTicketDetail() {
   const handleClose = async () => {
     if (!jobId || !confirm(t('jobTicket.closeConfirm'))) return;
     try {
-      const { error } = await supabase.rpc('cancel_job' as any, { p_job_id: jobId });
+      const { error } = await supabase.rpc('cancel_job', { p_job_id: jobId });
       if (error) {
         const msg = error.message || '';
         if (msg.includes('not_authorized')) {

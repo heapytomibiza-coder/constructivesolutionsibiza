@@ -15,7 +15,7 @@ export function useStalledQuoteJourneys() {
   return useQuery({
     queryKey: ['admin', 'stalled_quote_journeys'],
     queryFn: async (): Promise<StalledJourney[]> => {
-      const { data, error } = await supabase.rpc('get_stalled_quote_journeys' as any);
+      const { data, error } = await supabase.rpc('get_stalled_quote_journeys');
       if (error) throw error;
       return (data as unknown as StalledJourney[]) ?? [];
     },

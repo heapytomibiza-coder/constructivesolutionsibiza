@@ -151,7 +151,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
   const handleClose = async () => {
     setIsClosing(true);
     try {
-      const { error } = await supabase.rpc('cancel_job' as any, { p_job_id: job.id });
+      const { error } = await supabase.rpc('cancel_job', { p_job_id: job.id });
       if (error) {
         const msg = error.message || '';
         if (msg.includes('not_authorized')) {

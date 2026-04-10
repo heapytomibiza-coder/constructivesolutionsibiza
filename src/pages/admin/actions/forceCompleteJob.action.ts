@@ -19,7 +19,7 @@ export async function forceCompleteJob(
     return { success: false, error: "Not authenticated" };
   }
 
-  const { error } = await supabase.rpc("admin_force_complete_job" as any, {
+  const { error } = await supabase.rpc("admin_force_complete_job", {
     p_job_id: jobId,
     p_reason: reason,
   });

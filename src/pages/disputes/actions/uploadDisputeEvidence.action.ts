@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { disputeEvidenceTable } from '@/lib/supabaseTyped';
 
 export async function uploadDisputeEvidence(
   disputeId: string,
@@ -25,8 +26,7 @@ export async function uploadDisputeEvidence(
   else if (file.type.startsWith('video/')) fileType = 'video';
 
   // Record in database
-  const { data, error } = await supabase
-    .from('dispute_evidence' as any)
+  const { data, error } = await disputeEvidenceTable()
     .insert({
       dispute_id: disputeId,
       user_id: user.id,
@@ -34,9 +34,9 @@ export async function uploadDisputeEvidence(
       file_type: fileType,
       file_name: file.name,
       file_size_bytes: file.size,
-      description,
+      description: description ?? null,
       evidence_category: evidenceCategory || fileType,
-    } as any)
+    })
     .select()
     .single();
 
