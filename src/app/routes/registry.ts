@@ -291,14 +291,14 @@ export const disputeRoutes: RouteConfig[] = [
     redirectTo: '/auth',
     lane: 'shared',
     titleKey: 'nav.raiseDispute',
-    minRollout: 'escrow-beta',
+    minRollout: 'protection-beta',
   },
   {
     path: '/disputes/:disputeId',
     access: 'auth',
     redirectTo: '/auth',
     lane: 'shared',
-    minRollout: 'escrow-beta',
+    minRollout: 'protection-beta',
   },
 ];
 

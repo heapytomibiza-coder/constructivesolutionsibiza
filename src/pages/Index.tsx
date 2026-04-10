@@ -109,8 +109,8 @@ const Index = () => {
       {/* ─── PROOF OF LIFE STRIP ─── */}
       <ProofOfLifeStrip />
 
-      {/* ─── TRUST STRIP (gated: escrow-beta) ─── */}
-      {isRolloutActive('escrow-beta') && (
+      {/* ─── TRUST STRIP (gated: protection-beta) ─── */}
+      {isRolloutActive('protection-beta') && (
       <section className="py-4 bg-primary/5 border-y border-primary/10">
         <div className="container">
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
@@ -170,8 +170,8 @@ const Index = () => {
       </LazySection>
 
       <LazySection minHeight={400}>
-      {/* ─── PROBLEM / SOLUTION (gated: escrow-beta) ─── */}
-      {isRolloutActive('escrow-beta') && (
+      {/* ─── PROBLEM / SOLUTION (gated: protection-beta) ─── */}
+      {isRolloutActive('protection-beta') && (
       <section className="py-20 bg-gradient-concrete">
         <div className="container max-w-4xl">
           {/* Problem */}
@@ -217,8 +217,8 @@ const Index = () => {
       )}
       </LazySection>
 
-      {/* ─── PAYMENT PROTECTION (gated: escrow-beta) ─── */}
-      {isRolloutActive('escrow-beta') && (<>
+      {/* ─── PAYMENT PROTECTION (gated: protection-beta) ─── */}
+      {isRolloutActive('protection-beta') && (<>
       <section className="py-20 bg-background">
         <div className="container max-w-4xl">
           <div className="text-center mb-12">
