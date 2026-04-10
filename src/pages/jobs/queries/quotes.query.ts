@@ -55,7 +55,7 @@ export function useAcceptedQuoteForJob(jobId: string | null, enabled = true) {
 
       if (error) throw error;
       if (!data) return null;
-      return { ...data, line_items: (data as any).quote_line_items ?? [] } as Quote;
+      return { ...data, line_items: (data as Record<string, unknown>).quote_line_items as QuoteLineItem[] ?? [] } as Quote;
     },
     enabled: enabled && !!jobId,
   });
@@ -86,7 +86,7 @@ export function useMyQuoteForJob(jobId: string | null, userId: string | null, en
         throw error;
       }
       if (!data) return null;
-      return { ...data, line_items: (data as any).quote_line_items ?? [] } as Quote;
+      return { ...data, line_items: (data as Record<string, unknown>).quote_line_items as QuoteLineItem[] ?? [] } as Quote;
     },
     enabled: enabled && !!jobId && !!userId,
   });
