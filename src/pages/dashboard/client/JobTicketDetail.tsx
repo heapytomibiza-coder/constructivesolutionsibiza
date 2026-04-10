@@ -70,6 +70,8 @@ export default function JobTicketDetail() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const rebook = useRebook();
   const updatesRef = useRef<HTMLDivElement>(null);
   const reviewRef = useRef<HTMLDivElement>(null);
@@ -239,7 +241,8 @@ export default function JobTicketDetail() {
   };
 
   const handleClose = async () => {
-    if (!jobId || !confirm(t('jobTicket.closeConfirm'))) return;
+    if (!jobId) return;
+    setCloseDialogOpen(false);
     try {
       const { error } = await supabase.rpc('cancel_job', { p_job_id: jobId });
       if (error) {
@@ -261,7 +264,8 @@ export default function JobTicketDetail() {
   };
 
   const handleWithdraw = async () => {
-    if (!jobId || !confirm(t('jobTicket.withdrawConfirm', 'Withdraw from this job? The client will be able to choose another professional.'))) return;
+    if (!jobId) return;
+    setWithdrawDialogOpen(false);
     try {
       const { error } = await supabase.rpc('withdraw_from_job', { p_job_id: jobId });
       if (error) {
