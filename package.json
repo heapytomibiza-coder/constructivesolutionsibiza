@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:smoke": "vitest run src/test/smoke",
+    "test:interaction": "vitest run src/test/interaction",
     "test:watch": "vitest"
   },
   "dependencies": {
