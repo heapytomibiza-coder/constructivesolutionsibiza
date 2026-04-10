@@ -40,14 +40,12 @@ export function CancellationRequestCard({
   const { t } = useTranslation('dashboard');
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingResponse, setPendingResponse] = useState<boolean | null>(null);
 
   if (jobStatus !== 'in_progress' || !cancellationRequested) return null;
 
   const handleRespond = async (accept: boolean) => {
-    const confirmMsg = accept
-      ? t('jobTicket.acceptCancellationConfirm', 'Accept the cancellation? The professional will be removed and the job will be reopened.')
-      : t('jobTicket.declineCancellationConfirm', 'Decline the cancellation request? Work will continue.');
-    if (!confirm(confirmMsg)) return;
+    setPendingResponse(null);
 
     setIsSubmitting(true);
     try {
