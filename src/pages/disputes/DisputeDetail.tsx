@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -6,6 +7,16 @@ import { PublicLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchDisputeDetail } from './queries/disputes.query';
 import type { DisputeDetailResult } from './queries/disputes.query';
@@ -59,6 +70,8 @@ export default function DisputeDetail() {
       toast.error(err.message || 'Analysis failed');
     },
   });
+
+  const [reAnalyzeOpen, setReAnalyzeOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -232,11 +245,7 @@ export default function DisputeDetail() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  if (window.confirm('This will generate a new analysis, superseding the current one. Continue?')) {
-                    analyzeMutation.mutate();
-                  }
-                }}
+                onClick={() => setReAnalyzeOpen(true)}
                 disabled={analyzeMutation.isPending}
               >
                 {analyzeMutation.isPending ? (
@@ -246,6 +255,22 @@ export default function DisputeDetail() {
                 )}
                 Re-analyze
               </Button>
+              <AlertDialog open={reAnalyzeOpen} onOpenChange={setReAnalyzeOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Re-analyze dispute?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will generate a new analysis, superseding the current one.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => { setReAnalyzeOpen(false); analyzeMutation.mutate(); }}>
+                      Continue
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         ) : (

@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { requestCompletion } from '../actions/requestCompletion.action';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,13 +40,7 @@ interface JobTicketCompletionProps {
   externalDisabled?: boolean;
 }
 
-const RPC_REQUEST_ERROR_MAP: Record<string, string> = {
-  job_not_found: 'Job not found',
-  not_authorized: 'Not authorized',
-  job_not_in_progress: 'Job must be in progress to complete',
-  no_professional_assigned: 'Assign a professional before completing',
-  already_requested: 'Completion already requested',
-};
+/* Error map moved to requestCompletion.action.ts */
 
 export function JobTicketCompletion({
   jobId,
@@ -67,10 +61,9 @@ export function JobTicketCompletion({
   const handleRequestCompletion = async () => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.rpc('request_job_completion', { p_job_id: jobId });
-      if (error) {
-        const friendlyMsg = RPC_REQUEST_ERROR_MAP[error.message] ?? error.message;
-        toast.error(friendlyMsg);
+      const result = await requestCompletion(jobId);
+      if (!result.success) {
+        toast.error(result.error);
         return;
       }
       trackEvent(EVENTS.JOB_COMPLETED, 'professional', { action: 'requested' }, { job_id: jobId });

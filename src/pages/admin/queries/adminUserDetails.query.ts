@@ -108,8 +108,8 @@ async function fetchAdminUserDetails(userId: string): Promise<AdminUserDetails> 
     ticketsCountRes, servicesRes, listingsRes, docsCountRes,
     reviewsRes, reviewAggRes,
   ] = await Promise.all([
-    supabase.from("profiles").select("display_name, phone, created_at").eq("user_id", userId).single(),
-    supabase.from("user_roles").select("roles, active_role, suspended_at, suspension_reason").eq("user_id", userId).single(),
+    supabase.from("profiles").select("display_name, phone, created_at").eq("user_id", userId).maybeSingle(),
+    supabase.from("user_roles").select("roles, active_role, suspended_at, suspension_reason").eq("user_id", userId).maybeSingle(),
     supabase.from("professional_profiles").select("display_name, business_name, verification_status, onboarding_phase, services_count, is_publicly_listed, service_zones, tagline, bio, avatar_url").eq("user_id", userId).maybeSingle(),
     // Asker: recent jobs (up to 20)
     supabase.from("jobs").select("id, title, status, category, area, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(20),

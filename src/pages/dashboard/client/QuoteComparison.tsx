@@ -7,6 +7,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { QuoteComparisonCard } from '@/components/quotes/QuoteComparisonCard';
@@ -30,6 +40,7 @@ export default function QuoteComparison() {
   const queryClient = useQueryClient();
   const [acting, setActing] = useState(false);
   const [mobileIndex, setMobileIndex] = useState(0);
+  const [declineTarget, setDeclineTarget] = useState<string | null>(null);
 
   // Track comparison page view
   useEffect(() => {
@@ -45,7 +56,7 @@ export default function QuoteComparison() {
         .from('jobs')
         .select('id, title, status')
         .eq('id', jobId!)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -106,10 +117,17 @@ export default function QuoteComparison() {
   const handleDecline = async (quoteId: string) => {
     const quote = activeQuotes.find(q => q.id === quoteId);
     if (!quote) return;
-    if (!confirm(t('quoteComparison.declineConfirm', 'Decline this quote? The professional will be notified.'))) return;
+    setDeclineTarget(quoteId);
+  };
+
+  const executeDecline = async () => {
+    if (!declineTarget) return;
+    const quote = activeQuotes.find(q => q.id === declineTarget);
+    if (!quote) return;
+    setDeclineTarget(null);
 
     setActing(true);
-    const result = await declineQuote(quoteId);
+    const result = await declineQuote(declineTarget);
     setActing(false);
 
     if (result.success) {
@@ -238,6 +256,23 @@ export default function QuoteComparison() {
           </>
         )}
       </div>
+
+      <AlertDialog open={!!declineTarget} onOpenChange={(open) => { if (!open) setDeclineTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('quoteComparison.declineTitle', 'Decline Quote')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('quoteComparison.declineConfirm', 'Decline this quote? The professional will be notified.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDecline} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('quoteComparison.decline', 'Decline')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

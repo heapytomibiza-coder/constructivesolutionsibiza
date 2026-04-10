@@ -4,9 +4,19 @@
  */
 
 import { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { respondToCancellation } from '../actions/respondToCancellation.action';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Loader2, Check, X } from 'lucide-react';
@@ -30,23 +40,18 @@ export function CancellationRequestCard({
   const { t } = useTranslation('dashboard');
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingResponse, setPendingResponse] = useState<boolean | null>(null);
 
   if (jobStatus !== 'in_progress' || !cancellationRequested) return null;
 
   const handleRespond = async (accept: boolean) => {
-    const confirmMsg = accept
-      ? t('jobTicket.acceptCancellationConfirm', 'Accept the cancellation? The professional will be removed and the job will be reopened.')
-      : t('jobTicket.declineCancellationConfirm', 'Decline the cancellation request? Work will continue.');
-    if (!confirm(confirmMsg)) return;
+    setPendingResponse(null);
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.rpc('respond_to_cancellation', {
-        p_job_id: jobId,
-        p_accept: accept,
-      });
-      if (error) {
-        toast.error(error.message);
+      const result = await respondToCancellation(jobId, accept);
+      if (!result.success) {
+        toast.error(result.error);
         return;
       }
       toast.success(
@@ -112,7 +117,7 @@ export function CancellationRequestCard({
                 size="sm"
                 variant="destructive"
                 className="gap-1.5"
-                onClick={() => handleRespond(true)}
+                onClick={() => setPendingResponse(true)}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
@@ -122,7 +127,7 @@ export function CancellationRequestCard({
                 size="sm"
                 variant="outline"
                 className="gap-1.5"
-                onClick={() => handleRespond(false)}
+                onClick={() => setPendingResponse(false)}
                 disabled={isSubmitting}
               >
                 <X className="h-3.5 w-3.5" />
@@ -132,6 +137,34 @@ export function CancellationRequestCard({
           </div>
         </div>
       </CardContent>
+
+      <AlertDialog open={pendingResponse !== null} onOpenChange={(open) => { if (!open) setPendingResponse(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingResponse
+                ? t('jobTicket.acceptCancellation', 'Accept')
+                : t('jobTicket.declineCancellation', 'Decline')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingResponse
+                ? t('jobTicket.acceptCancellationConfirm', 'Accept the cancellation? The professional will be removed and the job will be reopened.')
+                : t('jobTicket.declineCancellationConfirm', 'Decline the cancellation request? Work will continue.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleRespond(pendingResponse!)}
+              className={pendingResponse ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
+            >
+              {pendingResponse
+                ? t('jobTicket.acceptCancellation', 'Accept')
+                : t('jobTicket.declineCancellation', 'Decline')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

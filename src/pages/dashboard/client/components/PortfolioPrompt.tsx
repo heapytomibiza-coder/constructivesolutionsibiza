@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { savePortfolioProject } from '../actions/savePortfolioProject.action';
 import { useSession } from '@/contexts/SessionContext';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { Card, CardContent } from '@/components/ui/card';
@@ -88,19 +89,18 @@ export function PortfolioPrompt({ jobId, jobStatus, isClient, jobTitle }: Portfo
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('portfolio_projects').insert({
-        user_id: user!.id,
-        job_id: jobId,
+      const result = await savePortfolioProject({
+        userId: user!.id,
+        jobId,
         title: title.trim(),
         description: description.trim() || null,
-        photo_urls: selectedPhotos,
-        is_published: true,
+        photoUrls: selectedPhotos,
       });
-      if (error) {
-        if (error.message?.includes('PORTFOLIO_LIMIT_REACHED')) {
+      if (!result.success) {
+        if (result.error === 'portfolio_limit') {
           throw new Error('portfolio_limit');
         }
-        throw error;
+        throw new Error(result.error);
       }
     },
     onSuccess: () => {

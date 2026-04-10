@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '@/contexts/SessionContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { addQuoteLineItem, updateQuoteTotal } from '../actions/addQuoteLineItem.action';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -72,26 +72,19 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
     setIsSubmitting(true);
     try {
       const sortOrder = (quote.line_items ?? []).length + 1;
-      const { error: lineError } = await supabase.from('quote_line_items').insert({
-        quote_id: quote.id,
+      const lineResult = await addQuoteLineItem({
+        quoteId: quote.id,
         description: costDescription.trim(),
-        unit_price: amount,
-        quantity: 1,
-        sort_order: sortOrder,
-        is_addition: true,
-        added_by: user!.id,
+        amount,
+        sortOrder,
+        addedBy: user!.id,
       });
-
-      if (lineError) throw lineError;
+      if (!lineResult.success) throw new Error(lineResult.error);
 
       const currentTotal = quote.total ?? quote.price_fixed ?? 0;
       const newTotal = currentTotal + amount;
-      const { error: quoteError } = await supabase
-        .from('quotes')
-        .update({ total: newTotal, subtotal: newTotal, updated_at: new Date().toISOString() })
-        .eq('id', quote.id);
-
-      if (quoteError) throw quoteError;
+      const totalResult = await updateQuoteTotal(quote.id, newTotal);
+      if (!totalResult.success) throw new Error(totalResult.error);
 
       toast.success(t('quote.costAdded', 'Additional cost added'));
       queryClient.invalidateQueries({ queryKey: ['my_quote', jobId] });

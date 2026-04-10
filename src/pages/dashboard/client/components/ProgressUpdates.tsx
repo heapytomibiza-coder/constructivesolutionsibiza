@@ -8,6 +8,7 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { addProgressUpdate } from '../actions/addProgressUpdate.action';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -83,27 +84,13 @@ export function ProgressUpdates({ jobId, jobStatus, isClient, assignedProId }: P
   const postMutation = useMutation({
     mutationFn: async () => {
       if (!note.trim() && !selectedFile) throw new Error('Add a note or photo');
-
-      let photoUrl: string | null = null;
-      if (selectedFile) {
-        const ext = selectedFile.name.split('.').pop() || 'jpg';
-        const path = `${user!.id}/${Date.now()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from('progress-photos')
-          .upload(path, selectedFile, { contentType: selectedFile.type });
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage.from('progress-photos').getPublicUrl(path);
-        photoUrl = urlData.publicUrl;
-      }
-
-      const { error } = await supabase.from('job_progress_updates').insert({
-        job_id: jobId,
-        author_id: user!.id,
+      const result = await addProgressUpdate({
+        jobId,
+        authorId: user!.id,
         note: note.trim() || null,
-        photo_url: photoUrl,
+        file: selectedFile,
       });
-      if (error) throw error;
+      if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {
       setNote('');

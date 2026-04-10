@@ -202,7 +202,7 @@ const App = () => {
             {/* Backward-compat redirects */}
             <Route path="/marketplace" element={<Navigate to="/services" replace />} />
             <Route path="/marketplace/:listingId" element={<MarketplaceListingRedirect />} />
-            <Route path="/launch-checklist" element={<LaunchChecklist />} />
+            {/* launch-checklist moved inside admin routes below */}
             
             {/* Forum - Public read, auth for new posts */}
             <Route path="/forum" element={<ForumIndex />} />
@@ -295,6 +295,7 @@ const App = () => {
                 <Route path="monitoring" element={<MonitoringPage />} />
                 <Route path="qa/disputes" element={<DisputeQADashboard />} />
                 <Route path="pricing-rules" element={<AdminPricingRulesPage />} />
+                <Route path="launch-checklist" element={<LaunchChecklist />} />
               </Route>
 
               {/* Estimate History (auth required) */}

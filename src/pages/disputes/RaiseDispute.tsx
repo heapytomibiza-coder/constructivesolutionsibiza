@@ -42,7 +42,7 @@ export default function RaiseDispute() {
         .from('jobs')
         .select('id, title, category, area')
         .eq('id', jobId)
-        .single();
+        .maybeSingle();
       return data;
     },
     enabled: !!jobId,

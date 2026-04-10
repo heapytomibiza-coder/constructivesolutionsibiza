@@ -13,6 +13,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useState, useRef, useCallback } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useTranslation } from 'react-i18next';
 import {
   AlertTriangle,
@@ -60,6 +70,8 @@ export default function JobTicketDetail() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const rebook = useRebook();
   const updatesRef = useRef<HTMLDivElement>(null);
   const reviewRef = useRef<HTMLDivElement>(null);
@@ -229,7 +241,8 @@ export default function JobTicketDetail() {
   };
 
   const handleClose = async () => {
-    if (!jobId || !confirm(t('jobTicket.closeConfirm'))) return;
+    if (!jobId) return;
+    setCloseDialogOpen(false);
     try {
       const { error } = await supabase.rpc('cancel_job', { p_job_id: jobId });
       if (error) {
@@ -251,7 +264,8 @@ export default function JobTicketDetail() {
   };
 
   const handleWithdraw = async () => {
-    if (!jobId || !confirm(t('jobTicket.withdrawConfirm', 'Withdraw from this job? The client will be able to choose another professional.'))) return;
+    if (!jobId) return;
+    setWithdrawDialogOpen(false);
     try {
       const { error } = await supabase.rpc('withdraw_from_job', { p_job_id: jobId });
       if (error) {
@@ -665,7 +679,7 @@ export default function JobTicketDetail() {
                   )}
                   {/* Pro: Withdraw */}
                   {!isClient && canWithdrawQuote(job.status) && (
-                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleWithdraw}>
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={() => setWithdrawDialogOpen(true)}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.withdraw', 'Withdraw')}
                     </Button>
@@ -701,7 +715,7 @@ export default function JobTicketDetail() {
                   )}
                   {/* Client: Close/Cancel (draft/ready/open only) */}
                   {canCancelJob(job.status, isClient) && (
-                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={handleClose}>
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-destructive text-xs" onClick={() => setCloseDialogOpen(true)}>
                       <XCircle className="h-3.5 w-3.5" />
                       {t('jobTicket.cancelJob', 'Cancel Job')}
                     </Button>
@@ -722,6 +736,38 @@ export default function JobTicketDetail() {
           </div>
         </div>
       </div>
+
+      {/* Close/Cancel confirmation dialog */}
+      <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('jobTicket.cancelJob', 'Cancel Job')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('jobTicket.closeConfirm', 'Are you sure you want to cancel this job?')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClose} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('jobTicket.cancelJob', 'Cancel Job')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Withdraw confirmation dialog */}
+      <AlertDialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('jobTicket.withdraw', 'Withdraw')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('jobTicket.withdrawConfirm', 'Withdraw from this job? The client will be able to choose another professional.')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleWithdraw} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('jobTicket.withdraw', 'Withdraw')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
