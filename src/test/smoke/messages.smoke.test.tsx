@@ -4,7 +4,6 @@
  * Validates loading, empty, not-found, and thread states.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// @ts-expect-error — TS moduleResolution:bundler doesn't resolve @testing-library/react types fully
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

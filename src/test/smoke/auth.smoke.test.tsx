@@ -4,7 +4,6 @@
  * Validates loading, empty, error, and redirect states for the auth page.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// @ts-expect-error — TS moduleResolution:bundler doesn't resolve @testing-library/react types fully
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
