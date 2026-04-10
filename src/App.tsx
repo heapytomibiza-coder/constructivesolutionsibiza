@@ -295,6 +295,7 @@ const App = () => {
                 <Route path="monitoring" element={<MonitoringPage />} />
                 <Route path="qa/disputes" element={<DisputeQADashboard />} />
                 <Route path="pricing-rules" element={<AdminPricingRulesPage />} />
+                <Route path="launch-checklist" element={<LaunchChecklist />} />
               </Route>
 
               {/* Estimate History (auth required) */}
