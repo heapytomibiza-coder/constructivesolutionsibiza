@@ -40,6 +40,7 @@ export default function QuoteComparison() {
   const queryClient = useQueryClient();
   const [acting, setActing] = useState(false);
   const [mobileIndex, setMobileIndex] = useState(0);
+  const [declineTarget, setDeclineTarget] = useState<string | null>(null);
 
   // Track comparison page view
   useEffect(() => {
@@ -116,10 +117,17 @@ export default function QuoteComparison() {
   const handleDecline = async (quoteId: string) => {
     const quote = activeQuotes.find(q => q.id === quoteId);
     if (!quote) return;
-    if (!confirm(t('quoteComparison.declineConfirm', 'Decline this quote? The professional will be notified.'))) return;
+    setDeclineTarget(quoteId);
+  };
+
+  const executeDecline = async () => {
+    if (!declineTarget) return;
+    const quote = activeQuotes.find(q => q.id === declineTarget);
+    if (!quote) return;
+    setDeclineTarget(null);
 
     setActing(true);
-    const result = await declineQuote(quoteId);
+    const result = await declineQuote(declineTarget);
     setActing(false);
 
     if (result.success) {
