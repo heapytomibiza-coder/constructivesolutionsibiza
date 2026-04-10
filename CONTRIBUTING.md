@@ -1,4 +1,23 @@
-# Contributing to This Project
+# Contributing to Constructive Solutions Ibiza
+
+Thanks for your interest in contributing. Whether you're fixing a bug, improving UX, or adding a feature — this guide will help you stay aligned with the project's architecture and standards.
+
+## Getting Started
+
+1. Fork the repo and clone locally
+2. Run `npm install` and `npm run dev`
+3. Create a feature branch from `main` (see naming conventions below)
+4. Make your changes following the rules in this document
+5. Open a PR with test steps documented
+
+## Branch Naming
+
+Use descriptive, prefixed branch names:
+
+- `feature/job-wizard-validation` — new functionality
+- `fix/messaging-scroll-bug` — bug fixes
+- `refactor/extract-pricing-hook` — code improvement
+- `docs/update-architecture` — documentation only
 
 ## Architecture Rules
 
