@@ -11,7 +11,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 // ── Configurable session ───────────────────────────────────────
 const mockSession = {
   isAuthenticated: false,
-  hasRole: vi.fn(() => false),
+  hasRole: vi.fn((_role?: string) => false) as any,
   isProReady: false,
   isLoading: true,
   isReady: false,
