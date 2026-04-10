@@ -472,7 +472,7 @@ Frontend → DB direct      Frontend → DB direct       Frontend → API → DB
                           + Edge Functions for        + Full API layer
                             sensitive operations      + Redis caching
                           + JWT on all endpoints      + Search service
-                          + Rate limiting             + Payment/escrow
+                          + Rate limiting             + Payment protection
                           + Indexes + constraints     + Staging env
                           + Basic test suite          + Full test coverage
                           + Monitoring alerts         + CI/CD pipeline
@@ -487,7 +487,7 @@ Frontend → DB direct      Frontend → DB direct       Frontend → API → DB
 
 - ❌ Full rebuild
 - ❌ Adding a Node.js/Deno API layer yet (Month 4+ per audit roadmap)
-- ❌ Payment/escrow integration (premature)
+- ❌ Payment integration (premature)
 - ❌ Migration squashing (nice-to-have, not blocking)
 - ❌ Full GDPR compliance review (needed before scale, not now)
 - ❌ Switching away from Supabase

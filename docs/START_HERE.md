@@ -128,7 +128,7 @@ These are **planned for later phases**, not missing by accident:
 
 | Feature | Status | Why later |
 |---------|--------|-----------|
-| **Payments / Escrow** | Planned | Requires payment processor integration + legal review |
+| **Structured Payments** | Planned | Requires payment processor integration + legal review |
 | **Dispute Resolution** | Planned | Depends on payments being live |
 | **Service Marketplace** | Gated (`service-layer` rollout) | UI + listings built, waiting for content threshold |
 | **Professional Directory** | Gated (`founding-members` rollout) | Profiles built, waiting for verified pro count |

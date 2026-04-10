@@ -103,7 +103,7 @@ It's a **construction workflow system**, not just a lead generator.
 ## What Will Come Later
 
 🔒 Professional directory · 🔒 Service listings · 🔒 Portfolio pages  
-🔒 Secure payments · 🔒 Escrow protection · 🔒 Dispute system
+🔒 Structured payments · 🔒 Payment protection · 🔒 Dispute system
 
 ---
 

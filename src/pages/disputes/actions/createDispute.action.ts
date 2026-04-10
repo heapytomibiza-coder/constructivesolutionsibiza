@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { DisputeIssueType } from '../types';
-import { ESCROW_GUARDRAILS } from '@/domain/escrowGuardrails';
+import { PROTECTION_GUARDRAILS } from '@/domain/protectionGuardrails';
 
 interface CreateDisputeParams {
   job_id: string;
@@ -26,8 +26,8 @@ export async function createDispute(params: CreateDisputeParams) {
   const isClient = job.user_id === user.id;
   const counterpartyId = isClient ? job.assigned_professional_id : job.user_id;
 
-  const evidenceDeadlineMs = ESCROW_GUARDRAILS.autoProgressionHours * 60 * 60 * 1000;
-  const responseDeadlineMs = ESCROW_GUARDRAILS.responseWarningHours * 2 * 60 * 60 * 1000; // 96h (2x warning window)
+  const evidenceDeadlineMs = PROTECTION_GUARDRAILS.autoProgressionHours * 60 * 60 * 1000;
+  const responseDeadlineMs = PROTECTION_GUARDRAILS.responseWarningHours * 2 * 60 * 60 * 1000; // 96h (2x warning window)
 
   // Create dispute — skip 'open' and go straight to 'awaiting_counterparty'
   // since we always have a counterparty identified from the job

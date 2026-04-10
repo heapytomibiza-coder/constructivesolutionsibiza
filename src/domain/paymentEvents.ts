@@ -1,11 +1,11 @@
 /**
- * ESCROW-BETA EVENT TRACKING
+ * PAYMENT & DISPUTE EVENT TRACKING
  *
  * Canonical event names for the milestone payment + dispute funnel.
  * Use with trackEvent() to measure whether copy and flow are working.
  */
 
-export const ESCROW_EVENTS = {
+export const PAYMENT_EVENTS = {
   // ── Project lifecycle ──
   projectCreated: 'project_created',
   projectLocked: 'project_agreement_locked',
@@ -44,4 +44,4 @@ export const ESCROW_EVENTS = {
   termsViewed: 'terms_viewed',
 } as const;
 
-export type EscrowEvent = typeof ESCROW_EVENTS[keyof typeof ESCROW_EVENTS];
+export type PaymentEvent = typeof PAYMENT_EVENTS[keyof typeof PAYMENT_EVENTS];

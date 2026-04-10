@@ -1,11 +1,11 @@
 /**
- * ESCROW-BETA GUARDRAILS
+ * PAYMENT-PROTECTION GUARDRAILS
  *
  * Hard rules for the first live phase of milestone payments.
  * These caps and defaults reduce risk while we collect clean data.
  */
 
-export const ESCROW_GUARDRAILS = {
+export const PROTECTION_GUARDRAILS = {
   /** Maximum total project value allowed through the platform (EUR) */
   maxProjectValueEur: 35_000,
 
@@ -46,4 +46,4 @@ export const ESCROW_GUARDRAILS = {
   responseWarningHours: 48,
 } as const;
 
-export type EscrowGuardrails = typeof ESCROW_GUARDRAILS;
+export type ProtectionGuardrails = typeof PROTECTION_GUARDRAILS;

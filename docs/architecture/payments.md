@@ -1,6 +1,6 @@
 # Payments Architecture
 
-**Last updated:** 2026-03-07
+**Last updated:** 2026-04-10
 **Owner:** Engineering Lead
 
 ## Purpose
@@ -9,11 +9,11 @@ Design document for the payment system. Currently PLANNED — not built. This do
 
 ## Scope
 
-Stripe integration, quote-to-payment linking, milestone-based escrow, dispute resolution, and pro payouts.
+Stripe integration, quote-to-payment linking, milestone-based structured payments, dispute resolution, and pro payouts.
 
 ## Current State
 
-**Not implemented.** Listed in rollout phase `escrow-beta` (Phase 5 of 6).
+**Not implemented.** Listed in rollout phase `protection-beta` (Phase 5 of 6).
 
 Existing infrastructure that payments will build on:
 - `quotes` table with `status`, `price_type`, `price_fixed/min/max`, `subtotal`, `total`, `vat_percent`
@@ -41,7 +41,7 @@ Create Stripe Payment Intent
 Client pays via Stripe Elements
      │
      ▼
-Payment held in escrow (Stripe Connect)
+Payment held via Stripe Connect (structured milestone release)
      │
      ▼
 Job completed → Client approves
@@ -89,7 +89,7 @@ CREATE TABLE pro_payouts (
 - **Webhooks:** Edge function to process Stripe events (payment_intent.succeeded, etc.)
 - **Platform fee:** Percentage deducted before pro payout
 
-### 4. Escrow Model
+### 4. Payment Protection Model
 
 ```
 Status Flow:
@@ -97,11 +97,11 @@ Status Flow:
                                   └── disputed → resolved → released / refunded
 ```
 
-- Client funds are held (not transferred to pro) until job completion is approved
+- Client funds are processed through Stripe Connect with structured milestone release
 - Automatic release after N days if client doesn't respond
 - Dispute creates a `support_requests` entry for admin review
 
-### 5. Milestone-Based Payments (Future)
+### 5. Milestone-Based Payments
 
 For larger jobs, split payment into milestones:
 - Each milestone has its own payment intent
@@ -140,5 +140,5 @@ For larger jobs, split payment into milestones:
 ## Related Files
 
 - `docs/architecture/data-flows.md` — Quote flow diagram
-- `src/domain/rollout.ts` — `escrow-beta` phase
+- `src/domain/rollout.ts` — `protection-beta` phase
 - `docs/ARCHITECTURE_PACK.md` — "PLANNED Systems" section

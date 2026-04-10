@@ -84,7 +84,7 @@ Production platform running on Lovable Cloud (Supabase) with 12 edge functions, 
 - **Rules:** `src/app/routes/rules.ts` — AccessRule and RouteLane types
 - **Guard:** `src/guard/RouteGuard.tsx` → calls `checkAccess()` from `src/guard/access.ts`
 - **Rollout:** `src/domain/rollout.ts` — phased feature reveal via `CURRENT_ROLLOUT`
-  - Phases: `pipe-control` → `founding-members` → `service-layer` → `trust-engine` → `escrow-beta` → `scale-ready`
+  - Phases: `pipe-control` → `founding-members` → `service-layer` → `trust-engine` → `protection-beta` → `scale-ready`
   - Currently at: **`pipe-control`**
 
 ### 2. Auth & Roles

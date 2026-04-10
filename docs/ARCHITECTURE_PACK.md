@@ -89,7 +89,7 @@ Four lanes trace every user path. Items marked 🔒 are gated behind future roll
 │   Pros      │                  │ 🔒 Portfolio         │                      │
 │ 🔒 Services │                  │                      │                      │
 │   Marketplace│                 │                      │ 🔒 Payments          │
-│             │                  │                      │ 🔒 Escrow            │
+│             │                  │                      │ 🔒 Payment Protection │
 │             │                  │                      │ 🔒 Disputes          │
 └─────────────┴──────────────────┴──────────────────────┴──────────────────────┘
 ```
@@ -407,7 +407,7 @@ Core tables grouped by system. Relationships are anchored on:
 ## PLANNED Systems (not built yet)
 
 - **Payments:** Stripe integration, payment intents, receipts
-- **Escrow:** Milestone-based fund holding + release
+- **Payment Protection:** Milestone-based structured payments + release
 - **Disputes:** Formal escalation flow with resolution
 - **Trust badges:** Verified, insured, top-rated
 - **Push notifications:** Mobile/browser push

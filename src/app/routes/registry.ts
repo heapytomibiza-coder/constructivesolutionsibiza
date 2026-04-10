@@ -5,7 +5,7 @@
  * Do not add lifestyle, concierge, or generic marketplace routes.
  * 
  * V2 INCLUDED: 24 route patterns total
- * V2 EXCLUDED: Admin, Payments, Escrow, Disputes, AI dashboards
+ * V2 EXCLUDED: Admin, Payments, Disputes, AI dashboards
  * 
  * LANES: Routes are tagged with their pathway:
  * - public: Discovery pages
@@ -291,14 +291,14 @@ export const disputeRoutes: RouteConfig[] = [
     redirectTo: '/auth',
     lane: 'shared',
     titleKey: 'nav.raiseDispute',
-    minRollout: 'escrow-beta',
+    minRollout: 'protection-beta',
   },
   {
     path: '/disputes/:disputeId',
     access: 'auth',
     redirectTo: '/auth',
     lane: 'shared',
-    minRollout: 'escrow-beta',
+    minRollout: 'protection-beta',
   },
 ];
 
