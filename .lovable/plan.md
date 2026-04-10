@@ -1,55 +1,66 @@
 
 
-# Plan: Phase 3 — Console Cleanup + Unexpected-Null Observability
+# GitHub Presence Upgrade — "Serious Product" Treatment
 
-## Current State
+## Summary
+Transform the repo from "good code with docs" into a professional, investable open-source product presence by adding project status, real-world context, security policy, folder structure clarity, demo placeholders, and versioning — all in the README, plus a new SECURITY.md file.
 
-Two active console warnings remain (visible on every page load). The user also requested lightweight logging to distinguish expected nulls (new user, no profile yet) from unexpected nulls (query failure, RLS issue).
+## What Changes
 
-## Workstream 1: Fix RoleSwitcher forwardRef Warning
+### 1. SECURITY.md (new file)
+Formal vulnerability disclosure policy with contact info and responsible disclosure guidelines.
 
-The console shows two warnings originating from `RoleSwitcher.tsx`:
-- "Function components cannot be given refs" at `Select` (Radix root)
-- Same warning at `SelectPortal` inside `SelectContent`
+### 2. README.md (major rewrite)
+Restructured with these new sections inserted in this order:
 
-**Root cause:** Radix UI Select v2.2.5 internal components expect ref-forwarding from their children in certain render paths. The `RoleSwitcher` component is a plain function component that Radix's `Select` root tries to attach a ref to during reconciliation.
+**a) Project Status block** (near top, after intro)
+- Stage, environment, last update, current focus
+- Roadmap checklist showing completed and upcoming milestones
 
-**Fix:** Wrap `RoleSwitcher` with `React.forwardRef`. This is the same pattern applied to the wizard components in Phase 2.
+**b) Real-World Context section** (after "Who It's For")
+- Why this exists — WhatsApp-managed jobs, fragmented trust, coordination chaos in Ibiza construction
+- This is the competitive edge narrative
 
-**File:** `src/shared/components/layout/RoleSwitcher.tsx`
+**c) Demo Preview section**
+- Placeholder with "Coming soon" and link to published app
+- Space for future screenshots/recordings
 
-## Workstream 2: Unexpected-Null Logging
+**d) Project Structure section**
+- Clean folder tree showing `src/pages/`, `src/domain/`, `src/features/`, `src/shared/`, `supabase/migrations/`, `docs/`, etc.
+- Mapped to purpose (not just path names)
 
-Add lightweight conditional logging at key fallback points so that "expected null" (new user) is distinguishable from "unexpected null" (broken query, RLS denial).
+**e) Environment Setup section** (replaces sparse Quick Start)
+- Prerequisites (Node 18+, npm/bun)
+- Clone, install, env setup, dev server
+- Note about backend being managed via Lovable Cloud
 
-**Pattern:**
-```ts
-// Instead of just:
-const role = data?.active_role || 'client';
+**f) Version section**
+- Current version (v0.9 — pre-launch)
+- Brief changelog summary of recent security hardening
 
-// Add after the query:
-if (!data && !error) {
-  console.debug('[AuthCallback] No user_roles row found — defaulting to client', { userId });
-}
-```
+**g) Security section**
+- Links to SECURITY.md
+- Summary of security posture (RLS, SECURITY DEFINER functions, CI)
 
-This logs only when data is null AND there was no error (meaning the row genuinely doesn't exist). If there IS an error, it's already handled by `handleSupabaseError` or explicit error logging.
+**h) Development Board placeholder**
+- "Track progress → [Project Board]" with note to set up GitHub Projects
 
-**Target locations (4 sites):**
-- `src/pages/auth/Auth.tsx` — roles query, professional profile query
-- `src/pages/auth/AuthCallback.tsx` — roles query, professional profile query
+### 3. CONTRIBUTING.md (minor update)
+Already exists and is solid. Will add:
+- Branch naming convention (already partially there via Fevzi workspace)
+- Quick "how to get started contributing" intro paragraph
 
-These are the exact files where `.maybeSingle()` was just applied. The wizard file (`CanonicalJobWizard.tsx`) already has adequate context in its existing flow.
+### 4. Files NOT changed
+- No app code changes
+- No migrations
+- No component changes
+- docs/ internal files left as-is
 
-**No changes to `useSessionSnapshot`** — that hook already handles null gracefully and is called frequently; adding logs there would be noisy.
+## Execution Order
+1. Create `SECURITY.md`
+2. Rewrite `README.md` with all new sections
+3. Light touch on `CONTRIBUTING.md`
 
-## Files to Edit
-
-| File | Change |
-|---|---|
-| `src/shared/components/layout/RoleSwitcher.tsx` | Wrap with `forwardRef` |
-| `src/pages/auth/Auth.tsx` | Add `console.debug` after 2 `.maybeSingle()` calls when data is null |
-| `src/pages/auth/AuthCallback.tsx` | Add `console.debug` after 2 `.maybeSingle()` calls when data is null |
-
-No database or edge function changes. No new dependencies.
+## Risk
+None — documentation only. No functional or security impact.
 
