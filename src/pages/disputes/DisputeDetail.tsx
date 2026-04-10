@@ -227,7 +227,7 @@ export default function DisputeDetail() {
         {/* AI Analysis */}
         {hasCurrentAnalysis ? (
           <div className="space-y-3">
-            <AnalysisDisplay analysis={analysis} />
+            <AnalysisDisplay analysis={analysis as unknown as import('./types').DisputeAnalysis} />
             <div className="flex justify-end">
               <Button
                 variant="outline"
