@@ -1,99 +1,86 @@
 
 
-# Sprint Plan: Security Fixes & Code Quality Stabilisation
+# Stability & Hardening Sprint — Phase 2
 
-## P0 — Security Blockers
+Based on the deep audit continuation, here are the verified findings and the concrete sprint to address them.
 
-### Ticket 1: Enable HIBP Leaked Password Protection
-- Use `configure_auth` tool to set `password_hibp_enabled: true`
-- One config change, zero code impact
+## Verified Findings
 
-### Ticket 2: Realtime Authorization Hardening
-**Current state:** 6 realtime subscriptions found across the codebase. All use Postgres Changes (not Broadcast/Presence), which means RLS on the underlying tables IS enforced by Supabase — subscribers only receive rows they can SELECT via RLS.
+### Confirmed Critical
+1. **Background jobs have NO scheduling** — `pg_cron` extension is enabled in 4 migrations but zero `cron.schedule()` calls exist anywhere. `send-notifications`, `process-nudges`, `refresh-demand-snapshots`, `daily-health-check`, `generate-weekly-ai-report`, `weekly-kpi-digest`, `dispute-deadline-automation`, and `optimize-image` are deployed but never invoked automatically.
+2. **5 native `confirm()` calls** remain in destructive actions (JobTicketDetail ×2, QuoteComparison ×1, CancellationRequestCard ×1, DisputeDetail ×1).
+3. **`/launch-checklist` is publicly accessible** — internal developer page with no auth gate.
+4. **6 components in `dashboard/client/components/`** make direct Supabase calls (architecture violation).
+5. **236 `.single()` calls across 29 files** — many are on lookups that could legitimately return 0 rows.
 
-**Assessment:** The existing RLS on `messages` and `conversations` already restricts data to `client_id` or `pro_id`. Postgres Changes respects RLS, so unauthorized users receive no payloads even if they subscribe to a channel. However, we should still add application-level guards as defense-in-depth:
-
-- `useMessages.ts` — add early return if user is not a participant of the conversation (already scoped by `conversationId` from an authorized query, but add explicit check)
-- `useConversations.ts` — already scoped to `userId` filter, safe
-- `useJobTicketRealtime.ts` — already scoped to `jobId` from authorized context
-- `useJobAlerts.ts` — scoped to `userId`
-- `useMessageNotifications.ts` — scoped to `userId`
-- `useLatestJobs.ts` — admin-only page, already behind admin route guard
-
-**Changes:** Add a pre-subscription authorization check in `useMessages.ts` to verify the current user is a conversation participant before subscribing. Document the RLS-enforced safety in a code comment on each subscription.
+### Confirmed Medium
+6. **9 edge functions have `verify_jwt = false`** in config.toml for background/webhook functions — correct for cron/webhook use, but `collect-attribution`, `generate-bio`, `listing-description-assist`, `search-stock-photos`, `translate-content`, `update-user-email`, `backfill-translations`, `seed-electrical` have no config entries (they inherit default `verify_jwt = true` from Lovable Cloud, which is correct).
+7. **`dangerouslySetInnerHTML`** — only in `chart.tsx` for CSS injection (developer-controlled). No user content paths. Safe.
 
 ---
 
-## P1 — Quick Wins
+## Sprint Plan
 
-### Ticket 3: Remove Dead Deprecated Files
-Delete 4 files:
-- `src/pages/jobs/actions/assignProfessional.action.ts`
-- `src/pages/jobs/actions/reviseQuote.action.ts`
-- `src/hooks/useMatchedJobs.ts`
-- `src/components/wizard/index.ts`
+### Ticket 1 (P0): Schedule Background Jobs via pg_cron
+Create a single migration that registers `cron.schedule()` entries for all background edge functions:
 
-Also remove the `reviseQuote` re-export from `src/pages/jobs/actions/index.ts` (line 12).
+| Function | Schedule | Notes |
+|----------|----------|-------|
+| `send-notifications` | Every 2 minutes | Process email queue |
+| `process-nudges` | Every 15 minutes | Stalled journey nudges |
+| `daily-health-check` | Daily 06:00 UTC | Platform health snapshot |
+| `refresh-demand-snapshots` | Daily 05:00 UTC | Pro insights data |
+| `dispute-deadline-automation` | Every 30 minutes | Deadline enforcement |
+| `generate-weekly-ai-report` | Weekly Monday 07:00 UTC | Admin AI summary |
+| `weekly-kpi-digest` | Weekly Monday 06:30 UTC | KPI email |
 
----
+Each job calls the edge function via `pg_net` HTTP POST with the internal secret header. The migration will also create a `cron_job_log` view or use `cron.job_run_details` for observability.
 
-## P2 — Type Safety
+### Ticket 2 (P0): Replace All `confirm()` with AlertDialog
+Replace native `confirm()` in 5 locations with shadcn AlertDialog:
+- `JobTicketDetail.tsx` — close job, withdraw from job (2 calls)
+- `QuoteComparison.tsx` — decline quote
+- `CancellationRequestCard.tsx` — accept/decline cancellation
+- `DisputeDetail.tsx` — re-analyze dispute
 
-### Ticket 4: Regenerate Supabase Types
-- Supabase types are auto-generated and cannot be manually edited. They will be regenerated automatically when the schema is next synced. No manual action needed — the types file updates on its own.
+Pattern: Add local `AlertDialog` state, trigger on button click, execute mutation in `onConfirm` callback.
 
-### Ticket 5: Reduce `as any` in Critical Paths
-Focus on the dispute domain first (134 occurrences across 10 files). Since the types file auto-regenerates but currently lacks dispute tables, the pragmatic fix is:
-- Create `src/types/disputes.ts` and `src/types/quotes.ts` with manual interfaces matching the DB schema
-- Replace `as any` casts in dispute queries/actions with typed generics: `supabase.from('disputes').select(...)` using `.returns<DisputeRow[]>()` pattern
-- Replace `const d = dispute as any` patterns with properly typed variables
+### Ticket 3 (P1): Gate `/launch-checklist` Behind Admin Auth
+Wrap the route in `RouteGuard` with `access: 'admin'` so only admin users can access it.
 
----
+### Ticket 4 (P1): Extract Dashboard Client Component Supabase Calls
+Move inline Supabase calls from 6 components into proper action/query files:
+- `CancellationRequestCard.tsx` → `actions/respondToCancellation.action.ts`
+- `JobTicketCompletion.tsx` → `actions/requestCompletion.action.ts`
+- `ProgressUpdates.tsx` → `actions/addProgressUpdate.action.ts`
+- `PortfolioPrompt.tsx` → `actions/savePortfolioProject.action.ts`
+- `ProQuoteSummary.tsx` → `actions/addQuoteLineItem.action.ts`
+- `ClientJobCard.tsx` → already uses `cancel_job` RPC, extract to `actions/cancelJob.action.ts`
 
-## P3 — Architecture Cleanup
+### Ticket 5 (P2): Convert High-Risk `.single()` to `.maybeSingle()`
+Focus on lookups where a missing row is a valid state (not inserts):
+- `ListingPreviewDrawer.tsx` (admin drawer — profile/micro lookups)
+- `adminUserDetails.query.ts` (profile/roles lookups)
+- `serviceListings.query.ts` (provider profile, micro category, subcategory, category chain)
+- `QuoteComparison.tsx` (job lookup)
+- `QuestionsStep.tsx` (fallback question pack lookup)
+- `forumQueries.ts` (category by slug, post by id)
+- `hydrateFromJob.ts` (job lookup for edit mode)
+- `useListingEditor.ts` (listing lookup)
+- `disputes.query.ts` (dispute detail)
+- `RaiseDispute.tsx` (job lookup)
 
-### Ticket 6: Extract Dispute Component Supabase Calls
-Move inline supabase calls from 2 components into dedicated files:
-
-- `CompletenessIndicator.tsx` → new `src/pages/disputes/queries/completeness.query.ts`
-- `ResolutionBanner.tsx` → new `src/pages/disputes/actions/respondToResolution.action.ts`
-
-Components will import clean functions instead of calling supabase directly.
-
-### Ticket 7: Extract Admin Supabase Calls
-The admin domain has 38 files with supabase calls. Most are already properly organized in `admin/queries/`, `admin/actions/`, and `admin/hooks/`. The specific violators called out:
-- `AdminPricingRulesPage.tsx` — extract to `admin/queries/pricingRules.query.ts` and `admin/actions/pricingRules.action.ts`
-- `MessagingPulsePage.tsx` — extract nudge mutation to `admin/actions/nudgeClient.action.ts`
-- Other admin components with inline calls are already in hooks — low priority.
-
----
-
-## P4 — Type Definitions
-
-### Ticket 8: Define Dispute & Quote Interfaces
-Create two type files:
-- `src/types/disputes.ts` — `Dispute`, `DisputeStatus`, `DisputeEvidence`, `DisputeInput`, `DisputeAnalysis`, `DisputeStatusHistory`
-- `src/types/quotes.ts` — `Quote`, `QuoteStatus`, `QuoteLineItem`
-
-Replace `as any` chains in `DisputeDetail.tsx`, `DisputeResponse.tsx`, and quote-related files with these typed interfaces.
-
----
-
-## Summary
+Leave `.single()` on insert-then-select patterns (messages, forum posts/replies) where a missing row is genuinely an error.
 
 ```text
-Ticket  Priority  Files Changed     Effort
-──────  ────────  ───────────────   ──────
-1       P0        0 (config only)   1 min
-2       P0        1-2 files         20 min
-3       P1        5 files deleted   5 min
-4       P2        0 (auto-regen)    0 min
-5+8     P2+P4     ~12 files         2 hrs
-6       P3        4 files           30 min
-7       P3        3 files           30 min
+Ticket  Priority  Effort    Files Changed
+──────  ────────  ────────  ─────────────
+1       P0        45 min    1 migration
+2       P0        1 hr      5 files
+3       P1        5 min     1 file (App.tsx)
+4       P1        1 hr      6 new files + 6 edited
+5       P2        1 hr      ~12 files
 ```
 
-Tickets 5 and 8 are merged in implementation since defining interfaces (T8) and replacing `as any` (T5) are the same work.
-
-Total: ~15 files touched, 4 files deleted, 2 new type files created, 4 new query/action files created, 1 auth config change.
+Total: ~3.5 hours, 1 migration, ~12 new files, ~18 edited files.
 
