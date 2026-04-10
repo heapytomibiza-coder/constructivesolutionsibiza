@@ -256,6 +256,23 @@ export default function QuoteComparison() {
           </>
         )}
       </div>
+
+      <AlertDialog open={!!declineTarget} onOpenChange={(open) => { if (!open) setDeclineTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('quoteComparison.declineTitle', 'Decline Quote')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('quoteComparison.declineConfirm', 'Decline this quote? The professional will be notified.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDecline} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('quoteComparison.decline', 'Decline')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
