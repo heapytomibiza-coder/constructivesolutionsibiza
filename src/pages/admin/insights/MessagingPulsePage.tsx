@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMessagingPulse } from "../hooks/useMessagingPulse";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +15,10 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useActionOutcomes } from "../hooks/useActionOutcomes";
 import { ActionOutcomeBadge } from "../components/ActionOutcomeBadge";
+import { nudgeClient, suppressNudge } from "../actions/nudgeClient.action";
 
 function formatMinutes(m: number | null): string {
   if (m == null) return "—";
@@ -97,7 +97,7 @@ export default function MessagingPulsePage() {
           </div>
         ) : (
           <>
-            {/* ── Summary Stats ── */}
+            {/* Summary Stats */}
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
               <StatCard icon={<MessageSquare className="h-5 w-5 text-primary" />} label="Total Messages" value={summary?.total_messages ?? 0} />
               <StatCard icon={<TrendingUp className="h-5 w-5 text-primary" />} label="Active Conversations" value={summary?.active_conversations ?? 0} />
@@ -106,49 +106,30 @@ export default function MessagingPulsePage() {
               <StatCard icon={<Users className="h-5 w-5 text-accent" />} label="Clients Messaging" value={summary?.unique_clients_messaging ?? 0} />
             </div>
 
-            {/* ── Response Time Stats ── */}
+            {/* Response Time Stats */}
             <section className="space-y-3">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <Clock className="h-5 w-5" /> Pro Response Times
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <StatCard
-                  icon={<Timer className="h-5 w-5 text-primary" />}
-                  label="Median Response"
-                  value={formatMinutes(rt?.median_response_minutes ?? null)}
-                />
-                <StatCard
-                  icon={<Timer className="h-5 w-5 text-muted-foreground" />}
-                  label="Average Response"
-                  value={formatMinutes(rt?.avg_response_minutes ?? null)}
-                />
+                <StatCard icon={<Timer className="h-5 w-5 text-primary" />} label="Median Response" value={formatMinutes(rt?.median_response_minutes ?? null)} />
+                <StatCard icon={<Timer className="h-5 w-5 text-muted-foreground" />} label="Average Response" value={formatMinutes(rt?.avg_response_minutes ?? null)} />
                 <StatCard
                   icon={<Zap className="h-5 w-5 text-accent" />}
                   label="Reply Rate"
                   value={replyRate != null ? `${replyRate}%` : "—"}
                   subtitle={rt ? `${rt.convos_with_pro_reply} / ${rt.total_convos} convos` : undefined}
                 />
-                <StatCard
-                  icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
-                  label="No Pro Reply"
-                  value={rt?.convos_no_pro_reply ?? 0}
-                />
+                <StatCard icon={<AlertTriangle className="h-5 w-5 text-destructive" />} label="No Pro Reply" value={rt?.convos_no_pro_reply ?? 0} />
               </div>
-              {/* Response time buckets */}
               {rt && rt.total_convos > 0 && (
                 <Card>
                   <CardContent className="p-4">
                     <p className="text-sm font-medium mb-3">Reply Speed Distribution</p>
                     <div className="flex gap-3 flex-wrap">
-                      <Badge variant="outline" className="text-xs">
-                        ≤30min: {rt.replied_within_30m}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        ≤1h: {rt.replied_within_1h}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        ≤4h: {rt.replied_within_4h}
-                      </Badge>
+                      <Badge variant="outline" className="text-xs">≤30min: {rt.replied_within_30m}</Badge>
+                      <Badge variant="outline" className="text-xs">≤1h: {rt.replied_within_1h}</Badge>
+                      <Badge variant="outline" className="text-xs">≤4h: {rt.replied_within_4h}</Badge>
                       <Badge variant="outline" className="text-xs text-destructive border-destructive/30">
                         &gt;4h: {rt.convos_with_pro_reply - rt.replied_within_4h}
                       </Badge>
@@ -158,7 +139,7 @@ export default function MessagingPulsePage() {
               )}
             </section>
 
-            {/* ── Daily Volume Chart ── */}
+            {/* Daily Volume Chart */}
             {data?.daily_volume && data.daily_volume.length > 0 && (
               <section className="space-y-3">
                 <h2 className="text-lg font-semibold">Message Volume</h2>
@@ -189,7 +170,7 @@ export default function MessagingPulsePage() {
               </section>
             )}
 
-            {/* ── Stale Conversations ── */}
+            {/* Stale Conversations */}
             {data?.stale_conversations && data.stale_conversations.length > 0 && (
               <section className="space-y-3">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -212,7 +193,7 @@ export default function MessagingPulsePage() {
               </section>
             )}
 
-            {/* ── Most Active Conversations ── */}
+            {/* Most Active Conversations */}
             {data?.most_active && data.most_active.length > 0 && (
               <section className="space-y-3">
                 <h2 className="text-lg font-semibold">Most Active Threads</h2>
@@ -268,14 +249,8 @@ function StaleConversationCard({ conversation: sc, outcome }: {
   outcome?: import("../hooks/useActionOutcomes").ActionOutcome;
 }) {
   const queryClient = useQueryClient();
-  const nudge = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.rpc("admin_nudge_client", {
-        p_conversation_id: sc.id,
-      });
-      if (error) throw error;
-      return data;
-    },
+  const nudgeMutation = useMutation({
+    mutationFn: () => nudgeClient(sc.id),
     onSuccess: () => {
       toast.success(`Nudge sent for "${sc.job_title}"`);
       queryClient.invalidateQueries({ queryKey: ["admin", "action_outcomes"] });
@@ -285,14 +260,8 @@ function StaleConversationCard({ conversation: sc, outcome }: {
     },
   });
 
-  const suppress = useMutation({
-    mutationFn: async () => {
-      const { error } = await (supabase.rpc as any)("suppress_nudge", {
-        p_job_id: sc.job_id,
-        p_nudge_type: "conversation_stale",
-      });
-      if (error) throw error;
-    },
+  const suppressMutation = useMutation({
+    mutationFn: () => suppressNudge(sc.job_id),
     onSuccess: () => {
       toast.success(`Auto-nudges suppressed for "${sc.job_title}"`);
     },
@@ -337,21 +306,21 @@ function StaleConversationCard({ conversation: sc, outcome }: {
             size="sm"
             variant="outline"
             className="h-7 text-xs gap-1"
-            onClick={() => nudge.mutate()}
-            disabled={nudge.isPending || nudge.isSuccess}
+            onClick={() => nudgeMutation.mutate()}
+            disabled={nudgeMutation.isPending || nudgeMutation.isSuccess}
           >
-            {nudge.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
-            {nudge.isSuccess ? "Sent" : "Nudge"}
+            {nudgeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+            {nudgeMutation.isSuccess ? "Sent" : "Nudge"}
           </Button>
           <Button
             size="sm"
             variant="ghost"
             className="h-7 text-xs gap-1 text-muted-foreground"
-            onClick={() => suppress.mutate()}
-            disabled={suppress.isPending || suppress.isSuccess}
+            onClick={() => suppressMutation.mutate()}
+            disabled={suppressMutation.isPending || suppressMutation.isSuccess}
             title="Suppress auto-nudges for this job"
           >
-            {suppress.isSuccess ? "Suppressed" : "Mute"}
+            {suppressMutation.isSuccess ? "Suppressed" : "Mute"}
           </Button>
         </div>
       </CardContent>
