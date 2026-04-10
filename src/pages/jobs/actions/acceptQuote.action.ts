@@ -1,12 +1,11 @@
+import { supabase } from '@/integrations/supabase/client';
+import { trackEvent } from '@/lib/trackEvent';
+
 /**
  * Accept a quote on a job.
  * Uses a transactional RPC to atomically: accept quote, reject others, assign pro, set job → in_progress.
  * The professional is derived from the quote inside the RPC — not passed by the client.
  */
-
-import { supabase } from "@/integrations/supabase/client";
-import { trackEvent } from "@/lib/trackEvent";
-
 export async function acceptQuote(
   quoteId: string,
   jobId: string,
@@ -17,7 +16,7 @@ export async function acceptQuote(
 
   // professionalId is kept in the signature for trackEvent but NOT sent to the RPC.
   // The RPC derives it from the quote to prevent mismatch attacks.
-  const { error } = await supabase.rpc("accept_quote_and_assign" as any, {
+  const { error } = await supabase.rpc("accept_quote_and_assign", {
     p_quote_id: quoteId,
     p_job_id: jobId,
   });

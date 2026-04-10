@@ -6,6 +6,11 @@ export interface RepeatHirePair {
   lastHiredAt: string | null;
 }
 
+interface RepeatHireRow {
+  hire_count: number;
+  last_hired_at: string | null;
+}
+
 /**
  * Fetch repeat-hire count between a specific client and professional.
  * Returns { hireCount, lastHiredAt } for completed jobs only.
@@ -16,12 +21,12 @@ export function useRepeatHirePair(clientId: string | null, proId: string | null)
     enabled: !!clientId && !!proId,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_repeat_hire_pair' as any, {
+      const { data, error } = await supabase.rpc('get_repeat_hire_pair', {
         p_client_id: clientId!,
         p_pro_id: proId!,
       });
       if (error) throw error;
-      const row = Array.isArray(data) ? data[0] : data;
+      const row = Array.isArray(data) ? (data as unknown as RepeatHireRow[])[0] : (data as unknown as RepeatHireRow);
       return {
         hireCount: Number(row?.hire_count ?? 0),
         lastHiredAt: row?.last_hired_at ?? null,

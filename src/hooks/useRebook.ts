@@ -10,11 +10,11 @@ export function useRebook() {
 
   return useMutation({
     mutationFn: async (sourceJobId: string) => {
-      const { data, error } = await (supabase.rpc as any)('create_rebook_job', {
+      const { data, error } = await supabase.rpc('create_rebook_job', {
         p_source_job_id: sourceJobId,
       });
       if (error) throw error;
-      return data as { new_job_id: string };
+      return data as unknown as { new_job_id: string };
     },
     onSuccess: (result, sourceJobId) => {
       toast.success('Draft created — review before posting');
