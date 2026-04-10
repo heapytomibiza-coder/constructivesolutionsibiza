@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { respondToCancellation } from '../actions/respondToCancellation.action';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Loader2, Check, X } from 'lucide-react';
@@ -49,12 +49,9 @@ export function CancellationRequestCard({
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.rpc('respond_to_cancellation', {
-        p_job_id: jobId,
-        p_accept: accept,
-      });
-      if (error) {
-        toast.error(error.message);
+      const result = await respondToCancellation(jobId, accept);
+      if (!result.success) {
+        toast.error(result.error);
         return;
       }
       toast.success(
