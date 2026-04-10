@@ -108,7 +108,7 @@
 ┌──────────────────────────────────────────────────────────────────────┐
 │              NOT YET IMPLEMENTED                                     │
 │                                                                      │
-│  Stripe ────────── Payments / Escrow (designed, not built)            │
+│  Stripe ────────── Payments / Protection (designed, not built)         │
 │  AI Matching ───── Enhanced scoring (planned for trust-engine phase)  │
 │  Push Notifs ───── Beyond email/WA/Telegram (future)                  │
 │  CDN ───────────── Static assets / listing images (future)            │
@@ -238,12 +238,12 @@
 | Pending hook | `src/pages/dashboard/shared/hooks/usePendingReviews.ts` |
 | Stats update | `increment_professional_micro_stats()` RPC |
 
-### Payments / Escrow
+### Payments / Payment Protection
 | Layer | Owner |
 |-------|-------|
-| **NOT IMPLEMENTED** | Designed for `escrow-beta` rollout phase |
+| **NOT IMPLEMENTED** | Designed for `protection-beta` rollout phase |
 | Route registry | V2 EXCLUDED block in `registry.ts` (lines 274-279) |
-| Current phase | `founding-members` — 2 phases before escrow |
+| Current phase | `founding-members` — 2 phases before payment protection |
 
 ### Notifications
 | Layer | Owner |
@@ -697,15 +697,15 @@ flowchart TD
     note2[Dual-gate: has_role admin<br/>AND is_admin_email check<br/>on every RPC]
 ```
 
-### 4.9 Payment / Escrow Lifecycle (DESIGNED, NOT BUILT)
+### 4.9 Payment Protection Lifecycle (DESIGNED, NOT BUILT)
 
 ```
 Status: NOT IMPLEMENTED
-Rollout phase: escrow-beta (2 phases away)
+Rollout phase: protection-beta (2 phases away)
 Route registry: V2 EXCLUDED block (lines 274-279)
 
 Planned flow:
-  Quote accepted → Escrow created → Client funds milestone
+  Quote accepted → Payment created → Client funds milestone
   → Pro completes work → Client approves → Funds released
   → Dispute path if disagreement
 
@@ -752,8 +752,8 @@ No code exists for this flow. No tables, no edge functions, no UI.
 
 | Risk | Detail |
 |------|--------|
-| **No payment system exists** | Designed for `escrow-beta` phase, currently 2 phases away |
-| **No escrow tables** | No financial tables, no webhook handlers, no Stripe integration |
+| **No payment system exists** | Designed for `protection-beta` phase, currently 2 phases away |
+| **No payment tables** | No financial tables, no webhook handlers, no Stripe integration |
 | **Quote acceptance has no payment gate** | Accepting a quote immediately assigns the pro — no deposit required |
 | **No refund mechanism** | No infrastructure for handling payment disputes |
 | **Recommendation** | Do NOT build payment infrastructure until matching and messaging are validated with real transaction volume |
