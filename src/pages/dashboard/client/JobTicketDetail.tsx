@@ -807,6 +807,38 @@ function JobSummaryContent({
           </div>
         )}
       </div>
+
+      {/* Close/Cancel confirmation dialog */}
+      <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('jobTicket.cancelJob', 'Cancel Job')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('jobTicket.closeConfirm', 'Are you sure you want to cancel this job?')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClose} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('jobTicket.cancelJob', 'Cancel Job')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Withdraw confirmation dialog */}
+      <AlertDialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('jobTicket.withdraw', 'Withdraw')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('jobTicket.withdrawConfirm', 'Withdraw from this job? The client will be able to choose another professional.')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleWithdraw} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('jobTicket.withdraw', 'Withdraw')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
