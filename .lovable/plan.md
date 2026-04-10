@@ -1,41 +1,99 @@
 
 
-# Health Report Fix Plan — 10 Apr RED Status
+# Sprint Plan: Security Fixes & Code Quality Stabilisation
 
-## Diagnosis Summary
+## P0 — Security Blockers
 
-Three distinct issues are causing the RED status:
+### Ticket 1: Enable HIBP Leaked Password Protection
+- Use `configure_auth` tool to set `password_hibp_enabled: true`
+- One config change, zero code impact
 
-### 1. React Crashes (3 crashes on /post) — BLOCKER
-**Root cause:** `"Component is not a function"` — all 3 crashes are from the same Android device (Chrome 146, 411x749). The component stack points inside `CardContent` within `CanonicalJobWizard`. This is likely a stale deployment chunk issue where a dynamically loaded module resolved incorrectly. The existing chunk-load recovery handler in `App.tsx` catches `Failed to fetch dynamically imported module` but NOT this variant. However, looking more closely — all wizard step components are statically imported (not lazy), so this is more likely a **Vite HMR hot-update gone wrong** or a browser cache serving a stale bundle where a component reference became `undefined`.
+### Ticket 2: Realtime Authorization Hardening
+**Current state:** 6 realtime subscriptions found across the codebase. All use Postgres Changes (not Broadcast/Presence), which means RLS on the underlying tables IS enforced by Supabase — subscribers only receive rows they can SELECT via RLS.
 
-**Fix:** Add a defensive guard in the wizard render section. If a step component is rendered but evaluates to a non-function (which would cause this exact error), catch it gracefully instead of crashing. Also wrap the `new Notification()` calls in Settings and useMessageNotifications in try/catch (OperatorCockpit already does this) since mobile browsers throw `Illegal constructor`.
+**Assessment:** The existing RLS on `messages` and `conversations` already restricts data to `client_id` or `pro_id`. Postgres Changes respects RLS, so unauthorized users receive no payloads even if they subscribe to a channel. However, we should still add application-level guards as defense-in-depth:
 
-### 2. Network Failures — professional_profiles 406 (26 fails)
-**Root cause:** The `professional_profiles` query in `useSessionSnapshot.ts` uses `.maybeSingle()` which should NOT return 406. However, looking at the failing URL pattern, it selects specific columns with `user_id=eq.xxx` — and returns 406. This means PostgREST is returning multiple rows for that user_id. No duplicates exist NOW, but a transient state (e.g., during profile creation) could create a brief window with multiple rows. The query uses `Promise.allSettled` so it doesn't crash the app, but it logs as a network failure.
+- `useMessages.ts` — add early return if user is not a participant of the conversation (already scoped by `conversationId` from an authorized query, but add explicit check)
+- `useConversations.ts` — already scoped to `userId` filter, safe
+- `useJobTicketRealtime.ts` — already scoped to `jobId` from authorized context
+- `useJobAlerts.ts` — scoped to `userId`
+- `useMessageNotifications.ts` — scoped to `userId`
+- `useLatestJobs.ts` — admin-only page, already behind admin route guard
 
-**Fix:** This is already handled gracefully (allSettled). The 406 is being recorded but not causing user-visible issues. No code change needed — this is noise from test accounts.
-
-### 3. Emails Failed (4)
-**Root cause:** All 4 failed emails are to test/non-existent domains (`csibiza.test`, `csiibiza.com`). These are test accounts with invalid email addresses. The mail server correctly rejects them (550 — domain doesn't exist).
-
-**Fix:** No code change needed. These are test account artifacts, not a system bug.
+**Changes:** Add a pre-subscription authorization check in `useMessages.ts` to verify the current user is a conversation participant before subscribing. Document the RLS-enforced safety in a code comment on each subscription.
 
 ---
 
-## Changes
+## P1 — Quick Wins
 
-### File 1: `src/hooks/useMessageNotifications.ts`
-Wrap `new Notification()` in try/catch to prevent the `Illegal constructor` error on mobile browsers (same pattern already used in OperatorCockpit).
+### Ticket 3: Remove Dead Deprecated Files
+Delete 4 files:
+- `src/pages/jobs/actions/assignProfessional.action.ts`
+- `src/pages/jobs/actions/reviseQuote.action.ts`
+- `src/hooks/useMatchedJobs.ts`
+- `src/components/wizard/index.ts`
 
-### File 2: `src/pages/settings/Settings.tsx`
-Wrap the test `new Notification()` in try/catch for mobile browser compatibility.
+Also remove the `reviseQuote` re-export from `src/pages/jobs/actions/index.ts` (line 12).
 
-### File 3: `src/features/wizard/canonical/CanonicalJobWizard.tsx`
-No change needed — the step components are all statically imported named exports. The "Component is not a function" crash appears to be a one-off stale cache issue from one device. The ErrorBoundary already catches and reports it. If it recurs, we'd add lazy-load error recovery, but 3 crashes from one device/session doesn't warrant structural changes.
+---
+
+## P2 — Type Safety
+
+### Ticket 4: Regenerate Supabase Types
+- Supabase types are auto-generated and cannot be manually edited. They will be regenerated automatically when the schema is next synced. No manual action needed — the types file updates on its own.
+
+### Ticket 5: Reduce `as any` in Critical Paths
+Focus on the dispute domain first (134 occurrences across 10 files). Since the types file auto-regenerates but currently lacks dispute tables, the pragmatic fix is:
+- Create `src/types/disputes.ts` and `src/types/quotes.ts` with manual interfaces matching the DB schema
+- Replace `as any` casts in dispute queries/actions with typed generics: `supabase.from('disputes').select(...)` using `.returns<DisputeRow[]>()` pattern
+- Replace `const d = dispute as any` patterns with properly typed variables
+
+---
+
+## P3 — Architecture Cleanup
+
+### Ticket 6: Extract Dispute Component Supabase Calls
+Move inline supabase calls from 2 components into dedicated files:
+
+- `CompletenessIndicator.tsx` → new `src/pages/disputes/queries/completeness.query.ts`
+- `ResolutionBanner.tsx` → new `src/pages/disputes/actions/respondToResolution.action.ts`
+
+Components will import clean functions instead of calling supabase directly.
+
+### Ticket 7: Extract Admin Supabase Calls
+The admin domain has 38 files with supabase calls. Most are already properly organized in `admin/queries/`, `admin/actions/`, and `admin/hooks/`. The specific violators called out:
+- `AdminPricingRulesPage.tsx` — extract to `admin/queries/pricingRules.query.ts` and `admin/actions/pricingRules.action.ts`
+- `MessagingPulsePage.tsx` — extract nudge mutation to `admin/actions/nudgeClient.action.ts`
+- Other admin components with inline calls are already in hooks — low priority.
+
+---
+
+## P4 — Type Definitions
+
+### Ticket 8: Define Dispute & Quote Interfaces
+Create two type files:
+- `src/types/disputes.ts` — `Dispute`, `DisputeStatus`, `DisputeEvidence`, `DisputeInput`, `DisputeAnalysis`, `DisputeStatusHistory`
+- `src/types/quotes.ts` — `Quote`, `QuoteStatus`, `QuoteLineItem`
+
+Replace `as any` chains in `DisputeDetail.tsx`, `DisputeResponse.tsx`, and quote-related files with these typed interfaces.
+
+---
 
 ## Summary
-- **2 files changed** — Notification constructor mobile safety
-- **0 database changes**
-- The RED status is driven by: 1 mobile browser crash (stale cache, not reproducible), test-account email bounces, and network failure noise from test data. After the Notification fix, expect GREEN on next report.
+
+```text
+Ticket  Priority  Files Changed     Effort
+──────  ────────  ───────────────   ──────
+1       P0        0 (config only)   1 min
+2       P0        1-2 files         20 min
+3       P1        5 files deleted   5 min
+4       P2        0 (auto-regen)    0 min
+5+8     P2+P4     ~12 files         2 hrs
+6       P3        4 files           30 min
+7       P3        3 files           30 min
+```
+
+Tickets 5 and 8 are merged in implementation since defining interfaces (T8) and replacing `as any` (T5) are the same work.
+
+Total: ~15 files touched, 4 files deleted, 2 new type files created, 4 new query/action files created, 1 auth config change.
 
