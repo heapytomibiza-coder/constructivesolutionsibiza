@@ -127,7 +127,7 @@ describe('/messages smoke tests', () => {
   it('shows not-found state for invalid conversation ID', async () => {
     renderMessages('/messages/nonexistent-id-12345');
     await waitFor(() => {
-      expect(screen.getByText(/conversationNotFound/i)).toBeInTheDocument();
+      expect(screen.getByText(/conversation not found/i)).toBeInTheDocument();
     });
   });
 });
