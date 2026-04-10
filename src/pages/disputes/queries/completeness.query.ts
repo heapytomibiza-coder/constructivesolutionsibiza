@@ -12,7 +12,7 @@ export interface CompletenessData {
 }
 
 export async function fetchDisputeCompleteness(disputeId: string): Promise<CompletenessData> {
-  const { data, error } = await supabase.rpc('rpc_dispute_completeness' as string, {
+  const { data, error } = await supabase.rpc('rpc_dispute_completeness', {
     p_dispute_id: disputeId,
   });
   if (error) throw error;
