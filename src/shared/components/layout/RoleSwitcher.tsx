@@ -1,3 +1,4 @@
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -23,7 +24,8 @@ interface RoleSwitcherProps {
   className?: string;
 }
 
-export function RoleSwitcher({ className }: RoleSwitcherProps) {
+export const RoleSwitcher = React.forwardRef<HTMLDivElement, RoleSwitcherProps>(
+  function RoleSwitcher({ className }, ref) {
   const { t } = useTranslation();
   const { roles, activeRole, switchRole } = useSession();
   const queryClient = useQueryClient();
@@ -90,4 +92,4 @@ export function RoleSwitcher({ className }: RoleSwitcherProps) {
       </SelectContent>
     </Select>
   );
-}
+});

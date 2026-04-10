@@ -69,6 +69,9 @@ const AuthCallback = () => {
         console.error('Error fetching user roles:', rolesError);
       }
 
+      if (!rolesData && !rolesError) {
+        console.debug('[AuthCallback] No user_roles row — defaulting to client', { userId: session.user.id });
+      }
       const activeRole = rolesData?.active_role || 'client';
 
       if (activeRole === 'professional') {
@@ -83,6 +86,9 @@ const AuthCallback = () => {
           console.error('Error fetching professional profile:', profileError);
         }
 
+        if (!profileData && !profileError) {
+          console.debug('[AuthCallback] No professional_profiles row — defaulting to not_started', { userId: session.user.id });
+        }
         const onboardingPhase = profileData?.onboarding_phase || 'not_started';
 
         // Established professionals go to dashboard, new ones to onboarding
