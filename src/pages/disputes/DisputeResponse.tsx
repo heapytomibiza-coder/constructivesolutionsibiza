@@ -14,6 +14,7 @@ import { uploadDisputeEvidence } from './actions/uploadDisputeEvidence.action';
 import { submitCounterpartyResponse } from './actions/submitCounterpartyResponse.action';
 import { fetchDisputeDetail } from './queries/disputes.query';
 import { QuestionnaireStep } from './components/QuestionnaireStep';
+import type { DisputeInputRow } from '@/lib/supabaseTyped';
 
 export default function DisputeResponse() {
   const { disputeId } = useParams<{ disputeId: string }>();
@@ -86,7 +87,7 @@ export default function DisputeResponse() {
     );
   }
 
-  const d = data.dispute as any;
+  const d = data.dispute;
   const isCounterparty = currentUser?.id === d.counterparty_id;
 
   // Block non-counterparty users from this route
@@ -113,10 +114,10 @@ export default function DisputeResponse() {
   const evidenceDeadline = d.evidence_deadline ? new Date(d.evidence_deadline) : null;
   const isOverdue = responseDeadline && responseDeadline < new Date();
 
-  const hasResponded = data.inputs.some((i: any) => i.user_id === currentUser?.id);
+  const hasResponded = data.inputs.some((i: DisputeInputRow) => i.user_id === currentUser?.id);
 
   const complainantStatements = data.inputs.filter(
-    (i: any) => i.user_id === d.raised_by
+    (i: DisputeInputRow) => i.user_id === d.raised_by
   );
 
   return (
@@ -185,7 +186,7 @@ export default function DisputeResponse() {
         {complainantStatements.length > 0 && (
           <div className="space-y-3">
             <h2 className="text-sm font-semibold">Their Statement</h2>
-            {complainantStatements.map((input: any) => (
+            {complainantStatements.map((input: DisputeInputRow) => (
               <div key={input.id} className="p-3 rounded-lg border bg-card">
                 {input.raw_text && (
                   <p className="text-sm whitespace-pre-wrap">{input.raw_text}</p>

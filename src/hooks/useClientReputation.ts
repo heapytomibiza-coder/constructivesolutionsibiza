@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { clientReputationTable } from '@/lib/supabaseTyped';
+import type { ClientReputationRow } from '@/lib/supabaseTyped';
 
 export interface ClientReputation {
   score: number;
@@ -31,21 +32,21 @@ export function useClientReputation(clientId: string | null) {
     enabled: !!clientId,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('client_reputation' as any)
+      const { data, error } = await clientReputationTable()
         .select('score, badges, completion_rate, review_rate, dispute_rate, total_jobs, completed_jobs')
         .eq('user_id', clientId!)
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
+      const row = data as unknown as ClientReputationRow;
       return {
-        score: (data as any).score,
-        badges: (data as any).badges ?? [],
-        completionRate: (data as any).completion_rate,
-        reviewRate: (data as any).review_rate,
-        disputeRate: (data as any).dispute_rate,
-        totalJobs: (data as any).total_jobs,
-        completedJobs: (data as any).completed_jobs,
+        score: row.score,
+        badges: row.badges ?? [],
+        completionRate: row.completion_rate,
+        reviewRate: row.review_rate,
+        disputeRate: row.dispute_rate,
+        totalJobs: row.total_jobs,
+        completedJobs: row.completed_jobs,
       };
     },
   });
