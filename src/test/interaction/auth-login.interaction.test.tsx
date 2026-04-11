@@ -1,62 +1,22 @@
 /**
  * INTERACTION TEST — Auth login flows
- * Covers: AUTH-006 (login success), AUTH-007 (login failure), AUTH-010 (logout)
- * Note: AUTH-008/009 (password reset email) are infrastructure tests — manual QA only
+ * Covers: AUTH-006 (login form), AUTH-007 (login failure), AUTH-010 (logout)
+ * Health alert link: auth/session instability → login/logout must work correctly
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createMockSupabase } from '@/test/utils/mockSupabase';
+import { createMockI18n } from '@/test/utils/mockI18n';
+import { sessions } from '@/test/utils/mockSession';
 
-const mockSignIn = vi.fn();
-const mockSignOut = vi.fn().mockResolvedValue({ error: null });
-
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
-      signInWithPassword: mockSignIn,
-      signUp: vi.fn(),
-      signInWithOAuth: vi.fn(),
-      signOut: mockSignOut,
-      resend: vi.fn(),
-    },
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    })),
-    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
-  },
-}));
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, fallback?: string | Record<string, unknown>) =>
-      typeof fallback === 'string' ? fallback : key,
-    ready: true,
-    i18n: { language: 'en', changeLanguage: vi.fn() },
-  }),
-  Trans: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  initReactI18next: { type: '3rdParty', init: vi.fn() },
-}));
-
+const supabaseMock = createMockSupabase();
+vi.mock('@/integrations/supabase/client', () => supabaseMock);
+vi.mock('react-i18next', () => createMockI18n());
 vi.mock('@/lib/trackEvent', () => ({ trackEvent: vi.fn() }));
 
-const mockSession = {
-  isAuthenticated: false,
-  hasRole: vi.fn((_r: string) => false),
-  isProReady: false,
-  isLoading: false,
-  isReady: true,
-  user: null as any,
-  activeRole: null as string | null,
-  refresh: vi.fn(),
-  subscription: { plan: null, status: null, isLoading: false },
-};
+const mockSession = sessions.guest();
 
 vi.mock('@/contexts/SessionContext', () => ({
   useSession: () => mockSession,
@@ -68,12 +28,11 @@ let AuthPage: React.ComponentType;
 describe('Auth login interaction tests', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
-    mockSession.isAuthenticated = false;
-    mockSession.user = null;
+    Object.assign(mockSession, sessions.guest());
     AuthPage = (await import('@/pages/auth/Auth')).default;
   });
 
-  it('AUTH-006: renders login form with email and password inputs', async () => {
+  it('AUTH-006: login form has email and password inputs', async () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
       <QueryClientProvider client={qc}>
@@ -84,10 +43,12 @@ describe('Auth login interaction tests', () => {
     );
     await waitFor(() => {
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     });
   });
 
-  it('AUTH-007: signInWithPassword error is captured', async () => {
+  it('AUTH-007: signInWithPassword error is returned correctly', async () => {
+    const mockSignIn = supabaseMock.supabase.auth.signInWithPassword;
     mockSignIn.mockResolvedValueOnce({
       data: { user: null, session: null },
       error: { message: 'Invalid login credentials', status: 400 },
@@ -98,7 +59,8 @@ describe('Auth login interaction tests', () => {
     expect(result.error.message).toContain('Invalid login');
   });
 
-  it('AUTH-010: signOut clears session', async () => {
+  it('AUTH-010: signOut resolves without error', async () => {
+    const mockSignOut = supabaseMock.supabase.auth.signOut;
     const result = await mockSignOut();
     expect(result.error).toBeNull();
     expect(mockSignOut).toHaveBeenCalled();
