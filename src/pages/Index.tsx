@@ -57,6 +57,7 @@ const RESOLUTION_KEYS = ['resolution1', 'resolution2', 'resolution3', 'resolutio
 
 const Index = () => {
   const { t } = useTranslation('common');
+  const { isAuthenticated, hasRole } = useSession();
 
   return (
     <PublicLayout>
