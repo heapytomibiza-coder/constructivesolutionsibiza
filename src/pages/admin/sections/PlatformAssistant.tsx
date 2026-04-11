@@ -310,7 +310,167 @@ function TrendChart({
   );
 }
 
-/* ───────── Main component ───────── */
+/* ───────── QA Reminder Card ───────── */
+
+function QaReminderCard() {
+  const {
+    history,
+    latestRun,
+    sentThisWeek,
+    currentWeek,
+    isLoading,
+    isError,
+    refetch,
+    trigger,
+    isTriggerPending,
+  } = useQaReminderStatus();
+
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const formatTimestamp = (iso: string): string => {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Europe/Madrid",
+    });
+  };
+
+  const statusBadge = (status: string) => {
+    const colors: Record<string, string> = {
+      sent: "bg-primary/10 text-primary border-primary/20",
+      failed: "bg-destructive/10 text-destructive border-destructive/20",
+      skipped: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    };
+    return (
+      <Badge variant="outline" className={colors[status] || ""}>
+        {status}
+      </Badge>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <Skeleton className="h-24 rounded-lg" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="border-destructive/30">
+        <CardContent className="p-6 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+          <p className="text-sm">Failed to load QA reminder status</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="ml-auto shrink-0">
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const buttonLabel = sentThisWeek
+    ? `Already sent for ${currentWeek}`
+    : latestRun?.status === "failed"
+      ? "Retry Send"
+      : "Send Now";
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <ClipboardCheck className="h-4 w-4" /> QA Reminder
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {!latestRun ? (
+          <p className="text-sm text-muted-foreground">No QA reminders sent yet.</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div>
+              <p className="text-xs text-muted-foreground">Last run</p>
+              <p className="font-medium">{formatTimestamp(latestRun.created_at)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Week</p>
+              <p className="font-medium">{latestRun.week_key}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Status</p>
+              {statusBadge(latestRun.status)}
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Source</p>
+              <p className="font-medium">{latestRun.trigger_source}</p>
+            </div>
+          </div>
+        )}
+
+        {latestRun?.status === "failed" && latestRun.error_message && (
+          <p className="text-xs text-destructive bg-destructive/5 rounded p-2 break-all">
+            {latestRun.error_message.slice(0, 200)}
+          </p>
+        )}
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          Next scheduled: Monday 06:00 UTC (08:00 Madrid)
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant={sentThisWeek ? "outline" : "default"}
+            size="sm"
+            onClick={() => trigger()}
+            disabled={isTriggerPending || sentThisWeek}
+          >
+            {isTriggerPending ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4 mr-1" />
+            )}
+            {isTriggerPending ? "Sending…" : buttonLabel}
+          </Button>
+        </div>
+
+        {history.length > 1 && (
+          <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <ChevronDown className={`h-3 w-3 transition-transform ${historyOpen ? "rotate-180" : ""}`} />
+                Recent history ({history.length})
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-2 space-y-1">
+                {history.map((run) => (
+                  <div key={run.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="font-mono">{run.week_key}</span>
+                    {statusBadge(run.status)}
+                    <span>{run.trigger_source}</span>
+                    {run.error_message && (
+                      <span className="text-destructive truncate max-w-[200px]" title={run.error_message}>
+                        {run.error_message.slice(0, 40)}…
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 
 export function PlatformAssistant() {
   const { data, isLoading, isError, error, refetch } = useAssistantSummary();
