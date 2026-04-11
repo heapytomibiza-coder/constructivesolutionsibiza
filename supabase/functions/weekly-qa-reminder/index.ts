@@ -3,12 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /**
  * Weekly QA Reminder — Hardened
  *
- * Auth: Accepts INTERNAL_FUNCTION_SECRET via x-internal-secret header
- *       (for direct calls) or any valid bearer token (for pg_cron via anon key).
- *       Matches the pattern used by daily-health-check and process-nudges.
+ * Auth: Requires exact INTERNAL_FUNCTION_SECRET via x-internal-secret header.
+ *       Used by both direct calls and pg_cron scheduled invocation.
  *
  * Idempotency: Skips if already sent for this ISO week (qa_reminder_runs).
- *              This is the primary spam guard — max 1 send per week.
  * Logging: Writes every invocation result to qa_reminder_runs.
  * Dedup: Open risks are deduplicated by title, capped at 3.
  */
@@ -26,16 +24,11 @@ Deno.serve(async (req) => {
     return new Response("ok", { status: 200 });
   }
 
-  // --- Auth gate: x-internal-secret header or Authorization bearer ---
+  // --- Auth gate: exact internal secret only ---
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
   const secretHeader = req.headers.get("x-internal-secret") ?? "";
-  const authHeader = req.headers.get("Authorization") ?? "";
 
-  const hasInternalSecret = internalSecret && secretHeader === internalSecret;
-  const hasBearer = authHeader.startsWith("Bearer ");
-
-  // Reject calls with no credentials at all
-  if (!hasInternalSecret && !hasBearer) {
+  if (!internalSecret || secretHeader !== internalSecret) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
