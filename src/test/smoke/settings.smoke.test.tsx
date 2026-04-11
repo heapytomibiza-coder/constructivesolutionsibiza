@@ -12,6 +12,7 @@ vi.mock('@/integrations/supabase/client', () => ({
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      signOut: vi.fn().mockResolvedValue({ error: null }),
     },
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
@@ -21,7 +22,7 @@ vi.mock('@/integrations/supabase/client', () => ({
       upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
     })),
     rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
-      signOut: vi.fn().mockResolvedValue({ error: null }),
+  },
 }));
 
 vi.mock('react-i18next', () => ({
