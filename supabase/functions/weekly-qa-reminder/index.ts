@@ -3,9 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /**
  * Weekly QA Reminder — Hardened
  *
- * Security: validates bearer token matches either INTERNAL_FUNCTION_SECRET
- *           or the SUPABASE_ANON_KEY (for pg_cron scheduled calls).
- *           Rejects all unauthenticated requests.
+ * Security: validates INTERNAL_FUNCTION_SECRET or verifies JWT via Supabase auth.
  * Idempotency: skips if already sent for this ISO week.
  * Logging: writes every invocation to qa_reminder_runs.
  * Dedup: open risks are deduplicated by title before sending.
@@ -27,17 +25,29 @@ Deno.serve(async (req) => {
   // --- Auth gate ---
   const authHeader = req.headers.get("Authorization") ?? "";
   const providedToken = authHeader.replace(/^Bearer\s+/i, "");
-
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
-  // Debug: log token comparison (redacted)
-  console.log(`[auth] token_len=${providedToken.length} anon_len=${anonKey.length} internal_set=${!!internalSecret} anon_set=${!!anonKey} token_prefix=${providedToken.slice(0, 20)}`);
+  // Path 1: internal secret (direct match)
+  let isAuthed = !!(internalSecret && providedToken === internalSecret);
 
-  const isValidInternal = internalSecret && providedToken === internalSecret;
-  const isValidAnon = anonKey && providedToken === anonKey;
+  // Path 2: verify JWT claims (for pg_cron calls via anon key JWT)
+  if (!isAuthed && providedToken) {
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const verifyClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data, error } = await verifyClient.auth.getClaims(providedToken);
+      if (!error && data?.claims?.role === "anon") {
+        isAuthed = true;
+      }
+    } catch {
+      // JWT verification failed — not authed
+    }
+  }
 
-  if (!isValidInternal && !isValidAnon) {
+  if (!isAuthed) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
