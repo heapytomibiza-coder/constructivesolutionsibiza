@@ -30,17 +30,27 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
 
-  // Intent selection state (for signup flow) - START with intent selector
-  const [showIntentSelector, setShowIntentSelector] = useState(true);
   const [phone, setPhone] = useState('');
-  const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(null);
+
+  // Read URL params: support both ?mode=signup and ?tab=register
+  const urlTab = searchParams.get('tab');
+  const urlMode = searchParams.get('mode');
+  const urlRole = searchParams.get('role');
+  const isSignupFromUrl = urlMode === 'signup' || urlTab === 'register' || urlMode === 'pro';
+
+  // Pre-select intent from URL (e.g. ?role=professional from "Join as Professional")
+  const initialIntent: UserIntent | null =
+    urlRole === 'professional' || urlMode === 'pro' ? 'professional' : null;
+  const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(initialIntent);
+  // Skip intent selector if intent is pre-selected from URL
+  const [showIntentSelector, setShowIntentSelector] = useState(!initialIntent);
   
   // Post-signup state for confirmation messaging
   const [showConfirmationSent, setShowConfirmationSent] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState('');
   const [isResending, setIsResending] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(
-    searchParams.get('mode') === 'signup' ? 'signup' : 'signin'
+    isSignupFromUrl ? 'signup' : 'signin'
   );
 
   const returnUrl = searchParams.get('returnUrl'); // No default - let callback handle role-based routing
