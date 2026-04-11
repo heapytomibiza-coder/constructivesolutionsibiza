@@ -939,7 +939,10 @@ export function PlatformAssistant() {
         </CardContent>
       </Card>
 
-      {/* 4-Week Trends */}
+      {/* QA Reminder */}
+      <QaReminderCard />
+
+
       {trends.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
