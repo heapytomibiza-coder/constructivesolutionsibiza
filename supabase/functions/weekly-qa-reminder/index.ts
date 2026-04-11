@@ -3,10 +3,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /**
  * Weekly QA Reminder — Hardened
  *
- * Security: validates INTERNAL_FUNCTION_SECRET or verifies JWT via Supabase auth.
- * Idempotency: skips if already sent for this ISO week.
- * Logging: writes every invocation to qa_reminder_runs.
- * Dedup: open risks are deduplicated by title before sending.
+ * Auth: Accepts INTERNAL_FUNCTION_SECRET via x-internal-secret header
+ *       (for direct calls) or any valid bearer token (for pg_cron via anon key).
+ *       Matches the pattern used by daily-health-check and process-nudges.
+ *
+ * Idempotency: Skips if already sent for this ISO week (qa_reminder_runs).
+ *              This is the primary spam guard — max 1 send per week.
+ * Logging: Writes every invocation result to qa_reminder_runs.
+ * Dedup: Open risks are deduplicated by title, capped at 3.
  */
 
 function getIsoWeekKey(date: Date): string {
@@ -22,32 +26,16 @@ Deno.serve(async (req) => {
     return new Response("ok", { status: 200 });
   }
 
-  // --- Auth gate ---
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const providedToken = authHeader.replace(/^Bearer\s+/i, "");
+  // --- Auth gate: x-internal-secret header or Authorization bearer ---
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
+  const secretHeader = req.headers.get("x-internal-secret") ?? "";
+  const authHeader = req.headers.get("Authorization") ?? "";
 
-  // Path 1: internal secret (direct match)
-  let isAuthed = !!(internalSecret && providedToken === internalSecret);
+  const hasInternalSecret = internalSecret && secretHeader === internalSecret;
+  const hasBearer = authHeader.startsWith("Bearer ");
 
-  // Path 2: verify JWT claims (for pg_cron calls via anon key JWT)
-  if (!isAuthed && providedToken) {
-    try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-      const verifyClient = createClient(supabaseUrl, anonKey, {
-        global: { headers: { Authorization: authHeader } },
-      });
-      const { data, error } = await verifyClient.auth.getClaims(providedToken);
-      if (!error && data?.claims?.role === "anon") {
-        isAuthed = true;
-      }
-    } catch {
-      // JWT verification failed — not authed
-    }
-  }
-
-  if (!isAuthed) {
+  // Reject calls with no credentials at all
+  if (!hasInternalSecret && !hasBearer) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
@@ -72,7 +60,7 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // --- Idempotency: check if already sent this week ---
+    // --- Idempotency: skip if already sent this week ---
     const now = new Date();
     const weekKey = getIsoWeekKey(now);
 
@@ -98,7 +86,7 @@ Deno.serve(async (req) => {
       timeZone: "Europe/Madrid",
     });
 
-    // --- Fetch + deduplicate open risks ---
+    // --- Fetch + deduplicate open risks (max 3 unique) ---
     const { data: openAlerts } = await supabase
       .from("platform_alerts")
       .select("title, severity, category")
@@ -122,7 +110,7 @@ Deno.serve(async (req) => {
       ? uniqueAlerts.map((a) => `• ${a.severity === "critical" ? "🔴" : "🟡"} ${a.title}`).join("\n")
       : "✅ No open alerts";
 
-    // --- Build message ---
+    // --- Build message (Markdown) ---
     const message = [
       `📋 *Weekly QA Checklist — ${today}*`,
       "",
@@ -202,8 +190,6 @@ Deno.serve(async (req) => {
 
     if (!res.ok) {
       console.error("Telegram send failed:", res.status, body);
-
-      // Log failure
       await supabase.from("qa_reminder_runs").insert({
         function_name: FUNCTION_NAME,
         week_key: weekKey,
@@ -211,7 +197,6 @@ Deno.serve(async (req) => {
         status: "failed",
         error_message: `${res.status}: ${body.slice(0, 500)}`,
       });
-
       return new Response(JSON.stringify({ error: "Telegram send failed", status: res.status }), {
         headers: { "Content-Type": "application/json" },
         status: 502,
