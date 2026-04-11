@@ -84,11 +84,14 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
-                <Link to="/auth?tab=register&role=professional">
-                  {t('hero.joinAsPro')}
-                </Link>
-              </Button>
+              {/* Hide "Join as Professional" for users who already have the role */}
+              {!(isAuthenticated && hasRole('professional')) && (
+                <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
+                  <Link to="/auth?tab=register&role=professional">
+                    {t('hero.joinAsPro')}
+                  </Link>
+                </Button>
+              )}
             </div>
             <div className="hero-trust-badge mt-2">
               <Shield className="h-4 w-4" />
