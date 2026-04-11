@@ -195,9 +195,9 @@ export default function QuoteComparison() {
             </div>
             <QuoteComparisonCard
               quote={activeQuotes[0]}
-              onAccept={handleAccept}
+              onAccept={isJobOwner ? handleAccept : undefined}
               onMessage={handleMessage}
-              onDecline={handleDecline}
+              onDecline={isJobOwner ? handleDecline : undefined}
               isActing={acting}
             />
           </div>
@@ -209,9 +209,9 @@ export default function QuoteComparison() {
                 <QuoteComparisonCard
                   key={quote.id}
                   quote={quote}
-                  onAccept={handleAccept}
+                  onAccept={isJobOwner ? handleAccept : undefined}
                   onMessage={handleMessage}
-                  onDecline={handleDecline}
+                  onDecline={isJobOwner ? handleDecline : undefined}
                   isActing={acting}
                 />
               ))}
@@ -242,9 +242,9 @@ export default function QuoteComparison() {
               </div>
               <QuoteComparisonCard
                 quote={activeQuotes[mobileIndex]}
-                onAccept={handleAccept}
+                onAccept={isJobOwner ? handleAccept : undefined}
                 onMessage={handleMessage}
-                onDecline={handleDecline}
+                onDecline={isJobOwner ? handleDecline : undefined}
                 isActing={acting}
               />
               {/* Dot indicators */}
