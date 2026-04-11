@@ -1,86 +1,86 @@
 
 
-## Fix Plan: SMTP Authentication Failure & Email Recovery
+# Plan: Implement QA Test Suite for Constructive Solutions Ibiza
 
-### Root Cause (Confirmed)
-SMTP authentication failing with `535 Incorrect authentication data` against `bream-lon.krystal.uk:465` using `info@constructivesolutionsibiza.com`. The password stored in the `SMTP_PASSWORD` secret is invalid — likely revoked or rotated at the hosting provider (Krystal).
+## Current State
 
-### Damage Assessment
+You already have a solid test infrastructure:
+- **Vitest + React Testing Library + jsdom** configured
+- **CI pipeline** in `.github/workflows/ci.yml`
+- **Existing tests** across 3 layers:
+  - `src/test/access.test.ts` — unit tests for access rules
+  - `src/test/smoke/` — 7 smoke tests (auth, dashboard, guards, messages, onboarding, post, wizard)
+  - `src/test/interaction/` — 4 interaction tests (auth-redirect, dashboard-action, onboarding-flow, wizard-flow)
+  - `src/features/search/lib/__tests__/` — feature-level unit test
+- **Shared patterns**: mock factories for SessionContext, Supabase client, i18n, and trackEvent
 
-**86 dead-letter notifications** (attempts ≥ 3, permanently failed):
+## Coverage Gap Analysis
 
-| Event Type | Dead | Impact |
+Your 12-section QA spec maps to the existing tests like this:
+
+| Section | Existing Coverage | Gap |
 |---|---|---|
-| pro_signup | 48 | Welcome emails to new professionals |
-| new_message | 16 | **Users not notified of messages** |
-| job_match | 15 | Pros not notified of matching jobs |
-| welcome | 2 | Welcome emails |
-| nudge_onboarding_incomplete | 2 | Onboarding reminders |
-| admin_new_job | 1 | Admin notification |
-| admin_new_user | 1 | Admin notification |
-| job_posted_confirm | 1 | Job confirmation |
+| 1. Auth (AUTH-001–010) | Smoke: render, tabs, returnUrl. No signup/login/logout interaction tests | Missing: intent-based signup role validation, login redirect by role, password reset, logout |
+| 2. Route Guards (ROUTE-001–005) | Good coverage in guards.smoke.test.tsx + access.test.ts | Missing: role:client blocked from /dashboard/pro (only tests generic auth + admin) |
+| 3. Onboarding (ONB-001–006) | Smoke + interaction tests exist | Missing: step validation blocking, deep-link redirect, save/persist on refresh |
+| 4. Job Posting (JOB-001–004) | Smoke: render only | Missing: guest auth checkpoint, form validation, submission |
+| 5. Job Management (JOBM-001–003) | None | Fully missing |
+| 6. Quotes (QUOTE-001–004) | None | Fully missing |
+| 7. Messaging (MSG-001–004) | Smoke: render + empty states | Missing: send message, permissions, mark-as-read |
+| 8. Listings (LIST-001–004) | None | Fully missing |
+| 9. Admin (ADMIN-001–003) | None | Fully missing |
+| 10. Settings (SET-001–002) | None | Fully missing |
+| 11. Mobile (MOB-001–003) | None | Fully missing |
+| 12. Security (SEC-001–004) | Partially covered by access.test.ts | Missing: RPC integrity tests |
 
-The 16 `new_message` failures are the direct cause of "no replies" — clients never knew they had messages.
+## Implementation Approach
 
----
+### Layer Strategy
 
-### Step 1: Fix SMTP Credentials (User Action Required)
+Tests split into two layers matching your existing structure:
 
-You need to update the `SMTP_PASSWORD` secret with the correct password from your Krystal hosting panel.
+1. **Smoke tests** (`src/test/smoke/`) — Does the page render? Does it handle empty/error/loading states?
+2. **Interaction tests** (`src/test/interaction/`) — Does the user flow work? Does clicking/submitting produce the right outcome?
 
-**Check at your hosting provider (Krystal):**
-- Log into Krystal → Email → `info@constructivesolutionsibiza.com`
-- Check if the password was changed, expired, or the account was locked
-- Generate a new password if needed
-- I will then prompt you to enter the updated password as a secret
+All tests use the **existing mock patterns** (SessionContext, Supabase client, i18n) already established in your codebase.
 
-### Step 2: Verify Delivery
+### New Test Files
 
-After you update the secret:
-- Redeploy `send-notifications` edge function
-- Invoke the built-in SMTP test endpoint (`?action=test-smtp`) to confirm authentication succeeds
-- Confirm a real email arrives in the inbox
+**Smoke tests** (new files):
+- `src/test/smoke/settings.smoke.test.tsx` — SET-001, SET-002
+- `src/test/smoke/admin.smoke.test.tsx` — ADMIN-001, ADMIN-002, ADMIN-003
+- `src/test/smoke/listings.smoke.test.tsx` — LIST-001, LIST-002, LIST-003, LIST-004
+- `src/test/smoke/job-management.smoke.test.tsx` — JOBM-001, JOBM-002, JOBM-003
+- `src/test/smoke/quotes.smoke.test.tsx` — QUOTE-001, QUOTE-002
 
-### Step 3: Reset Dead-Letter Queue
+**Interaction tests** (new files):
+- `src/test/interaction/auth-signup.interaction.test.tsx` — AUTH-002, AUTH-003, AUTH-004, AUTH-005
+- `src/test/interaction/auth-login.interaction.test.tsx` — AUTH-006, AUTH-007, AUTH-008, AUTH-009, AUTH-010
+- `src/test/interaction/messaging.interaction.test.tsx` — MSG-002, MSG-003, MSG-004
+- `src/test/interaction/quote-accept.interaction.test.tsx` — QUOTE-002, QUOTE-003, QUOTE-004
 
-Run a migration to reset the 86 dead-letter items so they retry:
+**Enhanced existing files**:
+- `src/test/smoke/guards.smoke.test.tsx` — add ROUTE-003 (client blocked from pro dashboard)
+- `src/test/smoke/post.smoke.test.tsx` — add JOB-002 (guest auth checkpoint), JOB-004 (validation)
+- `src/test/access.test.ts` — add SEC-002 cross-role checks
 
-```sql
-UPDATE email_notifications_queue
-SET attempts = 0, last_error = 'reset:smtp-fix-20260411'
-WHERE sent_at IS NULL AND attempts >= 3;
-```
+**Unit tests** (new):
+- `src/test/security/rpc-integrity.test.ts` — SEC-003 (quote assignment uses server-side values)
 
-This resets all 86 failed items. The next cron cycle of `send-notifications` will pick them up and retry. The `new_message` items (16) will be processed alongside the rest.
+### What Will NOT Be Automated
 
-### Step 4: Add SMTP Failure Alerting
+These require manual QA or browser-level E2E (Playwright/Cypress), not Vitest:
+- **MOB-001–003**: Mobile viewport tests need real rendering. Will add a note in the test files pointing to manual QA checklist.
+- **SEC-001**: RLS enforcement requires real database queries — covered by Supabase linter + manual testing.
+- **AUTH-008/009**: Password reset email delivery — infrastructure test, not unit test.
 
-Update the `daily-health-check` edge function to:
-- **Flag SMTP auth failures specifically** — if the most recent `last_error` contains `535` or `EAUTH`, add a dedicated `🔴 SMTP AUTH FAILURE` line to the health report
-- **Threshold alert** — if failed emails > 10 in 24h, escalate to RED status regardless of other metrics
+### File Count
 
-This ensures SMTP failures cannot sit unnoticed for 24+ hours again.
+- **10 new test files**
+- **3 enhanced existing test files**
+- ~**65 new test cases** covering all automatable items from your 12 sections
 
-### Step 5: Quantify & Report
+### Execution
 
-After retry completes, query the queue and report:
-- How many of the 86 were successfully delivered
-- How many remain failed (and why)
-- Confirm new incoming messages trigger successful notifications
-
----
-
-### Sequence
-
-1. **You**: Update SMTP password at Krystal, then enter it as a secret
-2. **Me**: Redeploy edge function, run SMTP test, confirm delivery
-3. **Me**: Reset dead-letter queue (86 items)
-4. **Me**: Add SMTP alerting to daily health check
-5. **Me**: Report recovery numbers
-
-### What This Does NOT Touch
-- Messaging logic (confirmed working correctly)
-- Queue architecture (confirmed working correctly)
-- Telegram/WhatsApp notifications (unaffected — still working)
-- Resend API (used only by `send-job-notification`, separate path)
+All tests run via existing `vitest` config and CI pipeline. No config changes needed.
 
