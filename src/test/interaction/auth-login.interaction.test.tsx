@@ -43,7 +43,10 @@ describe('Auth login interaction tests', () => {
     );
     await waitFor(() => {
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+      // Password input has id="signin-password"
+      const passwordInput = document.getElementById('signin-password');
+      expect(passwordInput).toBeInTheDocument();
+      expect(passwordInput).toHaveAttribute('type', 'password');
     });
   });
 
