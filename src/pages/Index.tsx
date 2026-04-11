@@ -610,9 +610,11 @@ const Index = () => {
             <Button size="lg" variant="secondary" asChild>
               <Link to="/post">{t('home.finalCtaStart')}</Link>
             </Button>
-            <Button size="lg" variant="outline" className="bg-transparent border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" asChild>
-              <Link to="/auth?tab=register&role=professional">{t('home.finalCtaJoinPro')}</Link>
-            </Button>
+            {!(isAuthenticated && hasRole('professional')) && (
+              <Button size="lg" variant="outline" className="bg-transparent border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" asChild>
+                <Link to="/auth?tab=register&role=professional">{t('home.finalCtaJoinPro')}</Link>
+              </Button>
+            )}
           </div>
         </div>
       </section>
