@@ -3,10 +3,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /**
  * Weekly QA Reminder — Hardened
  *
- * Security: validates INTERNAL_FUNCTION_SECRET (must match Authorization header)
- * Idempotency: skips if already sent for this ISO week
- * Logging: writes every invocation to qa_reminder_runs
- * Dedup: open risks are deduplicated by title before sending
+ * Security: validates bearer token matches either INTERNAL_FUNCTION_SECRET
+ *           or the SUPABASE_ANON_KEY (for pg_cron scheduled calls).
+ *           Rejects all unauthenticated requests.
+ * Idempotency: skips if already sent for this ISO week.
+ * Logging: writes every invocation to qa_reminder_runs.
+ * Dedup: open risks are deduplicated by title before sending.
  */
 
 function getIsoWeekKey(date: Date): string {
@@ -22,17 +24,21 @@ Deno.serve(async (req) => {
     return new Response("ok", { status: 200 });
   }
 
-  // --- Auth gate: require INTERNAL_FUNCTION_SECRET ---
-  const expectedSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
-  if (!expectedSecret) {
-    console.error("INTERNAL_FUNCTION_SECRET not configured");
-    return new Response(JSON.stringify({ error: "Server misconfigured" }), { status: 500 });
-  }
-
+  // --- Auth gate ---
   const authHeader = req.headers.get("Authorization") ?? "";
   const providedToken = authHeader.replace(/^Bearer\s+/i, "");
-  if (providedToken !== expectedSecret) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+
+  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+  const isValidInternal = internalSecret && providedToken === internalSecret;
+  const isValidAnon = anonKey && providedToken === anonKey;
+
+  if (!isValidInternal && !isValidAnon) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // --- Env validation ---
