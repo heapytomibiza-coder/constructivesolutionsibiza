@@ -1,181 +1,213 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * Weekly QA Reminder — Hardened
+ *
+ * Security: validates INTERNAL_FUNCTION_SECRET (must match Authorization header)
+ * Idempotency: skips if already sent for this ISO week
+ * Logging: writes every invocation to qa_reminder_runs
+ * Dedup: open risks are deduplicated by title before sending
+ */
+
+function getIsoWeekKey(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { status: 200 });
   }
 
-  try {
-    const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
-    const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID") ?? "";
+  // --- Auth gate: require INTERNAL_FUNCTION_SECRET ---
+  const expectedSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
+  if (!expectedSecret) {
+    console.error("INTERNAL_FUNCTION_SECRET not configured");
+    return new Response(JSON.stringify({ error: "Server misconfigured" }), { status: 500 });
+  }
 
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const providedToken = authHeader.replace(/^Bearer\s+/i, "");
+  if (providedToken !== expectedSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+
+  // --- Env validation ---
+  const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
+  if (!TELEGRAM_BOT_TOKEN) {
+    return new Response(JSON.stringify({ error: "TELEGRAM_BOT_TOKEN not configured" }), { status: 500 });
+  }
+
+  const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID");
+  if (!TELEGRAM_CHAT_ID) {
+    return new Response(JSON.stringify({ error: "TELEGRAM_CHAT_ID not configured" }), { status: 500 });
+  }
+
+  const FUNCTION_NAME = "weekly-qa-reminder";
+
+  try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const today = new Date().toLocaleDateString("en-GB", {
+    // --- Idempotency: check if already sent this week ---
+    const now = new Date();
+    const weekKey = getIsoWeekKey(now);
+
+    const { data: existing } = await supabase
+      .from("qa_reminder_runs")
+      .select("id")
+      .eq("function_name", FUNCTION_NAME)
+      .eq("week_key", weekKey)
+      .eq("status", "sent")
+      .maybeSingle();
+
+    if (existing) {
+      return new Response(
+        JSON.stringify({ skipped: true, reason: `Already sent for ${weekKey}` }),
+        { headers: { "Content-Type": "application/json" }, status: 200 },
+      );
+    }
+
+    const today = now.toLocaleDateString("en-GB", {
       day: "numeric",
       month: "long",
       year: "numeric",
       timeZone: "Europe/Madrid",
     });
 
-    // Fetch recent open risks from platform_alerts
+    // --- Fetch + deduplicate open risks ---
     const { data: openAlerts } = await supabase
       .from("platform_alerts")
       .select("title, severity, category")
       .eq("status", "open")
       .order("created_at", { ascending: false })
-      .limit(5);
+      .limit(20);
 
-    const alertLines = openAlerts && openAlerts.length > 0
-      ? openAlerts.map((a) => `• ${a.severity === "critical" ? "🔴" : "🟡"} ${a.title}`).join("\n")
-      : "  ✅ No open alerts";
-
-    const message = [
-      `📋 Weekly QA Checklist — ${today}`,
-      "",
-      "Tester: __________",
-      "Environment: (Staging / Production)",
-      "Device: (iPhone / Android / Desktop)",
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "Section A: Mobile Reality Check (375px)",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "",
-      "□ Open job → modal fully visible",
-      "→ Try scrolling + tapping bottom buttons",
-      "→ RESULT:",
-      "",
-      "□ Accept quote → button visible & tappable",
-      "→ Try with keyboard open",
-      "→ RESULT:",
-      "",
-      "□ Keyboard → does NOT hide CTA",
-      "→ Focus input, try submit",
-      "→ RESULT:",
-      "",
-      "□ Toolbar / sticky UI → does NOT cover content",
-      "→ Scroll to bottom + interact",
-      "→ RESULT:",
-      "",
-      "□ Navigation → no lag / no stuck states",
-      "→ Rapid navigation between 3 pages",
-      "→ RESULT:",
-      "",
-      "□ Onboarding → submit button always reachable",
-      "→ Try incomplete + complete flows",
-      "→ RESULT:",
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "Section B: Core Trust Flows (CRITICAL)",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "",
-      "□ Sign up (client + pro)",
-      "→ Use NEW emails (not cached)",
-      "→ RESULT:",
-      "",
-      "□ Login redirect",
-      "→ Try accessing protected page BEFORE login",
-      "→ RESULT:",
-      "",
-      "□ Post job (full wizard)",
-      "→ Try skipping steps / invalid inputs",
-      "→ RESULT:",
-      "",
-      "□ Professional sees matched job",
-      "→ Confirm visibility is correct",
-      "→ RESULT:",
-      "",
-      "□ Send quote",
-      "→ Try empty / invalid values",
-      "→ RESULT:",
-      "",
-      "□ Accept quote",
-      "→ Click twice quickly (double-click test)",
-      "→ RESULT:",
-      "",
-      "□ Messaging",
-      "→ Send message → refresh → confirm persistence",
-      "→ RESULT:",
-      "",
-      "□ Job status updates",
-      "→ Check ALL views (client + pro dashboard)",
-      "→ RESULT:",
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "Section C: Role & Permissions (TRY TO BREAK IT)",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "",
-      "□ Client ↛ pro dashboard",
-      "→ Paste URL manually",
-      "→ RESULT:",
-      "",
-      "□ Client ↛ someone else's quote",
-      "→ Attempt via direct URL or UI",
-      "→ RESULT:",
-      "",
-      "□ Pro ↛ other pro's listings",
-      "→ Try editing via URL",
-      "→ RESULT:",
-      "",
-      "□ Non-admin ↛ admin routes",
-      "→ Paste admin URL",
-      "→ RESULT:",
-      "",
-      "□ Admin sees correct data",
-      "→ Spot check users/jobs",
-      "→ RESULT:",
-      "",
-      "□ Role switcher",
-      "→ Switch roles repeatedly (5x)",
-      "→ RESULT:",
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      'Section D: "Feels Broken?" (IMPORTANT)',
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "",
-      "□ Anything confusing? → Where exactly?",
-      "□ Buttons misleading? → Which ones?",
-      "□ Error messages helpful? → Copy + clarity",
-      "□ Anything look unfinished? → Screenshots required",
-      "□ Anything slow? → Where + how long",
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "Open Risks (from TRACEABILITY.md)",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "",
-      alertLines,
-      "",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "FINAL STATUS",
-      "━━━━━━━━━━━━━━━━━━━━━━",
-      "",
-      "Critical issues found: ___",
-      "Non-critical issues: ___",
-      "",
-      "Release safe? (Yes / No)",
-      "",
-      "Notes:",
-    ].join("\n");
-
-    // Send to Telegram
-    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-      const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: message,
-        }),
-      });
-      const body = await res.text();
-      if (!res.ok) {
-        console.error("Telegram send failed:", res.status, body);
+    const seen = new Set<string>();
+    const uniqueAlerts: typeof openAlerts = [];
+    if (openAlerts) {
+      for (const a of openAlerts) {
+        if (!seen.has(a.title)) {
+          seen.add(a.title);
+          uniqueAlerts.push(a);
+        }
+        if (uniqueAlerts.length >= 3) break;
       }
     }
 
-    return new Response(JSON.stringify({ success: true, message }), {
+    const alertLines = uniqueAlerts.length > 0
+      ? uniqueAlerts.map((a) => `• ${a.severity === "critical" ? "🔴" : "🟡"} ${a.title}`).join("\n")
+      : "✅ No open alerts";
+
+    // --- Build message ---
+    const message = [
+      `📋 *Weekly QA Checklist — ${today}*`,
+      "",
+      "Tester: \\_\\_\\_\\_\\_\\_\\_\\_\\_\\_",
+      "Environment: _(Staging / Production)_",
+      "Device: _(iPhone / Android / Desktop)_",
+      "",
+      "*━━ Section A: Mobile (375px) ━━*",
+      "",
+      "□ Open job → modal fully visible",
+      "  → Scroll + tap bottom buttons",
+      "",
+      "□ Accept quote → button visible",
+      "  → Try with keyboard open",
+      "",
+      "□ Keyboard → does NOT hide CTA",
+      "  → Focus input, try submit",
+      "",
+      "□ Toolbar → does NOT cover content",
+      "  → Scroll to bottom + interact",
+      "",
+      "□ Navigation → no lag / stuck",
+      "  → Rapid nav between 3 pages",
+      "",
+      "□ Onboarding → submit reachable",
+      "  → Try incomplete + complete",
+      "",
+      "*━━ Section B: Core Flows (CRITICAL) ━━*",
+      "",
+      "□ Sign up (client + pro) → new emails",
+      "□ Login redirect → protected page first",
+      "□ Post job → skip steps / bad input",
+      "□ Pro sees matched job → visibility",
+      "□ Send quote → empty / invalid values",
+      "□ Accept quote → double-click test",
+      "□ Messaging → send → refresh → persists",
+      "□ Job status → all views (client+pro)",
+      "",
+      "*━━ Section C: Permissions (BREAK IT) ━━*",
+      "",
+      "□ Client ↛ pro dashboard (paste URL)",
+      "□ Client ↛ someone else's quote",
+      "□ Pro ↛ other pro's listings",
+      "□ Non-admin ↛ admin routes",
+      "□ Admin sees correct data",
+      "□ Role switcher → 5x rapid switch",
+      "",
+      "*━━ Section D: Feels Broken? ━━*",
+      "",
+      "□ Confusing? → Where",
+      "□ Misleading buttons? → Which",
+      "□ Bad error messages? → Copy them",
+      "□ Unfinished? → Screenshot",
+      "□ Slow? → Where + how long",
+      "",
+      "*━━ Open Risks ━━*",
+      "",
+      alertLines,
+      "",
+      "*━━ FINAL STATUS ━━*",
+      "",
+      "Critical: \\_\\_\\_ | Non-critical: \\_\\_\\_",
+      "Release safe? *(Yes / No)*",
+    ].join("\n");
+
+    // --- Send to Telegram ---
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: "Markdown",
+      }),
+    });
+    const body = await res.text();
+
+    if (!res.ok) {
+      console.error("Telegram send failed:", res.status, body);
+
+      // Log failure
+      await supabase.from("qa_reminder_runs").insert({
+        function_name: FUNCTION_NAME,
+        week_key: weekKey,
+        destination: "telegram",
+        status: "failed",
+        error_message: `${res.status}: ${body.slice(0, 500)}`,
+      });
+
+      return new Response(JSON.stringify({ error: "Telegram send failed", status: res.status }), {
+        headers: { "Content-Type": "application/json" },
+        status: 502,
+      });
+    }
+
+    // Log success
+    await supabase.from("qa_reminder_runs").insert({
+      function_name: FUNCTION_NAME,
+      week_key: weekKey,
+      destination: "telegram",
+      status: "sent",
+    });
+
+    return new Response(JSON.stringify({ success: true, week_key: weekKey }), {
       headers: { "Content-Type": "application/json" },
       status: 200,
     });
