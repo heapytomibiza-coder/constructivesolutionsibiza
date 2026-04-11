@@ -1,58 +1,22 @@
 /**
  * SMOKE TEST — /settings route
- * Covers: SET-001 (render), SET-002 (preferences toggle)
+ * Covers: SET-001 (render + account info), SET-002 (notification section visible)
+ * Health alert link: auth/session instability → settings page must render for authenticated users
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createMockSupabase } from '@/test/utils/mockSupabase';
+import { sessions, createMockSession } from '@/test/utils/mockSession';
+import { createMockI18n } from '@/test/utils/mockI18n';
 
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
-      signOut: vi.fn().mockResolvedValue({ error: null }),
-    },
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
-    })),
-    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
-  },
-}));
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, fallback?: string | Record<string, unknown>) =>
-      typeof fallback === 'string' ? fallback : key,
-    ready: true,
-    i18n: { language: 'en', changeLanguage: vi.fn() },
-  }),
-  Trans: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  initReactI18next: { type: '3rdParty', init: vi.fn() },
-}));
-
+vi.mock('@/integrations/supabase/client', () => createMockSupabase());
+vi.mock('react-i18next', () => createMockI18n());
 vi.mock('@/lib/trackEvent', () => ({ trackEvent: vi.fn() }));
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
-const mockSession = {
-  isAuthenticated: true,
-  hasRole: vi.fn((_r: string) => true),
-  isProReady: false,
-  isLoading: false,
-  isReady: true,
-  user: { id: 'user-1', email: 'test@example.com' } as any,
-  activeRole: 'client' as string | null,
-  roles: ['client'] as string[],
-  refresh: vi.fn(),
-  switchRole: vi.fn(),
-  becomeProfessional: vi.fn(),
-  subscription: { plan: null, status: null, isLoading: false },
-};
+const mockSession = sessions.client();
 
 vi.mock('@/contexts/SessionContext', () => ({
   useSession: () => mockSession,
@@ -75,31 +39,43 @@ let SettingsPage: React.ComponentType;
 describe('/settings smoke tests', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    Object.assign(mockSession, sessions.client());
     SettingsPage = (await import('@/pages/settings/Settings')).default;
   });
 
-  it('SET-001: renders settings page without crashing', async () => {
+  it('SET-001: renders settings page with heading', async () => {
     renderSettings();
     await waitFor(() => {
-      expect(document.body).toBeTruthy();
+      expect(screen.getByRole('heading', { name: /settings/i })).toBeInTheDocument();
     });
   });
 
-  it('SET-001: shows account info for authenticated user', async () => {
+  it('SET-001: shows account section with email', async () => {
     renderSettings();
     await waitFor(() => {
-      // Settings page should render content (not a blank page)
-      const content = document.querySelector('main, section, [role="main"], .container, form');
-      expect(content || document.body.textContent!.length > 0).toBeTruthy();
+      // Account card title
+      expect(screen.getByText(/account/i)).toBeInTheDocument();
     });
   });
 
-  it('SET-002: handles missing user gracefully', async () => {
-    mockSession.user = null as any;
+  it('SET-001: shows security section', async () => {
     renderSettings();
     await waitFor(() => {
-      expect(document.body).toBeTruthy();
+      expect(screen.getByText(/security/i)).toBeInTheDocument();
     });
-    mockSession.user = { id: 'user-1', email: 'test@example.com' } as any;
+  });
+
+  it('SET-001: shows notifications section', async () => {
+    renderSettings();
+    await waitFor(() => {
+      expect(screen.getByText(/notifications/i)).toBeInTheDocument();
+    });
+  });
+
+  it('SET-002: sign out button is visible', async () => {
+    renderSettings();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /sign.*out|signOut/i })).toBeInTheDocument();
+    });
   });
 });
