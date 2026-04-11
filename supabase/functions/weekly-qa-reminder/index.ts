@@ -31,6 +31,9 @@ Deno.serve(async (req) => {
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
+  // Debug: log token comparison (redacted)
+  console.log(`[auth] token_len=${providedToken.length} anon_len=${anonKey.length} internal_set=${!!internalSecret} anon_set=${!!anonKey} token_prefix=${providedToken.slice(0, 20)}`);
+
   const isValidInternal = internalSecret && providedToken === internalSecret;
   const isValidAnon = anonKey && providedToken === anonKey;
 
