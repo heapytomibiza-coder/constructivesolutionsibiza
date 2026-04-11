@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/trackEvent';
-import { Loader2, User, Phone, ArrowRight, MapPin } from 'lucide-react';
+import { Loader2, User, Phone, ArrowRight, MapPin, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { nextPhase } from '@/pages/onboarding/lib/phaseProgression';
 import { useTranslation } from 'react-i18next';
@@ -33,15 +34,18 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
   const { user, refresh, professionalProfile } = useSession();
   const currentPhase = professionalProfile?.onboardingPhase ?? 'not_started';
   const queryClient = useQueryClient();
+  const zoneSectionRef = useRef<HTMLDivElement>(null);
   
   const [formData, setFormData] = useState<BasicInfoData>({
     display_name: '',
     phone: '',
   });
 
-  // Zone state
+  // Zone state — default to island-wide for new users
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [islandWide, setIslandWide] = useState(false);
+  const [showSpecificZones, setShowSpecificZones] = useState(false);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   // Load existing data
   const { data: existingData, isLoading } = useQuery({
@@ -77,11 +81,16 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
       // Hydrate zones
       const zones = existingData.service_zones || [];
       const allIds = allZoneIds();
-      if (zones.includes('island-wide') || zones.length === allIds.length) {
+      if (zones.length === 0) {
+        // New user — default to island-wide
+        setIslandWide(true);
+        setSelectedZones(allIds);
+      } else if (zones.includes('island-wide') || zones.length === allIds.length) {
         setIslandWide(true);
         setSelectedZones(allIds);
       } else {
         setSelectedZones(zones);
+        setShowSpecificZones(true);
       }
     }
   }, [existingData]);
@@ -131,7 +140,7 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
 
   const handleIslandWide = () => {
     if (islandWide) { setIslandWide(false); setSelectedZones([]); }
-    else { setIslandWide(true); setSelectedZones(allZoneIds()); }
+    else { setIslandWide(true); setSelectedZones(allZoneIds()); setShowSpecificZones(false); }
   };
 
   const handleSelectGroup = (groupZones: { id: string }[]) => {
@@ -142,14 +151,19 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
     setIslandWide(false);
   };
 
+  const canSubmit = formData.display_name.trim().length > 0 && selectedZones.length > 0;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setHasAttemptedSubmit(true);
+
     if (!formData.display_name.trim()) {
       toast.error(t('basicInfo.enterName'));
       return;
     }
     if (selectedZones.length === 0) {
-      toast.error(t('basicInfo.selectZone'));
+      // Scroll to zone section
+      zoneSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     saveMutation.mutate({ ...formData, zones: selectedZones });
@@ -162,6 +176,8 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
       </div>
     );
   }
+
+  const showZoneError = hasAttemptedSubmit && selectedZones.length === 0;
 
   return (
     <Card className="card-grounded animate-fade-in">
@@ -214,37 +230,47 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
             )}
           </div>
 
-          {/* Zone Picker */}
-          <div className="space-y-4 animate-fade-in">
+          {/* Zone Picker — simplified with island-wide default */}
+          <div ref={zoneSectionRef} className={cn('space-y-4 animate-fade-in rounded-xl p-4 -mx-4', showZoneError && 'ring-2 ring-destructive/50 bg-destructive/5')}>
             <Label className="text-base font-medium flex items-center gap-2">
               <MapPin className="h-5 w-5 text-muted-foreground" />
-              {t('serviceArea.title')}
+              {t('serviceArea.whereBasedTitle', { defaultValue: 'Where are you based?' })}
             </Label>
-            <p className="text-sm text-muted-foreground">{t('serviceArea.description')}</p>
+            <p className="text-sm text-muted-foreground">
+              {t('serviceArea.whereBasedDesc', { defaultValue: 'We\'ll send you jobs in these areas. You can change this anytime.' })}
+            </p>
 
             <IslandWideTile selected={islandWide} onClick={handleIslandWide} />
 
-            <div className="space-y-5">
-              {IBIZA_ZONES.map((group) => (
-                <div key={group.group} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-base font-semibold text-foreground">{t(`serviceArea.${group.group}`)}</h4>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => handleSelectGroup(group.zones)} className="text-sm text-primary hover:text-primary/80">
-                      {group.zones.every(z => selectedZones.includes(z.id)) ? t('serviceArea.deselectAll') : t('serviceArea.selectAll')}
-                    </Button>
+            <Collapsible open={showSpecificZones} onOpenChange={setShowSpecificZones}>
+              <CollapsibleTrigger asChild>
+                <Button type="button" variant="ghost" className="w-full justify-between text-sm text-muted-foreground hover:text-foreground">
+                  {t('serviceArea.chooseSpecific', { defaultValue: 'Or choose specific areas' })}
+                  <ChevronDown className={cn('h-4 w-4 transition-transform', showSpecificZones && 'rotate-180')} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-5 pt-2">
+                {IBIZA_ZONES.map((group) => (
+                  <div key={group.group} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-base font-semibold text-foreground">{t(`serviceArea.${group.group}`)}</h4>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => handleSelectGroup(group.zones)} className="text-sm text-primary hover:text-primary/80">
+                        {group.zones.every(z => selectedZones.includes(z.id)) ? t('serviceArea.deselectAll') : t('serviceArea.selectAll')}
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {group.zones.map((zone) => (
+                        <ZoneTile key={zone.id} selected={selectedZones.includes(zone.id)} onClick={() => handleZoneToggle(zone.id)} label={zone.label} />
+                      ))}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {group.zones.map((zone) => (
-                      <ZoneTile key={zone.id} selected={selectedZones.includes(zone.id)} onClick={() => handleZoneToggle(zone.id)} label={zone.label} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
 
-            {selectedZones.length > 0 && (
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 text-base text-foreground animate-fade-in">
-                <MapPin className="h-5 w-5 text-primary shrink-0" />
+            {selectedZones.length > 0 && !showZoneError && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 text-sm text-foreground animate-fade-in">
+                <MapPin className="h-4 w-4 text-primary shrink-0" />
                 <span>
                   {islandWide
                     ? t('serviceArea.islandWide')
@@ -252,9 +278,15 @@ export function BasicInfoStep({ onComplete }: BasicInfoStepProps) {
                 </span>
               </div>
             )}
+
+            {showZoneError && (
+              <p className="text-sm font-medium text-destructive">
+                {t('serviceArea.selectRequired', { defaultValue: 'Select at least one area to continue' })}
+              </p>
+            )}
           </div>
 
-          <Button type="submit" size="lg" className="w-full animate-fade-in" disabled={saveMutation.isPending}>
+          <Button type="submit" size="lg" className="w-full animate-fade-in" disabled={!canSubmit || saveMutation.isPending}>
             {saveMutation.isPending ? (
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
             ) : (

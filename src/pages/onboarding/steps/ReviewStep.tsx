@@ -1,6 +1,6 @@
 /**
  * ReviewStep - Final review and Go Live step
- * Builder-friendly: Clear checklist, encouraging language
+ * Split checklist: name, phone, zones, jobs — each with specific fix action
  */
 
 import { useState, useEffect } from 'react';
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle2, Rocket, Loader2, User, Briefcase, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Rocket, Loader2, User, Phone, MapPin, Briefcase, AlertCircle } from 'lucide-react';
 import { getCategoryIconByName } from '@/lib/categoryIcons';
 import { txCategory, txMicro } from '@/i18n/taxonomyTranslations';
 import { toast } from 'sonner';
@@ -120,10 +120,41 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold">{t('review.checklist')}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Merged: name + phone + zones into one checklist item */}
-          <ChecklistItem icon={User} label={t('review.aboutYou')} description={t('review.aboutYouDesc')} isComplete={hasBasicInfo && hasPhone && hasServiceArea} onClick={() => onNavigate?.('basic_info')} />
-          <ChecklistItem icon={Briefcase} label={t('review.jobsSelected')} description={t('review.jobsSelectedDesc', { count: selectedMicroIds.size })} isComplete={hasServices} onClick={() => onNavigate?.('services')} />
+        <CardContent className="space-y-3">
+          <ChecklistItem
+            icon={User}
+            label={t('review.yourName', { defaultValue: 'Your name' })}
+            description={hasBasicInfo
+              ? (professionalProfile?.displayName || professionalProfile?.businessName || '')
+              : t('review.yourNameMissing', { defaultValue: 'Add your name so clients know who you are' })}
+            isComplete={hasBasicInfo}
+            onClick={() => onNavigate?.('basic_info')}
+          />
+          <ChecklistItem
+            icon={Phone}
+            label={t('review.phoneNumber', { defaultValue: 'Phone number' })}
+            description={hasPhone
+              ? effectivePhone!
+              : t('review.phoneMissing', { defaultValue: 'Add a phone number so we can reach you' })}
+            isComplete={hasPhone}
+            onClick={() => onNavigate?.('basic_info')}
+          />
+          <ChecklistItem
+            icon={MapPin}
+            label={t('review.serviceAreas', { defaultValue: 'Service areas' })}
+            description={hasServiceArea
+              ? t('review.zonesSelected', { defaultValue: '{{count}} areas selected', count: effectiveZones.length })
+              : t('review.zonesMissing', { defaultValue: 'Choose where you want to receive jobs' })}
+            isComplete={hasServiceArea}
+            onClick={() => onNavigate?.('basic_info')}
+          />
+          <ChecklistItem
+            icon={Briefcase}
+            label={t('review.jobsSelected')}
+            description={t('review.jobsSelectedDesc', { count: selectedMicroIds.size })}
+            isComplete={hasServices}
+            onClick={() => onNavigate?.('services')}
+          />
         </CardContent>
       </Card>
 
@@ -172,17 +203,28 @@ export function ReviewStep({ onBack, onNavigate }: ReviewStepProps) {
 }
 
 function ChecklistItem({ icon: Icon, label, description, isComplete, onClick }: { icon: React.ComponentType<{ className?: string }>; label: string; description: string; isComplete: boolean; onClick?: () => void; }) {
-  const isClickable = !!onClick;
   return (
-    <div className={cn('flex items-center gap-4 p-4 rounded-xl border-2 transition-colors', isComplete ? 'bg-primary/10 border-primary/40' : 'bg-muted/30 border-border', isClickable && 'cursor-pointer hover:border-primary/50 hover:bg-muted/50 active:scale-[0.98]')} onClick={onClick} role={isClickable ? 'button' : undefined}>
+    <div
+      className={cn(
+        'flex items-center gap-4 p-4 rounded-xl border-2 transition-colors',
+        isComplete ? 'bg-primary/10 border-primary/40' : 'bg-muted/30 border-border',
+        !isComplete && onClick && 'cursor-pointer hover:border-primary/50 hover:bg-muted/50 active:scale-[0.98]'
+      )}
+      onClick={!isComplete ? onClick : undefined}
+      role={!isComplete && onClick ? 'button' : undefined}
+    >
       <div className={cn('flex h-12 w-12 items-center justify-center rounded-full shrink-0', isComplete ? 'bg-primary/20' : 'bg-muted')}>
         {isComplete ? <CheckCircle2 className="h-6 w-6 text-primary" /> : <AlertCircle className="h-6 w-6 text-muted-foreground" />}
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <p className={cn('font-semibold text-base', isComplete ? 'text-foreground' : 'text-muted-foreground')}>{label}</p>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm text-muted-foreground truncate">{description}</p>
       </div>
-      {isComplete && <Icon className="h-5 w-5 text-primary shrink-0" />}
+      {isComplete ? (
+        <Icon className="h-5 w-5 text-primary shrink-0" />
+      ) : onClick ? (
+        <span className="text-sm font-medium text-primary shrink-0">{/* Fix arrow */}→</span>
+      ) : null}
     </div>
   );
 }
