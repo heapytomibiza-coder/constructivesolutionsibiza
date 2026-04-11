@@ -15,7 +15,7 @@ import type { Quote } from '@/pages/jobs/types';
 
 interface QuoteComparisonCardProps {
   quote: Quote;
-  onAccept: (quoteId: string) => void;
+  onAccept?: (quoteId: string) => void;
   onMessage: (professionalId: string) => void;
   onDecline?: (quoteId: string) => void;
   isActing?: boolean;
@@ -103,17 +103,19 @@ export function QuoteComparisonCard({
         </div>
 
         {/* Actions */}
-        {isActive && (
+        {isActive && (onAccept || onDecline) && (
           <div className="flex gap-2 pt-2">
-            <Button
-              size="sm"
-              className="flex-1 gap-1.5"
-              onClick={() => onAccept(quote.id)}
-              disabled={isActing}
-            >
-              <Check className="h-3.5 w-3.5" />
-              {t('quoteComparison.accept', 'Accept')}
-            </Button>
+            {onAccept && (
+              <Button
+                size="sm"
+                className="flex-1 gap-1.5"
+                onClick={() => onAccept(quote.id)}
+                disabled={isActing}
+              >
+                <Check className="h-3.5 w-3.5" />
+                {t('quoteComparison.accept', 'Accept')}
+              </Button>
+            )}
             <Button
               size="sm"
               variant="outline"
@@ -135,6 +137,21 @@ export function QuoteComparisonCard({
                 <X className="h-3.5 w-3.5" />
               </Button>
             )}
+          </div>
+        )}
+        {/* Message-only fallback for non-owners viewing active quotes */}
+        {isActive && !onAccept && !onDecline && (
+          <div className="flex gap-2 pt-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 gap-1.5"
+              onClick={() => onMessage(quote.professional_id)}
+              disabled={isActing}
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              {t('quoteComparison.message', 'Message')}
+            </Button>
           </div>
         )}
       </CardContent>

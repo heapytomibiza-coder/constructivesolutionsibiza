@@ -54,7 +54,7 @@ export default function QuoteComparison() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('jobs')
-        .select('id, title, status')
+        .select('id, title, status, user_id')
         .eq('id', jobId!)
         .maybeSingle();
       if (error) throw error;
@@ -62,6 +62,13 @@ export default function QuoteComparison() {
     },
     enabled: !!jobId,
   });
+
+  // Determine if current user is the job owner — only owners can accept/decline quotes
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
+  }, []);
+  const isJobOwner = !!job?.user_id && job.user_id === currentUserId;
 
   const { data: quotes = [], isLoading } = useQuotesForJob(jobId ?? null);
   const activeQuotes = quotes.filter(q => q.status !== 'withdrawn');
@@ -188,9 +195,9 @@ export default function QuoteComparison() {
             </div>
             <QuoteComparisonCard
               quote={activeQuotes[0]}
-              onAccept={handleAccept}
+              onAccept={isJobOwner ? handleAccept : undefined}
               onMessage={handleMessage}
-              onDecline={handleDecline}
+              onDecline={isJobOwner ? handleDecline : undefined}
               isActing={acting}
             />
           </div>
@@ -202,9 +209,9 @@ export default function QuoteComparison() {
                 <QuoteComparisonCard
                   key={quote.id}
                   quote={quote}
-                  onAccept={handleAccept}
+                  onAccept={isJobOwner ? handleAccept : undefined}
                   onMessage={handleMessage}
-                  onDecline={handleDecline}
+                  onDecline={isJobOwner ? handleDecline : undefined}
                   isActing={acting}
                 />
               ))}
@@ -235,9 +242,9 @@ export default function QuoteComparison() {
               </div>
               <QuoteComparisonCard
                 quote={activeQuotes[mobileIndex]}
-                onAccept={handleAccept}
+                onAccept={isJobOwner ? handleAccept : undefined}
                 onMessage={handleMessage}
-                onDecline={handleDecline}
+                onDecline={isJobOwner ? handleDecline : undefined}
                 isActing={acting}
               />
               {/* Dot indicators */}
