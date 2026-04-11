@@ -28,7 +28,7 @@
 ### Output
 
 - **Pass** → no action required
-- **Fail** → alert in Slack / email immediately
+- **Fail** → alert in Telegram channel immediately (via `daily-health-check` edge function)
 
 ### Owner
 
@@ -86,6 +86,8 @@ Confirm nothing broke when changes were combined.
 ## 4. Weekly Manual QA (60–90 minutes)
 
 > **This is the most important missing piece in most test strategies.**
+>
+> A Telegram reminder with the full checklist is sent automatically every Monday at 08:00 (Madrid time) via the `weekly-qa-reminder` edge function.
 >
 > Do this once per week — same day each week. Document results.
 
