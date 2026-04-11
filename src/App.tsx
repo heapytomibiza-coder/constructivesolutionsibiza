@@ -202,6 +202,10 @@ const App = () => {
             {/* Backward-compat redirects */}
             <Route path="/marketplace" element={<Navigate to="/services" replace />} />
             <Route path="/marketplace/:listingId" element={<MarketplaceListingRedirect />} />
+            {/* Short-path redirects — prevent 404 on common shortcuts */}
+            <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
+            <Route path="/admin/*" element={<Navigate to="/dashboard/admin" replace />} />
+            <Route path="/onboarding/pro" element={<Navigate to="/onboarding/professional" replace />} />
             {/* launch-checklist moved inside admin routes below */}
             
             {/* Forum - Public read, auth for new posts */}
