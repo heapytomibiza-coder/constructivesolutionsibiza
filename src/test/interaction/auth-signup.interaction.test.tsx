@@ -53,11 +53,12 @@ describe('Auth signup interaction tests', () => {
     });
   });
 
-  it('AUTH-004: email input has type=email for browser validation', async () => {
+  it('AUTH-004: signup page shows intent selection step', async () => {
     renderAuth();
     await waitFor(() => {
-      const emailInput = screen.getByLabelText(/email/i);
-      expect(emailInput).toHaveAttribute('type', 'email');
+      // Signup flow starts with intent selection ("I need help" / "I offer services")
+      // Intent cards are rendered as clickable elements
+      expect(screen.getByText(/intent\.title/)).toBeInTheDocument();
     });
   });
 
