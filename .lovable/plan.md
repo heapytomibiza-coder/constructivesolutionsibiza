@@ -1,86 +1,43 @@
 
 
-# Stability & Hardening Sprint — Phase 2
+## Fix Plan: Professional Profile Data Integrity Gap
 
-Based on the deep audit continuation, here are the verified findings and the concrete sprint to address them.
+### Problem
+Two users (`b10b23f8`, `d6f67cd7`) have the `professional` role but no `professional_profiles` row, causing 406 errors on every page load. This is not an onboarding regression — it's a pre-existing data integrity gap exposed by the session hook.
 
-## Verified Findings
+### What the health report actually shows
+- The 9 onboarding errors are **stale-build artifacts** from a single user on April 10 who was running the old bundle. That user has since completed onboarding.
+- The 9 `professional_profiles` 406 errors are all from `/messages` and `/` routes, not onboarding. They affect users with orphaned role assignments.
+- Onboarding zone backfill is confirmed working: 0 of 20 `service_setup` users have missing zones.
 
-### Confirmed Critical
-1. **Background jobs have NO scheduling** — `pg_cron` extension is enabled in 4 migrations but zero `cron.schedule()` calls exist anywhere. `send-notifications`, `process-nudges`, `refresh-demand-snapshots`, `daily-health-check`, `generate-weekly-ai-report`, `weekly-kpi-digest`, `dispute-deadline-automation`, and `optimize-image` are deployed but never invoked automatically.
-2. **5 native `confirm()` calls** remain in destructive actions (JobTicketDetail ×2, QuoteComparison ×1, CancellationRequestCard ×1, DisputeDetail ×1).
-3. **`/launch-checklist` is publicly accessible** — internal developer page with no auth gate.
-4. **6 components in `dashboard/client/components/`** make direct Supabase calls (architecture violation).
-5. **236 `.single()` calls across 29 files** — many are on lookups that could legitimately return 0 rows.
+### Fixes (2 items)
 
-### Confirmed Medium
-6. **9 edge functions have `verify_jwt = false`** in config.toml for background/webhook functions — correct for cron/webhook use, but `collect-attribution`, `generate-bio`, `listing-description-assist`, `search-stock-photos`, `translate-content`, `update-user-email`, `backfill-translations`, `seed-electrical` have no config entries (they inherit default `verify_jwt = true` from Lovable Cloud, which is correct).
-7. **`dangerouslySetInnerHTML`** — only in `chart.tsx` for CSS injection (developer-controlled). No user content paths. Safe.
+**1. SQL migration: Create missing `professional_profiles` rows**
 
----
+Insert `professional_profiles` rows with `onboarding_phase = 'not_started'` for any user who has the `professional` role but no corresponding profile row. This closes the data gap immediately.
 
-## Sprint Plan
-
-### Ticket 1 (P0): Schedule Background Jobs via pg_cron
-Create a single migration that registers `cron.schedule()` entries for all background edge functions:
-
-| Function | Schedule | Notes |
-|----------|----------|-------|
-| `send-notifications` | Every 2 minutes | Process email queue |
-| `process-nudges` | Every 15 minutes | Stalled journey nudges |
-| `daily-health-check` | Daily 06:00 UTC | Platform health snapshot |
-| `refresh-demand-snapshots` | Daily 05:00 UTC | Pro insights data |
-| `dispute-deadline-automation` | Every 30 minutes | Deadline enforcement |
-| `generate-weekly-ai-report` | Weekly Monday 07:00 UTC | Admin AI summary |
-| `weekly-kpi-digest` | Weekly Monday 06:30 UTC | KPI email |
-
-Each job calls the edge function via `pg_net` HTTP POST with the internal secret header. The migration will also create a `cron_job_log` view or use `cron.job_run_details` for observability.
-
-### Ticket 2 (P0): Replace All `confirm()` with AlertDialog
-Replace native `confirm()` in 5 locations with shadcn AlertDialog:
-- `JobTicketDetail.tsx` — close job, withdraw from job (2 calls)
-- `QuoteComparison.tsx` — decline quote
-- `CancellationRequestCard.tsx` — accept/decline cancellation
-- `DisputeDetail.tsx` — re-analyze dispute
-
-Pattern: Add local `AlertDialog` state, trigger on button click, execute mutation in `onConfirm` callback.
-
-### Ticket 3 (P1): Gate `/launch-checklist` Behind Admin Auth
-Wrap the route in `RouteGuard` with `access: 'admin'` so only admin users can access it.
-
-### Ticket 4 (P1): Extract Dashboard Client Component Supabase Calls
-Move inline Supabase calls from 6 components into proper action/query files:
-- `CancellationRequestCard.tsx` → `actions/respondToCancellation.action.ts`
-- `JobTicketCompletion.tsx` → `actions/requestCompletion.action.ts`
-- `ProgressUpdates.tsx` → `actions/addProgressUpdate.action.ts`
-- `PortfolioPrompt.tsx` → `actions/savePortfolioProject.action.ts`
-- `ProQuoteSummary.tsx` → `actions/addQuoteLineItem.action.ts`
-- `ClientJobCard.tsx` → already uses `cancel_job` RPC, extract to `actions/cancelJob.action.ts`
-
-### Ticket 5 (P2): Convert High-Risk `.single()` to `.maybeSingle()`
-Focus on lookups where a missing row is a valid state (not inserts):
-- `ListingPreviewDrawer.tsx` (admin drawer — profile/micro lookups)
-- `adminUserDetails.query.ts` (profile/roles lookups)
-- `serviceListings.query.ts` (provider profile, micro category, subcategory, category chain)
-- `QuoteComparison.tsx` (job lookup)
-- `QuestionsStep.tsx` (fallback question pack lookup)
-- `forumQueries.ts` (category by slug, post by id)
-- `hydrateFromJob.ts` (job lookup for edit mode)
-- `useListingEditor.ts` (listing lookup)
-- `disputes.query.ts` (dispute detail)
-- `RaiseDispute.tsx` (job lookup)
-
-Leave `.single()` on insert-then-select patterns (messages, forum posts/replies) where a missing row is genuinely an error.
-
-```text
-Ticket  Priority  Effort    Files Changed
-──────  ────────  ────────  ─────────────
-1       P0        45 min    1 migration
-2       P0        1 hr      5 files
-3       P1        5 min     1 file (App.tsx)
-4       P1        1 hr      6 new files + 6 edited
-5       P2        1 hr      ~12 files
+```sql
+INSERT INTO professional_profiles (user_id, onboarding_phase)
+SELECT ur.user_id, 'not_started'
+FROM user_roles ur
+WHERE 'professional' = ANY(ur.roles)
+AND NOT EXISTS (
+  SELECT 1 FROM professional_profiles pp WHERE pp.user_id = ur.user_id
+)
+ON CONFLICT DO NOTHING;
 ```
 
-Total: ~3.5 hours, 1 migration, ~12 new files, ~18 edited files.
+**2. Defensive guard in `useSessionSnapshot.ts`**
+
+After the `professional_profiles` query, if the user has the professional role but `proResult.data` is null, log a warning and treat it as a new user (not an error). This prevents 406-type failures from reaching error monitoring for this edge case going forward.
+
+### What this does NOT touch
+- Onboarding flow code (confirmed stable)
+- Alert rules or release discipline (already correct)
+- The old-build errors (self-resolving)
+
+### Technical details
+- File: `src/hooks/useSessionSnapshot.ts` (~line 143-160)
+- Migration: single INSERT statement
+- No schema changes, no new tables
 
