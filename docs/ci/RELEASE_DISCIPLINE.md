@@ -87,11 +87,11 @@ Mobile QA must verify:
 
 ### Onboarding Bottleneck (RED — rate-based)
 
-**Rule:** >5 professionals stuck at the **same phase within the last 24 hours**.
+**Rule:** More than 5 professionals stuck at the **same phase within the last 24 hours**.
 
-**What it detects:** Are we accumulating new stuck users at a specific step? This catches systemic issues early — before they become a backlog.
+**What it detects:** Whether new stuck users are accumulating at a specific step. This is designed to catch systemic issues early, before they become a backlog.
 
-**Logic:** Counts users whose `updated_at` is within the last 24h but more than 1h ago (excluding actively-in-progress users), grouped by phase.
+**Logic:** Counts users whose `updated_at` is within the last 24 hours but more than 1 hour ago, grouped by phase. The 1-hour buffer excludes users who are still actively progressing.
 
 **Action:** Same-day investigation via the onboarding funnel page.
 
@@ -99,95 +99,93 @@ Mobile QA must verify:
 
 **Rule:** Any professionals stuck in onboarding for 6+ hours.
 
-**What it detects:** General awareness of the stuck user backlog. May include users who abandoned intentionally.
+**What it detects:** General awareness of the stuck-user backlog. This may include users who abandoned intentionally.
 
-**Action:** Review during daily check.
+**Action:** Review during the daily check.
 
 ### Daily Funnel Check (baseline protection)
 
 Even if no alerts fire, the onboarding funnel **must be checked once per day**.
 
-**Purpose:** Alerts detect spikes and systemic failures. Daily checks detect **slow leaks and gradual drop-off** that never cross an alert threshold.
+**Purpose:** Alerts catch spikes and systemic failures. Daily checks catch **slow leaks and gradual drop-off** that never crosses an alert threshold.
 
-**This check should take under 30 seconds and confirm:**
+**This check should confirm:**
 
 - Step-to-step conversion looks normal
-- No unexpected drop-off at any step
-- No small accumulation of stuck users that has not yet triggered alerts
+- There is no unexpected drop-off at any step
+- There is no small accumulation of stuck users that has not yet triggered an alert
 
 **This protects against both:**
 
 - Sudden failures → caught by alerts
-- Gradual degradation → caught by daily check
+- Gradual degradation → caught by daily review
 
 This is a **lightweight but non-negotiable baseline**.
 
 ---
 
-## Ownership — Build vs Live Responsibility
+## Build vs Live Responsibility
 
 ### Why this exists
 
 The onboarding failure happened because:
 - The system was built without full protection
-- No one was explicitly responsible for checking it live
-- Users got stuck and we didn't see it early
+- Nobody was explicitly responsible for checking it live
+- Users got stuck and we did not see it early
 
-Saying "we both own it" creates a gap where nobody is explicitly responsible. This section closes that gap with **clear responsibility at specific moments** — not hierarchy.
+Saying "we both own it" creates a gap. This section closes that gap by assigning **clear responsibility at specific moments**.
 
 ### 1. Build Responsibility (Lovable)
 
 Before any change to a critical flow ships, Lovable is responsible for:
 
-- Implementing the feature or change
+- Implementing the change
 - Adding or updating automated tests
-- Ensuring validation is strict (no silent failures)
+- Ensuring validation is strict and visible
 - Running through the flow end-to-end before release
-- Confirming mobile behaviour (375px) is usable
+- Confirming mobile behaviour at 375px is usable
 - Ensuring alerts and tracking are in place
 
 **This must be confirmed explicitly before release.**
 
-### 2. Live Responsibility (Owner)
+### 2. Live Responsibility (Product Owner — Me)
 
-After release, the product owner is responsible for:
+After release, I am responsible for:
 
 - Checking the flow in production within 24 hours
-- Reviewing the funnel (step progression, drop-offs)
+- Reviewing the funnel for step progression and drop-off
 - Checking for stuck users
 - Verifying alerts are clean
-- Flagging any abnormal behaviour immediately
+- Flagging abnormal behaviour immediately
 
 ### Non-negotiable rule
 
 Any change to a critical flow **must** have:
 
-- ✅ A confirmed "Build Responsibility" checklist before release
-- ✅ A confirmed "Live Responsibility" check within 24 hours of going live
-- ✅ Both roles explicitly assigned — no ambiguity
+- ✅ A confirmed Build Responsibility checklist before release
+- ✅ A confirmed Live Responsibility check within 24 hours of going live
+- ✅ Both roles explicitly assigned with no ambiguity
 
 ---
 
-## Ownership Cadence
+## Responsibility Cadence
 
-### Onboarding Ownership
-
-| Responsibility | Owner | Cadence |
-|---------------|-------|---------|
-| Respond to bottleneck alerts (red) | Owner | **Same day** |
-| Respond to stuck onboarding alerts (yellow) | Owner | **Same day** |
-| Daily funnel check (baseline) | Owner | **Daily** |
-| Post-release validation after any onboarding change | Owner | **Within 24 hours** |
-| Daily funnel checks after an onboarding release | Owner | **Daily for 5 business days** |
-| Update test coverage when new onboarding logic ships | Lovable | **Before merge** |
+| Responsibility | Responsible | Cadence |
+|---------------|-------------|---------|
+| Respond to bottleneck alerts (red) | Product Owner (Me) | **Same day** |
+| Respond to stuck onboarding alerts (yellow) | Product Owner (Me) | **Same day** |
+| Daily funnel check (baseline) | Product Owner (Me) | **Daily** |
+| Post-release validation after any onboarding change | Product Owner (Me) | **Within 24 hours** |
+| Daily funnel checks after an onboarding release | Product Owner (Me) | **Daily for 5 business days** |
+| Update test coverage when onboarding logic changes | Lovable | **Before merge** |
 | Ensure alerts and tracking are in place | Lovable | **Before merge** |
 
-### What "post-release validation" means
+### What post-release validation means
 
-Within 24h of any deploy that touches onboarding:
+Within 24 hours of any deploy that touches onboarding:
 1. Check the funnel page — are step-to-step drop-offs normal?
-2. Check stuck-user counts — any new accumulation?
-3. Check error logs — any `onboarding_step_failed` events with real messages (not `[object Object]`)?
+2. Check stuck-user counts — is anything accumulating?
+3. Check error logs — are onboarding failures readable and actionable?
 4. Manually run through onboarding on mobile (375px) to confirm the flow works end-to-end
 
 ---
