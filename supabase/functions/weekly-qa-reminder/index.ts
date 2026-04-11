@@ -26,16 +26,16 @@ Deno.serve(async (req) => {
     return new Response("ok", { status: 200 });
   }
 
-  // --- Auth gate: x-internal-secret header or Authorization bearer ---
+  // --- Auth gate: exact anon key or exact internal secret only ---
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
   const secretHeader = req.headers.get("x-internal-secret") ?? "";
   const authHeader = req.headers.get("Authorization") ?? "";
 
   const hasInternalSecret = internalSecret && secretHeader === internalSecret;
-  const hasBearer = authHeader.startsWith("Bearer ");
+  const hasAnonKey = anonKey && authHeader === `Bearer ${anonKey}`;
 
-  // Reject calls with no credentials at all
-  if (!hasInternalSecret && !hasBearer) {
+  if (!hasInternalSecret && !hasAnonKey) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
