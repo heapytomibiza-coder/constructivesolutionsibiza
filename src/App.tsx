@@ -47,6 +47,7 @@ const Privacy = lazy(() => import("./pages/public/Privacy"));
 const Terms = lazy(() => import("./pages/public/Terms"));
 const DisputePolicy = lazy(() => import("./pages/public/DisputePolicy"));
 const About = lazy(() => import("./pages/public/About"));
+const Presentation = lazy(() => import("./pages/public/Presentation"));
 const ForProfessionals = lazy(() => import("./pages/public/ForProfessionals"));
 const PricingPublicPage = lazy(() => import("./pages/public/Pricing"));
 const ReputationPage = lazy(() => import("./pages/public/Reputation"));
