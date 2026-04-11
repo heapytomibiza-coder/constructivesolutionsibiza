@@ -6,12 +6,16 @@ import { jobKeys } from "./keys";
 /**
  * Fetch all publicly listed open jobs for the job board.
  */
-export async function fetchJobsBoard(): Promise<JobsBoardRow[]> {
-  const { data, error } = await supabase
+export async function fetchJobsBoard(signal?: AbortSignal): Promise<JobsBoardRow[]> {
+  const query = supabase
     .from("jobs_board")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(200);
+
+  if (signal) query.abortSignal(signal);
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return (data ?? []) as unknown as JobsBoardRow[];
@@ -23,7 +27,7 @@ export async function fetchJobsBoard(): Promise<JobsBoardRow[]> {
 export function useJobsBoard() {
   return useQuery({
     queryKey: jobKeys.board(),
-    queryFn: fetchJobsBoard,
+    queryFn: ({ signal }) => fetchJobsBoard(signal),
     staleTime: 30_000,
   });
 }
