@@ -231,6 +231,13 @@ export function useSessionSnapshot(): SessionSnapshot {
           serviceZones: proResult.data.service_zones || [],
         });
       } else {
+        // Defensive guard: if user has professional role but no profile row,
+        // log a warning instead of letting 406 errors reach monitoring.
+        if (resolvedRoles.includes('professional')) {
+          console.warn(
+            `[SessionSnapshot] User ${userId} has professional role but no professional_profiles row. Treating as not_started.`
+          );
+        }
         setProfessionalProfile(null);
       }
     } catch (err) {
