@@ -7,13 +7,17 @@ import { jobKeys } from "./keys";
 /**
  * Fetch matched jobs for a professional user.
  */
-export async function fetchMatchedJobs(userId: string): Promise<JobsBoardRow[]> {
-  const { data, error } = await supabase
+export async function fetchMatchedJobs(userId: string, signal?: AbortSignal): Promise<JobsBoardRow[]> {
+  const query = supabase
     .from("matched_jobs_for_professional")
     .select("*")
     .eq("professional_user_id", userId)
     .order("created_at", { ascending: false })
     .limit(200);
+
+  if (signal) query.abortSignal(signal);
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return (data ?? []) as unknown as JobsBoardRow[];
@@ -29,7 +33,7 @@ export function useMatchedJobs() {
 
   const query = useQuery({
     queryKey: user?.id ? jobKeys.matched(user.id) : jobKeys.matchedNone(),
-    queryFn: () => fetchMatchedJobs(user!.id),
+    queryFn: ({ signal }) => fetchMatchedJobs(user!.id, signal),
     enabled: !!user?.id && isProfessional,
     staleTime: 30_000,
   });
