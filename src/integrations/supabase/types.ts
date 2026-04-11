@@ -2389,6 +2389,8 @@ export type Database = {
           id: string
           sent_at: string
           status: string
+          trigger_source: string
+          triggered_by: string | null
           week_key: string
         }
         Insert: {
@@ -2399,6 +2401,8 @@ export type Database = {
           id?: string
           sent_at?: string
           status?: string
+          trigger_source?: string
+          triggered_by?: string | null
           week_key: string
         }
         Update: {
@@ -2409,6 +2413,8 @@ export type Database = {
           id?: string
           sent_at?: string
           status?: string
+          trigger_source?: string
+          triggered_by?: string | null
           week_key?: string
         }
         Relationships: []
@@ -4221,6 +4227,7 @@ export type Database = {
         Args: { p_event_name: string; p_metadata?: Json; p_role?: string }
         Returns: undefined
       }
+      trigger_qa_reminder: { Args: never; Returns: Json }
       withdraw_from_job: { Args: { p_job_id: string }; Returns: undefined }
     }
     Enums: {

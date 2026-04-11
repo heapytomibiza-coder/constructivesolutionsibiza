@@ -19,6 +19,17 @@ function getIsoWeekKey(date: Date): string {
   return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
 }
 
+/** Parse trigger metadata from request body (safe — never throws) */
+function parseTriggerMeta(body: unknown): { source: string; triggeredBy: string | null } {
+  const defaults = { source: "cron", triggeredBy: null };
+  if (!body || typeof body !== "object") return defaults;
+  const obj = body as Record<string, unknown>;
+  return {
+    source: typeof obj.source === "string" ? obj.source : "cron",
+    triggeredBy: typeof obj.triggered_by === "string" ? obj.triggered_by : null,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { status: 200 });
@@ -47,6 +58,15 @@ Deno.serve(async (req) => {
   }
 
   const FUNCTION_NAME = "weekly-qa-reminder";
+
+  // --- Parse trigger metadata from body ---
+  let requestBody: unknown = null;
+  try {
+    requestBody = await req.json();
+  } catch {
+    // No body or invalid JSON — use defaults
+  }
+  const triggerMeta = parseTriggerMeta(requestBody);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -189,6 +209,8 @@ Deno.serve(async (req) => {
         destination: "telegram",
         status: "failed",
         error_message: `${res.status}: ${body.slice(0, 500)}`,
+        trigger_source: triggerMeta.source,
+        triggered_by: triggerMeta.triggeredBy,
       });
       return new Response(JSON.stringify({ error: "Telegram send failed", status: res.status }), {
         headers: { "Content-Type": "application/json" },
@@ -202,6 +224,8 @@ Deno.serve(async (req) => {
       week_key: weekKey,
       destination: "telegram",
       status: "sent",
+      trigger_source: triggerMeta.source,
+      triggered_by: triggerMeta.triggeredBy,
     });
 
     return new Response(JSON.stringify({ success: true, week_key: weekKey }), {
