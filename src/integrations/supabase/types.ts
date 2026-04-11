@@ -2380,6 +2380,39 @@ export type Database = {
         }
         Relationships: []
       }
+      qa_reminder_runs: {
+        Row: {
+          created_at: string
+          destination: string
+          error_message: string | null
+          function_name: string
+          id: string
+          sent_at: string
+          status: string
+          week_key: string
+        }
+        Insert: {
+          created_at?: string
+          destination?: string
+          error_message?: string | null
+          function_name: string
+          id?: string
+          sent_at?: string
+          status?: string
+          week_key: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          error_message?: string | null
+          function_name?: string
+          id?: string
+          sent_at?: string
+          status?: string
+          week_key?: string
+        }
+        Relationships: []
+      }
       question_packs: {
         Row: {
           created_at: string
