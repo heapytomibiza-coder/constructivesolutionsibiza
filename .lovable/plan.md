@@ -1,86 +1,122 @@
 
 
-# Plan: Implement QA Test Suite for Constructive Solutions Ibiza
+# Quote Acceptance Flow — Full Analysis and Behavioral Test Plan
 
-## Current State
+## Current Architecture
 
-You already have a solid test infrastructure:
-- **Vitest + React Testing Library + jsdom** configured
-- **CI pipeline** in `.github/workflows/ci.yml`
-- **Existing tests** across 3 layers:
-  - `src/test/access.test.ts` — unit tests for access rules
-  - `src/test/smoke/` — 7 smoke tests (auth, dashboard, guards, messages, onboarding, post, wizard)
-  - `src/test/interaction/` — 4 interaction tests (auth-redirect, dashboard-action, onboarding-flow, wizard-flow)
-  - `src/features/search/lib/__tests__/` — feature-level unit test
-- **Shared patterns**: mock factories for SessionContext, Supabase client, i18n, and trackEvent
+The quote acceptance flow has three entry points, all calling the same `acceptQuote()` action:
 
-## Coverage Gap Analysis
+1. **QuoteCard** (job ticket detail) — role="client" gate on the Accept button
+2. **QuoteComparison** (dashboard page) — no explicit ownership check before calling accept
+3. **AssignProSelector** (admin/dashboard widget) — dropdown + assign button
 
-Your 12-section QA spec maps to the existing tests like this:
+All three call `acceptQuote(quoteId, jobId, professionalId)` which calls the `accept_quote_and_assign` RPC. The RPC is `SECURITY DEFINER` and performs:
 
-| Section | Existing Coverage | Gap |
+- Row-level lock on job (`FOR UPDATE`)
+- Ownership check: `v_job.user_id != auth.uid()` → `not_authorized`
+- Already-assigned check: `assigned_professional_id IS NOT NULL` → `job_already_assigned`
+- Status check: must be `open` or `posted` → `job_not_assignable`
+- Quote existence + job match check → `quote_not_found`
+- Quote status check: must be `submitted` or `revised` → `quote_not_acceptable`
+- Derives `professional_id` from the quote record (not from client input)
+- Atomically: accepts quote, rejects others, assigns pro, moves job to `in_progress`
+
+## What the Existing Tests Actually Prove
+
+### Current tests (7 total across 2 files):
+
+| Test | What it proves | Verdict |
 |---|---|---|
-| 1. Auth (AUTH-001–010) | Smoke: render, tabs, returnUrl. No signup/login/logout interaction tests | Missing: intent-based signup role validation, login redirect by role, password reset, logout |
-| 2. Route Guards (ROUTE-001–005) | Good coverage in guards.smoke.test.tsx + access.test.ts | Missing: role:client blocked from /dashboard/pro (only tests generic auth + admin) |
-| 3. Onboarding (ONB-001–006) | Smoke + interaction tests exist | Missing: step validation blocking, deep-link redirect, save/persist on refresh |
-| 4. Job Posting (JOB-001–004) | Smoke: render only | Missing: guest auth checkpoint, form validation, submission |
-| 5. Job Management (JOBM-001–003) | None | Fully missing |
-| 6. Quotes (QUOTE-001–004) | None | Fully missing |
-| 7. Messaging (MSG-001–004) | Smoke: render + empty states | Missing: send message, permissions, mark-as-read |
-| 8. Listings (LIST-001–004) | None | Fully missing |
-| 9. Admin (ADMIN-001–003) | None | Fully missing |
-| 10. Settings (SET-001–002) | None | Fully missing |
-| 11. Mobile (MOB-001–003) | None | Fully missing |
-| 12. Security (SEC-001–004) | Partially covered by access.test.ts | Missing: RPC integrity tests |
+| RPC params don't include professionalId | Payload tamper protection | **Real** |
+| Only 2 keys sent to RPC | No extra field injection | **Real** |
+| Success returns `{ success: true }` | Happy path action result | **Shallow** — only checks return value, not what happens next |
+| `job_already_assigned` error mapped | Error string mapping | **Real but narrow** |
+| Unauthenticated blocked | Auth gate | **Real** |
+| `not_authorized` error mapped | Error string mapping | **Real but narrow** |
+| `quote_not_acceptable` error mapped | Error string mapping | **Real but narrow** |
 
-## Implementation Approach
+### What these tests do NOT prove:
 
-### Layer Strategy
+1. **UI does not show Accept button to non-owners** — QuoteCard gates on `role="client"` prop, but nothing verifies the prop is set correctly based on actual job ownership
+2. **Double-click prevention** — `handleAccept` sets `acting=true` but no test proves a second click is blocked
+3. **UI state after acceptance** — no test verifies query invalidation happens, status badge updates, or navigation occurs
+4. **QuoteComparison page ownership** — the page fetches job data but never checks `job.user_id === currentUser.id` before rendering accept buttons
+5. **AssignProSelector** — zero tests
+6. **Modal confirmation flow** — AcceptConfirmationModal is untested; no proof the confirm button calls the right action
+7. **Job status not checked in UI before showing accept** — QuoteCard shows accept for any `isActive` quote regardless of job status (the RPC catches it, but the user gets a confusing error instead of a hidden button)
+8. **Network failure** — no test for what happens when RPC throws a non-specific error
+9. **Quote belonging to wrong job** — RPC handles it, but the mismatch case `v_quote.job_id != p_job_id` is not tested at action level
+10. **Concurrent acceptance race** — two clients accepting simultaneously (only testable E2E)
 
-Tests split into two layers matching your existing structure:
+## Failure Modes Identified
 
-1. **Smoke tests** (`src/test/smoke/`) — Does the page render? Does it handle empty/error/loading states?
-2. **Interaction tests** (`src/test/interaction/`) — Does the user flow work? Does clicking/submitting produce the right outcome?
+| # | Failure | Layer | Current Protection | Test Coverage |
+|---|---|---|---|---|
+| 1 | Wrong user accepts quote | DB | RPC ownership check | Error mapping tested, UI gating NOT tested |
+| 2 | Duplicate acceptance (double click) | UI + DB | `acting` state + RPC status check | Neither tested |
+| 3 | Job already assigned | DB | RPC check | Error mapping tested |
+| 4 | Manipulated professionalId | Action | professionalId not sent to RPC | Tested |
+| 5 | Network failure mid-action | UI | Generic error fallback | NOT tested |
+| 6 | Quote on wrong job | DB | RPC cross-check | NOT tested at action level |
+| 7 | Accepting withdrawn/rejected quote | DB | RPC status check | Tested (quote_not_acceptable) |
+| 8 | Job in wrong status (completed/cancelled) | DB | RPC status check | NOT tested |
+| 9 | Accept button visible to pro role | UI | `role="client"` prop | NOT tested |
+| 10 | Concurrent acceptance (two tabs) | DB | `FOR UPDATE` lock | Requires E2E |
 
-All tests use the **existing mock patterns** (SessionContext, Supabase client, i18n) already established in your codebase.
+## Plan: New Behavioral Tests
 
-### New Test Files
+### File: `src/test/interaction/quote-accept.interaction.test.tsx` — REPLACE entirely
 
-**Smoke tests** (new files):
-- `src/test/smoke/settings.smoke.test.tsx` — SET-001, SET-002
-- `src/test/smoke/admin.smoke.test.tsx` — ADMIN-001, ADMIN-002, ADMIN-003
-- `src/test/smoke/listings.smoke.test.tsx` — LIST-001, LIST-002, LIST-003, LIST-004
-- `src/test/smoke/job-management.smoke.test.tsx` — JOBM-001, JOBM-002, JOBM-003
-- `src/test/smoke/quotes.smoke.test.tsx` — QUOTE-001, QUOTE-002
+The existing file has 5 tests that are partially duplicated with `rpc-integrity.test.ts`. Replace with a comprehensive behavioral suite:
 
-**Interaction tests** (new files):
-- `src/test/interaction/auth-signup.interaction.test.tsx` — AUTH-002, AUTH-003, AUTH-004, AUTH-005
-- `src/test/interaction/auth-login.interaction.test.tsx` — AUTH-006, AUTH-007, AUTH-008, AUTH-009, AUTH-010
-- `src/test/interaction/messaging.interaction.test.tsx` — MSG-002, MSG-003, MSG-004
-- `src/test/interaction/quote-accept.interaction.test.tsx` — QUOTE-002, QUOTE-003, QUOTE-004
+**Happy path (2 tests):**
+- Accept returns success AND `trackEvent` is called with correct quote/pro IDs
+- Accept with generic RPC success — verify RPC called exactly once (no duplicate calls)
 
-**Enhanced existing files**:
-- `src/test/smoke/guards.smoke.test.tsx` — add ROUTE-003 (client blocked from pro dashboard)
-- `src/test/smoke/post.smoke.test.tsx` — add JOB-002 (guest auth checkpoint), JOB-004 (validation)
-- `src/test/access.test.ts` — add SEC-002 cross-role checks
+**Error states — every RPC error code (6 tests):**
+- `job_not_found` → user-friendly "Job not found"
+- `not_authorized` → "Not authorized"
+- `job_already_assigned` → "already has an assigned professional"
+- `job_not_assignable` → "must be open to accept"
+- `quote_not_found` → "Quote not found"
+- `quote_not_acceptable` → "not in an acceptable status"
 
-**Unit tests** (new):
-- `src/test/security/rpc-integrity.test.ts` — SEC-003 (quote assignment uses server-side values)
+**Permission enforcement (2 tests):**
+- Unauthenticated user → blocked before RPC, returns "Not authenticated"
+- RPC not called when auth fails (verify `mockRpc` not called)
 
-### What Will NOT Be Automated
+**Data integrity (2 tests):**
+- professionalId param is NOT sent to RPC (kept from existing)
+- Only exactly 2 keys sent to RPC (kept from existing)
 
-These require manual QA or browser-level E2E (Playwright/Cypress), not Vitest:
-- **MOB-001–003**: Mobile viewport tests need real rendering. Will add a note in the test files pointing to manual QA checklist.
-- **SEC-001**: RLS enforcement requires real database queries — covered by Supabase linter + manual testing.
-- **AUTH-008/009**: Password reset email delivery — infrastructure test, not unit test.
+**Edge cases (3 tests):**
+- Generic/unknown RPC error → returns "Failed to accept quote" (not raw error)
+- RPC returns `null` error (success case handles cleanly)
+- Network exception (RPC throws instead of returning error object) — verify graceful handling
 
-### File Count
+**Total: 15 behavioral tests replacing 5 shallow ones + 2 from rpc-integrity**
 
-- **10 new test files**
-- **3 enhanced existing test files**
-- ~**65 new test cases** covering all automatable items from your 12 sections
+### File: `src/test/security/rpc-integrity.test.ts` — KEEP but add
 
-### Execution
+Add 1 test:
+- Calling `acceptQuote` with mismatched jobId/quoteId still only sends those exact values to RPC (proves client can't influence which professional gets assigned even with wrong IDs)
 
-All tests run via existing `vitest` config and CI pipeline. No config changes needed.
+### NOT automatable in Vitest (label explicitly):
+
+- **Requires E2E (Playwright):** Concurrent acceptance from two browser tabs — verify only one succeeds and the other gets `job_already_assigned`
+- **Requires E2E (Playwright):** Double-click on Accept button — verify only one RPC call fires
+- **Requires E2E (Playwright):** QuoteComparison page accessed by non-owner — verify accept button behavior
+- **Requires E2E (Playwright):** After acceptance, job status badge updates to "In Progress" without manual refresh
+- **Manual QA required:** AcceptConfirmationModal on mobile (375px) — confirm button reachable, modal scrollable, not covered by keyboard
+
+### Code issue found during analysis (fix in same PR):
+
+**`QuoteComparison.tsx` line 52-64** — fetches job but never checks ownership. The accept button is shown to anyone who navigates to `/dashboard/jobs/:jobId/quotes`. The RPC will reject them, but the UI should not show the button. This is a UX bug, not a security bug (RPC is the real gate). Recommend adding `job.user_id` to the query and comparing against session user before rendering accept actions.
+
+## Technical Details
+
+- All tests use existing mock patterns (vi.mock for supabase client and trackEvent)
+- Dynamic imports (`await import(...)`) used per test to avoid module caching issues with mocks
+- No new dependencies required
+- Tests run in existing Vitest + CI pipeline
 
