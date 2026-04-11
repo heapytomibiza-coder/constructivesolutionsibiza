@@ -418,5 +418,6 @@ export function useSessionSnapshot(): SessionSnapshot {
     error,
     refresh,
     switchRole,
+    becomeProfessional,
   };
 }
