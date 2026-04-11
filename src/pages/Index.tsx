@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useSession } from '@/contexts/SessionContext';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -57,6 +58,7 @@ const RESOLUTION_KEYS = ['resolution1', 'resolution2', 'resolution3', 'resolutio
 
 const Index = () => {
   const { t } = useTranslation('common');
+  const { isAuthenticated, hasRole } = useSession();
 
   return (
     <PublicLayout>
@@ -82,11 +84,14 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
-                <Link to="/auth?tab=register&role=professional">
-                  {t('hero.joinAsPro')}
-                </Link>
-              </Button>
+              {/* Hide "Join as Professional" for users who already have the role */}
+              {!(isAuthenticated && hasRole('professional')) && (
+                <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
+                  <Link to="/auth?tab=register&role=professional">
+                    {t('hero.joinAsPro')}
+                  </Link>
+                </Button>
+              )}
             </div>
             <div className="hero-trust-badge mt-2">
               <Shield className="h-4 w-4" />
@@ -605,9 +610,11 @@ const Index = () => {
             <Button size="lg" variant="secondary" asChild>
               <Link to="/post">{t('home.finalCtaStart')}</Link>
             </Button>
-            <Button size="lg" variant="outline" className="bg-transparent border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" asChild>
-              <Link to="/auth?tab=register&role=professional">{t('home.finalCtaJoinPro')}</Link>
-            </Button>
+            {!(isAuthenticated && hasRole('professional')) && (
+              <Button size="lg" variant="outline" className="bg-transparent border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" asChild>
+                <Link to="/auth?tab=register&role=professional">{t('home.finalCtaJoinPro')}</Link>
+              </Button>
+            )}
           </div>
         </div>
       </section>
