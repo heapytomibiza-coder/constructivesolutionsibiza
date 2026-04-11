@@ -133,7 +133,33 @@ const LaunchChecklist = lazy(() => import("./pages/LaunchChecklist"));
 // Defer non-essential widgets
 const ReportIssueWidget = lazy(() => import('./components/ReportIssueWidget').then(m => ({ default: m.ReportIssueWidget })));
 
-const queryClient = new QueryClient();
+/** Silently ignore AbortErrors — these are expected during route changes / remounts. */
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      throwOnError: false,
+    },
+    mutations: {
+      throwOnError: false,
+    },
+  },
+  queryCache: new QueryCache({
+    onError: (error) => {
+      if (isAbortError(error)) return;       // swallow cancelled requests
+      console.error("[QueryCache]", error);
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      if (isAbortError(error)) return;
+      console.error("[MutationCache]", error);
+    },
+  }),
+});
 
 /** Suspense fallback — minimal centered spinner matching the i18n loader */
 function PageLoader() {
