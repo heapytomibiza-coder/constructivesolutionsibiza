@@ -8,18 +8,6 @@ Deno.serve(async (req) => {
     return new Response("ok", { status: 200 });
   }
 
-  // Verify internal or service call
-  const authHeader = req.headers.get("authorization") ?? "";
-  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  const token = authHeader.replace("Bearer ", "");
-  const isAuthorized = token === internalSecret || token === serviceKey || token === anonKey;
-
-  if (!isAuthorized) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-  }
-
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
