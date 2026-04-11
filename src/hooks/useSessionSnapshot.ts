@@ -301,6 +301,27 @@ export function useSessionSnapshot(): SessionSnapshot {
     }
   }, [user, roles]);
 
+  // ── Become professional (atomic role + profile creation) ────────────
+  const becomeProfessional = useCallback(async (): Promise<boolean> => {
+    if (!user) return false;
+
+    // Already has professional role
+    if (roles.includes('professional')) return true;
+
+    try {
+      const { error: rpcError } = await supabase.rpc('become_professional');
+      if (rpcError) throw rpcError;
+
+      // Reload user data to pick up new role + profile
+      await loadUserData(user.id);
+      return true;
+    } catch (err) {
+      console.error('Error becoming professional:', err);
+      setError(err instanceof Error ? err : new Error('Failed to become professional'));
+      return false;
+    }
+  }, [user, roles, loadUserData]);
+
   // ── Auth state listener ─────────────────────────────────────────────
   useEffect(() => {
     let mounted = true;
