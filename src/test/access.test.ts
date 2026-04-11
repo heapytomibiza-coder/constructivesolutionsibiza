@@ -73,4 +73,34 @@ describe('checkAccess', () => {
   it('unknown access rule denied by default', () => {
     expect(checkAccess('unknown_rule' as any, makeCtx({ isAuthenticated: true }))).toBe(false);
   });
+
+  // SEC-002: Cross-role enforcement
+  it('SEC-002: client role cannot access professional routes', () => {
+    const clientCtx = makeCtx({
+      isAuthenticated: true,
+      hasRole: (r: Role) => r === 'client',
+    });
+    expect(checkAccess('role:professional', clientCtx)).toBe(false);
+    expect(checkAccess('proReady', clientCtx)).toBe(false);
+    expect(checkAccess('admin', clientCtx)).toBe(false);
+  });
+
+  it('SEC-002: professional role cannot access client-only routes', () => {
+    const proCtx = makeCtx({
+      isAuthenticated: true,
+      hasRole: (r: Role) => r === 'professional',
+    });
+    expect(checkAccess('role:client', proCtx)).toBe(false);
+    expect(checkAccess('admin', proCtx)).toBe(false);
+  });
+
+  it('SEC-002: admin role does not grant client/professional access', () => {
+    const adminCtx = makeCtx({
+      isAuthenticated: true,
+      hasRole: (r: Role) => r === 'admin',
+    });
+    expect(checkAccess('role:client', adminCtx)).toBe(false);
+    expect(checkAccess('role:professional', adminCtx)).toBe(false);
+    expect(checkAccess('proReady', adminCtx)).toBe(false);
+  });
 });
