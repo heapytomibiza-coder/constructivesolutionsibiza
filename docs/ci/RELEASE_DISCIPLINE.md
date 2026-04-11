@@ -6,23 +6,127 @@
 
 The following flows are designated **critical** and require full safeguards before any change ships:
 
-| Flow | Owner | Why |
-|------|-------|-----|
-| Professional onboarding | Engineering lead | Converts professionals onto the platform |
-| Job posting wizard | Engineering lead | Core client action — creates marketplace supply |
-| Messaging | Engineering lead | Trust and engagement between client and professional |
-| Payments / holding | Engineering lead | Financial integrity and legal compliance |
+| Flow | Why |
+|------|-----|
+| Professional onboarding | Converts professionals onto the platform |
+| Job posting wizard | Core client action — creates marketplace supply |
+| Messaging | Trust and engagement between client and professional |
+| Payments / holding | Financial integrity and legal compliance |
 
 ### What "critical flow" means
 
 Any change to a critical flow **must** satisfy all of the following before merge:
 
 1. **Automated test coverage** — smoke + interaction tests exist and pass
-2. **Manual QA checklist** — completed for the specific flow, including mobile (375px)
+2. **Manual mobile QA** — completed on a real device or emulator at 375px viewport (hard gate — not optional)
 3. **Migration handling** — if the change restructures steps or data, users mid-flow must be explicitly handled
 4. **Post-release validation (24h)** — within 24 hours of deploy, verify that in-progress users are not blocked
 
 Failure to meet these standards is a **merge blocker**.
+
+---
+
+## Onboarding Test Coverage — Current Status
+
+### What is protected (initial coverage)
+
+| Area | Type | Status |
+|------|------|--------|
+| Render safety (all steps) | Smoke | ✅ |
+| Auth guard (unauthenticated redirect) | Smoke | ✅ |
+| Loading states | Smoke | ✅ |
+| Phase progression logic (normalizePhase, nextPhase, phaseIndex) | Unit | ✅ |
+| Phase regression prevention | Unit | ✅ |
+| isPhaseReady threshold | Unit | ✅ |
+| canGoLive 4-condition validation | Unit | ✅ |
+| Review step render + disabled button | Smoke | ✅ |
+| BasicInfoStep render | Smoke | ✅ |
+| Regression: user with name+phone but NULL zones | Interaction | ✅ |
+| Complete data scenario | Interaction | ✅ |
+| Missing phone scenario (no crash) | Interaction | ✅ |
+| Phase-to-step mapping validation | Interaction | ✅ |
+
+### What is NOT yet covered (known gaps)
+
+| Area | Type needed | Status |
+|------|-------------|--------|
+| Full end-to-end completion (save → advance → go-live) | Integration | ❌ |
+| Fix flow recovery (Review → Fix missing item → return to Review) | Integration | ❌ |
+| Refresh/state persistence across page reload | Integration | ❌ |
+| Backfilled user go-live path | Integration | ❌ |
+| Mobile layout verification (scroll, viewport, touch) | Browser/Manual | ❌ |
+
+**These gaps require either deeper integration test mocks or real browser-based testing.**
+jsdom cannot and will never catch scroll position, viewport visibility, or touch interaction failures.
+
+---
+
+## Mobile QA — Hard Gate
+
+Since the April 2026 onboarding failure was **primarily a mobile issue** (zones below the fold, scroll-dependent elements invisible), the following rule is permanent:
+
+> **Any PR that touches professional onboarding MUST include manual mobile QA at 375px viewport before merge.**
+
+This is not optional. jsdom tests provide logic coverage only — they cannot verify:
+- Elements below the fold
+- Scroll-dependent visibility
+- Touch target sizes
+- Collapsible component behavior on small screens
+- Form submission with virtual keyboards open
+
+Mobile QA must verify:
+- [ ] All required fields visible without scrolling past the submit button
+- [ ] Zone picker visible and functional
+- [ ] Validation errors visible on screen (not hidden by scroll)
+- [ ] Submit button state reflects actual form completeness
+- [ ] Review checklist items each independently clickable
+
+---
+
+## Alert Rules
+
+### Onboarding Bottleneck (RED — rate-based)
+
+**Rule:** >5 professionals stuck at the **same phase within the last 24 hours**.
+
+**What it detects:** Are we accumulating new stuck users at a specific step? This catches systemic issues early — before they become a backlog.
+
+**Logic:** Counts users whose `updated_at` is within the last 24h but more than 1h ago (excluding actively-in-progress users), grouped by phase.
+
+**Action:** Same-day investigation via the onboarding funnel page.
+
+### Stuck Onboarding (YELLOW — snapshot)
+
+**Rule:** Any professionals stuck in onboarding for 6+ hours.
+
+**What it detects:** General awareness of the stuck user backlog. May include users who abandoned intentionally.
+
+**Action:** Review during daily check.
+
+---
+
+## Ownership & Cadence
+
+### Onboarding Ownership
+
+The engineering lead is accountable for onboarding health. This means:
+
+| Responsibility | Cadence |
+|---------------|---------|
+| Respond to bottleneck alerts (red) | **Same day** |
+| Respond to stuck onboarding alerts (yellow) | **Same day** |
+| Post-release validation after any onboarding change | **Within 24 hours** |
+| Daily funnel checks after an onboarding release | **Daily for 5 business days** |
+| Routine funnel review (no active release) | **Weekly** |
+| Update test coverage when new onboarding logic ships | **Before merge** |
+
+### What "post-release validation" means
+
+Within 24h of any deploy that touches onboarding:
+1. Check the funnel page — are step-to-step drop-offs normal?
+2. Check stuck-user counts — any new accumulation?
+3. Check error logs — any `onboarding_step_failed` events with real messages (not `[object Object]`)?
+4. Manually run through onboarding on mobile (375px) to confirm the flow works end-to-end
 
 ---
 
@@ -37,13 +141,13 @@ src/test/
 │   ├── dashboard        (6 tests)
 │   ├── guards           (9 tests)
 │   ├── wizard-progression (10 tests)
-│   └── onboarding       (10 tests) ← NEW
+│   └── onboarding       (11 tests)
 │
 ├── interaction/        ← User journey simulations, connected-unit behavior
 │   ├── wizard-flow      (9 tests)
 │   ├── auth-redirect    (6 tests)
 │   ├── dashboard-action (4 tests)
-│   └── onboarding-flow  (6 tests) ← NEW
+│   └── onboarding-flow  (5 tests)
 │
 └── access.test.ts      ← Access control unit tests (8 tests)
 ```
@@ -103,25 +207,17 @@ If the full suite fails after merge to main, the team should:
 
 ---
 
-## Ownership & Accountability
+## Pre-Release Checklist for Critical Flows
 
-### Flow Ownership
+Before merging any PR that touches a critical flow:
 
-Each critical flow has a designated owner who is accountable for:
-
-- **Health monitoring** — checking funnel metrics at least weekly
-- **Regression response** — investigating and resolving test failures within 24h
-- **Post-release validation** — confirming no users are blocked after deploys
-- **Alert response** — acting on stuck-user alerts within the same working day
-
-### Onboarding Specifically
-
-After the April 2026 incident (20 professionals blocked by NULL zones):
-
-- Onboarding funnel is monitored via `/admin/insights/onboarding-funnel`
-- Stuck-user alerts fire automatically if >5 users are stuck at the same phase within 24h
-- The admin cockpit surfaces onboarding health metrics on every load
-- Any onboarding refactor must include a data migration plan for in-progress users
+- [ ] All automated tests pass (smoke + interaction)
+- [ ] **Manual mobile QA completed at 375px viewport** (hard gate)
+- [ ] If step/data restructure: migration plan for mid-flow users documented
+- [ ] If step/data restructure: backfill script prepared and tested
+- [ ] Post-deploy validation scheduled (check within 24h)
+- [ ] Error monitoring confirmed working (no `[object Object]` in logs)
+- [ ] Funnel page checked — baseline drop-off rates noted pre-deploy
 
 ---
 
@@ -164,19 +260,6 @@ Focus: **does the journey work end-to-end as a connected unit**
 
 - Smoke: `{route}.smoke.test.tsx`
 - Interaction: `{flow}.interaction.test.tsx`
-
----
-
-## Pre-Release Checklist for Critical Flows
-
-Before merging any PR that touches a critical flow:
-
-- [ ] All automated tests pass (smoke + interaction)
-- [ ] Manual QA completed on mobile (375px viewport)
-- [ ] If step/data restructure: migration plan for mid-flow users documented
-- [ ] If step/data restructure: backfill script prepared and tested
-- [ ] Post-deploy validation scheduled (check within 24h)
-- [ ] Error monitoring confirmed working (no `[object Object]` in logs)
 
 ---
 
