@@ -54,7 +54,7 @@ vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
 const mockSession = {
   isAuthenticated: true,
-  hasRole: vi.fn((r: string) => r === 'admin'),
+  hasRole: vi.fn((r: string) => r === 'admin') as any,
   isProReady: false,
   isLoading: false,
   isReady: true,
