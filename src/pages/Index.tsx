@@ -93,8 +93,12 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              {/* Hide "Join as Professional" for users who already have the role */}
-              {!(isAuthenticated && hasRole('professional')) && (
+              {/* Authenticated professional: hide. Authenticated client: upgrade. Guest: register. */}
+              {isAuthenticated && hasRole('professional') ? null : isAuthenticated ? (
+                <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={handleBecomePro}>
+                  {t('hero.joinAsPro')}
+                </Button>
+              ) : (
                 <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild>
                   <Link to="/auth?tab=register&role=professional">
                     {t('hero.joinAsPro')}
