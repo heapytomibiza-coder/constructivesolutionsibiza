@@ -1,21 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { status: 200 });
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
-    const TELEGRAM_API_KEY = Deno.env.get("TELEGRAM_API_KEY");
-    if (!TELEGRAM_API_KEY) throw new Error("TELEGRAM_API_KEY is not configured");
-
+    const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
     const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID") ?? "";
-    if (!TELEGRAM_CHAT_ID) throw new Error("TELEGRAM_CHAT_ID is not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -167,15 +159,11 @@ Deno.serve(async (req) => {
       "Notes:",
     ].join("\n");
 
-    // Send to Telegram via connector gateway
-    if (TELEGRAM_CHAT_ID) {
-      const res = await fetch(`${GATEWAY_URL}/sendMessage`, {
+    // Send to Telegram
+    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+      const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-          "X-Connection-Api-Key": TELEGRAM_API_KEY,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
           text: message,
