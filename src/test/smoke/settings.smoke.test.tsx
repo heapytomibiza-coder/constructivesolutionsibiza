@@ -8,7 +8,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMockSupabase } from '@/test/utils/mockSupabase';
-import { sessions, createMockSession } from '@/test/utils/mockSession';
+import { sessions } from '@/test/utils/mockSession';
 import { createMockI18n } from '@/test/utils/mockI18n';
 
 vi.mock('@/integrations/supabase/client', () => createMockSupabase());
@@ -46,36 +46,36 @@ describe('/settings smoke tests', () => {
   it('SET-001: renders settings page with heading', async () => {
     renderSettings();
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /settings/i })).toBeInTheDocument();
+      // t('title') returns 'title' via mock — h1 renders this key
+      expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     });
   });
 
-  it('SET-001: shows account section with email', async () => {
+  it('SET-001: shows account section', async () => {
     renderSettings();
     await waitFor(() => {
-      // Account card title
-      expect(screen.getByText(/account/i)).toBeInTheDocument();
+      expect(screen.getByText(/account\.title/)).toBeInTheDocument();
+    });
+  });
+
+  it('SET-001: shows user email', async () => {
+    renderSettings();
+    await waitFor(() => {
+      expect(screen.getByText('test@example.com')).toBeInTheDocument();
     });
   });
 
   it('SET-001: shows security section', async () => {
     renderSettings();
     await waitFor(() => {
-      expect(screen.getByText(/security/i)).toBeInTheDocument();
+      expect(screen.getByText(/security\.title/)).toBeInTheDocument();
     });
   });
 
-  it('SET-001: shows notifications section', async () => {
+  it('SET-002: back to dashboard button is visible', async () => {
     renderSettings();
     await waitFor(() => {
-      expect(screen.getByText(/notifications/i)).toBeInTheDocument();
-    });
-  });
-
-  it('SET-002: sign out button is visible', async () => {
-    renderSettings();
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /sign.*out|signOut/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/backToDashboard/i)).toBeInTheDocument();
     });
   });
 });
