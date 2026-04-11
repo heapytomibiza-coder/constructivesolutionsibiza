@@ -10,7 +10,12 @@
     "tasker": "Tasker",
     "asker": "Asker",
     "switchedTo": "Switched to {{label}} mode",
-    "adminPanel": "Admin Panel"
+    "adminPanel": "Admin Panel",
+    "becomePro": "Become a Professional",
+    "becomeProDesc": "Want to offer your services? Join as a professional and start receiving job requests.",
+    "becomeProSuccess": "Welcome! Let's set up your professional profile.",
+    "becomeProError": "Something went wrong. Please try again.",
+    "becomeProLoading": "Setting up…"
   },
   "security": {
     "title": "Security",
