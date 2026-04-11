@@ -359,18 +359,16 @@ export function useSessionSnapshot(): SessionSnapshot {
           authStateRef.current = 'signed_in';
 
           if (newSession?.user) {
-            // Always bump version so newest auth event supersedes older in-flight loads
-            loadVersionRef.current += 1;
-
             setSession(newSession);
             setUser(newSession.user);
 
-            // Use setTimeout to avoid potential deadlock with Supabase client
+            // Defer loadUserData to avoid potential deadlock with Supabase client.
+            // Bump version INSIDE setTimeout so the latest event always wins
+            // and earlier scheduled loads don't get discarded by the stale guard.
             setTimeout(() => {
+              loadVersionRef.current += 1;
               loadUserData(newSession.user.id).catch((err) => {
-                if (event === 'TOKEN_REFRESHED') {
-                  console.warn('loadUserData failed during token refresh, keeping cached state:', err);
-                }
+                console.error(`[Auth] loadUserData failed during ${event}:`, err);
               });
             }, 0);
 
