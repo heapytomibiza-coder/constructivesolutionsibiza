@@ -1,66 +1,22 @@
 /**
  * INTERACTION TEST — Messaging flows
- * Covers: MSG-002 (send message), MSG-003 (permission restriction), MSG-004 (mark as read)
+ * Covers: MSG-002 (messages page renders), MSG-003 (auth required)
+ * Health alert link: failed email notifications → message UI must still function
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createMockSupabase } from '@/test/utils/mockSupabase';
+import { createMockI18n } from '@/test/utils/mockI18n';
+import { sessions } from '@/test/utils/mockSession';
 
-const mockInsert = vi.fn().mockReturnThis();
-const mockSelect = vi.fn().mockReturnThis();
-
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
-    },
-    from: vi.fn(() => ({
-      select: mockSelect,
-      eq: vi.fn().mockReturnThis(),
-      in: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      insert: mockInsert,
-      update: vi.fn().mockReturnThis(),
-      then: vi.fn().mockResolvedValue({ data: [], error: null }),
-    })),
-    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
-    channel: vi.fn(() => ({
-      on: vi.fn().mockReturnThis(),
-      subscribe: vi.fn().mockReturnThis(),
-    })),
-    removeChannel: vi.fn(),
-  },
-}));
-
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, fallback?: string) => fallback || key,
-    ready: true,
-    i18n: { language: 'en', changeLanguage: vi.fn() },
-  }),
-  Trans: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  initReactI18next: { type: '3rdParty', init: vi.fn() },
-}));
-
+vi.mock('@/integrations/supabase/client', () => createMockSupabase());
+vi.mock('react-i18next', () => createMockI18n());
 vi.mock('@/lib/trackEvent', () => ({ trackEvent: vi.fn() }));
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
-const mockSession = {
-  isAuthenticated: true,
-  hasRole: vi.fn((_r: string) => true),
-  isProReady: false,
-  isLoading: false,
-  isReady: true,
-  user: { id: 'user-1', email: 'test@example.com' } as any,
-  activeRole: 'client' as string | null,
-  refresh: vi.fn(),
-  subscription: { plan: null, status: null, isLoading: false },
-};
+const mockSession = sessions.client();
 
 vi.mock('@/contexts/SessionContext', () => ({
   useSession: () => mockSession,
@@ -72,10 +28,11 @@ let MessagesPage: React.ComponentType;
 describe('Messaging interaction tests', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    Object.assign(mockSession, sessions.client());
     MessagesPage = (await import('@/pages/messages/Messages')).default;
   });
 
-  it('MSG-002: messages page renders with send capability', async () => {
+  it('MSG-002: messages page renders for authenticated user', async () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
       <QueryClientProvider client={qc}>
@@ -87,14 +44,13 @@ describe('Messaging interaction tests', () => {
       </QueryClientProvider>
     );
     await waitFor(() => {
-      // Should render without crash — conversation list or empty state
-      expect(document.body).toBeTruthy();
+      // Messages page should show conversation list or empty state — not sign-in required
+      expect(screen.queryByText(/signInRequired/i)).not.toBeInTheDocument();
     });
   });
 
-  it('MSG-003: unauthenticated user sees sign-in required', async () => {
-    mockSession.isAuthenticated = false;
-    mockSession.user = null as any;
+  it('MSG-003: unauthenticated user sees sign-in required message', async () => {
+    Object.assign(mockSession, sessions.guest());
 
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
@@ -109,8 +65,5 @@ describe('Messaging interaction tests', () => {
     await waitFor(() => {
       expect(screen.getByText(/signInRequired/i)).toBeInTheDocument();
     });
-
-    mockSession.isAuthenticated = true;
-    mockSession.user = { id: 'user-1', email: 'test@example.com' } as any;
   });
 });
