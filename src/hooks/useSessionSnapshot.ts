@@ -104,6 +104,12 @@ export function useSessionSnapshot(): SessionSnapshot {
   // Tracks last authoritative auth event to avoid "ghost authenticated" state
   const authStateRef = useRef<'unknown' | 'signed_in' | 'signed_out'>('unknown');
 
+  // One-shot recovery for cases where auth is ready before role queries settle.
+  const hydrationRecoveryRef = useRef<{ userId: string | null; attempted: boolean }>({
+    userId: null,
+    attempted: false,
+  });
+
   // ── Single canonical reset ──────────────────────────────────────────
   const clearAuthState = useCallback(() => {
     loadVersionRef.current += 1; // invalidate any in-flight loadUserData
@@ -112,6 +118,7 @@ export function useSessionSnapshot(): SessionSnapshot {
     setRoles([DEFAULT_ROLE]);
     setActiveRole(DEFAULT_ROLE);
     setProfessionalProfile(null);
+    hydrationRecoveryRef.current = { userId: null, attempted: false };
   }, []);
 
   // ── Load user data (roles + profile) ────────────────────────────────
@@ -361,15 +368,23 @@ export function useSessionSnapshot(): SessionSnapshot {
           if (newSession?.user) {
             setSession(newSession);
             setUser(newSession.user);
+            setIsLoading(true);
+            setError(null);
 
             // Defer loadUserData to avoid potential deadlock with Supabase client.
             // Bump version INSIDE setTimeout so the latest event always wins
             // and earlier scheduled loads don't get discarded by the stale guard.
             setTimeout(() => {
               loadVersionRef.current += 1;
-              loadUserData(newSession.user.id).catch((err) => {
-                console.error(`[Auth] loadUserData failed during ${event}:`, err);
-              });
+              loadUserData(newSession.user.id)
+                .catch((err) => {
+                  console.error(`[Auth] loadUserData failed during ${event}:`, err);
+                })
+                .finally(() => {
+                  if (!mounted) return;
+                  setIsLoading(false);
+                  setIsReady(true);
+                });
             }, 0);
 
             if (event === 'SIGNED_IN') {
@@ -393,6 +408,35 @@ export function useSessionSnapshot(): SessionSnapshot {
       subscription.unsubscribe();
     };
   }, [loadUserData, clearAuthState, refresh]);
+
+  useEffect(() => {
+    if (!user?.id || isLoading || !isReady) return;
+
+    const isDefaultOnlyRole =
+      roles.length === 1 &&
+      roles[0] === DEFAULT_ROLE &&
+      activeRole === DEFAULT_ROLE;
+
+    if (!isDefaultOnlyRole) return;
+
+    if (
+      hydrationRecoveryRef.current.userId === user.id &&
+      hydrationRecoveryRef.current.attempted
+    ) {
+      return;
+    }
+
+    hydrationRecoveryRef.current = { userId: user.id, attempted: true };
+
+    const retryTimer = window.setTimeout(() => {
+      loadVersionRef.current += 1;
+      loadUserData(user.id).catch((err) => {
+        console.error('[Auth] recovery loadUserData failed:', err);
+      });
+    }, 250);
+
+    return () => window.clearTimeout(retryTimer);
+  }, [user?.id, roles, activeRole, isLoading, isReady, loadUserData]);
 
   const hasRole = useCallback((role: UserRole): boolean => {
     return roles.includes(role);
