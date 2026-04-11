@@ -1,44 +1,125 @@
 
 
-# Plan: Add QA Operating Schedule to Project Documentation
+# QA Reminder Visibility in Platform Assistant
 
-## What
+## Summary
+Add a lightweight "QA Reminder" card to the Platform Assistant showing the latest reminder run status, recent history, and a manual "Send Now" button backed by a secure server-side RPC.
 
-Create a single new document `docs/qa/QA_OPERATING_SCHEDULE.md` that formalizes the weekly QA cadence, ownership model, and health alert response loop you've defined. This becomes the operational companion to `TRACEABILITY.md` (risk mapping) and `RELEASE_DISCIPLINE.md` (CI/merge policy).
+## Phase 1 — Database changes
 
-## Why
+### 1a. Add columns to `qa_reminder_runs`
+Migration to add `trigger_source` and `triggered_by` columns:
+```sql
+ALTER TABLE qa_reminder_runs
+  ADD COLUMN trigger_source text NOT NULL DEFAULT 'cron',
+  ADD COLUMN triggered_by uuid REFERENCES auth.users(id);
+```
 
-The project has strong test infrastructure and traceability, but no documented **operating rhythm** — who does what, when, and how failures feed back into the system. This closes that gap.
+### 1b. Add RLS policy for admin read access
+```sql
+ALTER TABLE qa_reminder_runs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins can read qa_reminder_runs"
+  ON qa_reminder_runs FOR SELECT TO authenticated
+  USING (has_role(auth.uid(), 'admin') AND is_admin_email());
+```
 
-## What the document will contain
+### 1c. Create `trigger_qa_reminder()` RPC
+A `SECURITY DEFINER` function that:
+- Checks admin role + allowlist
+- Calls `net.http_post` to the edge function URL with vault-backed `INTERNAL_FUNCTION_SECRET`
+- Returns a status message (sent / already-sent-this-week / failed)
 
-1. **Daily (Automated)** — What CI/cron checks run, what triggers alerts, who responds
-2. **Every PR** — What blocks merge, developer responsibility
-3. **Post-merge to main** — Full suite confirmation, investigation ownership
-4. **Weekly Manual QA (60–90 min)** — The four sections:
-   - A: Mobile reality check (375px, toolbar overlap, keyboard, touch targets)
-   - B: Core trust flows (signup → post → quote → messaging → status)
-   - C: Role and permission enforcement (cross-role blocking)
-   - D: "Feels broken" subjective check
-   - Output format: ✅ Working / ⚠️ Feels off / ❌ Broken
-5. **Pre-release gate** — Mandatory go/no-go checklist (references existing `RELEASE_DISCIPLINE.md`)
-6. **Health alert response loop** — 3-step process linking back to `TRACEABILITY.md`
-7. **Ownership table** — PR tests, CI failures, daily rotation, weekly QA, health alerts
-8. **Feedback rule** — Every bug triggers "what test would have caught this?" and either a new test or a documented exception
+```sql
+CREATE OR REPLACE FUNCTION trigger_qa_reminder()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  _secret text;
+  _url text;
+  _request_id bigint;
+BEGIN
+  IF NOT (has_role(auth.uid(), 'admin') AND is_admin_email()) THEN
+    RAISE EXCEPTION 'Unauthorized';
+  END IF;
 
-## What will NOT change
+  SELECT decrypted_secret INTO _secret
+  FROM vault.decrypted_secrets WHERE name = 'INTERNAL_FUNCTION_SECRET' LIMIT 1;
 
-- No code changes
-- No test changes
-- Existing docs (`TRACEABILITY.md`, `RELEASE_DISCIPLINE.md`, `ONBOARDING_QA_CHECKLIST.md`) remain unchanged — this document references them, not duplicates them
+  _url := current_setting('app.settings.supabase_url', true)
+    || '/functions/v1/weekly-qa-reminder';
 
-## Cross-references
+  SELECT net.http_post(
+    url := _url,
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-internal-secret', _secret
+    ),
+    body := jsonb_build_object('source', 'admin_manual', 'triggered_by', auth.uid()::text)
+  ) INTO _request_id;
 
-- Weekly QA Section A references `ONBOARDING_QA_CHECKLIST.md` for onboarding-specific mobile checks
-- Health alert loop references `TRACEABILITY.md` for risk-to-test mapping
-- Pre-release gate references `RELEASE_DISCIPLINE.md` for merge policy and CI pipeline
+  RETURN jsonb_build_object('status', 'triggered', 'request_id', _request_id);
+END;
+$$;
+```
 
-## Deliverable
+### 1d. Update edge function to record `trigger_source` and `triggered_by`
+Parse the request body for `source` and `triggered_by` fields, write them to `qa_reminder_runs` on insert.
 
-One file: `docs/qa/QA_OPERATING_SCHEDULE.md`
+## Phase 2 — Frontend
+
+### 2a. New hook: `src/pages/admin/hooks/useQaReminderStatus.ts`
+- Query `qa_reminder_runs` ordered by `created_at DESC LIMIT 5`
+- Return `{ latestRun, history, isLoading, isError }`
+- Mutation wrapper for `supabase.rpc('trigger_qa_reminder')`
+- On success: invalidate query, show toast
+- On error: show error toast
+
+### 2b. QA Reminder card in `PlatformAssistant.tsx`
+Placed after the Alerts card, before Trends. Shows:
+
+```text
+┌─────────────────────────────────────────┐
+│ 📋 QA Reminder                          │
+│                                         │
+│ Last run: 11 Apr 2026, 08:00            │
+│ Week: 2026-W15                          │
+│ Status: ● Sent                          │
+│ Next scheduled: Monday 08:00 Madrid     │
+│                                         │
+│ [Send Now]                              │
+│                                         │
+│ ▸ Recent history (expandable)           │
+│   2026-W15 — sent — cron                │
+│   2026-W14 — sent — admin_manual        │
+│   2026-W13 — failed — cron — error...   │
+└─────────────────────────────────────────┘
+```
+
+States handled:
+- **Loading**: Skeleton
+- **Empty** (no rows): "No QA reminders sent yet"
+- **Error**: Error message + retry
+- **Sent this week**: Green status badge, Send Now shows "Already sent for 2026-W15"
+- **Failed**: Red badge, error snippet visible, button says "Retry Send"
+- **Pending mutation**: Button disabled with spinner
+
+### 2c. Export hook from `src/pages/admin/hooks/index.ts`
+
+## Files changed
+
+| File | Change |
+|---|---|
+| Migration (new) | Add columns, RLS, RPC |
+| `supabase/functions/weekly-qa-reminder/index.ts` | Parse body for `source`/`triggered_by`, write to DB |
+| `src/pages/admin/hooks/useQaReminderStatus.ts` | New hook |
+| `src/pages/admin/hooks/index.ts` | Export new hook |
+| `src/pages/admin/sections/PlatformAssistant.tsx` | Add QA Reminder card |
+
+## Out of scope
+- Changes to `get_platform_assistant_summary` RPC
+- Structured QA checklist result tracking
+- Telegram message parsing
 
