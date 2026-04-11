@@ -107,7 +107,7 @@ describe('/dashboard/admin smoke tests', () => {
   });
 
   it('ADMIN-002: handles non-admin session gracefully (no crash)', async () => {
-    mockSession.hasRole = vi.fn((_r: string) => false);
+    mockSession.hasRole = vi.fn((_r: string) => false) as any;
     mockSession.activeRole = 'client';
     renderAdmin();
     await waitFor(() => {
