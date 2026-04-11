@@ -58,7 +58,16 @@ const RESOLUTION_KEYS = ['resolution1', 'resolution2', 'resolution3', 'resolutio
 
 const Index = () => {
   const { t } = useTranslation('common');
-  const { isAuthenticated, hasRole } = useSession();
+  const { isAuthenticated, hasRole, becomeProfessional } = useSession();
+  const navigate = useNavigate();
+
+  const handleBecomePro = async () => {
+    const ok = await becomeProfessional();
+    if (ok) {
+      navigate('/onboarding/professional');
+    }
+  };
+
 
   return (
     <PublicLayout>
