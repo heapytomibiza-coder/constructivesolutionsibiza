@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, User, Bell, BellRing, LogOut, Shield, Eye, EyeOff, Loader2, CheckCircle2, XCircle, Info } from 'lucide-react';
+import { ArrowLeft, User, Bell, BellRing, LogOut, Shield, Eye, EyeOff, Loader2, CheckCircle2, XCircle, Info, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -47,7 +47,9 @@ const DEFAULT_PREFS: NotificationPrefs = {
 export default function Settings() {
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
-  const { user, activeRole, roles, switchRole } = useSession();
+  const { user, activeRole, roles, switchRole, becomeProfessional } = useSession();
+  const [isBecomingPro, setIsBecomingPro] = useState(false);
+  const isClientOnly = roles.length === 1 && roles[0] === 'client';
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -276,6 +278,41 @@ export default function Settings() {
                 </p>
               )}
             </div>
+            {isClientOnly && (
+              <>
+                <Separator />
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {t('account.becomeProDesc', 'Want to offer your services? Join as a professional and start receiving job requests.')}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-between active:scale-[0.97] transition-transform"
+                    disabled={isBecomingPro}
+                    onClick={async () => {
+                      setIsBecomingPro(true);
+                      const ok = await becomeProfessional();
+                      setIsBecomingPro(false);
+                      if (ok) {
+                        toast.success(t('account.becomeProSuccess', 'Welcome! Let\'s set up your professional profile.'));
+                        navigate('/onboarding/professional');
+                      } else {
+                        toast.error(t('account.becomeProError', 'Something went wrong. Please try again.'));
+                      }
+                    }}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Wrench className="h-4 w-4" />
+                      {isBecomingPro
+                        ? t('account.becomeProLoading', 'Setting up…')
+                        : t('account.becomePro', 'Become a Professional')}
+                    </span>
+                    <ArrowLeft className="h-4 w-4 rotate-180" />
+                  </Button>
+                </div>
+              </>
+            )}
             {isAdmin && (
               <>
                 <Separator />

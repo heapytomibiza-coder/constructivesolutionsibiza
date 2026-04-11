@@ -18,7 +18,8 @@ import {
   LogOut,
   Settings,
   ChevronRight,
-  Heart
+  Heart,
+  Wrench
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useSavedPros } from '@/hooks/useSavedPros';
@@ -66,7 +67,8 @@ function MenuItem({ to, icon: Icon, label, primary, badge }: MenuItemProps) {
 
 const ClientDashboard = () => {
   const { t } = useTranslation('dashboard');
-  const { user, roles } = useSession();
+  const { user, roles, becomeProfessional } = useSession();
+  const isClientOnly = roles.length === 1 && roles[0] === 'client';
   const { stats } = useClientStats();
   const { data: savedPros } = useSavedPros();
   const navigate = useNavigate();
@@ -158,6 +160,24 @@ const ClientDashboard = () => {
           <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
           <MenuItem to="/settings" icon={Settings} label={t('common.settings', 'Settings')} />
           <MenuItem to="/forum" icon={MessageCircle} label={t('client.forumHelp', 'Community Forum & Help')} />
+          {isClientOnly && (
+            <button
+              onClick={async () => {
+                const ok = await becomeProfessional();
+                if (ok) {
+                  toast.success(t('client.becomeProSuccess', 'Welcome! Let\'s set up your professional profile.'));
+                  navigate('/onboarding/professional');
+                }
+              }}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 bg-card border border-dashed border-primary/30 hover:border-primary/50 hover:bg-muted/30 active:scale-[0.98] w-full text-left"
+            >
+              <Wrench className="h-5 w-5 shrink-0 text-primary" />
+              <span className="text-sm font-medium flex-1 text-foreground">
+                {t('client.becomePro', 'Become a Professional')}
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40" />
+            </button>
+          )}
         </div>
 
         {/* Saved Pros */}
