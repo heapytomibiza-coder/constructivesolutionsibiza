@@ -3,8 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /**
  * Weekly QA Reminder — Hardened
  *
- * Auth: Accepts exact SUPABASE_ANON_KEY via Bearer token (for pg_cron)
- *       or INTERNAL_FUNCTION_SECRET via x-internal-secret header (for direct calls).
+ * Auth: Requires exact INTERNAL_FUNCTION_SECRET via x-internal-secret header.
+ *       Used by both direct calls and pg_cron scheduled invocation.
  *
  * Idempotency: Skips if already sent for this ISO week (qa_reminder_runs).
  * Logging: Writes every invocation result to qa_reminder_runs.
@@ -19,42 +19,16 @@ function getIsoWeekKey(date: Date): string {
   return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
 }
 
-/** Checks all possible env var names for the anon key */
-function getAnonKey(): string {
-  return Deno.env.get("SUPABASE_ANON_KEY")
-    ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY_ANON")
-    ?? "";
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { status: 200 });
   }
 
-  // --- Auth gate: exact anon key or exact internal secret only ---
+  // --- Auth gate: exact internal secret only ---
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
-  const anonKey = getAnonKey();
   const secretHeader = req.headers.get("x-internal-secret") ?? "";
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
-  const hasInternalSecret = internalSecret !== "" && secretHeader === internalSecret;
-  const hasAnonKey = anonKey !== "" && bearerToken === anonKey;
-
-  // DEBUG — temporary probe to verify env var availability (remove after verification)
-  if (req.headers.get("x-debug-probe") === "env-check") {
-    return new Response(JSON.stringify({
-      version: "weekly-qa-reminder-2026-04-11-auth-v2",
-      hasAnonKeyEnv: anonKey !== "",
-      anonKeyLength: anonKey.length,
-      hasInternalSecretEnv: internalSecret !== "",
-      bearerTokenLength: bearerToken.length,
-      tokensMatch: hasAnonKey,
-      secretMatch: hasInternalSecret,
-    }), { headers: { "Content-Type": "application/json" }, status: 200 });
-  }
-
-  if (!hasInternalSecret && !hasAnonKey) {
+  if (!internalSecret || secretHeader !== internalSecret) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
