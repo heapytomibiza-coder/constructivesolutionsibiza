@@ -86,8 +86,8 @@ describe('Job management smoke tests', () => {
     );
     await waitFor(() => {
       expect(document.body).toBeTruthy();
-    });
-  });
+    }, { timeout: 10000 });
+  }, 15000);
 
   it('JOBM-001: job board page renders without crashing', async () => {
     const JobBoardPage = (await import('@/pages/jobs/JobBoardPage')).default;

@@ -21,7 +21,7 @@ vi.mock('@/integrations/supabase/client', () => ({
       upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
     })),
     rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
-  },
+      signOut: vi.fn().mockResolvedValue({ error: null }),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -40,13 +40,16 @@ vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
 const mockSession = {
   isAuthenticated: true,
-  hasRole: vi.fn(() => true),
+  hasRole: vi.fn((_r: string) => true),
   isProReady: false,
   isLoading: false,
   isReady: true,
   user: { id: 'user-1', email: 'test@example.com' } as any,
   activeRole: 'client' as string | null,
+  roles: ['client'] as string[],
   refresh: vi.fn(),
+  switchRole: vi.fn(),
+  becomeProfessional: vi.fn(),
   subscription: { plan: null, status: null, isLoading: false },
 };
 
