@@ -73,23 +73,25 @@ export const RoleSwitcher = React.forwardRef<HTMLDivElement, RoleSwitcherProps>(
   };
 
   return (
-    <Select value={activeRole} onValueChange={handleRoleChange}>
-      <SelectTrigger className={className}>
-        <div className="flex items-center gap-2">
-          {roleIcons[activeRole]}
-          <SelectValue placeholder={t('lanes.selectMode')} />
-        </div>
-      </SelectTrigger>
-      <SelectContent>
-        {roles.map((role) => (
-          <SelectItem key={role} value={role}>
-            <div className="flex items-center gap-2">
-              {roleIcons[role]}
-              {getRoleLabel(role)}
-            </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div ref={ref}>
+      <Select value={activeRole} onValueChange={handleRoleChange}>
+        <SelectTrigger className={className}>
+          <div className="flex items-center gap-2">
+            {roleIcons[activeRole]}
+            <SelectValue placeholder={t('lanes.selectMode')} />
+          </div>
+        </SelectTrigger>
+        <SelectContent>
+          {roles.map((role) => (
+            <SelectItem key={role} value={role}>
+              <div className="flex items-center gap-2">
+                {roleIcons[role]}
+                {getRoleLabel(role)}
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 });
