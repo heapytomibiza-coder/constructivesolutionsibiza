@@ -53,4 +53,19 @@ describe('RPC integrity — SEC-003', () => {
     expect(Object.keys(rpcArgs)).toHaveLength(2);
     expect(Object.keys(rpcArgs).sort()).toEqual(['p_job_id', 'p_quote_id']);
   });
+
+  it('mismatched jobId/quoteId still sends exact client values — server validates the relationship', async () => {
+    const { acceptQuote } = await import('@/pages/jobs/actions/acceptQuote.action');
+
+    await acceptQuote('quote-from-job-A', 'completely-different-job-B', 'pro-1');
+
+    // RPC receives the exact IDs the client sent — it is the RPC's job to reject the mismatch
+    expect(mockRpc).toHaveBeenCalledWith('accept_quote_and_assign', {
+      p_quote_id: 'quote-from-job-A',
+      p_job_id: 'completely-different-job-B',
+    });
+    // Still only 2 keys, no professional ID injected
+    const rpcArgs = mockRpc.mock.calls[0][1];
+    expect(Object.keys(rpcArgs)).toHaveLength(2);
+  });
 });
