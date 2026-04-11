@@ -30,8 +30,6 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
 
-  // Intent selection state (for signup flow) - START with intent selector
-  const [showIntentSelector, setShowIntentSelector] = useState(true);
   const [phone, setPhone] = useState('');
 
   // Read URL params: support both ?mode=signup and ?tab=register
@@ -45,7 +43,7 @@ const Auth = () => {
     urlRole === 'professional' || urlMode === 'pro' ? 'professional' : null;
   const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(initialIntent);
   // Skip intent selector if intent is pre-selected from URL
-  const [showIntentSelectorState, setShowIntentSelector2] = useState(!initialIntent);
+  const [showIntentSelector, setShowIntentSelector] = useState(!initialIntent);
   
   // Post-signup state for confirmation messaging
   const [showConfirmationSent, setShowConfirmationSent] = useState(false);
