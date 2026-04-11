@@ -142,9 +142,7 @@ const Auth = () => {
     trackEvent('signup_started', 'client', { intent: selectedIntent });
 
     try {
-      // Determine roles based on intent
-      const roles: string[] = selectedIntent === 'client' ? ['client'] : ['client', 'professional'];
-      const activeRole = selectedIntent === 'professional' ? 'professional' : 'client';
+      // Role assignment is handled by the handle_new_user() trigger based on intent
 
       // Use Supabase's built-in auth which handles confirmation emails automatically
       const { data, error } = await supabase.auth.signUp({
