@@ -3797,6 +3797,7 @@ export type Database = {
         Args: { p_date: string }
         Returns: undefined
       }
+      become_professional: { Args: never; Returns: undefined }
       calculate_client_reputation: {
         Args: { p_user_id: string }
         Returns: undefined
