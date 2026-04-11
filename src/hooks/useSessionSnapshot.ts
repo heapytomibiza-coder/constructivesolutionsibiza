@@ -78,6 +78,7 @@ export interface SessionSnapshot {
   // Actions
   refresh: () => Promise<void>;
   switchRole: (role: UserRole) => Promise<void>;
+  becomeProfessional: () => Promise<boolean>;
 }
 
 const DEFAULT_ROLE: UserRole = 'client';
