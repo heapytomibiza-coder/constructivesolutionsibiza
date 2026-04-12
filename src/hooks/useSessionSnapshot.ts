@@ -238,14 +238,47 @@ export function useSessionSnapshot(): SessionSnapshot {
           phone: phoneResult.data?.phone || null,
           serviceZones: proResult.data.service_zones || [],
         });
-      } else {
-        // Defensive guard: if user has professional role but no profile row,
-        // log a warning instead of letting 406 errors reach monitoring.
-        if (resolvedRoles.includes('professional')) {
-          console.warn(
-            `[SessionSnapshot] User ${userId} has professional role but no professional_profiles row. Treating as not_started.`
-          );
+      } else if (resolvedRoles.includes('professional')) {
+        // Auto-repair: professional role exists but profile row is missing.
+        // Call become_professional RPC which safely upserts the profile.
+        console.warn(
+          `[SessionSnapshot] User ${userId} has professional role but no professional_profiles row — auto-repairing.`
+        );
+
+        try {
+          const { error: repairError } = await supabase.rpc('become_professional');
+
+          if (repairError) {
+            console.error('[SessionSnapshot] Auto-repair failed:', repairError);
+            setProfessionalProfile(null);
+          } else {
+            // Re-fetch the now-created profile
+            const { data: repairedProfile } = await supabase
+              .from('professional_profiles')
+              .select('onboarding_phase, verification_status, services_count, is_publicly_listed, display_name, business_name, service_zones')
+              .eq('user_id', userId)
+              .maybeSingle();
+
+            if (repairedProfile) {
+              setProfessionalProfile({
+                onboardingPhase: repairedProfile.onboarding_phase as OnboardingPhase,
+                verificationStatus: repairedProfile.verification_status as VerificationStatus,
+                servicesCount: repairedProfile.services_count,
+                isPubliclyListed: repairedProfile.is_publicly_listed,
+                displayName: repairedProfile.display_name,
+                businessName: repairedProfile.business_name,
+                phone: phoneResult.data?.phone || null,
+                serviceZones: repairedProfile.service_zones || [],
+              });
+            } else {
+              setProfessionalProfile(null);
+            }
+          }
+        } catch (repairErr) {
+          console.error('[SessionSnapshot] Auto-repair threw:', repairErr);
+          setProfessionalProfile(null);
         }
+      } else {
         setProfessionalProfile(null);
       }
     } catch (err) {
