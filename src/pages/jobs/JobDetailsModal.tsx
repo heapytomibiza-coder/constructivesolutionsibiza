@@ -241,6 +241,8 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
   const [lightboxIndex, setLightboxIndex] = React.useState<number | null>(null);
   const { data: matchedListings } = useListingsForJob(jobPack.services?.[0]?.slug);
   const { t, i18n } = useTranslation("jobs");
+  const { hasRole } = useSession();
+  const isProfessionalViewer = hasRole("professional");
   const isEs = i18n.language?.startsWith("es");
   const dateLocale = isEs ? { locale: es } : undefined;
   const contentLang = getContentLang(i18n.language);
@@ -282,8 +284,8 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         </div>
       </div>
 
-      {/* Worker Brief — AI-generated summary for professionals */}
-      {jobPack.workerBrief && !jobPack.isOwner && (
+      {/* Worker Brief — AI-generated summary, visible only to professionals */}
+      {jobPack.workerBrief && isProfessionalViewer && !jobPack.isOwner && (
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-1">

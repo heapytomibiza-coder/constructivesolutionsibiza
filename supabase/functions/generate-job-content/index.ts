@@ -18,6 +18,12 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 
 interface RequestBody {
   job_id: string;
+  /** Original payload fields for translation fallback */
+  fallback_fields?: {
+    title?: string;
+    teaser?: string;
+    description?: string;
+  };
 }
 
 Deno.serve(async (req) => {
@@ -36,7 +42,7 @@ Deno.serve(async (req) => {
 
   try {
     const body: RequestBody = await req.json();
-    const { job_id } = body;
+    const { job_id, fallback_fields } = body;
 
     if (!job_id) {
       return new Response(JSON.stringify({ error: "Missing job_id" }), {
@@ -75,6 +81,12 @@ Deno.serve(async (req) => {
       if (brief) {
         await supabase.from("jobs").update({ worker_brief: brief }).eq("id", job_id);
       }
+      // Trigger translation for custom request (uses original title/teaser)
+      await triggerTranslation(supabaseUrl, job_id, authHeader, {
+        title: job.title as string,
+        teaser: (job.teaser as string) ?? "",
+        description: (job.description as string) ?? "",
+      });
       return new Response(JSON.stringify({ status: "partial", reason: "custom_request_brief_only" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -229,12 +241,21 @@ Rules:
       });
     }
 
+    // Trigger translation with the updated (AI-polished) content
+    const translationFields = {
+      title: newTitle ?? (job.title as string),
+      teaser: newTeaser ?? (job.teaser as string) ?? "",
+      description: (job.description as string) ?? "",
+    };
+    await triggerTranslation(supabaseUrl, job_id, authHeader, translationFields);
+
     return new Response(
       JSON.stringify({
         status: "complete",
         title_generated: !!newTitle,
         teaser_generated: !!newTeaser,
         brief_generated: !!workerBrief,
+        translation_triggered: true,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -295,5 +316,41 @@ Respond with ONLY the brief text, no JSON, no quotes.`;
     return text ? text.slice(0, 500) : null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Trigger translation as a server-to-server call.
+ * Best-effort — failures are logged but don't block.
+ */
+async function triggerTranslation(
+  supabaseUrl: string,
+  jobId: string,
+  authHeader: string,
+  fields: { title?: string; teaser?: string; description?: string }
+): Promise<void> {
+  try {
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const resp = await fetch(
+      `${supabaseUrl}/functions/v1/translate-content`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+          apikey: anonKey,
+        },
+        body: JSON.stringify({
+          entity: "jobs",
+          id: jobId,
+          fields,
+        }),
+      }
+    );
+    if (!resp.ok) {
+      console.warn("generate-job-content: translation trigger failed", resp.status);
+    }
+  } catch (e) {
+    console.warn("generate-job-content: translation trigger error", e);
   }
 }

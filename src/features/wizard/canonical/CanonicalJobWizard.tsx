@@ -944,51 +944,18 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         queryClient.invalidateQueries({ queryKey: ['client_stats'] });
         trackEvent('job_posted', 'client', {}, { job_id: data.id, category: wizardState.mainCategory });
 
-        // Fire-and-forget: generate polished title/teaser/brief, then translate
-        // Chain: generate first so translate picks up AI-polished text
+        // Fire-and-forget: generate polished title/teaser/brief + trigger translation
+        // Orchestration is server-owned — edge function handles AI → translate chain
         supabase.functions.invoke('generate-job-content', {
-          body: { job_id: data.id },
-        }).then(async (res) => {
-          // Re-read the (possibly updated) title/teaser for translation
-          let titleForTranslation = payload.title;
-          let teaserForTranslation = payload.teaser ?? '';
-          try {
-            const { data: refreshed } = await supabase
-              .from('jobs')
-              .select('title, teaser')
-              .eq('id', data.id)
-              .single();
-            if (refreshed) {
-              titleForTranslation = refreshed.title ?? titleForTranslation;
-              teaserForTranslation = refreshed.teaser ?? teaserForTranslation;
-            }
-          } catch { /* use original payload values */ }
-          
-          supabase.functions.invoke('translate-content', {
-            body: {
-              entity: 'jobs',
-              id: data.id,
-              fields: {
-                title: titleForTranslation,
-                teaser: teaserForTranslation,
-                description: payload.description ?? '',
-              },
+          body: {
+            job_id: data.id,
+            fallback_fields: {
+              title: payload.title,
+              teaser: payload.teaser ?? '',
+              description: payload.description ?? '',
             },
-          }).catch(() => { /* translation is best-effort */ });
-        }).catch(() => {
-          // If generate fails, still translate with mechanical title
-          supabase.functions.invoke('translate-content', {
-            body: {
-              entity: 'jobs',
-              id: data.id,
-              fields: {
-                title: payload.title,
-                teaser: payload.teaser ?? '',
-                description: payload.description ?? '',
-              },
-            },
-          }).catch(() => { /* translation is best-effort */ });
-        });
+          },
+        }).catch(() => { /* AI content generation is best-effort */ });
 
         toast.success(t('toasts.postSuccess'));
         navigate(`/dashboard/jobs/${data.id}/invite`, { state: { fromPost: true } });
