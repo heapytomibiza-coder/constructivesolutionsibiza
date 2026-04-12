@@ -1,65 +1,104 @@
 
 
-# Implementation Plan: Hardening Fixes (4 Minimal Changes)
+# Auth Hardening Audit — Current State Verification
 
-Based on the architecture analysis, here are four targeted, low-risk fixes ordered by impact. These are mechanical cleanups — no new features, no structural rewrites.
-
----
-
-## Fix 1: Tighten chunk reload guard (main.tsx)
-
-**Problem**: Current string matching (`Failed to fetch dynamically imported module`, `Loading chunk`, `Loading CSS chunk`) is broad and could false-positive on unrelated errors. No TTL — the flag persists until next successful load.
-
-**Changes**:
-- Add a timestamp to the `chunk-reload` sessionStorage value
-- Only reload if the last reload attempt was >10 seconds ago (prevents rapid loops from non-chunk errors)
-- Keep existing message matching but add a comment documenting browser variance risk
-
-**File**: `src/main.tsx` (lines 19–32)
+Based on direct file inspection, here is the exact current status of every hardening item.
 
 ---
 
-## Fix 2: Add debug logging for monitor flush failures (lighthouse-monitor.ts)
+## 1. Does `ensureUserRoles` exist?
 
-**Problem**: `flush()` catches errors with `console.warn` but provides no structured context. If the table schema drifts or RLS blocks inserts, failures are invisible.
+**Yes.** File: `src/lib/ensureUserRoles.ts` (66 lines). Exports `ensureUserRoles(userId)` which queries `user_roles`, retries once after 1.5s, and throws on missing data.
 
-**Changes**:
-- In the `catch` block of `flush()`, log the table name that failed and the error code (not just the raw error)
-- Gate verbose logging behind `import.meta.env.DEV` to keep production quiet
-- No behavioral change — still fire-and-forget
+## 2. Does `parseRolesRow` exist?
 
-**File**: `src/lib/lighthouse-monitor.ts` (lines 149–152)
+**Yes.** Defined at line 22 of `src/lib/ensureUserRoles.ts`. Validates `roles` is a non-empty array, throws `'Your account roles are missing'` if empty, falls back `activeRole` to `roles[0]` only when `active_role` is null.
+
+## 3. Role loading during sign-in (`Auth.tsx`)
+
+**Hardened.** Line 14 imports `ensureUserRoles`. Line 99:
+
+```typescript
+const { activeRole } = await ensureUserRoles(userId);
+```
+
+Error is caught in the outer `catch` block (line 116) and displayed via `toast.error`. No silent default.
+
+## 4. Role loading in `AuthCallback.tsx`
+
+**Hardened.** Line 5 imports `ensureUserRoles`. Lines 84-94:
+
+```typescript
+try {
+  const result = await ensureUserRoles(session.user.id);
+  activeRole = result.activeRole;
+} catch (err: any) {
+  setState({ status: 'error', message: err.message || '...' });
+  return;
+}
+```
+
+Failures show an inline error UI with AlertCircle icon and "Back to sign in" button. No silent redirect.
+
+## 5. Does any code still silently default to `client`?
+
+**Yes — in `useSessionSnapshot.ts`.** This is the session-load path (persistent context), separate from the sign-in/callback paths above.
+
+- **Line 84**: `const DEFAULT_ROLE: UserRole = 'client';`
+- **Lines 89-90**: Initial state is `[DEFAULT_ROLE]` / `DEFAULT_ROLE`
+- **Lines 194-196**: If `inferredRoles` is empty after parsing, it silently adds `client`:
+  ```typescript
+  if (inferredRoles.size === 0) {
+    inferredRoles.add(DEFAULT_ROLE);
+  }
+  ```
+
+This is a **deliberate design choice** for the session context (needs a role even during loading/hydration), but it does mean the session layer can show `client` even if the DB row is missing. The sign-in and callback paths (Auth.tsx, AuthCallback.tsx) are the gatekeepers — by the time `useSessionSnapshot` runs, the user has already passed through `ensureUserRoles`.
+
+**Risk level: low.** The silent default only applies to the ambient session hook, not to navigation decisions at login time.
+
+## 6. Is `active_role` cast unsafely?
+
+**Partially.** In `useSessionSnapshot.ts` line 198:
+
+```typescript
+const dbRole = rolesResult.data?.active_role as UserRole | undefined;
+```
+
+This is a raw cast from `unknown` to `UserRole`. However, line 199 immediately validates it:
+
+```typescript
+if (dbRole && (dbRole === 'client' || dbRole === 'professional' || dbRole === 'admin')) {
+```
+
+So the cast is cosmetic — the value is never used without validation. **Safe in practice.**
+
+In `ensureUserRoles.ts` line 24, `activeRole` is typed as `string` (not `UserRole`), so no unsafe narrowing there.
+
+## 7. `AuthContext.tsx`
+
+**Does not exist.** No file, no imports found. Auth context is provided by `SessionContext.tsx` which wraps `useSessionSnapshot`.
 
 ---
 
-## Fix 3: Extract admin routes into lazy-loaded chunk (App.tsx)
+## 8. Auto-repair for professional profiles
 
-**Problem**: All 15+ admin page imports are individually lazy-loaded but still listed inline in the 350-line App.tsx. Grouping them into a single lazy boundary reduces both file complexity and gives the bundler a clear split point.
-
-**Changes**:
-- Create `src/app/routes/AdminRoutes.tsx` containing the `<Route path="/dashboard/admin">` subtree (lines 314–331)
-- In App.tsx, replace the admin block with a single lazy import of `AdminRoutes`
-- All admin pages remain lazy — this just moves the declarations
-
-**Files**: New `src/app/routes/AdminRoutes.tsx`, edit `src/App.tsx`
+**Implemented.** `useSessionSnapshot.ts` lines 241-280: if `resolvedRoles` includes `professional` but no profile row exists, it calls `become_professional` RPC and re-fetches. Failure sets profile to `null` (handled by onboarding redirects).
 
 ---
 
-## Fix 4: Document provider ownership (comment only)
+## Verdict
 
-**Problem**: Providers are split between `main.tsx` (ErrorBoundary, Suspense) and `App.tsx` (QueryClient, BrowserRouter, SessionProvider, TooltipProvider). This is actually correct — infra in main, app in App — but undocumented.
+| Item | Status |
+|---|---|
+| `ensureUserRoles` exists | Implemented |
+| `parseRolesRow` exists | Implemented |
+| Auth.tsx uses `ensureUserRoles` | Implemented |
+| AuthCallback uses `ensureUserRoles` + inline error UI | Implemented |
+| Silent `client` default removed from login paths | Implemented |
+| Silent `client` default in session hook | **Remains (by design)** |
+| `active_role` unsafe cast | **Cosmetic cast, validated immediately — safe** |
+| Professional profile auto-repair | Implemented |
 
-**Changes**:
-- Add a brief ownership comment block at the top of both `main.tsx` and `App.tsx` clarifying the split
-- No code changes, just documentation
-
-**Files**: `src/main.tsx`, `src/App.tsx`
-
----
-
-## What this does NOT include
-
-- E2E test authoring (separate effort, needs Playwright setup)
-- Full route registry rewrite
-- i18n changes (it's fully implemented, not a placeholder)
+**Overall: Implemented.** The two remaining items (session hook default, cosmetic cast) are intentional design — not missing hardening.
 
