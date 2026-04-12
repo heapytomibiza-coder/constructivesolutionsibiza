@@ -102,7 +102,7 @@ function ReviewPanel({
 
       {hasIssues && (
         <Collapsible defaultOpen>
-          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 w-full">
+          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-destructive w-full">
             <AlertTriangle className="h-3.5 w-3.5" />
             {t("proposal.reviewIssues")} ({result.issues.length + result.missing_elements.length})
           </CollapsibleTrigger>
@@ -133,7 +133,7 @@ function ReviewPanel({
 
       {hasStrengths && (
         <Collapsible defaultOpen={!hasIssues}>
-          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 w-full">
+          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-primary w-full">
             <CheckCircle2 className="h-3.5 w-3.5" />
             {t("proposal.reviewStrengths")} ({result.strengths.length})
           </CollapsibleTrigger>
