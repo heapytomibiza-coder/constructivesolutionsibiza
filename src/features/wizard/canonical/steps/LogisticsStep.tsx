@@ -57,9 +57,23 @@ export function LogisticsStep({ logistics, onChange, showValidation = false, mic
   const { t } = useTranslation('wizard');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [suggestionDismissed, setSuggestionDismissed] = useState(false);
+  const suggestionTrackedRef = useRef(false);
 
   // Budget suggestion from historical data
   const { data: budgetSuggestion } = useBudgetSuggestion(microSlugs);
+
+  // Track when suggestion is shown (once)
+  useEffect(() => {
+    if (budgetSuggestion?.suggested_min != null && !suggestionTrackedRef.current) {
+      suggestionTrackedRef.current = true;
+      trackEvent(EVENTS.AGENT_BUDGET_SUGGESTION_SHOWN, 'client', {
+        suggested_min: budgetSuggestion.suggested_min,
+        suggested_max: budgetSuggestion.suggested_max,
+        confidence: budgetSuggestion.confidence,
+        sample_size: budgetSuggestion.sample_size,
+      });
+    }
+  }, [budgetSuggestion]);
 
   // Validation state for highlighting missing fields
   const missingLocation = showValidation && (!logistics.location?.trim() || (logistics.location === 'other' && !logistics.customLocation?.trim()));
