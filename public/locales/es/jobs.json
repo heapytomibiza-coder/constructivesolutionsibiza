@@ -234,6 +234,14 @@
     "total": "Total",
     "send": "Enviar Propuesta",
     "sendRevision": "Enviar Propuesta Revisada",
-    "itemRequired": "Añade al menos una partida con descripción y precio"
+    "itemRequired": "Añade al menos una partida con descripción y precio",
+    "reviewQuote": "Revisar mi presupuesto",
+    "reviewing": "Analizando…",
+    "reviewSuggestions": "Sugerencias",
+    "reviewStrengths": "Puntos fuertes",
+    "reviewIssues": "Problemas",
+    "reviewMissing": "Elementos que faltan",
+    "dismissReview": "Cerrar",
+    "reviewFailed": "No se pudo analizar el presupuesto ahora"
   }
 }
