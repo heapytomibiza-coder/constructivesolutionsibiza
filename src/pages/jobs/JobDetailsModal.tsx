@@ -282,6 +282,19 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         </div>
       </div>
 
+      {/* Worker Brief — AI-generated summary for professionals */}
+      {jobPack.workerBrief && !jobPack.isOwner && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <FileText className="h-3.5 w-3.5 text-primary/70" />
+              <span className="text-xs font-medium text-primary/70">{t('detail.quickSummary', 'Quick Summary')}</span>
+            </div>
+            <p className="text-sm leading-relaxed">{jobPack.workerBrief}</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card className="relative overflow-hidden">
