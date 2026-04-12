@@ -277,7 +277,15 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         </div>
         <div className="space-y-1">
           <div className="text-xl font-semibold leading-snug">{getI18nField(jobPack.title, jobPack.titleI18n, contentLang)}</div>
-          {jobPack.teaser && <p className="text-sm text-muted-foreground">{getI18nField(jobPack.teaser, jobPack.teaserI18n, contentLang)}</p>}
+          {(() => {
+            const teaserText = jobPack.teaser ? getI18nField(jobPack.teaser, jobPack.teaserI18n, contentLang) : null;
+            const titleText = getI18nField(jobPack.title, jobPack.titleI18n, contentLang);
+            if (!teaserText) return null;
+            const normTeaser = teaserText.toLowerCase().trim();
+            const normTitle = titleText.toLowerCase().trim();
+            if (normTeaser === normTitle || normTeaser.startsWith(normTitle + " in")) return null;
+            return <p className="text-sm text-muted-foreground">{teaserText}</p>;
+          })()}
           <div className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(jobPack.createdAt), { addSuffix: true, ...dateLocale })}
           </div>
