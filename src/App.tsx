@@ -27,6 +27,7 @@ import { ScrollToTop } from "@/shared/components/layout/ScrollToTop";
 import { UrlNormalizer } from "@/shared/components/layout/UrlNormalizer";
 import { RouteGuard, PublicOnlyGuard, RolloutGate } from "@/guard";
 import { AdminRouteChildren } from "@/app/routes/AdminRoutes";
+import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
 import { Loader2 } from "lucide-react";
 
 // ─── EAGER IMPORTS ──────────────────────────────────────────────
