@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSession } from "@/contexts/SessionContext";
@@ -8,7 +8,7 @@ import { useConversations, useMarkConversationRead, type Conversation } from "./
 import { PLATFORM } from "@/domain/scope";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect } from "react";
+import { LaneHeader } from "@/shared/components/layout/LaneHeader";
 
 /**
  * MESSAGES PAGE
@@ -116,6 +116,7 @@ const Messages = () => {
   if (isMobile) {
     return (
       <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
+        <LaneHeader />
         <nav className="border-b border-border bg-card shrink-0">
           <div className="px-4 flex h-14 items-center gap-3">
             <Link to={dashboardPath} className="text-muted-foreground hover:text-foreground">
@@ -141,6 +142,7 @@ const Messages = () => {
   // Desktop: split view
   return (
     <div className="h-dvh bg-background flex flex-col overflow-hidden">
+      <LaneHeader />
       <nav className="border-b border-border bg-card/90 backdrop-blur-md shrink-0">
         <div className="container flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">

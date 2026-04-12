@@ -10,6 +10,7 @@
     "tasker": "Tasker",
     "asker": "Asker",
     "switchedTo": "Cambiado a modo {{label}}",
+    "switchError": "No se pudo cambiar de modo. Inténtalo de nuevo.",
     "adminPanel": "Panel de Administración"
   },
   "security": {

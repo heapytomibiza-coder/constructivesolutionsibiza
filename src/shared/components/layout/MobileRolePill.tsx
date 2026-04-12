@@ -1,10 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from '@/contexts/SessionContext';
-import { getDashboardPath } from '@/app/routes';
+import { useRoleSwitch } from '@/hooks/useRoleSwitch';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
-import { User, Briefcase, ChevronDown } from 'lucide-react';
+import { User, Briefcase, ChevronDown, Loader2 } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -28,10 +26,8 @@ const roleIcons: Record<UserRole, React.ReactNode> = {
  */
 export function MobileRolePill() {
   const { t } = useTranslation();
-  const { roles, activeRole, switchRole } = useSession();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { roles, activeRole } = useSession();
+  const { isSwitching, handleSwitch } = useRoleSwitch();
   const [open, setOpen] = useState(false);
 
   if (roles.length <= 1) return null;
@@ -45,25 +41,12 @@ export function MobileRolePill() {
     }
   };
 
-  const handleSwitch = async (newRole: UserRole) => {
+  const onSwitch = async (newRole: UserRole) => {
     if (newRole === activeRole) {
       setOpen(false);
       return;
     }
-    await switchRole(newRole);
-    queryClient.invalidateQueries({ queryKey: ['jobs'] });
-    queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
-    queryClient.invalidateQueries({ queryKey: ['matched_jobs'] });
-    queryClient.invalidateQueries({ queryKey: ['conversations'] });
-    queryClient.invalidateQueries({ queryKey: ['client_stats'] });
-    queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
-    queryClient.invalidateQueries({ queryKey: ['pro_unread_messages'] });
-    queryClient.invalidateQueries({ queryKey: ['professional_services'] });
-
-    const target = getDashboardPath(newRole);
-    if (location.pathname.startsWith('/dashboard') && location.pathname !== target) {
-      navigate(target, { replace: true });
-    }
+    await handleSwitch(newRole);
     setOpen(false);
   };
 
@@ -72,8 +55,13 @@ export function MobileRolePill() {
       <SheetTrigger asChild>
         <button
           className="md:hidden flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+          disabled={isSwitching}
         >
-          {roleIcons[activeRole]}
+          {isSwitching ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            roleIcons[activeRole]
+          )}
           <span className="max-w-[4.5rem] truncate uppercase tracking-wide">
             {getRoleLabel(activeRole)}
           </span>
@@ -90,12 +78,14 @@ export function MobileRolePill() {
           {roles.map((role) => (
             <button
               key={role}
-              onClick={() => handleSwitch(role)}
+              onClick={() => onSwitch(role)}
+              disabled={isSwitching}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors',
                 role === activeRole
                   ? 'bg-primary/10 text-primary border border-primary/20'
-                  : 'bg-muted/40 text-foreground hover:bg-muted'
+                  : 'bg-muted/40 text-foreground hover:bg-muted',
+                isSwitching && 'opacity-60 cursor-not-allowed'
               )}
             >
               {roleIcons[role]}

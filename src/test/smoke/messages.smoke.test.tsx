@@ -36,7 +36,10 @@ const mockSession = {
   isReady: true,
   user: { id: 'test-user-123', email: 'test@example.com' },
   activeRole: 'client' as string | null,
+  roles: ['client'] as string[],
   refresh: vi.fn(),
+  switchRole: vi.fn(),
+  subscription: { plan: null, status: null, isLoading: false },
 };
 
 vi.mock('@/contexts/SessionContext', () => ({

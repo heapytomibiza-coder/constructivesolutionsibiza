@@ -10,6 +10,7 @@
     "tasker": "Tasker",
     "asker": "Asker",
     "switchedTo": "Switched to {{label}} mode",
+    "switchError": "Failed to switch mode. Please try again.",
     "adminPanel": "Admin Panel",
     "becomePro": "Become a Professional",
     "becomeProDesc": "Want to offer your services? Join as a professional and start receiving job requests.",
