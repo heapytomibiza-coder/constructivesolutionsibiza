@@ -18,6 +18,16 @@ interface UserRolesResult {
 
 const RETRY_DELAY_MS = 1500;
 
+/** Safely parse a user_roles row, guarding against null/malformed roles */
+function parseRolesRow(row: { active_role: string; roles: unknown }): UserRolesResult {
+  const roles = Array.isArray(row.roles) ? (row.roles as string[]) : [];
+  const activeRole = row.active_role || (roles[0] ?? 'client');
+  if (roles.length === 0) {
+    throw new Error('Your account roles are missing. Please contact support.');
+  }
+  return { activeRole, roles };
+}
+
 export async function ensureUserRoles(userId: string): Promise<UserRolesResult> {
   const query = () =>
     supabase
