@@ -95,7 +95,11 @@
       "over5k": "Over €5,000",
       "over5kHint": "Full-scale projects",
       "needQuote": "I need a quote first",
-      "needQuoteHint": "Not sure about budget yet"
+      "needQuoteHint": "Not sure about budget yet",
+      "suggestion": "Similar jobs: €{{min}} – €{{max}}",
+      "suggestionBasis": "Based on {{count}} completed jobs",
+      "useSuggestion": "Use this range",
+      "noData": "Not enough data yet for a reliable estimate"
     },
     "contact": {
       "siteVisit": "Site visit",

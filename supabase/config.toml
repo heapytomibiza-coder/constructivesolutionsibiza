@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.daily-health-check]
 verify_jwt = false
+
+[functions.get-budget-suggestion]
+verify_jwt = false
