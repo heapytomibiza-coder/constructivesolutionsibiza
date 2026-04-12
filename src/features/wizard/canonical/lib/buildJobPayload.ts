@@ -287,12 +287,12 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
   // Area
   const area = mapLocationToArea(logistics.location, logistics.customLocation);
 
-  // Teaser
+  // Teaser — custom description or user notes; no mechanical fallback to avoid duplicating title
   const teaser = isCustom && state.customRequest?.description
     ? state.customRequest.description.slice(0, 200)
     : extras.notes?.trim()
       ? extras.notes.trim().slice(0, 200)
-      : `${title} in ${area || 'Ibiza'}`;
+      : null;
 
   // Full description — store raw description only, specs kept in answers.custom
   const customDesc = isCustom && state.customRequest

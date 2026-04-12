@@ -236,7 +236,15 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
               <h3 className="text-base font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
                 {getI18nField(job.title, job.title_i18n, contentLang)}
               </h3>
-              {job.teaser && <p className="text-sm text-muted-foreground line-clamp-2">{getI18nField(job.teaser, job.teaser_i18n, contentLang)}</p>}
+              {(() => {
+                const teaserText = job.teaser ? getI18nField(job.teaser, job.teaser_i18n, contentLang) : null;
+                const titleText = getI18nField(job.title, job.title_i18n, contentLang);
+                if (!teaserText) return null;
+                const normTeaser = teaserText.toLowerCase().trim();
+                const normTitle = titleText.toLowerCase().trim();
+                if (normTeaser === normTitle || normTeaser.startsWith(normTitle + " in")) return null;
+                return <p className="text-sm text-muted-foreground line-clamp-2">{teaserText}</p>;
+              })()}
             </div>
             <Button onClick={handleButtonClick} variant="outline" size="sm" className="hidden sm:inline-flex">
               {t('card.view')}
