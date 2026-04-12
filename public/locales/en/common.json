@@ -40,8 +40,8 @@
     "selectMode": "Select mode"
   },
   "roles": {
-    "client": "Asker",
-    "professional": "Tasker",
+    "client": "Client",
+    "professional": "Professional",
     "admin": "Admin"
   },
   "hero": {
