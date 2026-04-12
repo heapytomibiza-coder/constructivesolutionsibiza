@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useAdminDrawer } from "../context/AdminDrawerContext";
 import { useAdminJobDetails } from "../queries/adminJobDetails.query";
 import { formatWhatsAppPost, copyToClipboard } from "../lib/formatWhatsAppPost";
+import { ClassificationReviewPanel } from "./ClassificationReviewPanel";
 
 function StatusBadge({ status }: { status: string }) {
   switch (status) {

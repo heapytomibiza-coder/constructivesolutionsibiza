@@ -15,3 +15,4 @@ export * from "./useAdminAlerts";
 export * from "./useMessagingPulse";
 export * from "./useOnboardingHealth";
 export * from "./useQaReminderStatus";
+export * from "./useClassificationSuggestions";
