@@ -3,13 +3,13 @@
  * Optimized layout with clear visual hierarchy
  * - Location: Grouped dropdown (from centralized zones.ts)
  * - Timing: Compact tile grid
- * - Budget: Radio options with context
+ * - Budget: Radio options with context + smart suggestion
  * - Contact: Horizontal selection
  */
 
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, MapPin, Clock, Wallet, MessageSquare } from 'lucide-react';
+import { Calendar, MapPin, Clock, Wallet, MessageSquare, Lightbulb } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ import type { WizardState } from '../types';
 import { TileOption } from './logistics';
 import { TIMING_OPTIONS, CONTACT_OPTIONS } from './logistics/constants';
 import { getMainZones, getPopularZones, OTHER_LOCATION } from '@/shared/components/professional/zones';
+import { useBudgetSuggestion, mapRangeToBudgetChip } from './logistics/useBudgetSuggestion';
 
 interface LogisticsStepProps {
   logistics: WizardState['logistics'];
