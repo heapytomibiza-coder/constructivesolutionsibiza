@@ -73,6 +73,9 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
     case "archived":
       query = query.eq("status", "archived");
       break;
+    case "custom":
+      query = query.eq("is_custom_request", true);
+      break;
   }
 
   const { data, error } = await query;
