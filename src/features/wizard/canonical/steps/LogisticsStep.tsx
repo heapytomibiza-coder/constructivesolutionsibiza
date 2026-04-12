@@ -243,6 +243,9 @@ export function LogisticsStep({ logistics, onChange, showValidation = false, mic
                 onClick={() => {
                   onChange({ budgetRange: mapRangeToBudgetChip(budgetSuggestion.suggested_min!, budgetSuggestion.suggested_max!) });
                   setSuggestionDismissed(true);
+                  trackEvent(EVENTS.AGENT_BUDGET_SUGGESTION_ACCEPTED, 'client', {
+                    chip: mapRangeToBudgetChip(budgetSuggestion.suggested_min!, budgetSuggestion.suggested_max!),
+                  });
                 }}
               >
                 {t('logistics.budget.useSuggestion')}
@@ -252,7 +255,10 @@ export function LogisticsStep({ logistics, onChange, showValidation = false, mic
                 variant="ghost"
                 size="sm"
                 className="text-xs h-7 px-2 text-muted-foreground"
-                onClick={() => setSuggestionDismissed(true)}
+                onClick={() => {
+                  setSuggestionDismissed(true);
+                  trackEvent(EVENTS.AGENT_BUDGET_SUGGESTION_DISMISSED, 'client');
+                }}
               >
                 ✕
               </Button>
