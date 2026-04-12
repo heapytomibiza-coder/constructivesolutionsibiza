@@ -96,7 +96,7 @@ function AgentCard({ metrics }: { metrics: AgentMetrics }) {
           <MetricCell
             value={metrics.succeeded}
             label="Success"
-            icon={<CheckCircle2 className="h-3 w-3 text-green-600" />}
+            icon={<CheckCircle2 className="h-3 w-3 text-primary" />}
           />
           <MetricCell
             value={metrics.failed}

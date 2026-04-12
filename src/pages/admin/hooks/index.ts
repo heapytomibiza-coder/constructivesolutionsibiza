@@ -16,3 +16,4 @@ export * from "./useMessagingPulse";
 export * from "./useOnboardingHealth";
 export * from "./useQaReminderStatus";
 export * from "./useClassificationSuggestions";
+export * from "./useAgentPerformance";
