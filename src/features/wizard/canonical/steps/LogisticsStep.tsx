@@ -38,6 +38,7 @@ interface LogisticsStepProps {
   logistics: WizardState['logistics'];
   onChange: (logistics: Partial<WizardState['logistics']>) => void;
   showValidation?: boolean;
+  microSlugs?: string[];
 }
 
 // Budget option keys for i18n lookup
@@ -50,9 +51,13 @@ const BUDGET_KEYS = [
   { value: 'need_quote', labelKey: 'logistics.budget.needQuote', hintKey: 'logistics.budget.needQuoteHint' },
 ] as const;
 
-export function LogisticsStep({ logistics, onChange, showValidation = false }: LogisticsStepProps) {
+export function LogisticsStep({ logistics, onChange, showValidation = false, microSlugs = [] }: LogisticsStepProps) {
   const { t } = useTranslation('wizard');
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
+
+  // Budget suggestion from historical data
+  const { data: budgetSuggestion } = useBudgetSuggestion(microSlugs);
 
   // Validation state for highlighting missing fields
   const missingLocation = showValidation && (!logistics.location?.trim() || (logistics.location === 'other' && !logistics.customLocation?.trim()));
