@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 
-export type AdminJobsFilter = "all" | "flagged" | "open" | "in_progress" | "completed" | "archived" | "needs_quote";
+export type AdminJobsFilter = "all" | "flagged" | "open" | "in_progress" | "completed" | "archived" | "needs_quote" | "custom";
 
 interface UseAdminJobsOptions {
   filter?: AdminJobsFilter;
@@ -44,6 +44,7 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
       updated_at,
       status,
       is_publicly_listed,
+      is_custom_request,
       flags,
       computed_inspection_bias,
       computed_safety
