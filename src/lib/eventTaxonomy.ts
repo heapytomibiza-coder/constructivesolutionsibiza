@@ -115,6 +115,14 @@ export const EVENTS = {
   NUDGE_CONVERSATION_STALE: "nudge_conversation_stale",
   NUDGE_PRO_NO_QUOTE: "nudge_pro_no_quote",
   NUDGE_REVIEW_REMINDER: "nudge_review_reminder",
+
+  // AI Agents — observability
+  AGENT_QUOTE_COACH_TRIGGERED: "agent_quote_coach_triggered",
+  AGENT_QUOTE_COACH_SUCCESS: "agent_quote_coach_success",
+  AGENT_QUOTE_COACH_FAILED: "agent_quote_coach_failed",
+  AGENT_BUDGET_SUGGESTION_SHOWN: "agent_budget_suggestion_shown",
+  AGENT_BUDGET_SUGGESTION_ACCEPTED: "agent_budget_suggestion_accepted",
+  AGENT_BUDGET_SUGGESTION_DISMISSED: "agent_budget_suggestion_dismissed",
 } as const;
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];

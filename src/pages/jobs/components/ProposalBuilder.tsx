@@ -6,6 +6,8 @@
  */
 
 import { useState, useCallback, useMemo } from "react";
+import { trackEvent } from "@/lib/trackEvent";
+import { EVENTS } from "@/lib/eventTaxonomy";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -211,6 +213,7 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
   const handleReview = useCallback(async () => {
     setReviewing(true);
     setReviewResult(null);
+    trackEvent(EVENTS.AGENT_QUOTE_COACH_TRIGGERED, 'professional', {}, { job_id: jobId });
 
     const quoteText = items
       .filter(i => i.description.trim())
@@ -237,11 +240,14 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
       });
 
       if (error || !data) {
+        trackEvent(EVENTS.AGENT_QUOTE_COACH_FAILED, 'professional', { reason: error?.message ?? 'no_data' }, { job_id: jobId });
         toast.error(t("proposal.reviewFailed"));
       } else {
+        trackEvent(EVENTS.AGENT_QUOTE_COACH_SUCCESS, 'professional', { quality_score: (data as QuoteQualityResult).quality_score, should_warn: (data as QuoteQualityResult).should_warn }, { job_id: jobId });
         setReviewResult(data as QuoteQualityResult);
       }
     } catch {
+      trackEvent(EVENTS.AGENT_QUOTE_COACH_FAILED, 'professional', { reason: 'exception' }, { job_id: jobId });
       toast.error(t("proposal.reviewFailed"));
     } finally {
       setReviewing(false);

@@ -7,13 +7,15 @@
  * - Contact: Horizontal selection
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, MapPin, Clock, Wallet, MessageSquare, Lightbulb } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { trackEvent } from '@/lib/trackEvent';
+import { EVENTS } from '@/lib/eventTaxonomy';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -55,9 +57,23 @@ export function LogisticsStep({ logistics, onChange, showValidation = false, mic
   const { t } = useTranslation('wizard');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [suggestionDismissed, setSuggestionDismissed] = useState(false);
+  const suggestionTrackedRef = useRef(false);
 
   // Budget suggestion from historical data
   const { data: budgetSuggestion } = useBudgetSuggestion(microSlugs);
+
+  // Track when suggestion is shown (once)
+  useEffect(() => {
+    if (budgetSuggestion?.suggested_min != null && !suggestionTrackedRef.current) {
+      suggestionTrackedRef.current = true;
+      trackEvent(EVENTS.AGENT_BUDGET_SUGGESTION_SHOWN, 'client', {
+        suggested_min: budgetSuggestion.suggested_min,
+        suggested_max: budgetSuggestion.suggested_max,
+        confidence: budgetSuggestion.confidence,
+        sample_size: budgetSuggestion.sample_size,
+      });
+    }
+  }, [budgetSuggestion]);
 
   // Validation state for highlighting missing fields
   const missingLocation = showValidation && (!logistics.location?.trim() || (logistics.location === 'other' && !logistics.customLocation?.trim()));
@@ -227,6 +243,9 @@ export function LogisticsStep({ logistics, onChange, showValidation = false, mic
                 onClick={() => {
                   onChange({ budgetRange: mapRangeToBudgetChip(budgetSuggestion.suggested_min!, budgetSuggestion.suggested_max!) });
                   setSuggestionDismissed(true);
+                  trackEvent(EVENTS.AGENT_BUDGET_SUGGESTION_ACCEPTED, 'client', {
+                    chip: mapRangeToBudgetChip(budgetSuggestion.suggested_min!, budgetSuggestion.suggested_max!),
+                  });
                 }}
               >
                 {t('logistics.budget.useSuggestion')}
@@ -236,7 +255,10 @@ export function LogisticsStep({ logistics, onChange, showValidation = false, mic
                 variant="ghost"
                 size="sm"
                 className="text-xs h-7 px-2 text-muted-foreground"
-                onClick={() => setSuggestionDismissed(true)}
+                onClick={() => {
+                  setSuggestionDismissed(true);
+                  trackEvent(EVENTS.AGENT_BUDGET_SUGGESTION_DISMISSED, 'client');
+                }}
               >
                 ✕
               </Button>
