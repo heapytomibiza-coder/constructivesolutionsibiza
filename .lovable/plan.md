@@ -1,50 +1,28 @@
 
 
-# Interactive Presentation: Platform Overview
+# Export Full System Architecture Document
 
-## Summary
-Create a new `/presentation` route with a fullscreen interactive slide deck that explains Constructive Solutions Ibiza's concept, value proposition, and features. Built as a self-contained React page with keyboard/swipe navigation, no external dependencies.
+## What this does
+Generates a comprehensive Markdown document containing the complete platform architecture — taxonomy, wizard structure, job output schema, worker profiles, and matching logic — exported as a downloadable file.
 
-## Slide Content (8 slides)
+## Content structure
 
-1. **Title** — "Constructive Solutions Ibiza" + tagline: "Infrastructure for a broken industry"
-2. **The Problem** — WhatsApp chaos, no records, no accountability, trust gaps
-3. **The Solution** — Structured project workflow: Post → Match → Communicate → Complete → Review
-4. **For Clients** — Guided job posting, intelligent matching, structured quotes, payment protection
-5. **For Professionals** — Verified job briefs, skill-based matching, reputation building
-6. **Core Systems** — 5 pillars: Job Wizard, Matching, Messaging, Quotes, Reviews (icon cards)
-7. **What Makes Us Different** — Side-by-side: Traditional vs Constructive Solutions
-8. **CTA** — "Ready to build better?" with Post a Job / Join as Professional buttons
+The document will contain 7 sections matching your request:
 
-## Technical Approach
+1. **Taxonomy** — All 16 categories, ~89 subcategories, ~335 micro-services extracted directly from the `service_search_index` database table
+2. **Wizard Structure** — All 7 steps with exact questions, types, options, required/optional flags, and conditional logic (pulled from the codebase)
+3. **Job Output** — The exact `jobs` table columns (41 fields) and the `answers` JSONB structure showing what gets stored
+4. **Worker Side** — Professional profile fields, service selection model, onboarding phases
+5. **Matching** — The `matched_jobs_for_professional` view logic (micro_slug join)
+6. **Database Structure** — Key tables and their relationships
+7. **Edge Cases** — Custom request fallback, "Other" location, general-project pack fallback, admin editing
 
-### New files
-- `src/pages/public/Presentation.tsx` — Full slide deck component with:
-  - Fixed 1920×1080 slides scaled to viewport via CSS transform
-  - Arrow key + swipe navigation
-  - Slide indicator dots
-  - Fullscreen toggle
-  - Progress bar
-  - Clean dark theme with brand accent colors
-  - Responsive — works on the user's current 411px mobile viewport and desktop
+## Technical approach
 
-### Route
-- Add lazy route `/presentation` in `App.tsx`
-- Public, no auth required
+- Query the database for the full taxonomy (already retrieved)
+- Pull wizard step definitions from codebase (already read)
+- Generate a single Markdown file at `/mnt/documents/constructive_platform_architecture.md`
+- No codebase changes — pure data extraction and formatting
 
-### Design
-- Dark background (`slate-900`/`slate-950`)
-- Brand amber/orange accents
-- Lucide icons for visual elements
-- Minimal text, visual-forward
-- Smooth slide transitions via CSS
-
-### No database changes, no edge functions, no new dependencies.
-
-## Files changed
-
-| File | Change |
-|---|---|
-| `src/pages/public/Presentation.tsx` | New — slide deck component |
-| `src/App.tsx` | Add lazy route for `/presentation` |
-
+## Output
+One downloadable `.md` file, cleanly formatted and shareable.
