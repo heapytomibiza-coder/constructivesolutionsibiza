@@ -1,9 +1,13 @@
 /**
- * CS IBIZA - V2 APP SHELL
- * 
+ * CS IBIZA — V2 APP SHELL
+ *
+ * Provider ownership:
+ *   main.tsx  → ErrorBoundary, Suspense (crash recovery + loading)
+ *   App.tsx   → QueryClient, BrowserRouter, SessionProvider, TooltipProvider (app logic)
+ *
  * PLATFORM SCOPE: Construction & property services ONLY
  * Includes admin routes (protected by admin role).
- * 
+ *
  * CODE SPLITTING STRATEGY:
  * - Landing page (Index), NotFound, Auth, and AuthCallback are EAGER — they are
  *   critical-path pages that must render instantly on first load or redirect.
@@ -99,23 +103,8 @@ const ForumCategory = lazy(() => import("./pages/forum/ForumCategory"));
 const ForumPost = lazy(() => import("./pages/forum/ForumPost"));
 const ForumNewPost = lazy(() => import("./pages/forum/ForumNewPost"));
 
-// Admin — import pages directly to avoid pulling the entire admin barrel (hooks, actions, types)
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+// Admin — extracted to AdminRoutes.tsx for bundle splitting
 const AdminRouteLayout = lazy(() => import("./pages/admin/AdminRouteLayout"));
-const MetricInsightPage = lazy(() => import("./pages/admin/insights/MetricInsightPage"));
-const MarketGapPage = lazy(() => import("./pages/admin/insights/MarketGapPage"));
-const FunnelsPage = lazy(() => import("./pages/admin/insights/FunnelsPage"));
-const ProPerformancePage = lazy(() => import("./pages/admin/insights/ProPerformancePage"));
-const PricingPage = lazy(() => import("./pages/admin/insights/PricingPage"));
-const TrendRadarPage = lazy(() => import("./pages/admin/insights/TrendRadarPage"));
-const UnansweredJobsPage = lazy(() => import("./pages/admin/insights/UnansweredJobsPage"));
-const RepeatWorkPage = lazy(() => import("./pages/admin/insights/RepeatWorkPage"));
-const OnboardingFunnelPage = lazy(() => import("./pages/admin/insights/OnboardingFunnelPage"));
-const TopSourcesPage = lazy(() => import("./pages/admin/insights/TopSourcesPage"));
-const MessagingPulsePage = lazy(() => import("./pages/admin/insights/MessagingPulsePage"));
-const MonitoringPage = lazy(() => import("./pages/admin/monitoring/MonitoringPage"));
-const DisputeQADashboard = lazy(() => import("./pages/admin/qa/DisputeQADashboard"));
-const AdminPricingRulesPage = lazy(() => import("./pages/admin/pricing/AdminPricingRulesPage"));
 
 // Prototype
 const PriceCalculatorPage = lazy(() => import("./pages/prototype/PriceCalculatorPage"));
@@ -312,22 +301,7 @@ const App = () => {
 
               {/* Admin Dashboard */}
               <Route path="/dashboard/admin" element={<AdminRouteLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="insights/market-gap" element={<MarketGapPage />} />
-                <Route path="insights/funnels" element={<FunnelsPage />} />
-                <Route path="insights/pro-performance" element={<ProPerformancePage />} />
-                <Route path="insights/pricing" element={<PricingPage />} />
-                <Route path="insights/trends" element={<TrendRadarPage />} />
-                <Route path="insights/unanswered-jobs" element={<UnansweredJobsPage />} />
-                <Route path="insights/repeat-work" element={<RepeatWorkPage />} />
-                <Route path="insights/onboarding-funnel" element={<OnboardingFunnelPage />} />
-                <Route path="insights/top-sources" element={<TopSourcesPage />} />
-                <Route path="insights/messaging-pulse" element={<MessagingPulsePage />} />
-                <Route path="insights/:metricKey" element={<MetricInsightPage />} />
-                <Route path="monitoring" element={<MonitoringPage />} />
-                <Route path="qa/disputes" element={<DisputeQADashboard />} />
-                <Route path="pricing-rules" element={<AdminPricingRulesPage />} />
-                <Route path="launch-checklist" element={<LaunchChecklist />} />
+                {AdminRouteChildren()}
               </Route>
 
               {/* Estimate History (auth required) */}
