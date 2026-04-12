@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Loader2, Shield, ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react';
 import { IntentSelector, type UserIntent } from '@/components/auth/IntentSelector';
 import { trackEvent } from '@/lib/trackEvent';
+import { ensureUserRoles } from '@/lib/ensureUserRoles';
 
 /**
  * AUTH PAGE
@@ -95,16 +96,7 @@ const Auth = () => {
       // Role-based routing inline (avoids AuthCallback race condition on mobile)
       const userId = data.session?.user?.id;
       if (userId) {
-        const { data: rolesData } = await supabase
-          .from('user_roles')
-          .select('active_role')
-          .eq('user_id', userId)
-          .maybeSingle();
-
-        if (!rolesData) {
-          console.debug('[Auth] No user_roles row — defaulting to client', { userId });
-        }
-        const activeRole = rolesData?.active_role || 'client';
+        const { activeRole } = await ensureUserRoles(userId);
 
         if (activeRole === 'professional') {
           const { data: profileData } = await supabase
@@ -113,9 +105,6 @@ const Auth = () => {
             .eq('user_id', userId)
             .maybeSingle();
 
-          if (!profileData) {
-            console.debug('[Auth] No professional_profiles row — defaulting to not_started', { userId });
-          }
           const phase = profileData?.onboarding_phase || 'not_started';
           navigate(phase === 'complete' ? '/dashboard/pro' : '/onboarding/professional');
         } else {
