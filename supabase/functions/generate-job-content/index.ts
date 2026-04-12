@@ -261,14 +261,6 @@ Rules:
     );
   } catch (err) {
     console.error("generate-job-content error:", err);
-    // Best-effort: still try translation with fallback fields on AI failure
-    try {
-      const body: RequestBody = { job_id: "" };
-      if (fallback_fields) {
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        await triggerTranslation(supabaseUrl, body.job_id, authHeader ?? "", fallback_fields);
-      }
-    } catch { /* ignore */ }
     return new Response(
       JSON.stringify({ error: (err as Error).message }),
       {
