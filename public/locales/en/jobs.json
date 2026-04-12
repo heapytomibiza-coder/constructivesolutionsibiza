@@ -234,6 +234,14 @@
     "total": "Total",
     "send": "Send Proposal",
     "sendRevision": "Send Revised Proposal",
-    "itemRequired": "Add at least one item with a description and price"
+    "itemRequired": "Add at least one item with a description and price",
+    "reviewQuote": "Review my quote",
+    "reviewing": "Analyzing…",
+    "reviewSuggestions": "Suggestions",
+    "reviewStrengths": "Strengths",
+    "reviewIssues": "Issues",
+    "reviewMissing": "Missing elements",
+    "dismissReview": "Dismiss",
+    "reviewFailed": "Couldn't analyze quote right now"
   }
 }
