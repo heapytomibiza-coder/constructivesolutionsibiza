@@ -1,53 +1,63 @@
 
 
-# Agent 4: Quote Quality Coach — Implementation Plan
+# Agent 5: Smart Budget Suggestion — Implementation Plan
 
 ## What We're Building
-A "Review my quote" button in ProposalBuilder that calls an AI edge function to return advisory suggestions. Fully ephemeral — no DB writes, no schema changes, no blocking.
+A data-driven budget suggestion shown in the wizard's Logistics step (budget section). When micro services are selected, the system queries historical completed jobs to suggest a realistic price range. No AI for number generation — data only. Optional AI explanation deferred to Phase 2.
 
 ## Architecture Fit
-- Same pattern as Agent 1/3: edge function + Lovable AI Gateway + `gemini-2.5-flash-lite`
-- Button-triggered (not auto-run) — zero friction, zero latency impact on submission
-- Professional-facing only — already scoped by ProposalBuilder being inside ConversationThread for pros
-- Failure is invisible — if AI fails, button just shows "couldn't analyze" and submission remains unaffected
+- Data-driven first: SQL percentile aggregation on completed jobs via `job_micro_links`
+- No schema drift: zero new columns on `jobs`; one new RPC function only
+- Wizard unchanged: suggestion appears as an optional hint below the budget chips
+- User retains full control: can accept, ignore, or override
+- Not visible to professionals
+- Not used in matching (v1)
 
 ## Implementation Steps
 
-### 1. Edge Function: `analyze-quote-quality`
-- Input: `{ job_id, quote_text, line_items, exclusions, notes }`
-- Fetches job context from DB (title, teaser, worker_brief, answers, flags, computed_safety, budget)
-- Calls Lovable AI with the locked prompt from the spec
-- Uses tool calling to enforce structured JSON output (quality_score, issues, missing_elements, suggestions, strengths, should_warn)
-- Returns safe fallback on any failure
+### 1. Database: RPC Function (Migration)
+Create `get_budget_range_for_micros(p_micro_slugs text[])` that returns `(sample_size int, p20 numeric, p50 numeric, p80 numeric)` by joining `jobs` + `job_micro_links` on completed jobs with non-null budget values. Percentile-based to avoid outlier distortion.
+
+### 2. Edge Function: `get-budget-suggestion`
+- Input: `{ micro_slugs: string[] }`
+- Calls the RPC with service-role client
+- If `sample_size < 5` → returns safe fallback ("Not enough data")
+- Otherwise returns `{ suggested_min, suggested_max, confidence, basis }` 
+- Rounds to clean numbers (nearest €50)
+- Confidence = `min(1, sample_size / 20)`
+- No AI calls in v1
 - Uses existing `_shared/cors.ts` pattern
 
-### 2. Frontend: ProposalBuilder Changes
-- Add "Review my quote" button between the Notes/Exclusions section and the sticky footer
-- On click: build quote_text from current line items + notes + exclusions, call edge function
-- Show inline suggestions panel (collapsible) with:
-  - Warning items (amber) for issues/missing_elements
-  - Green items for strengths
-  - Suggestions as neutral tips
-- "Dismiss" closes the panel; submission flow unchanged
-- Loading state while AI processes (~2-3s)
+### 3. Frontend: LogisticsStep Budget Section
+- New hook `useBudgetSuggestion(microSlugs)` — calls edge function when micros are available
+- Shows a subtle hint card above the budget chips when data is available:
+  - "💡 Similar jobs: €X – €Y (based on N jobs)"
+  - "Use this range" button sets `budgetRange` to nearest matching chip
+  - Dismissible, non-blocking
+- Loading state while fetching (~200ms, it's just SQL)
+- Hidden when no data or below confidence threshold
 
-### 3. Translation Keys
-- Add `proposal.reviewQuote`, `proposal.reviewing`, `proposal.suggestions`, `proposal.strengths`, `proposal.dismissReview`, `proposal.reviewFailed` to `en/jobs.json` and `es/jobs.json`
+### 4. Translation Keys
+- Add `logistics.budget.suggestion`, `logistics.budget.suggestionBasis`, `logistics.budget.useSuggestion`, `logistics.budget.noData` to `en/wizard.json` and `es/wizard.json`
 
-### 4. No Schema Changes
-Zero migrations. Fully ephemeral.
+### 5. Config
+- Add `[functions.get-budget-suggestion]` with `verify_jwt = false` to `supabase/config.toml`
 
 ## Files Affected
-- **New**: `supabase/functions/analyze-quote-quality/index.ts`
-- **Edit**: `src/pages/jobs/components/ProposalBuilder.tsx` (add review button + suggestions panel)
-- **Edit**: `public/locales/en/jobs.json` (new translation keys)
-- **Edit**: `public/locales/es/jobs.json` (new translation keys)
+- **New**: `supabase/functions/get-budget-suggestion/index.ts`
+- **New migration**: RPC `get_budget_range_for_micros`
+- **New**: `src/features/wizard/canonical/steps/logistics/useBudgetSuggestion.ts`
+- **Edit**: `src/features/wizard/canonical/steps/LogisticsStep.tsx` (add suggestion card in budget section)
+- **Edit**: `public/locales/en/wizard.json` (new keys)
+- **Edit**: `public/locales/es/wizard.json` (new keys)
+- **Edit**: `supabase/config.toml` (function config)
 
 ## Safety
-- Never blocks submission
-- Never modifies quote data
-- Never stores results
-- Falls back silently on AI error
-- Input capped (quote_text max 2000 chars to prevent token blowup)
-- Output arrays capped at 5 items each, score clamped 0-1
+- Never overrides user input
+- Never stores suggestions
+- Falls back silently if RPC returns insufficient data
+- Rounds numbers to avoid false precision
+- Not visible to professionals
+- Not used in matching or ranking
+- Minimum sample size enforced (5 jobs)
 
