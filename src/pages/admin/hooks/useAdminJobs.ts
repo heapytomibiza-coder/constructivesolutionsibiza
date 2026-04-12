@@ -47,7 +47,10 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
       is_custom_request,
       flags,
       computed_inspection_bias,
-      computed_safety
+      computed_safety,
+      source_lang,
+      title_i18n,
+      teaser_i18n
     `)
     .order("created_at", { ascending: false })
     .limit(100);
