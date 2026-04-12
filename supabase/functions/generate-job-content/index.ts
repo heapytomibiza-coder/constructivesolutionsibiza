@@ -318,3 +318,39 @@ Respond with ONLY the brief text, no JSON, no quotes.`;
     return null;
   }
 }
+
+/**
+ * Trigger translation as a server-to-server call.
+ * Best-effort — failures are logged but don't block.
+ */
+async function triggerTranslation(
+  supabaseUrl: string,
+  jobId: string,
+  authHeader: string,
+  fields: { title?: string; teaser?: string; description?: string }
+): Promise<void> {
+  try {
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const resp = await fetch(
+      `${supabaseUrl}/functions/v1/translate-content`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+          apikey: anonKey,
+        },
+        body: JSON.stringify({
+          entity: "jobs",
+          id: jobId,
+          fields,
+        }),
+      }
+    );
+    if (!resp.ok) {
+      console.warn("generate-job-content: translation trigger failed", resp.status);
+    }
+  } catch (e) {
+    console.warn("generate-job-content: translation trigger error", e);
+  }
+}
