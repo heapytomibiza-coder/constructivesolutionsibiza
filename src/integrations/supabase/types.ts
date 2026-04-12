@@ -4046,6 +4046,17 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_agent_performance_metrics: {
+        Args: { p_since?: string; p_until?: string }
+        Returns: {
+          accepted: number
+          agent_name: string
+          dismissed: number
+          failed: number
+          succeeded: number
+          triggered: number
+        }[]
+      }
       get_budget_range_for_micros: {
         Args: { p_micro_slugs: string[] }
         Returns: {
