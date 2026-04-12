@@ -206,6 +206,44 @@ export function LogisticsStep({ logistics, onChange, showValidation = false, mic
           {missingBudget && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
 
+        {/* Smart budget suggestion */}
+        {budgetSuggestion?.suggested_min != null && budgetSuggestion?.suggested_max != null && !suggestionDismissed && (
+          <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-3">
+            <Lightbulb className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {t('logistics.budget.suggestion', { min: budgetSuggestion.suggested_min.toLocaleString(), max: budgetSuggestion.suggested_max.toLocaleString() })}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t('logistics.budget.suggestionBasis', { count: budgetSuggestion.basis ?? budgetSuggestion.sample_size })}
+              </p>
+            </div>
+            <div className="flex gap-1 shrink-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs h-7 px-2"
+                onClick={() => {
+                  onChange({ budgetRange: mapRangeToBudgetChip(budgetSuggestion.suggested_min!, budgetSuggestion.suggested_max!) });
+                  setSuggestionDismissed(true);
+                }}
+              >
+                {t('logistics.budget.useSuggestion')}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs h-7 px-2 text-muted-foreground"
+                onClick={() => setSuggestionDismissed(true)}
+              >
+                ✕
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Quick-select budget chips */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {BUDGET_KEYS.filter(o => o.value !== 'need_quote').map((opt) => (
