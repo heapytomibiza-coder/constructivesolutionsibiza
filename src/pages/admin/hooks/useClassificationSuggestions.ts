@@ -1,5 +1,10 @@
 /**
  * Hook for fetching and managing AI classification suggestions for custom jobs.
+ *
+ * NAMING NOTE: `suggested_category_slug` and `suggested_subcategory_slug`
+ * store display names (e.g. "Carpentry"), NOT slugs. They map directly
+ * to `jobs.category` / `jobs.subcategory` which also store display names.
+ * Only `suggested_micro_slugs` contains actual slugs.
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
