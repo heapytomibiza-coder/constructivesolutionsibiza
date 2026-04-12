@@ -81,6 +81,12 @@ Deno.serve(async (req) => {
       if (brief) {
         await supabase.from("jobs").update({ worker_brief: brief }).eq("id", job_id);
       }
+      // Trigger translation for custom request (uses original title/teaser)
+      await triggerTranslation(supabaseUrl, job_id, authHeader, {
+        title: job.title as string,
+        teaser: (job.teaser as string) ?? "",
+        description: (job.description as string) ?? "",
+      });
       return new Response(JSON.stringify({ status: "partial", reason: "custom_request_brief_only" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
