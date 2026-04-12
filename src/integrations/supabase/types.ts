@@ -1429,6 +1429,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          ai_generated_title: boolean | null
           answers: Json | null
           area: string | null
           assigned_professional_id: string | null
@@ -1471,8 +1472,10 @@ export type Database = {
           translation_status: string | null
           updated_at: string
           user_id: string
+          worker_brief: string | null
         }
         Insert: {
+          ai_generated_title?: boolean | null
           answers?: Json | null
           area?: string | null
           assigned_professional_id?: string | null
@@ -1515,8 +1518,10 @@ export type Database = {
           translation_status?: string | null
           updated_at?: string
           user_id: string
+          worker_brief?: string | null
         }
         Update: {
+          ai_generated_title?: boolean | null
           answers?: Json | null
           area?: string | null
           assigned_professional_id?: string | null
@@ -1559,6 +1564,7 @@ export type Database = {
           translation_status?: string | null
           updated_at?: string
           user_id?: string
+          worker_brief?: string | null
         }
         Relationships: []
       }
@@ -3456,6 +3462,7 @@ export type Database = {
           title: string | null
           title_i18n: Json | null
           updated_at: string | null
+          worker_brief: string | null
         }
         Insert: {
           answers?: Json | null
@@ -3488,6 +3495,7 @@ export type Database = {
           title?: string | null
           title_i18n?: Json | null
           updated_at?: string | null
+          worker_brief?: string | null
         }
         Update: {
           answers?: Json | null
@@ -3520,6 +3528,7 @@ export type Database = {
           title?: string | null
           title_i18n?: Json | null
           updated_at?: string | null
+          worker_brief?: string | null
         }
         Relationships: []
       }

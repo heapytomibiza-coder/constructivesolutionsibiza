@@ -87,6 +87,9 @@ export interface JobPack {
   inspectionBias: string | null;
   safety: string | null;
   
+  // AI-generated worker brief
+  workerBrief: string | null;
+  
   // i18n translations
   sourceLang: string | null;
   titleI18n: Record<string, string> | null;
@@ -359,6 +362,9 @@ export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = [], t?:
     flags: row.flags ?? [],
     inspectionBias: row.computed_inspection_bias ?? null,
     safety: row.computed_safety ?? null,
+    
+    // AI-generated worker brief
+    workerBrief: row.worker_brief ?? null,
     
     // i18n translations
     sourceLang: row.source_lang ?? null,
