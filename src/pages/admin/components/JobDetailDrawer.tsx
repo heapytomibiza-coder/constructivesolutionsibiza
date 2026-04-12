@@ -118,6 +118,17 @@ export function JobDetailDrawer() {
                 <p className="text-sm text-muted-foreground italic">{job.teaser}</p>
               )}
 
+              {/* AI Classification for custom requests */}
+              {job.is_custom_request && (
+                <>
+                  <Separator />
+                  <ClassificationReviewPanel
+                    jobId={job.id}
+                    isCustomRequest={job.is_custom_request}
+                  />
+                </>
+              )}
+
               <Separator />
 
               {/* Client */}
