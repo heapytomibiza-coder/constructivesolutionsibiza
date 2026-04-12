@@ -39,7 +39,7 @@ export default function AdminDashboard() {
         {/* Main Content */}
         <div className="container py-8">
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-11 lg:w-auto lg:inline-grid">
+            <TabsList className="grid w-full grid-cols-12 lg:w-auto lg:inline-grid">
               <TabsTrigger value="overview" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Overview</span>
@@ -82,6 +82,13 @@ export default function AdminDashboard() {
               </TabsTrigger>
               <TabsTrigger value="linkmap" className="gap-2">
                 <Map className="h-4 w-4" />
+                <span className="hidden sm:inline">Link Map</span>
+              </TabsTrigger>
+              <TabsTrigger value="agents" className="gap-2">
+                <Bot className="h-4 w-4" />
+                <span className="hidden sm:inline">Agents</span>
+              </TabsTrigger>
+            </TabsList>
                 <span className="hidden sm:inline">Link Map</span>
               </TabsTrigger>
             </TabsList>
