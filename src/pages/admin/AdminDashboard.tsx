@@ -89,9 +89,6 @@ export default function AdminDashboard() {
                 <span className="hidden sm:inline">Agents</span>
               </TabsTrigger>
             </TabsList>
-                <span className="hidden sm:inline">Link Map</span>
-              </TabsTrigger>
-            </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
               <OperatorCockpit />
