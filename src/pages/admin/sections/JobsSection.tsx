@@ -160,6 +160,7 @@ export default function JobsSection() {
               <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="archived">Archived</SelectItem>
+              <SelectItem value="custom">🔧 Custom Requests</SelectItem>
             </SelectContent>
           </Select>
         </div>

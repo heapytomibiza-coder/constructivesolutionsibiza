@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useAdminDrawer } from "../context/AdminDrawerContext";
 import { useAdminJobDetails } from "../queries/adminJobDetails.query";
 import { formatWhatsAppPost, copyToClipboard } from "../lib/formatWhatsAppPost";
+import { ClassificationReviewPanel } from "./ClassificationReviewPanel";
 
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
@@ -115,6 +116,17 @@ export function JobDetailDrawer() {
 
               {job.teaser && (
                 <p className="text-sm text-muted-foreground italic">{job.teaser}</p>
+              )}
+
+              {/* AI Classification for custom requests */}
+              {job.is_custom_request && (
+                <>
+                  <Separator />
+                  <ClassificationReviewPanel
+                    jobId={job.id}
+                    isCustomRequest={job.is_custom_request}
+                  />
+                </>
               )}
 
               <Separator />

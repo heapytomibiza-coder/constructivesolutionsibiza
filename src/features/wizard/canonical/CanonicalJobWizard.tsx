@@ -957,6 +957,13 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           },
         }).catch(() => { /* AI content generation is best-effort */ });
 
+        // Fire-and-forget: classify custom requests against taxonomy for admin review
+        if (payload.is_custom_request) {
+          supabase.functions.invoke('classify-custom-request', {
+            body: { job_id: data.id },
+          }).catch(() => { /* Classification is best-effort */ });
+        }
+
         toast.success(t('toasts.postSuccess'));
         navigate(`/dashboard/jobs/${data.id}/invite`, { state: { fromPost: true } });
       }

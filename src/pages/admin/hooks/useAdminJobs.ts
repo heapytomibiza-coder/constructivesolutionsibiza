@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 
-export type AdminJobsFilter = "all" | "flagged" | "open" | "in_progress" | "completed" | "archived" | "needs_quote";
+export type AdminJobsFilter = "all" | "flagged" | "open" | "in_progress" | "completed" | "archived" | "needs_quote" | "custom";
 
 interface UseAdminJobsOptions {
   filter?: AdminJobsFilter;
@@ -44,9 +44,13 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
       updated_at,
       status,
       is_publicly_listed,
+      is_custom_request,
       flags,
       computed_inspection_bias,
-      computed_safety
+      computed_safety,
+      source_lang,
+      title_i18n,
+      teaser_i18n
     `)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -69,12 +73,15 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
     case "archived":
       query = query.eq("status", "archived");
       break;
+    case "custom":
+      query = query.eq("is_custom_request", true);
+      break;
   }
 
   const { data, error } = await query;
   if (error) throw error;
 
-  let jobs = (data ?? []) as AdminJobRow[];
+  let jobs = (data ?? []) as unknown as AdminJobRow[];
 
   // Enrich with conversation and quote counts for all jobs
   if (jobs.length > 0) {

@@ -1070,6 +1070,83 @@ export type Database = {
           },
         ]
       }
+      job_classification_suggestions: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          id: string
+          job_id: string
+          model_name: string
+          raw_output: Json | null
+          reasoning_summary: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          suggested_category_slug: string | null
+          suggested_micro_slugs: string[] | null
+          suggested_subcategory_slug: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          job_id: string
+          model_name: string
+          raw_output?: Json | null
+          reasoning_summary?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          suggested_category_slug?: string | null
+          suggested_micro_slugs?: string[] | null
+          suggested_subcategory_slug?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          model_name?: string
+          raw_output?: Json | null
+          reasoning_summary?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          suggested_category_slug?: string | null
+          suggested_micro_slugs?: string[] | null
+          suggested_subcategory_slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_classification_suggestions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_suggestions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_suggestions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_classification_suggestions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_invites: {
         Row: {
           created_at: string

@@ -23,6 +23,7 @@ export interface AdminJobDetails {
   computed_safety: string | null;
   computed_inspection_bias: string | null;
   has_photos: boolean | null;
+  is_custom_request: boolean;
   is_publicly_listed: boolean;
   created_at: string;
   updated_at: string;
