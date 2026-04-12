@@ -241,17 +241,34 @@ Rules:
       });
     }
 
+    // Trigger translation with the updated (AI-polished) content
+    const translationFields = {
+      title: newTitle ?? (job.title as string),
+      teaser: newTeaser ?? (job.teaser as string) ?? "",
+      description: (job.description as string) ?? "",
+    };
+    await triggerTranslation(supabaseUrl, job_id, authHeader, translationFields);
+
     return new Response(
       JSON.stringify({
         status: "complete",
         title_generated: !!newTitle,
         teaser_generated: !!newTeaser,
         brief_generated: !!workerBrief,
+        translation_triggered: true,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("generate-job-content error:", err);
+    // Best-effort: still try translation with fallback fields on AI failure
+    try {
+      const body: RequestBody = { job_id: "" };
+      if (fallback_fields) {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        await triggerTranslation(supabaseUrl, body.job_id, authHeader ?? "", fallback_fields);
+      }
+    } catch { /* ignore */ }
     return new Response(
       JSON.stringify({ error: (err as Error).message }),
       {
