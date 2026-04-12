@@ -119,36 +119,38 @@ async function flush() {
   const userId = await getUserId();
   if (!userId) return; // Only track authenticated users (RLS requires user_id)
 
+  const flushTable = async (
+    table: 'error_events' | 'network_failures' | 'page_views',
+    buffer: unknown[],
+  ) => {
+    if (buffer.length === 0) return;
+    const rows = buffer.splice(0, buffer.length).map((row) => ({
+      user_id: userId,
+      ...(row as Record<string, unknown>),
+    }));
+    const { error } = await client!.from(table).insert(rows);
+    if (error && import.meta.env.DEV) {
+      // Structured dev-only logging — surfaces schema drift or RLS mismatches early
+      console.warn(`[Lighthouse] flush ${table} failed:`, {
+        code: error.code,
+        message: error.message,
+        hint: error.hint,
+        rowCount: rows.length,
+      });
+    }
+  };
+
   try {
-    // Flush errors
-    if (errorBuffer.length > 0) {
-      const rows = errorBuffer.splice(0, errorBuffer.length).map((e) => ({
-        user_id: userId,
-        ...e,
-      }));
-      await client.from('error_events').insert(rows);
-    }
-
-    // Flush network failures
-    if (networkBuffer.length > 0) {
-      const rows = networkBuffer.splice(0, networkBuffer.length).map((n) => ({
-        user_id: userId,
-        ...n,
-      }));
-      await client.from('network_failures').insert(rows);
-    }
-
-    // Flush page views
-    if (pageViewBuffer.length > 0) {
-      const rows = pageViewBuffer.splice(0, pageViewBuffer.length).map((p) => ({
-        user_id: userId,
-        ...p,
-      }));
-      await client.from('page_views').insert(rows);
-    }
+    await Promise.all([
+      flushTable('error_events', errorBuffer),
+      flushTable('network_failures', networkBuffer),
+      flushTable('page_views', pageViewBuffer),
+    ]);
   } catch (err) {
     // Avoid infinite loops — don't capture flush errors
-    console.warn('[Lighthouse] Failed to flush:', err);
+    if (import.meta.env.DEV) {
+      console.warn('[Lighthouse] flush threw unexpectedly:', err);
+    }
   }
 }
 
