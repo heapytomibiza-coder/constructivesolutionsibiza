@@ -14,6 +14,12 @@ import { getCorsHeaders } from "../_shared/cors.ts";
  * - Only runs for is_custom_request = true jobs
  * - Never modifies job columns directly
  * - Suggestion is inert until admin accepts
+ *
+ * IMPORTANT — naming convention:
+ * Despite column names containing "_slug", `suggested_category_slug` and
+ * `suggested_subcategory_slug` store DISPLAY NAMES (e.g. "Carpentry",
+ * "Bespoke Joinery") to match `jobs.category` / `jobs.subcategory`.
+ * Only `suggested_micro_slugs` stores actual slugs (e.g. "build-shelving").
  */
 
 interface RequestBody {
