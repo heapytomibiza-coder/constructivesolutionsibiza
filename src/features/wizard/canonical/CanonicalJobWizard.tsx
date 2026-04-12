@@ -1220,6 +1220,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
               logistics={wizardState.logistics}
               onChange={handleLogisticsChange}
               showValidation={logisticsAttempted}
+              microSlugs={wizardState.microSlugs}
             />
           )}
 

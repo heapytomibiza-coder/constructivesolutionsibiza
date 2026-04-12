@@ -95,7 +95,11 @@
       "over5k": "Más de €5,000",
       "over5kHint": "Proyectos a gran escala",
       "needQuote": "Necesito presupuesto",
-      "needQuoteHint": "No tengo claro el presupuesto"
+      "needQuoteHint": "No tengo claro el presupuesto",
+      "suggestion": "Trabajos similares: €{{min}} – €{{max}}",
+      "suggestionBasis": "Basado en {{count}} trabajos completados",
+      "useSuggestion": "Usar este rango",
+      "noData": "Aún no hay suficientes datos para una estimación fiable"
     },
     "contact": {
       "siteVisit": "Visita en persona",

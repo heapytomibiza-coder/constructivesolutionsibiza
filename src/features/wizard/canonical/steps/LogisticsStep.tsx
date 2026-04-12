@@ -3,13 +3,13 @@
  * Optimized layout with clear visual hierarchy
  * - Location: Grouped dropdown (from centralized zones.ts)
  * - Timing: Compact tile grid
- * - Budget: Radio options with context
+ * - Budget: Radio options with context + smart suggestion
  * - Contact: Horizontal selection
  */
 
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, MapPin, Clock, Wallet, MessageSquare } from 'lucide-react';
+import { Calendar, MapPin, Clock, Wallet, MessageSquare, Lightbulb } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -32,11 +32,13 @@ import type { WizardState } from '../types';
 import { TileOption } from './logistics';
 import { TIMING_OPTIONS, CONTACT_OPTIONS } from './logistics/constants';
 import { getMainZones, getPopularZones, OTHER_LOCATION } from '@/shared/components/professional/zones';
+import { useBudgetSuggestion, mapRangeToBudgetChip } from './logistics/useBudgetSuggestion';
 
 interface LogisticsStepProps {
   logistics: WizardState['logistics'];
   onChange: (logistics: Partial<WizardState['logistics']>) => void;
   showValidation?: boolean;
+  microSlugs?: string[];
 }
 
 // Budget option keys for i18n lookup
@@ -49,9 +51,13 @@ const BUDGET_KEYS = [
   { value: 'need_quote', labelKey: 'logistics.budget.needQuote', hintKey: 'logistics.budget.needQuoteHint' },
 ] as const;
 
-export function LogisticsStep({ logistics, onChange, showValidation = false }: LogisticsStepProps) {
+export function LogisticsStep({ logistics, onChange, showValidation = false, microSlugs = [] }: LogisticsStepProps) {
   const { t } = useTranslation('wizard');
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
+
+  // Budget suggestion from historical data
+  const { data: budgetSuggestion } = useBudgetSuggestion(microSlugs);
 
   // Validation state for highlighting missing fields
   const missingLocation = showValidation && (!logistics.location?.trim() || (logistics.location === 'other' && !logistics.customLocation?.trim()));
@@ -199,6 +205,44 @@ export function LogisticsStep({ logistics, onChange, showValidation = false }: L
           <Label className="text-sm font-semibold">{t('logistics.budgetTitle')}</Label>
           {missingBudget && <span className="text-xs text-destructive font-medium ml-auto">{t('logistics.required', 'Required')}</span>}
         </div>
+
+        {/* Smart budget suggestion */}
+        {budgetSuggestion?.suggested_min != null && budgetSuggestion?.suggested_max != null && !suggestionDismissed && (
+          <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-3">
+            <Lightbulb className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {t('logistics.budget.suggestion', { min: budgetSuggestion.suggested_min.toLocaleString(), max: budgetSuggestion.suggested_max.toLocaleString() })}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t('logistics.budget.suggestionBasis', { count: budgetSuggestion.basis ?? budgetSuggestion.sample_size })}
+              </p>
+            </div>
+            <div className="flex gap-1 shrink-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs h-7 px-2"
+                onClick={() => {
+                  onChange({ budgetRange: mapRangeToBudgetChip(budgetSuggestion.suggested_min!, budgetSuggestion.suggested_max!) });
+                  setSuggestionDismissed(true);
+                }}
+              >
+                {t('logistics.budget.useSuggestion')}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs h-7 px-2 text-muted-foreground"
+                onClick={() => setSuggestionDismissed(true)}
+              >
+                ✕
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Quick-select budget chips */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

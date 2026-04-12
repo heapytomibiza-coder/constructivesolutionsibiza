@@ -4046,6 +4046,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_budget_range_for_micros: {
+        Args: { p_micro_slugs: string[] }
+        Returns: {
+          p20: number
+          p50: number
+          p80: number
+          sample_size: number
+        }[]
+      }
       get_conversation_counts_for_jobs: {
         Args: { p_job_ids: string[] }
         Returns: {
