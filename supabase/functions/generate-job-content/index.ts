@@ -18,6 +18,12 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 
 interface RequestBody {
   job_id: string;
+  /** Original payload fields for translation fallback */
+  fallback_fields?: {
+    title?: string;
+    teaser?: string;
+    description?: string;
+  };
 }
 
 Deno.serve(async (req) => {
@@ -36,7 +42,7 @@ Deno.serve(async (req) => {
 
   try {
     const body: RequestBody = await req.json();
-    const { job_id } = body;
+    const { job_id, fallback_fields } = body;
 
     if (!job_id) {
       return new Response(JSON.stringify({ error: "Missing job_id" }), {
