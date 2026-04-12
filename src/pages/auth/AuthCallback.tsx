@@ -1,18 +1,30 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { ensureUserRoles } from '@/lib/ensureUserRoles';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 /**
  * AUTH CALLBACK PAGE
  * 
  * Handles OAuth and email confirmation callbacks.
  * Routes users to the correct destination based on their role and onboarding status.
+ * 
+ * UX: shows a calm loading state, then an inline error if something goes wrong —
+ * never silently redirects on failure.
  */
+
+type CallbackState =
+  | { status: 'loading'; message: string }
+  | { status: 'error'; message: string };
+
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const [state, setState] = useState<CallbackState>({
+    status: 'loading',
+    message: 'Completing sign in…',
+  });
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -23,7 +35,7 @@ const AuthCallback = () => {
       
       if (error) {
         console.error('Auth callback error:', error);
-        navigate('/auth?error=callback_failed');
+        setState({ status: 'error', message: 'Sign-in failed. Please try again.' });
         return;
       }
 
@@ -31,6 +43,8 @@ const AuthCallback = () => {
 
       // Race condition guard: session may not be ready yet after signInWithPassword + navigate
       if (!session) {
+        setState({ status: 'loading', message: 'Waiting for confirmation…' });
+
         session = await new Promise<typeof session>((resolve) => {
           const timeout = setTimeout(() => resolve(null), 3000);
           const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
@@ -44,9 +58,14 @@ const AuthCallback = () => {
       }
 
       if (!session) {
-        navigate('/auth');
+        setState({
+          status: 'error',
+          message: 'We couldn\'t complete sign-in. Your session may have expired.',
+        });
         return;
       }
+
+      setState({ status: 'loading', message: 'Setting up your account…' });
 
       // Check for pending redirect (e.g., from wizard auth checkpoint)
       // Check both storages — localStorage survives cross-tab email confirmations
@@ -67,8 +86,10 @@ const AuthCallback = () => {
         activeRole = result.activeRole;
       } catch (err: any) {
         console.error('[AuthCallback] Role setup failed:', err.message);
-        toast.error(err.message || 'Account setup incomplete. Please try signing in again.');
-        navigate('/auth');
+        setState({
+          status: 'error',
+          message: err.message || 'Account setup incomplete. Please try signing in again.',
+        });
         return;
       }
 
@@ -96,9 +117,27 @@ const AuthCallback = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Completing sign in...</p>
+      <div className="flex flex-col items-center gap-4 max-w-sm text-center px-4">
+        {state.status === 'loading' ? (
+          <>
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">{state.message}</p>
+          </>
+        ) : (
+          <>
+            <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
+              <AlertCircle className="h-6 w-6 text-destructive" />
+            </div>
+            <p className="text-sm text-foreground font-medium">{state.message}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/auth')}
+            >
+              Back to sign in
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
