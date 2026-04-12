@@ -6,6 +6,8 @@
  */
 
 import { useState, useCallback, useMemo } from "react";
+import { trackEvent } from "@/lib/trackEvent";
+import { EVENTS } from "@/lib/eventTaxonomy";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
