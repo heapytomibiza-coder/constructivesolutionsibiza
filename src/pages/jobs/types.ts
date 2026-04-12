@@ -75,6 +75,7 @@ export type JobDetailsRow = JobsBoardRow & {
   answers: JobAnswers | null;
   is_owner: boolean | null;
   description_i18n: Record<string, string> | null;
+  worker_brief: string | null;
 };
 
 /* ── Quotes ────────────────────────────────── */
