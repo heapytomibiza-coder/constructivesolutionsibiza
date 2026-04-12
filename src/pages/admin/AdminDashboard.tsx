@@ -123,6 +123,9 @@ export default function AdminDashboard() {
             <TabsContent value="linkmap">
               <LinkMapSection />
             </TabsContent>
+            <TabsContent value="agents">
+              <AgentPerformanceSection />
+            </TabsContent>
           </Tabs>
       </div>
     </div>
