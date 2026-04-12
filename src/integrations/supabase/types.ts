@@ -3462,6 +3462,7 @@ export type Database = {
           title: string | null
           title_i18n: Json | null
           updated_at: string | null
+          worker_brief: string | null
         }
         Insert: {
           answers?: Json | null
@@ -3494,6 +3495,7 @@ export type Database = {
           title?: string | null
           title_i18n?: Json | null
           updated_at?: string | null
+          worker_brief?: string | null
         }
         Update: {
           answers?: Json | null
@@ -3526,6 +3528,7 @@ export type Database = {
           title?: string | null
           title_i18n?: Json | null
           updated_at?: string | null
+          worker_brief?: string | null
         }
         Relationships: []
       }
