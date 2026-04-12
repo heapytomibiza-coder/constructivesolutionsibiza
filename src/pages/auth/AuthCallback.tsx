@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { ensureUserRoles } from '@/lib/ensureUserRoles';
+import { toast } from 'sonner';
 
 /**
  * AUTH CALLBACK PAGE
@@ -58,47 +60,33 @@ const AuthCallback = () => {
         return;
       }
 
-      // Query user's active role from user_roles table
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('active_role')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (rolesError && rolesError.code !== 'PGRST116') {
-        console.error('Error fetching user roles:', rolesError);
+      // Query user roles with retry — never silently default
+      let activeRole: string;
+      try {
+        const result = await ensureUserRoles(session.user.id);
+        activeRole = result.activeRole;
+      } catch (err: any) {
+        console.error('[AuthCallback] Role setup failed:', err.message);
+        toast.error(err.message || 'Account setup incomplete. Please try signing in again.');
+        navigate('/auth');
+        return;
       }
-
-      if (!rolesData && !rolesError) {
-        console.debug('[AuthCallback] No user_roles row — defaulting to client', { userId: session.user.id });
-      }
-      const activeRole = rolesData?.active_role || 'client';
 
       if (activeRole === 'professional') {
-        // Check onboarding status for professionals
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profileData } = await supabase
           .from('professional_profiles')
           .select('onboarding_phase')
           .eq('user_id', session.user.id)
           .maybeSingle();
 
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Error fetching professional profile:', profileError);
-        }
-
-        if (!profileData && !profileError) {
-          console.debug('[AuthCallback] No professional_profiles row — defaulting to not_started', { userId: session.user.id });
-        }
         const onboardingPhase = profileData?.onboarding_phase || 'not_started';
 
-        // Established professionals go to dashboard, new ones to onboarding
         if (onboardingPhase === 'complete') {
           navigate('/dashboard/pro');
         } else {
           navigate('/onboarding/professional');
         }
       } else {
-        // Clients go straight to the wizard to build the habit
         navigate('/dashboard/client');
       }
     };
