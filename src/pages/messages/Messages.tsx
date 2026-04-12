@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSession } from "@/contexts/SessionContext";
@@ -8,7 +8,7 @@ import { useConversations, useMarkConversationRead, type Conversation } from "./
 import { PLATFORM } from "@/domain/scope";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect } from "react";
+import { LaneHeader } from "@/shared/components/layout/LaneHeader";
 
 /**
  * MESSAGES PAGE
