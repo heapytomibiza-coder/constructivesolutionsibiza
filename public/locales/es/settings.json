@@ -7,8 +7,8 @@
     "email": "Correo electrónico",
     "notAvailable": "No disponible",
     "currentMode": "Modo actual",
-    "tasker": "Tasker",
-    "asker": "Asker",
+    "tasker": "Profesional",
+    "asker": "Cliente",
     "switchedTo": "Cambiado a modo {{label}}",
     "switchError": "No se pudo cambiar de modo. Inténtalo de nuevo.",
     "adminPanel": "Panel de Administración"
