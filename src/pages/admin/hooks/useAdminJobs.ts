@@ -78,7 +78,7 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
   const { data, error } = await query;
   if (error) throw error;
 
-  let jobs = (data ?? []) as AdminJobRow[];
+  let jobs = (data ?? []) as unknown as AdminJobRow[];
 
   // Enrich with conversation and quote counts for all jobs
   if (jobs.length > 0) {
