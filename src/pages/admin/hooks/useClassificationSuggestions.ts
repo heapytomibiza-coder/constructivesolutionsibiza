@@ -91,6 +91,9 @@ export function useReviewClassification() {
 
         if (!suggestion) throw new Error("Suggestion not found");
 
+        // Note: suggested_category_slug / suggested_subcategory_slug actually hold
+        // display names (e.g. "Carpentry"), matching jobs.category / jobs.subcategory.
+        // Only micro_slugs are real slugs.
         const category = overrides?.category ?? suggestion.suggested_category_slug;
         const subcategory = overrides?.subcategory ?? suggestion.suggested_subcategory_slug;
         const microSlugs = overrides?.micro_slugs ?? suggestion.suggested_micro_slugs ?? [];
