@@ -1129,6 +1129,56 @@ export type Database = {
           },
         ]
       }
+      job_micro_links: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          micro_slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          micro_slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          micro_slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_micro_links_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_micro_links_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_micro_links_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_micro_links_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_notifications_queue: {
         Row: {
           attempts: number
