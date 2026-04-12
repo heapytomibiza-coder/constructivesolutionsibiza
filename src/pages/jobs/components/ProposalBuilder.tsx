@@ -2,6 +2,7 @@
  * ProposalBuilder — Bookipi-style line-item proposal builder.
  * Mobile-first, minimal fields, sticky total footer.
  * Revision-aware: prefills from existing quote when revising.
+ * Includes Agent 4: Quote Quality Coach — advisory, non-blocking.
  */
 
 import { useState, useCallback, useMemo } from "react";
@@ -13,11 +14,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Send, Plus, Trash2, GripVertical, RotateCcw } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Loader2, Send, Plus, Trash2, GripVertical, RotateCcw, Sparkles, AlertTriangle, CheckCircle2, Lightbulb, X } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { submitQuote } from "../actions/submitQuote.action";
 import { quoteKeys } from "../queries/quotes.query";
 import type { Quote } from "../types";
+
+// --- Types ---
 
 interface LineItem {
   id: string;
@@ -26,12 +31,22 @@ interface LineItem {
   unitPrice: number;
 }
 
+interface QuoteQualityResult {
+  quality_score: number;
+  issues: string[];
+  missing_elements: string[];
+  suggestions: string[];
+  strengths: string[];
+  should_warn: boolean;
+}
+
 interface ProposalBuilderProps {
   jobId: string;
-  /** If provided, builder prefills from this quote and creates a revision on submit. */
   existingQuote?: Quote | null;
   onSuccess?: (quoteId?: string) => void;
 }
+
+// --- Helpers ---
 
 function createItem(): LineItem {
   return { id: crypto.randomUUID(), description: "", quantity: 1, unitPrice: 0 };
@@ -48,7 +63,6 @@ function hydrateItemsFromQuote(quote: Quote): LineItem[] {
         unitPrice: li.unit_price,
       }));
   }
-  // Fallback: single item from legacy scope_text
   if (quote.price_fixed != null) {
     return [{
       id: crypto.randomUUID(),
@@ -59,6 +73,82 @@ function hydrateItemsFromQuote(quote: Quote): LineItem[] {
   }
   return [createItem()];
 }
+
+// --- Review Panel ---
+
+function ReviewPanel({
+  result,
+  onDismiss,
+}: {
+  result: QuoteQualityResult;
+  onDismiss: () => void;
+}) {
+  const { t } = useTranslation("jobs");
+  const hasIssues = result.issues.length > 0 || result.missing_elements.length > 0;
+  const hasSuggestions = result.suggestions.length > 0;
+  const hasStrengths = result.strengths.length > 0;
+
+  return (
+    <div className="rounded-md border border-border/60 bg-muted/20 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5" />
+          <span>Quote Coach</span>
+        </div>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDismiss}>
+          <X className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+
+      {hasIssues && (
+        <Collapsible defaultOpen>
+          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 w-full">
+            <AlertTriangle className="h-3.5 w-3.5" />
+            {t("proposal.reviewIssues")} ({result.issues.length + result.missing_elements.length})
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-1.5 space-y-1 pl-5">
+            {result.issues.map((issue, i) => (
+              <p key={`i-${i}`} className="text-xs text-muted-foreground">• {issue}</p>
+            ))}
+            {result.missing_elements.map((el, i) => (
+              <p key={`m-${i}`} className="text-xs text-muted-foreground">• {el}</p>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {hasSuggestions && (
+        <Collapsible defaultOpen>
+          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-foreground/80 w-full">
+            <Lightbulb className="h-3.5 w-3.5" />
+            {t("proposal.reviewSuggestions")} ({result.suggestions.length})
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-1.5 space-y-1 pl-5">
+            {result.suggestions.map((s, i) => (
+              <p key={i} className="text-xs text-muted-foreground">• {s}</p>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {hasStrengths && (
+        <Collapsible defaultOpen={!hasIssues}>
+          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 w-full">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            {t("proposal.reviewStrengths")} ({result.strengths.length})
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-1.5 space-y-1 pl-5">
+            {result.strengths.map((s, i) => (
+              <p key={i} className="text-xs text-muted-foreground">• {s}</p>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+    </div>
+  );
+}
+
+// --- Main Component ---
 
 export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBuilderProps) {
   const { t } = useTranslation("jobs");
@@ -90,6 +180,10 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
   );
   const [submitting, setSubmitting] = useState(false);
 
+  // Quote Coach state
+  const [reviewing, setReviewing] = useState(false);
+  const [reviewResult, setReviewResult] = useState<QuoteQualityResult | null>(null);
+
   const updateItem = useCallback((id: string, field: keyof LineItem, value: string | number) => {
     setItems(prev => prev.map(item =>
       item.id === id ? { ...item, [field]: value } : item
@@ -113,6 +207,47 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
 
   const hasValidItems = items.some(i => i.description.trim() && i.unitPrice > 0);
 
+  // Quote Coach handler
+  const handleReview = useCallback(async () => {
+    setReviewing(true);
+    setReviewResult(null);
+
+    const quoteText = items
+      .filter(i => i.description.trim())
+      .map(i => `${i.description} (×${i.quantity} @ €${i.unitPrice})`)
+      .join("\n");
+
+    const lineItemsPayload = items
+      .filter(i => i.description.trim())
+      .map(i => ({
+        description: i.description.trim(),
+        quantity: i.quantity,
+        unit_price: i.unitPrice,
+      }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-quote-quality", {
+        body: {
+          job_id: jobId,
+          quote_text: quoteText,
+          line_items: lineItemsPayload,
+          exclusions: exclusions.trim(),
+          notes: notes.trim(),
+        },
+      });
+
+      if (error || !data) {
+        toast.error(t("proposal.reviewFailed"));
+      } else {
+        setReviewResult(data as QuoteQualityResult);
+      }
+    } catch {
+      toast.error(t("proposal.reviewFailed"));
+    } finally {
+      setReviewing(false);
+    }
+  }, [items, exclusions, notes, jobId, t]);
+
   const handleSubmit = async () => {
     if (!hasValidItems) {
       toast.error(t("proposal.itemRequired"));
@@ -121,7 +256,6 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
 
     setSubmitting(true);
 
-    // Build scope text from line items for backward compat
     const scopeText = items
       .filter(i => i.description.trim())
       .map(i => `${i.description} (×${i.quantity} @ €${i.unitPrice})`)
@@ -324,6 +458,33 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
             maxLength={500}
           />
         </div>
+      </div>
+
+      {/* Quote Quality Coach */}
+      <div className="px-4 space-y-2">
+        {!reviewResult && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReview}
+            disabled={reviewing || !hasValidItems}
+            className="w-full gap-1.5 text-xs"
+          >
+            {reviewing ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            {reviewing ? t("proposal.reviewing") : t("proposal.reviewQuote")}
+          </Button>
+        )}
+
+        {reviewResult && (
+          <ReviewPanel
+            result={reviewResult}
+            onDismiss={() => setReviewResult(null)}
+          />
+        )}
       </div>
 
       {/* Sticky Total Footer */}
