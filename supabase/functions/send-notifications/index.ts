@@ -813,25 +813,26 @@ function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResu
 // ============================================
 
 async function handleTestEmail(req: Request): Promise<Response> {
+  const headers = { "Content-Type": "application/json", ...getCorsHeaders(req) };
   const url = new URL(req.url);
   const testTo = url.searchParams.get("to");
   if (!testTo) {
-    return new Response(JSON.stringify({ error: "Missing ?to= parameter" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ error: "Missing ?to= parameter" }), { status: 400, headers });
   }
 
   // Gate behind admin auth
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
   }
   const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
   if (authError || !userData?.user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
   }
   const { data: roleData } = await supabaseAdmin.from("user_roles").select("roles").eq("user_id", userData.user.id).maybeSingle();
   const { data: allowData } = await supabaseAdmin.from("admin_allowlist").select("email").eq("email", userData.user.email?.toLowerCase() ?? "").maybeSingle();
   if (!roleData?.roles?.includes("admin") || !allowData) {
-    return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers });
   }
 
   const testHtml = emailShell(
@@ -845,7 +846,7 @@ async function handleTestEmail(req: Request): Promise<Response> {
   const result = await sendEmail(testTo, `SMTP Test - ${BRAND_NAME}`, testHtml);
   return new Response(
     JSON.stringify({ test: true, sent: !result.error, error: result.error || null }),
-    { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    { status: 200, headers }
   );
 }
 
