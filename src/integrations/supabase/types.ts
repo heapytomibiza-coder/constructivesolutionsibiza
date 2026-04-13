@@ -3516,8 +3516,6 @@ export type Database = {
           budget_type: string | null
           budget_value: number | null
           category: string | null
-          computed_inspection_bias: string | null
-          computed_safety: string | null
           created_at: string | null
           description: string | null
           description_i18n: Json | null
@@ -3539,7 +3537,6 @@ export type Database = {
           title: string | null
           title_i18n: Json | null
           updated_at: string | null
-          worker_brief: string | null
         }
         Insert: {
           answers?: Json | null
@@ -3549,8 +3546,6 @@ export type Database = {
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
-          computed_inspection_bias?: string | null
-          computed_safety?: string | null
           created_at?: string | null
           description?: string | null
           description_i18n?: Json | null
@@ -3572,7 +3567,6 @@ export type Database = {
           title?: string | null
           title_i18n?: Json | null
           updated_at?: string | null
-          worker_brief?: string | null
         }
         Update: {
           answers?: Json | null
@@ -3582,8 +3576,6 @@ export type Database = {
           budget_type?: string | null
           budget_value?: number | null
           category?: string | null
-          computed_inspection_bias?: string | null
-          computed_safety?: string | null
           created_at?: string | null
           description?: string | null
           description_i18n?: Json | null
@@ -3605,7 +3597,6 @@ export type Database = {
           title?: string | null
           title_i18n?: Json | null
           updated_at?: string | null
-          worker_brief?: string | null
         }
         Relationships: []
       }
@@ -3704,8 +3695,6 @@ export type Database = {
           budget_type: string | null
           budget_value: number | null
           category: string | null
-          computed_inspection_bias: string | null
-          computed_safety: string | null
           created_at: string | null
           flags: string[] | null
           has_photos: boolean | null
@@ -3725,6 +3714,7 @@ export type Database = {
           title: string | null
           title_i18n: Json | null
           updated_at: string | null
+          worker_brief: string | null
         }
         Relationships: []
       }
