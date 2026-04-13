@@ -321,7 +321,7 @@ const ProDashboard = () => {
                     {t('pro.welcomeBody')}
                   </p>
                   <Button asChild size="sm" variant="outline">
-                    <Link to="/jobs">
+                    <Link to="/jobs?matched=true">
                       {t('pro.welcomeCta', 'View Matching Jobs')}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Link>
@@ -355,7 +355,7 @@ const ProDashboard = () => {
               {isSetupComplete && (
                 <MenuItem to="/professional/profile" icon={User} label={t('pro.editProfile')} hint={t('pro.editProfileHint')} primary />
               )}
-              <MenuItem to="/jobs" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} hint={t('pro.browseMatchingJobsHint', 'Open jobs that match your services')} />
+              <MenuItem to="/jobs?matched=true" icon={Briefcase} label={t('pro.browseMatchingJobs', 'Browse Matching Jobs')} hint={t('pro.browseMatchingJobsHint', 'Open jobs that match your services')} />
               <MenuItem to="/dashboard/pro/jobs" icon={Hammer} label={t('pro.myJobs', 'My Jobs')} hint={t('pro.myJobsHint', 'Jobs you\'ve been hired for')} />
               <MenuItem to="/messages" icon={MessageSquare} label={t('pro.messages')} badge={stats.unreadMessages} />
               <MenuItem to="/dashboard/pro/listings" icon={Store} label={t('pro.myListings', 'My Listings')} hint={t('pro.myListingsHint', 'Your public service pages on the marketplace')} />
