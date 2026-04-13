@@ -8,9 +8,17 @@ interface DynamicInputFormProps {
   fields: AdjustmentField[];
   values: EstimateInputs;
   onChange: (key: string, value: number | string | boolean) => void;
+  errors?: Record<string, string>;
 }
 
-export function DynamicInputForm({ fields, values, onChange }: DynamicInputFormProps) {
+function fieldUnit(field: AdjustmentField): string | null {
+  const key = field.key.toLowerCase();
+  if (key.includes('length') || key.includes('width') || key.includes('height')) return 'metres';
+  if (key.includes('area')) return 'm²';
+  return null;
+}
+
+export function DynamicInputForm({ fields, values, onChange, errors = {} }: DynamicInputFormProps) {
   if (!fields.length) {
     return (
       <p className="text-sm text-muted-foreground italic">
@@ -21,56 +29,75 @@ export function DynamicInputForm({ fields, values, onChange }: DynamicInputFormP
 
   return (
     <div className="space-y-4">
-      {fields.map((field) => (
-        <div key={field.key} className="space-y-1.5">
-          <Label htmlFor={field.key} className="text-sm font-medium">
-            {field.label}
-          </Label>
+      {fields.map((field) => {
+        const error = errors[field.key];
+        const unit = field.type === 'number' ? fieldUnit(field) : null;
 
-          {field.type === 'number' && (
-            <Input
-              id={field.key}
-              type="number"
-              min={field.min}
-              max={field.max}
-              value={values[field.key] !== undefined ? String(values[field.key]) : ''}
-              onChange={(e) => onChange(field.key, Number(e.target.value))}
-              placeholder={field.default !== undefined ? String(field.default) : ''}
-            />
-          )}
+        return (
+          <div key={field.key} className="space-y-1.5">
+            <Label htmlFor={field.key} className="text-sm font-medium">
+              {field.label}
+              {unit && (
+                <span className="ml-1 text-xs font-normal text-muted-foreground">({unit})</span>
+              )}
+            </Label>
 
-          {field.type === 'select' && field.options && (
-            <Select
-              value={values[field.key] !== undefined ? String(values[field.key]) : ''}
-              onValueChange={(v) => onChange(field.key, v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select..." />
-              </SelectTrigger>
-              <SelectContent>
-                {field.options.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          {field.type === 'boolean' && (
-            <div className="flex items-center gap-2">
-              <Switch
+            {field.type === 'number' && (
+              <Input
                 id={field.key}
-                checked={values[field.key] === true}
-                onCheckedChange={(checked) => onChange(field.key, checked)}
+                type="number"
+                inputMode="decimal"
+                min={field.min ?? 0}
+                max={field.max}
+                step="any"
+                value={values[field.key] !== undefined ? String(values[field.key]) : ''}
+                onChange={(e) => onChange(field.key, Number(e.target.value))}
+                placeholder={field.default !== undefined ? String(field.default) : ''}
+                className={error ? 'border-destructive focus-visible:ring-destructive' : ''}
+                aria-invalid={!!error}
+                aria-describedby={error ? `${field.key}-error` : undefined}
               />
-              <span className="text-sm text-muted-foreground">
-                {values[field.key] === true ? 'Yes' : 'No'}
-              </span>
-            </div>
-          )}
-        </div>
-      ))}
+            )}
+
+            {field.type === 'select' && field.options && (
+              <Select
+                value={values[field.key] !== undefined ? String(values[field.key]) : ''}
+                onValueChange={(v) => onChange(field.key, v)}
+              >
+                <SelectTrigger className={error ? 'border-destructive' : ''}>
+                  <SelectValue placeholder="Select…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {field.options.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {field.type === 'boolean' && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  id={field.key}
+                  checked={values[field.key] === true}
+                  onCheckedChange={(checked) => onChange(field.key, checked)}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {values[field.key] === true ? 'Yes' : 'No'}
+                </span>
+              </div>
+            )}
+
+            {error && (
+              <p id={`${field.key}-error`} className="text-xs text-destructive mt-0.5">
+                {error}
+              </p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

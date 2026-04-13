@@ -124,6 +124,42 @@ export function calculateEstimate(
   };
 }
 
+/** Pure validation — returns field-level error messages for invalid inputs */
+export function validateInputs(
+  fields: AdjustmentField[],
+  inputs: EstimateInputs
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+
+  for (const field of fields) {
+    const value = inputs[field.key];
+
+    if (field.type === 'number') {
+      const num = Number(value);
+      if (value === undefined || value === '' || Number.isNaN(num)) {
+        errors[field.key] = 'This field is required';
+        continue;
+      }
+      const min = field.min ?? 0;
+      if (num < min) {
+        errors[field.key] = `Must be at least ${min}`;
+      }
+      if (field.max !== undefined && num > field.max) {
+        errors[field.key] = `Must be no more than ${field.max}`;
+      }
+    }
+
+    if (field.type === 'select') {
+      if (!value && value !== 0) {
+        errors[field.key] = 'Please select an option';
+      }
+    }
+    // boolean fields always have a valid state (true/false), no validation needed
+  }
+
+  return errors;
+}
+
 function round(n: number): number {
   return Math.round(n * 100) / 100;
 }

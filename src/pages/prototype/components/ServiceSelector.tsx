@@ -47,9 +47,16 @@ export function ServiceSelector({
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">
+        Choose a category, then subcategory, then service to get an estimate.
+      </p>
+
       {/* Category */}
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium">Category</Label>
+        <Label className="text-sm font-medium">
+          <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 text-primary text-xs font-bold mr-1.5">1</span>
+          Category
+        </Label>
         <Select value={categoryId} onValueChange={onCategoryChange}>
           <SelectTrigger>
             <SelectValue placeholder="Select a category…" />
@@ -67,7 +74,10 @@ export function ServiceSelector({
       {/* Subcategory */}
       {selectedCategory && (
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium">Subcategory</Label>
+          <Label className="text-sm font-medium">
+            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 text-primary text-xs font-bold mr-1.5">2</span>
+            Subcategory
+          </Label>
           <Select value={subcategoryId} onValueChange={onSubcategoryChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select a subcategory…" />
@@ -86,7 +96,10 @@ export function ServiceSelector({
       {/* Micro Service */}
       {selectedSubcategory && (
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium">Service</Label>
+          <Label className="text-sm font-medium">
+            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 text-primary text-xs font-bold mr-1.5">3</span>
+            Service
+          </Label>
           <Select
             value={microSlug}
             onValueChange={(slug) => {
@@ -101,7 +114,11 @@ export function ServiceSelector({
               {selectedSubcategory.micros.map((micro) => {
                 const hasPricing = coveredSlugs.has(micro.slug);
                 return (
-                  <SelectItem key={micro.id} value={micro.slug}>
+                  <SelectItem
+                    key={micro.id}
+                    value={micro.slug}
+                    className={!hasPricing ? 'opacity-50' : ''}
+                  >
                     {micro.name}
                     {!hasPricing && (
                       <span className="ml-2 text-xs text-muted-foreground">(no pricing yet)</span>
