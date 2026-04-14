@@ -1,46 +1,32 @@
 
 
-## Verification Result: Two Bugs Still Live
+## Add Resend Transport to send-notifications Edge Function
 
-### Check 1 — Fallback Matching: ❌ STILL BROKEN
-Line 46 queries `.eq('slug', subcategorySlug)` and line 59 queries `.eq('slug', categorySlug)`. Jobs store display names (e.g. `"Handyman & General"`), not slugs (`"handyman-general"`). The resolver never finds a match.
+### Context
+- `RESEND_API_KEY` secret already exists
+- `send-notifications/index.ts` currently uses SMTP-only via nodemailer
+- No Resend code exists in the function yet
+- The audit doc confirms Resend is already used by `send-job-notification` — this aligns the transport strategy
 
-### Check 2 — `?posted=1`: ❌ STILL BROKEN  
-No `useEffect` or `history.replaceState` exists. The param persists on refresh, reopening the interstitial every time.
+### Changes (single file: `supabase/functions/send-notifications/index.ts`)
 
-### Check 3 — Core Journey UI: ✅ PASS
-Button labels, interstitial layout, and empty-state messaging are correct in the code.
+#### 1. Add Resend SDK import and config
+- Import Resend SDK: `import { Resend } from "npm:resend@4.1.2"`
+- Read `RESEND_API_KEY` and `RESEND_FROM` (fallback to `SMTP_FROM`) from env
+- Create conditional Resend client (only if API key is set)
 
-### Check 4 — Build: ✅ CURRENT
-Code matches what's deployed — the issue is the fixes were never written to the file.
+#### 2. Update `sendEmail()` with Resend-first, SMTP-fallback
+- Try Resend first if the client is available
+- On Resend success, return immediately
+- On Resend failure, log the error and fall through to existing SMTP path
+- If both fail, return a combined error message
+- If neither provider is configured, return a clear error
 
----
+#### 3. Deploy the updated function
+- Call `deploy_edge_functions` after writing changes
 
-## Fix (single file: `src/pages/dashboard/client/MatchAndSend.tsx`)
-
-### Fix 1: Query by `name` instead of `slug`
-
-**Line 46**: `.eq('slug', subcategorySlug)` → `.eq('name', subcategorySlug)`  
-**Line 59**: `.eq('slug', categorySlug)` → `.eq('name', categorySlug)`
-
-### Fix 2: Add `useEffect` to clear `?posted=1`
-
-**Line 16**: Add `useEffect` to the import from `react`  
-**After line 80**: Add:
-```ts
-useEffect(() => {
-  if (fromPost) {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('posted');
-    window.history.replaceState({}, '', url.toString());
-  }
-}, []);
-```
-
-### Files changed
-| File | Change |
-|------|--------|
-| `src/pages/dashboard/client/MatchAndSend.tsx` | Two `.eq('slug')` → `.eq('name')`, add `useEffect` to clear URL param |
-
-No other files affected. Both fixes are minimal and safe.
+### No other files change
+- No new secrets needed (`RESEND_API_KEY` already exists, `RESEND_FROM` is optional with fallback)
+- No database changes
+- No frontend changes
 
