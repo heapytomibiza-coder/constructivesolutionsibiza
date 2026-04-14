@@ -893,7 +893,7 @@ async function handleTestEmail(req: Request): Promise<Response> {
   );
   const result = await sendEmail(testTo, `SMTP Test - ${BRAND_NAME}`, testHtml);
   return new Response(
-    JSON.stringify({ test: true, sent: !result.error, error: result.error || null }),
+    JSON.stringify({ test: true, sent: result.ok, provider: result.provider, messageId: result.messageId || null, error: result.error || null }),
     { status: 200, headers }
   );
 }
@@ -1048,14 +1048,14 @@ const handler = async (req: Request): Promise<Response> => {
 
         const result = await sendEmail(recipientEmail, email.subject, email.html);
 
-        if (result.error) {
+        if (!result.ok) {
           const newAttempts = item.attempts + 1;
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ attempts: newAttempts, last_error: result.error, ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
+            .update({ attempts: newAttempts, last_error: `[${result.provider}] ${result.error}`, ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
             .eq("id", item.id);
         } else {
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ sent_at: new Date().toISOString() })
+            .update({ sent_at: new Date().toISOString(), last_error: `provider:${result.provider}` })
             .eq("id", item.id);
           sent++;
 
