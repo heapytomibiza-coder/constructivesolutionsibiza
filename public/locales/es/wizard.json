@@ -114,8 +114,8 @@
     "signInToSubmit": "Iniciar sesión para publicar",
     "saveChanges": "Guardar Cambios",
     "cancel": "Cancelar",
-    "getMatched": "Conectar con Profesionales",
-    "signInGetMatched": "Iniciar sesión y Conectar"
+    "getMatched": "Publicar Trabajo",
+    "signInGetMatched": "Iniciar sesión y Publicar"
   },
   "ui": {
     "submitting": "Enviando...",

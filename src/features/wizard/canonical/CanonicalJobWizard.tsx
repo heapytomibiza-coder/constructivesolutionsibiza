@@ -965,7 +965,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         }
 
         toast.success(t('toasts.postSuccess'));
-        navigate(`/dashboard/jobs/${data.id}/invite`, { state: { fromPost: true } });
+        navigate(`/dashboard/jobs/${data.id}/invite?posted=1`);
       }
     } catch (error: any) {
       console.error('Submit error:', error);

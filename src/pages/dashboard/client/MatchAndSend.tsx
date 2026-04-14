@@ -1,9 +1,10 @@
 /**
  * Match & Send Page - Browse matching professionals and send job invites
- * Ticket-aware: shows job summary + matched pros with profile drawer
+ * Shows a success interstitial when arriving from a fresh post (?posted=1)
+ * Falls back to category-level matching when microIds are empty
  */
 
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   ArrowLeft,
   Loader2,
@@ -24,20 +25,59 @@ import {
   UserCheck,
   ShieldCheck,
   CheckCircle2,
+  Briefcase,
+  ArrowDown,
 } from 'lucide-react';
 import { getRankedProfessionals, getMicroIdsForFilter } from '@/pages/public/queries/rankedProfessionals.query';
 import ProProfileDrawer from './components/ProProfileDrawer';
 
+/** Resolve category/subcategory slugs to micro IDs for fallback matching */
+async function resolveMicroIdsFromSlugs(
+  categorySlug: string | null,
+  subcategorySlug: string | null
+): Promise<string[]> {
+  if (!categorySlug) return [];
+
+  // Try subcategory first for tighter match
+  if (subcategorySlug) {
+    const { data: sub } = await supabase
+      .from('service_subcategories')
+      .select('id')
+      .eq('slug', subcategorySlug)
+      .maybeSingle();
+
+    if (sub?.id) {
+      const ids = await getMicroIdsForFilter(null, sub.id);
+      if (ids.length > 0) return ids;
+    }
+  }
+
+  // Fall back to category-level
+  const { data: cat } = await supabase
+    .from('service_categories')
+    .select('id')
+    .eq('slug', categorySlug)
+    .maybeSingle();
+
+  if (cat?.id) {
+    return getMicroIdsForFilter(cat.id, null);
+  }
+
+  return [];
+}
+
 export default function MatchAndSend() {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
-  const fromPost = (location.state as any)?.fromPost === true;
+  const [searchParams] = useSearchParams();
+  const fromPost = searchParams.get('posted') === '1';
   const { t } = useTranslation('dashboard');
   const { user } = useSession();
   const queryClient = useQueryClient();
   const [selectedProId, setSelectedProId] = useState<string | null>(null);
   const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const [showInterstitial, setShowInterstitial] = useState(fromPost);
+  const prosListRef = useRef<HTMLDivElement>(null);
 
   // Fetch job
   const { data: job, isLoading: jobLoading } = useQuery({
@@ -57,14 +97,26 @@ export default function MatchAndSend() {
   // Get micro IDs from job for matching
   const answers = job?.answers as Record<string, unknown> | null;
   const selected = (answers?.selected as Record<string, unknown>) || {};
-  const microIds = (selected.microIds as string[]) || [];
+  const directMicroIds = (selected.microIds as string[]) || [];
   const microNames = (selected.microNames as string[]) || [];
+
+  // Resolve micro IDs: direct from answers, or fallback from category/subcategory slugs
+  const { data: resolvedMicroIds = [], isLoading: resolvingMicros } = useQuery({
+    queryKey: ['resolve_micros', job?.category, job?.subcategory, directMicroIds],
+    queryFn: async () => {
+      if (directMicroIds.length > 0) return directMicroIds;
+      return resolveMicroIdsFromSlugs(job?.category ?? null, job?.subcategory ?? null);
+    },
+    enabled: !!job,
+  });
+
+  const isFallbackMatch = directMicroIds.length === 0 && resolvedMicroIds.length > 0;
 
   // Fetch matched professionals
   const { data: matchedPros = [], isLoading: prosLoading } = useQuery({
-    queryKey: ['matched_pros', microIds],
-    queryFn: () => getRankedProfessionals(microIds),
-    enabled: microIds.length > 0,
+    queryKey: ['matched_pros', resolvedMicroIds],
+    queryFn: () => getRankedProfessionals(resolvedMicroIds),
+    enabled: resolvedMicroIds.length > 0,
   });
 
   // Fetch already-invited pro IDs
@@ -113,6 +165,13 @@ export default function MatchAndSend() {
   const locationData = job?.location as Record<string, unknown> | null;
   const area = (locationData?.area as string) || job?.area || 'Ibiza';
 
+  const handleScrollToPros = () => {
+    setShowInterstitial(false);
+    setTimeout(() => {
+      prosListRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
   if (jobLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -128,6 +187,8 @@ export default function MatchAndSend() {
       </div>
     );
   }
+
+  const isLoading = prosLoading || resolvingMicros;
 
   return (
     <div className="min-h-screen bg-background">
@@ -162,112 +223,153 @@ export default function MatchAndSend() {
       </div>
 
       <div className="container max-w-4xl py-6">
-        {fromPost && (
-          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 mb-5">
-            <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
-            <p className="text-sm font-medium text-foreground">{t('matchAndSend.postSuccess')}</p>
-          </div>
-        )}
-        <h2 className="font-display text-xl font-bold mb-1">{t('matchAndSend.matchingTitle')}</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          {t('matchAndSend.found', { count: matchedPros.length })}
-          {microNames.length > 0 && ` ${t('matchAndSend.forServices', { services: microNames.join(', ') })}`}
-        </p>
-
-        {prosLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : matchedPros.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
-                {t('matchAndSend.noMatch')}
+        {/* Success Interstitial — shown only on fresh post */}
+        {showInterstitial && (
+          <Card className="border-primary/30 bg-primary/5 mb-8">
+            <CardContent className="py-8 text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <CheckCircle2 className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground mb-2">
+                {t('matchAndSend.successTitle')}
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+                {t('matchAndSend.successDesc')}
               </p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => navigate(`/dashboard/jobs/${jobId}`)}
-              >
-                {t('matchAndSend.backToJob')}
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Button onClick={handleScrollToPros} className="gap-2">
+                  <ArrowDown className="h-4 w-4" />
+                  {t('matchAndSend.viewPros')}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/dashboard')}
+                >
+                  {t('matchAndSend.goToJobs')}
+                </Button>
+              </div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-3">
-            {matchedPros.map((pro) => {
-              const isInvited = invitedIds.has(pro.user_id);
-              const isSending = sendingTo === pro.user_id;
-
-              return (
-                <Card key={pro.user_id} className="border-border/70 hover:border-primary/30 transition-all">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-foreground truncate">
-                            {pro.display_name || t('proProfile.professional')}
-                          </p>
-                          {pro.verification_status === 'verified' && (
-                            <ShieldCheck className="h-4 w-4 text-primary flex-shrink-0" />
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          {pro.match_score > 0 && (
-                            <span className="flex items-center gap-1">
-                              <Star className="h-3.5 w-3.5 text-amber-500" />
-                              {(pro.match_score / 10).toFixed(1)}
-                            </span>
-                          )}
-                          {pro.services_count && (
-                            <span>{t('matchAndSend.services', { count: pro.services_count })}</span>
-                          )}
-                          {pro.coverage > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {t('matchAndSend.match', { percent: Math.round(pro.coverage * 100) })}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedProId(pro.user_id)}
-                        >
-                          {t('matchAndSend.viewProfile')}
-                        </Button>
-                        
-                        {isInvited ? (
-                          <Button size="sm" variant="secondary" disabled className="gap-1.5">
-                            <UserCheck className="h-3.5 w-3.5" />
-                            {t('matchAndSend.invited')}
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            className="gap-1.5"
-                            onClick={() => handleInvite(pro.user_id)}
-                            disabled={isSending}
-                          >
-                            {isSending ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <Send className="h-3.5 w-3.5" />
-                            )}
-                            {t('matchAndSend.invite')}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
         )}
+
+        {/* Pro List Section */}
+        <div ref={prosListRef}>
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="font-display text-xl font-bold">{t('matchAndSend.matchingTitle')}</h2>
+            {isFallbackMatch && (
+              <Badge variant="secondary" className="text-xs">
+                {t('matchAndSend.categoryMatch')}
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground mb-6">
+            {t('matchAndSend.found', { count: matchedPros.length })}
+            {microNames.length > 0 && ` ${t('matchAndSend.forServices', { services: microNames.join(', ') })}`}
+          </p>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : matchedPros.length === 0 ? (
+            /* Improved empty state — reassure user the job is live */
+            <Card className="border-border/70">
+              <CardContent className="py-10 text-center">
+                <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Briefcase className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">
+                  {t('matchAndSend.emptyTitle')}
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+                  {t('matchAndSend.emptyDesc')}
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Button onClick={() => navigate(`/dashboard/jobs/${jobId}`)}>
+                    {t('matchAndSend.emptyViewJob')}
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                    {t('matchAndSend.goToJobs')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {matchedPros.map((pro) => {
+                const isInvited = invitedIds.has(pro.user_id);
+                const isSending = sendingTo === pro.user_id;
+
+                return (
+                  <Card key={pro.user_id} className="border-border/70 hover:border-primary/30 transition-all">
+                    <CardContent className="p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium text-foreground truncate">
+                              {pro.display_name || t('proProfile.professional')}
+                            </p>
+                            {pro.verification_status === 'verified' && (
+                              <ShieldCheck className="h-4 w-4 text-primary flex-shrink-0" />
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            {pro.match_score > 0 && (
+                              <span className="flex items-center gap-1">
+                                <Star className="h-3.5 w-3.5 text-amber-500" />
+                                {(pro.match_score / 10).toFixed(1)}
+                              </span>
+                            )}
+                            {pro.services_count && (
+                              <span>{t('matchAndSend.services', { count: pro.services_count })}</span>
+                            )}
+                            {pro.coverage > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                {t('matchAndSend.match', { percent: Math.round(pro.coverage * 100) })}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedProId(pro.user_id)}
+                          >
+                            {t('matchAndSend.viewProfile')}
+                          </Button>
+                          
+                          {isInvited ? (
+                            <Button size="sm" variant="secondary" disabled className="gap-1.5">
+                              <UserCheck className="h-3.5 w-3.5" />
+                              {t('matchAndSend.invited')}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="gap-1.5"
+                              onClick={() => handleInvite(pro.user_id)}
+                              disabled={isSending}
+                            >
+                              {isSending ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Send className="h-3.5 w-3.5" />
+                              )}
+                              {t('matchAndSend.invite')}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Profile Drawer */}

@@ -202,7 +202,16 @@
     "flexible": "Flexible",
     "notFound": "Trabajo no encontrado.",
     "services": "{{count}} servicios",
-    "match": "{{percent}}% coincidencia"
+    "match": "{{percent}}% coincidencia",
+    "postSuccess": "Tu trabajo ha sido publicado — revisa profesionales compatibles abajo",
+    "successTitle": "¡Tu trabajo está activo!",
+    "successDesc": "Los profesionales de tu zona verán tu trabajo y pueden responder directamente. También puedes invitar a profesionales específicos abajo.",
+    "viewPros": "Ver Profesionales Compatibles",
+    "goToJobs": "Ir a Mis Trabajos",
+    "emptyTitle": "Tu trabajo está publicado en la bolsa",
+    "emptyDesc": "Los profesionales de esta categoría verán tu trabajo y pueden responder directamente. Recibirás notificaciones cuando alguien presupueste.",
+    "emptyViewJob": "Ver Tu Trabajo",
+    "categoryMatch": "Coincidencias por categoría"
   },
   "reviews": {
     "rateExperience": "Valora tu experiencia",

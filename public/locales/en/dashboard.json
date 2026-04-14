@@ -216,7 +216,15 @@
     "notFound": "Job not found.",
     "services": "{{count}} services",
     "match": "{{percent}}% match",
-    "postSuccess": "Your job has been posted — review matched professionals below"
+    "postSuccess": "Your job has been posted — review matched professionals below",
+    "successTitle": "Your job is live!",
+    "successDesc": "Professionals in your area will see your job and can respond directly. You can also invite specific pros below.",
+    "viewPros": "View Matching Professionals",
+    "goToJobs": "Go to My Jobs",
+    "emptyTitle": "Your job is live on the board",
+    "emptyDesc": "Professionals in this category will see your job and can respond directly. You'll receive notifications when someone quotes.",
+    "emptyViewJob": "View Your Job",
+    "categoryMatch": "Category-level matches"
   },
   "reviews": {
     "rateExperience": "Rate your experience",
