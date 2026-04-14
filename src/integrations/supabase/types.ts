@@ -4180,6 +4180,10 @@ export type Database = {
           tier: string
         }[]
       }
+      grant_professional_access: {
+        Args: { p_create_profile?: boolean; p_user_id: string }
+        Returns: undefined
+      }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_job_edit_version: {
         Args: { p_job_id: string }
