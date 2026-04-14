@@ -36,40 +36,52 @@ const supabaseAdmin = createClient(
 // SMTP EMAIL SENDER
 // ============================================
 
-async function sendEmail(to: string, subject: string, html: string): Promise<{ error?: string }> {
+interface SendResult {
+  ok: boolean;
+  provider: "resend" | "smtp" | "none";
+  messageId?: string;
+  error?: string;
+}
+
+async function sendEmail(to: string, subject: string, html: string): Promise<SendResult> {
+  let resendError: string | undefined;
+
   // --- Resend (primary) ---
   if (resendClient) {
     try {
-      console.log(`Resend sending to="${to}" from="${RESEND_FROM}"`);
-      const { error: resendError } = await resendClient.emails.send({
+      console.log(`[email] Resend attempt to="${to}" from="${RESEND_FROM}"`);
+      const { data, error: apiError } = await resendClient.emails.send({
         from: `${BRAND_NAME} <${RESEND_FROM}>`,
         to: [to],
         subject,
         html,
       });
-      if (resendError) {
-        console.error("Resend API error:", resendError);
+      if (apiError) {
+        resendError = `Resend API: ${apiError.message}`;
+        console.error("[email]", resendError);
         // fall through to SMTP
       } else {
-        console.log(`Email sent via Resend to ${to}: ${subject}`);
-        return {};
+        const messageId = data?.id ?? "unknown";
+        console.log(`[email] Sent via resend to=${to} messageId=${messageId} subject="${subject}"`);
+        return { ok: true, provider: "resend", messageId };
       }
     } catch (err) {
-      console.error("Resend transport error:", err);
+      resendError = `Resend transport: ${String(err)}`;
+      console.error("[email]", resendError);
       // fall through to SMTP
     }
   }
 
   // --- SMTP (fallback) ---
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
-    if (resendClient) {
-      return { error: "Resend failed and SMTP not configured — email not delivered" };
+    if (resendError) {
+      return { ok: false, provider: "none", error: `${resendError}; SMTP not configured` };
     }
-    console.error("SMTP config check - HOST:", !!SMTP_HOST, "USER:", !!SMTP_USER, "PASS:", !!SMTP_PASSWORD, "FROM:", SMTP_FROM);
-    return { error: "No email provider configured (Resend API key missing, SMTP not configured)" };
+    console.error("[email] No provider configured — RESEND_API_KEY missing, SMTP not configured");
+    return { ok: false, provider: "none", error: "No email provider configured" };
   }
 
-  console.log(`SMTP fallback sending to="${to}" host="${SMTP_HOST}:${SMTP_PORT}" user="${SMTP_USER}"`);
+  console.log(`[email] SMTP fallback to="${to}" host="${SMTP_HOST}:${SMTP_PORT}"`);
 
   try {
     const transporter = nodemailer.createTransport({
@@ -82,7 +94,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ e
       },
     });
 
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"${BRAND_NAME}" <${SMTP_FROM}>`,
       to,
       subject,
@@ -90,11 +102,14 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ e
       html,
     });
 
-    console.log(`Email sent via SMTP fallback to ${to}: ${subject}`);
-    return {};
+    const messageId = info?.messageId ?? "unknown";
+    console.log(`[email] Sent via smtp to=${to} messageId=${messageId} subject="${subject}"`);
+    return { ok: true, provider: "smtp", messageId };
   } catch (err) {
-    console.error("SMTP send error:", err);
-    return { error: `Both providers failed — SMTP: ${String(err)}` };
+    const smtpError = `SMTP: ${String(err)}`;
+    console.error("[email]", smtpError);
+    const combined = resendError ? `${resendError}; ${smtpError}` : smtpError;
+    return { ok: false, provider: "none", error: combined };
   }
 }
 
@@ -878,7 +893,7 @@ async function handleTestEmail(req: Request): Promise<Response> {
   );
   const result = await sendEmail(testTo, `SMTP Test - ${BRAND_NAME}`, testHtml);
   return new Response(
-    JSON.stringify({ test: true, sent: !result.error, error: result.error || null }),
+    JSON.stringify({ test: true, sent: result.ok, provider: result.provider, messageId: result.messageId || null, error: result.error || null }),
     { status: 200, headers }
   );
 }
@@ -1033,14 +1048,14 @@ const handler = async (req: Request): Promise<Response> => {
 
         const result = await sendEmail(recipientEmail, email.subject, email.html);
 
-        if (result.error) {
+        if (!result.ok) {
           const newAttempts = item.attempts + 1;
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ attempts: newAttempts, last_error: result.error, ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
+            .update({ attempts: newAttempts, last_error: `[${result.provider}] ${result.error}`, ...(newAttempts >= 3 ? { failed_at: new Date().toISOString() } : {}) })
             .eq("id", item.id);
         } else {
           await supabaseAdmin.from("email_notifications_queue")
-            .update({ sent_at: new Date().toISOString() })
+            .update({ sent_at: new Date().toISOString(), last_error: `provider:${result.provider}` })
             .eq("id", item.id);
           sent++;
 

@@ -75,18 +75,28 @@ Preference-skipped notifications are marked as processed (`sent_at = now()`, `la
 
 ---
 
-## Phase 1C — Provider Consolidation (Deferred)
+## Phase 1C — Provider Consolidation (Partial)
 
 ### Current Provider Split
 
 | Provider | Used By | Transport |
 |----------|---------|-----------|
-| **Resend** (API) | `send-job-notification` | REST API |
-| **Krystal SMTP** | `send-notifications` | SMTP via nodemailer |
+| **Resend** (API) | `send-job-notification`, `send-notifications` (primary) | REST API |
+| **Krystal SMTP** | `send-notifications` (fallback) | SMTP via nodemailer |
 | **Supabase Auth** (native) | Signup, reset, magic link | GoTrue |
 
-### Decision
-Deferred until Phase 1A and 1B are tested in production. Consolidation depends on deliverability assessment, cost analysis, and whether there is a business reason to maintain the SMTP path.
+### What Was Done (2026-04-14)
+
+1. **Resend added as primary transport** in `send-notifications` with SMTP fallback
+2. **Uniform `SendResult` response shape** — every send returns `{ ok, provider, messageId?, error? }`
+3. **Provider logged per send** — `last_error` column records `provider:resend` or `provider:smtp` on success, `[none] error` on failure
+4. **Duplicate-send risk eliminated** — SMTP fallback only runs on true Resend API error (`resendError` set), not on ambiguous responses
+5. **Deployed and live**
+
+### Remaining
+
+- `RESEND_FROM` must point to a verified Resend domain for operational delivery
+- Full rollout test matrix (Resend-only, SMTP-only, both-broken, per-event-type) not yet run in production
 
 ---
 
@@ -97,7 +107,7 @@ Deferred until Phase 1A and 1B are tested in production. Consolidation depends o
 - ✅ Event policy fully classified (optional / mandatory / admin-only)
 - ✅ Documentation aligned with production behavior
 - ✅ Build passes cleanly
-- ⏳ Transport consolidation intentionally deferred
+- ✅ Resend primary + SMTP fallback with uniform response and provider logging
 - ✅ Conversion nudge pipeline activated (Phase 2)
 
 ---
