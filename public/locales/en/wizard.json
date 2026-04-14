@@ -114,8 +114,8 @@
     "signInToSubmit": "Sign In to Post",
     "saveChanges": "Save Changes",
     "cancel": "Cancel",
-    "getMatched": "Get Matched",
-    "signInGetMatched": "Sign in & Get Matched"
+    "getMatched": "Post Job",
+    "signInGetMatched": "Sign In & Post Job"
   },
   "ui": {
     "submitting": "Submitting...",
