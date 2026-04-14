@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import nodemailer from "npm:nodemailer@6.9.12";
+import { Resend } from "npm:resend@4.1.2";
 
 // ============================================
 // CONFIG
@@ -18,6 +19,11 @@ const WHATSAPP_API_KEY = Deno.env.get("WHATSAPP_CALLMEBOT_APIKEY") ?? "";
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
 const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID") ?? "";
 
+// Resend transport (primary, with SMTP fallback)
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
+const RESEND_FROM = Deno.env.get("RESEND_FROM") || SMTP_FROM;
+const resendClient = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+
 import { getCorsHeaders } from "../_shared/cors.ts";
 
 const supabaseAdmin = createClient(
@@ -31,13 +37,40 @@ const supabaseAdmin = createClient(
 // ============================================
 
 async function sendEmail(to: string, subject: string, html: string): Promise<{ error?: string }> {
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
-    console.error("SMTP config check - HOST:", !!SMTP_HOST, "USER:", !!SMTP_USER, "PASS:", !!SMTP_PASSWORD, "FROM:", SMTP_FROM);
-    return { error: "SMTP not configured (missing host, user, or password)" };
+  // --- Resend (primary) ---
+  if (resendClient) {
+    try {
+      console.log(`Resend sending to="${to}" from="${RESEND_FROM}"`);
+      const { error: resendError } = await resendClient.emails.send({
+        from: `${BRAND_NAME} <${RESEND_FROM}>`,
+        to: [to],
+        subject,
+        html,
+      });
+      if (resendError) {
+        console.error("Resend API error:", resendError);
+        // fall through to SMTP
+      } else {
+        console.log(`Email sent via Resend to ${to}: ${subject}`);
+        return {};
+      }
+    } catch (err) {
+      console.error("Resend transport error:", err);
+      // fall through to SMTP
+    }
   }
-  
-  console.log(`SMTP sending to="${to}" host="${SMTP_HOST}:${SMTP_PORT}" user="${SMTP_USER}"`);
-  
+
+  // --- SMTP (fallback) ---
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
+    if (resendClient) {
+      return { error: "Resend failed and SMTP not configured — email not delivered" };
+    }
+    console.error("SMTP config check - HOST:", !!SMTP_HOST, "USER:", !!SMTP_USER, "PASS:", !!SMTP_PASSWORD, "FROM:", SMTP_FROM);
+    return { error: "No email provider configured (Resend API key missing, SMTP not configured)" };
+  }
+
+  console.log(`SMTP fallback sending to="${to}" host="${SMTP_HOST}:${SMTP_PORT}" user="${SMTP_USER}"`);
+
   try {
     const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
@@ -57,11 +90,11 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ e
       html,
     });
 
-    console.log(`Email sent successfully to ${to}: ${subject}`);
+    console.log(`Email sent via SMTP fallback to ${to}: ${subject}`);
     return {};
   } catch (err) {
     console.error("SMTP send error:", err);
-    return { error: String(err) };
+    return { error: `Both providers failed — SMTP: ${String(err)}` };
   }
 }
 
