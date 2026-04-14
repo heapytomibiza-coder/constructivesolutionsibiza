@@ -151,7 +151,16 @@ Deno.serve(async (req) => {
     for (const r of topNetworkRes.data ?? []) {
       if (r.request_url) {
         const match = r.request_url.match(/\/functions\/v1\/([^?/]+)/);
-        const label = match ? match[1] : new URL(r.request_url).pathname.split("/").pop() || r.request_url;
+        let label: string;
+        if (match) {
+          label = match[1];
+        } else {
+          try {
+            label = new URL(r.request_url).pathname.split("/").pop() || r.request_url;
+          } catch {
+            label = r.request_url.split("?")[0].split("/").pop() || r.request_url;
+          }
+        }
         netCounts[label] = (netCounts[label] || 0) + 1;
       }
     }
