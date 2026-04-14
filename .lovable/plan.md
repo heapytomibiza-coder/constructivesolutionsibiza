@@ -1,50 +1,46 @@
 
 
-## Export All 335 Question Packs as a Browsable Reference
+## Verification Result: Two Bugs Still Live
 
-### What you'll get
+### Check 1 — Fallback Matching: ❌ STILL BROKEN
+Line 46 queries `.eq('slug', subcategorySlug)` and line 59 queries `.eq('slug', categorySlug)`. Jobs store display names (e.g. `"Handyman & General"`), not slugs (`"handyman-general"`). The resolver never finds a match.
 
-Two files written to `/mnt/documents/`:
+### Check 2 — `?posted=1`: ❌ STILL BROKEN  
+No `useEffect` or `history.replaceState` exists. The param persists on refresh, reopening the interstitial every time.
 
-1. **`question-packs-reference.md`** — Human-readable Markdown organized by category (17 categories, 335 packs, ~1,880 questions). Each pack shows every question's ID, type, label, options, required status, `show_if` conditional logic, and any interpretation rules.
+### Check 3 — Core Journey UI: ✅ PASS
+Button labels, interstitial layout, and empty-state messaging are correct in the code.
 
-2. **`question-packs-complete.json`** — Raw JSON export of all 335 packs for programmatic use.
+### Check 4 — Build: ✅ CURRENT
+Code matches what's deployed — the issue is the fixes were never written to the file.
 
-### Structure of the Markdown
+---
 
-```text
-# Question Pack Library — Full Reference
-## Summary: 335 packs across 17 categories
+## Fix (single file: `src/pages/dashboard/client/MatchAndSend.tsx`)
 
-## Table of Contents
-- Construction (50 packs)
-- HVAC (36 packs)
-- Electrical (32 packs)
-- ...
+### Fix 1: Query by `name` instead of `slug`
 
-## Construction
+**Line 46**: `.eq('slug', subcategorySlug)` → `.eq('name', subcategorySlug)`  
+**Line 59**: `.eq('slug', categorySlug)` → `.eq('name', categorySlug)`
 
-### adding-new-rooms — "Adding New Rooms" (6 questions)
-| # | ID | Type | Label | Required | Options | show_if |
-|---|-----|------|-------|----------|---------|---------|
-| 1 | description | textarea | Describe... | ✓ | — | — |
-| 2 | area_size | radio | How big? | ✓ | small, medium, large | — |
-...
+### Fix 2: Add `useEffect` to clear `?posted=1`
 
-Rules: (if any)
-- IF known_issues = "yes" → flags: PRE_EXISTING_ISSUES
-
-### brick-repair — "Brick Repair" (5 questions)
-...
-
-(all 335 packs)
+**Line 16**: Add `useEffect` to the import from `react`  
+**After line 80**: Add:
+```ts
+useEffect(() => {
+  if (fromPost) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('posted');
+    window.history.replaceState({}, '', url.toString());
+  }
+}, []);
 ```
 
-### Implementation steps
+### Files changed
+| File | Change |
+|------|--------|
+| `src/pages/dashboard/client/MatchAndSend.tsx` | Two `.eq('slug')` → `.eq('name')`, add `useEffect` to clear URL param |
 
-1. Query all 335 packs from `question_packs` in batches (full `questions` JSON + `metadata`)
-2. Group by `category_contract`
-3. For each pack, render a question table with all fields including conditional `show_if` logic
-4. Append interpretation rules (from `metadata->'rules'`) as IF/THEN blocks
-5. Write both files to `/mnt/documents/`
+No other files affected. Both fixes are minimal and safe.
 
