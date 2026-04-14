@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   ArrowLeft,
   Loader2,
@@ -43,7 +43,7 @@ async function resolveMicroIdsFromSlugs(
     const { data: sub } = await supabase
       .from('service_subcategories')
       .select('id')
-      .eq('slug', subcategorySlug)
+      .eq('name', subcategorySlug)
       .maybeSingle();
 
     if (sub?.id) {
@@ -56,7 +56,7 @@ async function resolveMicroIdsFromSlugs(
   const { data: cat } = await supabase
     .from('service_categories')
     .select('id')
-    .eq('slug', categorySlug)
+    .eq('name', categorySlug)
     .maybeSingle();
 
   if (cat?.id) {
@@ -78,6 +78,15 @@ export default function MatchAndSend() {
   const [sendingTo, setSendingTo] = useState<string | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(fromPost);
   const prosListRef = useRef<HTMLDivElement>(null);
+
+  // Clear ?posted=1 from URL so interstitial doesn't reappear on refresh
+  useEffect(() => {
+    if (fromPost) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('posted');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
 
   // Fetch job
   const { data: job, isLoading: jobLoading } = useQuery({
