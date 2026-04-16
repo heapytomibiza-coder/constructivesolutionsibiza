@@ -1,32 +1,32 @@
 
+The user is asking what information I can extract from the repo to help analyze the value of the company. This is a research/analysis request, not an implementation task. I should answer directly rather than present a build plan.
 
-## Add Resend Transport to send-notifications Edge Function
+Let me think about what's actually available in this repo that's relevant to company valuation:
 
-### Context
-- `RESEND_API_KEY` secret already exists
-- `send-notifications/index.ts` currently uses SMTP-only via nodemailer
-- No Resend code exists in the function yet
-- The audit doc confirms Resend is already used by `send-job-notification` — this aligns the transport strategy
+**Quantitative signals available in the repo:**
+1. **Live platform metrics** — `daily_platform_metrics` table + `rpc_admin_platform_stats` RPC. From `useAdminStats.ts` I can see: total_users, total_professionals, active_professionals, total_jobs, open/active/completed jobs, conversations, support tickets.
+2. **Admin metric registry** (`metricRegistry.ts`) — tracks open/active/completed jobs, jobs posted, new users, new pros, conversations, support tickets, messages sent. With timeframe drilldowns.
+3. **Subscription/monetization model** — 4 tiers (Bronze free, Silver €49, Gold €99, Elite €199) with commission rates (18% → 6%). Source of truth is `subscriptions.commission_rate`.
+4. **Agent performance metrics** (`get_agent_performance_metrics` RPC) — AI agent efficacy data.
+5. **Demand snapshots** (`refresh_demand_snapshots` edge function) — category-level demand data.
+6. **Conversion/retention nudges** — hourly cron tracks conversion mechanics.
 
-### Changes (single file: `supabase/functions/send-notifications/index.ts`)
+**Qualitative / strategic signals in the repo:**
+1. **T0_KNOWLEDGE.md** — authoritative platform snapshot: positioning, target audience, taxonomy (16 categories, 335 micro-services), what's live vs not live, tech debt.
+2. **Rollout phase** — currently `service-layer` (3rd of 6 phases). Indicates maturity stage.
+3. **Feature gaps** — Stripe checkout not live, payment protection not live, WhatsApp bridge not live (these gate revenue).
+4. **Memory files** — strategy docs: monetization-tier-and-limit-matrix, payment-protection-framework, controlled-matching-policy, marketplace-competition-philosophy.
 
-#### 1. Add Resend SDK import and config
-- Import Resend SDK: `import { Resend } from "npm:resend@4.1.2"`
-- Read `RESEND_API_KEY` and `RESEND_FROM` (fallback to `SMTP_FROM`) from env
-- Create conditional Resend client (only if API key is set)
+**What's NOT in the repo (must flag):**
+- No financial statements, P&L, balance sheet, cap table
+- No actual paying-customer counts or MRR/ARR figures (Stripe checkout isn't live yet — `STRIPE_CHECKOUT_LIVE = false`)
+- No projections/forecasts as documents
+- No CAC, LTV, churn data
+- No fundraising materials, valuations, or comparables
+- No cost structure (hosting, payroll, etc.)
 
-#### 2. Update `sendEmail()` with Resend-first, SMTP-fallback
-- Try Resend first if the client is available
-- On Resend success, return immediately
-- On Resend failure, log the error and fall through to existing SMTP path
-- If both fail, return a combined error message
-- If neither provider is configured, return a clear error
+**Honest verdict:** The repo gives me **operational telemetry + strategic positioning + monetization model**, but **no revenue, no projections, and no financial data**. Stripe checkout isn't even live yet, so there's no real paid-tier revenue to extract.
 
-#### 3. Deploy the updated function
-- Call `deploy_edge_functions` after writing changes
+I should answer plainly with: (a) what I CAN pull, (b) what's missing, (c) what they'd need to provide for a real valuation analysis. No build plan needed — this is a Q&A response. I'll skip the `<lov-plan>` framing for the actual answer since this is research, but the rules say to put all thinking inside the tag and that the plan IS the response. Since the user asked an information question, the cleanest path is a direct factual answer inside the plan tag.
 
-### No other files change
-- No new secrets needed (`RESEND_API_KEY` already exists, `RESEND_FROM` is optional with fallback)
-- No database changes
-- No frontend changes
-
+Actually re-reading the rules: "Skip [plans] for research ('how does X work?')". This is a research question. So I should answer directly outside any plan tag. But the constraint says nothing follows `
