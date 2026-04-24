@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { ensureUserRoles } from '@/lib/ensureUserRoles';
+import { ensureUserRoles, RoleLoadAbortedError } from '@/lib/ensureUserRoles';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -85,12 +85,19 @@ const AuthCallback = () => {
         const result = await ensureUserRoles(session.user.id);
         activeRole = result.activeRole;
       } catch (err: any) {
-        console.error('[AuthCallback] Role setup failed:', err.message);
-        setState({
-          status: 'error',
-          message: err.message || 'Account setup incomplete. Please try signing in again.',
-        });
-        return;
+        // Aborted requests (usually from navigation) are not real failures —
+        // session listener will pick up roles. Default to client and continue.
+        if (err instanceof RoleLoadAbortedError) {
+          console.info('[AuthCallback] Role lookup aborted — defaulting to client');
+          activeRole = 'client';
+        } else {
+          console.error('[AuthCallback] Role setup failed:', err.message);
+          setState({
+            status: 'error',
+            message: err.message || 'Account setup incomplete. Please try signing in again.',
+          });
+          return;
+        }
       }
 
       if (activeRole === 'professional') {

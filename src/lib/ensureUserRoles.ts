@@ -18,6 +18,28 @@ interface UserRolesResult {
 
 const RETRY_DELAY_MS = 1500;
 
+/**
+ * Custom error class for aborted requests. Callers can detect this and
+ * silently ignore — an abort means the request was cancelled (usually by
+ * navigation away), not that role loading actually failed.
+ */
+export class RoleLoadAbortedError extends Error {
+  constructor() {
+    super('Role load aborted');
+    this.name = 'RoleLoadAbortedError';
+  }
+}
+
+function isAbortError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { name?: string; message?: string; code?: string };
+  return (
+    e.name === 'AbortError' ||
+    e.code === '20' ||
+    /aborted|abortError|signal is aborted/i.test(e.message ?? '')
+  );
+}
+
 /** Safely parse a user_roles row, guarding against null/malformed roles */
 function parseRolesRow(row: { active_role: string; roles: unknown }): UserRolesResult {
   const roles = Array.isArray(row.roles) ? (row.roles as string[]) : [];
@@ -36,9 +58,18 @@ export async function ensureUserRoles(userId: string): Promise<UserRolesResult> 
       .eq('user_id', userId)
       .maybeSingle();
 
-  const { data, error } = await query();
+  let firstResult;
+  try {
+    firstResult = await query();
+  } catch (err) {
+    if (isAbortError(err)) throw new RoleLoadAbortedError();
+    throw err;
+  }
+
+  const { data, error } = firstResult;
 
   if (error && error.code !== 'PGRST116') {
+    if (isAbortError(error)) throw new RoleLoadAbortedError();
     throw new Error(`Failed to load account roles: ${error.message}`);
   }
 
@@ -49,9 +80,18 @@ export async function ensureUserRoles(userId: string): Promise<UserRolesResult> 
   // Retry once after a brief delay (covers replication lag)
   await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
 
-  const { data: retryData, error: retryError } = await query();
+  let retryResult;
+  try {
+    retryResult = await query();
+  } catch (err) {
+    if (isAbortError(err)) throw new RoleLoadAbortedError();
+    throw err;
+  }
+
+  const { data: retryData, error: retryError } = retryResult;
 
   if (retryError && retryError.code !== 'PGRST116') {
+    if (isAbortError(retryError)) throw new RoleLoadAbortedError();
     throw new Error(`Failed to load account roles: ${retryError.message}`);
   }
 
