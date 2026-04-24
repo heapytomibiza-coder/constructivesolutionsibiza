@@ -18,6 +18,28 @@ interface UserRolesResult {
 
 const RETRY_DELAY_MS = 1500;
 
+/**
+ * Custom error class for aborted requests. Callers can detect this and
+ * silently ignore — an abort means the request was cancelled (usually by
+ * navigation away), not that role loading actually failed.
+ */
+export class RoleLoadAbortedError extends Error {
+  constructor() {
+    super('Role load aborted');
+    this.name = 'RoleLoadAbortedError';
+  }
+}
+
+function isAbortError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { name?: string; message?: string; code?: string };
+  return (
+    e.name === 'AbortError' ||
+    e.code === '20' ||
+    /aborted|abortError|signal is aborted/i.test(e.message ?? '')
+  );
+}
+
 /** Safely parse a user_roles row, guarding against null/malformed roles */
 function parseRolesRow(row: { active_role: string; roles: unknown }): UserRolesResult {
   const roles = Array.isArray(row.roles) ? (row.roles as string[]) : [];
