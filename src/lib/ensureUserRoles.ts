@@ -58,9 +58,18 @@ export async function ensureUserRoles(userId: string): Promise<UserRolesResult> 
       .eq('user_id', userId)
       .maybeSingle();
 
-  const { data, error } = await query();
+  let firstResult;
+  try {
+    firstResult = await query();
+  } catch (err) {
+    if (isAbortError(err)) throw new RoleLoadAbortedError();
+    throw err;
+  }
+
+  const { data, error } = firstResult;
 
   if (error && error.code !== 'PGRST116') {
+    if (isAbortError(error)) throw new RoleLoadAbortedError();
     throw new Error(`Failed to load account roles: ${error.message}`);
   }
 
@@ -71,9 +80,18 @@ export async function ensureUserRoles(userId: string): Promise<UserRolesResult> 
   // Retry once after a brief delay (covers replication lag)
   await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
 
-  const { data: retryData, error: retryError } = await query();
+  let retryResult;
+  try {
+    retryResult = await query();
+  } catch (err) {
+    if (isAbortError(err)) throw new RoleLoadAbortedError();
+    throw err;
+  }
+
+  const { data: retryData, error: retryError } = retryResult;
 
   if (retryError && retryError.code !== 'PGRST116') {
+    if (isAbortError(retryError)) throw new RoleLoadAbortedError();
     throw new Error(`Failed to load account roles: ${retryError.message}`);
   }
 
