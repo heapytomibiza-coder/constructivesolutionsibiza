@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Loader2, Shield, ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react';
 import { IntentSelector, type UserIntent } from '@/components/auth/IntentSelector';
 import { trackEvent } from '@/lib/trackEvent';
-import { ensureUserRoles } from '@/lib/ensureUserRoles';
+import { ensureUserRoles, RoleLoadAbortedError } from '@/lib/ensureUserRoles';
 
 /**
  * AUTH PAGE
@@ -114,6 +114,14 @@ const Auth = () => {
         navigate('/auth/callback');
       }
     } catch (error: any) {
+      // Sign-in succeeded but a follow-up role query was aborted (typically
+      // because the session listener navigated away first). Not a user-facing
+      // failure — useSessionSnapshot will load roles on its own.
+      if (error instanceof RoleLoadAbortedError) {
+        console.info('[Auth] Role lookup aborted post-signin — handled by session listener');
+        return;
+      }
+
       const message = error?.message || t('toast.signInFailed');
       const code = error?.code;
 
