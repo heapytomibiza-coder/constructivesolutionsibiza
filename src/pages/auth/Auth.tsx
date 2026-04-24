@@ -26,6 +26,7 @@ const Auth = () => {
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isFinalizingSignIn, setIsFinalizingSignIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -96,7 +97,10 @@ const Auth = () => {
       // Role-based routing inline (avoids AuthCallback race condition on mobile)
       const userId = data.session?.user?.id;
       if (userId) {
-        const { activeRole } = await ensureUserRoles(userId);
+        // Show calm overlay while we look up the role — prevents the user
+        // from seeing a stale form during the (usually fast) role query.
+        setIsFinalizingSignIn(true);
+        const { activeRole } = await ensureUserRoles(userId, 'auth_signin');
 
         if (activeRole === 'professional') {
           const { data: profileData } = await supabase
@@ -122,6 +126,19 @@ const Auth = () => {
         return;
       }
 
+      // Defense-in-depth: if a Supabase session already exists, the user IS
+      // signed in. Any error here is a post-signin nuisance (timeout, abort,
+      // RLS hiccup) — suppress the toast and let the session listener route.
+      try {
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        if (existingSession?.user) {
+          console.warn('[Auth] Post-signin error suppressed — valid session exists:', error?.message);
+          return;
+        }
+      } catch {
+        // fall through to normal error handling
+      }
+
       const message = error?.message || t('toast.signInFailed');
       const code = error?.code;
 
@@ -136,6 +153,7 @@ const Auth = () => {
       toast.error(message);
     } finally {
       setIsLoading(false);
+      setIsFinalizingSignIn(false);
     }
   };
 
@@ -251,6 +269,26 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-concrete flex items-center justify-center p-4">
       {/* Subtle pattern overlay */}
       <div className="absolute inset-0 bg-texture-concrete opacity-30" />
+
+      {/* Setup overlay — shown after successful sign-in while role lookup runs.
+          Replaces the old behaviour of throwing an error toast on cancellation. */}
+      {isFinalizingSignIn && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center"
+        >
+          <div className="flex flex-col items-center gap-4 max-w-sm text-center px-6">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm font-medium text-foreground">
+              Setting up your account…
+            </p>
+            <p className="text-xs text-muted-foreground">
+              One moment while we load your dashboard.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="relative w-full max-w-md z-10">
         {/* Logo */}
