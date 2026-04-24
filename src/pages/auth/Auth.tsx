@@ -270,6 +270,26 @@ const Auth = () => {
       {/* Subtle pattern overlay */}
       <div className="absolute inset-0 bg-texture-concrete opacity-30" />
 
+      {/* Setup overlay — shown after successful sign-in while role lookup runs.
+          Replaces the old behaviour of throwing an error toast on cancellation. */}
+      {isFinalizingSignIn && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center"
+        >
+          <div className="flex flex-col items-center gap-4 max-w-sm text-center px-6">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm font-medium text-foreground">
+              Setting up your account…
+            </p>
+            <p className="text-xs text-muted-foreground">
+              One moment while we load your dashboard.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="relative w-full max-w-md z-10">
         {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
