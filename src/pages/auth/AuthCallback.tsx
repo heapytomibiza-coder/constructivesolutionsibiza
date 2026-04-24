@@ -82,7 +82,7 @@ const AuthCallback = () => {
       // Query user roles with retry — never silently default
       let activeRole: string;
       try {
-        const result = await ensureUserRoles(session.user.id);
+        const result = await ensureUserRoles(session.user.id, 'auth_callback');
         activeRole = result.activeRole;
       } catch (err: any) {
         // Aborted requests (usually from navigation) are not real failures —
