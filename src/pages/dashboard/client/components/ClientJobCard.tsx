@@ -134,7 +134,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
           accessDetails: (logistics.accessDetails as string[]) || [],
         },
         extras: {
-          photos: sanitizePhotosForDraft((extras.photos as string[]) || []),
+          photos: sanitizePhotosFromDb((extras.photos as string[]) || []),
           notes: (extras.notes as string) || undefined,
           permitsConcern: (extras.permitsConcern as boolean) || undefined,
         },
