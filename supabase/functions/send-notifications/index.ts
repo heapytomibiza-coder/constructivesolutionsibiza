@@ -10,8 +10,24 @@ import { Resend } from "npm:resend@4.1.2";
 const SMTP_HOST = Deno.env.get("SMTP_HOST") ?? "";
 const SMTP_PORT = parseInt(Deno.env.get("SMTP_PORT") ?? "465", 10);
 const SMTP_USER = Deno.env.get("SMTP_USER") ?? "";
-const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD") ?? "";
+const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD") ?? Deno.env.get("GMAIL_APP_PASSWORD") ?? "";
 const SMTP_FROM = Deno.env.get("SMTP_FROM") ?? "info@constructivesolutionsibiza.com";
+
+// SMTP_SECURE: respect explicit env, else true only on 465 (implicit TLS).
+// Port 587 → secure=false → nodemailer upgrades via STARTTLS automatically.
+function resolveSmtpSecure(): boolean {
+  const raw = Deno.env.get("SMTP_SECURE");
+  if (raw !== undefined && raw !== "") {
+    return raw.toLowerCase() === "true" || raw === "1";
+  }
+  return SMTP_PORT === 465;
+}
+const SMTP_SECURE = resolveSmtpSecure();
+
+// Resend domain verification gate. The domain in RESEND_FROM must be verified
+// at Resend; otherwise every send returns "domain is not verified". Set
+// RESEND_DOMAIN_VERIFIED=true once the domain shows verified at resend.com.
+const RESEND_DOMAIN_VERIFIED = (Deno.env.get("RESEND_DOMAIN_VERIFIED") ?? "").toLowerCase() === "true";
 const BRAND_NAME = "Constructive Solutions Ibiza";
 const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "info@constructivesolutionsibiza.com";
 const ADMIN_WHATSAPP = Deno.env.get("ADMIN_WHATSAPP_NUMBER") ?? "";
