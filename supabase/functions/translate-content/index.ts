@@ -10,6 +10,13 @@ interface TranslateRequest {
   fields: Record<string, string>;
 }
 
+function forbiddenResponse(corsHeaders: Record<string, string>) {
+  return new Response(JSON.stringify({ error: "Forbidden" }), {
+    status: 403,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
@@ -19,9 +26,7 @@ Deno.serve(async (req) => {
   // Auth: require authenticated user (called from frontend wizard/editor)
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return forbiddenResponse(corsHeaders);
   }
 
   // RLS-scoped client used for identity + ownership check ONLY.
@@ -36,13 +41,12 @@ Deno.serve(async (req) => {
     authHeader.replace("Bearer ", "")
   );
   if (userErr || !userData?.user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return forbiddenResponse(corsHeaders);
   }
   const callerId = userData.user.id;
 
   let body: TranslateRequest = { entity: "jobs", id: "", fields: {} };
+  let authorizationPassed = false;
   try {
     body = await req.json();
     const { entity, id, fields } = body;
