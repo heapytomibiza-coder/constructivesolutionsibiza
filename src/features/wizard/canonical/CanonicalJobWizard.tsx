@@ -42,6 +42,11 @@ import { useWizardUrlStep } from './hooks/useWizardUrlStep';
 import { useProServiceScope } from './hooks/useProServiceScope';
 import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
 import { hydrateFromJob, canEditJob } from './lib/hydrateFromJob';
+import {
+  sanitizePhotosForDraft,
+  uploadPendingPhotos,
+  assertPhotosReadyForSubmit,
+} from './lib/persistJobPhotos';
 import { validateAllPacks, isStep5Complete, type ValidationErrorMap } from './lib/stepValidation';
 import {
   resolveWizardMode,
@@ -368,14 +373,13 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     
     const timer = setTimeout(() => {
       try {
-        // Strip base64 photos before saving to avoid exceeding storage quota
+        // Only persist storage paths / http URLs to draft.
+        // Pending markers (in-memory File refs) and legacy values are dropped.
         const draftState = {
           ...wizardState,
           extras: {
             ...wizardState.extras,
-            photos: wizardState.extras.photos.map(p =>
-              p.startsWith('data:') ? '[photo]' : p
-            ),
+            photos: sanitizePhotosForDraft(wizardState.extras.photos),
           },
         };
         const draftJson = JSON.stringify(draftState);
@@ -840,9 +844,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         ...wizardState,
         extras: {
           ...wizardState.extras,
-          photos: wizardState.extras.photos.map(p =>
-            p.startsWith('data:') ? '[photo]' : p
-          ),
+          photos: sanitizePhotosForDraft(wizardState.extras.photos),
         },
       };
       const draftJson = JSON.stringify(draftForStorage);
@@ -870,7 +872,39 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     setIsSubmitting(true);
 
     try {
-      const payload = buildJobInsert(user.id, wizardState);
+      // === PHOTO UPLOAD: resolve any pending markers to storage paths ===
+      // Runs before buildJobInsert so the payload contains storage refs only.
+      let resolvedPhotos: string[];
+      try {
+        resolvedPhotos = await uploadPendingPhotos(wizardState.extras.photos, user.id);
+      } catch (photoErr: any) {
+        toast.error(photoErr?.message || t('toasts.photoUploadFailed', 'Photo upload failed'));
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Hard guard: refuse to submit if any non-storage value remains
+      try {
+        assertPhotosReadyForSubmit(resolvedPhotos);
+      } catch (guardErr: any) {
+        toast.error(guardErr?.message || t('toasts.photoUploadFailed', 'Photo upload failed'));
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Reflect resolved paths back into wizard state so re-renders show real URLs
+      if (resolvedPhotos.join('|') !== wizardState.extras.photos.join('|')) {
+        setWizardState((prev) => ({
+          ...prev,
+          extras: { ...prev.extras, photos: resolvedPhotos },
+        }));
+      }
+
+      const stateForPayload: WizardState = {
+        ...wizardState,
+        extras: { ...wizardState.extras, photos: resolvedPhotos },
+      };
+      const payload = buildJobInsert(user.id, stateForPayload);
 
       if (isEditMode && editJobId) {
         // === EDIT MODE: UPDATE existing job (status-gated) ===

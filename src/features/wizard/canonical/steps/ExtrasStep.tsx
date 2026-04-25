@@ -1,15 +1,30 @@
 /**
  * Extras Step
- * Photos, notes, and additional information
+ * Photos, notes, and additional information.
+ *
+ * Photo flow:
+ * - Authenticated user → upload immediately to `job-photos` bucket, store storage path.
+ * - Unauthenticated user → keep File in module-level pending map, store "pending:<id>" marker.
+ *   Markers are resolved to storage paths at submit time (after auth).
+ * - Renders previews from storage paths (getPublicUrl) or pending Files (object URLs).
+ * - Drops legacy "[photo]" / "data:" values that may arrive from old drafts.
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Camera, X } from 'lucide-react';
+import { Camera, X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useSession } from '@/contexts/SessionContext';
+import {
+  uploadJobPhoto,
+  registerPendingFile,
+  resolveJobPhotoUrl,
+  isPendingMarker,
+} from '../lib/persistJobPhotos';
 import type { WizardState } from '../types';
 
 interface ExtrasStepProps {
@@ -17,37 +32,66 @@ interface ExtrasStepProps {
   onChange: (extras: Partial<WizardState['extras']>) => void;
 }
 
+const MAX_PHOTOS = 6;
+
 export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
   const { t } = useTranslation('wizard');
+  const { user, isAuthenticated } = useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+
+  // Memoize resolved URLs so object URLs are stable across renders
+  const resolvedPhotos = useMemo(
+    () =>
+      extras.photos.map((value) => ({
+        value,
+        url: resolveJobPhotoUrl(value),
+        pending: isPendingMarker(value),
+      })),
+    [extras.photos],
+  );
+
+  // Revoke any object URLs we created when the component unmounts
+  useEffect(() => {
+    const urls = resolvedPhotos.map((p) => p.url).filter((u): u is string => !!u && u.startsWith('blob:'));
+    return () => {
+      urls.forEach((u) => {
+        try { URL.revokeObjectURL(u); } catch { /* noop */ }
+      });
+    };
+  }, [resolvedPhotos]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
 
     setUploading(true);
-    
-    const newPhotos: string[] = [];
-    
-    for (const file of Array.from(files)) {
-      const reader = new FileReader();
-      await new Promise<void>((resolve) => {
-        reader.onload = () => {
-          if (typeof reader.result === 'string') {
-            newPhotos.push(reader.result);
-          }
-          resolve();
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+    const newValues: string[] = [];
 
-    onChange({ photos: [...extras.photos, ...newPhotos] });
-    setUploading(false);
-    
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    try {
+      for (const file of Array.from(files)) {
+        if (extras.photos.length + newValues.length >= MAX_PHOTOS) break;
+
+        if (isAuthenticated && user) {
+          try {
+            const path = await uploadJobPhoto(file, user.id);
+            newValues.push(path);
+          } catch (err: any) {
+            toast.error(err?.message || t('extras.uploadFailed', 'Photo upload failed'));
+          }
+        } else {
+          // Pre-auth: keep File in memory, store marker
+          const marker = registerPendingFile(file);
+          newValues.push(marker);
+        }
+      }
+
+      if (newValues.length > 0) {
+        onChange({ photos: [...extras.photos, ...newValues] });
+      }
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -74,7 +118,7 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
         <p className="text-xs text-muted-foreground mb-3">
           {t('extras.photosHelp')}
         </p>
-        
+
         <input
           ref={fileInputRef}
           type="file"
@@ -85,24 +129,41 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
         />
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {extras.photos.map((photo, index) => (
-            <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-border">
-              <img 
-                src={photo} 
-                alt={`${t('extras.photosLabel')} ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
+          {resolvedPhotos.map((photo, index) => (
+            <div
+              key={`${photo.value}-${index}`}
+              className="relative aspect-square rounded-lg overflow-hidden border border-border bg-muted"
+            >
+              {photo.url ? (
+                <img
+                  src={photo.url}
+                  alt={`${t('extras.photosLabel')} ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full text-xs text-muted-foreground p-2 text-center">
+                  {t('extras.photoUnavailable', 'Photo unavailable — please re-add')}
+                </div>
+              )}
+              {photo.pending && photo.url && (
+                <div className="absolute inset-0 bg-background/40 flex items-center justify-center">
+                  <span className="text-[10px] uppercase tracking-wide bg-background/80 text-foreground px-2 py-0.5 rounded">
+                    {t('extras.photoPending', 'Pending sign-in')}
+                  </span>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => removePhoto(index)}
                 className="absolute top-1.5 right-1.5 p-2 rounded-full bg-background/80 hover:bg-background text-foreground touch-target-min flex items-center justify-center"
+                aria-label={t('extras.removePhoto', 'Remove photo')}
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
           ))}
-          
-          {extras.photos.length < 6 && (
+
+          {extras.photos.length < MAX_PHOTOS && (
             <Button
               type="button"
               variant="outline"
@@ -110,7 +171,11 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
             >
-              <Camera className="h-6 w-6 text-muted-foreground" />
+              {uploading ? (
+                <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+              ) : (
+                <Camera className="h-6 w-6 text-muted-foreground" />
+              )}
               <span className="text-xs text-muted-foreground">
                 {uploading ? t('extras.adding') : t('extras.addPhoto')}
               </span>
@@ -136,7 +201,7 @@ export function ExtrasStep({ extras, onChange }: ExtrasStepProps) {
         <Checkbox
           id="permits"
           checked={extras.permitsConcern || false}
-          onCheckedChange={(checked) => 
+          onCheckedChange={(checked) =>
             onChange({ permitsConcern: checked === true })
           }
           className="mt-0.5"
