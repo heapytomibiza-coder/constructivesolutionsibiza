@@ -7,6 +7,7 @@ import type { WizardState } from '../types';
 import { EMPTY_WIZARD_STATE } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
+import { sanitizePhotosForDraft } from './persistJobPhotos';
 
 interface JobRow {
   id: string;
@@ -163,7 +164,7 @@ export async function hydrateFromJob(jobId: string): Promise<{
       accessDetails: toStringArray(logistics.accessDetails),
     },
     extras: {
-      photos: toStringArray(extras.photos),
+      photos: sanitizePhotosForDraft(toStringArray(extras.photos)),
       notes: (extras.notes as string) || undefined,
       permitsConcern: (extras.permitsConcern as boolean) || undefined,
     },
