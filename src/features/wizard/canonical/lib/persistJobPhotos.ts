@@ -180,13 +180,36 @@ export function resolveJobPhotos(photos: string[] | null | undefined): Array<{ v
 }
 
 /**
- * Strip values that should NOT be persisted to draft storage.
- * Keeps storage paths + http URLs only. Drops pending markers (in-memory only)
- * and any legacy garbage. Used by draft autosave + auth-redirect snapshot.
+ * Sanitize photos for DRAFT / auth-redirect storage (localStorage).
+ *
+ * Keeps:
+ *   - storage paths (canonical)
+ *   - http(s) URLs
+ *   - `pending:` markers (so logged-out → auth-resume same-tab flow can still
+ *     find the in-memory File and upload it on submit)
+ *
+ * Drops:
+ *   - legacy "[photo]" placeholders
+ *   - legacy "data:image/..." base64 blobs (would balloon localStorage)
+ *
+ * NOTE: pending markers will resolve only in the SAME TAB. After auth resume
+ * in a new tab, the in-memory map is empty and `assertPhotosReadyForSubmit`
+ * will block submit with a clear "please re-add photos" error — never letting
+ * a marker reach the DB.
  */
 export function sanitizePhotosForDraft(photos: string[] | null | undefined): string[] {
   if (!Array.isArray(photos)) return [];
-  return photos.filter((v) => isStoragePath(v) || isHttpUrl(v));
+  return photos.filter((v) => isStoragePath(v) || isHttpUrl(v) || isPendingMarker(v));
+}
+
+/**
+ * Sanitize photos read FROM the database. Pending markers should never be in
+ * the DB, but if one ever leaks in (corruption / bad write), strip it here so
+ * we never re-display a stale marker as if it were a real photo.
+ */
+export function sanitizePhotosFromDb(photos: string[] | null | undefined): string[] {
+  if (!Array.isArray(photos)) return [];
+  return photos.filter((v) => isStoragePath(v) || isHttpUrl(v) || isLegacyBase64(v));
 }
 
 /**
