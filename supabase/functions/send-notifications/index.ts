@@ -1145,15 +1145,55 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth: internal secret OR Bearer token (pg_cron compatibility)
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
   const providedSecret = req.headers.get("x-internal-secret");
   const authHeader = req.headers.get("authorization") || "";
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  const isInternalAuth = internalSecret && providedSecret === internalSecret;
-  // Accept any Bearer token (pg_cron sends anon key which isn't available as env var)
+  const isInternalAuth = Boolean(internalSecret) && providedSecret === internalSecret;
   const isBearerAuth = bearerToken.length > 20 || (bearerToken && bearerToken === serviceKey);
+
+  const url = new URL(req.url);
+
+  // ---- Public-but-secret-protected routes (monitoring, no admin login) ----
+
+  // Health probe — INTERNAL_FUNCTION_SECRET ONLY
+  if (url.searchParams.get("probe") === "1") {
+    if (!isInternalAuth) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: probe requires x-internal-secret" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    try { return await handleHealthProbe(req); }
+    catch (e) {
+      return new Response(JSON.stringify({ error: String(e) }), {
+        status: 500, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+  }
+
+  // Dead-letter admin endpoint — internal secret OR admin Bearer
+  if (url.searchParams.has("dlq")) {
+    if (!isInternalAuth && !isBearerAuth) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    try { return await handleDeadLetterAction(req, isInternalAuth); }
+    catch (e) {
+      return new Response(JSON.stringify({ error: String(e) }), {
+        status: 500, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+  }
+
+  // Legacy back-compat
+  if (url.searchParams.get("test_email") === "1" && isInternalAuth) {
+    return handleHealthProbe(req);
+  }
+
+  // ---- Queue processor: requires Bearer or internal secret ----
   if (!isInternalAuth && !isBearerAuth) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -1161,18 +1201,6 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const url = new URL(req.url);
-
-    // Health probe — INTERNAL_FUNCTION_SECRET required
-    if (url.searchParams.get("probe") === "1") {
-      if (!isInternalAuth) {
-        return new Response(
-          JSON.stringify({ error: "Forbidden: probe requires x-internal-secret" }),
-          { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
-      return handleHealthProbe(req);
-    }
 
     // Legacy admin test endpoint (kept for back-compat) — now routes to probe
     if (url.searchParams.get("test_email") === "1" && isInternalAuth) {
