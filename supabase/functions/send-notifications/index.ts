@@ -997,10 +997,22 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Test endpoint
     const url = new URL(req.url);
-    if (url.searchParams.get("test_email") === "1") {
-      return handleTestEmail(req);
+
+    // Health probe — INTERNAL_FUNCTION_SECRET required
+    if (url.searchParams.get("probe") === "1") {
+      if (!isInternalAuth) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden: probe requires x-internal-secret" }),
+          { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+      return handleHealthProbe(req);
+    }
+
+    // Legacy admin test endpoint (kept for back-compat) — now routes to probe
+    if (url.searchParams.get("test_email") === "1" && isInternalAuth) {
+      return handleHealthProbe(req);
     }
 
     // Fetch pending queue items
