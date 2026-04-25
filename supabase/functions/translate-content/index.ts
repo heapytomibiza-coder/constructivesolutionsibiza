@@ -23,17 +23,25 @@ Deno.serve(async (req) => {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  // RLS-scoped client used for identity + ownership check ONLY.
+  // Service role client is created later, AFTER authorization passes.
   const _authClient = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authHeader } } }
   );
-  const { error: claimsErr } = await _authClient.auth.getClaims(authHeader.replace("Bearer ", ""));
-  if (claimsErr) {
+
+  const { data: userData, error: userErr } = await _authClient.auth.getUser(
+    authHeader.replace("Bearer ", "")
+  );
+  if (userErr || !userData?.user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+  const callerId = userData.user.id;
+
   let body: TranslateRequest = { entity: "jobs", id: "", fields: {} };
   try {
     body = await req.json();
@@ -54,7 +62,49 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Mark as pending before starting (so "pending" only exists while actively processing)
+    // ---- Authorization gate (BEFORE any service-role usage) ----
+    // Owner check: read the row's owner via the caller's RLS-scoped client.
+    // We use the service role only to fetch the owner column (RLS on jobs may
+    // hide non-public rows from non-owners, but we need a deterministic
+    // ownership signal). The service role client below is scoped to a single
+    // SELECT of the owner column; it cannot mutate before the gate passes.
+    const ownerProbe = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const ownerColumn = entity === "jobs" ? "user_id" : "provider_id";
+    const { data: ownerRow, error: ownerErr } = await ownerProbe
+      .from(entity)
+      .select(`id, ${ownerColumn}`)
+      .eq("id", id)
+      .maybeSingle();
+
+    if (ownerErr || !ownerRow) {
+      return new Response(JSON.stringify({ error: "Not found" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const isOwner = (ownerRow as Record<string, unknown>)[ownerColumn] === callerId;
+
+    let isAdmin = false;
+    if (!isOwner) {
+      // Dual-gated admin check: has_role('admin') AND is_admin_email()
+      const [{ data: hasAdminRole }, { data: emailAllowed }] = await Promise.all([
+        ownerProbe.rpc("has_role", { _user_id: callerId, _role: "admin" }),
+        // is_admin_email() reads auth.jwt() — must be invoked via the caller's JWT-bearing client
+        _authClient.rpc("is_admin_email"),
+      ]);
+      isAdmin = Boolean(hasAdminRole) && Boolean(emailAllowed);
+    }
+
+    if (!isOwner && !isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ---- Authorization passed: now safe to use service role for mutation ----
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
