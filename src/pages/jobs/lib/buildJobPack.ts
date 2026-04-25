@@ -6,6 +6,7 @@ import {
   LOCATION_LABELS,
   type QuestionPack,
 } from "./answerResolver";
+import { resolveJobPhotos } from "@/features/wizard/canonical/lib/persistJobPhotos";
 
 /**
  * A resolved answer with human-readable label and value.
@@ -346,7 +347,7 @@ export function buildJobPack(row: JobDetailsRow, packs: QuestionPack[] = [], t?:
       display: formatBudget(row, answers, t),
     },
     
-    photos: extras?.photos ?? [],
+    photos: resolveJobPhotos(extras?.photos).map((p) => p.url),
     hasPhotos: row.has_photos ?? false,
     
     notes: extras?.notes ?? null,
