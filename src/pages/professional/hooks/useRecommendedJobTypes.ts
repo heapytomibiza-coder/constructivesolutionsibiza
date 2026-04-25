@@ -12,6 +12,10 @@ export interface RecommendedJobType {
 /**
  * Fetches recommended job types based on active demand for a given subcategory.
  * Returns top micros with highest open job counts.
+ *
+ * Counts come from `job_micro_links` (canonical multi-micro source of truth)
+ * joined to open jobs in the last 30 days. A multi-micro job contributes to
+ * each of its micros, which is the intended demand signal for pros.
  */
 export function useRecommendedJobTypes(subcategoryId: string, limit = 5) {
   return useQuery({
@@ -19,7 +23,6 @@ export function useRecommendedJobTypes(subcategoryId: string, limit = 5) {
     enabled: !!subcategoryId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     queryFn: async (): Promise<RecommendedJobType[]> => {
-      // First get micros for the subcategory
       const { data: micros, error: microsError } = await supabase
         .from('service_micro_categories')
         .select('id, name, slug')
@@ -32,26 +35,25 @@ export function useRecommendedJobTypes(subcategoryId: string, limit = 5) {
       const slugs = micros.map(m => m.slug);
       const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
 
-      // Get job counts per micro slug
-      const { data: jobs, error: jobsError } = await supabase
-        .from('jobs')
-        .select('micro_slug')
+      // Demand from canonical job_micro_links (multi-micro aware), restricted
+      // to currently open jobs created in the last 30 days.
+      const { data: links, error: linksError } = await supabase
+        .from('job_micro_links')
+        .select('micro_slug, jobs!inner(status, created_at)')
         .in('micro_slug', slugs)
-        .eq('status', 'open')
-        .gte('created_at', thirtyDaysAgo);
+        .eq('jobs.status', 'open')
+        .gte('jobs.created_at', thirtyDaysAgo);
 
-      if (jobsError) throw jobsError;
+      if (linksError) throw linksError;
 
-      // Count jobs per slug
       const countMap: Record<string, number> = {};
-      for (const job of jobs || []) {
-        if (job.micro_slug) {
-          countMap[job.micro_slug] = (countMap[job.micro_slug] || 0) + 1;
+      for (const link of links || []) {
+        if (link.micro_slug) {
+          countMap[link.micro_slug] = (countMap[link.micro_slug] || 0) + 1;
         }
       }
 
-      // Build result with counts, sorted by count desc
-      const result: RecommendedJobType[] = micros
+      return micros
         .map(m => ({
           microSlug: m.slug,
           microName: m.name,
@@ -61,8 +63,6 @@ export function useRecommendedJobTypes(subcategoryId: string, limit = 5) {
         .filter(r => r.jobCount > 0)
         .sort((a, b) => b.jobCount - a.jobCount)
         .slice(0, limit);
-
-      return result;
     },
   });
 }
