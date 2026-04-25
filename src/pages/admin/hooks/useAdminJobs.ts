@@ -76,6 +76,11 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
     case "custom":
       query = query.eq("is_custom_request", true);
       break;
+    case "unclassified_custom":
+      // Phase 2B-Ops: jobs filtered post-fetch using the
+      // admin_unclassified_custom_jobs view (see below).
+      query = query.eq("is_custom_request", true).eq("status", "open").eq("is_publicly_listed", true);
+      break;
   }
 
   const { data, error } = await query;
