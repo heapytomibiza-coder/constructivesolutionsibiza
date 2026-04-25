@@ -57,6 +57,12 @@ Deno.serve(async (req: Request) => {
     // === Quality Validation Constants ===
     // (Validation logic now in _shared/packValidation.ts)
 
+    // Generate a stable-ish id from a label when none is provided
+    function genId(label: string): string {
+      const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+      return slug || `q_${Math.random().toString(36).slice(2, 9)}`;
+    }
+
     // Dedupe questions by id OR label (handles missing IDs)
     function dedupeQuestions(questions: Record<string, unknown>[]) {
       const seen = new Set<string>();
@@ -163,7 +169,7 @@ Deno.serve(async (req: Request) => {
     const missing = normalized.filter((p: NormalizedPack) => !validSlugs.has(p.micro_slug)).map((p: NormalizedPack) => p.micro_slug);
 
     if (strictMode && failingPacks.length > 0) {
-      valid = valid.filter(p => !failingPacks.includes(p.micro_slug));
+      valid = valid.filter((p: NormalizedPack) => !failingPacks.includes(p.micro_slug));
     }
 
     // Quality summary
