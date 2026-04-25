@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
         // Strip metadata
         img.strip();
 
-        return img.write(MagickFormat.Webp, (data) => {
+        return img.write(MagickFormat.WebP, (data) => {
           return new Uint8Array(data);
         });
       });
