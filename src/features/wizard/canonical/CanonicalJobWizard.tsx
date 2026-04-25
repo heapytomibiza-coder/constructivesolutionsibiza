@@ -42,6 +42,11 @@ import { useWizardUrlStep } from './hooks/useWizardUrlStep';
 import { useProServiceScope } from './hooks/useProServiceScope';
 import { buildJobInsert, validateWizardState } from './lib/buildJobPayload';
 import { hydrateFromJob, canEditJob } from './lib/hydrateFromJob';
+import {
+  sanitizePhotosForDraft,
+  uploadPendingPhotos,
+  assertPhotosReadyForSubmit,
+} from './lib/persistJobPhotos';
 import { validateAllPacks, isStep5Complete, type ValidationErrorMap } from './lib/stepValidation';
 import {
   resolveWizardMode,
@@ -368,14 +373,13 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     
     const timer = setTimeout(() => {
       try {
-        // Strip base64 photos before saving to avoid exceeding storage quota
+        // Only persist storage paths / http URLs to draft.
+        // Pending markers (in-memory File refs) and legacy values are dropped.
         const draftState = {
           ...wizardState,
           extras: {
             ...wizardState.extras,
-            photos: wizardState.extras.photos.map(p =>
-              p.startsWith('data:') ? '[photo]' : p
-            ),
+            photos: sanitizePhotosForDraft(wizardState.extras.photos),
           },
         };
         const draftJson = JSON.stringify(draftState);
@@ -840,9 +844,7 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
         ...wizardState,
         extras: {
           ...wizardState.extras,
-          photos: wizardState.extras.photos.map(p =>
-            p.startsWith('data:') ? '[photo]' : p
-          ),
+          photos: sanitizePhotosForDraft(wizardState.extras.photos),
         },
       };
       const draftJson = JSON.stringify(draftForStorage);
