@@ -1201,13 +1201,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-
-    // Legacy admin test endpoint (kept for back-compat) — now routes to probe
-    if (url.searchParams.get("test_email") === "1" && isInternalAuth) {
-      return handleHealthProbe(req);
-    }
-
     // Fetch pending queue items
+
     const { data: queue, error: queueError } = await supabaseAdmin
       .from("email_notifications_queue")
       .select("*")
