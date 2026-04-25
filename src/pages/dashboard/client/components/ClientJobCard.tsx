@@ -15,6 +15,7 @@ import { AssignProSelector } from '@/pages/dashboard/shared/components/AssignPro
 import { useTranslation } from 'react-i18next';
 import { txCategory, txSubcategory } from '@/i18n/taxonomyTranslations';
 import { supabase } from '@/integrations/supabase/client';
+import { sanitizePhotosForDraft } from '@/features/wizard/canonical/lib/persistJobPhotos';
 import { getDateLocale } from '@/lib/dateLocale';
 import type { ClientJob } from '../hooks/useClientStats';
 import {
@@ -133,7 +134,7 @@ export const ClientJobCard = ({ job, onJobUpdated }: ClientJobCardProps) => {
           accessDetails: (logistics.accessDetails as string[]) || [],
         },
         extras: {
-          photos: (extras.photos as string[]) || [],
+          photos: sanitizePhotosForDraft((extras.photos as string[]) || []),
           notes: (extras.notes as string) || undefined,
           permitsConcern: (extras.permitsConcern as boolean) || undefined,
         },
