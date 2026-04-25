@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { JobsBoardRow } from "@/pages/jobs/types";
 
-export type AdminJobsFilter = "all" | "flagged" | "open" | "in_progress" | "completed" | "archived" | "needs_quote" | "custom";
+export type AdminJobsFilter = "all" | "flagged" | "open" | "in_progress" | "completed" | "archived" | "needs_quote" | "custom" | "unclassified_custom";
 
 interface UseAdminJobsOptions {
   filter?: AdminJobsFilter;
@@ -76,6 +76,11 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
     case "custom":
       query = query.eq("is_custom_request", true);
       break;
+    case "unclassified_custom":
+      // Phase 2B-Ops: jobs filtered post-fetch using the
+      // admin_unclassified_custom_jobs view (see below).
+      query = query.eq("is_custom_request", true).eq("status", "open").eq("is_publicly_listed", true);
+      break;
   }
 
   const { data, error } = await query;
@@ -117,6 +122,16 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
   // Apply needs_quote filter
   if (filter === "needs_quote") {
     jobs = jobs.filter(j => j.needs_quote);
+  }
+
+  // Phase 2B-Ops: narrow to the admin worklist of unclassified custom jobs.
+  if (filter === "unclassified_custom" && jobs.length > 0) {
+    const { data: worklist, error: worklistErr } = await supabase
+      .from("admin_unclassified_custom_jobs")
+      .select("job_id");
+    if (worklistErr) throw worklistErr;
+    const allowed = new Set((worklist ?? []).map((r: { job_id: string }) => r.job_id));
+    jobs = jobs.filter(j => allowed.has(j.id));
   }
 
   // Client-side search filter

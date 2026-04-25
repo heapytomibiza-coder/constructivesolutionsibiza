@@ -259,6 +259,13 @@ export type Database = {
             foreignKeyName: "conversations_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "conversations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "job_details"
             referencedColumns: ["id"]
           },
@@ -811,6 +818,13 @@ export type Database = {
             foreignKeyName: "disputes_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "disputes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "job_details"
             referencedColumns: ["id"]
           },
@@ -1121,6 +1135,13 @@ export type Database = {
             foreignKeyName: "job_classification_suggestions_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "job_classification_suggestions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "job_details"
             referencedColumns: ["id"]
           },
@@ -1180,6 +1201,13 @@ export type Database = {
             foreignKeyName: "job_invites_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "job_invites_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "job_details"
             referencedColumns: ["id"]
           },
@@ -1226,6 +1254,13 @@ export type Database = {
           micro_slug?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "job_micro_links_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
           {
             foreignKeyName: "job_micro_links_job_id_fkey"
             columns: ["job_id"]
@@ -1289,6 +1324,13 @@ export type Database = {
             foreignKeyName: "job_notifications_queue_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "job_notifications_queue_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "job_details"
             referencedColumns: ["id"]
           },
@@ -1341,6 +1383,13 @@ export type Database = {
           photo_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "job_progress_updates_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
           {
             foreignKeyName: "job_progress_updates_job_id_fkey"
             columns: ["job_id"]
@@ -1416,6 +1465,13 @@ export type Database = {
             foreignKeyName: "job_reviews_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "job_reviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "job_details"
             referencedColumns: ["id"]
           },
@@ -1474,6 +1530,13 @@ export type Database = {
           to_status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "job_status_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
           {
             foreignKeyName: "job_status_history_job_id_fkey"
             columns: ["job_id"]
@@ -1946,6 +2009,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "portfolio_projects_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
           {
             foreignKeyName: "portfolio_projects_job_id_fkey"
             columns: ["job_id"]
@@ -2740,6 +2810,13 @@ export type Database = {
             foreignKeyName: "quotes_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "quotes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "job_details"
             referencedColumns: ["id"]
           },
@@ -3295,6 +3372,13 @@ export type Database = {
             foreignKeyName: "support_requests_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "job_details"
             referencedColumns: ["id"]
           },
@@ -3481,6 +3565,13 @@ export type Database = {
             foreignKeyName: "support_requests_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "support_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "job_details"
             referencedColumns: ["id"]
           },
@@ -3506,6 +3597,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      admin_unclassified_custom_jobs: {
+        Row: {
+          area: string | null
+          client_id: string | null
+          created_at: string | null
+          job_id: string | null
+          latest_suggestion_at: string | null
+          latest_suggestion_confidence: number | null
+          latest_suggestion_status: string | null
+          teaser: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          area?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          job_id?: string | null
+          latest_suggestion_at?: never
+          latest_suggestion_confidence?: never
+          latest_suggestion_status?: never
+          teaser?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          area?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          job_id?: string | null
+          latest_suggestion_at?: never
+          latest_suggestion_confidence?: never
+          latest_suggestion_status?: never
+          teaser?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       job_details: {
         Row: {
