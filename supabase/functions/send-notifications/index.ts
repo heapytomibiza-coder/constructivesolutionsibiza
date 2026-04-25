@@ -52,21 +52,48 @@ const supabaseAdmin = createClient(
 // SMTP EMAIL SENDER
 // ============================================
 
+type FailureType =
+  | "SMTP_AUTH_FAILED"
+  | "RESEND_DOMAIN_UNVERIFIED"
+  | "PROVIDER_CONFIG_MISSING"
+  | "PROVIDER_SEND_FAILED";
+
 interface SendResult {
   ok: boolean;
   provider: "resend" | "smtp" | "none";
   messageId?: string;
   error?: string;
+  failureType?: FailureType;
+  correlationId: string;
 }
 
-async function sendEmail(to: string, subject: string, html: string): Promise<SendResult> {
+function classifySmtpError(err: unknown): FailureType {
+  const msg = String(err).toLowerCase();
+  if (msg.includes("535") || msg.includes("invalid login") || msg.includes("authentication")) {
+    return "SMTP_AUTH_FAILED";
+  }
+  return "PROVIDER_SEND_FAILED";
+}
+
+function newCorrelationId(): string {
+  return `email-${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+async function sendEmail(
+  to: string,
+  subject: string,
+  html: string,
+  correlationIdIn?: string,
+): Promise<SendResult> {
+  const correlationId = correlationIdIn ?? newCorrelationId();
   let resendError: string | undefined;
+  let lastFailure: FailureType | undefined;
 
   // --- Resend (primary, only when domain is verified) ---
   if (resendClient && RESEND_DOMAIN_VERIFIED) {
     try {
       console.log(JSON.stringify({
-        scope: "email", provider: "resend", phase: "attempt",
+        scope: "email", correlationId, provider: "resend", phase: "attempt",
         to, from: RESEND_FROM,
       }));
       const { data, error: apiError } = await resendClient.emails.send({
@@ -77,46 +104,58 @@ async function sendEmail(to: string, subject: string, html: string): Promise<Sen
       });
       if (apiError) {
         resendError = `Resend API: ${apiError.message}`;
+        lastFailure = /not verified|domain/i.test(apiError.message)
+          ? "RESEND_DOMAIN_UNVERIFIED"
+          : "PROVIDER_SEND_FAILED";
         console.error(JSON.stringify({
-          scope: "email", provider: "resend", phase: "fail",
-          to, reason: apiError.message,
+          scope: "email", correlationId, provider: "resend", phase: "fail",
+          failureType: lastFailure, to, reason: apiError.message,
         }));
-        // fall through to SMTP
       } else {
         const messageId = data?.id ?? "unknown";
         console.log(JSON.stringify({
-          scope: "email", provider: "resend", phase: "sent",
+          scope: "email", correlationId, provider: "resend", phase: "sent",
           to, messageId, subject,
         }));
-        return { ok: true, provider: "resend", messageId };
+        return { ok: true, provider: "resend", messageId, correlationId };
       }
     } catch (err) {
       resendError = `Resend transport: ${String(err)}`;
+      lastFailure = "PROVIDER_SEND_FAILED";
       console.error(JSON.stringify({
-        scope: "email", provider: "resend", phase: "fail",
-        to, reason: String(err),
+        scope: "email", correlationId, provider: "resend", phase: "fail",
+        failureType: lastFailure, to, reason: String(err),
       }));
-      // fall through to SMTP
     }
   } else if (resendClient && !RESEND_DOMAIN_VERIFIED) {
     resendError = "Resend skipped: RESEND_DOMAIN_VERIFIED is not 'true'";
+    lastFailure = "RESEND_DOMAIN_UNVERIFIED";
     console.warn(JSON.stringify({
-      scope: "email", provider: "resend", phase: "skipped",
-      reason: "RESEND_DOMAIN_VERIFIED!=true",
+      scope: "email", correlationId, provider: "resend", phase: "skipped",
+      failureType: lastFailure, reason: "RESEND_DOMAIN_VERIFIED!=true",
     }));
   }
 
   // --- SMTP (fallback) ---
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
-    const reason = "SMTP not configured (missing SMTP_HOST/SMTP_USER/SMTP_PASSWORD or GMAIL_APP_PASSWORD)";
-    console.error(JSON.stringify({ scope: "email", provider: "smtp", phase: "skipped", reason }));
-    return { ok: false, provider: "none", error: resendError ? `${resendError}; ${reason}` : reason };
+    const reason = "SMTP not configured (missing SMTP_HOST/SMTP_USER/SMTP_PASSWORD)";
+    console.error(JSON.stringify({
+      scope: "email", correlationId, provider: "smtp", phase: "skipped",
+      failureType: "PROVIDER_CONFIG_MISSING", reason,
+    }));
+    return {
+      ok: false, provider: "none",
+      error: resendError ? `${resendError}; ${reason}` : reason,
+      failureType: "PROVIDER_CONFIG_MISSING",
+      correlationId,
+    };
   }
 
+  const starttls = !SMTP_SECURE && SMTP_PORT === 587;
   console.log(JSON.stringify({
-    scope: "email", provider: "smtp", phase: "attempt",
-    to, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
-    user_masked: maskUser(SMTP_USER),
+    scope: "email", correlationId, provider: "smtp", phase: "attempt",
+    to, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE, starttls,
+    from: SMTP_FROM, user_masked: maskUser(SMTP_USER),
   }));
 
   try {
@@ -124,7 +163,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<Sen
       host: SMTP_HOST,
       port: SMTP_PORT,
       secure: SMTP_SECURE, // 465 = implicit TLS; 587 = false → STARTTLS upgrade
-      requireTLS: !SMTP_SECURE && SMTP_PORT === 587,
+      requireTLS: starttls,
       auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
     });
 
@@ -138,19 +177,25 @@ async function sendEmail(to: string, subject: string, html: string): Promise<Sen
 
     const messageId = info?.messageId ?? "unknown";
     console.log(JSON.stringify({
-      scope: "email", provider: "smtp", phase: "sent",
-      to, messageId, subject, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
+      scope: "email", correlationId, provider: "smtp", phase: "sent",
+      to, messageId, subject, host: SMTP_HOST, port: SMTP_PORT,
+      secure: SMTP_SECURE, starttls,
     }));
-    return { ok: true, provider: "smtp", messageId };
+    return { ok: true, provider: "smtp", messageId, correlationId };
   } catch (err) {
+    const failureType = classifySmtpError(err);
     const smtpError = `SMTP: ${String(err)}`;
     console.error(JSON.stringify({
-      scope: "email", provider: "smtp", phase: "fail",
-      to, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
-      reason: String(err),
+      scope: "email", correlationId, provider: "smtp", phase: "fail",
+      failureType, to, host: SMTP_HOST, port: SMTP_PORT,
+      secure: SMTP_SECURE, starttls, reason: String(err),
     }));
-    const combined = resendError ? `${resendError}; ${smtpError}` : smtpError;
-    return { ok: false, provider: "none", error: combined };
+    return {
+      ok: false, provider: "none",
+      error: resendError ? `${resendError}; ${smtpError}` : smtpError,
+      failureType,
+      correlationId,
+    };
   }
 }
 
@@ -965,9 +1010,128 @@ async function handleHealthProbe(req: Request): Promise<Response> {
         provider: result.provider,
         messageId: result.messageId || null,
         error: result.error || null,
+        failureType: result.failureType || null,
+        correlationId: result.correlationId,
       },
     }),
     { status: result.ok ? 200 : 502, headers }
+  );
+}
+
+// ============================================
+// ADMIN: DEAD-LETTER RETRY
+// ============================================
+
+/**
+ * Admin-only dead-letter reset.
+ *
+ * GET   ?dlq=count         → returns count of dead-letter rows (no mutation)
+ * POST  ?dlq=reset         → resets dead-letter rows, but ONLY after a fresh
+ *                            probe send has succeeded in the last 10 min.
+ *
+ * Auth: requires `x-internal-secret` (monitoring) OR a Bearer token from a
+ * user that is an admin (UI). Health-gating is enforced server-side via the
+ * `email_send_log` table — no client claim is trusted.
+ */
+async function handleDeadLetterAction(
+  req: Request,
+  isInternalAuth: boolean,
+): Promise<Response> {
+  const headers = { "Content-Type": "application/json", ...getCorsHeaders(req) };
+  const url = new URL(req.url);
+  const action = url.searchParams.get("dlq");
+
+  // Identify caller (for audit) — internal monitoring or admin user
+  let triggeredBy = "internal-secret";
+  if (!isInternalAuth) {
+    const authHeader = req.headers.get("Authorization") || "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
+    }
+    const { data: userData, error: authErr } = await supabaseAdmin.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+    if (authErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
+    }
+    const { data: roleData } = await supabaseAdmin
+      .from("user_roles").select("roles").eq("user_id", userData.user.id).maybeSingle();
+    const { data: allowData } = await supabaseAdmin
+      .from("admin_allowlist").select("email")
+      .eq("email", userData.user.email?.toLowerCase() ?? "").maybeSingle();
+    if (!roleData?.roles?.includes("admin") || !allowData) {
+      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers });
+    }
+    triggeredBy = userData.user.email ?? userData.user.id;
+  }
+
+  // Always show count
+  const { count: dlqCount, error: countErr } = await supabaseAdmin
+    .from("email_notifications_queue")
+    .select("id", { count: "exact", head: true })
+    .is("sent_at", null)
+    .gte("attempts", 3);
+  if (countErr) {
+    return new Response(JSON.stringify({ error: countErr.message }), { status: 500, headers });
+  }
+
+  if (action === "count" || !action) {
+    return new Response(
+      JSON.stringify({ dlq: { count: dlqCount ?? 0, triggeredBy } }),
+      { status: 200, headers },
+    );
+  }
+
+  if (action !== "reset") {
+    return new Response(JSON.stringify({ error: "Unknown dlq action" }), { status: 400, headers });
+  }
+
+  // Health gate: require a successful send in the last 10 minutes
+  const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { data: recentOk, error: healthErr } = await supabaseAdmin
+    .from("email_notifications_queue")
+    .select("id, sent_at")
+    .gte("sent_at", tenMinAgo)
+    .order("sent_at", { ascending: false })
+    .limit(1);
+  if (healthErr) {
+    return new Response(JSON.stringify({ error: healthErr.message }), { status: 500, headers });
+  }
+  if (!recentOk || recentOk.length === 0) {
+    console.warn(JSON.stringify({
+      scope: "email", phase: "dlq-reset-blocked",
+      reason: "no_successful_send_within_10_minutes", triggeredBy,
+    }));
+    return new Response(
+      JSON.stringify({
+        error: "Dead-letter reset blocked: no successful send recorded in the last 10 minutes. " +
+               "Run a successful probe send first (?probe=1&to=you@example.com).",
+        dlqCount: dlqCount ?? 0,
+      }),
+      { status: 412, headers },
+    );
+  }
+
+  // Perform reset
+  const { data: updated, error: updateErr } = await supabaseAdmin
+    .from("email_notifications_queue")
+    .update({ attempts: 0, last_error: null, failed_at: null })
+    .is("sent_at", null)
+    .gte("attempts", 3)
+    .select("id");
+  if (updateErr) {
+    return new Response(JSON.stringify({ error: updateErr.message }), { status: 500, headers });
+  }
+
+  const resetCount = updated?.length ?? 0;
+  console.log(JSON.stringify({
+    scope: "email", phase: "dlq-reset", resetCount, triggeredBy,
+    healthCheckRef: recentOk[0].id,
+  }));
+
+  return new Response(
+    JSON.stringify({ dlq: { resetCount, triggeredBy, healthOk: true } }),
+    { status: 200, headers },
   );
 }
 
@@ -981,15 +1145,55 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Auth: internal secret OR Bearer token (pg_cron compatibility)
   const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
   const providedSecret = req.headers.get("x-internal-secret");
   const authHeader = req.headers.get("authorization") || "";
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  const isInternalAuth = internalSecret && providedSecret === internalSecret;
-  // Accept any Bearer token (pg_cron sends anon key which isn't available as env var)
+  const isInternalAuth = Boolean(internalSecret) && providedSecret === internalSecret;
   const isBearerAuth = bearerToken.length > 20 || (bearerToken && bearerToken === serviceKey);
+
+  const url = new URL(req.url);
+
+  // ---- Public-but-secret-protected routes (monitoring, no admin login) ----
+
+  // Health probe — INTERNAL_FUNCTION_SECRET ONLY
+  if (url.searchParams.get("probe") === "1") {
+    if (!isInternalAuth) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: probe requires x-internal-secret" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    try { return await handleHealthProbe(req); }
+    catch (e) {
+      return new Response(JSON.stringify({ error: String(e) }), {
+        status: 500, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+  }
+
+  // Dead-letter admin endpoint — internal secret OR admin Bearer
+  if (url.searchParams.has("dlq")) {
+    if (!isInternalAuth && !isBearerAuth) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    try { return await handleDeadLetterAction(req, isInternalAuth); }
+    catch (e) {
+      return new Response(JSON.stringify({ error: String(e) }), {
+        status: 500, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+  }
+
+  // Legacy back-compat
+  if (url.searchParams.get("test_email") === "1" && isInternalAuth) {
+    return handleHealthProbe(req);
+  }
+
+  // ---- Queue processor: requires Bearer or internal secret ----
   if (!isInternalAuth && !isBearerAuth) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -997,25 +1201,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const url = new URL(req.url);
-
-    // Health probe — INTERNAL_FUNCTION_SECRET required
-    if (url.searchParams.get("probe") === "1") {
-      if (!isInternalAuth) {
-        return new Response(
-          JSON.stringify({ error: "Forbidden: probe requires x-internal-secret" }),
-          { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
-      return handleHealthProbe(req);
-    }
-
-    // Legacy admin test endpoint (kept for back-compat) — now routes to probe
-    if (url.searchParams.get("test_email") === "1" && isInternalAuth) {
-      return handleHealthProbe(req);
-    }
-
     // Fetch pending queue items
+
     const { data: queue, error: queueError } = await supabaseAdmin
       .from("email_notifications_queue")
       .select("*")
