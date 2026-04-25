@@ -164,7 +164,7 @@ export async function hydrateFromJob(jobId: string): Promise<{
       accessDetails: toStringArray(logistics.accessDetails),
     },
     extras: {
-      photos: sanitizePhotosForDraft(toStringArray(extras.photos)),
+      photos: sanitizePhotosFromDb(toStringArray(extras.photos)),
       notes: (extras.notes as string) || undefined,
       permitsConcern: (extras.permitsConcern as boolean) || undefined,
     },
