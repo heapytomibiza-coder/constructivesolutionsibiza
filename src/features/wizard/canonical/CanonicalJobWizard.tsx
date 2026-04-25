@@ -872,7 +872,39 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
     setIsSubmitting(true);
 
     try {
-      const payload = buildJobInsert(user.id, wizardState);
+      // === PHOTO UPLOAD: resolve any pending markers to storage paths ===
+      // Runs before buildJobInsert so the payload contains storage refs only.
+      let resolvedPhotos: string[];
+      try {
+        resolvedPhotos = await uploadPendingPhotos(wizardState.extras.photos, user.id);
+      } catch (photoErr: any) {
+        toast.error(photoErr?.message || t('toasts.photoUploadFailed', 'Photo upload failed'));
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Hard guard: refuse to submit if any non-storage value remains
+      try {
+        assertPhotosReadyForSubmit(resolvedPhotos);
+      } catch (guardErr: any) {
+        toast.error(guardErr?.message || t('toasts.photoUploadFailed', 'Photo upload failed'));
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Reflect resolved paths back into wizard state so re-renders show real URLs
+      if (resolvedPhotos.join('|') !== wizardState.extras.photos.join('|')) {
+        setWizardState((prev) => ({
+          ...prev,
+          extras: { ...prev.extras, photos: resolvedPhotos },
+        }));
+      }
+
+      const stateForPayload: WizardState = {
+        ...wizardState,
+        extras: { ...wizardState.extras, photos: resolvedPhotos },
+      };
+      const payload = buildJobInsert(user.id, stateForPayload);
 
       if (isEditMode && editJobId) {
         // === EDIT MODE: UPDATE existing job (status-gated) ===
