@@ -62,10 +62,13 @@ interface SendResult {
 async function sendEmail(to: string, subject: string, html: string): Promise<SendResult> {
   let resendError: string | undefined;
 
-  // --- Resend (primary) ---
-  if (resendClient) {
+  // --- Resend (primary, only when domain is verified) ---
+  if (resendClient && RESEND_DOMAIN_VERIFIED) {
     try {
-      console.log(`[email] Resend attempt to="${to}" from="${RESEND_FROM}"`);
+      console.log(JSON.stringify({
+        scope: "email", provider: "resend", phase: "attempt",
+        to, from: RESEND_FROM,
+      }));
       const { data, error: apiError } = await resendClient.emails.send({
         from: `${BRAND_NAME} <${RESEND_FROM}>`,
         to: [to],
@@ -74,40 +77,55 @@ async function sendEmail(to: string, subject: string, html: string): Promise<Sen
       });
       if (apiError) {
         resendError = `Resend API: ${apiError.message}`;
-        console.error("[email]", resendError);
+        console.error(JSON.stringify({
+          scope: "email", provider: "resend", phase: "fail",
+          to, reason: apiError.message,
+        }));
         // fall through to SMTP
       } else {
         const messageId = data?.id ?? "unknown";
-        console.log(`[email] Sent via resend to=${to} messageId=${messageId} subject="${subject}"`);
+        console.log(JSON.stringify({
+          scope: "email", provider: "resend", phase: "sent",
+          to, messageId, subject,
+        }));
         return { ok: true, provider: "resend", messageId };
       }
     } catch (err) {
       resendError = `Resend transport: ${String(err)}`;
-      console.error("[email]", resendError);
+      console.error(JSON.stringify({
+        scope: "email", provider: "resend", phase: "fail",
+        to, reason: String(err),
+      }));
       // fall through to SMTP
     }
+  } else if (resendClient && !RESEND_DOMAIN_VERIFIED) {
+    resendError = "Resend skipped: RESEND_DOMAIN_VERIFIED is not 'true'";
+    console.warn(JSON.stringify({
+      scope: "email", provider: "resend", phase: "skipped",
+      reason: "RESEND_DOMAIN_VERIFIED!=true",
+    }));
   }
 
   // --- SMTP (fallback) ---
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
-    if (resendError) {
-      return { ok: false, provider: "none", error: `${resendError}; SMTP not configured` };
-    }
-    console.error("[email] No provider configured — RESEND_API_KEY missing, SMTP not configured");
-    return { ok: false, provider: "none", error: "No email provider configured" };
+    const reason = "SMTP not configured (missing SMTP_HOST/SMTP_USER/SMTP_PASSWORD or GMAIL_APP_PASSWORD)";
+    console.error(JSON.stringify({ scope: "email", provider: "smtp", phase: "skipped", reason }));
+    return { ok: false, provider: "none", error: resendError ? `${resendError}; ${reason}` : reason };
   }
 
-  console.log(`[email] SMTP fallback to="${to}" host="${SMTP_HOST}:${SMTP_PORT}"`);
+  console.log(JSON.stringify({
+    scope: "email", provider: "smtp", phase: "attempt",
+    to, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
+    user_masked: maskUser(SMTP_USER),
+  }));
 
   try {
     const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
-      secure: true,
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASSWORD,
-      },
+      secure: SMTP_SECURE, // 465 = implicit TLS; 587 = false → STARTTLS upgrade
+      requireTLS: !SMTP_SECURE && SMTP_PORT === 587,
+      auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
     });
 
     const info = await transporter.sendMail({
@@ -119,14 +137,28 @@ async function sendEmail(to: string, subject: string, html: string): Promise<Sen
     });
 
     const messageId = info?.messageId ?? "unknown";
-    console.log(`[email] Sent via smtp to=${to} messageId=${messageId} subject="${subject}"`);
+    console.log(JSON.stringify({
+      scope: "email", provider: "smtp", phase: "sent",
+      to, messageId, subject, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
+    }));
     return { ok: true, provider: "smtp", messageId };
   } catch (err) {
     const smtpError = `SMTP: ${String(err)}`;
-    console.error("[email]", smtpError);
+    console.error(JSON.stringify({
+      scope: "email", provider: "smtp", phase: "fail",
+      to, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
+      reason: String(err),
+    }));
     const combined = resendError ? `${resendError}; ${smtpError}` : smtpError;
     return { ok: false, provider: "none", error: combined };
   }
+}
+
+function maskUser(user: string): string {
+  if (!user) return "";
+  const [name, domain] = user.split("@");
+  if (!domain) return `${user.slice(0, 2)}***`;
+  return `${name.slice(0, 2)}***@${domain}`;
 }
 
 // ============================================
