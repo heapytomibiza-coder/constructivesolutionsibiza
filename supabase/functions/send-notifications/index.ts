@@ -908,41 +908,66 @@ function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResu
 // TEST ENDPOINT
 // ============================================
 
-async function handleTestEmail(req: Request): Promise<Response> {
+/**
+ * Health probe — INTERNAL_FUNCTION_SECRET only.
+ *
+ * GET/POST  ?probe=1            → returns provider config (no send)
+ * GET/POST  ?probe=1&to=foo@bar → also sends a single test email
+ *
+ * Never exposes passwords. Auth is enforced upstream in `handler` via the
+ * x-internal-secret header check.
+ */
+async function handleHealthProbe(req: Request): Promise<Response> {
   const headers = { "Content-Type": "application/json", ...getCorsHeaders(req) };
   const url = new URL(req.url);
   const testTo = url.searchParams.get("to");
-  if (!testTo) {
-    return new Response(JSON.stringify({ error: "Missing ?to= parameter" }), { status: 400, headers });
-  }
 
-  // Gate behind admin auth
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
-  }
-  const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
-  if (authError || !userData?.user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
-  }
-  const { data: roleData } = await supabaseAdmin.from("user_roles").select("roles").eq("user_id", userData.user.id).maybeSingle();
-  const { data: allowData } = await supabaseAdmin.from("admin_allowlist").select("email").eq("email", userData.user.email?.toLowerCase() ?? "").maybeSingle();
-  if (!roleData?.roles?.includes("admin") || !allowData) {
-    return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers });
+  const config = {
+    resend: {
+      configured: Boolean(RESEND_API_KEY),
+      domain_verified_flag: RESEND_DOMAIN_VERIFIED,
+      from: RESEND_FROM,
+      will_attempt: Boolean(RESEND_API_KEY) && RESEND_DOMAIN_VERIFIED,
+    },
+    smtp: {
+      configured: Boolean(SMTP_HOST && SMTP_USER && SMTP_PASSWORD),
+      host: SMTP_HOST || null,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
+      mode: SMTP_SECURE ? "implicit-tls" : (SMTP_PORT === 587 ? "starttls" : "plain"),
+      from: SMTP_FROM,
+      user_masked: maskUser(SMTP_USER),
+      password_present: Boolean(SMTP_PASSWORD),
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  if (!testTo) {
+    return new Response(JSON.stringify({ probe: true, config }), { status: 200, headers });
   }
 
   const testHtml = emailShell(
     "linear-gradient(135deg, #059669, #10b981)",
-    "SMTP Email Test",
-    `<p style="color: #374151; font-size: 15px; line-height: 1.6;">This is a <strong>test email</strong> sent via SMTP to verify delivery is working correctly.</p>
-    <p style="color: #6b7280; font-size: 13px;">Host: ${SMTP_HOST}:${SMTP_PORT}</p>
-    <p style="color: #6b7280; font-size: 13px;">From: ${SMTP_FROM}</p>
-    <p style="color: #6b7280; font-size: 13px;">Sent at: ${new Date().toISOString()}</p>`
+    "Email Health Probe",
+    `<p style="color: #374151; font-size: 15px; line-height: 1.6;">Health-probe test from <strong>${BRAND_NAME}</strong>.</p>
+     <p style="color: #6b7280; font-size: 13px;">Provider order: Resend (verified=${RESEND_DOMAIN_VERIFIED}) → SMTP ${SMTP_HOST}:${SMTP_PORT} secure=${SMTP_SECURE}</p>
+     <p style="color: #6b7280; font-size: 13px;">Sent at: ${new Date().toISOString()}</p>`
   );
-  const result = await sendEmail(testTo, `SMTP Test - ${BRAND_NAME}`, testHtml);
+  const result = await sendEmail(testTo, `Health probe — ${BRAND_NAME}`, testHtml);
+
   return new Response(
-    JSON.stringify({ test: true, sent: result.ok, provider: result.provider, messageId: result.messageId || null, error: result.error || null }),
-    { status: 200, headers }
+    JSON.stringify({
+      probe: true,
+      config,
+      send: {
+        attempted: true,
+        ok: result.ok,
+        provider: result.provider,
+        messageId: result.messageId || null,
+        error: result.error || null,
+      },
+    }),
+    { status: result.ok ? 200 : 502, headers }
   );
 }
 
