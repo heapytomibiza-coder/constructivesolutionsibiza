@@ -15,7 +15,7 @@ import { AssignProSelector } from '@/pages/dashboard/shared/components/AssignPro
 import { useTranslation } from 'react-i18next';
 import { txCategory, txSubcategory } from '@/i18n/taxonomyTranslations';
 import { supabase } from '@/integrations/supabase/client';
-import { sanitizePhotosForDraft } from '@/features/wizard/canonical/lib/persistJobPhotos';
+import { sanitizePhotosFromDb } from '@/features/wizard/canonical/lib/persistJobPhotos';
 import { getDateLocale } from '@/lib/dateLocale';
 import type { ClientJob } from '../hooks/useClientStats';
 import {
