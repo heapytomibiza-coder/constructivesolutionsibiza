@@ -124,6 +124,16 @@ async function fetchAdminJobs(filter: AdminJobsFilter, search: string): Promise<
     jobs = jobs.filter(j => j.needs_quote);
   }
 
+  // Phase 2B-Ops: narrow to the admin worklist of unclassified custom jobs.
+  if (filter === "unclassified_custom" && jobs.length > 0) {
+    const { data: worklist, error: worklistErr } = await supabase
+      .from("admin_unclassified_custom_jobs")
+      .select("job_id");
+    if (worklistErr) throw worklistErr;
+    const allowed = new Set((worklist ?? []).map((r: { job_id: string }) => r.job_id));
+    jobs = jobs.filter(j => allowed.has(j.id));
+  }
+
   // Client-side search filter
   if (search.trim()) {
     const term = search.toLowerCase();
