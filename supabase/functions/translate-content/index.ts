@@ -62,43 +62,56 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ---- Authorization gate (BEFORE any service-role usage) ----
-    // Owner check: read the row's owner via the caller's RLS-scoped client.
-    // We use the service role only to fetch the owner column (RLS on jobs may
-    // hide non-public rows from non-owners, but we need a deterministic
-    // ownership signal). The service role client below is scoped to a single
-    // SELECT of the owner column; it cannot mutate before the gate passes.
+    // ---- Authorization gate (BEFORE any service-role mutation) ----
+    //
+    // Security reasoning:
+    //   * The caller's JWT has already been validated above (callerId is trusted).
+    //   * We need a deterministic ownership signal even when RLS would hide the
+    //     row from the caller. To do that we use a service-role client scoped
+    //     EXCLUSIVELY to a single SELECT of (id, owner_column). It is never
+    //     reused for mutation; a separate `supabase` client is created only
+    //     after authorization passes.
+    //   * To prevent existence probing, ALL authorization failures
+    //     (row missing, row owned by someone else, non-admin caller) collapse
+    //     into a single uniform 403 response. Unauthorized callers cannot
+    //     distinguish "not found" from "not yours".
+    //   * Admin path is dual-gated: has_role('admin') AND is_admin_email().
     const ownerProbe = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
     const ownerColumn = entity === "jobs" ? "user_id" : "provider_id";
-    const { data: ownerRow, error: ownerErr } = await ownerProbe
-      .from(entity)
-      .select(`id, ${ownerColumn}`)
-      .eq("id", id)
-      .maybeSingle();
 
-    if (ownerErr || !ownerRow) {
-      return new Response(JSON.stringify({ error: "Not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Compute admin eligibility and ownership in parallel. Admin eligibility
+    // does NOT depend on the row existing, so admins get the same uniform
+    // result regardless of probe outcome.
+    const [
+      ownerResult,
+      adminRoleResult,
+      adminEmailResult,
+    ] = await Promise.all([
+      ownerProbe.from(entity).select(`id, ${ownerColumn}`).eq("id", id).maybeSingle(),
+      ownerProbe.rpc("has_role", { _user_id: callerId, _role: "admin" }),
+      _authClient.rpc("is_admin_email"), // reads auth.jwt() — must use JWT-bearing client
+    ]);
+
+    const isAdmin =
+      Boolean(adminRoleResult.data) && Boolean(adminEmailResult.data);
+
+    const ownerRow = ownerResult.data as Record<string, unknown> | null;
+    const isOwner =
+      !!ownerRow && ownerRow[ownerColumn] === callerId;
+
+    if (!isOwner && !isAdmin) {
+      // Uniform 403 — covers: row missing, row not owned by caller,
+      // probe error, or insufficient admin gating. No existence leak.
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const isOwner = (ownerRow as Record<string, unknown>)[ownerColumn] === callerId;
-
-    let isAdmin = false;
-    if (!isOwner) {
-      // Dual-gated admin check: has_role('admin') AND is_admin_email()
-      const [{ data: hasAdminRole }, { data: emailAllowed }] = await Promise.all([
-        ownerProbe.rpc("has_role", { _user_id: callerId, _role: "admin" }),
-        // is_admin_email() reads auth.jwt() — must be invoked via the caller's JWT-bearing client
-        _authClient.rpc("is_admin_email"),
-      ]);
-      isAdmin = Boolean(hasAdminRole) && Boolean(emailAllowed);
-    }
-
-    if (!isOwner && !isAdmin) {
+    // For admin path, the row must still exist to be translatable.
+    if (!ownerRow) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
