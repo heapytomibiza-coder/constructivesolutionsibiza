@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
-    const ownerColumn = entity === "jobs" ? "user_id" : "professional_id";
+    const ownerColumn = entity === "jobs" ? "user_id" : "provider_id";
     const { data: ownerRow, error: ownerErr } = await ownerProbe
       .from(entity)
       .select(`id, ${ownerColumn}`)
