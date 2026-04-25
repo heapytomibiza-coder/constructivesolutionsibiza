@@ -7,7 +7,7 @@ import type { WizardState } from '../types';
 import { EMPTY_WIZARD_STATE } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
-import { sanitizePhotosForDraft } from './persistJobPhotos';
+import { sanitizePhotosFromDb } from './persistJobPhotos';
 
 interface JobRow {
   id: string;
