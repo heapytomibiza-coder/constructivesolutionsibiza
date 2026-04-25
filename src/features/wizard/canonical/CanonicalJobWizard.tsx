@@ -925,12 +925,6 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
           return;
         }
 
-        // Atomically increment edit_version
-        const { error: incError } = await supabase.rpc('increment_job_edit_version', {
-          p_job_id: editJobId,
-        });
-        if (incError) console.warn('Failed to increment edit_version:', incError);
-
         // Track the edit event
         trackEvent('job_edited', 'client', {}, { job_id: editJobId, category: wizardState.mainCategory });
 
