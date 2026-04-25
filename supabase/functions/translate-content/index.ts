@@ -10,6 +10,13 @@ interface TranslateRequest {
   fields: Record<string, string>;
 }
 
+function forbiddenResponse(corsHeaders: Record<string, string>) {
+  return new Response(JSON.stringify({ error: "Forbidden" }), {
+    status: 403,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
@@ -19,9 +26,7 @@ Deno.serve(async (req) => {
   // Auth: require authenticated user (called from frontend wizard/editor)
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return forbiddenResponse(corsHeaders);
   }
 
   // RLS-scoped client used for identity + ownership check ONLY.
@@ -36,13 +41,12 @@ Deno.serve(async (req) => {
     authHeader.replace("Bearer ", "")
   );
   if (userErr || !userData?.user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return forbiddenResponse(corsHeaders);
   }
   const callerId = userData.user.id;
 
   let body: TranslateRequest = { entity: "jobs", id: "", fields: {} };
+  let authorizationPassed = false;
   try {
     body = await req.json();
     const { entity, id, fields } = body;
@@ -66,32 +70,25 @@ Deno.serve(async (req) => {
     //
     // Security reasoning:
     //   * The caller's JWT has already been validated above (callerId is trusted).
-    //   * We need a deterministic ownership signal even when RLS would hide the
-    //     row from the caller. To do that we use a service-role client scoped
-    //     EXCLUSIVELY to a single SELECT of (id, owner_column). It is never
-    //     reused for mutation; a separate `supabase` client is created only
-    //     after authorization passes.
+    //   * Owner checks use the caller's JWT-scoped client so RLS enforces normal
+    //     ownership visibility. The service-role key is not touched until this
+    //     gate passes, so unauthorized callers cannot trigger privileged reads
+    //     or writes.
     //   * To prevent existence probing, ALL authorization failures
     //     (row missing, row owned by someone else, non-admin caller) collapse
     //     into a single uniform 403 response. Unauthorized callers cannot
     //     distinguish "not found" from "not yours".
     //   * Admin path is dual-gated: has_role('admin') AND is_admin_email().
-    const ownerProbe = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
     const ownerColumn = entity === "jobs" ? "user_id" : "provider_id";
 
-    // Compute admin eligibility and ownership in parallel. Admin eligibility
-    // does NOT depend on the row existing, so admins get the same uniform
-    // result regardless of probe outcome.
+    // Compute admin eligibility and owner visibility in parallel.
     const [
       ownerResult,
       adminRoleResult,
       adminEmailResult,
     ] = await Promise.all([
-      ownerProbe.from(entity).select(`id, ${ownerColumn}`).eq("id", id).maybeSingle(),
-      ownerProbe.rpc("has_role", { _user_id: callerId, _role: "admin" }),
+      _authClient.from(entity).select(`id, ${ownerColumn}`).eq("id", id).maybeSingle(),
+      _authClient.rpc("has_role", { _user_id: callerId, _role: "admin" }),
       _authClient.rpc("is_admin_email"), // reads auth.jwt() — must use JWT-bearing client
     ]);
 
@@ -105,22 +102,30 @@ Deno.serve(async (req) => {
     if (!isOwner && !isAdmin) {
       // Uniform 403 — covers: row missing, row not owned by caller,
       // probe error, or insufficient admin gating. No existence leak.
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return forbiddenResponse(corsHeaders);
     }
 
-    // For admin path, the row must still exist to be translatable.
-    if (!ownerRow) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    authorizationPassed = true;
 
     // ---- Authorization passed: now safe to use service role for mutation ----
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Admins may not see the target row through RLS. After dual-gated admin
+    // authorization passes, this privileged existence check is safe. Missing
+    // rows still return the same 403 as not-owned rows to avoid probing.
+    if (isAdmin && !ownerRow) {
+      const { data: adminVisibleRow } = await supabase
+        .from(entity)
+        .select("id")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!adminVisibleRow) {
+        return forbiddenResponse(corsHeaders);
+      }
+    }
 
     await supabase.from(entity).update({ translation_status: "pending" }).eq("id", id);
 
@@ -262,13 +267,17 @@ Rules:
   } catch (err) {
     console.error("translate-content error:", err);
 
-    // Best-effort: mark translation as failed so it doesn't stay pending
-    try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const sb = createClient(supabaseUrl, supabaseKey);
-      await sb.from(body.entity).update({ translation_status: "failed" }).eq("id", body.id);
-    } catch (_) { /* ignore */ }
+    // Best-effort: mark translation as failed only after authorization has
+    // passed. This prevents pre-auth service-role mutation on malformed or
+    // unauthorized requests.
+    if (authorizationPassed && ["jobs", "service_listings"].includes(body.entity) && body.id) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const sb = createClient(supabaseUrl, supabaseKey);
+        await sb.from(body.entity).update({ translation_status: "failed" }).eq("id", body.id);
+      } catch (_) { /* ignore */ }
+    }
 
     return new Response(
       JSON.stringify({ error: (err as Error).message }),
