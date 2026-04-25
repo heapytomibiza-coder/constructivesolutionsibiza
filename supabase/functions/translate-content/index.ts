@@ -267,13 +267,17 @@ Rules:
   } catch (err) {
     console.error("translate-content error:", err);
 
-    // Best-effort: mark translation as failed so it doesn't stay pending
-    try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const sb = createClient(supabaseUrl, supabaseKey);
-      await sb.from(body.entity).update({ translation_status: "failed" }).eq("id", body.id);
-    } catch (_) { /* ignore */ }
+    // Best-effort: mark translation as failed only after authorization has
+    // passed. This prevents pre-auth service-role mutation on malformed or
+    // unauthorized requests.
+    if (authorizationPassed && ["jobs", "service_listings"].includes(body.entity) && body.id) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const sb = createClient(supabaseUrl, supabaseKey);
+        await sb.from(body.entity).update({ translation_status: "failed" }).eq("id", body.id);
+      } catch (_) { /* ignore */ }
+    }
 
     return new Response(
       JSON.stringify({ error: (err as Error).message }),
