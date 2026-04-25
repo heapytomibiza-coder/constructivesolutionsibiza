@@ -10,8 +10,24 @@ import { Resend } from "npm:resend@4.1.2";
 const SMTP_HOST = Deno.env.get("SMTP_HOST") ?? "";
 const SMTP_PORT = parseInt(Deno.env.get("SMTP_PORT") ?? "465", 10);
 const SMTP_USER = Deno.env.get("SMTP_USER") ?? "";
-const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD") ?? "";
+const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD") ?? Deno.env.get("GMAIL_APP_PASSWORD") ?? "";
 const SMTP_FROM = Deno.env.get("SMTP_FROM") ?? "info@constructivesolutionsibiza.com";
+
+// SMTP_SECURE: respect explicit env, else true only on 465 (implicit TLS).
+// Port 587 → secure=false → nodemailer upgrades via STARTTLS automatically.
+function resolveSmtpSecure(): boolean {
+  const raw = Deno.env.get("SMTP_SECURE");
+  if (raw !== undefined && raw !== "") {
+    return raw.toLowerCase() === "true" || raw === "1";
+  }
+  return SMTP_PORT === 465;
+}
+const SMTP_SECURE = resolveSmtpSecure();
+
+// Resend domain verification gate. The domain in RESEND_FROM must be verified
+// at Resend; otherwise every send returns "domain is not verified". Set
+// RESEND_DOMAIN_VERIFIED=true once the domain shows verified at resend.com.
+const RESEND_DOMAIN_VERIFIED = (Deno.env.get("RESEND_DOMAIN_VERIFIED") ?? "").toLowerCase() === "true";
 const BRAND_NAME = "Constructive Solutions Ibiza";
 const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "info@constructivesolutionsibiza.com";
 const ADMIN_WHATSAPP = Deno.env.get("ADMIN_WHATSAPP_NUMBER") ?? "";
@@ -46,10 +62,13 @@ interface SendResult {
 async function sendEmail(to: string, subject: string, html: string): Promise<SendResult> {
   let resendError: string | undefined;
 
-  // --- Resend (primary) ---
-  if (resendClient) {
+  // --- Resend (primary, only when domain is verified) ---
+  if (resendClient && RESEND_DOMAIN_VERIFIED) {
     try {
-      console.log(`[email] Resend attempt to="${to}" from="${RESEND_FROM}"`);
+      console.log(JSON.stringify({
+        scope: "email", provider: "resend", phase: "attempt",
+        to, from: RESEND_FROM,
+      }));
       const { data, error: apiError } = await resendClient.emails.send({
         from: `${BRAND_NAME} <${RESEND_FROM}>`,
         to: [to],
@@ -58,40 +77,55 @@ async function sendEmail(to: string, subject: string, html: string): Promise<Sen
       });
       if (apiError) {
         resendError = `Resend API: ${apiError.message}`;
-        console.error("[email]", resendError);
+        console.error(JSON.stringify({
+          scope: "email", provider: "resend", phase: "fail",
+          to, reason: apiError.message,
+        }));
         // fall through to SMTP
       } else {
         const messageId = data?.id ?? "unknown";
-        console.log(`[email] Sent via resend to=${to} messageId=${messageId} subject="${subject}"`);
+        console.log(JSON.stringify({
+          scope: "email", provider: "resend", phase: "sent",
+          to, messageId, subject,
+        }));
         return { ok: true, provider: "resend", messageId };
       }
     } catch (err) {
       resendError = `Resend transport: ${String(err)}`;
-      console.error("[email]", resendError);
+      console.error(JSON.stringify({
+        scope: "email", provider: "resend", phase: "fail",
+        to, reason: String(err),
+      }));
       // fall through to SMTP
     }
+  } else if (resendClient && !RESEND_DOMAIN_VERIFIED) {
+    resendError = "Resend skipped: RESEND_DOMAIN_VERIFIED is not 'true'";
+    console.warn(JSON.stringify({
+      scope: "email", provider: "resend", phase: "skipped",
+      reason: "RESEND_DOMAIN_VERIFIED!=true",
+    }));
   }
 
   // --- SMTP (fallback) ---
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
-    if (resendError) {
-      return { ok: false, provider: "none", error: `${resendError}; SMTP not configured` };
-    }
-    console.error("[email] No provider configured — RESEND_API_KEY missing, SMTP not configured");
-    return { ok: false, provider: "none", error: "No email provider configured" };
+    const reason = "SMTP not configured (missing SMTP_HOST/SMTP_USER/SMTP_PASSWORD or GMAIL_APP_PASSWORD)";
+    console.error(JSON.stringify({ scope: "email", provider: "smtp", phase: "skipped", reason }));
+    return { ok: false, provider: "none", error: resendError ? `${resendError}; ${reason}` : reason };
   }
 
-  console.log(`[email] SMTP fallback to="${to}" host="${SMTP_HOST}:${SMTP_PORT}"`);
+  console.log(JSON.stringify({
+    scope: "email", provider: "smtp", phase: "attempt",
+    to, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
+    user_masked: maskUser(SMTP_USER),
+  }));
 
   try {
     const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
-      secure: true,
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASSWORD,
-      },
+      secure: SMTP_SECURE, // 465 = implicit TLS; 587 = false → STARTTLS upgrade
+      requireTLS: !SMTP_SECURE && SMTP_PORT === 587,
+      auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
     });
 
     const info = await transporter.sendMail({
@@ -103,14 +137,28 @@ async function sendEmail(to: string, subject: string, html: string): Promise<Sen
     });
 
     const messageId = info?.messageId ?? "unknown";
-    console.log(`[email] Sent via smtp to=${to} messageId=${messageId} subject="${subject}"`);
+    console.log(JSON.stringify({
+      scope: "email", provider: "smtp", phase: "sent",
+      to, messageId, subject, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
+    }));
     return { ok: true, provider: "smtp", messageId };
   } catch (err) {
     const smtpError = `SMTP: ${String(err)}`;
-    console.error("[email]", smtpError);
+    console.error(JSON.stringify({
+      scope: "email", provider: "smtp", phase: "fail",
+      to, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
+      reason: String(err),
+    }));
     const combined = resendError ? `${resendError}; ${smtpError}` : smtpError;
     return { ok: false, provider: "none", error: combined };
   }
+}
+
+function maskUser(user: string): string {
+  if (!user) return "";
+  const [name, domain] = user.split("@");
+  if (!domain) return `${user.slice(0, 2)}***`;
+  return `${name.slice(0, 2)}***@${domain}`;
 }
 
 // ============================================
@@ -860,41 +908,66 @@ function buildEmail(eventType: string, payload: any, siteUrl: string): EmailResu
 // TEST ENDPOINT
 // ============================================
 
-async function handleTestEmail(req: Request): Promise<Response> {
+/**
+ * Health probe — INTERNAL_FUNCTION_SECRET only.
+ *
+ * GET/POST  ?probe=1            → returns provider config (no send)
+ * GET/POST  ?probe=1&to=foo@bar → also sends a single test email
+ *
+ * Never exposes passwords. Auth is enforced upstream in `handler` via the
+ * x-internal-secret header check.
+ */
+async function handleHealthProbe(req: Request): Promise<Response> {
   const headers = { "Content-Type": "application/json", ...getCorsHeaders(req) };
   const url = new URL(req.url);
   const testTo = url.searchParams.get("to");
-  if (!testTo) {
-    return new Response(JSON.stringify({ error: "Missing ?to= parameter" }), { status: 400, headers });
-  }
 
-  // Gate behind admin auth
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
-  }
-  const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
-  if (authError || !userData?.user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
-  }
-  const { data: roleData } = await supabaseAdmin.from("user_roles").select("roles").eq("user_id", userData.user.id).maybeSingle();
-  const { data: allowData } = await supabaseAdmin.from("admin_allowlist").select("email").eq("email", userData.user.email?.toLowerCase() ?? "").maybeSingle();
-  if (!roleData?.roles?.includes("admin") || !allowData) {
-    return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers });
+  const config = {
+    resend: {
+      configured: Boolean(RESEND_API_KEY),
+      domain_verified_flag: RESEND_DOMAIN_VERIFIED,
+      from: RESEND_FROM,
+      will_attempt: Boolean(RESEND_API_KEY) && RESEND_DOMAIN_VERIFIED,
+    },
+    smtp: {
+      configured: Boolean(SMTP_HOST && SMTP_USER && SMTP_PASSWORD),
+      host: SMTP_HOST || null,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
+      mode: SMTP_SECURE ? "implicit-tls" : (SMTP_PORT === 587 ? "starttls" : "plain"),
+      from: SMTP_FROM,
+      user_masked: maskUser(SMTP_USER),
+      password_present: Boolean(SMTP_PASSWORD),
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  if (!testTo) {
+    return new Response(JSON.stringify({ probe: true, config }), { status: 200, headers });
   }
 
   const testHtml = emailShell(
     "linear-gradient(135deg, #059669, #10b981)",
-    "SMTP Email Test",
-    `<p style="color: #374151; font-size: 15px; line-height: 1.6;">This is a <strong>test email</strong> sent via SMTP to verify delivery is working correctly.</p>
-    <p style="color: #6b7280; font-size: 13px;">Host: ${SMTP_HOST}:${SMTP_PORT}</p>
-    <p style="color: #6b7280; font-size: 13px;">From: ${SMTP_FROM}</p>
-    <p style="color: #6b7280; font-size: 13px;">Sent at: ${new Date().toISOString()}</p>`
+    "Email Health Probe",
+    `<p style="color: #374151; font-size: 15px; line-height: 1.6;">Health-probe test from <strong>${BRAND_NAME}</strong>.</p>
+     <p style="color: #6b7280; font-size: 13px;">Provider order: Resend (verified=${RESEND_DOMAIN_VERIFIED}) → SMTP ${SMTP_HOST}:${SMTP_PORT} secure=${SMTP_SECURE}</p>
+     <p style="color: #6b7280; font-size: 13px;">Sent at: ${new Date().toISOString()}</p>`
   );
-  const result = await sendEmail(testTo, `SMTP Test - ${BRAND_NAME}`, testHtml);
+  const result = await sendEmail(testTo, `Health probe — ${BRAND_NAME}`, testHtml);
+
   return new Response(
-    JSON.stringify({ test: true, sent: result.ok, provider: result.provider, messageId: result.messageId || null, error: result.error || null }),
-    { status: 200, headers }
+    JSON.stringify({
+      probe: true,
+      config,
+      send: {
+        attempted: true,
+        ok: result.ok,
+        provider: result.provider,
+        messageId: result.messageId || null,
+        error: result.error || null,
+      },
+    }),
+    { status: result.ok ? 200 : 502, headers }
   );
 }
 
@@ -924,10 +997,22 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Test endpoint
     const url = new URL(req.url);
-    if (url.searchParams.get("test_email") === "1") {
-      return handleTestEmail(req);
+
+    // Health probe — INTERNAL_FUNCTION_SECRET required
+    if (url.searchParams.get("probe") === "1") {
+      if (!isInternalAuth) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden: probe requires x-internal-secret" }),
+          { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+      return handleHealthProbe(req);
+    }
+
+    // Legacy admin test endpoint (kept for back-compat) — now routes to probe
+    if (url.searchParams.get("test_email") === "1" && isInternalAuth) {
+      return handleHealthProbe(req);
     }
 
     // Fetch pending queue items
