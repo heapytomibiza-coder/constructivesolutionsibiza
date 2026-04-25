@@ -349,7 +349,7 @@ const handler = async (req: Request): Promise<Response> => {
         // Load job to get micro_slug
         const { data: job } = await supabaseAdmin
           .from("jobs")
-          .select("id, title, category, area, budget_type, budget_value, budget_min, budget_max, start_timing, micro_slug")
+          .select("id, user_id, title, category, area, budget_type, budget_value, budget_min, budget_max, start_timing, micro_slug")
           .eq("id", item.job_id)
           .single();
 
