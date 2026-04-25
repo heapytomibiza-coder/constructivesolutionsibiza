@@ -137,21 +137,7 @@ export function useReviewClassification() {
 
         if (jobErr) throw jobErr;
 
-        // Phase 2B: explicitly fan out ALL accepted micro_slugs into
-        // job_micro_links so multi-service classifications are matched
-        // correctly. The DB trigger also covers this, but writing here
-        // makes the intent explicit and robust to future trigger changes.
-        if (microSlugs.length > 0) {
-          const rows = microSlugs
-            .filter((s) => typeof s === "string" && s.trim().length > 0)
-            .map((micro_slug) => ({ job_id: jobId, micro_slug }));
-          if (rows.length > 0) {
-            const { error: jmlErr } = await supabase
-              .from("job_micro_links")
-              .upsert(rows, { onConflict: "job_id,micro_slug", ignoreDuplicates: true });
-            if (jmlErr) throw jmlErr;
-          }
-        }
+
 
         // Log admin action
         await supabase.from("admin_actions_log").insert({
