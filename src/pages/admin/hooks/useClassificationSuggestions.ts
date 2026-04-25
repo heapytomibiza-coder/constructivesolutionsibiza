@@ -100,14 +100,38 @@ export function useReviewClassification() {
 
         // Update job with accepted classification.
         // Note: jobs.micro_slug holds the primary (first) slug for backwards
-        // compatibility. The full set is fanned out to job_micro_links below,
-        // which is the canonical matching source of truth (Phase 2A).
+        // compatibility. The full set of accepted slugs is fanned out to
+        // job_micro_links automatically by the sync_job_micro_links_from_job
+        // trigger (Phase 2B), which reads from both jobs.micro_slug and
+        // jobs.answers.selected.microSlugs. We mirror microSlugs into
+        // answers.selected.microSlugs so the trigger picks up multi-service
+        // classifications, not just the primary slug.
+        const { data: existing, error: fetchErr } = await supabase
+          .from("jobs")
+          .select("answers")
+          .eq("id", jobId)
+          .single();
+        if (fetchErr) throw fetchErr;
+
+        const nextAnswers = (() => {
+          const base = (existing?.answers as Record<string, unknown> | null) ?? {};
+          const selected = ((base as { selected?: Record<string, unknown> }).selected ?? {}) as Record<string, unknown>;
+          return {
+            ...base,
+            selected: {
+              ...selected,
+              microSlugs: microSlugs,
+            },
+          };
+        })();
+
         const { error: jobErr } = await supabase
           .from("jobs")
           .update({
             category,
             subcategory,
             micro_slug: microSlugs.length > 0 ? microSlugs[0] : null,
+            answers: nextAnswers,
           })
           .eq("id", jobId);
 
