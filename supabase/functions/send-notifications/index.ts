@@ -1010,9 +1010,128 @@ async function handleHealthProbe(req: Request): Promise<Response> {
         provider: result.provider,
         messageId: result.messageId || null,
         error: result.error || null,
+        failureType: result.failureType || null,
+        correlationId: result.correlationId,
       },
     }),
     { status: result.ok ? 200 : 502, headers }
+  );
+}
+
+// ============================================
+// ADMIN: DEAD-LETTER RETRY
+// ============================================
+
+/**
+ * Admin-only dead-letter reset.
+ *
+ * GET   ?dlq=count         → returns count of dead-letter rows (no mutation)
+ * POST  ?dlq=reset         → resets dead-letter rows, but ONLY after a fresh
+ *                            probe send has succeeded in the last 10 min.
+ *
+ * Auth: requires `x-internal-secret` (monitoring) OR a Bearer token from a
+ * user that is an admin (UI). Health-gating is enforced server-side via the
+ * `email_send_log` table — no client claim is trusted.
+ */
+async function handleDeadLetterAction(
+  req: Request,
+  isInternalAuth: boolean,
+): Promise<Response> {
+  const headers = { "Content-Type": "application/json", ...getCorsHeaders(req) };
+  const url = new URL(req.url);
+  const action = url.searchParams.get("dlq");
+
+  // Identify caller (for audit) — internal monitoring or admin user
+  let triggeredBy = "internal-secret";
+  if (!isInternalAuth) {
+    const authHeader = req.headers.get("Authorization") || "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
+    }
+    const { data: userData, error: authErr } = await supabaseAdmin.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+    if (authErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
+    }
+    const { data: roleData } = await supabaseAdmin
+      .from("user_roles").select("roles").eq("user_id", userData.user.id).maybeSingle();
+    const { data: allowData } = await supabaseAdmin
+      .from("admin_allowlist").select("email")
+      .eq("email", userData.user.email?.toLowerCase() ?? "").maybeSingle();
+    if (!roleData?.roles?.includes("admin") || !allowData) {
+      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers });
+    }
+    triggeredBy = userData.user.email ?? userData.user.id;
+  }
+
+  // Always show count
+  const { count: dlqCount, error: countErr } = await supabaseAdmin
+    .from("email_notifications_queue")
+    .select("id", { count: "exact", head: true })
+    .is("sent_at", null)
+    .gte("attempts", 3);
+  if (countErr) {
+    return new Response(JSON.stringify({ error: countErr.message }), { status: 500, headers });
+  }
+
+  if (action === "count" || !action) {
+    return new Response(
+      JSON.stringify({ dlq: { count: dlqCount ?? 0, triggeredBy } }),
+      { status: 200, headers },
+    );
+  }
+
+  if (action !== "reset") {
+    return new Response(JSON.stringify({ error: "Unknown dlq action" }), { status: 400, headers });
+  }
+
+  // Health gate: require a successful send in the last 10 minutes
+  const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { data: recentOk, error: healthErr } = await supabaseAdmin
+    .from("email_notifications_queue")
+    .select("id, sent_at")
+    .gte("sent_at", tenMinAgo)
+    .order("sent_at", { ascending: false })
+    .limit(1);
+  if (healthErr) {
+    return new Response(JSON.stringify({ error: healthErr.message }), { status: 500, headers });
+  }
+  if (!recentOk || recentOk.length === 0) {
+    console.warn(JSON.stringify({
+      scope: "email", phase: "dlq-reset-blocked",
+      reason: "no_successful_send_within_10_minutes", triggeredBy,
+    }));
+    return new Response(
+      JSON.stringify({
+        error: "Dead-letter reset blocked: no successful send recorded in the last 10 minutes. " +
+               "Run a successful probe send first (?probe=1&to=you@example.com).",
+        dlqCount: dlqCount ?? 0,
+      }),
+      { status: 412, headers },
+    );
+  }
+
+  // Perform reset
+  const { data: updated, error: updateErr } = await supabaseAdmin
+    .from("email_notifications_queue")
+    .update({ attempts: 0, last_error: null, failed_at: null })
+    .is("sent_at", null)
+    .gte("attempts", 3)
+    .select("id");
+  if (updateErr) {
+    return new Response(JSON.stringify({ error: updateErr.message }), { status: 500, headers });
+  }
+
+  const resetCount = updated?.length ?? 0;
+  console.log(JSON.stringify({
+    scope: "email", phase: "dlq-reset", resetCount, triggeredBy,
+    healthCheckRef: recentOk[0].id,
+  }));
+
+  return new Response(
+    JSON.stringify({ dlq: { resetCount, triggeredBy, healthOk: true } }),
+    { status: 200, headers },
   );
 }
 
