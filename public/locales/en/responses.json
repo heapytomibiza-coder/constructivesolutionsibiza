@@ -56,7 +56,11 @@
     "withdrawnToast": "Response withdrawn",
     "withdrawFailed": "Couldn't withdraw",
     "needsOnboarding": "Complete your professional profile to respond to jobs",
-    "needsProRole": "Switch to your professional role to respond"
+    "needsProRole": "Switch to your professional role to respond",
+    "syncLinked": "Visible to client",
+    "syncLinkedTooltip": "Your quote is linked to your response and visible in the client's inbox.",
+    "syncUnlinked": "Sync pending",
+    "syncUnlinkedTooltip": "Your quote was saved but isn't fully linked to your response yet. We'll retry automatically — no action needed."
   },
   "client": {
     "shortlistedToast": "Shortlisted. The pro has been notified.",
