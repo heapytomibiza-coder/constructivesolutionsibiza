@@ -198,6 +198,8 @@
     "submit": "Submit Quote",
     "submitted": "Quote submitted successfully",
     "submitFailed": "Failed to submit quote",
+    "linkResponseWarning": "Quote sent — but we couldn't link it to your response yet",
+    "linkResponseWarningDesc": "Your quote is saved. The client will still see it; please refresh in a moment if it doesn't appear linked.",
     "accept": "Accept",
     "accepted": "Quote accepted — professional assigned!",
     "acceptFailed": "Failed to accept quote",
