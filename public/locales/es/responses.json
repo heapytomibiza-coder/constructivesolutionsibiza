@@ -56,7 +56,11 @@
     "withdrawnToast": "Respuesta retirada",
     "withdrawFailed": "No se pudo retirar",
     "needsOnboarding": "Completa tu perfil profesional para responder a trabajos",
-    "needsProRole": "Cambia a tu rol profesional para responder"
+    "needsProRole": "Cambia a tu rol profesional para responder",
+    "syncLinked": "Visible para el cliente",
+    "syncLinkedTooltip": "Tu presupuesto está vinculado a tu respuesta y visible en la bandeja del cliente.",
+    "syncUnlinked": "Sincronización pendiente",
+    "syncUnlinkedTooltip": "Tu presupuesto se guardó pero aún no está totalmente vinculado a tu respuesta. Lo reintentaremos automáticamente — no necesitas hacer nada."
   },
   "client": {
     "shortlistedToast": "Preseleccionado. El profesional ha sido notificado.",
