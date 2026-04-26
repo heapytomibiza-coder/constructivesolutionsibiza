@@ -48,7 +48,7 @@ export function HireConfirmModal({
           <AlertDialogDescription asChild>
             <div className="space-y-3">
               <p className="font-medium text-foreground">{t("hireModal.willHappen")}</p>
-              <ul className="list-disc list-inside space-y-1 text-sm">
+              <ul className="list-disc list-inside space-y-1.5 text-sm">
                 <li>{t("hireModal.openWorkspace")}</li>
                 <li>{t("hireModal.initiatePayment")}</li>
                 {otherProsCount > 0 && (
@@ -56,6 +56,9 @@ export function HireConfirmModal({
                 )}
               </ul>
               <p className="text-xs text-muted-foreground pt-2 border-t">
+                {t("hireModal.supportNote")}
+              </p>
+              <p className="text-xs font-medium text-foreground">
                 {t("hireModal.irreversible")}
               </p>
             </div>
