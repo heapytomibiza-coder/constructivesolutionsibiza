@@ -20,6 +20,7 @@ import {
   ResponseSyncBadge,
   deriveSyncState,
 } from '@/pages/jobs/responses/components/ResponseSyncBadge';
+import { useResponseLinkRetry } from '@/pages/jobs/responses/hooks/useResponseLinkRetry';
 import { groupLineItems } from '@/pages/jobs/utils/quoteDisplay';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -57,7 +58,27 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: quote, isLoading } = useMyQuoteForJob(jobId, user?.id ?? null, !!user?.id);
-  const { data: myResponse } = useMyResponse(jobId, user?.id ?? null);
+  const { data: myResponse, isFetched: isResponseFetched } = useMyResponse(
+    jobId,
+    user?.id ?? null,
+  );
+
+  // One-shot silent retry of link_quote_to_response when the quote is saved
+  // but the response link is missing or stale. Hook is no-op when conditions
+  // aren't met — safe to call before the early return.
+  useResponseLinkRetry({
+    userId: user?.id ?? null,
+    jobId,
+    quote: quote
+      ? {
+          id: quote.id,
+          professional_id: quote.professional_id,
+          status: quote.status,
+        }
+      : null,
+    response: myResponse,
+    isResponseReady: isResponseFetched,
+  });
 
   if (isLoading || !quote) return null;
 
