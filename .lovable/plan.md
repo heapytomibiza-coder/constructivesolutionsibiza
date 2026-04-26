@@ -1,32 +1,53 @@
+## Track 3B Refinement — Suggestion Quality (Non-Regressive)
 
-The user is asking what information I can extract from the repo to help analyze the value of the company. This is a research/analysis request, not an implementation task. I should answer directly rather than present a build plan.
+Replace `public.generate_job_classification_suggestions(uuid)` only. No schema, table, trigger, RLS, matching-engine, or `job_micro_links` changes.
 
-Let me think about what's actually available in this repo that's relevant to company valuation:
+### Behavior contract (in priority order)
 
-**Quantitative signals available in the repo:**
-1. **Live platform metrics** — `daily_platform_metrics` table + `rpc_admin_platform_stats` RPC. From `useAdminStats.ts` I can see: total_users, total_professionals, active_professionals, total_jobs, open/active/completed jobs, conversations, support tickets.
-2. **Admin metric registry** (`metricRegistry.ts`) — tracks open/active/completed jobs, jobs posted, new users, new pros, conversations, support tickets, messages sent. With timeframe drilldowns.
-3. **Subscription/monetization model** — 4 tiers (Bronze free, Silver €49, Gold €99, Elite €199) with commission rates (18% → 6%). Source of truth is `subscriptions.commission_rate`.
-4. **Agent performance metrics** (`get_agent_performance_metrics` RPC) — AI agent efficacy data.
-5. **Demand snapshots** (`refresh_demand_snapshots` edge function) — category-level demand data.
-6. **Conversion/retention nudges** — hourly cron tracks conversion mechanics.
+1. **No-overwrite guard** — if a suggestion row already exists for the job, return the latest `suggested_micro_slugs` and do nothing.
+2. **Direct text-match pass** — current behavior preserved (job text vs. micro slug/name).
+3. **Curated keyword map** — preserved as currently live, with two refinements:
+   - `leak` group tightened: only `fix-leak`, `burst-pipe`, `pipe-repair`, `ac-leak-detection-repair` (no broad `%water%` slug expansion).
+   - All other groups unchanged: drain, burst pipe, pipe, toilet, sink, shower, tap, bathroom, boiler.
+4. **Category/subcategory fallback** — preserved.
+5. **Alphabetical "first active micro" safety fallback** — **REMOVED**. Jobs with no match will be saved with an empty `suggested_micro_slugs` array.
+6. **Hard cap of 5** — preserved.
+7. **`reasoning_summary`** — populated on insert (column already exists, nullable). Examples: `"text-match"`, `"keyword: drain"`, `"category fallback"`, `"no match"`.
+8. **`model_name = 'heuristic-v1'`** — preserved.
 
-**Qualitative / strategic signals in the repo:**
-1. **T0_KNOWLEDGE.md** — authoritative platform snapshot: positioning, target audience, taxonomy (16 categories, 335 micro-services), what's live vs not live, tech debt.
-2. **Rollout phase** — currently `service-layer` (3rd of 6 phases). Indicates maturity stage.
-3. **Feature gaps** — Stripe checkout not live, payment protection not live, WhatsApp bridge not live (these gate revenue).
-4. **Memory files** — strategy docs: monetization-tier-and-limit-matrix, payment-protection-framework, controlled-matching-policy, marketplace-competition-philosophy.
+### Test plan (live verification, no new test data)
 
-**What's NOT in the repo (must flag):**
-- No financial statements, P&L, balance sheet, cap table
-- No actual paying-customer counts or MRR/ARR figures (Stripe checkout isn't live yet — `STRIPE_CHECKOUT_LIVE = false`)
-- No projections/forecasts as documents
-- No CAC, LTV, churn data
-- No fundraising materials, valuations, or comparables
-- No cost structure (hosting, payroll, etc.)
+After applying:
 
-**Honest verdict:** The repo gives me **operational telemetry + strategic positioning + monetization model**, but **no revenue, no projections, and no financial data**. Stripe checkout isn't even live yet, so there's no real paid-tier revenue to extract.
+1. Confirm function exists and signature unchanged.
+2. Generate-and-inspect on real custom jobs without existing suggestions:
+   - A job whose text matches a keyword group → expect curated slug(s).
+   - A job whose text matches none but has a `category`/`subcategory` → expect category fallback slugs.
+   - A job that matches neither → expect empty array + `reasoning_summary = 'no match'`.
+3. Confirm previously generated rows (`Drain blocked`, `Desk & Cabinets`, `Perspex`) are untouched.
 
-I should answer plainly with: (a) what I CAN pull, (b) what's missing, (c) what they'd need to provide for a real valuation analysis. No build plan needed — this is a Q&A response. I'll skip the `<lov-plan>` framing for the actual answer since this is research, but the rules say to put all thinking inside the tag and that the plan IS the response. Since the user asked an information question, the cleanest path is a direct factual answer inside the plan tag.
+### Out of scope
 
-Actually re-reading the rules: "Skip [plans] for research ('how does X work?')". This is a research question. So I should answer directly outside any plan tag. But the constraint says nothing follows `
+- Auto-applying suggestions to jobs.
+- Modifying `job_micro_links`, matching logic, triggers, RLS.
+- Changing the table schema.
+- Replacing or deleting any existing suggestion rows.
+
+### Technical notes
+
+- Function body uses static SQL (no `EXECUTE`) since the schema columns we depend on (`model_name`, `reasoning_summary`, `accepted_at`) are already confirmed present in this database.
+- `model_name` column is `NOT NULL` — insert always sets `'heuristic-v1'`.
+- `reasoning_summary` is nullable but will always be populated for traceability.
+- All slug picks are validated to exist and be active in `public.service_micro_categories` before being added to the result.
+- Result deduplicated and capped to 5.
+
+### Reporting after apply
+
+Migration applied: YES/NO
+Verification passed: YES/NO
+Examples tested (with returned slugs):
+- keyword-match job
+- category-fallback job
+- no-match job
+Errors/blockers:
+SAFE TO DEPLOY: YES/NO
