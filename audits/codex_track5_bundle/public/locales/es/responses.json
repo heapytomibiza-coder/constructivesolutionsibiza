@@ -1,0 +1,101 @@
+{
+  "page": {
+    "title": "Respuestas",
+    "subtitle": "Profesionales interesados en tu trabajo",
+    "backToJob": "Volver al trabajo",
+    "loading": "Cargando respuestas…",
+    "loadError": "No se pudieron cargar las respuestas",
+    "empty": "Aún no hay respuestas. Te avisaremos cuando los profesionales respondan.",
+    "notOwner": "Solo el cliente que publicó este trabajo puede ver las respuestas."
+  },
+  "sections": {
+    "shortlisted": "Preseleccionados",
+    "withQuote": "Con presupuesto",
+    "interested": "Interesados · sin presupuesto",
+    "declined": "No seleccionados",
+    "showDeclined": "Mostrar descartados ({{count}})",
+    "hideDeclined": "Ocultar descartados"
+  },
+  "card": {
+    "quotePending": "Presupuesto pendiente",
+    "viewProfile": "Ver perfil",
+    "message": "Mensaje",
+    "shortlist": "Preseleccionar",
+    "shortlisted": "Preseleccionado",
+    "removeShortlist": "Quitar de preseleccionados",
+    "askForQuote": "Pedir presupuesto",
+    "hire": "Contratar a {{name}}",
+    "hireShort": "Contratar",
+    "compare": "Comparar",
+    "responseTime": "Suele responder en {{time}}"
+  },
+  "timeline": {
+    "title": "Tu estado",
+    "interested": "Interesado",
+    "quoted": "Presupuesto",
+    "shortlisted": "Preseleccionado",
+    "hired": "Contratado"
+  },
+  "pro": {
+    "matched": "Coincide con tus servicios",
+    "ctaInterested": "Me interesa",
+    "ctaSendQuote": "Enviar presupuesto",
+    "ctaEditQuote": "Editar presupuesto",
+    "ctaWithdraw": "Retirar",
+    "ctaSendRevised": "Enviar presupuesto revisado",
+    "ctaOpenWorkspace": "Abrir espacio del trabajo",
+    "ctaViewSimilar": "Ver trabajos similares",
+    "statusInterested": "Has mostrado interés",
+    "statusQuoted": "Presupuesto enviado · esperando al cliente",
+    "statusShortlisted": "Estás preseleccionado",
+    "statusAccepted": "Has ganado este trabajo",
+    "statusDeclined": "Este trabajo se asignó a otro profesional",
+    "nudgeAddQuote": "Añade un presupuesto para destacar",
+    "expressedToast": "Cliente notificado. Añade un presupuesto para destacar.",
+    "expressFailed": "No se pudo registrar tu interés",
+    "withdrawnToast": "Respuesta retirada",
+    "withdrawFailed": "No se pudo retirar",
+    "needsOnboarding": "Completa tu perfil profesional para responder a trabajos",
+    "needsProRole": "Cambia a tu rol profesional para responder",
+    "syncLinked": "Visible para el cliente",
+    "syncLinkedTooltip": "Tu presupuesto está vinculado a tu respuesta y visible en la bandeja del cliente.",
+    "syncUnlinked": "Sincronización pendiente",
+    "syncUnlinkedTooltip": "Tu presupuesto se guardó pero aún no está totalmente vinculado a tu respuesta. Lo reintentaremos automáticamente — no necesitas hacer nada."
+  },
+  "client": {
+    "shortlistedToast": "Preseleccionado. El profesional ha sido notificado.",
+    "shortlistFailed": "No se pudo preseleccionar",
+    "declinedToast": "Profesional descartado.",
+    "declineFailed": "No se pudo descartar",
+    "acceptedToast": "Contratado. Abriendo el espacio del trabajo…",
+    "acceptFailed": "No se pudo completar la contratación"
+  },
+  "hireModal": {
+    "title": "¿Contratar a {{name}} por {{price}}?",
+    "willHappen": "Esto es lo que pasará a continuación:",
+    "openWorkspace": "Se abrirá tu Espacio de Trabajo compartido — mensajes, alcance, hitos y actualizaciones en un solo lugar.",
+    "initiatePayment": "Se iniciará la retención de pago segura para proteger los fondos de ambas partes.",
+    "declineOthers": "El otro {{count}} profesional interesado será notificado amablemente de que el trabajo ya se asignó.",
+    "declineOthers_other": "Los otros {{count}} profesionales interesados serán notificados amablemente de que el trabajo ya se asignó.",
+    "supportNote": "Soporte y el proceso de resolución de 28 días siguen disponibles si algo va mal.",
+    "irreversible": "Esta decisión es definitiva — no podrás cambiar de profesional después de contratar.",
+    "cancel": "Aún no",
+    "confirm": "Sí, contratar a {{name}}",
+    "submitting": "Contratando…"
+  },
+  "withdrawModal": {
+    "title": "¿Retirar tu respuesta?",
+    "body": "El cliente verá que ya no estás interesado. Puedes volver a participar si el trabajo sigue abierto.",
+    "confirm": "Retirar",
+    "cancel": "Mantener respuesta"
+  },
+  "stages": {
+    "interested": "Interesado",
+    "quoted": "Con presupuesto",
+    "shortlisted": "Preseleccionado",
+    "accepted": "Contratado",
+    "declined": "Descartado",
+    "withdrawn": "Retirado",
+    "expired": "Expirado"
+  }
+}
