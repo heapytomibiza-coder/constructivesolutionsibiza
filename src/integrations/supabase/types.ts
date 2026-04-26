@@ -1507,6 +1507,109 @@ export type Database = {
           },
         ]
       }
+      job_responses: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          decline_reason: string | null
+          declined_at: string | null
+          expired_at: string | null
+          id: string
+          interested_at: string
+          job_id: string
+          message: string | null
+          professional_id: string
+          quote_id: string | null
+          quoted_at: string | null
+          shortlisted_at: string | null
+          status: string
+          updated_at: string
+          withdraw_reason: string | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          decline_reason?: string | null
+          declined_at?: string | null
+          expired_at?: string | null
+          id?: string
+          interested_at?: string
+          job_id: string
+          message?: string | null
+          professional_id: string
+          quote_id?: string | null
+          quoted_at?: string | null
+          shortlisted_at?: string | null
+          status?: string
+          updated_at?: string
+          withdraw_reason?: string | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          decline_reason?: string | null
+          declined_at?: string | null
+          expired_at?: string | null
+          id?: string
+          interested_at?: string
+          job_id?: string
+          message?: string | null
+          professional_id?: string
+          quote_id?: string | null
+          quoted_at?: string | null
+          shortlisted_at?: string | null
+          status?: string
+          updated_at?: string
+          withdraw_reason?: string | null
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_responses_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "job_responses_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_responses_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_responses_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_responses_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_responses_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_reviews: {
         Row: {
           comment: string | null
@@ -4087,6 +4190,7 @@ export type Database = {
         Args: { p_job_id: string; p_quote_id: string }
         Returns: undefined
       }
+      accept_response: { Args: { p_response_id: string }; Returns: string }
       admin_boost_category: {
         Args: { p_area: string; p_category: string }
         Returns: Json
@@ -4274,6 +4378,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      decline_response: {
+        Args: { p_reason?: string; p_response_id: string }
+        Returns: string
+      }
+      express_interest: {
+        Args: { p_job_id: string; p_message?: string }
+        Returns: string
+      }
       generate_job_classification_suggestions: {
         Args: { p_job_id: string }
         Returns: string[]
@@ -4451,6 +4563,10 @@ export type Database = {
         Returns: undefined
       }
       is_admin_email: { Args: never; Returns: boolean }
+      link_quote_to_response: {
+        Args: { p_job_id: string; p_quote_id: string }
+        Returns: string
+      }
       mark_nudge_sent: { Args: { p_nudge_id: string }; Returns: undefined }
       post_job: { Args: { p_job_id: string }; Returns: undefined }
       purge_stale_telemetry: { Args: never; Returns: undefined }
@@ -4594,6 +4710,7 @@ export type Database = {
         Args: { p_date: string }
         Returns: number
       }
+      shortlist_response: { Args: { p_response_id: string }; Returns: string }
       submit_quote_with_items: {
         Args: {
           p_exclusions_text?: string
@@ -4636,6 +4753,10 @@ export type Database = {
         Returns: number
       }
       withdraw_from_job: { Args: { p_job_id: string }; Returns: undefined }
+      withdraw_response: {
+        Args: { p_job_id: string; p_reason?: string }
+        Returns: string
+      }
     }
     Enums: {
       dispute_issue_type:
