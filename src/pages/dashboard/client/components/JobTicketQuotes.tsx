@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProSummaryCard } from '@/components/quotes/ProSummaryCard';
-import { BarChart3, FileText, MessageSquare } from 'lucide-react';
+import { BarChart3, FileText, MessageSquare, Inbox, ArrowRight } from 'lucide-react';
 import { useQuotesForJob } from '@/pages/jobs/queries/quotes.query';
+import { useJobResponseCount } from '@/pages/jobs/responses/queries/useJobResponseCount';
 import { supabase } from '@/integrations/supabase/client';
 import { formatQuotePrice } from '@/pages/jobs/utils/formatQuotePrice';
 
@@ -22,6 +23,7 @@ export function JobTicketQuotes({ jobId, jobStatus }: JobTicketQuotesProps) {
   const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const { data: quotes = [], isLoading } = useQuotesForJob(jobId);
+  const { data: responseCount = 0 } = useJobResponseCount(jobId);
 
   const handleMessage = async (professionalId: string) => {
     const { data: conv } = await supabase
