@@ -100,6 +100,18 @@ export async function submitQuote(
   // RPC if no response row exists), so this is purely about attaching the
   // quote_id for the client inbox to surface the price.
   let linkWarning = false;
+  const linkContext = {
+    scope: "submitQuote.linkQuoteToResponse" as const,
+    jobId: payload.jobId,
+    quoteId: quoteId as string,
+    professionalId: user.id,
+    previousQuoteId: payload.previousQuoteId ?? null,
+    revisionNumber: payload.revisionNumber ?? 1,
+    isRevision,
+    priceType: payload.priceType,
+    timestamp: new Date().toISOString(),
+  };
+
   try {
     const { error: linkError } = await supabase.rpc("link_quote_to_response", {
       p_job_id: payload.jobId,
@@ -107,16 +119,44 @@ export async function submitQuote(
     });
     if (linkError) {
       linkWarning = true;
-      console.warn(
-        "[submitQuote] link_quote_to_response failed (non-blocking):",
-        linkError,
+      console.warn("[submitQuote] link_quote_to_response failed (non-blocking)", {
+        ...linkContext,
+        kind: "rpc_error",
+        errorCode: linkError.code ?? null,
+        errorMessage: linkError.message ?? null,
+        errorDetails: linkError.details ?? null,
+        errorHint: linkError.hint ?? null,
+      });
+      trackEvent(
+        "quote_link_failed",
+        "professional",
+        {
+          kind: "rpc_error",
+          error_code: linkError.code ?? "unknown",
+          is_revision: isRevision,
+          price_type: payload.priceType,
+        },
+        { job_id: payload.jobId },
       );
     }
   } catch (linkErr) {
     linkWarning = true;
-    console.warn(
-      "[submitQuote] link_quote_to_response threw (non-blocking):",
-      linkErr,
+    const message =
+      linkErr instanceof Error ? linkErr.message : String(linkErr);
+    console.warn("[submitQuote] link_quote_to_response threw (non-blocking)", {
+      ...linkContext,
+      kind: "thrown",
+      errorMessage: message,
+    });
+    trackEvent(
+      "quote_link_failed",
+      "professional",
+      {
+        kind: "thrown",
+        is_revision: isRevision,
+        price_type: payload.priceType,
+      },
+      { job_id: payload.jobId },
     );
   }
 
