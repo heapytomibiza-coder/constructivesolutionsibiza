@@ -73,6 +73,7 @@ const ClientJobsList = lazy(() => import("./pages/dashboard/client/ClientJobsLis
 const JobTicketDetail = lazy(() => import("./pages/dashboard/client/JobTicketDetail"));
 const MatchAndSend = lazy(() => import("./pages/dashboard/client/MatchAndSend"));
 const QuoteComparison = lazy(() => import("./pages/dashboard/client/QuoteComparison"));
+const JobResponsesPage = lazy(() => import("./pages/jobs/responses/JobResponsesPage"));
 const ProDashboard = lazy(() => import("./pages/dashboard/professional/ProDashboard"));
 const ProJobsList = lazy(() => import("./pages/dashboard/professional/ProJobsList"));
 const DashboardResolver = lazy(() => import("./pages/dashboard/DashboardResolver"));
@@ -261,6 +262,7 @@ const App = () => {
               <Route path="/dashboard/jobs/:jobId" element={<JobTicketDetail />} />
               <Route path="/dashboard/jobs/:jobId/invite" element={<MatchAndSend />} />
               <Route path="/dashboard/jobs/:jobId/compare" element={<QuoteComparison />} />
+              <Route path="/dashboard/jobs/:jobId/responses" element={<JobResponsesPage />} />
               
               {/* Messages (shared) */}
               <Route path="/messages" element={<Messages />} />
