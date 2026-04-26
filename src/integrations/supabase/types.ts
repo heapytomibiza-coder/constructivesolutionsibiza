@@ -1086,6 +1086,7 @@ export type Database = {
       }
       job_classification_suggestions: {
         Row: {
+          accepted_at: string | null
           confidence: number | null
           created_at: string
           id: string
@@ -1101,6 +1102,7 @@ export type Database = {
           suggested_subcategory_slug: string | null
         }
         Insert: {
+          accepted_at?: string | null
           confidence?: number | null
           created_at?: string
           id?: string
@@ -1116,6 +1118,7 @@ export type Database = {
           suggested_subcategory_slug?: string | null
         }
         Update: {
+          accepted_at?: string | null
           confidence?: number | null
           created_at?: string
           id?: string
@@ -4187,6 +4190,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      generate_job_classification_suggestions: {
+        Args: { p_job_id: string }
+        Returns: string[]
+      }
       get_agent_performance_metrics: {
         Args: { p_since?: string; p_until?: string }
         Returns: {
@@ -4239,6 +4246,17 @@ export type Database = {
           job_count_7d: number
           pct_change_7d: number
           snapshot_date: string
+        }[]
+      }
+      get_job_classification_suggestions: {
+        Args: { p_job_id: string }
+        Returns: {
+          accepted_at: string
+          created_at: string
+          id: string
+          job_id: string
+          status: string
+          suggested_micro_slugs: string[]
         }[]
       }
       get_or_create_conversation: {
