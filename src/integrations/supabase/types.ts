@@ -1237,6 +1237,90 @@ export type Database = {
           },
         ]
       }
+      job_matches: {
+        Row: {
+          base_score: number
+          created_at: string
+          final_score: number
+          id: string
+          job_id: string
+          match_reason: Json
+          matched_at: string
+          professional_id: string
+          responded_at: string | null
+          status: string
+          updated_at: string
+          viewed_at: string | null
+          wave: number
+        }
+        Insert: {
+          base_score?: number
+          created_at?: string
+          final_score?: number
+          id?: string
+          job_id: string
+          match_reason?: Json
+          matched_at?: string
+          professional_id: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+          viewed_at?: string | null
+          wave?: number
+        }
+        Update: {
+          base_score?: number
+          created_at?: string
+          final_score?: number
+          id?: string
+          job_id?: string
+          match_reason?: Json
+          matched_at?: string
+          professional_id?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+          viewed_at?: string | null
+          wave?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "admin_unclassified_custom_jobs"
+            referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "job_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_board"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "matched_jobs_for_professional"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_micro_links: {
         Row: {
           created_at: string
@@ -4547,6 +4631,10 @@ export type Database = {
         Returns: undefined
       }
       trigger_qa_reminder: { Args: never; Returns: Json }
+      upsert_job_matches: {
+        Args: { p_job_id: string; p_matches: Json }
+        Returns: number
+      }
       withdraw_from_job: { Args: { p_job_id: string }; Returns: undefined }
     }
     Enums: {
