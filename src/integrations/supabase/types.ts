@@ -4008,6 +4008,23 @@ export type Database = {
         Args: { p_action_types?: string[]; p_limit?: number }
         Returns: Json
       }
+      admin_custom_jobs_classification_queue: {
+        Args: { p_limit?: number }
+        Returns: {
+          area: string
+          category: string
+          created_at: string
+          description: string
+          has_accepted_classification: boolean
+          has_jml: boolean
+          job_id: string
+          latest_suggested_at: string
+          subcategory: string
+          suggested_micro_slugs: string[]
+          suggestion_status: string
+          title: string
+        }[]
+      }
       admin_email_queue_details: { Args: never; Returns: Json }
       admin_force_complete_job: {
         Args: { p_job_id: string; p_reason?: string }
@@ -4075,6 +4092,10 @@ export type Database = {
       }
       admin_retry_all_failed_emails: { Args: never; Returns: Json }
       admin_retry_failed_email: { Args: { p_email_id: string }; Returns: Json }
+      admin_set_custom_job_micro_slugs: {
+        Args: { p_job_id: string; p_micro_slugs: string[]; p_note?: string }
+        Returns: Json
+      }
       admin_top_sources: {
         Args: { p_from_ts?: string; p_to_ts?: string }
         Returns: Json
