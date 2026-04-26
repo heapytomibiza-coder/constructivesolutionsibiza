@@ -198,6 +198,8 @@
     "submit": "Enviar Presupuesto",
     "submitted": "Presupuesto enviado correctamente",
     "submitFailed": "Error al enviar presupuesto",
+    "linkResponseWarning": "Presupuesto enviado — no pudimos vincularlo a tu respuesta todavía",
+    "linkResponseWarningDesc": "Tu presupuesto está guardado. El cliente lo verá; actualiza en un momento si no aparece vinculado.",
     "accept": "Aceptar",
     "accepted": "Presupuesto aceptado — ¡profesional asignado!",
     "acceptFailed": "Error al aceptar presupuesto",
