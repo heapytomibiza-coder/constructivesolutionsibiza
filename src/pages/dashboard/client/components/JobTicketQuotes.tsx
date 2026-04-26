@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProSummaryCard } from '@/components/quotes/ProSummaryCard';
-import { BarChart3, FileText, MessageSquare } from 'lucide-react';
+import { BarChart3, FileText, MessageSquare, Inbox, ArrowRight } from 'lucide-react';
 import { useQuotesForJob } from '@/pages/jobs/queries/quotes.query';
+import { useJobResponseCount } from '@/pages/jobs/responses/queries/useJobResponseCount';
 import { supabase } from '@/integrations/supabase/client';
 import { formatQuotePrice } from '@/pages/jobs/utils/formatQuotePrice';
 
@@ -22,6 +23,7 @@ export function JobTicketQuotes({ jobId, jobStatus }: JobTicketQuotesProps) {
   const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const { data: quotes = [], isLoading } = useQuotesForJob(jobId);
+  const { data: responseCount = 0 } = useJobResponseCount(jobId);
 
   const handleMessage = async (professionalId: string) => {
     const { data: conv } = await supabase
@@ -59,6 +61,17 @@ export function JobTicketQuotes({ jobId, jobStatus }: JobTicketQuotesProps) {
                   ? t('jobTicket.waitingForQuotes', "Your job is live — professionals have been notified. You'll receive an email when quotes arrive.")
                   : t('jobTicket.shareToGetQuotes', 'Share your job to start receiving quotes from professionals.')}
               </p>
+              {responseCount > 0 && (
+                <div className="pt-3">
+                  <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                    <Link to={`/dashboard/jobs/${jobId}/responses`}>
+                      <Inbox className="h-3.5 w-3.5" />
+                      {t('jobTicket.viewResponses', 'View {{count}} response', { count: responseCount })}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -80,14 +93,29 @@ export function JobTicketQuotes({ jobId, jobStatus }: JobTicketQuotesProps) {
               {activeQuotes.length}
             </Badge>
           </CardTitle>
-          {activeQuotes.length >= 2 && !acceptedQuote && (
-            <Button variant="outline" size="sm" className="gap-1.5" asChild>
-              <Link to={`/dashboard/jobs/${jobId}/compare`}>
-                <BarChart3 className="h-3.5 w-3.5" />
-                {t('jobTicket.compareQuotes', 'Compare')}
-              </Link>
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {!acceptedQuote && (
+              <Button variant="ghost" size="sm" className="gap-1.5 h-8" asChild>
+                <Link to={`/dashboard/jobs/${jobId}/responses`}>
+                  <Inbox className="h-3.5 w-3.5" />
+                  {t('jobTicket.allResponses', 'All responses')}
+                  {responseCount > 0 && (
+                    <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                      {responseCount}
+                    </Badge>
+                  )}
+                </Link>
+              </Button>
+            )}
+            {activeQuotes.length >= 2 && !acceptedQuote && (
+              <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                <Link to={`/dashboard/jobs/${jobId}/compare`}>
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  {t('jobTicket.compareQuotes', 'Compare')}
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
