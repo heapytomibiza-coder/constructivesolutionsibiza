@@ -30,29 +30,31 @@ WHERE relnamespace = 'public'::regnamespace
   AND relname IN ('job_responses', 'job_matches')
 ORDER BY relname;
 
-\echo '== §2 Table grants (expected: anon=none, authenticated=SELECT only) =='
-WITH expected(grantee, table_name, allowed) AS (
-  VALUES
-    ('anon',          'job_responses', ''::text),
-    ('authenticated', 'job_responses', 'SELECT'),
-    ('anon',          'job_matches',   ''),
-    ('authenticated', 'job_matches',   'SELECT')
-),
-actual AS (
-  SELECT grantee::text, table_name::text,
-         COALESCE(string_agg(privilege_type::text, ',' ORDER BY privilege_type), '') AS privs
-  FROM information_schema.role_table_grants
-  WHERE table_schema = 'public'
-    AND table_name IN ('job_responses', 'job_matches')
-    AND grantee IN ('anon', 'authenticated')
-  GROUP BY grantee, table_name
-)
-SELECT e.grantee, e.table_name, e.allowed AS expected,
-       COALESCE(a.privs, '') AS actual,
-       CASE WHEN COALESCE(a.privs,'') = e.allowed THEN 'PASS' ELSE 'FAIL' END AS verdict
-FROM expected e
-LEFT JOIN actual a USING (grantee, table_name)
-ORDER BY table_name, grantee;
+\echo '== §2 Table grants (anon=NONE, authenticated=SELECT only — no write privs) =='
+-- Use has_table_privilege() because information_schema.role_table_grants
+-- does not surface Supabase's NOLOGIN pseudo-roles (anon/authenticated)
+-- consistently across Postgres versions. has_table_privilege() is authoritative.
+WITH targets(table_name) AS (VALUES ('job_responses'), ('job_matches'))
+SELECT
+  t.table_name,
+  has_table_privilege('anon',          'public.'||t.table_name, 'SELECT') AS anon_select,
+  has_table_privilege('authenticated', 'public.'||t.table_name, 'SELECT') AS auth_select,
+  has_table_privilege('authenticated', 'public.'||t.table_name, 'INSERT') AS auth_insert,
+  has_table_privilege('authenticated', 'public.'||t.table_name, 'UPDATE') AS auth_update,
+  has_table_privilege('authenticated', 'public.'||t.table_name, 'DELETE') AS auth_delete,
+  CASE
+    WHEN has_table_privilege('anon', 'public.'||t.table_name, 'SELECT')
+      THEN 'FAIL: anon can SELECT'
+    WHEN NOT has_table_privilege('authenticated', 'public.'||t.table_name, 'SELECT')
+      THEN 'FAIL: authenticated cannot SELECT'
+    WHEN has_table_privilege('authenticated', 'public.'||t.table_name, 'INSERT')
+      OR has_table_privilege('authenticated', 'public.'||t.table_name, 'UPDATE')
+      OR has_table_privilege('authenticated', 'public.'||t.table_name, 'DELETE')
+      THEN 'FAIL: authenticated has direct write — should be RPC-only'
+    ELSE 'PASS'
+  END AS verdict
+FROM targets t
+ORDER BY t.table_name;
 
 \echo '== §3 Policies on job_responses (admin ALL + pro SELECT own + client SELECT owned-jobs) =='
 WITH expected(polname, polcmd_label) AS (
