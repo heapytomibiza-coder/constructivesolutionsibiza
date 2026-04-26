@@ -124,11 +124,12 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
       <CardContent className="space-y-3">
         {/* Status + total */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <StatusIcon className={cn('h-4 w-4', statusColor)} />
             <Badge variant={quote.status === 'accepted' ? 'default' : 'secondary'} className="capitalize">
               {t(`quoteStatus.${quote.status}`, quote.status)}
             </Badge>
+            {syncState && <ResponseSyncBadge state={syncState} />}
           </div>
           <p className="text-lg font-bold text-foreground">
             €{(quote.total ?? quote.price_fixed ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
