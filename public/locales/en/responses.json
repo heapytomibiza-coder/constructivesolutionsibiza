@@ -1,0 +1,96 @@
+{
+  "page": {
+    "title": "Responses",
+    "subtitle": "Professionals interested in your job",
+    "backToJob": "Back to job",
+    "loading": "Loading responses…",
+    "loadError": "Couldn't load responses",
+    "empty": "No responses yet. We'll notify you when professionals engage.",
+    "notOwner": "Only the client who posted this job can view responses."
+  },
+  "sections": {
+    "shortlisted": "Shortlisted",
+    "withQuote": "With quote",
+    "interested": "Interested · no quote yet",
+    "declined": "Not selected",
+    "showDeclined": "Show declined ({{count}})",
+    "hideDeclined": "Hide declined"
+  },
+  "card": {
+    "quotePending": "Quote pending",
+    "viewProfile": "View profile",
+    "message": "Message",
+    "shortlist": "Shortlist",
+    "shortlisted": "Shortlisted",
+    "removeShortlist": "Remove from shortlist",
+    "askForQuote": "Ask for quote",
+    "hire": "Hire {{name}}",
+    "hireShort": "Hire",
+    "compare": "Compare",
+    "responseTime": "Usually responds in {{time}}"
+  },
+  "timeline": {
+    "title": "Where you are",
+    "interested": "Interested",
+    "quoted": "Quoted",
+    "shortlisted": "Shortlisted",
+    "hired": "Hired"
+  },
+  "pro": {
+    "matched": "Matched for your services",
+    "ctaInterested": "I'm interested",
+    "ctaSendQuote": "Send a quote",
+    "ctaEditQuote": "Edit quote",
+    "ctaWithdraw": "Withdraw",
+    "ctaSendRevised": "Send revised quote",
+    "ctaOpenWorkspace": "Open job workspace",
+    "ctaViewSimilar": "View similar jobs",
+    "statusInterested": "You're interested",
+    "statusQuoted": "Quote sent · awaiting client",
+    "statusShortlisted": "You're shortlisted",
+    "statusAccepted": "You won this job",
+    "statusDeclined": "This job went to another pro",
+    "nudgeAddQuote": "Add a quote to stand out",
+    "expressedToast": "Client notified. Add a quote to stand out.",
+    "expressFailed": "Couldn't register your interest",
+    "withdrawnToast": "Response withdrawn",
+    "withdrawFailed": "Couldn't withdraw",
+    "needsOnboarding": "Complete your professional profile to respond to jobs",
+    "needsProRole": "Switch to your professional role to respond"
+  },
+  "client": {
+    "shortlistedToast": "Shortlisted. The pro has been notified.",
+    "shortlistFailed": "Couldn't shortlist",
+    "declinedToast": "Pro declined.",
+    "declineFailed": "Couldn't decline",
+    "acceptedToast": "Hired. Opening your job workspace…",
+    "acceptFailed": "Couldn't complete hire"
+  },
+  "hireModal": {
+    "title": "Hire {{name}} for {{price}}?",
+    "willHappen": "This will:",
+    "openWorkspace": "Open your shared Job Workspace",
+    "initiatePayment": "Initiate the secure payment hold",
+    "declineOthers": "Politely decline the other {{count}} professional",
+    "declineOthers_other": "Politely decline the other {{count}} professionals",
+    "irreversible": "You can't undo this. Disputes follow the 28-day resolution process.",
+    "cancel": "Cancel",
+    "confirm": "Yes, hire {{name}}",
+    "submitting": "Hiring…"
+  },
+  "withdrawModal": {
+    "title": "Withdraw your response?",
+    "body": "The client will see you're no longer interested. You can re-engage if the job is still open.",
+    "confirm": "Withdraw",
+    "cancel": "Keep response"
+  },
+  "stages": {
+    "interested": "Interested",
+    "quoted": "Quoted",
+    "shortlisted": "Shortlisted",
+    "accepted": "Hired",
+    "declined": "Declined",
+    "withdrawn": "Withdrawn",
+    "expired": "Expired"
+  }
+}

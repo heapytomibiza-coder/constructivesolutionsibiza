@@ -150,6 +150,7 @@ export const clientRoutes: RouteConfig[] = [
   { path: '/dashboard/jobs/:jobId', access: 'auth', redirectTo: '/auth', lane: 'shared' },
   { path: '/dashboard/jobs/:jobId/invite', access: 'auth', redirectTo: '/auth', lane: 'shared' },
   { path: '/dashboard/jobs/:jobId/compare', access: 'auth', redirectTo: '/auth', lane: 'shared' },
+  { path: '/dashboard/jobs/:jobId/responses', access: 'role:client', redirectTo: '/auth', lane: 'client' },
   
   // Shared hub routes
   { 

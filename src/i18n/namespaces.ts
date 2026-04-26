@@ -16,6 +16,7 @@ export const NS = {
   settings: "settings",
   messages: "messages",
   professional: "professional",
+  responses: "responses",
 } as const;
 
 export type Namespace = (typeof NS)[keyof typeof NS];
