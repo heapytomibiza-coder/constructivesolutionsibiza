@@ -33,8 +33,7 @@ interface ProProfileJoin {
   display_name: string | null;
   business_name: string | null;
   avatar_url: string | null;
-  rating_average: number | null;
-  reviews_count: number | null;
+  trust_score: number | null;
   verification_status: string | null;
 }
 
@@ -64,7 +63,7 @@ export function useJobResponses(jobId: string | null, enabled = true) {
         supabase
           .from("professional_profiles")
           .select(
-            "user_id, display_name, business_name, avatar_url, rating_average, reviews_count, verification_status"
+            "user_id, display_name, business_name, avatar_url, trust_score, verification_status"
           )
           .in("user_id", proIds),
         quoteIds.length > 0
@@ -78,14 +77,14 @@ export function useJobResponses(jobId: string | null, enabled = true) {
       // Best-effort enrichment — RLS gaps degrade gracefully to null
       const proById = new Map<string, ResponseProSummary>();
       if (!prosResult.error && prosResult.data) {
-        for (const p of prosResult.data as ProProfileJoin[]) {
+        for (const p of prosResult.data as unknown as ProProfileJoin[]) {
           proById.set(p.user_id, {
             professionalId: p.user_id,
             displayName: p.display_name,
             businessName: p.business_name,
             avatarUrl: p.avatar_url,
-            rating: p.rating_average,
-            reviewsCount: p.reviews_count,
+            rating: p.trust_score,
+            reviewsCount: null,
             isVerified: p.verification_status === "verified",
           });
         }
