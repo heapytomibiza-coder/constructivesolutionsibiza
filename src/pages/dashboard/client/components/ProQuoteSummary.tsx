@@ -15,6 +15,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Euro, CheckCircle2, Clock, XCircle, Plus, Loader2, Send } from 'lucide-react';
 import { useMyQuoteForJob } from '@/pages/jobs/queries/quotes.query';
+import { useMyResponse } from '@/pages/jobs/responses/queries/useMyResponse';
+import {
+  ResponseSyncBadge,
+  deriveSyncState,
+} from '@/pages/jobs/responses/components/ResponseSyncBadge';
 import { groupLineItems } from '@/pages/jobs/utils/quoteDisplay';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -52,11 +57,19 @@ export function ProQuoteSummary({ jobId, jobStatus }: ProQuoteSummaryProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: quote, isLoading } = useMyQuoteForJob(jobId, user?.id ?? null, !!user?.id);
+  const { data: myResponse } = useMyResponse(jobId, user?.id ?? null);
 
   if (isLoading || !quote) return null;
 
   const StatusIcon = STATUS_ICON[quote.status as keyof typeof STATUS_ICON] ?? Clock;
   const statusColor = STATUS_COLOR[quote.status as keyof typeof STATUS_COLOR] ?? 'text-muted-foreground';
+
+  const syncState = deriveSyncState({
+    quoteId: quote.id,
+    quoteStatus: quote.status,
+    responseQuoteId: myResponse?.quote_id ?? null,
+    hasResponse: !!myResponse,
+  });
 
   const canAddCosts = quote.status === 'accepted' && jobStatus === 'in_progress';
 
