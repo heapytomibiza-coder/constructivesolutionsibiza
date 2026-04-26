@@ -302,6 +302,16 @@ export function ProposalBuilder({ jobId, existingQuote, onSuccess }: ProposalBui
     toast.success(t("quotes.submitted"));
     queryClient.invalidateQueries({ queryKey: quoteKeys.myQuote(jobId) });
     queryClient.invalidateQueries({ queryKey: quoteKeys.forJob(jobId) });
+    // Track 5: refresh response state so the pro action bar / client inbox pick up the linked quote
+    queryClient.invalidateQueries({ queryKey: ["responses"] });
+
+    if (result.linkWarning) {
+      // Quote was saved successfully — only the response link failed. Surface a soft warning.
+      toast.warning(t("quotes.linkResponseWarning"), {
+        description: t("quotes.linkResponseWarningDesc"),
+      });
+    }
+
     onSuccess?.(result.quoteId);
   };
 
