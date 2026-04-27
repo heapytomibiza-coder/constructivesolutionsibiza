@@ -4,10 +4,34 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Briefcase } from 'lucide-react';
+import { ArrowLeft, Plus, Briefcase, AlertTriangle, ShieldAlert, Loader2, RefreshCw } from 'lucide-react';
 import { ClientJobCard } from './components/ClientJobCard';
 import type { ClientJob } from './hooks/useClientStats';
 import { useCallback } from 'react';
+
+/**
+ * Classify a query error into a user-actionable bucket.
+ * - 'permission' → RLS / auth-shaped failure (e.g. PostgREST 42501)
+ * - 'network'    → fetch / offline / 5xx
+ * - 'unknown'    → anything else
+ */
+type JobsErrorKind = 'permission' | 'network' | 'unknown';
+
+function classifyJobsError(err: unknown): JobsErrorKind {
+  if (!err) return 'unknown';
+  const e = err as { code?: string; message?: string; status?: number };
+  const code = e.code ?? '';
+  const msg = (e.message ?? '').toLowerCase();
+  const status = e.status ?? 0;
+
+  if (code === '42501' || msg.includes('permission denied') || msg.includes('rls') || msg.includes('row-level security') || status === 401 || status === 403) {
+    return 'permission';
+  }
+  if (msg.includes('fetch') || msg.includes('network') || msg.includes('failed to fetch') || (status >= 500 && status < 600)) {
+    return 'network';
+  }
+  return 'unknown';
+}
 
 /**
  * CLIENT JOBS LIST
