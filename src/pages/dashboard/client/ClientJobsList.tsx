@@ -45,7 +45,14 @@ export default function ClientJobsList() {
   const queryKey = ['client_jobs_list', user?.id];
   const handleJobUpdated = useCallback(() => qc.invalidateQueries({ queryKey }), [qc, queryKey]);
 
-  const { data: jobs = [], isLoading } = useQuery({
+  const {
+    data: jobs = [],
+    isLoading,
+    isError,
+    error,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ['client_jobs_list', user?.id],
     queryFn: async (): Promise<ClientJob[]> => {
       if (!user?.id) return [];
@@ -60,7 +67,10 @@ export default function ClientJobsList() {
       return (data || []).map(j => ({ ...j, conversation_count: 0 }));
     },
     enabled: !!user?.id,
+    retry: 1,
   });
+
+  const errorKind: JobsErrorKind | null = isError ? classifyJobsError(error) : null;
 
   const activeJobs = jobs.filter(j => ['open', 'in_progress'].includes(j.status));
   const draftJobs = jobs.filter(j => ['draft', 'ready'].includes(j.status));
