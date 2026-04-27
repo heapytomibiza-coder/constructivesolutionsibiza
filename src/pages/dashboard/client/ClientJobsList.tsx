@@ -4,10 +4,34 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Briefcase } from 'lucide-react';
+import { ArrowLeft, Plus, Briefcase, AlertTriangle, ShieldAlert, Loader2, RefreshCw } from 'lucide-react';
 import { ClientJobCard } from './components/ClientJobCard';
 import type { ClientJob } from './hooks/useClientStats';
 import { useCallback } from 'react';
+
+/**
+ * Classify a query error into a user-actionable bucket.
+ * - 'permission' → RLS / auth-shaped failure (e.g. PostgREST 42501)
+ * - 'network'    → fetch / offline / 5xx
+ * - 'unknown'    → anything else
+ */
+type JobsErrorKind = 'permission' | 'network' | 'unknown';
+
+function classifyJobsError(err: unknown): JobsErrorKind {
+  if (!err) return 'unknown';
+  const e = err as { code?: string; message?: string; status?: number };
+  const code = e.code ?? '';
+  const msg = (e.message ?? '').toLowerCase();
+  const status = e.status ?? 0;
+
+  if (code === '42501' || msg.includes('permission denied') || msg.includes('rls') || msg.includes('row-level security') || status === 401 || status === 403) {
+    return 'permission';
+  }
+  if (msg.includes('fetch') || msg.includes('network') || msg.includes('failed to fetch') || (status >= 500 && status < 600)) {
+    return 'network';
+  }
+  return 'unknown';
+}
 
 /**
  * CLIENT JOBS LIST
@@ -21,7 +45,14 @@ export default function ClientJobsList() {
   const queryKey = ['client_jobs_list', user?.id];
   const handleJobUpdated = useCallback(() => qc.invalidateQueries({ queryKey }), [qc, queryKey]);
 
-  const { data: jobs = [], isLoading } = useQuery({
+  const {
+    data: jobs = [],
+    isLoading,
+    isError,
+    error,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ['client_jobs_list', user?.id],
     queryFn: async (): Promise<ClientJob[]> => {
       if (!user?.id) return [];
@@ -36,7 +67,10 @@ export default function ClientJobsList() {
       return (data || []).map(j => ({ ...j, conversation_count: 0 }));
     },
     enabled: !!user?.id,
+    retry: 1,
   });
+
+  const errorKind: JobsErrorKind | null = isError ? classifyJobsError(error) : null;
 
   const activeJobs = jobs.filter(j => ['open', 'in_progress'].includes(j.status));
   const draftJobs = jobs.filter(j => ['draft', 'ready'].includes(j.status));
@@ -57,7 +91,43 @@ export default function ClientJobsList() {
 
       <div className="container py-5 max-w-2xl">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground text-center py-12">{t('client.loading')}</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Loader2 className="h-6 w-6 text-muted-foreground animate-spin mb-3" />
+            <p className="text-sm text-muted-foreground">{t('client.loading')}</p>
+          </div>
+        ) : errorKind === 'permission' ? (
+          <div className="text-center py-12 px-4 rounded-xl border border-destructive/20 bg-destructive/5">
+            <ShieldAlert className="h-10 w-10 text-destructive/70 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-foreground mb-1">
+              {t('client.jobsPermissionTitle', "We couldn't load your jobs")}
+            </p>
+            <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+              {t('client.jobsPermissionBody', 'Your session may have expired. Please sign in again to view your jobs.')}
+            </p>
+            <Button asChild variant="outline">
+              <Link to="/auth">
+                {t('client.jobsPermissionAction', 'Sign in again')}
+              </Link>
+            </Button>
+          </div>
+        ) : errorKind ? (
+          <div className="text-center py-12 px-4 rounded-xl border border-border bg-card">
+            <AlertTriangle className="h-10 w-10 text-muted-foreground/60 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-foreground mb-1">
+              {errorKind === 'network'
+                ? t('client.jobsNetworkTitle', "Couldn't reach the server")
+                : t('client.jobsErrorTitle', "Something went wrong")}
+            </p>
+            <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+              {errorKind === 'network'
+                ? t('client.jobsNetworkBody', 'Check your connection and try again.')
+                : t('client.jobsErrorBody', "We couldn't load your jobs right now. Please try again.")}
+            </p>
+            <Button onClick={() => refetch()} disabled={isFetching} variant="outline">
+              <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+              {t('client.retry', 'Retry')}
+            </Button>
+          </div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-12">
             <Briefcase className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
