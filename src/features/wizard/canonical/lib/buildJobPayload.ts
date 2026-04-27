@@ -8,6 +8,7 @@ import type { TablesInsert, Json } from '@/integrations/supabase/types';
 import type { WizardState } from '../types';
 import { getZoneByIdSafe } from '@/shared/components/professional/zones';
 import { getLeanAttribution } from '@/lib/attribution';
+import { interpretAnswers } from '@/lib/wizard/interpretAnswers';
 import { isStep5Complete } from './stepValidation';
 
 type JobInsert = TablesInsert<"jobs">;
@@ -25,7 +26,7 @@ const LOCATION_MAP: Record<string, { area: string; town?: string }> = {
 
 /**
  * Build area-safe location JSON
- * Never includes exact addresses - only broad area info
+ * Never includes exact addresses - only broad location info
  */
 function buildLocationJson(logistics: WizardState['logistics']): Json {
   const preset = logistics.location ?? null;
@@ -47,7 +48,7 @@ function buildLocationJson(logistics: WizardState['logistics']): Json {
     return {
       preset,
       area,
-      town: null,
+      town,
       custom: custom || null,
       zone: null,
       notes: null,
@@ -337,6 +338,8 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
       ? (answersObj.microAnswers as Record<string, Json>)
       : {};
   const packTracking = answersObj;
+
+  const interpretation = interpretAnswers({ logistics, extras, answers });
   
   const answersPayload: Json = {
     selected: {
@@ -364,6 +367,7 @@ export function buildJobInsert(userId: string, state: WizardState): JobInsert {
       notes: extras.notes ?? null,
       permitsConcern: extras.permitsConcern ?? false,
     },
+    meta: interpretation,
     // Pack tracking metadata for analytics
     _pack_source: (packTracking?._pack_source as string) ?? null,
     _pack_slug: (packTracking?._pack_slug as string) ?? null,
