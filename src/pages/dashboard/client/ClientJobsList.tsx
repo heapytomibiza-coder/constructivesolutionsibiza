@@ -91,7 +91,43 @@ export default function ClientJobsList() {
 
       <div className="container py-5 max-w-2xl">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground text-center py-12">{t('client.loading')}</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Loader2 className="h-6 w-6 text-muted-foreground animate-spin mb-3" />
+            <p className="text-sm text-muted-foreground">{t('client.loading')}</p>
+          </div>
+        ) : errorKind === 'permission' ? (
+          <div className="text-center py-12 px-4 rounded-xl border border-destructive/20 bg-destructive/5">
+            <ShieldAlert className="h-10 w-10 text-destructive/70 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-foreground mb-1">
+              {t('client.jobsPermissionTitle', "We couldn't load your jobs")}
+            </p>
+            <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+              {t('client.jobsPermissionBody', 'Your session may have expired. Please sign in again to view your jobs.')}
+            </p>
+            <Button asChild variant="outline">
+              <Link to="/auth">
+                {t('client.jobsPermissionAction', 'Sign in again')}
+              </Link>
+            </Button>
+          </div>
+        ) : errorKind ? (
+          <div className="text-center py-12 px-4 rounded-xl border border-border bg-card">
+            <AlertTriangle className="h-10 w-10 text-muted-foreground/60 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-foreground mb-1">
+              {errorKind === 'network'
+                ? t('client.jobsNetworkTitle', "Couldn't reach the server")
+                : t('client.jobsErrorTitle', "Something went wrong")}
+            </p>
+            <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+              {errorKind === 'network'
+                ? t('client.jobsNetworkBody', 'Check your connection and try again.')
+                : t('client.jobsErrorBody', "We couldn't load your jobs right now. Please try again.")}
+            </p>
+            <Button onClick={() => refetch()} disabled={isFetching} variant="outline">
+              <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+              {t('client.retry', 'Retry')}
+            </Button>
+          </div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-12">
             <Briefcase className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
