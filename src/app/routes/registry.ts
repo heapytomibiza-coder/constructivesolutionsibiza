@@ -301,6 +301,13 @@ export const disputeRoutes: RouteConfig[] = [
     lane: 'shared',
     minRollout: 'protection-beta',
   },
+  {
+    path: '/disputes/:disputeId/respond',
+    access: 'auth',
+    redirectTo: '/auth',
+    lane: 'shared',
+    minRollout: 'protection-beta',
+  },
 ];
 
 // ============================================
