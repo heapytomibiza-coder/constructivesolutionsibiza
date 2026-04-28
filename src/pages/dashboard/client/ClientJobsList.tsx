@@ -8,6 +8,7 @@ import { ArrowLeft, Plus, Briefcase, AlertTriangle, ShieldAlert, Loader2, Refres
 import { ClientJobCard } from './components/ClientJobCard';
 import type { ClientJob } from './hooks/useClientStats';
 import { useCallback } from 'react';
+import { logJourneyEvent, JOURNEY_EVENTS } from '@/lib/journey';
 
 /**
  * Classify a query error into a user-actionable bucket.
