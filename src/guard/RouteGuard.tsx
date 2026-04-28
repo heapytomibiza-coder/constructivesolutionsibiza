@@ -135,6 +135,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
   }
 
   if (routeConfig.minRollout && !isRolloutActive(routeConfig.minRollout)) {
+    emitRedirect('rollout_inactive', location.pathname, '/');
     return <Navigate to="/" replace />;
   }
 
