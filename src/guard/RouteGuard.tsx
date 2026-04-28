@@ -16,6 +16,19 @@ import { checkAccess } from '@/guard/access';
 import { buildRedirectUrl, buildReturnUrl } from '@/guard/redirects';
 import { isRolloutActive } from '@/domain/rollout';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { logJourneyEvent, JOURNEY_EVENTS } from '@/lib/journey';
+
+/** Fire-and-forget journey log for guard-driven redirects. */
+function emitRedirect(reason: string, from: string, to: string) {
+  try {
+    logJourneyEvent(JOURNEY_EVENTS.REDIRECT_TRIGGERED, {
+      success: false,
+      action: reason,
+      route: from,
+      payload: { from, to, reason },
+    });
+  } catch { /* never throw */ }
+}
 
 interface RouteGuardProps {
   children?: React.ReactNode;
@@ -110,6 +123,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
 
     const returnUrl = buildReturnUrl(location.pathname, location.search);
     const redirectUrl = buildRedirectUrl('/auth', returnUrl);
+    emitRedirect('not_authenticated_retries_exhausted', location.pathname, '/auth');
     return <Navigate to={redirectUrl} replace />;
   }
 
@@ -121,6 +135,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
   }
 
   if (routeConfig.minRollout && !isRolloutActive(routeConfig.minRollout)) {
+    emitRedirect('rollout_inactive', location.pathname, '/');
     return <Navigate to="/" replace />;
   }
 
@@ -137,6 +152,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
   if (!hasAccess) {
     const returnUrl = buildReturnUrl(location.pathname, location.search);
     const redirectUrl = buildRedirectUrl(defaultRedirect, returnUrl);
+    emitRedirect('access_denied', location.pathname, defaultRedirect);
     return <Navigate to={redirectUrl} replace />;
   }
 

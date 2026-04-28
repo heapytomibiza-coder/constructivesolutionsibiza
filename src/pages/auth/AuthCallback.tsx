@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { ensureUserRoles, RoleLoadAbortedError } from '@/lib/ensureUserRoles';
 import { Button } from '@/components/ui/button';
+import { logJourneyEvent, JOURNEY_EVENTS } from '@/lib/journey';
 
 /**
  * AUTH CALLBACK PAGE
@@ -28,6 +29,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
+      try { logJourneyEvent(JOURNEY_EVENTS.AUTH_INIT, { action: 'callback_start' }); } catch {}
       let session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session'] = null;
 
       // Try getSession first; if null, wait briefly for onAuthStateChange to deliver it
@@ -35,6 +37,7 @@ const AuthCallback = () => {
       
       if (error) {
         console.error('Auth callback error:', error);
+        try { logJourneyEvent(JOURNEY_EVENTS.AUTH_FAILURE, { success: false, action: 'get_session', errorMessage: error.message }); } catch {}
         setState({ status: 'error', message: 'Sign-in failed. Please try again.' });
         return;
       }
@@ -58,6 +61,7 @@ const AuthCallback = () => {
       }
 
       if (!session) {
+        try { logJourneyEvent(JOURNEY_EVENTS.AUTH_FAILURE, { success: false, action: 'session_timeout', errorMessage: 'session not delivered' }); } catch {}
         setState({
           status: 'error',
           message: 'We couldn\'t complete sign-in. Your session may have expired.',
@@ -65,6 +69,7 @@ const AuthCallback = () => {
         return;
       }
 
+      try { logJourneyEvent(JOURNEY_EVENTS.AUTH_SUCCESS, { action: 'callback_session_ready' }); } catch {}
       setState({ status: 'loading', message: 'Setting up your account…' });
 
       // Check for pending redirect (e.g., from wizard auth checkpoint)

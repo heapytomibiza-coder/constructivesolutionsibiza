@@ -23,6 +23,7 @@ const OnboardingFunnelPage = lazy(() => import("@/pages/admin/insights/Onboardin
 const TopSourcesPage = lazy(() => import("@/pages/admin/insights/TopSourcesPage"));
 const MessagingPulsePage = lazy(() => import("@/pages/admin/insights/MessagingPulsePage"));
 const MonitoringPage = lazy(() => import("@/pages/admin/monitoring/MonitoringPage"));
+const JourneyDebugPage = lazy(() => import("@/pages/admin/monitoring/JourneyDebugPage"));
 const DisputeQADashboard = lazy(() => import("@/pages/admin/qa/DisputeQADashboard"));
 const AdminPricingRulesPage = lazy(() => import("@/pages/admin/pricing/AdminPricingRulesPage"));
 const LaunchChecklist = lazy(() => import("@/pages/LaunchChecklist"));
@@ -43,6 +44,7 @@ export function AdminRouteChildren() {
       <Route path="insights/messaging-pulse" element={<MessagingPulsePage />} />
       <Route path="insights/:metricKey" element={<MetricInsightPage />} />
       <Route path="monitoring" element={<MonitoringPage />} />
+      <Route path="journey-debug" element={<JourneyDebugPage />} />
       <Route path="qa/disputes" element={<DisputeQADashboard />} />
       <Route path="pricing-rules" element={<AdminPricingRulesPage />} />
       <Route path="launch-checklist" element={<LaunchChecklist />} />
