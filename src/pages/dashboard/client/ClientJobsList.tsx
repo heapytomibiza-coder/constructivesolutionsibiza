@@ -57,6 +57,7 @@ export default function ClientJobsList() {
     queryKey: ['client_jobs_list', user?.id],
     queryFn: async (): Promise<ClientJob[]> => {
       if (!user?.id) return [];
+      try { logJourneyEvent(JOURNEY_EVENTS.JOBS_LOAD_START, { action: 'client_jobs_list' }); } catch {}
 
       const { data, error } = await supabase
         .from('jobs')
@@ -64,8 +65,21 @@ export default function ClientJobsList() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return (data || []).map(j => ({ ...j, conversation_count: 0 }));
+      if (error) {
+        try {
+          logJourneyEvent(JOURNEY_EVENTS.JOBS_LOAD_FAILURE, {
+            success: false,
+            action: 'client_jobs_list',
+            errorMessage: error.message,
+            errorCode: (error as { code?: string }).code,
+            payload: { kind: classifyJobsError(error) },
+          });
+        } catch {}
+        throw error;
+      }
+      const rows = (data || []).map(j => ({ ...j, conversation_count: 0 }));
+      try { logJourneyEvent(JOURNEY_EVENTS.JOBS_LOAD_SUCCESS, { action: 'client_jobs_list', payload: { count: rows.length } }); } catch {}
+      return rows;
     },
     enabled: !!user?.id,
     retry: 1,
