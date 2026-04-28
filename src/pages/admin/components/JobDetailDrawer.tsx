@@ -20,6 +20,7 @@ import { useAdminDrawer } from "../context/AdminDrawerContext";
 import { useAdminJobDetails } from "../queries/adminJobDetails.query";
 import { formatWhatsAppPost, copyToClipboard } from "../lib/formatWhatsAppPost";
 import { ClassificationReviewPanel } from "./ClassificationReviewPanel";
+import { JobTypeBadge } from "@/pages/jobs/components/JobTypeBadge";
 
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
@@ -86,6 +87,15 @@ export function JobDetailDrawer() {
             </SheetHeader>
 
             <div className="space-y-5">
+              <JobTypeBadge
+                job={{
+                  flags: job.flags,
+                  computed_inspection_bias: job.computed_inspection_bias,
+                  description: job.description,
+                }}
+                audience="admin"
+                variant="card"
+              />
               {/* Summary Grid */}
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
