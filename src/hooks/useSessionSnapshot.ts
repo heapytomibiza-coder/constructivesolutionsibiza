@@ -371,6 +371,32 @@ export function useSessionSnapshot(): SessionSnapshot {
       async (event, newSession) => {
         if (!mounted) return;
 
+        // Diagnostic: emit journey event for every auth state change
+        try {
+          if (event === 'INITIAL_SESSION') {
+            logJourneyEvent(JOURNEY_EVENTS.AUTH_INIT, {
+              success: true,
+              payload: { hasSession: !!newSession?.user },
+            });
+          } else if (event === 'SIGNED_IN') {
+            touchJourneySession();
+            logJourneyEvent(JOURNEY_EVENTS.AUTH_SUCCESS, { success: true, action: 'signed_in' });
+          } else if (event === 'TOKEN_REFRESHED') {
+            logJourneyEvent(JOURNEY_EVENTS.TOKEN_REFRESH, {
+              success: !!newSession,
+              payload: { hasSession: !!newSession },
+            });
+          } else if (event === 'SIGNED_OUT') {
+            logJourneyEvent(JOURNEY_EVENTS.LOGOUT_TRIGGERED, {
+              success: true,
+              action: 'signed_out',
+              payload: { reason: 'auth_event' },
+            });
+          } else if (event === 'USER_UPDATED') {
+            logJourneyEvent(JOURNEY_EVENTS.USER_UPDATED, { success: true });
+          }
+        } catch { /* never throw */ }
+
         if (event === 'INITIAL_SESSION') {
           authStateRef.current = newSession ? 'signed_in' : 'unknown';
 
@@ -413,6 +439,13 @@ export function useSessionSnapshot(): SessionSnapshot {
               loadUserData(newSession.user.id)
                 .catch((err) => {
                   console.error(`[Auth] loadUserData failed during ${event}:`, err);
+                  try {
+                    logJourneyEvent(JOURNEY_EVENTS.AUTH_FAILURE, {
+                      success: false,
+                      action: 'load_user_data',
+                      errorMessage: err instanceof Error ? err.message : String(err),
+                    });
+                  } catch { /* swallow */ }
                 })
                 .finally(() => {
                   if (!mounted) return;
@@ -427,6 +460,13 @@ export function useSessionSnapshot(): SessionSnapshot {
           } else if (event === 'TOKEN_REFRESHED' && !newSession) {
             // Token refresh returned no session — stale auth state
             console.warn('[Auth] Token refresh returned null session — clearing stale auth');
+            try {
+              logJourneyEvent(JOURNEY_EVENTS.LOGOUT_TRIGGERED, {
+                success: false,
+                action: 'token_refresh_null',
+                payload: { reason: 'token_refresh_returned_null' },
+              });
+            } catch { /* swallow */ }
             authStateRef.current = 'signed_out';
             clearAuthState();
           }
