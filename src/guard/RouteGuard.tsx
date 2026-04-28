@@ -152,6 +152,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
   if (!hasAccess) {
     const returnUrl = buildReturnUrl(location.pathname, location.search);
     const redirectUrl = buildRedirectUrl(defaultRedirect, returnUrl);
+    emitRedirect('access_denied', location.pathname, defaultRedirect);
     return <Navigate to={redirectUrl} replace />;
   }
 
