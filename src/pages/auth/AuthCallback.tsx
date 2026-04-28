@@ -29,6 +29,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
+      try { logJourneyEvent(JOURNEY_EVENTS.AUTH_INIT, { action: 'callback_start' }); } catch {}
       let session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session'] = null;
 
       // Try getSession first; if null, wait briefly for onAuthStateChange to deliver it
@@ -36,6 +37,7 @@ const AuthCallback = () => {
       
       if (error) {
         console.error('Auth callback error:', error);
+        try { logJourneyEvent(JOURNEY_EVENTS.AUTH_FAILURE, { success: false, action: 'get_session', errorMessage: error.message }); } catch {}
         setState({ status: 'error', message: 'Sign-in failed. Please try again.' });
         return;
       }
