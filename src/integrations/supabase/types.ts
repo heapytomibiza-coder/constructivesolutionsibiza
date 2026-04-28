@@ -4348,6 +4348,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_get_journey_summary: {
+        Args: { p_window_minutes?: number }
+        Returns: Json
+      }
       admin_get_recent_journey_sessions: {
         Args: { p_limit?: number; p_only_errors?: boolean }
         Returns: {
