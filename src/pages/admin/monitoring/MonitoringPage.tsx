@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, AlertTriangle, Bug, Globe, Wifi, RefreshCw, MessageSquare, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Bug, Globe, Wifi, RefreshCw, MessageSquare, ExternalLink, Loader2, Activity } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -221,10 +221,18 @@ const MonitoringPage = forwardRef<HTMLDivElement>(function MonitoringPage(_props
               <p className="text-sm text-muted-foreground">Error tracking &amp; tester reports</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={refetchAll}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to="/dashboard/admin/journey-debug">
+              <Button variant="outline" size="sm">
+                <Activity className="mr-2 h-4 w-4" />
+                Journey Debug
+              </Button>
+            </Link>
+            <Button variant="outline" size="sm" onClick={refetchAll}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </div>
       </div>
 
