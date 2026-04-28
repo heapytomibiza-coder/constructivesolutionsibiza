@@ -44,6 +44,7 @@ export function AdminRouteChildren() {
       <Route path="insights/messaging-pulse" element={<MessagingPulsePage />} />
       <Route path="insights/:metricKey" element={<MetricInsightPage />} />
       <Route path="monitoring" element={<MonitoringPage />} />
+      <Route path="journey-debug" element={<JourneyDebugPage />} />
       <Route path="qa/disputes" element={<DisputeQADashboard />} />
       <Route path="pricing-rules" element={<AdminPricingRulesPage />} />
       <Route path="launch-checklist" element={<LaunchChecklist />} />
