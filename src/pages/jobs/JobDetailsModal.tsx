@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, MessageSquare, Share2, Camera, FileText, AlertTriangle, LogIn, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { JobFlagBadges } from "./components/JobFlagBadges";
+import { JobTypeBadge } from "./components/JobTypeBadge";
 import { QuotesTab } from "./components/QuotesTab";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -269,6 +270,10 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
           {isAsap && <Badge variant="accent">{t('board.asap')}</Badge>}
           <Badge variant={specBadge.variant}>{specBadge.label}</Badge>
           <JobFlagBadges flags={jobPack.flags} inspectionBias={jobPack.inspectionBias} safety={jobPack.safety} />
+          <JobTypeBadge
+            job={{ flags: jobPack.flags, inspection_bias: jobPack.inspectionBias }}
+            audience={jobPack.isOwner ? "client" : "pro"}
+          />
           {jobPack.hasPhotos && (
             <Badge variant="outline" className="gap-1">
               <Camera className="h-3 w-3" /> {t('detail.photosLabel')}

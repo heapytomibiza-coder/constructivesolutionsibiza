@@ -10,6 +10,7 @@ import { es } from "date-fns/locale";
 import { Calendar, Euro, MapPin, Image as ImageIcon, MessageSquare, Send, LogIn } from "lucide-react";
 import { JobDetailsModal } from "@/pages/jobs/JobDetailsModal";
 import { JobFlagBadges } from "@/pages/jobs/components/JobFlagBadges";
+import { JobTypeBadge } from "@/pages/jobs/components/JobTypeBadge";
 import { useSession } from "@/contexts/SessionContext";
 import { startConversation } from "@/pages/jobs/actions/messageJob.action";
 import { toast } from "sonner";
@@ -227,6 +228,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
                 {job.start_timing === "asap" && <Badge variant="accent">{t('board.asap')}</Badge>}
                 <Badge variant={specBadge.variant}>{specBadge.label}</Badge>
                 <JobFlagBadges flags={job.flags} inspectionBias={job.computed_inspection_bias} safety={job.computed_safety} compact />
+                <JobTypeBadge job={{ flags: job.flags, computed_inspection_bias: job.computed_inspection_bias }} audience="pro" />
                 {job.has_photos && (
                   <Badge variant="outline" className="gap-1">
                     <ImageIcon className="h-3.5 w-3.5" /> {t('board.photos')}
