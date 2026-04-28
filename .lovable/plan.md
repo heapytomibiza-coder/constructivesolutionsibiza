@@ -1,88 +1,55 @@
-# Track 5 Source-of-Truth Correction Plan
 
-## Current finding
-I checked the current Lovable workspace paths directly. The Track 5 files now exist here, including:
+# Manually post a job for Tom Grimes
 
-```text
-src/pages/jobs/responses/
-src/pages/jobs/responses/components/
-src/pages/jobs/responses/hooks/
-src/pages/jobs/responses/queries/
-src/pages/jobs/actions/__tests__/submitQuote.action.test.ts
-src/pages/jobs/responses/components/__tests__/ResponseSyncBadge.test.ts
-```
+Wizard is broken for him, so I'll insert the job directly into the database under his user account. No code changes — just one migration that inserts a single `jobs` row plus the matching `job_micro_links` row. The DB triggers will then fan it out to the matching engine and notification queue exactly as the wizard would.
 
-So the immediate issue is not that Track 5 is absent from this workspace now. The issue is that the previous audit bundle was incomplete and did not faithfully snapshot the full Track 5 file set.
+## Job summary I'll create
 
-## Decision
-Do not audit yet. First recreate the Codex bundle cleanly from the current workspace source files.
+| Field | Value |
+|---|---|
+| **Posted by** | Tom Grimes (`user_id 3959063e-…1f5dd`) |
+| **Title** | Outdoor furniture assembly — sofa, sunbed & more |
+| **Category** | Handyman & General |
+| **Subcategory** | Odd Jobs |
+| **Micro** | `general-project` (best fit — flatpack/assembly micro doesn't exist yet under this category) |
+| **Area** | San Lorenzo |
+| **Description** | "Handyman needed for tomorrow. Outdoor furniture to build and install — sofa, sunbed, etc. Location: San Lorenzo." |
+| **Start timing** | `urgent` (he said "tomorrow") |
+| **Start date** | Tomorrow (2026-04-29) |
+| **Budget** | Open / no specific budget set (he didn't give one — pros will quote) |
+| **Status** | `open` |
+| **Publicly listed** | `true` (so matched pros can see it) |
+| **is_custom_request** | `true` (flagged so we know this didn't come through the wizard) |
+| **Highlights** | `['outdoor', 'assembly', 'urgent']` |
 
-## Implementation plan
+## Micro-category note
 
-1. **Delete/recreate only the audit bundle folder**
-   - Target path: `audits/codex_track5_bundle/`
-   - Do not touch app source files.
-   - Do not change routes, UI, backend, schema, RPCs, or tests.
+There is currently **no dedicated "Furniture Assembly" micro under Handyman & General** — that's the same data gap we discussed earlier. The closest correct fit is **`general-project`** under Odd Jobs / General Repairs. I'll use that and put "outdoor furniture assembly — sofa, sunbed" in the title and description so handymen self-select correctly.
 
-2. **Copy the full Track 5 file set verbatim**
-   - Preserve relative paths inside the bundle so Codex can map each snapshot back to the source path.
-   - Include all requested files:
+## What I'll do
 
-```text
-src/pages/jobs/responses/JobResponsesPage.tsx
-src/pages/jobs/responses/mutations.ts
-src/pages/jobs/responses/queries/useJobResponses.ts
-src/pages/jobs/responses/queries/useMyResponse.ts
-src/pages/jobs/responses/queries/useJobResponseCount.ts
-src/pages/jobs/responses/components/ResponsesInbox.tsx
-src/pages/jobs/responses/components/ResponseCard.tsx
-src/pages/jobs/responses/components/ResponseStateTimeline.tsx
-src/pages/jobs/responses/components/HireConfirmModal.tsx
-src/pages/jobs/responses/components/ProResponseActionBar.tsx
-src/pages/jobs/responses/components/ResponseSyncBadge.tsx
-src/pages/jobs/responses/hooks/useResponseLinkRetry.ts
-src/pages/jobs/actions/submitQuote.action.ts
-src/pages/jobs/actions/__tests__/submitQuote.action.test.ts
-src/pages/jobs/responses/components/__tests__/ResponseSyncBadge.test.ts
-src/pages/dashboard/client/components/JobTicketQuotes.tsx
-src/pages/dashboard/client/components/ProQuoteSummary.tsx
-src/lib/eventTaxonomy.ts
-public/locales/en/responses.json
-public/locales/es/responses.json
-public/locales/en/dashboard.json
-```
+1. **Create one migration** that:
+   - Inserts the `jobs` row above (status `open`, publicly listed, urgent timing).
+   - Inserts a `job_micro_links` row pointing at `general-project` so the matcher picks it up.
+2. **Verify** by querying back: `SELECT id, title, status, area FROM jobs WHERE user_id = '3959063e-…';`
+3. **Confirm to Tom** with the job ID and the URL `/jobs/<id>` so he can view/edit it from his client dashboard.
 
-3. **Create `audits/codex_track5_bundle/MANIFEST.md`**
-   Include:
-   - Purpose of the bundle.
-   - Exact source path for every copied file.
-   - What Codex should audit:
-     - Responses inbox ordering and decision clarity.
-     - Client entry points and response count badge.
-     - Professional response action bar behavior.
-     - Response sync badge state calculation.
-     - One-shot retry hook and loop prevention.
-     - `submitQuote` quote-to-response bridge behavior.
-     - Structured logging for link failures.
-     - Unit test coverage.
-     - English/Spanish copy coverage.
-   - What Codex must ignore:
-     - Backend/schema/RLS/RPC implementation changes.
-     - Quote creation behavior changes.
-     - Edge functions.
-     - Unrelated routes/components.
-   - Current test result: `15/15 passing`.
-   - Note: no backend/schema/RPC changes in this frontend pass.
+Existing DB triggers will:
+- Queue notifications to matched handymen (`job_notifications_queue`).
+- Run job-scoring.
+- Add it to the public job board feed.
 
-4. **Verify the bundle before returning**
-   - Count copied files: expected `21` source snapshots plus `MANIFEST.md`.
-   - List the bundle tree.
-   - Confirm each copied file exists in the current Lovable workspace source path.
+## What I will NOT do
 
-## Return format after implementation
+- Not touching wizard code in this task — that's the separate audit fix. This is a one-off rescue for Tom.
+- Not setting a budget (he didn't give one — pros will quote a price).
+- Not changing taxonomy. The "no Furniture Assembly micro" gap is logged for the next data pass.
 
-- Bundle path.
-- Files included.
-- Confirmation that source files were copied from the current Lovable workspace.
-- Confirmation that no app behavior/source files were changed.
-- Note that auditing should resume only after Codex receives this corrected bundle.
+## Anything you want changed before I run it?
+
+- **Title** — happy with "Outdoor furniture assembly — sofa, sunbed & more"?
+- **Budget** — leave blank, or set a guide range (e.g. €80–€200)?
+- **Start date** — tomorrow (29 Apr 2026), confirmed?
+- **Visibility** — public on the job board, or invite-only to Tom's saved pros?
+
+If you say "ship it" I'll run with the values above.
