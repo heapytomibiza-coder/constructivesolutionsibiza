@@ -247,10 +247,24 @@ export function initJourneyTracer(): void {
   // Periodic flush
   flushTimer = setInterval(() => void flush(), FLUSH_INTERVAL_MS);
 
-  // Flush on hide / unload
+  // Flush on hide / unload.
+  //
+  // NOTE on navigator.sendBeacon: we intentionally do NOT use sendBeacon
+  // for the final flush. The Supabase RPC endpoint requires the
+  // `Authorization: Bearer <jwt>` and `apikey` headers plus a JSON body,
+  // and sendBeacon's `Blob` payload cannot set custom request headers.
+  // The `keepalive: true` fetch option is also unreliable across browsers
+  // for cross-origin POSTs with auth headers and is capped at 64KB total.
+  //
+  // Instead we rely on `visibilitychange=hidden` (fired before tab close
+  // on all modern browsers including iOS Safari) to trigger an in-flight
+  // fetch via the Supabase client. Limitation: a small tail of events
+  // (≤ 5s of activity) may be lost on hard browser kill / process crash.
+  // This is acceptable for a diagnostic tracer.
   window.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") void flush();
   });
+  window.addEventListener("pagehide", () => void flush());
   window.addEventListener("beforeunload", () => void flush());
 
   // JS errors
