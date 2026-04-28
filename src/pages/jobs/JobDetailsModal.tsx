@@ -270,16 +270,17 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
           {isAsap && <Badge variant="accent">{t('board.asap')}</Badge>}
           <Badge variant={specBadge.variant}>{specBadge.label}</Badge>
           <JobFlagBadges flags={jobPack.flags} inspectionBias={jobPack.inspectionBias} safety={jobPack.safety} />
-          <JobTypeBadge
-            job={{ flags: jobPack.flags, inspection_bias: jobPack.inspectionBias }}
-            audience={jobPack.isOwner ? "client" : "pro"}
-          />
           {jobPack.hasPhotos && (
             <Badge variant="outline" className="gap-1">
               <Camera className="h-3 w-3" /> {t('detail.photosLabel')}
             </Badge>
           )}
         </div>
+        <JobTypeBadge
+          job={{ flags: jobPack.flags, inspection_bias: jobPack.inspectionBias }}
+          audience={jobPack.isOwner ? "client" : "pro"}
+          variant="card"
+        />
         <div className="space-y-1">
           <div className="text-xl font-semibold leading-snug">{getI18nField(jobPack.title, jobPack.titleI18n, contentLang)}</div>
           {(() => {
