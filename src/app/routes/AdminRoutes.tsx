@@ -23,6 +23,7 @@ const OnboardingFunnelPage = lazy(() => import("@/pages/admin/insights/Onboardin
 const TopSourcesPage = lazy(() => import("@/pages/admin/insights/TopSourcesPage"));
 const MessagingPulsePage = lazy(() => import("@/pages/admin/insights/MessagingPulsePage"));
 const MonitoringPage = lazy(() => import("@/pages/admin/monitoring/MonitoringPage"));
+const JourneyDebugPage = lazy(() => import("@/pages/admin/monitoring/JourneyDebugPage"));
 const DisputeQADashboard = lazy(() => import("@/pages/admin/qa/DisputeQADashboard"));
 const AdminPricingRulesPage = lazy(() => import("@/pages/admin/pricing/AdminPricingRulesPage"));
 const LaunchChecklist = lazy(() => import("@/pages/LaunchChecklist"));
