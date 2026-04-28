@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { isPhaseReady } from '@/pages/onboarding/lib/phaseProgression';
 import { bindAttributionOnSignIn } from '@/hooks/useAttribution';
+import { logJourneyEvent, touchJourneySession, JOURNEY_EVENTS } from '@/lib/journey';
 import type { User, Session } from '@supabase/supabase-js';
 import type { Json } from '@/integrations/supabase/types';
 
