@@ -23,6 +23,17 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('[ErrorBoundary] Uncaught error:', error, info.componentStack);
 
+    // Diagnostic: log to journey trace (fire-and-forget)
+    try {
+      import('@/lib/journey').then(({ logJourneyEvent, JOURNEY_EVENTS }) => {
+        logJourneyEvent(JOURNEY_EVENTS.REACT_ERROR_BOUNDARY, {
+          success: false,
+          errorMessage: error.message?.slice(0, 500),
+          payload: { componentStack: info.componentStack?.slice(0, 500) },
+        });
+      }).catch(() => {});
+    } catch {}
+
     // Report to error_events table for remote diagnosis
     this.reportError(error, info);
   }
