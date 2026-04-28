@@ -213,6 +213,7 @@ const App = () => {
         <SessionProvider>
            <UrlNormalizer />
            <ScrollToTop />
+           <JourneyRouteTracker />
            <Suspense fallback={<PageLoader />}>
            <Routes>
             {/* ============================================
