@@ -245,8 +245,9 @@ export const proDashboardRoutes: RouteConfig[] = [
     lane: 'professional',
     nav: { section: 'working', labelKey: 'nav.myListings', order: 2, hideWhenPublic: true },
     titleKey: 'nav.myListings',
+    minRollout: 'service-layer',
   },
-  { path: '/dashboard/pro/listings/:listingId/edit', access: 'role:professional', redirectTo: '/auth', lane: 'professional' },
+  { path: '/dashboard/pro/listings/:listingId/edit', access: 'role:professional', redirectTo: '/auth', lane: 'professional', minRollout: 'service-layer' },
   {
     path: '/dashboard/pro/insights',
     access: 'role:professional',
