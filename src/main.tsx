@@ -17,6 +17,14 @@ import "./index.css";
 import "./i18n";
 import { initMonitor } from "./lib/lighthouse-monitor";
 import { supabase } from "./integrations/supabase/client";
+import { initJourneyTracer } from "./lib/journey";
+
+// Initialize User Journey Trace System (diagnostic-only, fire-and-forget)
+try {
+  initJourneyTracer();
+} catch (e) {
+  console.warn('[journey] init failed', e);
+}
 
 // Defer monitoring init — must not block first paint
 if ('requestIdleCallback' in window) {
