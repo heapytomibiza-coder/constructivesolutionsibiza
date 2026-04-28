@@ -3645,6 +3645,90 @@ export type Database = {
           },
         ]
       }
+      user_journey_events: {
+        Row: {
+          action: string | null
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          route: string | null
+          session_id: string
+          success: boolean
+          user_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          route?: string | null
+          session_id: string
+          success?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          route?: string | null
+          session_id?: string
+          success?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_journey_sessions: {
+        Row: {
+          ended_at: string | null
+          entry_route: string | null
+          exit_route: string | null
+          id: string
+          last_active_at: string
+          session_id: string
+          started_at: string
+          status: string
+          user_agent: string | null
+          user_id: string | null
+          viewport: string | null
+        }
+        Insert: {
+          ended_at?: string | null
+          entry_route?: string | null
+          exit_route?: string | null
+          id?: string
+          last_active_at?: string
+          session_id: string
+          started_at?: string
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+          viewport?: string | null
+        }
+        Update: {
+          ended_at?: string | null
+          entry_route?: string | null
+          exit_route?: string | null
+          id?: string
+          last_active_at?: string
+          session_id?: string
+          started_at?: string
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+          viewport?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           active_role: string
@@ -4248,6 +4332,39 @@ export type Database = {
         Args: { p_job_id: string; p_reason?: string }
         Returns: Json
       }
+      admin_get_journey_session_detail: {
+        Args: { p_session_id: string }
+        Returns: {
+          action: string
+          created_at: string
+          error_code: string
+          error_message: string
+          event_type: string
+          id: string
+          payload: Json
+          route: string
+          session_id: string
+          success: boolean
+          user_id: string
+        }[]
+      }
+      admin_get_recent_journey_sessions: {
+        Args: { p_limit?: number; p_only_errors?: boolean }
+        Returns: {
+          ended_at: string
+          entry_route: string
+          error_count: number
+          event_count: number
+          exit_route: string
+          last_active_at: string
+          session_id: string
+          started_at: string
+          status: string
+          user_agent: string
+          user_id: string
+          viewport: string
+        }[]
+      }
       admin_health_snapshot: { Args: never; Returns: Json }
       admin_market_gap: {
         Args: { p_from_ts?: string; p_to_ts?: string }
@@ -4590,6 +4707,28 @@ export type Database = {
         Returns: undefined
       }
       is_admin_email: { Args: never; Returns: boolean }
+      journey_log_event: {
+        Args: {
+          p_action?: string
+          p_error_code?: string
+          p_error_message?: string
+          p_event_type: string
+          p_payload?: Json
+          p_route?: string
+          p_session_id: string
+          p_success?: boolean
+        }
+        Returns: undefined
+      }
+      journey_touch_session: {
+        Args: {
+          p_route?: string
+          p_session_id: string
+          p_user_agent?: string
+          p_viewport?: string
+        }
+        Returns: undefined
+      }
       link_quote_to_response: {
         Args: { p_job_id: string; p_quote_id: string }
         Returns: string
