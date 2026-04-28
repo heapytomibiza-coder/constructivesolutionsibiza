@@ -274,3 +274,31 @@ export default function JourneyDebugPage() {
     </div>
   );
 }
+
+interface SummaryStatProps {
+  label: string;
+  value: string;
+  sub?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone?: 'default' | 'destructive';
+  loading?: boolean;
+}
+
+function SummaryStat({ label, value, sub, icon: Icon, tone = 'default', loading }: SummaryStatProps) {
+  return (
+    <div
+      className={`rounded-lg border p-3 bg-card ${
+        tone === 'destructive' ? 'border-destructive/30' : 'border-border'
+      }`}
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <Icon className={`h-3.5 w-3.5 ${tone === 'destructive' ? 'text-destructive' : 'text-muted-foreground'}`} />
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</span>
+      </div>
+      <div className={`text-base font-semibold truncate ${tone === 'destructive' ? 'text-destructive' : 'text-foreground'}`}>
+        {loading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : value}
+      </div>
+      {sub && <div className="text-[11px] text-muted-foreground truncate mt-0.5">{sub}</div>}
+    </div>
+  );
+}
