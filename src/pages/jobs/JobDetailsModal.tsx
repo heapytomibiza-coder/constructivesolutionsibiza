@@ -276,6 +276,11 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
             </Badge>
           )}
         </div>
+        <JobTypeBadge
+          job={{ flags: jobPack.flags, inspection_bias: jobPack.inspectionBias }}
+          audience={jobPack.isOwner ? "client" : "pro"}
+          variant="card"
+        />
         <div className="space-y-1">
           <div className="text-xl font-semibold leading-snug">{getI18nField(jobPack.title, jobPack.titleI18n, contentLang)}</div>
           {(() => {
