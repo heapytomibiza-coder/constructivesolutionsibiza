@@ -67,6 +67,19 @@ export default function JourneyDebugPage() {
     refetchInterval: 15000,
   });
 
+  const summaryQuery = useQuery({
+    queryKey: ['journey_summary'],
+    queryFn: async (): Promise<SummaryData | null> => {
+      const { data, error } = await supabase.rpc(
+        'admin_get_journey_summary' as never,
+        { p_window_minutes: 1440 } as never,
+      );
+      if (error) throw error;
+      return (data as SummaryData) ?? null;
+    },
+    refetchInterval: 30000,
+  });
+
   const eventsQuery = useQuery({
     queryKey: ['journey_events', selectedSession],
     queryFn: async (): Promise<EventRow[]> => {
@@ -80,6 +93,8 @@ export default function JourneyDebugPage() {
     },
     enabled: !!selectedSession,
   });
+
+  const summary = summaryQuery.data;
 
   return (
     <div className="container py-6 max-w-7xl">
