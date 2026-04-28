@@ -1,0 +1,1 @@
+UPDATE public.professional_profiles SET is_publicly_listed = true, updated_at = now() WHERE id = '1d09a994-753f-438a-b320-d3592390b22f' AND user_id = '718a1c04-0be4-4026-8ada-42134035b048';
