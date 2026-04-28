@@ -61,6 +61,7 @@ const AuthCallback = () => {
       }
 
       if (!session) {
+        try { logJourneyEvent(JOURNEY_EVENTS.AUTH_FAILURE, { success: false, action: 'session_timeout', errorMessage: 'session not delivered' }); } catch {}
         setState({
           status: 'error',
           message: 'We couldn\'t complete sign-in. Your session may have expired.',
@@ -68,6 +69,7 @@ const AuthCallback = () => {
         return;
       }
 
+      try { logJourneyEvent(JOURNEY_EVENTS.AUTH_SUCCESS, { action: 'callback_session_ready' }); } catch {}
       setState({ status: 'loading', message: 'Setting up your account…' });
 
       // Check for pending redirect (e.g., from wizard auth checkpoint)
