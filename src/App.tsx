@@ -21,7 +21,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { ScrollToTop } from "@/shared/components/layout/ScrollToTop";
 import { UrlNormalizer } from "@/shared/components/layout/UrlNormalizer";
@@ -29,6 +29,24 @@ import { RouteGuard, PublicOnlyGuard, RolloutGate } from "@/guard";
 import { AdminRouteChildren } from "@/app/routes/AdminRoutes";
 import { preloadAlternateLanguage, preloadCoreNamespaces } from "@/i18n/preload";
 import { Loader2 } from "lucide-react";
+import { logJourneyEvent, touchJourneySession, JOURNEY_EVENTS } from "@/lib/journey";
+
+/** Emits a `route_change` journey event on every navigation. Diagnostic only. */
+function JourneyRouteTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    try {
+      touchJourneySession(location.pathname);
+      logJourneyEvent(JOURNEY_EVENTS.ROUTE_CHANGE, {
+        route: location.pathname,
+        payload: { hasSearch: !!location.search, hasHash: !!location.hash },
+      });
+    } catch {
+      /* never throw */
+    }
+  }, [location.pathname, location.search, location.hash]);
+  return null;
+}
 
 // ─── EAGER IMPORTS ──────────────────────────────────────────────
 // These pages are on the critical path and must not be lazy-loaded:
