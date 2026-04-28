@@ -4,11 +4,22 @@
  */
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, AlertTriangle, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, AlertTriangle, RefreshCw, CheckCircle2, XCircle, ArrowLeft, Activity, Users, UserX, AlertOctagon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+
+interface SummaryData {
+  window_minutes: number;
+  total_sessions: number;
+  error_sessions: number;
+  anonymous_sessions: number;
+  authenticated_sessions: number;
+  top_error_events: Array<{ event_type: string; count: number }>;
+  top_drop_routes: Array<{ route: string; count: number }>;
+}
 
 interface SessionRow {
   session_id: string;
