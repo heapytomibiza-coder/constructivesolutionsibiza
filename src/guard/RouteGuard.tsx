@@ -16,6 +16,19 @@ import { checkAccess } from '@/guard/access';
 import { buildRedirectUrl, buildReturnUrl } from '@/guard/redirects';
 import { isRolloutActive } from '@/domain/rollout';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { logJourneyEvent, JOURNEY_EVENTS } from '@/lib/journey';
+
+/** Fire-and-forget journey log for guard-driven redirects. */
+function emitRedirect(reason: string, from: string, to: string) {
+  try {
+    logJourneyEvent(JOURNEY_EVENTS.REDIRECT_TRIGGERED, {
+      success: false,
+      action: reason,
+      route: from,
+      payload: { from, to, reason },
+    });
+  } catch { /* never throw */ }
+}
 
 interface RouteGuardProps {
   children?: React.ReactNode;
