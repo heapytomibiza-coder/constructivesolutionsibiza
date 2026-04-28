@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { ensureUserRoles, RoleLoadAbortedError } from '@/lib/ensureUserRoles';
 import { Button } from '@/components/ui/button';
+import { logJourneyEvent, JOURNEY_EVENTS } from '@/lib/journey';
 
 /**
  * AUTH CALLBACK PAGE
