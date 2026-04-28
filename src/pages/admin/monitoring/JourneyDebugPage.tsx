@@ -4,11 +4,22 @@
  */
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, AlertTriangle, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, AlertTriangle, RefreshCw, CheckCircle2, XCircle, ArrowLeft, Activity, Users, UserX, AlertOctagon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+
+interface SummaryData {
+  window_minutes: number;
+  total_sessions: number;
+  error_sessions: number;
+  anonymous_sessions: number;
+  authenticated_sessions: number;
+  top_error_events: Array<{ event_type: string; count: number }>;
+  top_drop_routes: Array<{ route: string; count: number }>;
+}
 
 interface SessionRow {
   session_id: string;
@@ -56,6 +67,19 @@ export default function JourneyDebugPage() {
     refetchInterval: 15000,
   });
 
+  const summaryQuery = useQuery({
+    queryKey: ['journey_summary'],
+    queryFn: async (): Promise<SummaryData | null> => {
+      const { data, error } = await supabase.rpc(
+        'admin_get_journey_summary' as never,
+        { p_window_minutes: 1440 } as never,
+      );
+      if (error) throw error;
+      return (data as SummaryData) ?? null;
+    },
+    refetchInterval: 30000,
+  });
+
   const eventsQuery = useQuery({
     queryKey: ['journey_events', selectedSession],
     queryFn: async (): Promise<EventRow[]> => {
@@ -70,12 +94,21 @@ export default function JourneyDebugPage() {
     enabled: !!selectedSession,
   });
 
+  const summary = summaryQuery.data;
+
   return (
     <div className="container py-6 max-w-7xl">
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Journey Debug</h1>
-          <p className="text-sm text-muted-foreground">Last 25 user sessions — diagnostic only</p>
+        <div className="flex items-center gap-3">
+          <Link to="/dashboard/admin">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-display font-bold text-foreground">Journey Debug</h1>
+            <p className="text-sm text-muted-foreground">Last 25 user sessions — diagnostic only</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -85,10 +118,49 @@ export default function JourneyDebugPage() {
           >
             {onlyErrors ? 'Showing errors only' : 'Show all'}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => sessionsQuery.refetch()}>
+          <Button variant="outline" size="sm" onClick={() => { sessionsQuery.refetch(); summaryQuery.refetch(); }}>
             <RefreshCw className={`h-4 w-4 ${sessionsQuery.isFetching ? 'animate-spin' : ''}`} />
           </Button>
         </div>
+      </div>
+
+      {/* Summary panel — last 24h */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <SummaryStat
+          label="Sessions (24h)"
+          value={String(summary?.total_sessions ?? 0)}
+          sub={summary ? `${summary.authenticated_sessions} signed in · ${summary.anonymous_sessions} anon` : '—'}
+          icon={Users}
+          loading={summaryQuery.isLoading}
+        />
+        <SummaryStat
+          label="Sessions with errors"
+          value={String(summary?.error_sessions ?? 0)}
+          sub={summary && summary.total_sessions > 0
+            ? `${Math.round((summary.error_sessions / summary.total_sessions) * 100)}% of sessions`
+            : '—'}
+          icon={AlertOctagon}
+          tone={summary && summary.error_sessions > 0 ? 'destructive' : 'default'}
+          loading={summaryQuery.isLoading}
+        />
+        <SummaryStat
+          label="Top error event"
+          value={summary?.top_error_events?.[0]?.event_type ?? '—'}
+          sub={summary?.top_error_events?.length
+            ? summary.top_error_events.slice(0, 3).map((e) => `${e.event_type} (${e.count})`).join(', ')
+            : 'No errors'}
+          icon={Activity}
+          loading={summaryQuery.isLoading}
+        />
+        <SummaryStat
+          label="Most common drop route"
+          value={summary?.top_drop_routes?.[0]?.route ?? '—'}
+          sub={summary?.top_drop_routes?.[0]
+            ? `${summary.top_drop_routes[0].count} session(s) ended here with errors`
+            : 'No drop-offs'}
+          icon={UserX}
+          loading={summaryQuery.isLoading}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-4">
@@ -199,6 +271,34 @@ export default function JourneyDebugPage() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+interface SummaryStatProps {
+  label: string;
+  value: string;
+  sub?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone?: 'default' | 'destructive';
+  loading?: boolean;
+}
+
+function SummaryStat({ label, value, sub, icon: Icon, tone = 'default', loading }: SummaryStatProps) {
+  return (
+    <div
+      className={`rounded-lg border p-3 bg-card ${
+        tone === 'destructive' ? 'border-destructive/30' : 'border-border'
+      }`}
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <Icon className={`h-3.5 w-3.5 ${tone === 'destructive' ? 'text-destructive' : 'text-muted-foreground'}`} />
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</span>
+      </div>
+      <div className={`text-base font-semibold truncate ${tone === 'destructive' ? 'text-destructive' : 'text-foreground'}`}>
+        {loading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : value}
+      </div>
+      {sub && <div className="text-[11px] text-muted-foreground truncate mt-0.5">{sub}</div>}
     </div>
   );
 }
