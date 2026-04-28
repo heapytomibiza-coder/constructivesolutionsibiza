@@ -123,6 +123,7 @@ export const RouteGuard = forwardRef<HTMLDivElement, RouteGuardProps>(function R
 
     const returnUrl = buildReturnUrl(location.pathname, location.search);
     const redirectUrl = buildRedirectUrl('/auth', returnUrl);
+    emitRedirect('not_authenticated_retries_exhausted', location.pathname, '/auth');
     return <Navigate to={redirectUrl} replace />;
   }
 
