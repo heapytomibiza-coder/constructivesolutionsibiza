@@ -1,55 +1,48 @@
+## Goal
 
-# Manually post a job for Tom Grimes
+Give Gary Peachey professional access. Right now he has **two client-only accounts** and **no professional profile or role record on either**, so he cannot act as a pro at all.
 
-Wizard is broken for him, so I'll insert the job directly into the database under his user account. No code changes — just one migration that inserts a single `jobs` row plus the matching `job_micro_links` row. The DB triggers will then fan it out to the matching engine and notification queue exactly as the wizard would.
+## Current state (verified in DB)
 
-## Job summary I'll create
+| Account ID | Display name | Phone | Created | `user_roles` | `professional_profiles` | Jobs |
+|---|---|---|---|---|---|---|
+| `f3ed67dd-…745acf` | Gary Peachey | +34634020260 | 2026-03-04 | none | none | 0 |
+| `bb85e2cb-…2643b4` | Gary Peachey | 634020260 | 2026-03-16 | none | none | 0 |
 
-| Field | Value |
-|---|---|
-| **Posted by** | Tom Grimes (`user_id 3959063e-…1f5dd`) |
-| **Title** | Outdoor furniture assembly — sofa, sunbed & more |
-| **Category** | Handyman & General |
-| **Subcategory** | Odd Jobs |
-| **Micro** | `general-project` (best fit — flatpack/assembly micro doesn't exist yet under this category) |
-| **Area** | San Lorenzo |
-| **Description** | "Handyman needed for tomorrow. Outdoor furniture to build and install — sofa, sunbed, etc. Location: San Lorenzo." |
-| **Start timing** | `urgent` (he said "tomorrow") |
-| **Start date** | Tomorrow (2026-04-29) |
-| **Budget** | Open / no specific budget set (he didn't give one — pros will quote) |
-| **Status** | `open` |
-| **Publicly listed** | `true` (so matched pros can see it) |
-| **is_custom_request** | `true` (flagged so we know this didn't come through the wizard) |
-| **Highlights** | `['outdoor', 'assembly', 'urgent']` |
+Note: the previously referenced `718a1c04…` account does **not exist** in the database — that ID was stale. There is nothing to merge: both accounts are empty shells, no jobs, no listings, no messages.
 
-## Micro-category note
+## Decision
 
-There is currently **no dedicated "Furniture Assembly" micro under Handyman & General** — that's the same data gap we discussed earlier. The closest correct fit is **`general-project`** under Odd Jobs / General Repairs. I'll use that and put "outdoor furniture assembly — sofa, sunbed" in the title and description so handymen self-select correctly.
+- **Keep `bb85e2cb-…2643b4`** as Gary's primary account (most recent, matches his current phone format).
+- **Soft-archive `f3ed67dd-…745acf`** by leaving it dormant (no roles, no profile). We can hard-delete later if needed; for now leaving it does no harm because it has zero attached data.
+- **Grant professional access** on the primary account so when Gary logs in he is routed straight into pro onboarding.
 
-## What I'll do
+## Changes (data only — no schema changes, no frontend changes)
 
-1. **Create one migration** that:
-   - Inserts the `jobs` row above (status `open`, publicly listed, urgent timing).
-   - Inserts a `job_micro_links` row pointing at `general-project` so the matcher picks it up.
-2. **Verify** by querying back: `SELECT id, title, status, area FROM jobs WHERE user_id = '3959063e-…';`
-3. **Confirm to Tom** with the job ID and the URL `/jobs/<id>` so he can view/edit it from his client dashboard.
+Two inserts on `bb85e2cb-eee0-4545-90d8-31cc082643b4`:
 
-Existing DB triggers will:
-- Queue notifications to matched handymen (`job_notifications_queue`).
-- Run job-scoring.
-- Add it to the public job board feed.
+1. **`user_roles`**
+   - `roles = ['client','professional']`
+   - `active_role = 'professional'`
 
-## What I will NOT do
+2. **`professional_profiles`** (minimal stub, all other columns use defaults)
+   - `user_id = bb85e2cb-…`
+   - `onboarding_phase = 'not_started'` (default) — he will land in the standard pro onboarding flow
+   - `is_publicly_listed = false` (default) — he will not appear in the marketplace until he completes onboarding and the readiness rules pass
 
-- Not touching wizard code in this task — that's the separate audit fix. This is a one-off rescue for Tom.
-- Not setting a budget (he didn't give one — pros will quote a price).
-- Not changing taxonomy. The "no Furniture Assembly micro" gap is logged for the next data pass.
+3. **Audit log** entry in `admin_actions_log` recording the manual grant, target, and reason ("Manual pro access grant — onboarded outside platform").
 
-## Anything you want changed before I run it?
+## What this does NOT do
 
-- **Title** — happy with "Outdoor furniture assembly — sofa, sunbed & more"?
-- **Budget** — leave blank, or set a guide range (e.g. €80–€200)?
-- **Start date** — tomorrow (29 Apr 2026), confirmed?
-- **Visibility** — public on the job board, or invite-only to Tom's saved pros?
+- Does **not** make him publicly visible — the existing `enforce_pro_public_listing_guard` trigger still applies; visibility only flips on once he completes onboarding (or you manually flip it later, like the previous Gary case).
+- Does **not** create listings, services, or skip any verification.
+- Does **not** touch the duplicate `f3ed67dd-…` account.
 
-If you say "ship it" I'll run with the values above.
+## Expected outcome for Gary
+
+- Next login → role switcher shows "Professional" → routed to `/onboarding/pro` → he completes the standard 3-step pro onboarding → his listings become eligible to publish.
+
+## Optional follow-ups (not in this change)
+
+- DM/email Gary the link to log in and finish setup.
+- Decide later whether to delete the dormant `f3ed67dd-…` account (safe to drop — zero attached data).
