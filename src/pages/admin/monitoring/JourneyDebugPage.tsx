@@ -99,9 +99,16 @@ export default function JourneyDebugPage() {
   return (
     <div className="container py-6 max-w-7xl">
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Journey Debug</h1>
-          <p className="text-sm text-muted-foreground">Last 25 user sessions — diagnostic only</p>
+        <div className="flex items-center gap-3">
+          <Link to="/dashboard/admin">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-display font-bold text-foreground">Journey Debug</h1>
+            <p className="text-sm text-muted-foreground">Last 25 user sessions — diagnostic only</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -111,10 +118,49 @@ export default function JourneyDebugPage() {
           >
             {onlyErrors ? 'Showing errors only' : 'Show all'}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => sessionsQuery.refetch()}>
+          <Button variant="outline" size="sm" onClick={() => { sessionsQuery.refetch(); summaryQuery.refetch(); }}>
             <RefreshCw className={`h-4 w-4 ${sessionsQuery.isFetching ? 'animate-spin' : ''}`} />
           </Button>
         </div>
+      </div>
+
+      {/* Summary panel — last 24h */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <SummaryStat
+          label="Sessions (24h)"
+          value={String(summary?.total_sessions ?? 0)}
+          sub={summary ? `${summary.authenticated_sessions} signed in · ${summary.anonymous_sessions} anon` : '—'}
+          icon={Users}
+          loading={summaryQuery.isLoading}
+        />
+        <SummaryStat
+          label="Sessions with errors"
+          value={String(summary?.error_sessions ?? 0)}
+          sub={summary && summary.total_sessions > 0
+            ? `${Math.round((summary.error_sessions / summary.total_sessions) * 100)}% of sessions`
+            : '—'}
+          icon={AlertOctagon}
+          tone={summary && summary.error_sessions > 0 ? 'destructive' : 'default'}
+          loading={summaryQuery.isLoading}
+        />
+        <SummaryStat
+          label="Top error event"
+          value={summary?.top_error_events?.[0]?.event_type ?? '—'}
+          sub={summary?.top_error_events?.length
+            ? summary.top_error_events.slice(0, 3).map((e) => `${e.event_type} (${e.count})`).join(', ')
+            : 'No errors'}
+          icon={Activity}
+          loading={summaryQuery.isLoading}
+        />
+        <SummaryStat
+          label="Most common drop route"
+          value={summary?.top_drop_routes?.[0]?.route ?? '—'}
+          sub={summary?.top_drop_routes?.[0]
+            ? `${summary.top_drop_routes[0].count} session(s) ended here with errors`
+            : 'No drop-offs'}
+          icon={UserX}
+          loading={summaryQuery.isLoading}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-4">
