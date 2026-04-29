@@ -12,6 +12,7 @@ import { Loader2, Shield, ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react';
 import { IntentSelector, type UserIntent } from '@/components/auth/IntentSelector';
 import { trackEvent } from '@/lib/trackEvent';
 import { ensureUserRoles, RoleLoadAbortedError } from '@/lib/ensureUserRoles';
+import { isSafeReturnUrl } from '@/guard/redirects';
 
 /**
  * AUTH PAGE
