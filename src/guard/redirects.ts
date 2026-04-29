@@ -64,7 +64,7 @@ export function isSafeReturnUrl(value: unknown): value is string {
 
   // Reject control characters / whitespace inside the value (newlines, tabs)
   // which can be used to smuggle headers in some downstream contexts.
-  if (/[\u0000-\u001F\u007F]/.test(trimmed)) return false;
+  if (/[\u0000-\u001F\u007F]/.test(value)) return false;
 
   return true;
 }
