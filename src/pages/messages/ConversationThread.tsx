@@ -50,7 +50,7 @@ export function ConversationThread({
     ? 'client'
     : currentUserId === clientId ? 'client' : 'professional';
   const { data: messages, isLoading, isError, error } = useMessages(conversationId);
-  const { send, isSending } = useSendMessage(conversationId, currentUserId);
+  const { send, isSending } = useSendMessage(conversationId, currentUserId, userRole);
   const [draft, setDraft] = useState("");
   const [isQuoteBuilderOpen, setIsQuoteBuilderOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
