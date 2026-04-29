@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useSearchParams } from 'react-router-dom';
 import { checkAccess, type AccessContext } from '@/guard/access';
-import { buildRedirectUrl, buildReturnUrl } from '@/guard/redirects';
+import { buildRedirectUrl, buildReturnUrl, isSafeReturnUrl } from '@/guard/redirects';
 
 // ── Session mock ───────────────────────────────────────────────
 const mockSession = {
