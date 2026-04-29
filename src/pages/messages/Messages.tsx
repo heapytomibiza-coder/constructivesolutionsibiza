@@ -29,10 +29,37 @@ const Messages = () => {
 
   const { data: conversations } = useConversations(user?.id);
 
-  const selectedConversation = useMemo(() => {
-    if (!conversationId || !conversations) return null;
-    return conversations.find((c) => c.id === conversationId) ?? null;
-  }, [conversationId, conversations]);
+  // Route-level fallback lookup: ensures the page can still render the
+  // thread when the enriched list is missing this conversation (enrichment
+  // failure, lag) and validates the current user is a participant.
+  const {
+    data: routeConversation,
+    isLoading: routeLookupLoading,
+    isFetched: routeLookupFetched,
+  } = useConversationById(conversationId, user?.id);
+
+  const selectedConversation = useMemo<Conversation | null>(() => {
+    if (!conversationId) return null;
+    const fromList = conversations?.find((c) => c.id === conversationId) ?? null;
+    if (fromList) return fromList;
+    if (routeConversation) {
+      // Minimal fallback shape — enrichment fields stay undefined and the
+      // thread component handles missing job/other-party metadata.
+      return {
+        id: routeConversation.id,
+        job_id: routeConversation.job_id,
+        client_id: routeConversation.client_id,
+        pro_id: routeConversation.pro_id,
+        last_message_at: null,
+        last_message_preview: null,
+        created_at: "",
+        last_read_at_client: null,
+        last_read_at_pro: null,
+        unread_count: 0,
+      };
+    }
+    return null;
+  }, [conversationId, conversations, routeConversation]);
 
   useEffect(() => {
     if (selectedConversation && user) {
