@@ -29,3 +29,42 @@ export function buildRedirectUrl(target: string, returnUrl: string): string {
   // Non-auth redirects go directly (no returnUrl to prevent loops)
   return target;
 }
+
+/**
+ * Validate a returnUrl / authRedirect value before navigating.
+ *
+ * Accepts only same-origin internal app paths. Rejects:
+ * - empty / non-string values
+ * - protocol-relative URLs (`//evil.com`)
+ * - backslash tricks (`/\evil.com`)
+ * - any value containing a protocol scheme (`http:`, `https:`, `javascript:`, `data:`, etc.)
+ * - absolute URLs
+ *
+ * Use this everywhere a stored or query-string redirect target is consumed
+ * by `navigate(...)`. Unsafe values must fall back to a known-safe default.
+ */
+export function isSafeReturnUrl(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return false;
+
+  // Must be an app-internal path
+  if (!trimmed.startsWith('/')) return false;
+
+  // Reject protocol-relative (`//host`) and backslash tricks (`/\host`, `/\\host`)
+  if (trimmed.startsWith('//')) return false;
+  if (trimmed.startsWith('/\\')) return false;
+
+  // Reject any embedded scheme — covers `javascript:`, `http:`, `https:`,
+  // `data:`, `vbscript:`, etc. A safe internal path never contains a colon
+  // before the first `/` segment ends, but the simplest correct check is
+  // to forbid `:` entirely in the path portion before `?`/`#`.
+  const pathPortion = trimmed.split(/[?#]/, 1)[0];
+  if (pathPortion.includes(':')) return false;
+
+  // Reject control characters / whitespace inside the value (newlines, tabs)
+  // which can be used to smuggle headers in some downstream contexts.
+  if (/[\u0000-\u001F\u007F]/.test(trimmed)) return false;
+
+  return true;
+}
