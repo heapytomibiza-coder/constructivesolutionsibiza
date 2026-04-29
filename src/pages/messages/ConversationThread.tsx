@@ -304,7 +304,7 @@ export function ConversationThread({
           )}
           <Button
             onClick={handleSend}
-            disabled={!draft.trim() || isSending}
+            disabled={!draft.trim() || isSending || isOverLimit}
             size="icon"
             className="shrink-0 h-10 w-10 rounded-full"
           >
@@ -315,6 +315,23 @@ export function ConversationThread({
             )}
           </Button>
         </div>
+        {/* Inline counter / validation: only surface when within ~10% of cap. */}
+        {trimmedLength > MESSAGE_MAX_LENGTH * 0.9 && (
+          <p
+            className={cn(
+              "mt-1 px-2 text-xs",
+              isOverLimit ? "text-destructive" : "text-muted-foreground"
+            )}
+            aria-live="polite"
+          >
+            {isOverLimit
+              ? t('thread.tooLong', {
+                  defaultValue: 'Message is too long. Limit is {{max}} characters.',
+                  max: MESSAGE_MAX_LENGTH,
+                })
+              : `${trimmedLength} / ${MESSAGE_MAX_LENGTH}`}
+          </p>
+        )}
       </div>
 
       {/* Inline quote builder overlay */}
