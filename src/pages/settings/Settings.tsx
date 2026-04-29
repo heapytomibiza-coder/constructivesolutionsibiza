@@ -21,6 +21,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useSession } from '@/contexts/SessionContext';
+import { useRoleSwitch } from '@/hooks/useRoleSwitch';
 import type { UserRole } from '@/hooks/useSessionSnapshot';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -47,7 +48,8 @@ const DEFAULT_PREFS: NotificationPrefs = {
 export default function Settings() {
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
-  const { user, activeRole, roles, switchRole, becomeProfessional } = useSession();
+  const { user, activeRole, roles, becomeProfessional } = useSession();
+  const { isSwitching, handleSwitch } = useRoleSwitch();
   const [isBecomingPro, setIsBecomingPro] = useState(false);
   const isClientOnly = roles.length === 1 && roles[0] === 'client';
   const [newPassword, setNewPassword] = useState('');
@@ -248,20 +250,9 @@ export default function Settings() {
                         type="button"
                         variant={isActive ? 'default' : 'outline'}
                         size="sm"
+                        disabled={isSwitching && !isActive}
                         className="flex-1 active:scale-[0.97] transition-transform"
-                        onClick={async () => {
-                          if (role === activeRole) return;
-                          await switchRole(role);
-                          queryClient.invalidateQueries({ queryKey: ['jobs'] });
-                          queryClient.invalidateQueries({ queryKey: ['jobs_board'] });
-                          queryClient.invalidateQueries({ queryKey: ['matched_jobs'] });
-                          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-                          queryClient.invalidateQueries({ queryKey: ['client_stats'] });
-                          queryClient.invalidateQueries({ queryKey: ['client_jobs'] });
-                          queryClient.invalidateQueries({ queryKey: ['pro_unread_messages'] });
-                          queryClient.invalidateQueries({ queryKey: ['professional_services'] });
-                          toast.success(t('account.switchedTo', { label }));
-                        }}
+                        onClick={() => handleSwitch(role)}
                       >
                         {label}
                       </Button>
