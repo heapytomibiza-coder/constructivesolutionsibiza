@@ -2,7 +2,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useMessages, useSendMessage, type Message } from "./hooks";
+import { useMessages, useSendMessage, MESSAGE_MAX_LENGTH, type Message } from "./hooks";
 import { RequestSupportButton, SystemMessage } from "./components";
 import { JobLifecycleBar } from "./components/JobLifecycleBar";
 import { JobTimeline } from "./components/JobTimeline";
