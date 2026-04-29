@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useSearchParams } from 'react-router-dom';
 import { checkAccess, type AccessContext } from '@/guard/access';
-import { buildRedirectUrl, buildReturnUrl } from '@/guard/redirects';
+import { buildRedirectUrl, buildReturnUrl, isSafeReturnUrl } from '@/guard/redirects';
 
 // ── Session mock ───────────────────────────────────────────────
 const mockSession = {
@@ -130,3 +130,53 @@ describe('Auth redirect journey', () => {
     expect(buildReturnUrl('/post', '')).toBe('/post');
   });
 });
+
+describe('isSafeReturnUrl', () => {
+  it('accepts internal app paths', () => {
+    expect(isSafeReturnUrl('/dashboard/jobs')).toBe(true);
+    expect(isSafeReturnUrl('/post?category=plumbing')).toBe(true);
+    expect(isSafeReturnUrl('/dashboard/pro#section')).toBe(true);
+    expect(isSafeReturnUrl('/')).toBe(true);
+  });
+
+  it('rejects external absolute URLs', () => {
+    expect(isSafeReturnUrl('https://evil.com')).toBe(false);
+    expect(isSafeReturnUrl('http://evil.com/path')).toBe(false);
+  });
+
+  it('rejects protocol-relative URLs', () => {
+    expect(isSafeReturnUrl('//evil.com')).toBe(false);
+    expect(isSafeReturnUrl('//evil.com/dashboard')).toBe(false);
+  });
+
+  it('rejects backslash-prefixed paths', () => {
+    expect(isSafeReturnUrl('/\\evil.com')).toBe(false);
+    expect(isSafeReturnUrl('/\\\\evil.com')).toBe(false);
+  });
+
+  it('rejects javascript: and other protocol schemes', () => {
+    expect(isSafeReturnUrl('javascript:alert(1)')).toBe(false);
+    expect(isSafeReturnUrl('/javascript:alert(1)')).toBe(false);
+    expect(isSafeReturnUrl('data:text/html,foo')).toBe(false);
+    expect(isSafeReturnUrl('/path:with:colon')).toBe(false);
+  });
+
+  it('rejects empty, non-string, and whitespace-only values', () => {
+    expect(isSafeReturnUrl('')).toBe(false);
+    expect(isSafeReturnUrl('   ')).toBe(false);
+    expect(isSafeReturnUrl(null)).toBe(false);
+    expect(isSafeReturnUrl(undefined)).toBe(false);
+    expect(isSafeReturnUrl(42)).toBe(false);
+  });
+
+  it('rejects relative paths without leading slash', () => {
+    expect(isSafeReturnUrl('dashboard/jobs')).toBe(false);
+    expect(isSafeReturnUrl('evil.com')).toBe(false);
+  });
+
+  it('rejects values with embedded control characters', () => {
+    expect(isSafeReturnUrl('/dashboard\nLocation: evil')).toBe(false);
+    expect(isSafeReturnUrl('/dashboard\t')).toBe(false);
+  });
+});
+

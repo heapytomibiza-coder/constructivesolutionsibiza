@@ -5,6 +5,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { ensureUserRoles, RoleLoadAbortedError } from '@/lib/ensureUserRoles';
 import { Button } from '@/components/ui/button';
 import { logJourneyEvent, JOURNEY_EVENTS } from '@/lib/journey';
+import { isSafeReturnUrl } from '@/guard/redirects';
 
 /**
  * AUTH CALLBACK PAGE
@@ -80,8 +81,12 @@ const AuthCallback = () => {
       try { localStorage.removeItem('authRedirect'); } catch {}
       
       if (pendingRedirect) {
-        navigate(pendingRedirect);
-        return;
+        if (isSafeReturnUrl(pendingRedirect)) {
+          navigate(pendingRedirect);
+          return;
+        }
+        console.warn('[AuthCallback] Unsafe pendingRedirect rejected:', pendingRedirect);
+        // Fall through to canonical role-based routing below
       }
 
       // Query user roles with retry — never silently default
