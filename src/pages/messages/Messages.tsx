@@ -97,9 +97,13 @@ const Messages = () => {
     );
   }
 
-  // Guard: conversation ID provided but not found after data loads
+  // Guard: conversation ID provided but not found after data loads.
+  // Wait for BOTH the enriched list and the route-level lookup before
+  // declaring not-found, so a slow/failed enrichment can't false-trigger it.
   const conversationsLoaded = !!conversations;
-  const conversationNotFound = conversationId && conversationsLoaded && !selectedConversation;
+  const routeLookupReady = !routeLookupLoading && routeLookupFetched;
+  const conversationNotFound =
+    !!conversationId && conversationsLoaded && routeLookupReady && !selectedConversation;
 
   if (conversationNotFound) {
     return (
