@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSession } from "@/contexts/SessionContext";
 import { ConversationList } from "./ConversationList";
 import { ConversationThread } from "./ConversationThread";
-import { useConversations, useMarkConversationRead, type Conversation } from "./hooks";
+import { useConversations, useConversationById, useMarkConversationRead, type Conversation } from "./hooks";
 import { PLATFORM } from "@/domain/scope";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
