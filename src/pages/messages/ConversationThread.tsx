@@ -115,13 +115,23 @@ export function ConversationThread({
     lastMessageIdRef.current = null;
   }, [conversationId]);
 
+  const trimmedLength = draft.trim().length;
+  const isOverLimit = trimmedLength > MESSAGE_MAX_LENGTH;
+
   const handleSend = useCallback(() => {
-    if (draft.trim() && !isSending) {
-      send(draft);
-      setDraft("");
-      setTimeout(() => inputRef.current?.focus(), 50);
+    const trimmed = draft.trim();
+    if (!trimmed || isSending) return;
+    if (trimmed.length > MESSAGE_MAX_LENGTH) {
+      toast.error(t('thread.tooLong', {
+        defaultValue: 'Message is too long. Limit is {{max}} characters.',
+        max: MESSAGE_MAX_LENGTH,
+      }));
+      return;
     }
-  }, [draft, isSending, send]);
+    send(draft);
+    setDraft("");
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, [draft, isSending, send, t]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key !== "Enter") return;
@@ -269,7 +279,12 @@ export function ConversationThread({
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('thread.placeholder')}
-            className="flex-1 h-10 px-4 rounded-full border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+            maxLength={MESSAGE_MAX_LENGTH}
+            aria-invalid={isOverLimit}
+            className={cn(
+              "flex-1 h-10 px-4 rounded-full border bg-background text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50",
+              isOverLimit ? "border-destructive focus-visible:ring-destructive" : "border-input"
+            )}
             disabled={isSending}
             autoComplete="off"
             autoCorrect="on"
