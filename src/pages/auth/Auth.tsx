@@ -83,16 +83,22 @@ const Auth = () => {
       sessionStorage.removeItem('authRedirect');
       try { localStorage.removeItem('authRedirect'); } catch {}
 
-      // If there's an explicit returnUrl, go there directly
+      // If there's an explicit returnUrl, validate it before navigating
       if (returnUrl) {
-        navigate(returnUrl);
-        return;
+        if (isSafeReturnUrl(returnUrl)) {
+          navigate(returnUrl);
+          return;
+        }
+        console.warn('[Auth] Unsafe returnUrl rejected:', returnUrl);
       }
 
       // Check for pending redirect (e.g., from wizard auth checkpoint)
-      if (pendingRedirect) {
+      if (pendingRedirect && isSafeReturnUrl(pendingRedirect)) {
         navigate(pendingRedirect);
         return;
+      }
+      if (pendingRedirect) {
+        console.warn('[Auth] Unsafe pendingRedirect rejected:', pendingRedirect);
       }
 
       // Role-based routing inline (avoids AuthCallback race condition on mobile)
