@@ -130,13 +130,24 @@ export function useMessages(conversationId: string | undefined) {
   return query;
 }
 
-export function useSendMessage(conversationId: string | undefined, senderId: string | undefined) {
+/** Hard cap mirroring the DB check constraint `messages_body_check` (1..5000). */
+export const MESSAGE_MAX_LENGTH = 5000;
+
+export function useSendMessage(
+  conversationId: string | undefined,
+  senderId: string | undefined,
+  senderRole: 'client' | 'professional' | 'admin' = 'client',
+) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (body: string) => {
       if (!conversationId || !senderId) {
         throw new Error("Missing conversation or sender");
+      }
+      // Defensive client-side cap; DB also enforces via messages_body_check.
+      if (body.trim().length > MESSAGE_MAX_LENGTH) {
+        throw new Error(`Message exceeds ${MESSAGE_MAX_LENGTH} character limit`);
       }
       return sendMessage(conversationId, senderId, body);
     },
@@ -152,8 +163,8 @@ export function useSendMessage(conversationId: string | undefined, senderId: str
       );
       // Invalidate conversations list in background (don't block/re-render thread)
       queryClient.invalidateQueries({ queryKey: ["conversations"], refetchType: 'none' });
-      // Track message_sent for engagement velocity
-      trackEvent('message_sent', 'client', { conversation_id: conversationId });
+      // Track message_sent for engagement velocity — use the actual sender role.
+      trackEvent('message_sent', senderRole, { conversation_id: conversationId });
     },
   });
 
