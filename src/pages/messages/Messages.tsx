@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSession } from "@/contexts/SessionContext";
 import { ConversationList } from "./ConversationList";
 import { ConversationThread } from "./ConversationThread";
-import { useConversations, useMarkConversationRead, type Conversation } from "./hooks";
+import { useConversations, useConversationById, useMarkConversationRead, type Conversation } from "./hooks";
 import { PLATFORM } from "@/domain/scope";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -29,10 +29,37 @@ const Messages = () => {
 
   const { data: conversations } = useConversations(user?.id);
 
-  const selectedConversation = useMemo(() => {
-    if (!conversationId || !conversations) return null;
-    return conversations.find((c) => c.id === conversationId) ?? null;
-  }, [conversationId, conversations]);
+  // Route-level fallback lookup: ensures the page can still render the
+  // thread when the enriched list is missing this conversation (enrichment
+  // failure, lag) and validates the current user is a participant.
+  const {
+    data: routeConversation,
+    isLoading: routeLookupLoading,
+    isFetched: routeLookupFetched,
+  } = useConversationById(conversationId, user?.id);
+
+  const selectedConversation = useMemo<Conversation | null>(() => {
+    if (!conversationId) return null;
+    const fromList = conversations?.find((c) => c.id === conversationId) ?? null;
+    if (fromList) return fromList;
+    if (routeConversation) {
+      // Minimal fallback shape — enrichment fields stay undefined and the
+      // thread component handles missing job/other-party metadata.
+      return {
+        id: routeConversation.id,
+        job_id: routeConversation.job_id,
+        client_id: routeConversation.client_id,
+        pro_id: routeConversation.pro_id,
+        last_message_at: null,
+        last_message_preview: null,
+        created_at: "",
+        last_read_at_client: null,
+        last_read_at_pro: null,
+        unread_count: 0,
+      };
+    }
+    return null;
+  }, [conversationId, conversations, routeConversation]);
 
   useEffect(() => {
     if (selectedConversation && user) {
@@ -70,9 +97,13 @@ const Messages = () => {
     );
   }
 
-  // Guard: conversation ID provided but not found after data loads
+  // Guard: conversation ID provided but not found after data loads.
+  // Wait for BOTH the enriched list and the route-level lookup before
+  // declaring not-found, so a slow/failed enrichment can't false-trigger it.
   const conversationsLoaded = !!conversations;
-  const conversationNotFound = conversationId && conversationsLoaded && !selectedConversation;
+  const routeLookupReady = !routeLookupLoading && routeLookupFetched;
+  const conversationNotFound =
+    !!conversationId && conversationsLoaded && routeLookupReady && !selectedConversation;
 
   if (conversationNotFound) {
     return (

@@ -50,27 +50,56 @@ async function fetchConversations(currentUserId: string): Promise<Conversation[]
     return conversations.map((c) => ({ ...c, unread_count: Number(c.unread_count) || 0 }));
   }
 
-  // Fetch job titles + category
-  const { data: jobs, error: jobsError } = await supabase
-    .from("jobs")
-    .select("id, title, category, status")
-    .in("id", jobIds);
+  // Fetch job titles + category — degrade gracefully on failure so the
+  // base conversations list always renders even if enrichment fails.
+  let jobMap = new Map<string, { id: string; title: string | null; category: string | null; status: string | null }>();
+  try {
+    const { data: jobs, error: jobsError } = await supabase
+      .from("jobs")
+      .select("id, title, category, status")
+      .in("id", jobIds);
+    if (jobsError) {
+      console.warn("[useConversations] jobs enrichment failed:", jobsError.message);
+    } else {
+      jobMap = new Map(jobs?.map((j) => [j.id, j]) ?? []);
+    }
+  } catch (err) {
+    console.warn("[useConversations] jobs enrichment threw:", err);
+  }
 
-  if (jobsError) throw jobsError;
-
-  const jobMap = new Map(jobs?.map((j) => [j.id, j]) ?? []);
-
-  // Fetch display names for all participants
+  // Fetch display names for all participants — each fetch is isolated so a
+  // single failure cannot reject the whole enrichment and blank the sidebar.
   const allUserIds = [...new Set(conversations.flatMap((c) => [c.client_id, c.pro_id]))];
-  const [{ data: profiles }, { data: proProfiles }] = await Promise.all([
+
+  let profileMap = new Map<string, string | null>();
+  let proProfileMap = new Map<string, string | null>();
+
+  const [profilesRes, proProfilesRes] = await Promise.allSettled([
     supabase.from("profiles").select("user_id, display_name").in("user_id", allUserIds),
     supabase.from("professional_profiles").select("user_id, display_name, business_name").in("user_id", allUserIds),
   ]);
 
-  const profileMap = new Map(profiles?.map((p) => [p.user_id, p.display_name]) ?? []);
-  const proProfileMap = new Map(
-    proProfiles?.map((p) => [p.user_id, p.display_name || p.business_name]) ?? []
-  );
+  if (profilesRes.status === "fulfilled") {
+    if (profilesRes.value.error) {
+      console.warn("[useConversations] profiles enrichment failed:", profilesRes.value.error.message);
+    } else {
+      profileMap = new Map(profilesRes.value.data?.map((p) => [p.user_id, p.display_name]) ?? []);
+    }
+  } else {
+    console.warn("[useConversations] profiles enrichment threw:", profilesRes.reason);
+  }
+
+  if (proProfilesRes.status === "fulfilled") {
+    if (proProfilesRes.value.error) {
+      console.warn("[useConversations] pro profiles enrichment failed:", proProfilesRes.value.error.message);
+    } else {
+      proProfileMap = new Map(
+        proProfilesRes.value.data?.map((p) => [p.user_id, p.display_name || p.business_name]) ?? []
+      );
+    }
+  } else {
+    console.warn("[useConversations] pro profiles enrichment threw:", proProfilesRes.reason);
+  }
 
   return conversations.map((c) => {
     const otherUserId = c.client_id === currentUserId ? c.pro_id : c.client_id;
