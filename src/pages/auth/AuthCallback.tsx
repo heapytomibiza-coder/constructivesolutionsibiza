@@ -81,8 +81,12 @@ const AuthCallback = () => {
       try { localStorage.removeItem('authRedirect'); } catch {}
       
       if (pendingRedirect) {
-        navigate(pendingRedirect);
-        return;
+        if (isSafeReturnUrl(pendingRedirect)) {
+          navigate(pendingRedirect);
+          return;
+        }
+        console.warn('[AuthCallback] Unsafe pendingRedirect rejected:', pendingRedirect);
+        // Fall through to canonical role-based routing below
       }
 
       // Query user roles with retry — never silently default
