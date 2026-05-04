@@ -52,6 +52,8 @@ const Auth = () => {
   const [showConfirmationSent, setShowConfirmationSent] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState('');
   const [isResending, setIsResending] = useState(false);
+  // Inline sign-in confirmation prompt (when sign-in fails because email not confirmed)
+  const [signInNeedsConfirmation, setSignInNeedsConfirmation] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(
     isSignupFromUrl ? 'signup' : 'signin'
   );
