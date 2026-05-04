@@ -235,9 +235,11 @@ const Auth = () => {
     }
   };
   
+  const RESEND_COOLDOWN_SECONDS = 60;
+
   const handleResendConfirmation = async () => {
-    if (!confirmationEmail) return;
-    
+    if (!confirmationEmail || isResending || resendCooldown > 0) return;
+
     setIsResending(true);
     try {
       // Use Supabase's built-in resend confirmation
@@ -255,6 +257,7 @@ const Auth = () => {
       toast.success(t('toast.confirmationResent'));
     } finally {
       setIsResending(false);
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     }
   };
   
