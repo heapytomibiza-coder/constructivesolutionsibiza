@@ -364,6 +364,37 @@ const Auth = () => {
                     </div>
                   </div>
 
+                  {signInNeedsConfirmation && (
+                    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm space-y-2">
+                      <p className="font-medium text-foreground">
+                        {t('signIn.confirmationNeededTitle', 'Email not confirmed yet')}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {t('signIn.confirmationNeededBody', 'We need to verify {{email}} before you can sign in.', { email: confirmationEmail || email })}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        disabled={isResending}
+                        onClick={async () => {
+                          if (!confirmationEmail && email) setConfirmationEmail(email);
+                          await handleResendConfirmation();
+                        }}
+                      >
+                        {isResending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t('confirmation.resending')}
+                          </>
+                        ) : (
+                          t('confirmation.resend')
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? (
                       <>
