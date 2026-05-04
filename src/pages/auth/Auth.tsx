@@ -453,13 +453,15 @@ const Auth = () => {
                         variant="outline"
                         className="w-full"
                         onClick={handleResendConfirmation}
-                        disabled={isResending}
+                        disabled={isResending || resendCooldown > 0}
                       >
                         {isResending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             {t('confirmation.resending')}
                           </>
+                        ) : resendCooldown > 0 ? (
+                          t('confirmation.resendIn', 'Resend in {{seconds}}s', { seconds: resendCooldown })
                         ) : (
                           t('confirmation.resend')
                         )}
