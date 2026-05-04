@@ -52,6 +52,15 @@ const Auth = () => {
   const [showConfirmationSent, setShowConfirmationSent] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState('');
   const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setInterval(() => {
+      setResendCooldown((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [resendCooldown]);
   // Inline sign-in confirmation prompt (when sign-in fails because email not confirmed)
   const [signInNeedsConfirmation, setSignInNeedsConfirmation] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(
