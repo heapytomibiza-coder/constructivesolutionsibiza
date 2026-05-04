@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,15 @@ const Auth = () => {
   const [showConfirmationSent, setShowConfirmationSent] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState('');
   const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setInterval(() => {
+      setResendCooldown((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [resendCooldown]);
   // Inline sign-in confirmation prompt (when sign-in fails because email not confirmed)
   const [signInNeedsConfirmation, setSignInNeedsConfirmation] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(
@@ -226,9 +235,11 @@ const Auth = () => {
     }
   };
   
+  const RESEND_COOLDOWN_SECONDS = 60;
+
   const handleResendConfirmation = async () => {
-    if (!confirmationEmail) return;
-    
+    if (!confirmationEmail || isResending || resendCooldown > 0) return;
+
     setIsResending(true);
     try {
       // Use Supabase's built-in resend confirmation
@@ -246,6 +257,7 @@ const Auth = () => {
       toast.success(t('toast.confirmationResent'));
     } finally {
       setIsResending(false);
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     }
   };
   
@@ -377,7 +389,7 @@ const Auth = () => {
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        disabled={isResending}
+                        disabled={isResending || resendCooldown > 0}
                         onClick={async () => {
                           if (!confirmationEmail && email) setConfirmationEmail(email);
                           await handleResendConfirmation();
@@ -388,6 +400,8 @@ const Auth = () => {
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             {t('confirmation.resending')}
                           </>
+                        ) : resendCooldown > 0 ? (
+                          t('confirmation.resendIn', 'Resend in {{seconds}}s', { seconds: resendCooldown })
                         ) : (
                           t('confirmation.resend')
                         )}
@@ -439,13 +453,15 @@ const Auth = () => {
                         variant="outline"
                         className="w-full"
                         onClick={handleResendConfirmation}
-                        disabled={isResending}
+                        disabled={isResending || resendCooldown > 0}
                       >
                         {isResending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             {t('confirmation.resending')}
                           </>
+                        ) : resendCooldown > 0 ? (
+                          t('confirmation.resendIn', 'Resend in {{seconds}}s', { seconds: resendCooldown })
                         ) : (
                           t('confirmation.resend')
                         )}
