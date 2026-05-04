@@ -155,8 +155,9 @@ const Auth = () => {
 
       if (code === 'email_not_confirmed' || /email.*not.*confirmed/i.test(message)) {
         setConfirmationEmail(email);
-        setShowConfirmationSent(true);
-        setActiveTab('signup');
+        setSignInNeedsConfirmation(true);
+        toast.error(t('signIn.notConfirmed', 'Please confirm your email before signing in.'));
+        return;
       }
 
       toast.error(message);
