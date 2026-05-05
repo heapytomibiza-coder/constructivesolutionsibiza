@@ -1,9 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { enqueuePlatformEmail } from "../_shared/lovableEmailTransport.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Constructive Solutions Ibiza <notifications@constructivesolutionsibiza.com>";
 const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "";
 if (!ADMIN_EMAIL) {
   console.error("ADMIN_EMAIL secret is not configured — digest will not send");
@@ -168,8 +167,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    if (!RESEND_API_KEY) {
-      return new Response(JSON.stringify({ error: "RESEND_API_KEY not configured" }), { status: 500, headers: { "Content-Type": "application/json", ...headers } });
+    if (!ADMIN_EMAIL) {
+      return new Response(JSON.stringify({ error: "ADMIN_EMAIL not configured" }), { status: 500, headers: { "Content-Type": "application/json", ...headers } });
     }
 
     console.log("Gathering weekly KPIs...");
@@ -178,28 +177,24 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { subject, html } = buildDigestEmail(kpi);
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: RESEND_FROM,
-        to: [ADMIN_EMAIL],
-        subject,
-        html,
-      }),
+    // Track 1: route through Lovable queue (replaces legacy Resend transport).
+    // Content, recipient, cron timing, and admin-only auth are unchanged.
+    const idempotencyKey = `weekly-kpi-${new Date().toISOString().slice(0, 10)}-${ADMIN_EMAIL}`;
+    const result = await enqueuePlatformEmail(supabaseAdmin, {
+      to: ADMIN_EMAIL,
+      subject,
+      html,
+      label: "weekly_kpi_digest",
+      idempotencyKey,
     });
 
-    const body = await res.text();
-    if (!res.ok) {
-      console.error("Resend error:", res.status, body);
-      return new Response(JSON.stringify({ error: `Resend ${res.status}`, detail: body.substring(0, 200) }), { status: 500, headers: { "Content-Type": "application/json", ...headers } });
+    if (!result.ok) {
+      console.error("weekly-kpi-digest enqueue failed:", result.error);
+      return new Response(JSON.stringify({ error: result.error ?? "enqueue_failed" }), { status: 500, headers: { "Content-Type": "application/json", ...headers } });
     }
 
-    console.log("Weekly digest sent successfully");
-    return new Response(JSON.stringify({ success: true, kpi }), { status: 200, headers: { "Content-Type": "application/json", ...headers } });
+    console.log("Weekly digest enqueued:", result.messageId);
+    return new Response(JSON.stringify({ success: true, enqueued: true, messageId: result.messageId, kpi }), { status: 200, headers: { "Content-Type": "application/json", ...headers } });
   } catch (error: unknown) {
     console.error("weekly-kpi-digest error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
