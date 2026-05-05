@@ -27,7 +27,7 @@ const Messages = () => {
 
   const dashboardPath = activeRole === "professional" ? "/dashboard/pro" : "/dashboard/client";
 
-  const { data: conversations } = useConversations(user?.id);
+  const { data: conversations } = useConversations(user?.id, activeRole);
 
   // Route-level fallback lookup: ensures the page can still render the
   // thread when the enriched list is missing this conversation (enrichment
@@ -162,6 +162,7 @@ const Messages = () => {
         <div className="flex-1 overflow-y-auto">
           <ConversationList
             userId={user.id}
+            activeRole={activeRole}
             selectedId={conversationId}
             onSelect={handleSelectConversation}
           />
@@ -208,6 +209,7 @@ const Messages = () => {
           <aside className="w-80 border-r border-border overflow-y-auto bg-card">
             <ConversationList
               userId={user.id}
+              activeRole={activeRole}
               selectedId={conversationId}
               onSelect={handleSelectConversation}
             />
