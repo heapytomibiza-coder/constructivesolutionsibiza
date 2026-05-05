@@ -1,9 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { enqueuePlatformEmail } from "../_shared/lovableEmailTransport.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Constructive Solutions Ibiza <notifications@constructivesolutionsibiza.com>";
 const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "";
 if (!ADMIN_EMAIL) {
   console.error("ADMIN_EMAIL secret is not configured — digest will not send");
