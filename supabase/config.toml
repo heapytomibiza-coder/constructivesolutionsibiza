@@ -44,3 +44,5 @@ verify_jwt = false
 
 [functions.get-budget-suggestion]
 verify_jwt = false
+[functions.process-email-queue]
+verify_jwt = true
