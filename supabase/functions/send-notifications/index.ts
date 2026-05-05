@@ -836,22 +836,8 @@ async function handleHealthProbe(req: Request): Promise<Response> {
   const testTo = url.searchParams.get("to");
 
   const config = {
-    resend: {
-      configured: Boolean(RESEND_API_KEY),
-      domain_verified_flag: RESEND_DOMAIN_VERIFIED,
-      from: RESEND_FROM,
-      will_attempt: Boolean(RESEND_API_KEY) && RESEND_DOMAIN_VERIFIED,
-    },
-    smtp: {
-      configured: Boolean(SMTP_HOST && SMTP_USER && SMTP_PASSWORD),
-      host: SMTP_HOST || null,
-      port: SMTP_PORT,
-      secure: SMTP_SECURE,
-      mode: SMTP_SECURE ? "implicit-tls" : (SMTP_PORT === 587 ? "starttls" : "plain"),
-      from: SMTP_FROM,
-      user_masked: maskUser(SMTP_USER),
-      password_present: Boolean(SMTP_PASSWORD),
-    },
+    transport: "lovable_transactional_queue",
+    sender_domain: "notify.www.constructivesolutionsibiza.com",
     timestamp: new Date().toISOString(),
   };
 
@@ -863,10 +849,11 @@ async function handleHealthProbe(req: Request): Promise<Response> {
     "linear-gradient(135deg, #059669, #10b981)",
     "Email Health Probe",
     `<p style="color: #374151; font-size: 15px; line-height: 1.6;">Health-probe test from <strong>${BRAND_NAME}</strong>.</p>
-     <p style="color: #6b7280; font-size: 13px;">Provider order: Resend (verified=${RESEND_DOMAIN_VERIFIED}) → SMTP ${SMTP_HOST}:${SMTP_PORT} secure=${SMTP_SECURE}</p>
+     <p style="color: #6b7280; font-size: 13px;">Transport: Lovable transactional queue</p>
      <p style="color: #6b7280; font-size: 13px;">Sent at: ${new Date().toISOString()}</p>`
   );
-  const result = await sendEmail(testTo, `Health probe — ${BRAND_NAME}`, testHtml);
+  const probeId = `probe-${Date.now()}`;
+  const result = await sendEmail(testTo, `Health probe — ${BRAND_NAME}`, testHtml, "health_probe", probeId);
 
   return new Response(
     JSON.stringify({
@@ -878,7 +865,6 @@ async function handleHealthProbe(req: Request): Promise<Response> {
         provider: result.provider,
         messageId: result.messageId || null,
         error: result.error || null,
-        failureType: result.failureType || null,
         correlationId: result.correlationId,
       },
     }),
