@@ -1172,7 +1172,7 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        const result = await sendEmail(recipientEmail, email.subject, email.html);
+        const result = await sendEmail(recipientEmail, email.subject, email.html, item.event_type, `notif-${item.id}`);
 
         if (!result.ok) {
           const newAttempts = item.attempts + 1;
