@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { UserRole } from "@/hooks/useSessionSnapshot";
 
 export interface Conversation {
   id: string;
