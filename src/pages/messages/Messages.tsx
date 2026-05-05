@@ -209,6 +209,7 @@ const Messages = () => {
           <aside className="w-80 border-r border-border overflow-y-auto bg-card">
             <ConversationList
               userId={user.id}
+              activeRole={activeRole}
               selectedId={conversationId}
               onSelect={handleSelectConversation}
             />
