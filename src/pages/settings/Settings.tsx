@@ -473,7 +473,10 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Browser Notifications Section */}
+        {/* Email delivery status — observability only */}
+        <MyEmailDeliveryPanel />
+
+
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
