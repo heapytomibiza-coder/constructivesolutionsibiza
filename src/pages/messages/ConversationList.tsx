@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useConversations, type Conversation } from "./hooks";
+import type { UserRole } from "@/hooks/useSessionSnapshot";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -10,13 +11,14 @@ import { cn } from "@/lib/utils";
 
 interface ConversationListProps {
   userId: string;
+  activeRole?: UserRole | null;
   selectedId?: string;
   onSelect: (conversation: Conversation) => void;
 }
 
-export function ConversationList({ userId, selectedId, onSelect }: ConversationListProps) {
+export function ConversationList({ userId, activeRole, selectedId, onSelect }: ConversationListProps) {
   const { t } = useTranslation('messages');
-  const { data: conversations, isLoading, isError, error } = useConversations(userId);
+  const { data: conversations, isLoading, isError, error } = useConversations(userId, activeRole);
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredConversations = useMemo(() => {
