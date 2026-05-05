@@ -1,10 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { enqueuePlatformEmail } from "../_shared/lovableEmailTransport.ts";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const PRIMARY_FROM = "CS Ibiza <noreply@csibiza.com>";
-const FALLBACK_FROM = "CS Ibiza <onboarding@resend.dev>";
+// Track 1 — Email Recovery: Resend transport removed. Admin job-alert emails
+// are enqueued into Lovable's transactional queue. Telegram fan-out unchanged.
+
 const NOTIFY_EMAIL = Deno.env.get("ADMIN_EMAIL");
 if (!NOTIFY_EMAIL) {
   console.error("ADMIN_EMAIL secret is not configured");
@@ -18,18 +18,16 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-async function sendWithFallback(to: string, subject: string, html: string) {
-  const primary = await resend.emails.send({
-    from: PRIMARY_FROM, to: [to], subject, html,
+async function sendAdminJobEmail(to: string, subject: string, html: string, jobId: string) {
+  return enqueuePlatformEmail(supabaseAdmin, {
+    to,
+    subject,
+    html,
+    label: "admin_new_job_alert",
+    idempotencyKey: `job-alert-${jobId}`,
   });
-  if (!primary.error) return primary;
-
-  const msg = String(primary.error.message ?? "");
-  if (msg.toLowerCase().includes("domain is not verified")) {
-    return resend.emails.send({ from: FALLBACK_FROM, to: [to], subject, html });
-  }
-  return primary;
 }
+
 
 function formatBudget(job: any): string {
   if (job.budget_type === "fixed" && job.budget_value) {

@@ -1,44 +1,22 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import nodemailer from "npm:nodemailer@6.9.12";
-import { Resend } from "npm:resend@4.1.2";
+import { enqueuePlatformEmail } from "../_shared/lovableEmailTransport.ts";
 
 // ============================================
 // CONFIG
 // ============================================
+//
+// Track 1 — Email Recovery: SMTP + Resend transport removed. All platform
+// emails are enqueued into Lovable's `transactional_emails` queue and
+// delivered by the `process-email-queue` dispatcher. Templates, routing,
+// preferences, WhatsApp/Telegram fan-out, and the queue table are unchanged.
 
-const SMTP_HOST = Deno.env.get("SMTP_HOST") ?? "";
-const SMTP_PORT = parseInt(Deno.env.get("SMTP_PORT") ?? "465", 10);
-const SMTP_USER = Deno.env.get("SMTP_USER") ?? "";
-const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD") ?? Deno.env.get("GMAIL_APP_PASSWORD") ?? "";
-const SMTP_FROM = Deno.env.get("SMTP_FROM") ?? "info@constructivesolutionsibiza.com";
-
-// SMTP_SECURE: respect explicit env, else true only on 465 (implicit TLS).
-// Port 587 → secure=false → nodemailer upgrades via STARTTLS automatically.
-function resolveSmtpSecure(): boolean {
-  const raw = Deno.env.get("SMTP_SECURE");
-  if (raw !== undefined && raw !== "") {
-    return raw.toLowerCase() === "true" || raw === "1";
-  }
-  return SMTP_PORT === 465;
-}
-const SMTP_SECURE = resolveSmtpSecure();
-
-// Resend domain verification gate. The domain in RESEND_FROM must be verified
-// at Resend; otherwise every send returns "domain is not verified". Set
-// RESEND_DOMAIN_VERIFIED=true once the domain shows verified at resend.com.
-const RESEND_DOMAIN_VERIFIED = (Deno.env.get("RESEND_DOMAIN_VERIFIED") ?? "").toLowerCase() === "true";
 const BRAND_NAME = "Constructive Solutions Ibiza";
 const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "info@constructivesolutionsibiza.com";
 const ADMIN_WHATSAPP = Deno.env.get("ADMIN_WHATSAPP_NUMBER") ?? "";
 const WHATSAPP_API_KEY = Deno.env.get("WHATSAPP_CALLMEBOT_APIKEY") ?? "";
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
 const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID") ?? "";
-
-// Resend transport (primary, with SMTP fallback)
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const RESEND_FROM = Deno.env.get("RESEND_FROM") || SMTP_FROM;
-const resendClient = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 
@@ -48,31 +26,20 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-// ============================================
-// SMTP EMAIL SENDER
-// ============================================
 
-type FailureType =
-  | "SMTP_AUTH_FAILED"
-  | "RESEND_DOMAIN_UNVERIFIED"
-  | "PROVIDER_CONFIG_MISSING"
-  | "PROVIDER_SEND_FAILED";
+// ============================================
+// EMAIL SENDER (Lovable transactional queue)
+// ============================================
+// `sendEmail` enqueues into Lovable's `transactional_emails` queue. The
+// dispatcher (`process-email-queue`) handles delivery, retries, and DLQ.
+// Returns ok=true once the email is durably enqueued.
 
 interface SendResult {
   ok: boolean;
-  provider: "resend" | "smtp" | "none";
+  provider: "lovable" | "none";
   messageId?: string;
   error?: string;
-  failureType?: FailureType;
   correlationId: string;
-}
-
-function classifySmtpError(err: unknown): FailureType {
-  const msg = String(err).toLowerCase();
-  if (msg.includes("535") || msg.includes("invalid login") || msg.includes("authentication")) {
-    return "SMTP_AUTH_FAILED";
-  }
-  return "PROVIDER_SEND_FAILED";
 }
 
 function newCorrelationId(): string {
@@ -83,127 +50,27 @@ async function sendEmail(
   to: string,
   subject: string,
   html: string,
+  label: string,
+  idempotencyKey: string,
   correlationIdIn?: string,
 ): Promise<SendResult> {
   const correlationId = correlationIdIn ?? newCorrelationId();
-  let resendError: string | undefined;
-  let lastFailure: FailureType | undefined;
-
-  // --- Resend (primary, only when domain is verified) ---
-  if (resendClient && RESEND_DOMAIN_VERIFIED) {
-    try {
-      console.log(JSON.stringify({
-        scope: "email", correlationId, provider: "resend", phase: "attempt",
-        to, from: RESEND_FROM,
-      }));
-      const { data, error: apiError } = await resendClient.emails.send({
-        from: `${BRAND_NAME} <${RESEND_FROM}>`,
-        to: [to],
-        subject,
-        html,
-      });
-      if (apiError) {
-        resendError = `Resend API: ${apiError.message}`;
-        lastFailure = /not verified|domain/i.test(apiError.message)
-          ? "RESEND_DOMAIN_UNVERIFIED"
-          : "PROVIDER_SEND_FAILED";
-        console.error(JSON.stringify({
-          scope: "email", correlationId, provider: "resend", phase: "fail",
-          failureType: lastFailure, to, reason: apiError.message,
-        }));
-      } else {
-        const messageId = data?.id ?? "unknown";
-        console.log(JSON.stringify({
-          scope: "email", correlationId, provider: "resend", phase: "sent",
-          to, messageId, subject,
-        }));
-        return { ok: true, provider: "resend", messageId, correlationId };
-      }
-    } catch (err) {
-      resendError = `Resend transport: ${String(err)}`;
-      lastFailure = "PROVIDER_SEND_FAILED";
-      console.error(JSON.stringify({
-        scope: "email", correlationId, provider: "resend", phase: "fail",
-        failureType: lastFailure, to, reason: String(err),
-      }));
-    }
-  } else if (resendClient && !RESEND_DOMAIN_VERIFIED) {
-    resendError = "Resend skipped: RESEND_DOMAIN_VERIFIED is not 'true'";
-    lastFailure = "RESEND_DOMAIN_UNVERIFIED";
-    console.warn(JSON.stringify({
-      scope: "email", correlationId, provider: "resend", phase: "skipped",
-      failureType: lastFailure, reason: "RESEND_DOMAIN_VERIFIED!=true",
-    }));
+  const result = await enqueuePlatformEmail(supabaseAdmin, {
+    to,
+    subject,
+    html,
+    label,
+    idempotencyKey,
+  });
+  if (!result.ok) {
+    return { ok: false, provider: "none", error: result.error, correlationId };
   }
-
-  // --- SMTP (fallback) ---
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
-    const reason = "SMTP not configured (missing SMTP_HOST/SMTP_USER/SMTP_PASSWORD)";
-    console.error(JSON.stringify({
-      scope: "email", correlationId, provider: "smtp", phase: "skipped",
-      failureType: "PROVIDER_CONFIG_MISSING", reason,
-    }));
-    return {
-      ok: false, provider: "none",
-      error: resendError ? `${resendError}; ${reason}` : reason,
-      failureType: "PROVIDER_CONFIG_MISSING",
-      correlationId,
-    };
-  }
-
-  const starttls = !SMTP_SECURE && SMTP_PORT === 587;
-  console.log(JSON.stringify({
-    scope: "email", correlationId, provider: "smtp", phase: "attempt",
-    to, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE, starttls,
-    from: SMTP_FROM, user_masked: maskUser(SMTP_USER),
-  }));
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_SECURE, // 465 = implicit TLS; 587 = false → STARTTLS upgrade
-      requireTLS: starttls,
-      auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
-    });
-
-    const info = await transporter.sendMail({
-      from: `"${BRAND_NAME}" <${SMTP_FROM}>`,
-      to,
-      subject,
-      text: htmlToPlainText(html),
-      html,
-    });
-
-    const messageId = info?.messageId ?? "unknown";
-    console.log(JSON.stringify({
-      scope: "email", correlationId, provider: "smtp", phase: "sent",
-      to, messageId, subject, host: SMTP_HOST, port: SMTP_PORT,
-      secure: SMTP_SECURE, starttls,
-    }));
-    return { ok: true, provider: "smtp", messageId, correlationId };
-  } catch (err) {
-    const failureType = classifySmtpError(err);
-    const smtpError = `SMTP: ${String(err)}`;
-    console.error(JSON.stringify({
-      scope: "email", correlationId, provider: "smtp", phase: "fail",
-      failureType, to, host: SMTP_HOST, port: SMTP_PORT,
-      secure: SMTP_SECURE, starttls, reason: String(err),
-    }));
-    return {
-      ok: false, provider: "none",
-      error: resendError ? `${resendError}; ${smtpError}` : smtpError,
-      failureType,
-      correlationId,
-    };
-  }
-}
-
-function maskUser(user: string): string {
-  if (!user) return "";
-  const [name, domain] = user.split("@");
-  if (!domain) return `${user.slice(0, 2)}***`;
-  return `${name.slice(0, 2)}***@${domain}`;
+  return {
+    ok: true,
+    provider: "lovable",
+    messageId: result.messageId,
+    correlationId,
+  };
 }
 
 // ============================================
@@ -229,6 +96,7 @@ function htmlToPlainText(html: string): string {
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
+
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
@@ -968,22 +836,8 @@ async function handleHealthProbe(req: Request): Promise<Response> {
   const testTo = url.searchParams.get("to");
 
   const config = {
-    resend: {
-      configured: Boolean(RESEND_API_KEY),
-      domain_verified_flag: RESEND_DOMAIN_VERIFIED,
-      from: RESEND_FROM,
-      will_attempt: Boolean(RESEND_API_KEY) && RESEND_DOMAIN_VERIFIED,
-    },
-    smtp: {
-      configured: Boolean(SMTP_HOST && SMTP_USER && SMTP_PASSWORD),
-      host: SMTP_HOST || null,
-      port: SMTP_PORT,
-      secure: SMTP_SECURE,
-      mode: SMTP_SECURE ? "implicit-tls" : (SMTP_PORT === 587 ? "starttls" : "plain"),
-      from: SMTP_FROM,
-      user_masked: maskUser(SMTP_USER),
-      password_present: Boolean(SMTP_PASSWORD),
-    },
+    transport: "lovable_transactional_queue",
+    sender_domain: "notify.www.constructivesolutionsibiza.com",
     timestamp: new Date().toISOString(),
   };
 
@@ -995,10 +849,11 @@ async function handleHealthProbe(req: Request): Promise<Response> {
     "linear-gradient(135deg, #059669, #10b981)",
     "Email Health Probe",
     `<p style="color: #374151; font-size: 15px; line-height: 1.6;">Health-probe test from <strong>${BRAND_NAME}</strong>.</p>
-     <p style="color: #6b7280; font-size: 13px;">Provider order: Resend (verified=${RESEND_DOMAIN_VERIFIED}) → SMTP ${SMTP_HOST}:${SMTP_PORT} secure=${SMTP_SECURE}</p>
+     <p style="color: #6b7280; font-size: 13px;">Transport: Lovable transactional queue</p>
      <p style="color: #6b7280; font-size: 13px;">Sent at: ${new Date().toISOString()}</p>`
   );
-  const result = await sendEmail(testTo, `Health probe — ${BRAND_NAME}`, testHtml);
+  const probeId = `probe-${Date.now()}`;
+  const result = await sendEmail(testTo, `Health probe — ${BRAND_NAME}`, testHtml, "health_probe", probeId);
 
   return new Response(
     JSON.stringify({
@@ -1010,7 +865,6 @@ async function handleHealthProbe(req: Request): Promise<Response> {
         provider: result.provider,
         messageId: result.messageId || null,
         error: result.error || null,
-        failureType: result.failureType || null,
         correlationId: result.correlationId,
       },
     }),
@@ -1318,7 +1172,7 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        const result = await sendEmail(recipientEmail, email.subject, email.html);
+        const result = await sendEmail(recipientEmail, email.subject, email.html, item.event_type, `notif-${item.id}`);
 
         if (!result.ok) {
           const newAttempts = item.attempts + 1;
