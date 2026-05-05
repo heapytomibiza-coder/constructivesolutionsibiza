@@ -162,6 +162,7 @@ const Messages = () => {
         <div className="flex-1 overflow-y-auto">
           <ConversationList
             userId={user.id}
+            activeRole={activeRole}
             selectedId={conversationId}
             onSelect={handleSelectConversation}
           />
