@@ -131,6 +131,9 @@ export default function AdminDashboard() {
             <TabsContent value="agents">
               <AgentPerformanceSection />
             </TabsContent>
+            <TabsContent value="email">
+              <EmailDiagnosticsSection />
+            </TabsContent>
           </Tabs>
       </div>
     </div>
