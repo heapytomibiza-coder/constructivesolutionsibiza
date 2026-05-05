@@ -120,10 +120,22 @@ async function fetchConversations(currentUserId: string): Promise<Conversation[]
   });
 }
 
-export function useConversations(userId: string | undefined) {
+export function useConversations(
+  userId: string | undefined,
+  activeRole?: UserRole | null,
+) {
   const query = useQuery({
-    queryKey: ["conversations", userId],
-    queryFn: () => fetchConversations(userId!),
+    queryKey: ["conversations", userId, activeRole ?? null],
+    queryFn: async () => {
+      const rows = await fetchConversations(userId!);
+      if (activeRole === "client") {
+        return rows.filter((c) => c.client_id === userId);
+      }
+      if (activeRole === "professional") {
+        return rows.filter((c) => c.pro_id === userId);
+      }
+      return rows;
+    },
     enabled: !!userId,
     staleTime: 30_000,
   });
