@@ -27,7 +27,7 @@ const Messages = () => {
 
   const dashboardPath = activeRole === "professional" ? "/dashboard/pro" : "/dashboard/client";
 
-  const { data: conversations } = useConversations(user?.id);
+  const { data: conversations } = useConversations(user?.id, activeRole);
 
   // Route-level fallback lookup: ensures the page can still render the
   // thread when the enriched list is missing this conversation (enrichment
