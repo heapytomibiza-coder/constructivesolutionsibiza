@@ -26,6 +26,7 @@ import type { UserRole } from '@/hooks/useSessionSnapshot';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { MyEmailDeliveryPanel } from '@/components/notifications/MyEmailDeliveryPanel';
 
 interface NotificationPrefs {
   email_messages: boolean;
@@ -473,7 +474,10 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Browser Notifications Section */}
+        {/* Email delivery status — observability only */}
+        <MyEmailDeliveryPanel />
+
+
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">

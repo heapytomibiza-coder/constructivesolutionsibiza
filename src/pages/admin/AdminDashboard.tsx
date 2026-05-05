@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity, LineChart, Store, Scale, Brain, Bot } from "lucide-react";
+import { Users, Briefcase, MessageSquare, BarChart3, Shield, Headset, Map, Activity, LineChart, Store, Scale, Brain, Bot, Mail } from "lucide-react";
 import { UsersSection, JobsSection, ContentSection, ListingsSection, SupportInbox } from "./sections";
 import { DisputeQueue } from "./sections/disputes";
 import { LinkMapSection } from "./sections/LinkMapSection";
@@ -8,6 +8,7 @@ import { OperatorCockpit } from "./sections/OperatorCockpit";
 import InsightsSection from "./sections/InsightsSection";
 import { PlatformAssistant } from "./sections/PlatformAssistant";
 import AgentPerformanceSection from "./sections/AgentPerformanceSection";
+import EmailDiagnosticsSection from "./sections/EmailDiagnosticsSection";
 
 /**
  * ADMIN DASHBOARD
@@ -39,10 +40,14 @@ export default function AdminDashboard() {
         {/* Main Content */}
         <div className="container py-8">
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-12 lg:w-auto lg:inline-grid">
+            <TabsList className="grid w-full grid-cols-13 lg:w-auto lg:inline-grid">
               <TabsTrigger value="overview" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Overview</span>
+              </TabsTrigger>
+              <TabsTrigger value="email" className="gap-2">
+                <Mail className="h-4 w-4" />
+                <span className="hidden sm:inline">Email</span>
               </TabsTrigger>
               <TabsTrigger value="assistant" className="gap-2">
                 <Brain className="h-4 w-4" />
@@ -125,6 +130,9 @@ export default function AdminDashboard() {
             </TabsContent>
             <TabsContent value="agents">
               <AgentPerformanceSection />
+            </TabsContent>
+            <TabsContent value="email">
+              <EmailDiagnosticsSection />
             </TabsContent>
           </Tabs>
       </div>

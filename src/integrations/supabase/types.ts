@@ -4438,6 +4438,13 @@ export type Database = {
           title: string
         }[]
       }
+      admin_email_log_stats: {
+        Args: { _since?: string }
+        Returns: {
+          count: number
+          status: string
+        }[]
+      }
       admin_email_queue_details: { Args: never; Returns: Json }
       admin_force_complete_job: {
         Args: { p_job_id: string; p_reason?: string }
