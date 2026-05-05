@@ -300,7 +300,10 @@ const handler = async (req: Request): Promise<Response> => {
 
         const subject = `🛠️ New job: ${job.title} — ${job.area || "Ibiza"}`;
         const html = buildEmailHtml(job, siteUrl);
-        const result = await sendWithFallback(NOTIFY_EMAIL, subject, html);
+        const enq = await sendAdminJobEmail(NOTIFY_EMAIL, subject, html, job.id);
+        const result = enq.ok
+          ? { error: null }
+          : { error: { message: enq.error ?? "enqueue_failed" } };
 
         // Send Telegram push notification (always attempt, even if email fails)
         let telegramOk = false;
