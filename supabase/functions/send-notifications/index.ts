@@ -28,30 +28,18 @@ const supabaseAdmin = createClient(
 
 
 // ============================================
-// SMTP EMAIL SENDER
+// EMAIL SENDER (Lovable transactional queue)
 // ============================================
-
-type FailureType =
-  | "SMTP_AUTH_FAILED"
-  | "RESEND_DOMAIN_UNVERIFIED"
-  | "PROVIDER_CONFIG_MISSING"
-  | "PROVIDER_SEND_FAILED";
+// `sendEmail` enqueues into Lovable's `transactional_emails` queue. The
+// dispatcher (`process-email-queue`) handles delivery, retries, and DLQ.
+// Returns ok=true once the email is durably enqueued.
 
 interface SendResult {
   ok: boolean;
-  provider: "resend" | "smtp" | "none";
+  provider: "lovable" | "none";
   messageId?: string;
   error?: string;
-  failureType?: FailureType;
   correlationId: string;
-}
-
-function classifySmtpError(err: unknown): FailureType {
-  const msg = String(err).toLowerCase();
-  if (msg.includes("535") || msg.includes("invalid login") || msg.includes("authentication")) {
-    return "SMTP_AUTH_FAILED";
-  }
-  return "PROVIDER_SEND_FAILED";
 }
 
 function newCorrelationId(): string {
@@ -62,127 +50,27 @@ async function sendEmail(
   to: string,
   subject: string,
   html: string,
+  label: string,
+  idempotencyKey: string,
   correlationIdIn?: string,
 ): Promise<SendResult> {
   const correlationId = correlationIdIn ?? newCorrelationId();
-  let resendError: string | undefined;
-  let lastFailure: FailureType | undefined;
-
-  // --- Resend (primary, only when domain is verified) ---
-  if (resendClient && RESEND_DOMAIN_VERIFIED) {
-    try {
-      console.log(JSON.stringify({
-        scope: "email", correlationId, provider: "resend", phase: "attempt",
-        to, from: RESEND_FROM,
-      }));
-      const { data, error: apiError } = await resendClient.emails.send({
-        from: `${BRAND_NAME} <${RESEND_FROM}>`,
-        to: [to],
-        subject,
-        html,
-      });
-      if (apiError) {
-        resendError = `Resend API: ${apiError.message}`;
-        lastFailure = /not verified|domain/i.test(apiError.message)
-          ? "RESEND_DOMAIN_UNVERIFIED"
-          : "PROVIDER_SEND_FAILED";
-        console.error(JSON.stringify({
-          scope: "email", correlationId, provider: "resend", phase: "fail",
-          failureType: lastFailure, to, reason: apiError.message,
-        }));
-      } else {
-        const messageId = data?.id ?? "unknown";
-        console.log(JSON.stringify({
-          scope: "email", correlationId, provider: "resend", phase: "sent",
-          to, messageId, subject,
-        }));
-        return { ok: true, provider: "resend", messageId, correlationId };
-      }
-    } catch (err) {
-      resendError = `Resend transport: ${String(err)}`;
-      lastFailure = "PROVIDER_SEND_FAILED";
-      console.error(JSON.stringify({
-        scope: "email", correlationId, provider: "resend", phase: "fail",
-        failureType: lastFailure, to, reason: String(err),
-      }));
-    }
-  } else if (resendClient && !RESEND_DOMAIN_VERIFIED) {
-    resendError = "Resend skipped: RESEND_DOMAIN_VERIFIED is not 'true'";
-    lastFailure = "RESEND_DOMAIN_UNVERIFIED";
-    console.warn(JSON.stringify({
-      scope: "email", correlationId, provider: "resend", phase: "skipped",
-      failureType: lastFailure, reason: "RESEND_DOMAIN_VERIFIED!=true",
-    }));
+  const result = await enqueuePlatformEmail(supabaseAdmin, {
+    to,
+    subject,
+    html,
+    label,
+    idempotencyKey,
+  });
+  if (!result.ok) {
+    return { ok: false, provider: "none", error: result.error, correlationId };
   }
-
-  // --- SMTP (fallback) ---
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
-    const reason = "SMTP not configured (missing SMTP_HOST/SMTP_USER/SMTP_PASSWORD)";
-    console.error(JSON.stringify({
-      scope: "email", correlationId, provider: "smtp", phase: "skipped",
-      failureType: "PROVIDER_CONFIG_MISSING", reason,
-    }));
-    return {
-      ok: false, provider: "none",
-      error: resendError ? `${resendError}; ${reason}` : reason,
-      failureType: "PROVIDER_CONFIG_MISSING",
-      correlationId,
-    };
-  }
-
-  const starttls = !SMTP_SECURE && SMTP_PORT === 587;
-  console.log(JSON.stringify({
-    scope: "email", correlationId, provider: "smtp", phase: "attempt",
-    to, host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE, starttls,
-    from: SMTP_FROM, user_masked: maskUser(SMTP_USER),
-  }));
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_SECURE, // 465 = implicit TLS; 587 = false → STARTTLS upgrade
-      requireTLS: starttls,
-      auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
-    });
-
-    const info = await transporter.sendMail({
-      from: `"${BRAND_NAME}" <${SMTP_FROM}>`,
-      to,
-      subject,
-      text: htmlToPlainText(html),
-      html,
-    });
-
-    const messageId = info?.messageId ?? "unknown";
-    console.log(JSON.stringify({
-      scope: "email", correlationId, provider: "smtp", phase: "sent",
-      to, messageId, subject, host: SMTP_HOST, port: SMTP_PORT,
-      secure: SMTP_SECURE, starttls,
-    }));
-    return { ok: true, provider: "smtp", messageId, correlationId };
-  } catch (err) {
-    const failureType = classifySmtpError(err);
-    const smtpError = `SMTP: ${String(err)}`;
-    console.error(JSON.stringify({
-      scope: "email", correlationId, provider: "smtp", phase: "fail",
-      failureType, to, host: SMTP_HOST, port: SMTP_PORT,
-      secure: SMTP_SECURE, starttls, reason: String(err),
-    }));
-    return {
-      ok: false, provider: "none",
-      error: resendError ? `${resendError}; ${smtpError}` : smtpError,
-      failureType,
-      correlationId,
-    };
-  }
-}
-
-function maskUser(user: string): string {
-  if (!user) return "";
-  const [name, domain] = user.split("@");
-  if (!domain) return `${user.slice(0, 2)}***`;
-  return `${name.slice(0, 2)}***@${domain}`;
+  return {
+    ok: true,
+    provider: "lovable",
+    messageId: result.messageId,
+    correlationId,
+  };
 }
 
 // ============================================
@@ -208,6 +96,7 @@ function htmlToPlainText(html: string): string {
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
+
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
