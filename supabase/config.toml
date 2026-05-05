@@ -41,3 +41,5 @@ project_id = "ngwbpuxltyfweikdupoj"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
+  [functions.admin-email-diagnostics]
+    verify_jwt = true
