@@ -3,14 +3,21 @@
     "category": "Service Type",
     "subcategory": "Service Details",
     "micro": "Specific Tasks",
-    "questions": "Professional Briefing",
+    "questions": "Project Details",
     "logistics": "Timing & Location",
     "extras": "Photos & Notes",
-    "review": "Review & Post"
+    "review": "Review & Send"
+  },
+  "intro": {
+    "title": "Tell us what you need done",
+    "subtitle": "Start with the trade or task. We will guide you through the details and turn your answers into a clear project request for local professionals.",
+    "free": "Free to start",
+    "noObligation": "No obligation to hire",
+    "clearBrief": "Clear brief at the end"
   },
   "extras": {
     "title": "Photos & Additional Details",
-    "subtitle": "Everything here is optional — skip ahead if you prefer.",
+    "subtitle": "Everything here is optional. Photos are useful, but you can skip this step.",
     "photosLabel": "Photos",
     "photosOptional": "optional",
     "photosHelp": "Add photos to help professionals understand the job better",
@@ -29,11 +36,11 @@
   },
   "progress": {
     "stepOf": "Step {{current}} of {{total}}",
-    "helper": "Building your job specification helps professionals quote accurately"
+    "helper": "Your answers become a practical brief professionals can understand quickly"
   },
   "category": {
     "headline": "What type of service do you need?",
-    "orBrowse": "or browse categories",
+    "orBrowse": "or choose a category",
     "loading": "Loading categories…"
   },
   "subcategory": {
@@ -110,12 +117,12 @@
   "buttons": {
     "back": "Back",
     "continue": "Continue",
-    "submit": "Post Job",
-    "signInToSubmit": "Sign In to Post",
+    "submit": "Send Request",
+    "signInToSubmit": "Sign In to Save",
     "saveChanges": "Save Changes",
     "cancel": "Cancel",
-    "getMatched": "Post Job",
-    "signInGetMatched": "Sign In & Post Job"
+    "getMatched": "Send Request",
+    "signInGetMatched": "Sign In & Save Request"
   },
   "ui": {
     "submitting": "Submitting...",
@@ -153,10 +160,10 @@
   },
   "custom": {
     "cta": "Can't find what you need?",
-    "ctaDescription": "Post a custom request — we'll format it into a proper job card.",
-    "ctaButton": "Post Custom Request",
+    "ctaDescription": "Describe it in your own words and we will format it into a proper request.",
+    "ctaButton": "Create Custom Request",
     "headline": "Describe what you need",
-    "subtitle": "Tell us what you need. We'll turn it into a clear job card for professionals.",
+    "subtitle": "Tell us what you need. We will turn it into a clear request for professionals.",
     "categoryLabel": "Main category",
     "categoryPlaceholder": "Select a category",
     "titleLabel": "Job title",
@@ -164,7 +171,7 @@
     "titleHelp": "Be specific — this becomes the headline.",
     "descriptionLabel": "Job description",
     "descriptionPlaceholder": "What needs doing? Where? Any constraints?",
-    "descriptionHelp": "Include location context, scale, and what \"done\" looks like.",
+    "descriptionHelp": "Include the location, rough size, and what a good result looks like.",
     "specsLabel": "Specific specs (optional)",
     "specsPlaceholder": "Measurements, materials, brand preferences, deadlines...",
     "badge": "Custom Request",
@@ -186,8 +193,8 @@
     "photosCount_plural": "{{count}} photos",
     "notesAdded": "Notes added",
     "noObligation": "You're not committing to hire anyone",
-    "noObligationDesc": "Your job will be matched with local professionals. You can edit, cancel, or ignore replies anytime — no obligation.",
-    "authNotice": "You'll need to sign in to save this job. Your progress will be saved.",
+    "noObligationDesc": "Your request will be matched with local professionals. You can edit it, cancel it, or ignore replies anytime. No obligation.",
+    "authNotice": "You will need to sign in to save this request. Your progress will be saved.",
     "toBeDiscussed": "To be discussed",
     "notSpecified": "Not specified",
     "customLocation": "Custom location",

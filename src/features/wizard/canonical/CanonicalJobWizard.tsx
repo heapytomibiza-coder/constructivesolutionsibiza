@@ -20,7 +20,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Loader2, FileText, HelpCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, FileText, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { txCategory } from '@/i18n/taxonomyTranslations';
@@ -1105,9 +1105,24 @@ export function CanonicalJobWizard({ className }: CanonicalJobWizardProps) {
             <>
               {currentStep === WizardStep.Category && (
                 <div className="space-y-6">
-                  <h3 className="font-display text-lg font-semibold">
-                    {t('category.headline')}
-                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-display text-xl font-semibold text-foreground">
+                        {t('intro.title')}
+                      </h3>
+                      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                        {t('intro.subtitle')}
+                      </p>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {['free', 'noObligation', 'clearBrief'].map((key) => (
+                        <div key={key} className="flex items-center gap-2 rounded-md bg-primary/5 px-3 py-2 text-xs font-medium text-foreground">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                          {t(`intro.${key}`)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   
                   {/* Direct mode scoping banner */}
                   {isDirectMode && proScope.proName && (
