@@ -231,8 +231,8 @@
           "Esta política está diseñada para:"
         ],
         "bullets": [
-          "Proteger los pagos del cliente",
-          "Proteger los ingresos del profesional",
+          "Apoyar registros de pago más claros para clientes",
+          "Apoyar registros de cobro más claros para profesionales",
           "Fomentar resultados justos",
           "Reducir escaladas",
           "Promover una resolución constructiva"
@@ -242,17 +242,17 @@
         ]
       },
       {
-        "title": "2. Marco de protección de pagos",
+        "title": "2. Marco de pagos estructurados",
         "paragraphs": [
           "Los pagos procesados a través de la plataforma se gestionan mediante infraestructura de pago regulada de terceros.",
-          "El pago está directamente vinculado a la finalización de hitos, progreso documentado o resultados de resolución estructurada. Esto garantiza:"
+          "El pago puede vincularse a la finalización de hitos, progreso documentado o resultados de resolución estructurada. Está diseñado para apoyar:"
         ],
         "bullets": [
-          "Los clientes no pagan por adelantado del progreso",
-          "Los profesionales no están expuestos a retenciones arbitrarias",
-          "Las decisiones de pago siguen un sistema controlado",
+          "Expectativas más claras sobre los plazos de pago",
+          "Menor riesgo de retenciones arbitrarias",
+          "Decisiones de pago basadas en información documentada",
           "Los fondos pueden retenerse temporalmente o congelarse durante una revisión de disputa activa",
-          "La liberación de fondos ocurre solo conforme a los términos de resolución acordados"
+          "Liberación de fondos conforme a los términos de resolución acordados"
         ],
         "paragraphs2": [
           "Los fondos de hitos pendientes pueden restringirse durante las disputas. Los fondos previamente liberados no son automáticamente reversibles.",
@@ -313,8 +313,8 @@
               "Evidencia de soporte"
             ],
             "paragraphs2": [
-              "La plataforma abre un caso estructurado, estabiliza la comunicación, activa la visibilidad del cronograma, confirma el estado de pagos y define los próximos pasos.",
-              "Todos los fondos pendientes permanecen protegidos durante esta etapa."
+              "La plataforma abre un caso estructurado, mantiene la comunicación en un solo lugar, activa la visibilidad del cronograma, confirma el estado de pagos y define los próximos pasos.",
+              "Los fondos de hitos pendientes pueden restringirse durante esta etapa."
             ]
           },
           {
@@ -413,16 +413,16 @@
       {
         "title": "8. Protección del cliente",
         "paragraphs": [
-          "Los clientes están protegidos mediante:"
+          "Los clientes reciben apoyo mediante:"
         ],
         "bullets": [
           "Derecho a revisión documentada",
-          "Protección de pagos durante disputas",
+          "Revisión del estado de pago durante disputas",
           "Aportación de evidencias estructurada",
           "Pasos procedimentales transparentes"
         ],
         "paragraphs2": [
-          "No se liberan fondos pendientes durante una disputa activa."
+          "Los fondos pendientes pueden restringirse durante una revisión de disputa activa cuando el flujo de pago lo permita."
         ]
       },
       {
@@ -459,8 +459,8 @@
       {
         "title": "11. Objetivo",
         "paragraphs": [
-          "Este sistema combina control de pagos estructurado, resolución de disputas específica para construcción, evaluación neutral documentada y resultados financieros definidos.",
-          "Está diseñado para reducir conflictos, proteger a ambas partes, mantener la confianza y crear conclusiones claras y justas.",
+          "Este sistema combina registros de pago estructurados, facilitación de disputas específica para construcción, evaluación neutral documentada y próximos pasos documentados.",
+          "Está diseñado para reducir conflictos, apoyar a ambas partes, mantener la confianza y crear conclusiones más claras.",
           "El objetivo de este marco no es asignar culpa, sino ofrecer Soluciones Constructivas."
         ]
       }
