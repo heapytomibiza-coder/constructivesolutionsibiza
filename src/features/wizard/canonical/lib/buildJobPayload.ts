@@ -48,7 +48,7 @@ function buildLocationJson(logistics: WizardState['logistics']): Json {
     return {
       preset,
       area,
-      town,
+      town: null,
       custom: custom || null,
       zone: null,
       notes: null,
