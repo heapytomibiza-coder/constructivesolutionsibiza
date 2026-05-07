@@ -30,7 +30,7 @@
   },
   "draft": {
     "title": "Resume your draft?",
-    "description": "We found an unfinished job posting. Would you like to continue where you left off?",
+    "description": "We found an unfinished request. Would you like to continue where you left off?",
     "startFresh": "Start Fresh",
     "resume": "Resume Draft"
   },
@@ -129,19 +129,19 @@
     "professionalFallback": "Professional"
   },
   "toasts": {
-    "duplicate": "This job was already submitted",
-    "convoFailed": "Job saved but could not start conversation",
-    "directSuccess": "Job sent to professional!",
-    "broadcastSuccess": "Job posted to marketplace!",
-    "postSuccess": "Job posted! View it on the job board.",
-    "submitFailed": "Failed to post job. Please try again.",
-    "updateSuccess": "Job updated!",
+    "duplicate": "This request was already submitted",
+    "convoFailed": "Request saved but could not start conversation",
+    "directSuccess": "Request sent to professional!",
+    "broadcastSuccess": "Request posted to marketplace!",
+    "postSuccess": "Request posted! View it on the request board.",
+    "submitFailed": "Failed to post request. Please try again.",
+    "updateSuccess": "Request updated!",
     "duplicateCreated": "Draft created from copy",
-    "editNotAllowed": "This job can't be edited anymore. Duplicate it instead.",
-    "editLoadFailed": "Could not load job for editing"
+    "editNotAllowed": "This request can't be edited anymore. Duplicate it instead.",
+    "editLoadFailed": "Could not load request for editing"
   },
   "errors": {
-    "authRequired": "You need to sign in to submit a job",
+    "authRequired": "You need to sign in to submit a request",
     "selectPro": "Please select a professional to send this job to"
   },
   "search": {
@@ -166,10 +166,10 @@
     "subtitle": "Tell us what you need. We will turn it into a clear request for professionals.",
     "categoryLabel": "Main category",
     "categoryPlaceholder": "Select a category",
-    "titleLabel": "Job title",
+    "titleLabel": "Request title",
     "titlePlaceholder": "e.g. Build a pergola with integrated LED strips",
     "titleHelp": "Be specific — this becomes the headline.",
-    "descriptionLabel": "Job description",
+    "descriptionLabel": "Request description",
     "descriptionPlaceholder": "What needs doing? Where? Any constraints?",
     "descriptionHelp": "Include the location, rough size, and what a good result looks like.",
     "specsLabel": "Specific specs (optional)",

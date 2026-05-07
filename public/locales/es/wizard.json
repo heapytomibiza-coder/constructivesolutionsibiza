@@ -30,7 +30,7 @@
   },
   "draft": {
     "title": "¿Reanudar tu borrador?",
-    "description": "Hemos encontrado un trabajo sin terminar. ¿Quieres continuar donde lo dejaste?",
+    "description": "Hemos encontrado una solicitud sin terminar. ¿Quieres continuar donde lo dejaste?",
     "startFresh": "Empezar de cero",
     "resume": "Reanudar borrador"
   },
@@ -129,19 +129,19 @@
     "professionalFallback": "Profesional"
   },
   "toasts": {
-    "duplicate": "Este trabajo ya fue enviado",
-    "convoFailed": "Trabajo guardado, pero no se pudo iniciar la conversación",
-    "directSuccess": "¡Trabajo enviado al profesional!",
-    "broadcastSuccess": "¡Trabajo publicado en el marketplace!",
-    "postSuccess": "¡Trabajo publicado! Véalo en el tablero de trabajos.",
-    "submitFailed": "No se pudo publicar. Inténtalo de nuevo.",
-    "updateSuccess": "¡Trabajo actualizado!",
+    "duplicate": "Esta solicitud ya fue enviada",
+    "convoFailed": "Solicitud guardada, pero no se pudo iniciar la conversación",
+    "directSuccess": "¡Solicitud enviada al profesional!",
+    "broadcastSuccess": "¡Solicitud publicada en el marketplace!",
+    "postSuccess": "¡Solicitud publicada! Puedes verla en el panel de solicitudes.",
+    "submitFailed": "No se pudo publicar la solicitud. Inténtalo de nuevo.",
+    "updateSuccess": "¡Solicitud actualizada!",
     "duplicateCreated": "Borrador creado desde copia",
-    "editNotAllowed": "Este trabajo ya no se puede editar. Duplica el trabajo en su lugar.",
-    "editLoadFailed": "No se pudo cargar el trabajo para editarlo"
+    "editNotAllowed": "Esta solicitud ya no se puede editar. Duplica la solicitud en su lugar.",
+    "editLoadFailed": "No se pudo cargar la solicitud para editarla"
   },
   "errors": {
-    "authRequired": "Necesitas iniciar sesión para publicar un trabajo",
+    "authRequired": "Necesitas iniciar sesión para enviar una solicitud",
     "selectPro": "Selecciona un profesional para enviarle este trabajo"
   },
   "search": {
@@ -166,10 +166,10 @@
     "subtitle": "Cuéntanos qué necesitas. Lo convertiremos en una solicitud clara para los profesionales.",
     "categoryLabel": "Categoría principal",
     "categoryPlaceholder": "Selecciona una categoría",
-    "titleLabel": "Título del trabajo",
+    "titleLabel": "Título de la solicitud",
     "titlePlaceholder": "ej. Construir una pérgola con tiras LED integradas",
     "titleHelp": "Sé específico — esto será el titular.",
-    "descriptionLabel": "Descripción del trabajo",
+    "descriptionLabel": "Descripción de la solicitud",
     "descriptionPlaceholder": "¿Qué necesitas? ¿Dónde? ¿Alguna restricción?",
     "descriptionHelp": "Incluye la ubicación, tamaño aproximado y cómo sería un buen resultado.",
     "specsLabel": "Especificaciones concretas (opcional)",

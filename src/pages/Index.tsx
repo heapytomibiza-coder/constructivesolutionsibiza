@@ -72,8 +72,8 @@ const Index = () => {
   return (
     <PublicLayout>
       <SEOHead
-        title="Find Builders and Trades in Ibiza | Constructive Solutions Ibiza"
-        description="Describe your construction or property job once and connect with local builders, trades, and professionals across Ibiza."
+        title="Start a Construction or Property Request in Ibiza | Constructive Solutions Ibiza"
+        description="Describe your construction or property project once and turn it into a clear request for local builders, trades, and professionals across Ibiza."
         canonical="https://www.constructivesolutionsibiza.com/"
       />
 

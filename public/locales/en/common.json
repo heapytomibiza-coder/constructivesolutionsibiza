@@ -14,7 +14,7 @@
     "clientDashboard": "My Dashboard",
     "proDashboard": "Pro Dashboard",
     "messages": "Messages",
-    "postJob": "Post a job",
+    "postJob": "Start a request",
     "settings": "Settings",
     "openMenu": "Open menu",
     "menu": "Menu",
@@ -45,9 +45,9 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Find the Right Builder or Trade in Ibiza",
-    "subtitle": "Describe the job once. Constructive turns it into a clear brief and connects you with local professionals who match the work.",
-    "postJob": "Start a Project",
+    "title": "Start Your Ibiza Construction or Property Project",
+    "subtitle": "Tell us what you need once. We turn it into a clear request so the right local professionals can understand the work before they respond.",
+    "postJob": "Start a Request",
     "browsePros": "Browse Professionals",
     "joinAsPro": "Join as a Professional"
   },
@@ -121,7 +121,7 @@
   },
   "home": {
     "ourServices": "What Do You Need?",
-    "ourServicesDesc": "Tell us about your project — we help clarify the scope and connect you with the right trade",
+    "ourServicesDesc": "Choose a service or describe the work. We help turn it into a clear request for the right trade.",
     "viewAllServices": "View All Services",
     "verifiedTitle": "Clarity First",
     "verifiedDesc": "Our guided questions translate your idea into a clear, build-ready brief",
@@ -129,21 +129,21 @@
     "quickDesc": "Clients and professionals start on the same page from day one",
     "qualityTitle": "Trusted Connections",
     "qualityDesc": "Verified professionals who understand exactly what's required",
-    "ctaTitle": "Not sure where to start?",
-    "ctaDesc": "Answer a few quick questions and we'll help you define the scope.",
-    "ctaButton": "Get Started",
+    "ctaTitle": "Not sure which trade you need?",
+    "ctaDesc": "Start with the problem. The guided questions help shape it into a request professionals can price and respond to.",
+    "ctaButton": "Start a Request",
     "seeHowWeWork": "See How We Work",
     "howWeWorkTitle": "How It Works",
-    "howWeWorkSubtitle": "A simple way to turn a vague job into a clear request professionals can respond to.",
-    "step1Title": "Describe the Job",
+    "howWeWorkSubtitle": "A simple path from unclear idea to clear project request.",
+    "step1Title": "Describe What You Need",
     "step1Desc": "Answer practical questions about the work, location, budget, timing, and photos.",
-    "step2Title": "Create a Clear Brief",
-    "step2Desc": "Your answers become a structured project request, not another vague WhatsApp message.",
+    "step2Title": "Shape the Request",
+    "step2Desc": "Your answers become a structured brief with the practical details professionals need.",
     "step3Title": "Reach the Right People",
     "step3Desc": "Professionals who match the trade, area, and type of work can review the details.",
-    "step4Title": "Agree the Next Step",
-    "step4Desc": "Discuss the job, compare responses, and move forward with more confidence.",
-    "startProject": "Start your project",
+    "step4Title": "Choose the Next Step",
+    "step4Desc": "Discuss the request, compare responses, and decide who you want to move forward with.",
+    "startProject": "Start a request",
     "trustStripMilestones": "Milestone-Based Payments",
     "trustStripProtection": "Final Retention Structure",
     "trustStripVerified": "Verified Professionals",
@@ -191,8 +191,8 @@
     "forClients4": "Structured process if work is incomplete",
     "forClientsClosing": "You stay in control — without needing to manage everything yourself.",
     "finalCtaTitle": "Construction doesn't have to be uncertain.",
-    "finalCtaDesc": "Start a project with structure. Work with professionals who are accountable. Build with confidence.",
-    "finalCtaStart": "Start Your Project",
+    "finalCtaDesc": "Start with a clear request. Speak to professionals who understand the work before you move forward.",
+    "finalCtaStart": "Start a Request",
     "finalCtaJoin": "Join the Platform",
     "finalCtaJoinPro": "Join as a Professional",
     "servicesTitle": "What You Can Post",
@@ -437,7 +437,7 @@
     "clientStep4Match4": "Profile completeness",
     "clientStep4Match5": "Reliability signals built over time",
     "clientClosing": "The system supports the beginning — the relationship remains human.",
-    "postJobButton": "Start Your Project",
+    "postJobButton": "Start a Request",
     "forProfessionals": "For Professionals",
     "forProfessionalsAka": "(Builders, trades, and service professionals)",
     "proStep1Title": "Define What You Actually Want to Do",
@@ -473,20 +473,20 @@
     "faqTitle": "Frequently Asked Questions",
     "faq": {
       "account": {
-        "q": "Do I need an account to post a job?",
-        "a": "Yes. An account allows your job to be structured properly and ensures communication stays organised."
+        "q": "Do I need an account to start a request?",
+        "a": "Yes. An account allows your request to be structured properly and keeps communication organised."
       },
       "howLong": {
-        "q": "How long does it take to post a job?",
+        "q": "How long does it take to start a request?",
         "a": "Usually 1–2 minutes. The guided process walks you through practical, trade-specific questions."
       },
       "isFree": {
-        "q": "Is posting a job free?",
+        "q": "Is starting a request free?",
         "a": "Yes. You only agree terms directly with the professional you choose."
       },
       "howMatched": {
         "q": "How are professionals selected?",
-        "a": "They choose which services they want to be matched with. When your job aligns with their selected services, preferences, and area, they're notified."
+        "a": "They choose which services they want to be matched with. When your request aligns with their selected services, preferences, and area, they're notified."
       },
       "unverified": {
         "q": "Can new professionals join?",
@@ -502,7 +502,7 @@
       },
       "vsWhatsapp": {
         "q": "What makes this better than WhatsApp groups?",
-        "a": "Jobs are structured from the beginning. Professionals receive only relevant work. Scope, budget and timing are clarified early. Communication remains direct — without message floods."
+        "a": "Requests are structured from the beginning. Professionals receive only relevant work. Scope, budget and timing are clarified early. Communication remains direct — without message floods."
       }
     }
   },
@@ -561,7 +561,7 @@
     "founderClosing": "Constructive Solutions Ibiza is my attempt to raise the standard at the start of each project: clearer requests, better-fit professionals, and less wasted time for everyone involved.",
     "ctaTitle": "Ready to Get Started?",
     "ctaDesc": "Whether you need work done or you're a professional looking for the right opportunities — we're here to help.",
-    "ctaPost": "Start Your Project",
+    "ctaPost": "Start a Request",
     "ctaHow": "See How It Works"
   },
   "debug": {

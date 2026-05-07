@@ -14,7 +14,7 @@
     "clientDashboard": "Mi Panel",
     "proDashboard": "Panel Pro",
     "messages": "Mensajes",
-    "postJob": "Publicar trabajo",
+    "postJob": "Iniciar solicitud",
     "settings": "Ajustes",
     "openMenu": "Abrir menú",
     "menu": "Menú",
@@ -45,9 +45,9 @@
     "admin": "Admin"
   },
   "hero": {
-    "title": "Encuentra el constructor u oficio adecuado en Ibiza",
-    "subtitle": "Describe el trabajo una vez. Constructive lo convierte en un encargo claro y te conecta con profesionales locales adecuados para el proyecto.",
-    "postJob": "Inicia un proyecto",
+    "title": "Inicia tu proyecto de construcción o propiedad en Ibiza",
+    "subtitle": "Cuéntanos lo que necesitas una vez. Lo convertimos en una solicitud clara para que los profesionales locales adecuados entiendan el trabajo antes de responder.",
+    "postJob": "Iniciar solicitud",
     "browsePros": "Ver Profesionales",
     "joinAsPro": "Únete como Profesional"
   },
@@ -120,7 +120,7 @@
   },
   "home": {
     "ourServices": "¿Qué necesitas?",
-    "ourServicesDesc": "Cuéntanos tu proyecto: te ayudamos a definirlo y a conectar con el oficio adecuado",
+    "ourServicesDesc": "Elige un servicio o describe el trabajo. Te ayudamos a convertirlo en una solicitud clara para el oficio adecuado.",
     "viewAllServices": "Ver Todos los Servicios",
     "verifiedTitle": "Claridad primero",
     "verifiedDesc": "Nuestras preguntas guiadas convierten tu idea en un encargo claro",
@@ -128,21 +128,21 @@
     "quickDesc": "Cliente y profesional empiezan con la misma visión desde el primer día",
     "qualityTitle": "Conexiones de confianza",
     "qualityDesc": "Profesionales verificados que entienden exactamente lo que se necesita",
-    "ctaTitle": "¿No sabes por dónde empezar?",
-    "ctaDesc": "Responde a unas preguntas rápidas y te ayudamos a definir el alcance.",
-    "ctaButton": "Empezar",
+    "ctaTitle": "¿No sabes qué oficio necesitas?",
+    "ctaDesc": "Empieza con el problema. Las preguntas guiadas ayudan a convertirlo en una solicitud que los profesionales pueden valorar y responder.",
+    "ctaButton": "Iniciar solicitud",
     "seeHowWeWork": "Cómo trabajamos",
     "howWeWorkTitle": "Cómo Funciona",
-    "howWeWorkSubtitle": "Una forma sencilla de convertir una idea poco clara en una solicitud que los profesionales pueden responder.",
-    "step1Title": "Describe el trabajo",
+    "howWeWorkSubtitle": "Un camino sencillo desde una idea poco clara hasta una solicitud de proyecto bien definida.",
+    "step1Title": "Describe lo que necesitas",
     "step1Desc": "Responde preguntas prácticas sobre el trabajo, ubicación, presupuesto, plazos y fotos.",
-    "step2Title": "Crea un encargo claro",
-    "step2Desc": "Tus respuestas se convierten en una solicitud estructurada, no en otro mensaje vago de WhatsApp.",
+    "step2Title": "Da forma a la solicitud",
+    "step2Desc": "Tus respuestas se convierten en un encargo estructurado con los detalles prácticos que necesitan los profesionales.",
     "step3Title": "Llega a las personas adecuadas",
     "step3Desc": "Los profesionales que coinciden con el oficio, la zona y el tipo de trabajo pueden revisar los detalles.",
-    "step4Title": "Acuerda el siguiente paso",
-    "step4Desc": "Habla del trabajo, compara respuestas y avanza con más confianza.",
-    "startProject": "Empieza tu proyecto",
+    "step4Title": "Elige el siguiente paso",
+    "step4Desc": "Habla de la solicitud, compara respuestas y decide con quién quieres avanzar.",
+    "startProject": "Iniciar solicitud",
     "trustStripMilestones": "Pagos por Hitos",
     "trustStripProtection": "Retención Final Estructurada",
     "trustStripVerified": "Profesionales Verificados",
@@ -190,8 +190,8 @@
     "forClients4": "Proceso estructurado si el trabajo está incompleto",
     "forClientsClosing": "Mantén el control — sin necesidad de gestionarlo todo tú mismo.",
     "finalCtaTitle": "La construcción no tiene que ser incierta.",
-    "finalCtaDesc": "Empieza un proyecto con estructura. Trabaja con profesionales responsables. Construye con confianza.",
-    "finalCtaStart": "Empieza Tu Proyecto",
+    "finalCtaDesc": "Empieza con una solicitud clara. Habla con profesionales que entienden el trabajo antes de avanzar.",
+    "finalCtaStart": "Iniciar solicitud",
     "finalCtaJoin": "Únete a la Plataforma",
     "servicesTitle": "Qué puedes publicar",
     "servicesSubtitle": "Desde reparaciones urgentes hasta proyectos de propiedad más grandes, empieza con un encargo claro.",
@@ -453,7 +453,7 @@
     "clientStep4Match5": "Señales de fiabilidad construidas con el tiempo",
 
     "clientClosing": "El sistema apoya el comienzo — la relación sigue siendo humana.",
-    "postJobButton": "Empieza Tu Proyecto",
+    "postJobButton": "Iniciar solicitud",
 
     "forProfessionals": "Para Profesionales",
     "forProfessionalsAka": "(Constructores, oficios y profesionales de servicios)",
@@ -497,20 +497,20 @@
     "faqTitle": "Preguntas Frecuentes",
     "faq": {
       "account": {
-        "q": "¿Necesito una cuenta para publicar un trabajo?",
-        "a": "Sí. Una cuenta permite que tu trabajo se estructure correctamente y que la comunicación se mantenga organizada."
+        "q": "¿Necesito una cuenta para iniciar una solicitud?",
+        "a": "Sí. Una cuenta permite que tu solicitud se estructure correctamente y que la comunicación se mantenga organizada."
       },
       "howLong": {
-        "q": "¿Cuánto tarda publicar un trabajo?",
+        "q": "¿Cuánto tarda iniciar una solicitud?",
         "a": "Normalmente 1–2 minutos. El proceso guiado te lleva por preguntas prácticas y específicas del oficio."
       },
       "isFree": {
-        "q": "¿Es gratis publicar un trabajo?",
+        "q": "¿Es gratis iniciar una solicitud?",
         "a": "Sí. Solo acuerdas condiciones directamente con el profesional que elijas."
       },
       "howMatched": {
         "q": "¿Cómo se seleccionan los profesionales?",
-        "a": "Ellos eligen con qué servicios quieren ser emparejados. Cuando tu trabajo coincide con sus servicios, preferencias y zona, se les notifica."
+        "a": "Ellos eligen con qué servicios quieren ser emparejados. Cuando tu solicitud coincide con sus servicios, preferencias y zona, se les notifica."
       },
       "unverified": {
         "q": "¿Pueden unirse profesionales nuevos?",
@@ -521,12 +521,12 @@
         "a": "A través de mensajería segura dentro de la plataforma. No se comparten teléfonos ni emails hasta que estés listo."
       },
       "editJob": {
-        "q": "¿Puedo cambiar los detalles de mi trabajo después de publicarlo?",
-        "a": "Sí. Puedes actualizar tu trabajo si algo cambia, para que los profesionales siempre vean información precisa."
+        "q": "¿Puedo cambiar los detalles de mi solicitud después de enviarla?",
+        "a": "Sí. Puedes actualizar tu solicitud si algo cambia, para que los profesionales siempre vean información precisa."
       },
       "vsWhatsapp": {
         "q": "¿Qué lo hace mejor que los grupos de WhatsApp?",
-        "a": "Los trabajos están estructurados desde el principio. Los profesionales solo reciben trabajo relevante. Alcance, presupuesto y plazos se aclaran pronto. La comunicación sigue siendo directa — sin avalanchas de mensajes."
+        "a": "Las solicitudes están estructuradas desde el principio. Los profesionales solo reciben trabajo relevante. Alcance, presupuesto y plazos se aclaran pronto. La comunicación sigue siendo directa — sin avalanchas de mensajes."
       }
     }
   },
@@ -585,7 +585,7 @@
     "founderClosing": "Constructive Solutions Ibiza es mi intento de elevar el estándar al inicio de cada proyecto: solicitudes más claras, profesionales más adecuados y menos tiempo perdido para todos.",
     "ctaTitle": "¿Listo para Empezar?",
     "ctaDesc": "Tanto si necesitas trabajo como si eres profesional buscando las oportunidades adecuadas — estamos aquí para ayudarte.",
-    "ctaPost": "Empieza Tu Proyecto",
+    "ctaPost": "Iniciar solicitud",
     "ctaHow": "Descubre Cómo Funciona"
   },
   "debug": {
