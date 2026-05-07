@@ -3,14 +3,21 @@
     "category": "Tipo de Servicio",
     "subcategory": "Detalles del Servicio",
     "micro": "Tareas Específicas",
-    "questions": "Información para el Profesional",
+    "questions": "Detalles del Proyecto",
     "logistics": "Tiempo y Ubicación",
     "extras": "Fotos y Notas",
-    "review": "Revisar y Publicar"
+    "review": "Revisar y Enviar"
+  },
+  "intro": {
+    "title": "Cuéntanos qué necesitas hacer",
+    "subtitle": "Empieza con el oficio o la tarea. Te guiaremos por los detalles y convertiremos tus respuestas en una solicitud clara para profesionales locales.",
+    "free": "Gratis para empezar",
+    "noObligation": "Sin obligación de contratar",
+    "clearBrief": "Encargo claro al final"
   },
   "extras": {
     "title": "Fotos y Detalles Adicionales",
-    "subtitle": "Todo aquí es opcional — puedes saltar si lo prefieres.",
+    "subtitle": "Todo aquí es opcional. Las fotos ayudan, pero puedes saltar este paso.",
     "photosLabel": "Fotos",
     "photosOptional": "opcional",
     "photosHelp": "Añade fotos para ayudar a los profesionales a entender el trabajo",
@@ -29,11 +36,11 @@
   },
   "progress": {
     "stepOf": "Paso {{current}} de {{total}}",
-    "helper": "Construir una especificación clara ayuda a los profesionales a presupuestar con precisión"
+    "helper": "Tus respuestas se convierten en un encargo práctico que los profesionales pueden entender rápido"
   },
   "category": {
     "headline": "¿Qué tipo de servicio necesitas?",
-    "orBrowse": "o explorar categorías",
+    "orBrowse": "o elige una categoría",
     "loading": "Cargando categorías…"
   },
   "subcategory": {
@@ -110,12 +117,12 @@
   "buttons": {
     "back": "Atrás",
     "continue": "Continuar",
-    "submit": "Publicar Trabajo",
-    "signInToSubmit": "Iniciar sesión para publicar",
+    "submit": "Enviar Solicitud",
+    "signInToSubmit": "Iniciar sesión para guardar",
     "saveChanges": "Guardar Cambios",
     "cancel": "Cancelar",
-    "getMatched": "Publicar Trabajo",
-    "signInGetMatched": "Iniciar sesión y Publicar"
+    "getMatched": "Enviar Solicitud",
+    "signInGetMatched": "Iniciar sesión y guardar"
   },
   "ui": {
     "submitting": "Enviando...",
@@ -153,10 +160,10 @@
   },
   "custom": {
     "cta": "¿No encuentras lo que necesitas?",
-    "ctaDescription": "Publica una solicitud personalizada — la formatearemos como una tarjeta de trabajo.",
-    "ctaButton": "Publicar Solicitud Personalizada",
+    "ctaDescription": "Descríbelo con tus palabras y lo formatearemos como una solicitud clara.",
+    "ctaButton": "Crear Solicitud Personalizada",
     "headline": "Describe lo que necesitas",
-    "subtitle": "Cuéntanos qué necesitas. Lo convertiremos en una tarjeta clara para los profesionales.",
+    "subtitle": "Cuéntanos qué necesitas. Lo convertiremos en una solicitud clara para los profesionales.",
     "categoryLabel": "Categoría principal",
     "categoryPlaceholder": "Selecciona una categoría",
     "titleLabel": "Título del trabajo",
@@ -164,7 +171,7 @@
     "titleHelp": "Sé específico — esto será el titular.",
     "descriptionLabel": "Descripción del trabajo",
     "descriptionPlaceholder": "¿Qué necesitas? ¿Dónde? ¿Alguna restricción?",
-    "descriptionHelp": "Incluye contexto de ubicación, escala y cómo debería quedar.",
+    "descriptionHelp": "Incluye la ubicación, tamaño aproximado y cómo sería un buen resultado.",
     "specsLabel": "Especificaciones concretas (opcional)",
     "specsPlaceholder": "Medidas, materiales, preferencias de marca, plazos...",
     "badge": "Solicitud personalizada",
@@ -186,8 +193,8 @@
     "photosCount_plural": "{{count}} fotos",
     "notesAdded": "Notas añadidas",
     "noObligation": "No te comprometes a contratar a nadie",
-    "noObligationDesc": "Tu trabajo será emparejado con profesionales locales. Puedes editar, cancelar o ignorar respuestas en cualquier momento — sin compromiso.",
-    "authNotice": "Necesitarás iniciar sesión para guardar este trabajo. Tu progreso se guardará.",
+    "noObligationDesc": "Tu solicitud será emparejada con profesionales locales. Puedes editarla, cancelarla o ignorar respuestas en cualquier momento. Sin compromiso.",
+    "authNotice": "Necesitarás iniciar sesión para guardar esta solicitud. Tu progreso se guardará.",
     "toBeDiscussed": "A discutir",
     "notSpecified": "No especificado",
     "customLocation": "Ubicación personalizada",
