@@ -10,6 +10,7 @@ import {
   Target, Users,
 } from 'lucide-react';
 import heroImg from '@/assets/heroes/hero-reputation.webp';
+import { SEOHead } from '@/components/SEOHead';
 
 const SCORE_METRICS = [
   { icon: Star, labelKey: 'reputation.metrics.quality.label', descKey: 'reputation.metrics.quality.desc', weight: 35, color: 'bg-primary' },
@@ -63,6 +64,12 @@ const Reputation = () => {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Professional Reputation System | Constructive Solutions Ibiza"
+        description="Learn how professionals on Constructive Solutions Ibiza build visibility through reliability, quality work, and verified client feedback."
+        canonical="https://www.constructivesolutionsibiza.com/reputation"
+      />
+
       <HeroBanner
         imageSrc={heroImg}
         title={t('reputation.hero.title')}
