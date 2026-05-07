@@ -7,7 +7,7 @@ export const PLATFORM = {
   name: 'Constructive Solutions Ibiza',
   shortName: 'Constructive',
   tagline: 'Construction & Trade Services in Ibiza',
-  description: 'Find trusted builders, electricians, plumbers, carpenters and trades for your projects in Ibiza.',
+  description: 'Create clear construction and property requests for local professionals in Ibiza.',
   mark: 'CS',
   industry: 'construction',
   scope: 'construction-only',
@@ -17,32 +17,32 @@ export const PLATFORM = {
  * LOCKED TERMINOLOGY
  * 
  * These are the canonical terms used throughout the platform.
- * Internal code uses client/professional, but user-facing copy uses Asker/Tasker.
+ * Internal and user-facing copy should use client/professional.
  * 
- * Core Narrative: Problem → Asker → Constructive Solutions → Tasker → Solution
+ * Core Narrative: Client request → Constructive Solutions → Professional response → Completed work
  */
 export const TERMINOLOGY = {
   // User-facing terms (use these in UI copy via i18n lexicon)
-  asker: 'Asker',           // The person with a problem (internal: client)
-  tasker: 'Tasker',         // The professional who solves it (internal: professional)
-  problem: 'Problem',       // What the Asker needs help with (internal: job)
+  asker: 'Client',          // The person with a request
+  tasker: 'Professional',   // The professional who responds
+  problem: 'Request',       // What the client needs help with
   solution: 'Solution',     // The completed work
   
   // Lane names
-  askerLane: 'Asker Lane',  // Hiring journey
-  taskerLane: 'Tasker Lane', // Working journey
+  askerLane: 'Client Mode',  // Hiring journey
+  taskerLane: 'Professional Mode', // Working journey
   
   // Product features
-  problemBuilder: 'Problem Builder', // The wizard
-  matching: 'Finding the right Tasker',
+  problemBuilder: 'Request Builder', // The wizard
+  matching: 'Finding the right professional',
   
   // Internal to external mapping
   internalToExternal: {
-    client: 'Asker',
-    professional: 'Tasker',
-    job: 'Problem',
-    hiring: 'Asker Lane',
-    working: 'Tasker Lane',
+    client: 'Client',
+    professional: 'Professional',
+    job: 'Request',
+    hiring: 'Client Mode',
+    working: 'Professional Mode',
   },
 } as const;
 
