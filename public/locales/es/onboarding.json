@@ -1,19 +1,19 @@
 {
-  "title": "Desbloquea Tus Tipos de Trabajo",
-  "subtitle": "Elige qué trabajos quieres recibir. Cuanto más específico, mejores coincidencias.",
-  "trustLine": "Mejor coincidencia = más oportunidades de calidad que realmente quieres",
+  "title": "Elige el trabajo que quieres",
+  "subtitle": "Dinos qué haces, dónde trabajas y qué solicitudes quieres recibir.",
+  "trustLine": "Una mejor configuración significa menos contactos malos y solicitudes más relevantes",
   
   "progress": {
-    "unlocked": "{{count}} de {{min}} tipos de trabajo desbloqueados",
-    "hint": "Desbloquea al menos {{min}} para empezar a recibir coincidencias",
-    "ready": "¡Estás listo para recibir coincidencias!"
+    "unlocked": "{{count}} de {{min}} tipos de trabajo seleccionados",
+    "hint": "Elige al menos {{min}} para empezar a recibir solicitudes compatibles",
+    "ready": "¡Estás listo para recibir solicitudes!"
   },
   
   "browse": {
-    "yourTypes": "Tus Tipos de Trabajo",
-    "empty": "Aún no hay tipos de trabajo desbloqueados",
-    "emptyHint": "Desbloquea tu primer tipo de trabajo para comenzar",
-    "unlockMore": "Desbloquear Más",
+    "yourTypes": "Tus tipos de trabajo",
+    "empty": "Aún no hay tipos de trabajo seleccionados",
+    "emptyHint": "Elige tu primer tipo de trabajo para empezar",
+    "unlockMore": "Elegir más",
     "configured": "{{count}} tipo de trabajo configurado",
     "configured_plural": "{{count}} tipos de trabajo configurados"
   },
@@ -21,7 +21,7 @@
   "steps": {
     "browseByTrade": "Buscar por oficio",
     "selectType": "Seleccionar tipo de servicio",
-    "unlockTypes": "Desbloquear tipos de trabajo",
+    "unlockTypes": "Elegir tipos de trabajo",
     "setPriorities": "Establecer tus prioridades"
   },
   
@@ -47,9 +47,9 @@
     "selectAll": "Seleccionar Todo",
     "clear": "Limpiar",
     "continue": "Establecer Prioridades",
-    "unlock": "Desbloquear {{count}} Tipo de Trabajo",
-    "unlock_plural": "Desbloquear {{count}} Tipos de Trabajo",
-    "complete": "Empezar a Recibir Coincidencias",
+    "unlock": "Elegir {{count}} tipo de trabajo",
+    "unlock_plural": "Elegir {{count}} tipos de trabajo",
+    "complete": "Empezar a recibir solicitudes",
     "backToOnboarding": "Volver a Incorporación"
   },
   
@@ -73,14 +73,14 @@
     "stepLabels": {
       "basic_info": "Prepárate",
       "service_area": "Dónde Trabajas",
-      "services": "Elige Tus Trabajos",
-      "review": "Empieza"
+      "services": "Elige Tu Trabajo",
+      "review": "Empieza a recibir solicitudes"
     },
     "stepHeaders": {
       "basic_info": "Paso 1: Prepárate",
       "service_area": "Paso 2: Dónde Trabajas",
-      "services": "Paso 2: Elige Tus Trabajos",
-      "review": "Paso 3: Empieza"
+      "services": "Paso 2: Elige Tu Trabajo",
+      "review": "Paso 3: Empieza a recibir solicitudes"
     },
     "tracker": {
       "yourProgress": "Tu progreso",
@@ -91,27 +91,27 @@
   },
 
   "basicInfo": {
-    "title": "Vamos a prepararte para recibir trabajos",
-    "description": "Tu nombre, teléfono y zonas de trabajo — es todo lo que necesitamos para empezar a conectarte.",
-    "whyThisMatters": "💡 Los clientes contratan a personas en las que confían. Un nombre real y un teléfono te hace parecer profesional y nos permite contactarte rápido cuando llegue trabajo.",
+    "title": "Configura tu perfil profesional",
+    "description": "Añade tu nombre, teléfono y una descripción corta para que los clientes sepan con quién hablan.",
+    "whyThisMatters": "Los clientes contratan a personas en las que confían. Un perfil claro te ayuda a parecer profesional antes del primer mensaje.",
     "nameLabel": "Tu Nombre",
     "nameRequired": "*",
     "namePlaceholder": "ej. Juan García",
     "phoneLabel": "Número de Teléfono",
     "phonePlaceholder": "+34 600 000 000",
-    "phoneHint": "Te enviaremos notificaciones de WhatsApp sobre nuevos trabajos — nunca perderás una oportunidad",
-    "phoneRequired": "El número de teléfono es necesario para activarte — lo usamos para contactarte cuando lleguen trabajos",
+    "phoneHint": "Podemos usarlo para notificaciones importantes de trabajo",
+    "phoneRequired": "El número de teléfono es necesario antes de recibir solicitudes",
     "businessNameLabel": "Nombre del Negocio",
     "businessNameOptional": "(opcional — déjalo en blanco si trabajas con tu propio nombre)",
     "businessNamePlaceholder": "ej. García Electricidad S.L.",
     "taglineLabel": "Eslogan",
     "taglinePlaceholder": "ej. Electricista fiable con más de 15 años de experiencia",
-    "taglineHint": "Un titular corto que aparece junto a tu nombre — piensa en el letrero de tu furgoneta",
+    "taglineHint": "Un titular corto que aparece junto a tu nombre, como la frase de tu furgoneta o tarjeta",
     "taglineCount": "{{count}}/100",
     "bioLabel": "Sobre Ti",
-    "bioPlaceholder": "¿Qué haces mejor? ¿Cuánto tiempo llevas haciéndolo? A los clientes les encanta la experiencia real — sé directo, sin rodeos.",
+    "bioPlaceholder": "¿Qué haces mejor? ¿Cuánto tiempo llevas haciéndolo? Sé claro y práctico.",
     "bioCount": "{{count}}/500 caracteres",
-    "nextStep": "Siguiente: Elige Tus Trabajos",
+    "nextStep": "Siguiente: Elige Tu Trabajo",
     "saved": "¡Guardado!",
     "enterName": "Por favor, introduce tu nombre",
     "selectZone": "Por favor, selecciona al menos una zona de trabajo",
@@ -121,7 +121,7 @@
   "serviceArea": {
     "title": "¿Dónde trabajas?",
     "description": "Toca las zonas de Ibiza donde estés dispuesto a trabajar.",
-    "whyThisMatters": "💡 Solo te enviamos trabajos en TUS zonas — nada de perder tiempo conduciendo por toda la isla para nada.",
+    "whyThisMatters": "Solo te conectamos con solicitudes en las zonas que elijas.",
     "selectAll": "Seleccionar todo",
     "deselectAll": "Deseleccionar todo",
     "islandWide": "¡Genial! Recibirás trabajos de toda Ibiza",
@@ -143,22 +143,22 @@
   },
 
   "serviceUnlock": {
-    "title": "¿Qué trabajos quieres?",
-    "description": "Toca cualquier trabajo que estés dispuesto a hacer. Solo te enviaremos estos.",
-    "whyThisMatters": "💡 Este es el paso más importante. Cada trabajo que marques es un tipo de trabajo que te enviaremos directamente. Más marcas = más oportunidades. No te vamos a spamear — solo solicitudes reales de clientes.",
+    "title": "¿Qué trabajo quieres?",
+    "description": "Elige el trabajo que estás dispuesto a aceptar. Lo usamos para enviarte solicitudes adecuadas.",
+    "whyThisMatters": "Este es el paso más importante. Tú eliges el trabajo que quieres, para que tu panel siga siendo relevante.",
     "saved": "Guardado",
-    "noJobsSelected": "Ningún trabajo seleccionado todavía",
-    "jobsPicked": "Has elegido {{count}} trabajo",
-    "jobsPicked_plural": "Has elegido {{count}} trabajos",
+    "noJobsSelected": "Ningún tipo de trabajo seleccionado todavía",
+    "jobsPicked": "Has elegido {{count}} tipo de trabajo",
+    "jobsPicked_plural": "Has elegido {{count}} tipos de trabajo",
     "greatSelection": "¡Gran selección!",
     "recommendedHint": "La mayoría de profesionales eligen {{min}}–{{max}} trabajos.",
     "noNeedAll": "No necesitas seleccionarlo todo — solo el trabajo que realmente quieres.",
-    "searchPlaceholder": "Buscar trabajos... ej. 'fuga', 'azulejos', 'aire'",
-    "noResults": "No se encontraron trabajos para \"{{query}}\"",
+    "searchPlaceholder": "Buscar tipos de trabajo... ej. 'fuga', 'azulejos', 'aire'",
+    "noResults": "No se encontraron tipos de trabajo para \"{{query}}\"",
     "clearSearch": "Limpiar búsqueda",
     "addMoreLater": "Puedes añadir o quitar trabajos cuando quieras — nada está cerrado.",
     "goBack": "Volver",
-    "continue": "Empezar a Recibir Trabajos",
+    "continue": "Continuar",
     "saving": "Guardando...",
     "selectMinimum": "Selecciona al menos 1 trabajo para continuar",
     "jobsAvailable": "{{count}} trabajos disponibles",
@@ -168,11 +168,11 @@
   },
 
   "review": {
-    "readyTitle": "¡Estás listo para empezar!",
+    "readyTitle": "Estás listo para recibir solicitudes",
     "almostTitle": "Casi listo...",
-    "readyDescription": "Todo pinta bien. Dale al botón y empezarás a recibir oportunidades de trabajo reales.",
+    "readyDescription": "Todo se ve bien. Activa tu perfil y las solicitudes compatibles podrán aparecer en tu panel.",
     "almostDescription": "Completa los puntos de abajo para empezar.",
-    "whyThisMatters": "💡 Una vez activo, los clientes que publiquen trabajos en tus categorías aparecerán automáticamente en tu panel. No necesitas llamar a nadie.",
+    "whyThisMatters": "Cuando tu perfil esté activo, las solicitudes compatibles podrán aparecer en tu panel.",
     "checklist": "Tu checklist de perfil",
     "aboutYou": "Tus datos",
     "aboutYouDesc": "Nombre, teléfono y zonas de trabajo",
@@ -184,9 +184,9 @@
     "sendJobsFor": "Solo te enviaremos trabajos de:",
     "changeAnytime": "Puedes cambiar todo esto en cualquier momento desde tu panel — nada está grabado en piedra.",
     "goBack": "Volver",
-    "goLive": "Empezar — Recibir Trabajos",
+    "goLive": "Empezar a recibir solicitudes",
     "completeAll": "Completa todos los puntos del checklist para empezar",
-    "liveSuccess": "🎉 ¡Estás activo! Relájate — cuando un cliente publique un trabajo que coincida, aparecerá en tu panel.",
+    "liveSuccess": "Estás activo. Cuando un cliente publique una solicitud compatible, podrá aparecer en tu panel.",
     "completeFirst": "Por favor, completa todos los pasos primero",
     "goLiveFailed": "No se pudo empezar. Por favor, inténtalo de nuevo."
   }

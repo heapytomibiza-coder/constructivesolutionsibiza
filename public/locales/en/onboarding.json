@@ -1,19 +1,19 @@
 {
-  "title": "Unlock Your Job Types",
-  "subtitle": "Choose which jobs you want to receive. The more specific, the better your matches.",
-  "trustLine": "Better matching = more quality leads you actually want",
+  "title": "Choose the Work You Want",
+  "subtitle": "Tell us what you do, where you work, and which requests you actually want to receive.",
+  "trustLine": "Better setup means fewer bad leads and more relevant requests",
   
   "progress": {
-    "unlocked": "{{count}} of {{min}} job types unlocked",
-    "hint": "Unlock at least {{min}} to start receiving matched leads",
-    "ready": "You're ready to receive matches!"
+    "unlocked": "{{count}} of {{min}} job types selected",
+    "hint": "Choose at least {{min}} to start receiving matched requests",
+    "ready": "You're ready to receive requests!"
   },
   
   "browse": {
-    "yourTypes": "Your Job Types",
-    "empty": "No job types unlocked yet",
-    "emptyHint": "Unlock your first job type to get started",
-    "unlockMore": "Unlock More",
+    "yourTypes": "Your Work Types",
+    "empty": "No work types selected yet",
+    "emptyHint": "Choose your first work type to get started",
+    "unlockMore": "Choose More",
     "configured": "{{count}} job type configured",
     "configured_plural": "{{count}} job types configured"
   },
@@ -21,7 +21,7 @@
   "steps": {
     "browseByTrade": "Browse by trade",
     "selectType": "Select service type",
-    "unlockTypes": "Unlock job types",
+    "unlockTypes": "Choose work types",
     "setPriorities": "Set your priorities"
   },
   
@@ -47,9 +47,9 @@
     "selectAll": "Select All",
     "clear": "Clear",
     "continue": "Set Priorities",
-    "unlock": "Unlock {{count}} Job Type",
-    "unlock_plural": "Unlock {{count}} Job Types",
-    "complete": "Start Receiving Matches",
+    "unlock": "Choose {{count}} Work Type",
+    "unlock_plural": "Choose {{count}} Work Types",
+    "complete": "Start Receiving Requests",
     "backToOnboarding": "Back to Onboarding"
   },
   
@@ -73,14 +73,14 @@
     "stepLabels": {
       "basic_info": "Get Set Up",
       "service_area": "Where You Work",
-      "services": "Choose Your Jobs",
-      "review": "Go Live"
+      "services": "Choose Your Work",
+      "review": "Start Receiving Requests"
     },
     "stepHeaders": {
       "basic_info": "Step 1: Get Set Up",
       "service_area": "Step 2: Where You Work",
-      "services": "Step 2: Choose Your Jobs",
-      "review": "Step 3: Go Live"
+      "services": "Step 2: Choose Your Work",
+      "review": "Step 3: Start Receiving Requests"
     },
     "tracker": {
       "yourProgress": "Your progress",
@@ -91,27 +91,27 @@
   },
 
   "basicInfo": {
-    "title": "Let's get you ready to receive jobs",
-    "description": "Your name, number, and work areas — that's all we need to start matching you.",
-    "whyThisMatters": "💡 Clients hire people they trust. A real name and phone number makes you look professional and helps us reach you fast when work comes in.",
+    "title": "Set up your professional profile",
+    "description": "Add your name, number, and a short description so clients know who they are speaking to.",
+    "whyThisMatters": "Clients hire people they trust. A clear profile helps you look professional before the first message.",
     "nameLabel": "Your Name",
     "nameRequired": "*",
     "namePlaceholder": "e.g. Juan García",
     "phoneLabel": "Phone Number",
     "phonePlaceholder": "+34 600 000 000",
-    "phoneHint": "We'll send you WhatsApp notifications about new jobs — you'll never miss a lead",
-    "phoneRequired": "Phone number is needed to go live — we use it to reach you when jobs come in",
+    "phoneHint": "We can use this for important job notifications",
+    "phoneRequired": "A phone number is needed before you can receive requests",
     "businessNameLabel": "Business Name",
     "businessNameOptional": "(optional — skip if you trade under your own name)",
     "businessNamePlaceholder": "e.g. García Electricidad S.L.",
     "taglineLabel": "Tagline",
     "taglinePlaceholder": "e.g. Reliable electrician with 15+ years experience",
-    "taglineHint": "A short headline that appears with your name — think of it like your van sign",
+    "taglineHint": "A short headline that appears with your name, like the line on your van or business card",
     "taglineCount": "{{count}}/100",
     "bioLabel": "About You",
-    "bioPlaceholder": "What do you do best? How long have you been doing it? Clients love hearing about real experience — keep it simple, no waffle needed.",
+    "bioPlaceholder": "What do you do best? How long have you been doing it? Keep it simple and practical.",
     "bioCount": "{{count}}/500 characters",
-    "nextStep": "Next: Choose Your Jobs",
+    "nextStep": "Next: Choose Your Work",
     "saved": "Saved!",
     "enterName": "Please enter your name",
     "selectZone": "Please select at least one work area",
@@ -121,7 +121,7 @@
   "serviceArea": {
     "title": "Where do you work?",
     "description": "Tap the areas of Ibiza where you're happy to take jobs.",
-    "whyThisMatters": "💡 We only send you jobs in YOUR areas — no wasted time driving across the island for nothing.",
+    "whyThisMatters": "We only match you with requests in the areas you choose.",
     "selectAll": "Select all",
     "deselectAll": "Deselect all",
     "islandWide": "Great! You'll receive jobs from across Ibiza",
@@ -143,22 +143,22 @@
   },
 
   "serviceUnlock": {
-    "title": "Which jobs do you want?",
-    "description": "Tap any job you're happy to do. We'll only send you these.",
-    "whyThisMatters": "💡 This is the most important step. Every job you tick is a type of work we'll send directly to you. More ticks = more leads. You won't get spammed — only real client requests.",
+    "title": "Which work do you want?",
+    "description": "Choose the work you are happy to take on. We use this to match the right requests to you.",
+    "whyThisMatters": "This is the most important step. You choose the work you want, so your dashboard stays relevant.",
     "saved": "Saved",
-    "noJobsSelected": "No jobs selected yet",
-    "jobsPicked": "You've picked {{count}} job",
-    "jobsPicked_plural": "You've picked {{count}} jobs",
+    "noJobsSelected": "No work selected yet",
+    "jobsPicked": "You've picked {{count}} work type",
+    "jobsPicked_plural": "You've picked {{count}} work types",
     "greatSelection": "Great selection!",
     "recommendedHint": "Most professionals pick {{min}}–{{max}} jobs.",
     "noNeedAll": "You don't need to select everything — just the work you actually want.",
-    "searchPlaceholder": "Search jobs... e.g. 'leak', 'tiles', 'AC'",
-    "noResults": "No jobs found for \"{{query}}\"",
+    "searchPlaceholder": "Search work types... e.g. 'leak', 'tiles', 'AC'",
+    "noResults": "No work types found for \"{{query}}\"",
     "clearSearch": "Clear search",
     "addMoreLater": "You can always add or remove jobs later — nothing is locked in.",
     "goBack": "Go Back",
-    "continue": "Start Receiving Jobs",
+    "continue": "Continue",
     "saving": "Saving...",
     "selectMinimum": "Select at least 1 job to continue",
     "jobsAvailable": "{{count}} jobs available",
@@ -168,11 +168,11 @@
   },
 
   "review": {
-    "readyTitle": "You're ready to go live!",
+    "readyTitle": "You're ready to receive requests",
     "almostTitle": "Almost there...",
-    "readyDescription": "Everything looks good. Hit the button and you'll start getting real job leads.",
+    "readyDescription": "Everything looks good. Turn on your profile and matched requests can appear in your dashboard.",
     "almostDescription": "Complete the items below to go live.",
-    "whyThisMatters": "💡 Once you're live, clients posting jobs in your categories will land in your dashboard automatically. No cold calling needed.",
+    "whyThisMatters": "Once your profile is active, matching client requests can appear in your dashboard.",
     "checklist": "Your profile checklist",
     "aboutYou": "Your details",
     "aboutYouDesc": "Name, phone, and work areas",
@@ -184,9 +184,9 @@
     "sendJobsFor": "We'll only send you jobs for:",
     "changeAnytime": "You can change all of this anytime from your dashboard — nothing is set in stone.",
     "goBack": "Go Back",
-    "goLive": "Go Live — Start Receiving Jobs",
+    "goLive": "Start Receiving Requests",
     "completeAll": "Complete all checklist items to go live",
-    "liveSuccess": "🎉 You're live! Sit back — when a client posts a matching job, it'll appear in your dashboard.",
+    "liveSuccess": "You're active. When a client posts a matching request, it can appear in your dashboard.",
     "completeFirst": "Please complete all steps first",
     "goLiveFailed": "Failed to go live. Please try again."
   }
