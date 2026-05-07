@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://constructivesolutionsibiza.com/sitemap.xml
+Sitemap: https://www.constructivesolutionsibiza.com/sitemap.xml
