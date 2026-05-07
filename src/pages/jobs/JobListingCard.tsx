@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { getI18nField, getContentLang } from "@/lib/i18nContent";
 import { txCategory, txSubcategory } from "@/i18n/taxonomyTranslations";
 import type { JobsBoardRow } from "@/pages/jobs/types";
+import { maskContactDetails } from "@/pages/jobs/lib/maskContactDetails";
 
 interface JobListingCardProps {
   job: JobsBoardRow;
@@ -59,6 +60,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
   const { t, i18n } = useTranslation("jobs");
   const isEs = i18n.language?.startsWith("es");
   const contentLang = getContentLang(i18n.language);
+  const contactHidden = t('privacy.contactHidden');
 
   const getSpecBadge = (j: JobsBoardRow): { label: string; variant: "success" | "secondary" | "outline" } => {
     const score = (j.highlights?.length ?? 0) + (j.has_photos ? 2 : 0) + (budgetProxy(j) > 0 ? 1 : 0);
@@ -236,7 +238,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
                 )}
               </div>
               <h3 className="text-base font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
-                {getI18nField(job.title, job.title_i18n, contentLang)}
+                {maskContactDetails(getI18nField(job.title, job.title_i18n, contentLang), contactHidden)}
               </h3>
               {(() => {
                 const teaserText = job.teaser ? getI18nField(job.teaser, job.teaser_i18n, contentLang) : null;
@@ -245,7 +247,7 @@ export function JobListingCard({ job, isMatched }: JobListingCardProps) {
                 const normTeaser = teaserText.toLowerCase().trim();
                 const normTitle = titleText.toLowerCase().trim();
                 if (normTeaser === normTitle || normTeaser.startsWith(normTitle + " in")) return null;
-                return <p className="text-sm text-muted-foreground line-clamp-2">{teaserText}</p>;
+                return <p className="text-sm text-muted-foreground line-clamp-2">{maskContactDetails(teaserText, contactHidden)}</p>;
               })()}
             </div>
             <Button onClick={handleButtonClick} variant="outline" size="sm" className="hidden sm:inline-flex">

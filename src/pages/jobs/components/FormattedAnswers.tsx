@@ -1,9 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { txMicro } from '@/i18n/taxonomyTranslations';
 import type { ResolvedServicePack } from "@/pages/jobs/lib/buildJobPack";
+import { maskContactDetails } from "@/pages/jobs/lib/maskContactDetails";
 
 interface FormattedAnswersProps {
   services: ResolvedServicePack[];
+  contactHiddenLabel?: string;
 }
 
 /** Normalize a key string for i18n lookup (matches QuestionPackRenderer norm) */
@@ -23,7 +25,7 @@ const normalizeOptionKey = (v: string): string =>
  * Pure component that renders resolved service packs with human-readable labels.
  * Translates question labels and answer values using the questions namespace.
  */
-export function FormattedAnswers({ services }: FormattedAnswersProps) {
+export function FormattedAnswers({ services, contactHiddenLabel }: FormattedAnswersProps) {
   const { t } = useTranslation('questions');
 
   if (!services.length) {
@@ -50,7 +52,7 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
     };
     // Handle arrays (checkbox answers)
     if (Array.isArray(rawValue)) {
-      return rawValue.map(v => tryTranslate(v) || v).join(', ');
+      return rawValue.map(v => tryTranslate(v) || maskContactDetails(v, contactHiddenLabel)).join(', ');
     }
     // Single value — look up by raw snake_case key
     const byRaw = tryTranslate(rawValue);
@@ -58,7 +60,7 @@ export function FormattedAnswers({ services }: FormattedAnswersProps) {
     // Fallback to normalized displayValue
     const key = norm(displayValue);
     const byDisplay = tryTranslate(key);
-    return byDisplay || displayValue;
+    return byDisplay || maskContactDetails(displayValue, contactHiddenLabel);
   };
 
   /** Translate a question label */

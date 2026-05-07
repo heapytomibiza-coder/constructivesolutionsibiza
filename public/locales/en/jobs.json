@@ -7,6 +7,9 @@
     "completed": "Completed",
     "cancelled": "Cancelled"
   },
+  "privacy": {
+    "contactHidden": "[contact hidden]"
+  },
   "board": {
     "title": "Request Board",
     "subtitle": "Browse open client requests with details from the guided process",

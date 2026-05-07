@@ -30,6 +30,7 @@ import { isRolloutActive } from "@/domain/rollout";
 import { useListingsForJob } from "./hooks/useListingsForJob";
 import { ServiceListingCardComponent } from "@/pages/services/ServiceListingCard";
 import type { JobAnswers } from "./types";
+import { maskContactDetails } from "@/pages/jobs/lib/maskContactDetails";
 
 function safeAnswers(a: unknown): JobAnswers | null {
   if (!a || typeof a !== "object") return null;
@@ -247,6 +248,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
   const isEs = i18n.language?.startsWith("es");
   const dateLocale = isEs ? { locale: es } : undefined;
   const contentLang = getContentLang(i18n.language);
+  const contactHidden = t('privacy.contactHidden');
 
   const getSpecBadge = (jp: JobPack): { label: string; variant: "success" | "secondary" | "outline" } => {
     const score = (jp.services?.length ?? 0) + (jp.hasPhotos ? 2 : 0) + (jp.budget?.display && jp.budget?.type !== 'tbd' ? 1 : 0);
@@ -282,7 +284,9 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
           variant="card"
         />
         <div className="space-y-1">
-          <div className="text-xl font-semibold leading-snug">{getI18nField(jobPack.title, jobPack.titleI18n, contentLang)}</div>
+          <div className="text-xl font-semibold leading-snug">
+            {maskContactDetails(getI18nField(jobPack.title, jobPack.titleI18n, contentLang), contactHidden)}
+          </div>
           {(() => {
             const teaserText = jobPack.teaser ? getI18nField(jobPack.teaser, jobPack.teaserI18n, contentLang) : null;
             const titleText = getI18nField(jobPack.title, jobPack.titleI18n, contentLang);
@@ -290,7 +294,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
             const normTeaser = teaserText.toLowerCase().trim();
             const normTitle = titleText.toLowerCase().trim();
             if (normTeaser === normTitle || normTeaser.startsWith(normTitle + " in")) return null;
-            return <p className="text-sm text-muted-foreground">{teaserText}</p>;
+            return <p className="text-sm text-muted-foreground">{maskContactDetails(teaserText, contactHidden)}</p>;
           })()}
           <div className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(jobPack.createdAt), { addSuffix: true, ...dateLocale })}
@@ -306,7 +310,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
               <FileText className="h-3.5 w-3.5 text-primary/70" />
               <span className="text-xs font-medium text-primary/70">{t('detail.quickSummary', 'Quick Summary')}</span>
             </div>
-            <p className="text-sm leading-relaxed">{jobPack.workerBrief}</p>
+            <p className="text-sm leading-relaxed">{maskContactDetails(jobPack.workerBrief, contactHidden)}</p>
           </CardContent>
         </Card>
       )}
@@ -359,7 +363,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
         <div className="text-sm font-semibold">{t('detail.scope')}</div>
         <div className="rounded-lg border border-border/70 bg-card">
           <div className="p-4">
-            <FormattedAnswers services={jobPack.services} />
+            <FormattedAnswers services={jobPack.services} contactHiddenLabel={contactHidden} />
           </div>
         </div>
       </section>
@@ -391,7 +395,7 @@ function JobDetailsBodyContent({ jobPack }: JobDetailsBodyContentProps) {
                   <FileText className="h-3.5 w-3.5" />
                   {t('detail.notes')}
                 </div>
-                <p className="text-sm">{jobPack.notes}</p>
+                <p className="text-sm">{maskContactDetails(jobPack.notes, contactHidden)}</p>
               </div>
             )}
             {jobPack.photos.length > 0 && (
