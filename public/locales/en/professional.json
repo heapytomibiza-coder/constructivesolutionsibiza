@@ -1,11 +1,11 @@
 {
   "priorities": {
-    "title": "Set Your Job Priorities",
-    "subtitle": "Want better-fit jobs? Tell us which work you prefer and we'll prioritise it for you.",
+    "title": "Set Your Work Priorities",
+    "subtitle": "Want better-fit requests? Tell us which work you prefer and we'll prioritise it for you.",
     "backToDashboard": "Back to Dashboard",
     "saved": "Saved",
-    "noJobs": "You haven't selected any jobs yet.",
-    "chooseJobs": "Choose Your Jobs",
+    "noJobs": "You haven't selected any work yet.",
+    "chooseJobs": "Choose Your Work",
     "done": "Done",
     "priority": "Priority",
     "priorityDesc": "Send these first",

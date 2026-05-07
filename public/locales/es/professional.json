@@ -1,11 +1,11 @@
 {
   "priorities": {
-    "title": "Establece Tus Prioridades",
-    "subtitle": "¿Quieres trabajos que encajen mejor? Dinos qué trabajo prefieres y lo priorizaremos para ti.",
+    "title": "Establece Tus Prioridades de Trabajo",
+    "subtitle": "¿Quieres solicitudes que encajen mejor? Dinos qué trabajo prefieres y lo priorizaremos para ti.",
     "backToDashboard": "Volver al Panel",
     "saved": "Guardado",
-    "noJobs": "Aún no has seleccionado ningún trabajo.",
-    "chooseJobs": "Elige Tus Trabajos",
+    "noJobs": "Aún no has seleccionado ningún tipo de trabajo.",
+    "chooseJobs": "Elige Tu Trabajo",
     "done": "Hecho",
     "priority": "Prioridad",
     "priorityDesc": "Enviar estos primero",
