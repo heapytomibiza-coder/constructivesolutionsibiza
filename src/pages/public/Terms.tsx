@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { PublicLayout } from '@/components/layout';
+import { SEOHead } from '@/components/SEOHead';
 import { LegalSection } from './components/LegalSection';
 
 type TermsSection = {
@@ -26,6 +27,12 @@ export default function Terms() {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Terms of Service | Constructive Solutions Ibiza"
+        description="Read the platform terms for clients and professionals using Constructive Solutions Ibiza for construction and property work."
+        canonical="https://www.constructivesolutionsibiza.com/terms"
+      />
+
       <div className="container max-w-3xl py-16 space-y-10">
         <header>
           <h1 className="font-display text-3xl font-bold text-foreground">

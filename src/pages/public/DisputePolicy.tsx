@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '@/components/layout';
+import { SEOHead } from '@/components/SEOHead';
 import { LegalSection } from './components/LegalSection';
 
 type Stage = {
@@ -32,6 +33,12 @@ export default function DisputePolicy() {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Dispute Policy | Constructive Solutions Ibiza"
+        description="Review the structured dispute and resolution policy for construction and property work arranged through Constructive Solutions Ibiza."
+        canonical="https://www.constructivesolutionsibiza.com/dispute-policy"
+      />
+
       <div className="container max-w-3xl py-16 space-y-10">
         <header>
           <h1 className="font-display text-3xl font-bold text-foreground">
