@@ -12,10 +12,10 @@
   "becomeTasker": "Ser Profesional",
   "findTasker": "Encontrar un Profesional",
   "noTaskersYet": "No hay profesionales disponibles aún — te avisaremos",
-  "noAskersNow": "No hay solicitantes ahora",
+  "noAskersNow": "No hay clientes que necesiten ayuda ahora",
   "theProblemsYouSolve": "Los problemas que resuelves",
   "describeYourProblem": "Describe tu problema",
   "wellFindTheRightTasker": "Encontraremos al profesional adecuado",
-  "contactTasker": "Contactar Tasker",
-  "browseTaskers": "Explorar Taskers"
+  "contactTasker": "Contactar profesional",
+  "browseTaskers": "Explorar profesionales"
 }

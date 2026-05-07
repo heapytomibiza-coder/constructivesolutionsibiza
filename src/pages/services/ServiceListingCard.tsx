@@ -126,7 +126,7 @@ export function ServiceListingCardComponent({ listing }: { listing: ServiceListi
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm text-muted-foreground truncate">
-                {listing.provider_name ?? 'Tasker'}
+                {listing.provider_name ?? 'Professional'}
               </span>
             </div>
             <div className="flex items-center gap-1 shrink-0">

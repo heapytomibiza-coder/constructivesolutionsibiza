@@ -95,7 +95,7 @@
           "Provide insurance, guarantees, or warranties"
         ],
         "paragraphs3": [
-          "All agreements are made directly between the Client (Asker) and the Professional (Tasker)."
+          "All agreements are made directly between the client and the professional."
         ]
       },
       {
@@ -222,7 +222,7 @@
   "dispute": {
     "title": "28-Day Fair Resolution & Payment Protection Policy",
     "date": "20 March 2026",
-    "intro": "This policy applies to jobs arranged through {{company}} between clients (Askers) and professionals (Taskers).",
+    "intro": "This policy applies to jobs arranged through {{company}} between clients and professionals.",
     "sections": [
       {
         "title": "1. Purpose of This Policy",
@@ -400,11 +400,11 @@
       {
         "title": "7. Professional Reputation Protection",
         "paragraphs": [
-          "Where a dispute is resolved in favour of the professional (Tasker):"
+          "Where a dispute is resolved in favour of the professional:"
         ],
         "bullets": [
           "Reviews directly contradicting documented findings may be moderated",
-          "Repeated unfounded disputes by clients (Askers) may result in warnings or suspension"
+          "Repeated unfounded disputes by clients may result in warnings or suspension"
         ],
         "paragraphs2": [
           "Completion metrics are not penalised for unsubstantiated claims."
@@ -413,7 +413,7 @@
       {
         "title": "8. Client Protection",
         "paragraphs": [
-          "Clients (Askers) are protected through:"
+          "Clients are protected through:"
         ],
         "bullets": [
           "Documented review rights",
