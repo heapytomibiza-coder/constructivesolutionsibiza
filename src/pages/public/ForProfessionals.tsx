@@ -9,6 +9,7 @@ import {
   CheckCircle, Calculator, Briefcase,
 } from 'lucide-react';
 import heroImg from '@/assets/heroes/hero-for-professionals.webp';
+import { SEOHead } from '@/components/SEOHead';
 
 /* ── Constant data (not i18n'd yet — static values) ── */
 
@@ -57,6 +58,12 @@ const ForProfessionals = () => {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="For Builders and Trades in Ibiza | Constructive Solutions Ibiza"
+        description="Join Constructive Solutions Ibiza to show your services, receive clearer client requests, and build visibility for construction and property work."
+        canonical="https://www.constructivesolutionsibiza.com/for-professionals"
+      />
+
       {/* ── 1. Hero ── */}
       <HeroBanner
         imageSrc={heroImg}

@@ -8,12 +8,19 @@ import {
   ArrowRight, CheckCircle, Clock, Star, Users,
 } from 'lucide-react';
 import heroAbout from '@/assets/heroes/hero-about.webp';
+import { SEOHead } from '@/components/SEOHead';
 
 export default function About() {
   const { t } = useTranslation('common');
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="About Constructive Solutions Ibiza | Construction and Property Platform"
+        description="Learn why Constructive Solutions Ibiza helps clients and local professionals start construction and property work with clearer requests."
+        canonical="https://www.constructivesolutionsibiza.com/about"
+      />
+
       {/* Hero */}
       <HeroBanner
         imageSrc={heroAbout}

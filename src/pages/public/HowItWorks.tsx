@@ -24,6 +24,7 @@ import {
   Users,
 } from 'lucide-react';
 import heroHowItWorks from '@/assets/heroes/hero-how-it-works.webp';
+import { SEOHead } from '@/components/SEOHead';
 
 const FAQ_KEYS = [
   'account',
@@ -41,6 +42,12 @@ const HowItWorks = () => {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="How Constructive Solutions Ibiza Works | Clear Project Requests"
+        description="See how clients create structured construction requests and how local Ibiza professionals receive better-fit work with clearer details."
+        canonical="https://www.constructivesolutionsibiza.com/how-it-works"
+      />
+
       <HeroBanner
         imageSrc={heroHowItWorks}
         title={t('howItWorks.title')}

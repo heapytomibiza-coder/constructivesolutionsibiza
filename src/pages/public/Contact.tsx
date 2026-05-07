@@ -8,6 +8,7 @@ import { PublicLayout, HeroBanner } from '@/components/layout';
 import { Mail, MapPin, Phone, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import heroContact from '@/assets/heroes/hero-contact.webp';
+import { SEOHead } from '@/components/SEOHead';
 
 /**
  * CONTACT PAGE
@@ -28,6 +29,12 @@ const Contact = () => {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Contact Constructive Solutions Ibiza | Construction and Property Help"
+        description="Contact Constructive Solutions Ibiza about starting a project request, joining as a professional, or using the construction platform."
+        canonical="https://www.constructivesolutionsibiza.com/contact"
+      />
+
       {/* Hero Section */}
       <HeroBanner
         imageSrc={heroContact}

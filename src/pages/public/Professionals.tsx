@@ -13,6 +13,7 @@ import { Shield, Users, X, CheckCircle2, ArrowLeft, MapPin } from 'lucide-react'
 import heroProfessionals from '@/assets/heroes/hero-professionals.webp';
 import { getRankedProfessionals, getMicroIdsForFilter, type RankedProfessional } from './queries/rankedProfessionals.query';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
+import { SEOHead } from '@/components/SEOHead';
 
 /**
  * PROFESSIONALS DIRECTORY PAGE
@@ -176,6 +177,12 @@ const Professionals = () => {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Browse Construction Professionals in Ibiza | Constructive Solutions Ibiza"
+        description="Find Ibiza builders, trades, and property professionals by service area, trade, and availability for construction and renovation work."
+        canonical="https://www.constructivesolutionsibiza.com/professionals"
+      />
+
       {/* Select Mode Banner */}
       {selectMode && (
         <div className="bg-primary/10 border-b border-primary/20 py-3">

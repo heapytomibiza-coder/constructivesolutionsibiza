@@ -16,6 +16,7 @@ import {
   TIER_PRICES, COMMISSION_RATES_DISPLAY, TIER_META, STRIPE_CHECKOUT_LIVE,
   type SubscriptionTier,
 } from '@/domain/entitlements';
+import { SEOHead } from '@/components/SEOHead';
 
 const PLANS: Array<{
   name: string;
@@ -129,6 +130,12 @@ const Pricing = () => {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Professional Plans and Pricing | Constructive Solutions Ibiza"
+        description="Compare Constructive Solutions Ibiza plans for builders, trades, and property professionals who want better visibility and clearer client requests."
+        canonical="https://www.constructivesolutionsibiza.com/pricing"
+      />
+
       <HeroBanner
         imageSrc={heroImg}
         title={t('pricing.hero.title')}

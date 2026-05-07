@@ -19,6 +19,7 @@ import {
   type BrowseFilters,
 } from '@/pages/services/queries/serviceListings.query';
 import { ServiceListingCardComponent } from '@/pages/services/ServiceListingCard';
+import { SEOHead } from '@/components/SEOHead';
 
 const ALL = '__all__';
 
@@ -85,6 +86,12 @@ const Services = () => {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Construction and Property Services in Ibiza | Constructive Solutions Ibiza"
+        description="Browse Ibiza construction, renovation, repair, and property services from local professionals, or start a clear request for the work you need."
+        canonical="https://www.constructivesolutionsibiza.com/services"
+      />
+
       <HeroBanner
         imageSrc={heroServices}
         title={t('services.title')}
