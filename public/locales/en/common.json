@@ -590,69 +590,83 @@
   "nav.reputation": "Reputation",
   "forPros": {
     "hero": {
-      "title": "Run Your Trade Business With One Platform",
-      "subtitle": "Advertising, job opportunities, reputation, and project management — all in one place. Starting from €333 per year.",
-      "badge": "Built for tradespeople",
+      "title": "Get Better-Fit Construction Requests in Ibiza",
+      "subtitle": "Show what you do, choose the work you want, and receive clearer client requests before you spend time quoting.",
+      "badge": "Built for Ibiza trades",
       "cta": "Join as a Professional",
       "ctaSecondary": "See How It Works"
     },
     "problem": {
-      "title": "Running a Trade Business Requires Multiple Tools",
-      "desc": "Most professionals rely on different services just to stay visible and organised.",
+      "title": "Good Tradespeople Still Waste Time on Bad Leads",
+      "desc": "Most enquiries arrive with missing details, unclear budgets, and too much back-and-forth before you know if the work is worth quoting.",
       "total": "Total: ≈ €700+ per month"
     },
+    "problemTools": {
+      "website": "Website",
+      "advertising": "Advertising",
+      "leadPlatforms": "Lead platforms",
+      "quoteSoftware": "Quote software",
+      "reviewSites": "Review sites",
+      "timeLost": "Time lost"
+    },
     "solution": {
-      "title": "Everything In One Professional Platform",
+      "title": "A Clearer Way to Win Relevant Work",
       "valueLabel": "Value:"
     },
     "features": {
       "profile": {
         "title": "Professional Business Profile",
-        "desc": "Your profile works like a business website with services, portfolio, reviews and client contact."
+        "desc": "Show your services, areas, photos, business details, and client contact options in one place."
       },
       "wizard": {
-        "title": "Structured Job Requests",
-        "desc": "Clients answer simple questions so you receive clear project details instead of vague enquiries."
+        "title": "Structured Client Requests",
+        "desc": "Clients answer guided questions so you receive scope, timing, budget, location, and photos where available."
       },
       "matching": {
-        "title": "Smart Job Matching",
-        "desc": "Our system connects the right professionals with the right projects. No endless searching."
+        "title": "Service-Based Matching",
+        "desc": "Choose the services and areas you cover so fewer irrelevant requests reach your dashboard."
       },
       "jobCards": {
-        "title": "Quote-Ready Job Cards",
-        "desc": "Each job request includes images, requirements, timeline and location — ready to quote."
+        "title": "Quote-Ready Request Cards",
+        "desc": "Each request is organised so you can decide quickly whether to respond, ask a question, or pass."
       },
       "reviews": {
         "title": "Reputation System",
         "desc": "Build trust through verified client reviews after each completed project."
       },
       "notifications": {
-        "title": "Job Notifications",
-        "desc": "Receive alerts when new jobs appear in your service categories."
+        "title": "Relevant Request Alerts",
+        "desc": "Receive alerts when new requests match the services and locations you selected."
       }
     },
     "timeSaved": {
-      "title": "Less Time Chasing Jobs. More Time Doing Them.",
+      "title": "Less Time Chasing Details. More Time Doing the Work.",
       "hoursWeek": "hours/week on enquiries",
       "hourlyRate": "average trade hourly rate",
       "monthlyLost": "/month in lost time",
-      "cta": "Constructive filters enquiries before they reach you."
+      "cta": "Constructive helps filter and structure enquiries before they reach you."
     },
     "valueStack": {
       "title": "The Tools Behind Your Business",
       "total": "Total value",
-      "compare": "All of this starting from just €333 per year.",
-      "disclaimer": "Estimated based on typical costs of equivalent individual tools and services. Actual savings vary."
+      "compare": "All of this designed around one goal: clearer requests from better-fit clients.",
+      "disclaimer": "Estimated based on typical costs of equivalent individual tools and services. Actual savings vary.",
+      "websiteProfile": "Website profile",
+      "advertisingExposure": "Advertising exposure",
+      "jobSystems": "Request systems",
+      "quoteSoftware": "Quote software",
+      "reviewPlatforms": "Review platforms",
+      "timeSaved": "Time saved"
     },
     "reputation": {
       "title": "Earn Your Status",
-      "desc": "Constructive is not a pay-to-win directory. Professionals rise through reliability, quality work and client satisfaction.",
+      "desc": "Constructive is not a pay-to-win directory. Professionals build visibility through reliability, quality work, and client satisfaction.",
       "goldNote": "Gold status cannot be purchased. It is earned through consistent quality and strong client feedback.",
       "learnMore": "How the reputation system works"
     },
     "pricing": {
       "title": "Simple, Fair Plans",
-      "subtitle": "Upgrade plans to reduce commission and unlock greater exposure. Gold is earned, not bought.",
+      "subtitle": "Start simple, then upgrade for more exposure and lower commission as the platform grows.",
       "mostPopular": "Most Popular",
       "inviteOnly": "Invite Only",
       "commission": "commission",
@@ -678,9 +692,12 @@
       "disclaimer": "Always consult your accountant."
     },
     "cta": {
-      "title": "One Job Can Pay For Your Membership",
-      "desc": "Constructive connects professionals with real project opportunities.",
-      "button": "Join The Network"
+      "title": "Start With the Work You Actually Want",
+      "desc": "Create your professional profile, choose your services, and let clearer client requests come to you.",
+      "button": "Join The Network",
+      "painting": "Painting",
+      "electrical": "Electrical",
+      "renovations": "Renovations"
     }
   },
   "pricing": {

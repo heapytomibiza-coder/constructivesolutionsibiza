@@ -13,12 +13,12 @@ import heroImg from '@/assets/heroes/hero-for-professionals.webp';
 /* ── Constant data (not i18n'd yet — static values) ── */
 
 const PROBLEM_TOOLS = [
-  { icon: Globe, label: 'Website', cost: '€120/mo' },
-  { icon: TrendingUp, label: 'Advertising', cost: '€150/mo' },
-  { icon: Users, label: 'Lead platforms', cost: '€70/mo' },
-  { icon: FileText, label: 'Quote software', cost: '€80/mo' },
-  { icon: Star, label: 'Review sites', cost: '€60/mo' },
-  { icon: Clock, label: 'Time lost', cost: '€200/mo' },
+  { icon: Globe, labelKey: 'forPros.problemTools.website', cost: '€120/mo' },
+  { icon: TrendingUp, labelKey: 'forPros.problemTools.advertising', cost: '€150/mo' },
+  { icon: Users, labelKey: 'forPros.problemTools.leadPlatforms', cost: '€70/mo' },
+  { icon: FileText, labelKey: 'forPros.problemTools.quoteSoftware', cost: '€80/mo' },
+  { icon: Star, labelKey: 'forPros.problemTools.reviewSites', cost: '€60/mo' },
+  { icon: Clock, labelKey: 'forPros.problemTools.timeLost', cost: '€200/mo' },
 ];
 
 const FEATURES = [
@@ -31,12 +31,12 @@ const FEATURES = [
 ];
 
 const VALUE_STACK = [
-  { label: 'Website profile', value: '€120' },
-  { label: 'Advertising exposure', value: '€150' },
-  { label: 'Job systems', value: '€70' },
-  { label: 'Quote software', value: '€80' },
-  { label: 'Review platforms', value: '€60' },
-  { label: 'Time saved', value: '€200' },
+  { labelKey: 'forPros.valueStack.websiteProfile', value: '€120' },
+  { labelKey: 'forPros.valueStack.advertisingExposure', value: '€150' },
+  { labelKey: 'forPros.valueStack.jobSystems', value: '€70' },
+  { labelKey: 'forPros.valueStack.quoteSoftware', value: '€80' },
+  { labelKey: 'forPros.valueStack.reviewPlatforms', value: '€60' },
+  { labelKey: 'forPros.valueStack.timeSaved', value: '€200' },
 ];
 
 const TIERS = [
@@ -47,9 +47,9 @@ const TIERS = [
 ];
 
 const PROJECT_EXAMPLES = [
-  { type: 'Painting', range: '€500 – €1,500' },
-  { type: 'Electrical', range: '€600 – €2,000' },
-  { type: 'Renovations', range: '€5,000+' },
+  { typeKey: 'forPros.cta.painting', range: '€500 – €1,500' },
+  { typeKey: 'forPros.cta.electrical', range: '€600 – €2,000' },
+  { typeKey: 'forPros.cta.renovations', range: '€5,000+' },
 ];
 
 const ForProfessionals = () => {
@@ -91,11 +91,11 @@ const ForProfessionals = () => {
             {t('forPros.problem.desc')}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {PROBLEM_TOOLS.map(({ icon: Icon, label, cost }) => (
-              <Card key={label} className="border-border">
+            {PROBLEM_TOOLS.map(({ icon: Icon, labelKey, cost }) => (
+              <Card key={labelKey} className="border-border">
                 <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
                   <Icon className="h-6 w-6 text-accent" />
-                  <span className="text-sm font-medium text-foreground">{label}</span>
+                  <span className="text-sm font-medium text-foreground">{t(labelKey)}</span>
                   <span className="text-lg font-bold text-accent">{cost}</span>
                 </CardContent>
               </Card>
@@ -160,9 +160,9 @@ const ForProfessionals = () => {
             {t('forPros.valueStack.title')}
           </h2>
           <div className="space-y-3">
-            {VALUE_STACK.map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between py-3 px-4 bg-card rounded-lg border border-border">
-                <span className="text-sm text-foreground">{label}</span>
+            {VALUE_STACK.map(({ labelKey, value }) => (
+              <div key={labelKey} className="flex items-center justify-between py-3 px-4 bg-card rounded-lg border border-border">
+                <span className="text-sm text-foreground">{t(labelKey)}</span>
                 <span className="font-semibold text-foreground">{value}/mo</span>
               </div>
             ))}
@@ -283,9 +283,9 @@ const ForProfessionals = () => {
             {t('forPros.cta.title')}
           </h2>
           <div className="grid sm:grid-cols-3 gap-4">
-            {PROJECT_EXAMPLES.map(({ type, range }) => (
-              <div key={type} className="p-4 bg-card rounded-lg border border-border">
-                <p className="font-medium text-foreground">{type}</p>
+            {PROJECT_EXAMPLES.map(({ typeKey, range }) => (
+              <div key={typeKey} className="p-4 bg-card rounded-lg border border-border">
+                <p className="font-medium text-foreground">{t(typeKey)}</p>
                 <p className="text-sm text-primary font-semibold">{range}</p>
               </div>
             ))}
