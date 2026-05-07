@@ -189,9 +189,9 @@ function NotFoundState() {
   return (
     <Card className="border-dashed card-grounded">
       <CardContent className="py-12 text-center">
-        <p className="text-muted-foreground mb-4">Tasker not found or no longer available.</p>
+        <p className="text-muted-foreground mb-4">Professional not found or no longer available.</p>
         <Button variant="outline" asChild>
-          <Link to="/professionals">Browse Taskers</Link>
+          <Link to="/professionals">Browse Professionals</Link>
         </Button>
       </CardContent>
     </Card>
@@ -332,14 +332,14 @@ const ProfessionalDetails = () => {
           <Button variant="ghost" className="mb-4 gap-2" asChild>
             <Link to="/professionals">
               <ArrowLeft className="h-4 w-4" />
-              Back to Taskers
+              Back to Professionals
             </Link>
           </Button>
 
           {!isLoading && professional && (
             <div className="flex items-start gap-5">
               <Avatar className="h-24 w-24 border-2 border-background shadow-md">
-                <AvatarImage src={professional.avatar_url || undefined} alt={professional.display_name || 'Tasker'} />
+                <AvatarImage src={professional.avatar_url || undefined} alt={professional.display_name || 'Professional'} />
                 <AvatarFallback className="text-xl bg-primary/10 text-primary rounded-sm">
                   {(professional.display_name || 'T').charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -348,7 +348,7 @@ const ProfessionalDetails = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h1 className="font-display text-2xl font-bold tracking-tight">
-                    {professional.display_name || 'Tasker'}
+                    {professional.display_name || 'Professional'}
                   </h1>
                   {professional.verification_status === 'verified' && (
                     <BadgeCheck className="h-5 w-5 text-primary shrink-0" />
@@ -369,7 +369,7 @@ const ProfessionalDetails = () => {
                   {professional.verification_status === 'verified' && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Shield className="h-3.5 w-3.5 text-primary" />
-                      <span>Verified Tasker profile</span>
+                      <span>Verified professional profile</span>
                     </div>
                   )}
                   {professional.accepts_emergency && (
@@ -429,7 +429,7 @@ const ProfessionalDetails = () => {
                   {professional.bio ? (
                     <p className="text-foreground leading-relaxed whitespace-pre-line">{professional.bio}</p>
                   ) : (
-                    <p className="text-muted-foreground">This Tasker hasn't added a bio yet.</p>
+                    <p className="text-muted-foreground">This professional hasn't added a bio yet.</p>
                   )}
                 </CardContent>
               </Card>
@@ -520,7 +520,7 @@ const ProfessionalDetails = () => {
                     </Link>
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
-                    Create a job request and send it directly to this Tasker
+                    Create a project request and send it directly to this professional
                   </p>
                 </CardContent>
               </Card>
