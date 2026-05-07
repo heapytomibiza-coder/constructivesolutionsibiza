@@ -231,8 +231,8 @@
           "This policy is designed to:"
         ],
         "bullets": [
-          "Protect client payments",
-          "Protect professional earnings",
+          "Support clearer payment records for clients",
+          "Support clearer earning records for professionals",
           "Encourage fair outcomes",
           "Reduce escalation",
           "Promote constructive resolution"
@@ -242,17 +242,17 @@
         ]
       },
       {
-        "title": "2. Payment Protection Framework",
+        "title": "2. Structured Payment Framework",
         "paragraphs": [
           "Payments processed through the platform are handled via regulated third-party payment infrastructure.",
-          "Payment is directly linked to milestone completion, documented progress, or structured resolution outcomes. This ensures:"
+          "Payment can be linked to milestone completion, documented progress, or structured resolution outcomes. This is designed to support:"
         ],
         "bullets": [
-          "Clients do not pay ahead of progress",
-          "Professionals are not exposed to arbitrary withholding",
-          "Payment decisions follow a controlled system",
+          "Clearer expectations about payment timing",
+          "Reduced risk of arbitrary withholding",
+          "Payment decisions based on documented information",
           "Funds may be temporarily held or frozen during active dispute review",
-          "Release of funds occurs only in accordance with agreed resolution terms"
+          "Release of funds in accordance with agreed resolution terms"
         ],
         "paragraphs2": [
           "Pending milestone funds may be restricted during disputes. Previously released funds are not automatically reversible.",
@@ -313,8 +313,8 @@
               "Supporting evidence"
             ],
             "paragraphs2": [
-              "The platform opens a structured case, stabilises communication, activates timeline visibility, confirms payment status, and defines next steps.",
-              "All pending funds remain protected during this stage."
+              "The platform opens a structured case, keeps communication in one place, activates timeline visibility, confirms payment status, and defines next steps.",
+              "Pending milestone funds may be restricted during this stage."
             ]
           },
           {
@@ -413,16 +413,16 @@
       {
         "title": "8. Client Protection",
         "paragraphs": [
-          "Clients are protected through:"
+          "Clients are supported through:"
         ],
         "bullets": [
           "Documented review rights",
-          "Payment protection during disputes",
+          "Payment-status review during disputes",
           "Structured evidence submission",
           "Transparent procedural steps"
         ],
         "paragraphs2": [
-          "No pending funds are released during active dispute review."
+          "Pending funds may be restricted during active dispute review where the payment workflow allows it."
         ]
       },
       {
@@ -459,8 +459,8 @@
       {
         "title": "11. Objective",
         "paragraphs": [
-          "This system combines structured payment control, construction-specific dispute resolution, neutral documented assessment, and defined financial outcomes.",
-          "It is designed to reduce conflict, protect both sides, maintain trust, and create clear and fair conclusions.",
+          "This system combines structured payment records, construction-specific dispute facilitation, neutral documented assessment, and documented next steps.",
+          "It is designed to reduce conflict, support both sides, maintain trust, and create clearer conclusions.",
           "The objective of this framework is not to assign blame, but to deliver Constructive Solutions."
         ]
       }
