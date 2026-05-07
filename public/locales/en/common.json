@@ -254,12 +254,12 @@
     "project3Result": "Restaurant, retail, and hospitality improvements where timing and coordination matter."
   },
   "services": {
-    "title": "Our Services",
-    "subtitle": "Find trusted professionals across all construction and property services",
-    "trustBadge": "Verified professionals • Ibiza-based",
+    "title": "Services",
+    "subtitle": "Find construction and property services available across Ibiza",
+    "trustBadge": "Local professionals • Ibiza-based",
     "viewServices": "View services",
     "cantFind": "Can't find what you're looking for?",
-    "postCustomJob": "Post a Custom Job",
+    "postCustomJob": "Create a Custom Request",
     "filterCategory": "Category",
     "filterService": "Service",
     "filterTask": "Task",
@@ -277,10 +277,10 @@
     "backToServices": "Back to Services",
     "categoryNotFound": "Category Not Found",
     "categoryNotFoundDesc": "This service category doesn't exist or is no longer available.",
-    "verifiedOnly": "Verified professionals only",
-    "heroSubtitle": "Find trusted {{category}} Taskers in Ibiza",
+    "verifiedOnly": "Local professionals",
+    "heroSubtitle": "Find {{category}} professionals in Ibiza",
     "orBrowse": "Or",
-    "browseProsLink": "browse Taskers directly",
+    "browseProsLink": "browse professionals directly",
     "noSubcategories": "No subcategories available for this service."
   },
   "subcategories": {
