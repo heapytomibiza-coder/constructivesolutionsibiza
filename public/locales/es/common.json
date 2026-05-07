@@ -401,10 +401,10 @@
   },
   "contact": {
     "title": "Contacto",
-    "subtitle": "¿Tienes alguna pregunta? Estamos aquí para ayudarte.",
+    "subtitle": "¿Tienes preguntas sobre publicar un proyecto, unirte como profesional o usar la plataforma? Envíanos un mensaje.",
     "trustBadge": "Equipo local, respuestas reales",
     "formTitle": "Envíanos un mensaje",
-    "formDesc": "Rellena el formulario y te responderemos pronto.",
+    "formDesc": "Cuéntanos qué necesitas y responderemos lo antes posible.",
     "labelName": "Nombre",
     "labelEmail": "Email",
     "labelSubject": "Asunto",
@@ -421,14 +421,14 @@
   },
   "howItWorks": {
     "title": "Cómo Funciona",
-    "subtitle": "Este sistema es simple en estructura, pero cuidado en diseño. Guía el trabajo desde el principio — para que la relación laboral empiece bien.",
-    "trustBadge": "Proceso guiado • Matching inteligente • Solo Ibiza",
+    "subtitle": "Una forma más clara de empezar trabajos de construcción y propiedad en Ibiza.",
+    "trustBadge": "Proceso guiado • Mejor matching • Solo Ibiza",
     "introP1": "No reemplaza la forma de trabajar.",
     "introP2": "Mejora cómo comienzan los trabajos.",
     "introP3": "Una estructura clara al inicio evita confusiones después.",
 
     "forClients": "Para Clientes",
-    "forClientsAka": "(Askers)",
+    "forClientsAka": "(Personas que necesitan hacer un trabajo)",
 
     "clientStep1Title": "Elige el Servicio Exacto",
     "clientStep1Desc": "Selecciona el servicio específico que necesitas — no solo un oficio general. Esto permite que el sistema adapte las preguntas correctas a tu trabajo.",
@@ -442,8 +442,8 @@
     "clientStep3Desc": "Establece un rango de presupuesto y plazo preferido.",
     "clientStep3Why": "Evita desajustes. Los profesionales pueden responder con honestidad y tú evitas presupuestos irrealistas.",
 
-    "clientStep4Title": "Matching Inteligente",
-    "clientStep4Desc": "Tu trabajo se analiza correctamente antes de enviar notificaciones.",
+    "clientStep4Title": "Matching Relevante",
+    "clientStep4Desc": "Tu solicitud se cruza con tipo de servicio, zona y preferencias de los profesionales antes de enviar notificaciones.",
     "clientStep4Why": "Solo se notifica a profesionales relevantes. Luego hablas directamente y acordáis condiciones personalmente.",
     "clientStep4Matching": "El matching considera:",
     "clientStep4Match1": "Servicios y sub-servicios exactos",
@@ -456,14 +456,14 @@
     "postJobButton": "Empieza Tu Proyecto",
 
     "forProfessionals": "Para Profesionales",
-    "forProfessionalsAka": "(Taskers)",
+    "forProfessionalsAka": "(Constructores, oficios y profesionales de servicios)",
 
     "proStep1Title": "Define Lo Que Realmente Quieres Hacer",
     "proStep1Desc": "No solo seleccionas un oficio. Eliges servicios exactos, sub-servicios, tu zona de trabajo y el tipo de trabajo que prefieres. Tú decides qué te llega.",
     "proStep1Why": "Recibes trabajo alineado con tus fortalezas e intereses — no cualquier cosa bajo tu etiqueta de oficio.",
 
-    "proStep2Title": "Recibe Trabajos Estructurados",
-    "proStep2Desc": "Cuando un trabajo coincide contigo, ya incluye tipo de servicio claro, preguntas de alcance respondidas, rango de presupuesto y plazos.",
+    "proStep2Title": "Recibe Solicitudes Estructuradas",
+    "proStep2Desc": "Cuando una solicitud coincide contigo, ya incluye tipo de servicio, respuestas sobre el alcance, presupuesto, plazos y ubicación.",
     "proStep2Why": "No estás persiguiendo información básica. Puedes decidir con calma si merece la pena. Eso protege tu tiempo y tus estándares.",
 
     "proStep3Title": "Comunícate Directamente",
@@ -513,8 +513,8 @@
         "a": "Ellos eligen con qué servicios quieren ser emparejados. Cuando tu trabajo coincide con sus servicios, preferencias y zona, se les notifica."
       },
       "unverified": {
-        "q": "¿Pueden los profesionales aplicar sin verificación?",
-        "a": "Sí. La verificación se gana con el tiempo — refleja fiabilidad, no pago."
+        "q": "¿Pueden unirse profesionales nuevos?",
+        "a": "Sí. Los profesionales nuevos pueden configurar su perfil y elegir el trabajo que quieren. Una reputación fuerte se construye con el tiempo mediante trabajos completados y opiniones."
       },
       "contactPro": {
         "q": "¿Cómo contacto a un profesional?",
@@ -552,17 +552,17 @@
   },
   "about": {
     "heroTitle": "Sobre Nosotros",
-    "heroSubtitle": "Construido desde la experiencia real en la industria de la construcción de Ibiza",
+    "heroSubtitle": "Una plataforma práctica para trabajos de construcción y propiedad en Ibiza",
     "missionTitle": "Por Qué Existimos",
     "missionP1": "La industria de la construcción en Ibiza funciona con relaciones, confianza y boca a boca. Pero a medida que los proyectos se vuelven más complejos y las expectativas aumentan, las formas antiguas — grupos de WhatsApp, referencias dispersas, encargos poco claros — ya no son suficientes.",
-    "missionP2": "Constructive Solutions Ibiza se creó para cerrar esa brecha. Una plataforma estructurada que ayuda a los clientes a describir exactamente lo que necesitan, y los conecta con profesionales que entienden el trabajo antes de coger el teléfono.",
+    "missionP2": "Constructive Solutions Ibiza se creó para hacer más claro ese primer paso. Los clientes pueden describir lo que necesitan de forma estructurada, y los profesionales pueden entender el trabajo antes de decidir si responder.",
     "whatWeDoTitle": "Qué Hacemos",
-    "wwd1Title": "Publicación Estructurada",
-    "wwd1Desc": "Preguntas guiadas convierten ideas vagas en encargos claros y listos para construir. Sin párrafos largos — solo claridad.",
+    "wwd1Title": "Solicitudes de Proyecto Estructuradas",
+    "wwd1Desc": "Preguntas guiadas convierten ideas vagas en encargos más claros. Sin párrafos largos — solo los detalles prácticos que necesitan los profesionales.",
     "wwd2Title": "Matching por Servicio",
-    "wwd2Desc": "Los profesionales eligen lo que hacen. Los trabajos llegan a las personas adecuadas automáticamente — sin spam, sin ruido.",
+    "wwd2Desc": "Los profesionales eligen los servicios y zonas que cubren, para que las solicitudes lleguen a personas más relevantes.",
     "wwd3Title": "Confianza y Responsabilidad",
-    "wwd3Desc": "Perfiles verificados, comunicación estructurada y reputación que realmente importa.",
+    "wwd3Desc": "Perfiles claros, comunicación estructurada y reputación construida con actividad real a lo largo del tiempo.",
     "wwd4Title": "Solo Construcción e Inmuebles",
     "wwd4Desc": "Nos enfocamos en lo que conocemos: albañiles, electricistas, fontaneros, carpinteros y oficios cualificados en Ibiza.",
     "ibizaTitle": "Hecho para Ibiza",
@@ -573,8 +573,8 @@
     "ibizaBullet4": "Profesionales que merecen visibilidad por su trabajo de calidad",
     "ibizaP2": "Esta plataforma está diseñada específicamente para cómo funciona Ibiza realmente — no una plantilla global intentando adaptarse a la isla.",
     "standardsTitle": "Elevando Estándares",
-    "std1": "Los profesionales están orgullosos de su perfil",
-    "std2": "Los clientes tienen claras sus necesidades",
+    "std1": "Los profesionales explican lo que realmente hacen",
+    "std2": "Los clientes describen sus necesidades con claridad",
     "std3": "La comunicación está estructurada desde el primer día",
     "std4": "La reputación realmente importa",
     "futureTitle": "Hacia Dónde Vamos",
@@ -582,10 +582,10 @@
     "futureTagline": "Nuestro objetivo es ser la más fiable.",
     "founderTitle": "Nota del Fundador",
     "founderQuote": "He visto lo que pasa cuando la comunicación falla en una obra. Expectativas desalineadas, tiempo perdido, buenos profesionales enterrados bajo el ruido. Construí esto porque creo que la industria merece mejores herramientas — y que Ibiza merece una plataforma que realmente entienda cómo se trabaja aquí.",
-    "founderClosing": "Constructive Solutions Ibiza es mi compromiso de elevar el estándar — no competir a la baja en precio, sino construir confianza, claridad y responsabilidad en cada proyecto.",
+    "founderClosing": "Constructive Solutions Ibiza es mi intento de elevar el estándar al inicio de cada proyecto: solicitudes más claras, profesionales más adecuados y menos tiempo perdido para todos.",
     "ctaTitle": "¿Listo para Empezar?",
     "ctaDesc": "Tanto si necesitas trabajo como si eres profesional buscando las oportunidades adecuadas — estamos aquí para ayudarte.",
-    "ctaPost": "Publica Tu Proyecto",
+    "ctaPost": "Empieza Tu Proyecto",
     "ctaHow": "Descubre Cómo Funciona"
   },
   "debug": {
