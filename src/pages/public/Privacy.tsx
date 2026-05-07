@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { PublicLayout } from '@/components/layout';
+import { SEOHead } from '@/components/SEOHead';
 import { LegalSection } from './components/LegalSection';
 
 type Section = {
@@ -22,6 +23,12 @@ export default function Privacy() {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title="Privacy Policy | Constructive Solutions Ibiza"
+        description="Read how Constructive Solutions Ibiza handles personal data for construction and property service requests in Ibiza."
+        canonical="https://www.constructivesolutionsibiza.com/privacy"
+      />
+
       <div className="container max-w-3xl py-16 space-y-10">
         <header>
           <h1 className="font-display text-3xl font-bold text-foreground">
