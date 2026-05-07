@@ -185,7 +185,7 @@ const ServiceListingDetail = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold">{provider.display_name ?? 'Tasker'}</h3>
+                    <h3 className="font-semibold">{provider.display_name ?? 'Professional'}</h3>
                     {provider.verification_status === 'verified' && (
                       <Badge variant="outline" className="text-xs text-success border-success/30">
                         <CheckCircle2 className="h-3 w-3 mr-1" /> Verified
@@ -270,7 +270,7 @@ const ServiceListingDetail = () => {
                 {/* Secondary — View profile */}
                 <Button variant="outline" className="w-full" size="sm" asChild>
                   <Link to={`/professionals/${listing.provider_id}`}>
-                    View Tasker Profile
+                    View Professional Profile
                   </Link>
                 </Button>
               </CardContent>

@@ -95,7 +95,7 @@
           "Proporciona seguros, garantías ni avales"
         ],
         "paragraphs3": [
-          "Todos los acuerdos se forman directamente entre el Cliente (Asker) y el Profesional (Tasker)."
+          "Todos los acuerdos se forman directamente entre el cliente y el profesional."
         ]
       },
       {
@@ -222,7 +222,7 @@
   "dispute": {
     "title": "Política de Resolución Justa de 28 Días y Protección de Pagos",
     "date": "20 marzo 2026",
-    "intro": "Esta política se aplica a trabajos gestionados a través de {{company}} entre clientes (Askers) y profesionales (Taskers).",
+    "intro": "Esta política se aplica a trabajos gestionados a través de {{company}} entre clientes y profesionales.",
     "sections": [
       {
         "title": "1. Objetivo de esta política",
@@ -400,11 +400,11 @@
       {
         "title": "7. Protección de la reputación del profesional",
         "paragraphs": [
-          "Cuando una disputa se resuelve a favor del profesional (Tasker):"
+          "Cuando una disputa se resuelve a favor del profesional:"
         ],
         "bullets": [
           "Las reseñas que contradigan directamente hallazgos documentados pueden ser moderadas",
-          "Disputas repetidas e infundadas por parte de clientes (Askers) pueden resultar en avisos o suspensión"
+          "Disputas repetidas e infundadas por parte de clientes pueden resultar en avisos o suspensión"
         ],
         "paragraphs2": [
           "Las métricas de finalización no se penalizan por reclamaciones no sustentadas."
@@ -413,7 +413,7 @@
       {
         "title": "8. Protección del cliente",
         "paragraphs": [
-          "Los clientes (Askers) están protegidos mediante:"
+          "Los clientes están protegidos mediante:"
         ],
         "bullets": [
           "Derecho a revisión documentada",

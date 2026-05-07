@@ -254,7 +254,7 @@
   "services": {
     "title": "Nuestros Servicios",
     "subtitle": "Encuentra profesionales de confianza en todos los servicios de construcción e inmobiliarios",
-    "trustBadge": "Oficios verificados • Taskers de Ibiza",
+    "trustBadge": "Oficios verificados • Profesionales de Ibiza",
     "viewServices": "Ver servicios",
     "cantFind": "¿No encuentras lo que buscas?",
     "postCustomJob": "Publicar un trabajo personalizado",
@@ -267,7 +267,7 @@
     "sortBy": "Ordenar por",
     "sortNewest": "Más recientes",
     "sortPrice": "Precio más bajo",
-    "contactTasker": "Contactar Tasker"
+    "contactTasker": "Contactar profesional"
   },
   "serviceCategory": {
     "whatKindOfWork": "¿Qué tipo de trabajo necesitas?",
@@ -275,10 +275,10 @@
     "backToServices": "Volver a Servicios",
     "categoryNotFound": "Categoría no encontrada",
     "categoryNotFoundDesc": "Esta categoría no existe o ya no está disponible.",
-    "verifiedOnly": "Solo Taskers verificados",
-    "heroSubtitle": "Encuentra Taskers de {{category}} de confianza en Ibiza",
+    "verifiedOnly": "Solo profesionales verificados",
+    "heroSubtitle": "Encuentra profesionales de {{category}} de confianza en Ibiza",
     "orBrowse": "O",
-    "browseProsLink": "ver Taskers directamente",
+    "browseProsLink": "ver profesionales directamente",
     "noSubcategories": "No hay subcategorías disponibles para este servicio."
   },
   "subcategories": {
@@ -531,12 +531,12 @@
     }
   },
   "professionals": {
-    "title": "Explorar Taskers",
-    "titleSelect": "Elige un Tasker",
-    "subtitle": "Descubre Taskers que ofrecen servicios en Ibiza",
+    "title": "Explorar profesionales",
+    "titleSelect": "Elige un profesional",
+    "subtitle": "Descubre profesionales que ofrecen servicios en Ibiza",
     "subtitleSelect": "Selecciona a quién te gustaría enviar tu solicitud de trabajo",
-    "trustBadge": "Taskers en Ibiza",
-    "searchPlaceholder": "Buscar Taskers...",
+    "trustBadge": "Profesionales en Ibiza",
+    "searchPlaceholder": "Buscar profesionales...",
     "searchButton": "Buscar",
     "filteringBy": "Filtrando por:",
     "clearAll": "Limpiar todo",
@@ -544,11 +544,11 @@
     "viewButton": "Ver",
     "selectButton": "Seleccionar",
     "backToJob": "Volver al Trabajo",
-    "selectProBanner": "Selecciona un Tasker para enviar tu trabajo",
-    "noResultsFiltered": "No se encontraron Taskers con estos filtros.",
-    "noResultsEmpty": "Aún no hay Taskers listados. ¡Vuelve pronto!",
+    "selectProBanner": "Selecciona un profesional para enviar tu trabajo",
+    "noResultsFiltered": "No se encontraron profesionales con estos filtros.",
+    "noResultsEmpty": "Aún no hay profesionales listados. Vuelve pronto.",
     "clearFilters": "Limpiar Filtros",
-    "joinAsPro": "Unirse como Tasker"
+    "joinAsPro": "Unirse como profesional"
   },
   "about": {
     "heroTitle": "Sobre Nosotros",

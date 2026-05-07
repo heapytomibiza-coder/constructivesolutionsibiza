@@ -278,9 +278,9 @@
     "categoryNotFound": "Category Not Found",
     "categoryNotFoundDesc": "This service category doesn't exist or is no longer available.",
     "verifiedOnly": "Verified professionals only",
-    "heroSubtitle": "Find trusted {{category}} Taskers in Ibiza",
+    "heroSubtitle": "Find trusted {{category}} professionals in Ibiza",
     "orBrowse": "Or",
-    "browseProsLink": "browse Taskers directly",
+    "browseProsLink": "browse professionals directly",
     "noSubcategories": "No subcategories available for this service."
   },
   "subcategories": {
