@@ -108,6 +108,10 @@ export default function MatchAndSend() {
   const selected = (answers?.selected as Record<string, unknown>) || {};
   const directMicroIds = (selected.microIds as string[]) || [];
   const microNames = (selected.microNames as string[]) || [];
+  const meta = (answers?.meta as Record<string, unknown>) || {};
+  const hasJobQualityMeta = typeof meta.score === 'number';
+  const jobScore = hasJobQualityMeta ? meta.score : 0;
+  const isWeakJob = hasJobQualityMeta && jobScore < 2;
 
   // Resolve micro IDs: direct from answers, or fallback from category/subcategory slugs
   const { data: resolvedMicroIds = [], isLoading: resolvingMicros } = useQuery({
@@ -280,6 +284,23 @@ export default function MatchAndSend() {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
+          ) : isWeakJob ? (
+            <Card className="border-border/70">
+              <CardContent className="py-10 text-center">
+                <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Briefcase className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">
+                  Improve your job details
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+                  Add more detail like budget, description or photos to get better matches.
+                </p>
+                <Button onClick={() => navigate(`/dashboard/jobs/${jobId}`)}>
+                  Edit Job
+                </Button>
+              </CardContent>
+            </Card>
           ) : matchedPros.length === 0 ? (
             /* Improved empty state — reassure user the job is live */
             <Card className="border-border/70">
