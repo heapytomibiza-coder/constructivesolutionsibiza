@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, Shield, Users } from 'lucide-react';
 import heroServices from '@/assets/heroes/hero-services.webp';
 import { CATEGORY_KEYS } from '@/i18n/categoryTranslations';
 import { buildWizardLink } from '@/features/wizard/lib/wizardLink';
+import { SEOHead } from '@/components/SEOHead';
 
 /**
  * SERVICE CATEGORY PAGE - View subcategories and professionals
@@ -126,6 +127,12 @@ const ServiceCategory = () => {
 
   return (
     <PublicLayout>
+      <SEOHead
+        title={`${categoryLabel} Services in Ibiza | Constructive Solutions Ibiza`}
+        description={`Find ${categoryLabel.toLowerCase()} professionals in Ibiza or start a clear request so local trades can understand the work before they respond.`}
+        canonical={`https://www.constructivesolutionsibiza.com/services/${category.slug}`}
+      />
+
       {/* Hero Banner */}
       <HeroBanner
         imageSrc={heroServices}
