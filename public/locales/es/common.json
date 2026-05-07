@@ -588,6 +588,121 @@
     "ctaPost": "Iniciar solicitud",
     "ctaHow": "Descubre Cómo Funciona"
   },
+  "nav.forProfessionals": "Para profesionales",
+  "nav.pricing": "Precios",
+  "nav.reputation": "Reputación",
+  "forPros": {
+    "hero": {
+      "title": "Recibe solicitudes de construcción más relevantes en Ibiza",
+      "subtitle": "Muestra lo que haces, elige el trabajo que quieres y recibe solicitudes más claras antes de perder tiempo presupuestando.",
+      "badge": "Creado para oficios de Ibiza",
+      "cta": "Unirse como profesional",
+      "ctaSecondary": "Ver cómo funciona"
+    },
+    "problem": {
+      "title": "Buenos profesionales siguen perdiendo tiempo con malos contactos",
+      "desc": "Muchas consultas llegan sin detalles, sin presupuesto claro y con demasiado ida y vuelta antes de saber si merece la pena presupuestar.",
+      "total": "Total: ≈ €700+ al mes"
+    },
+    "problemTools": {
+      "website": "Web",
+      "advertising": "Publicidad",
+      "leadPlatforms": "Plataformas de contactos",
+      "quoteSoftware": "Software de presupuestos",
+      "reviewSites": "Portales de reseñas",
+      "timeLost": "Tiempo perdido"
+    },
+    "solution": {
+      "title": "Una forma más clara de conseguir trabajo relevante",
+      "valueLabel": "Valor:"
+    },
+    "features": {
+      "profile": {
+        "title": "Perfil profesional de negocio",
+        "desc": "Muestra tus servicios, zonas, fotos, datos del negocio y opciones de contacto en un solo lugar."
+      },
+      "wizard": {
+        "title": "Solicitudes estructuradas de clientes",
+        "desc": "Los clientes responden preguntas guiadas para que recibas alcance, plazos, presupuesto, ubicación y fotos cuando estén disponibles."
+      },
+      "matching": {
+        "title": "Matching basado en servicios",
+        "desc": "Elige los servicios y zonas que cubres para que lleguen menos solicitudes irrelevantes a tu panel."
+      },
+      "jobCards": {
+        "title": "Tarjetas de solicitud listas para presupuestar",
+        "desc": "Cada solicitud está organizada para que decidas rápido si responder, hacer una pregunta o pasar."
+      },
+      "reviews": {
+        "title": "Sistema de reputación",
+        "desc": "Construye confianza con reseñas verificadas de clientes después de cada proyecto completado."
+      },
+      "notifications": {
+        "title": "Avisos de solicitudes relevantes",
+        "desc": "Recibe avisos cuando nuevas solicitudes coincidan con los servicios y ubicaciones que elegiste."
+      }
+    },
+    "timeSaved": {
+      "title": "Menos tiempo persiguiendo detalles. Más tiempo haciendo el trabajo.",
+      "hoursWeek": "horas/semana en consultas",
+      "hourlyRate": "tarifa media por hora",
+      "monthlyLost": "/mes en tiempo perdido",
+      "cta": "Constructive ayuda a filtrar y estructurar las consultas antes de que te lleguen."
+    },
+    "valueStack": {
+      "title": "Las herramientas detrás de tu negocio",
+      "total": "Valor total",
+      "compare": "Todo diseñado con un objetivo: solicitudes más claras de clientes más relevantes.",
+      "disclaimer": "Estimación basada en costes habituales de herramientas y servicios equivalentes. El ahorro real puede variar.",
+      "websiteProfile": "Perfil web",
+      "advertisingExposure": "Exposición publicitaria",
+      "jobSystems": "Sistemas de solicitudes",
+      "quoteSoftware": "Software de presupuestos",
+      "reviewPlatforms": "Plataformas de reseñas",
+      "timeSaved": "Tiempo ahorrado"
+    },
+    "reputation": {
+      "title": "Gana tu estatus",
+      "desc": "Constructive no es un directorio donde se paga para ganar. Los profesionales ganan visibilidad con fiabilidad, calidad y satisfacción del cliente.",
+      "goldNote": "El estado Gold no se compra. Se gana con calidad constante y buen feedback de clientes.",
+      "learnMore": "Cómo funciona el sistema de reputación"
+    },
+    "pricing": {
+      "title": "Planes simples y justos",
+      "subtitle": "Empieza de forma sencilla y mejora tu plan para conseguir más exposición y menor comisión a medida que crece la plataforma.",
+      "mostPopular": "Más popular",
+      "inviteOnly": "Solo invitación",
+      "commission": "comisión",
+      "upgradeNote": "El estado Gold se gana con servicio excepcional y fiabilidad; no está disponible para compra."
+    },
+    "tiers": {
+      "bronze": {
+        "tag": "Profesional de entrada"
+      },
+      "silver": {
+        "tag": "Profesional verificado"
+      },
+      "gold": {
+        "tag": "Estatus de reputación élite"
+      },
+      "elite": {
+        "tag": "Empresa y equipos"
+      }
+    },
+    "tax": {
+      "title": "Un gasto de negocio",
+      "desc": "La membresía de Constructive suele clasificarse como gasto de marketing empresarial. Muchos profesionales la incluyen como gasto deducible.",
+      "disclaimer": "Consulta siempre con tu gestor o contable."
+    },
+    "cta": {
+      "title": "Empieza con el trabajo que realmente quieres",
+      "desc": "Crea tu perfil profesional, elige tus servicios y deja que lleguen solicitudes de clientes más claras.",
+      "button": "Unirse a la red",
+      "painting": "Pintura",
+      "electrical": "Electricidad",
+      "renovations": "Reformas"
+    }
+  },
   "debug": {
     "reportProblem": "Reportar un problema",
     "reportCopied": "Info de depuración copiada",
