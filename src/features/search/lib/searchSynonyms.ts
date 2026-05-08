@@ -85,7 +85,31 @@ export const SEARCH_SYNONYMS: Record<string, SynonymEntry[]> = {
 
 // === EXPANSION SAFEGUARDS ===
 const MAX_EXPANSIONS = 8;
-const MIN_TERM_LENGTH = 2;
+const MIN_TERM_LENGTH = 3;
+
+/**
+ * Stopwords stripped from natural-language questions before expansion.
+ * Without this, queries like "I need a plumber to fix my leaking tap" match
+ * any row containing "need", "fix", "my", etc. — drowning out the real intent.
+ * Includes EN + ES common words and conversational verbs.
+ */
+const STOPWORDS = new Set<string>([
+  // EN articles / pronouns / fillers
+  "the", "and", "for", "with", "from", "this", "that", "these", "those",
+  "have", "has", "had", "was", "were", "are", "you", "your", "our", "their",
+  "his", "her", "its", "any", "some", "all", "out", "off", "can", "would",
+  "could", "should", "will", "want", "wants", "wanted", "need", "needs",
+  "needed", "looking", "look", "find", "get", "got", "make", "made",
+  "please", "help", "hello", "hi", "hey", "just", "really", "very",
+  "about", "into", "onto", "over", "under", "near", "around",
+  // Generic verbs that match too much when used alone
+  "fix", "do", "does", "doing", "done",
+  // ES articles / pronouns / fillers
+  "que", "para", "con", "sin", "una", "uno", "los", "las", "del",
+  "por", "como", "este", "esta", "esto", "eso", "esa", "ese",
+  "necesito", "quiero", "busco", "buscar", "ayuda", "hola",
+  "favor", "porfavor", "puede", "puedo", "tengo", "hay",
+]);
 
 /**
  * Expand a query into multiple search terms.
