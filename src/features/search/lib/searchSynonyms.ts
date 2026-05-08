@@ -85,7 +85,31 @@ export const SEARCH_SYNONYMS: Record<string, SynonymEntry[]> = {
 
 // === EXPANSION SAFEGUARDS ===
 const MAX_EXPANSIONS = 8;
-const MIN_TERM_LENGTH = 2;
+const MIN_TERM_LENGTH = 3;
+
+/**
+ * Stopwords stripped from natural-language questions before expansion.
+ * Without this, queries like "I need a plumber to fix my leaking tap" match
+ * any row containing "need", "fix", "my", etc. — drowning out the real intent.
+ * Includes EN + ES common words and conversational verbs.
+ */
+const STOPWORDS = new Set<string>([
+  // EN articles / pronouns / fillers
+  "the", "and", "for", "with", "from", "this", "that", "these", "those",
+  "have", "has", "had", "was", "were", "are", "you", "your", "our", "their",
+  "his", "her", "its", "any", "some", "all", "out", "off", "can", "would",
+  "could", "should", "will", "want", "wants", "wanted", "need", "needs",
+  "needed", "looking", "look", "find", "get", "got", "make", "made",
+  "please", "help", "hello", "hi", "hey", "just", "really", "very",
+  "about", "into", "onto", "over", "under", "near", "around",
+  // Generic verbs that match too much when used alone
+  "fix", "do", "does", "doing", "done",
+  // ES articles / pronouns / fillers
+  "que", "para", "con", "sin", "una", "uno", "los", "las", "del",
+  "por", "como", "este", "esta", "esto", "eso", "esa", "ese",
+  "necesito", "quiero", "busco", "buscar", "ayuda", "hola",
+  "favor", "porfavor", "puede", "puedo", "tengo", "hay",
+]);
 
 /**
  * Expand a query into multiple search terms.
@@ -102,18 +126,25 @@ export function expandQueryWeighted(query: string): ExpandedTerm[] {
 
   const expansions = new Map<string, number>(); // term → best weight
 
-  const words = normalized.split(/\s+/).filter(w => w.length >= MIN_TERM_LENGTH);
+  const rawWords = normalized.split(/\s+/).filter(w => w.length >= MIN_TERM_LENGTH);
+  // Strip conversational stopwords so questions like "I need a plumber to fix
+  // my tap" focus on "plumber" and "tap" rather than matching "need" / "fix".
+  const words = rawWords.filter(w => !STOPWORDS.has(w));
+  // If stopwords stripped everything, fall back to raw words so the user still
+  // gets some result instead of an empty list.
+  const effectiveWords = words.length > 0 ? words : rawWords;
 
-  // Add each word with full weight
-  words.forEach(w => expansions.set(w, 1.0));
+  // Add each meaningful word with full weight
+  effectiveWords.forEach(w => expansions.set(w, 1.0));
 
-  // Full phrase with full weight
-  if (words.length > 1) {
-    expansions.set(normalized, 1.0);
+  // Full phrase only if the user typed a short, focused query — otherwise the
+  // raw question string almost never matches any indexed row.
+  if (effectiveWords.length > 1 && effectiveWords.length <= 3 && normalized.length <= 40) {
+    expansions.set(effectiveWords.join(" "), 1.0);
   }
 
-  // Expand each word through synonyms
-  for (const word of words) {
+  // Expand each meaningful word through synonyms
+  for (const word of effectiveWords) {
     for (const [key, values] of Object.entries(SEARCH_SYNONYMS)) {
       const weighted = values.map(toWeighted);
 

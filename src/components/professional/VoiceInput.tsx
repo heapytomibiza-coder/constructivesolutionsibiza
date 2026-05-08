@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ const SpeechRecognition =
     : null;
 
 export function VoiceInput({ onTranscript, className }: VoiceInputProps) {
+  const { i18n } = useTranslation();
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
@@ -30,7 +32,8 @@ export function VoiceInput({ onTranscript, className }: VoiceInputProps) {
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = "en-GB";
+    // Match the active UI language so Spanish speakers aren't transcribed in English.
+    recognition.lang = i18n.language?.startsWith("es") ? "es-ES" : "en-GB";
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0]?.[0]?.transcript;
@@ -43,7 +46,7 @@ export function VoiceInput({ onTranscript, className }: VoiceInputProps) {
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  }, [isListening, onTranscript]);
+  }, [isListening, onTranscript, i18n.language]);
 
   // Don't render if browser doesn't support speech
   if (!SpeechRecognition) return null;
