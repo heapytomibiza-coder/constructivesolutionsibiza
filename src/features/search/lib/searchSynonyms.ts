@@ -126,18 +126,25 @@ export function expandQueryWeighted(query: string): ExpandedTerm[] {
 
   const expansions = new Map<string, number>(); // term → best weight
 
-  const words = normalized.split(/\s+/).filter(w => w.length >= MIN_TERM_LENGTH);
+  const rawWords = normalized.split(/\s+/).filter(w => w.length >= MIN_TERM_LENGTH);
+  // Strip conversational stopwords so questions like "I need a plumber to fix
+  // my tap" focus on "plumber" and "tap" rather than matching "need" / "fix".
+  const words = rawWords.filter(w => !STOPWORDS.has(w));
+  // If stopwords stripped everything, fall back to raw words so the user still
+  // gets some result instead of an empty list.
+  const effectiveWords = words.length > 0 ? words : rawWords;
 
-  // Add each word with full weight
-  words.forEach(w => expansions.set(w, 1.0));
+  // Add each meaningful word with full weight
+  effectiveWords.forEach(w => expansions.set(w, 1.0));
 
-  // Full phrase with full weight
-  if (words.length > 1) {
-    expansions.set(normalized, 1.0);
+  // Full phrase only if the user typed a short, focused query — otherwise the
+  // raw question string almost never matches any indexed row.
+  if (effectiveWords.length > 1 && effectiveWords.length <= 3 && normalized.length <= 40) {
+    expansions.set(effectiveWords.join(" "), 1.0);
   }
 
-  // Expand each word through synonyms
-  for (const word of words) {
+  // Expand each meaningful word through synonyms
+  for (const word of effectiveWords) {
     for (const [key, values] of Object.entries(SEARCH_SYNONYMS)) {
       const weighted = values.map(toWeighted);
 
