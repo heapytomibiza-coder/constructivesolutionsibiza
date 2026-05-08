@@ -46,7 +46,7 @@ export function VoiceInput({ onTranscript, className }: VoiceInputProps) {
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  }, [isListening, onTranscript]);
+  }, [isListening, onTranscript, i18n.language]);
 
   // Don't render if browser doesn't support speech
   if (!SpeechRecognition) return null;
