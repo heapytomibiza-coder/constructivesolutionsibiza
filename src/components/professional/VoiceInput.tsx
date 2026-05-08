@@ -16,6 +16,7 @@ const SpeechRecognition =
     : null;
 
 export function VoiceInput({ onTranscript, className }: VoiceInputProps) {
+  const { i18n } = useTranslation();
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
@@ -31,7 +32,8 @@ export function VoiceInput({ onTranscript, className }: VoiceInputProps) {
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = "en-GB";
+    // Match the active UI language so Spanish speakers aren't transcribed in English.
+    recognition.lang = i18n.language?.startsWith("es") ? "es-ES" : "en-GB";
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0]?.[0]?.transcript;
