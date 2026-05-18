@@ -45,7 +45,7 @@ const ForumNewPost = () => {
 
   // Redirect to auth if not logged in
   if (!session) {
-    navigate(`/auth?redirect=/forum/${categorySlug}/new`);
+    navigate(`/auth?returnUrl=/forum/${categorySlug}/new`);
     return null;
   }
 
