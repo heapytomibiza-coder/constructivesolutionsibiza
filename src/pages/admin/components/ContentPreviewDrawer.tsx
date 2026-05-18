@@ -406,7 +406,7 @@ export function ContentPreviewDrawer({
             {isPost && (
               <Button variant="outline" size="sm" asChild>
                 <a
-                  href={`/community/post/${item.id}`}
+                  href={`/forum/post/${item.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="gap-1.5"
