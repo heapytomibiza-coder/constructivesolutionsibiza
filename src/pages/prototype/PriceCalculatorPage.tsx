@@ -209,7 +209,7 @@ export default function PriceCalculatorPage() {
                       We don't have pricing data for <strong>{microName}</strong> yet.
                       Post a job to receive real quotes from professionals.
                     </p>
-                    <Link to="/post-job">
+                    <Link to="/post">
                       <Button variant="default" size="sm">
                         Post a Job
                       </Button>
