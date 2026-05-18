@@ -245,7 +245,7 @@ export default function ContentSection() {
                               asChild
                             >
                               <a
-                                href={`/community/post/${item.id}`}
+                                href={`/forum/post/${item.id}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >

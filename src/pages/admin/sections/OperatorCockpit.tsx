@@ -156,28 +156,28 @@ export function OperatorCockpit() {
               iconClassName="bg-amber-500/10"
               label="Stuck by Phase"
               value={(health?.stuck_not_started ?? 0) + (health?.stuck_basic_info ?? 0) + (health?.stuck_service_setup ?? 0)}
-              onClick={() => navigate("/dashboard/admin/users?filter=professionals")}
+              onClick={() => navigate("/dashboard/admin?tab=users&filter=professionals")}
             />
             <StatTile
               icon={<MapPin className="h-5 w-5 text-destructive" />}
               iconClassName="bg-destructive/10"
               label="No Zones"
               value={health?.no_zones ?? 0}
-              onClick={() => navigate("/dashboard/admin/users?filter=professionals")}
+              onClick={() => navigate("/dashboard/admin?tab=users&filter=professionals")}
             />
             <StatTile
               icon={<Phone className="h-5 w-5 text-amber-500" />}
               iconClassName="bg-amber-500/10"
               label="No Phone"
               value={health?.no_phone ?? 0}
-              onClick={() => navigate("/dashboard/admin/users?filter=professionals")}
+              onClick={() => navigate("/dashboard/admin?tab=users&filter=professionals")}
             />
             <StatTile
               icon={<Wrench className="h-5 w-5 text-amber-500" />}
               iconClassName="bg-amber-500/10"
               label="0 Offered Services"
               value={health?.zero_offered_services ?? 0}
-              onClick={() => navigate("/dashboard/admin/users?filter=professionals")}
+              onClick={() => navigate("/dashboard/admin?tab=users&filter=professionals")}
             />
             <StatTile
               icon={<ShieldCheck className="h-5 w-5 text-accent" />}

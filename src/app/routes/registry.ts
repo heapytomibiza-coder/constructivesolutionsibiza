@@ -48,6 +48,8 @@ export const publicRoutes: RouteConfig[] = [
     nav: { section: 'public', labelKey: 'nav.jobs', order: 3 },
     titleKey: 'nav.jobs',
   },
+  // Public job preview. Quote/message actions are gated inside the page by pro readiness.
+  { path: '/jobs/:jobId', access: 'public', lane: 'public' },
   { 
     path: '/professionals', 
     access: 'public', 
@@ -147,6 +149,9 @@ export const clientRoutes: RouteConfig[] = [
     titleKey: 'nav.clientJobs',
   },
   // Shared job ticket routes (accessible by both client and pro via role check in component)
+  // Shared job ticket routes. Guard checks auth only; ownership/participant access
+  // is enforced by RLS at the DB layer and by per-page ownership checks (defense in depth).
+  // /invite and /compare are client-owner-only and must remain visually gated inside the page.
   { path: '/dashboard/jobs/:jobId', access: 'auth', redirectTo: '/auth', lane: 'shared' },
   { path: '/dashboard/jobs/:jobId/invite', access: 'auth', redirectTo: '/auth', lane: 'shared' },
   { path: '/dashboard/jobs/:jobId/compare', access: 'auth', redirectTo: '/auth', lane: 'shared' },
@@ -223,9 +228,11 @@ export const proOnboardingRoutes: RouteConfig[] = [
 
 export const proDashboardRoutes: RouteConfig[] = [
   { 
+    // proReady gate: incomplete pros are routed to onboarding instead of an empty dashboard.
+    // Unauthenticated users bounce via /onboarding/professional → /auth (single safe hop).
     path: '/dashboard/pro', 
-    access: 'role:professional', 
-    redirectTo: '/auth', 
+    access: 'proReady', 
+    redirectTo: '/onboarding/professional', 
     lane: 'professional', 
     nav: { section: 'working', labelKey: 'nav.proDashboard', order: 1, hideWhenPublic: true },
     titleKey: 'nav.proDashboard',

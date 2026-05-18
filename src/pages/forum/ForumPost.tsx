@@ -571,7 +571,7 @@ const ForumPost = () => {
                 {t("auth.signInPrompt")}
               </p>
               <Button asChild>
-                <Link to={`/auth?redirect=/forum/post/${postId}`}>{t("auth.signInToReply")}</Link>
+                <Link to={`/auth?returnUrl=/forum/post/${postId}`}>{t("auth.signInToReply")}</Link>
               </Button>
             </CardContent>
           </Card>

@@ -1,99 +1,174 @@
-## Objective
+# Phased Fix Plan — Flow, Routing, Permissions, Redirects, Navigation
 
-Validate the core MVP operational loop using real client/pro accounts and test DB records, **without code or product-logic changes**. Admin UI is inspected via code and database state because admin credentials are unavailable.
+Scope is strictly the issues surfaced in the approved audit + diagrams + Lighthouse doc. No page redesigns, no copy rewrites beyond link targets and query-param names, no new features, no DB changes.
 
-## Ground rules
+Each phase is independently shippable and revertable. Stop and verify after each phase before starting the next.
 
-- **No code changes. No product logic changes.** Test accounts and test DB rows may be created where required to complete the MVP loop.
-- **Stage 2 is a hard gate.** No seeding occurs until the real admin "Send enquiry" write path is fully reverse-engineered (every table, column, status, trigger, dependent row).
-- **Hard fail condition:** If the real admin action cannot be replicated with high confidence, the MVP loop is considered only **partially validated**, and Stage 3/4 results **must not be treated as production-equivalent**. This is reported as the headline verdict, not a footnote.
-- **Transactional integrity:** Seeded rows must be inserted in the same order (and where feasible, the same transaction) as production, because unread counters, conversation ordering, timestamps, triggers, notification listeners, and realtime feeds all depend on insertion order.
-- All test rows tagged with `[MVP-TEST]` for clean purge after the run.
+---
 
-## Fixed test job
+## Phase 1 — Safe link & redirect string fixes
 
-- **Category:** Carpentry
-- **Subcategory:** Shelving / fitted storage
-- **Micro:** Install fitted shelving (single room)
-- **Area:** Ibiza Town
-- **Budget:** €800–€1,500
-- **Timing:** This week
-- **Safety:** Standard / green
-- **Custom request:** No
-- **Photos:** 1 placeholder
+**Goal:** Kill dead buttons and wrong URLs. Pure string-level changes, zero behavior risk.
 
-Tests the **clean happy path**, avoiding the custom-classifier and high-risk branches.
+**Fixes**
+1. `PriceCalculatorPage` link `/post-job` → `/post`.
+2. Admin cockpit dead links `/dashboard/admin/users?filter=...` → `/dashboard/admin?tab=users&filter=...` (or remove if no tab exists yet).
+3. Admin content links `/community/post/:id` → `/forum/post/:postId`.
+4. Forum auth links using `?redirect=` → normalize to `?returnUrl=` to match `RouteGuard` / `buildReturnUrl`.
 
-## Stages
+**Files (expected)**
+- `src/pages/prototype/PriceCalculatorPage.tsx`
+- `src/pages/admin/**` (OperatorCockpit, ContentPreviewDrawer, ContentSection)
+- `src/pages/forum/ForumPost.tsx`, `ForumCategory.tsx`, `ForumNewPost.tsx`
 
-### Stage 1 — Client signs up + posts job (live)
-- Sign up fresh client at `/auth`
-- Walk wizard end-to-end with the fixed test job
-- Capture screenshots at every step
-- **Mobile UX evaluation at 375px on the Review step**, scoring:
-  - Scroll fatigue (how many full screens to read it)
-  - Repeated information
-  - CTA visibility above the fold
-  - Cognitive overload (count of distinct visual blocks)
-  - Tap-target sizing
-- Submit. Confirm `jobs` row + `?posted=1` interstitial
-- **Time-to-complete:** record signup → job submitted (wall-clock) and total click count
+**Risk:** Very low. No guards, no registry, no data writes.
 
-### Stage 2 — Reverse-engineer admin write path (HARD GATE)
-- Read `JobDetailDrawer.tsx`, `ClassificationReviewPanel`, manual-shortlist + "Send enquiry" admin action source
-- Produce a **complete write-set spec**:
-  - Every table written
-  - Every column populated and with what
-  - Insertion order
-  - Triggers fired (notification queue, counter updates, audit logs)
-  - Realtime channels broadcast to
-  - Edge functions invoked
-  - Email/Telegram side effects
-- Cross-check against `docs/architecture/data-flows.md` and DB triggers
-- **Confidence rating** (high / medium / low) on whether external seeding can faithfully reproduce this. If low → declare partial validation now and continue only for diagnostic value.
+**Test**
+- Manual click of each fixed button in preview.
+- Logged-out → forum reply → land on `/auth?returnUrl=/forum/...`, return correctly after login.
+- `rg "/post-job|/community/post|\?redirect="` returns zero hits in `src/` (other than redirect definitions).
 
-### Stage 2.5 — Seed enquiry (gated on Stage 2 confidence)
-- Insert the exact row set in the exact order Stage 2 documented
-- Use a single transaction where possible
-- Anything **unreachable** from outside the action (edge-function-only side effects, in-process broadcasts) → flagged unverified and counted toward partial-validation verdict
+---
 
-### Stage 3 — Professional receives enquiry (live)
-- Sign up fresh pro, complete onboarding to `pro_ready`
-- **Time-to-complete:** signup → `pro_ready` (wall-clock + click/screen count)
-- Open `/dashboard/pro` → Received Enquiries
-- Test viewed / interested / declined; capture each state + DB write
-- **Realtime check:** with the client dashboard open in a parallel browser context, confirm whether status changes propagate without a manual refresh. Record: realtime ✓ / refresh-required ✗ / partial.
+## Phase 2 — Registry & guard tightening
 
-### Stage 4 — Client sees progress (live)
-- On client dashboard, confirm sent / interested / declined counters
-- Confirm progress copy is clear and reassuring
-- **Realtime check** (mirrors Stage 3): does the client see pro responses without refresh?
+**Goal:** Make `RouteGuard` the single source of truth, matching the Lighthouse doc.
 
-## Deliverable per stage
+**Fixes**
+5. **Pro dashboard gate:** `/dashboard/pro` switch `role:professional` → `proReady`. Incomplete pros get sent to `/onboarding/professional` instead of an empty dashboard. `checkAccess` already supports `proReady`.
+6. **Shared job ticket ownership:** `/dashboard/jobs/:jobId`, `/invite`, `/compare` stay `access: 'auth'` at the guard, but document the ownership contract in `registry.ts` and verify the in-component participant/owner check is present and consistent. (Backend RLS already enforces; this is belt-and-braces UI.)
+7. **Missing registry entry:** Any route mounted in `App.tsx` but absent from `registry.ts` (notably `/jobs/:jobId` if missing, plus `/launch-checklist`). Add them so the guard recognizes them.
+8. **Protect `/launch-checklist`:** Flip from `public` → `admin`.
+9. **Remove page-level redirects** that duplicate guard logic (e.g. onboarding page doing its own auth redirect). Centralize in `RouteGuard` / `DashboardResolver`.
 
-1. What I did
-2. Screenshots (with mobile screenshots on Stage 1 Review)
-3. ✅ What worked
-4. ⚠️ Friction / confusion
-5. 🛑 Blockers
-6. ✏️ Copy / polish suggestions
-7. ⏱️ Time-to-complete + click count (Stages 1, 3)
-8. 📡 Realtime verdict (Stages 3, 4)
-9. ⚡ Production-path bypasses (Stage 2.5)
+**Files**
+- `src/app/routes/registry.ts`
+- `src/App.tsx`
+- `src/pages/onboarding/**` (and any other page with a self-redirect surfaced during exploration)
+- Read-only verification: `src/guard/RouteGuard.tsx`, `src/guard/access.ts`
 
-## Final report
+**Risk:** Medium. Wrong `isProReady` evaluation could lock a real pro out of `/dashboard/pro`. Mitigation: smoke-test with a fully-onboarded and a half-onboarded pro before merge.
 
-- **Headline verdict:** Fully validated / **Partially validated** / Not validated — driven by Stage 2 confidence + Stage 2.5 bypasses + realtime results
-- **Mobile UX scorecard** for the Review step
-- **Onboarding friction summary** (time + clicks for client and pro)
-- **Realtime quality signal** (✓/✗/partial across stages)
-- Consolidated prioritised list: 🛑 Blocker · ⚠️ Issue · ⚡ Risk · ✨ Polish
+**Test**
+- `src/test/smoke/guards.smoke.test.tsx` and `src/test/access.test.ts` pass.
+- Manual matrix:
+  - Logged out → `/dashboard/pro` → `/auth?returnUrl=/dashboard/pro`.
+  - Pro not ready → `/dashboard/pro` → `/onboarding/professional`.
+  - Pro ready → `/dashboard/pro` renders.
+  - Non-admin → `/launch-checklist` → guard redirect.
+  - Client A opens client B's `/dashboard/jobs/:id` → blocked.
 
-## Out of scope
-No code/product-logic changes. No payment, dispute, review-loop testing. Admin UI inspected, not interacted with.
+---
 
-## Cleanup
-SQL block to purge `[MVP-TEST]` rows + delete the two test auth users.
+## Phase 3 — URL family canonicalization
 
-## Estimated effort
-~30–50 tool calls in one continuous pass; full report posted at the end.
+**Goal:** Resolve the `/professional/*` vs `/dashboard/pro/*` vs `/dashboard/professional/*` overlap exactly per the Lighthouse doc.
+
+**Canonical rule (from the doc)**
+- `/dashboard/pro/*` = working lane (dashboard, jobs, listings, insights).
+- `/professional/*` = setup/profile only (`services`, `profile`, `priorities`).
+- `/dashboard/professional/*` = redirect only.
+- Legacy `/professional/listings`, `/professional/insights`, `/professional/portfolio`, `/professional/service-setup` = redirect only.
+- `/marketplace`, `/marketplace/:listingId` = redirect only to `/services*`.
+
+**Fixes**
+- Sweep every `<Link>`, `navigate(...)`, and hard-coded path. Repoint to the canonical family.
+- Confirm all legacy redirects are present in `registry.ts`; keep for one release.
+
+**Files**
+- `src/app/routes/registry.ts`
+- `src/shared/components/layout/**` (nav, role switcher)
+- `src/pages/dashboard/professional/**`, `src/pages/professional/**`
+- `src/hooks/useRoleSwitch.ts`, `src/app/routes/nav.ts` (if hardcoded labels point at wrong family)
+
+**Risk:** Medium. Many call sites. Mitigation: `rg` sweep + smoke tests + manual pro lane walk.
+
+**Test**
+- `rg "/professional/(listings|insights|portfolio|service-setup)" src` only matches redirect definitions.
+- `rg "/marketplace" src` only matches redirect definitions.
+- Smoke: `listings.smoke`, `dashboard.smoke`, `onboarding.smoke`, `messages.smoke` all green.
+- Manual: complete onboarding → `/dashboard/pro?welcome=1`; edit listing → URL `/dashboard/pro/listings/:id/edit`.
+
+---
+
+## Phase 4 — Navigation surface cleanup
+
+**Goal:** Match the "Simplified MVP Architecture" nav lists in the Lighthouse doc.
+
+**Fixes**
+- Public nav: `Home, Services, How it works, Jobs, Sign in, Post job, Join as pro` only.
+- Client nav: `Dashboard, Post job, My jobs, Messages, Settings`.
+- Pro nav: `Dashboard, Available jobs, My jobs, Services/listings, Messages, Settings`.
+- Admin nav: `Admin, Monitoring, Insights` (other admin sections live as tabs inside `/dashboard/admin`).
+- Hide from primary nav until rollout/MVP-ready: `/pricing`, `/reputation`, `/for-professionals`, `/dashboard/pro/insights`, `/prototype/*`, forum write entries.
+- Add `minRollout` to `/prototype/*` so guests don't land on them.
+- Confirm every nav surface is derived from `getVisibleNavModel` — kill any hardcoded nav arrays found.
+
+**Files**
+- `src/app/routes/registry.ts` (rollout flags, nav metadata)
+- `src/shared/components/layout/PublicNav.tsx`, `MobileNav.tsx`, `RoleSwitchPanel.tsx`
+- `src/app/routes/nav.ts` (read-only verification)
+
+**Risk:** Low. Visual-only at the nav layer; no guard changes.
+
+**Test**
+- Logged-out visitor sees only the public nav above.
+- Client logged in sees only client nav (+ shared).
+- Pro logged in sees only pro nav (+ shared).
+- `/prototype/*` direct hit → guard fallback when rollout inactive.
+
+---
+
+## Phase 5 — Post-action return destinations
+
+**Goal:** Align action-completion routing with the Lighthouse "Action Completion Returns" table. Navigation targets only — no UI redesign.
+
+**Fixes**
+- Post-publish success → `/dashboard/jobs/:jobId/invite` (verify and remove any mock-match interstitial routing).
+- Invite send → `/dashboard/jobs/:jobId`.
+- Quote accept → `/dashboard/jobs/:jobId` or `/messages/:id`.
+- Pro onboarding complete → `/dashboard/pro?welcome=1`.
+- Forum post created → `/forum/post/:postId`.
+- Admin detail back → `/dashboard/admin?tab=<section>`.
+- `DashboardResolver`: verify it matches the priority order in the doc (returnUrl → pending → admin → pro(ready/onboarding) → client → `/`).
+
+**Files**
+- `src/pages/jobs/**` (post-submit success / invite handoff)
+- `src/pages/onboarding/**` (completion navigate)
+- `src/pages/forum/**` (post-create navigate)
+- `src/pages/dashboard/DashboardResolver.tsx`
+- `src/guard/decideAuthLanding.ts` (if present)
+
+**Risk:** Low. Navigation-target changes only.
+
+**Test**
+- Post a real job end-to-end → land on invite screen, not a mock summary.
+- Complete onboarding → land on `/dashboard/pro?welcome=1`.
+- Accept quote → land on related job ticket or thread.
+- Admin insight detail → back button returns to admin with correct tab.
+
+---
+
+## Explicitly out of scope
+
+- Page redesigns, copy rewrites, new components.
+- New features, new tables, new RPCs.
+- Admin internal IA beyond linking to `?tab=...` placeholders.
+- Dispute UX (stays rollout-gated per the doc).
+- Reputation/pricing marketing pages (stay hidden per the doc).
+
+---
+
+## Sequencing & gate criteria
+
+```text
+Phase 1 → verify → Phase 2 → verify → Phase 3 → verify → Phase 4 → verify → Phase 5 → verify
+```
+
+Each phase ends with: smoke tests green + a 5-minute manual walk of the affected lane in preview. No next phase until the current one is signed off.
+
+---
+
+## One question to answer before Phase 1 starts
+
+**`/launch-checklist`** — Phase 2 protects it as admin. Confirm: keep as admin-only, or remove entirely from `App.tsx`? Either is one line; just need your call.
