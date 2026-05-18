@@ -228,9 +228,11 @@ export const proOnboardingRoutes: RouteConfig[] = [
 
 export const proDashboardRoutes: RouteConfig[] = [
   { 
+    // proReady gate: incomplete pros are routed to onboarding instead of an empty dashboard.
+    // Unauthenticated users bounce via /onboarding/professional → /auth (single safe hop).
     path: '/dashboard/pro', 
-    access: 'role:professional', 
-    redirectTo: '/auth', 
+    access: 'proReady', 
+    redirectTo: '/onboarding/professional', 
     lane: 'professional', 
     nav: { section: 'working', labelKey: 'nav.proDashboard', order: 1, hideWhenPublic: true },
     titleKey: 'nav.proDashboard',
