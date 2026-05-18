@@ -39,7 +39,7 @@ const ForumCategory = () => {
 
   const handleNewPost = () => {
     if (!session) {
-      navigate("/auth?redirect=/forum/" + categorySlug + "/new");
+      navigate("/auth?returnUrl=/forum/" + categorySlug + "/new");
     } else {
       navigate(`/forum/${categorySlug}/new`);
     }
