@@ -48,6 +48,8 @@ export const publicRoutes: RouteConfig[] = [
     nav: { section: 'public', labelKey: 'nav.jobs', order: 3 },
     titleKey: 'nav.jobs',
   },
+  // Public job preview. Quote/message actions are gated inside the page by pro readiness.
+  { path: '/jobs/:jobId', access: 'public', lane: 'public' },
   { 
     path: '/professionals', 
     access: 'public', 
