@@ -106,12 +106,9 @@ const ProfessionalOnboarding = () => {
     return () => { cancelled = true; };
   }, [user?.id, isLoading, currentStep]);
 
-  // Auth guard — redirect unauthenticated users to login
-  useEffect(() => {
-    if (!isLoading && !user) {
-      navigate('/login', { replace: true });
-    }
-  }, [isLoading, user, navigate]);
+  // Auth is enforced by RouteGuard at the route layer (access: 'role:professional').
+  // No page-level redirect needed — guards/resolvers are the single source of truth.
+
 
   // Set correct step once profile has loaded, but do not override explicit manual navigation.
   useEffect(() => {
