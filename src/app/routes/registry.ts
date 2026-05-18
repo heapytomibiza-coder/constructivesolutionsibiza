@@ -149,6 +149,9 @@ export const clientRoutes: RouteConfig[] = [
     titleKey: 'nav.clientJobs',
   },
   // Shared job ticket routes (accessible by both client and pro via role check in component)
+  // Shared job ticket routes. Guard checks auth only; ownership/participant access
+  // is enforced by RLS at the DB layer and by per-page ownership checks (defense in depth).
+  // /invite and /compare are client-owner-only and must remain visually gated inside the page.
   { path: '/dashboard/jobs/:jobId', access: 'auth', redirectTo: '/auth', lane: 'shared' },
   { path: '/dashboard/jobs/:jobId/invite', access: 'auth', redirectTo: '/auth', lane: 'shared' },
   { path: '/dashboard/jobs/:jobId/compare', access: 'auth', redirectTo: '/auth', lane: 'shared' },
